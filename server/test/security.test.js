@@ -4,7 +4,7 @@ import http from "node:http";
 import { reset, pool, q } from "./helpers.js";
 import * as auth from "../src/auth.js";
 import { encrypt, decrypt, scrub } from "../src/secrets.js";
-import { saveCreds, getCreds, listConnections, recordResult, isLocked, unlock } from "../src/connections.js";
+import { saveCreds, getCreds, listConnections, recordResult, isLocked, unlock, connectionStatus } from "../src/connections.js";
 import { parseBankCsv } from "../src/sources/csv.js";
 import { ntfyProblem } from "../src/notify.js";
 
@@ -225,4 +225,35 @@ test("a bank asking for a one-time code locks the source on the first failure", 
   assert.equal(await recordResult("max", false, "OTP_REQUIRED: the bank asked for a one-time code, which this scraper cannot enter", {}), true);
   assert.equal(await isLocked("max"), true);
   await unlock("max");
+});
+
+test("connection status wording covers every state", () => {
+  const T0 = new Date("2026-10-10T12:00:00Z").getTime(), iso = (d) => new Date(T0 - d * 864e5).toISOString();
+  const base = { configured: true, locked: false, failures: 0, lastError: "", savedAt: iso(5), testedAt: null, syncedAt: null };
+  const k = (o) => connectionStatus({ ...base, ...o }, T0);
+  assert.deepEqual([k({ configured: false }).key, k({ configured: false }).tone], ["none", "gray"]);
+  assert.deepEqual([k({}).key, k({}).tone], ["untested", "yellow"]);
+  assert.deepEqual([k({ testedAt: iso(1) }).key, k({ testedAt: iso(1) }).tone], ["tested", "yellow"]);
+  assert.deepEqual([k({ syncedAt: iso(0.2) }).key, k({ syncedAt: iso(0.2) }).tone], ["connected", "green"]);
+  assert.equal(k({ syncedAt: iso(3) }).key, "stale");
+  assert.deepEqual([k({ failures: 1, syncedAt: iso(0.2) }).key, k({ failures: 1 }).tone], ["failed", "red"]);
+  assert.equal(k({ locked: true, failures: 2 }).key, "locked");
+  assert.equal(k({ locked: true, lastError: "OTP_REQUIRED: x" }).key, "otp");
+  // credentials saved again after the last good sync or test: those no longer count
+  assert.equal(k({ savedAt: iso(0.1), syncedAt: iso(1), testedAt: iso(1) }).key, "untested");
+});
+
+test("status is computed end to end: save, test, sync", async () => {
+  await q("TRUNCATE credentials, source_state, sync_runs");
+  const st = async () => (await listConnections()).find((c) => c.source === "isracard").status.key;
+  assert.equal(await st(), "none");
+  await saveCreds("isracard", { id: "123456789", card6Digits: "123456", password: "pw-status-1" });
+  assert.equal(await st(), "untested");
+  const { markTested } = await import("../src/connections.js");
+  await markTested("isracard");
+  assert.equal(await st(), "tested");
+  await q("INSERT INTO sync_runs (source,finished_at,ok,added) VALUES ('isracard', now() + interval '1 second', true, 3)");
+  assert.equal(await st(), "connected");
+  await recordResult("isracard", false, "boom", {});
+  assert.equal(await st(), "failed");
 });
