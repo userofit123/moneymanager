@@ -292,3 +292,26 @@ test("device verification: one window at a time, drives the scraper, never revea
   const c = (await call("GET", "/api/connections", { cookie })).body.find((x) => x.source === "hapoalim");
   assert.ok(c.assistedAt);
 });
+
+test("an uploaded PDF can be viewed again; bad ids are a clean 404", async () => {
+  await q("INSERT INTO transactions (date,description,amount) VALUES ('2026-10-01','Receipt test',-5)");
+  const id = (await q("SELECT max(id) AS id FROM transactions")).rows[0].id;
+  const up = await fetch(base + `/api/transactions/${id}/documents`, { method: "POST", headers: { cookie, ...X, "x-filename": encodeURIComponent("חשבונית (1).pdf"), "content-type": "application/pdf" }, body: Buffer.from("%PDF-1.4 test") });
+  const meta = await up.json();
+  assert.equal(up.status, 200, JSON.stringify(meta));
+  const r = await fetch(base + "/api/documents/" + meta.id, { headers: { cookie } });
+  assert.equal(r.status, 200);
+  assert.equal(r.headers.get("content-type"), "application/pdf");
+  assert.equal(await r.text(), "%PDF-1.4 test");
+  assert.equal((await fetch(base + "/api/documents/abc", { headers: { cookie } })).status, 404);
+  assert.equal((await fetch(base + "/api/documents/99999", { headers: { cookie } })).status, 404);
+});
+
+test("sync settings: only known values are accepted and they change what a sync reads", async () => {
+  const g = await call("GET", "/api/sync/settings", { cookie });
+  assert.equal(g.body.hours, 8);
+  const p = await call("PUT", "/api/sync/settings", { cookie, headers: X, body: { hours: 12, firstDays: 1825, routineDays: 7 } });
+  assert.equal(p.body.hours, 12);
+  assert.equal(p.body.firstDays, 1825);
+  assert.equal(p.body.routineDays, 30); // 7 is not an offered value, so it is ignored
+});

@@ -22,3 +22,20 @@ export async function readDoc(id) {
   if (!file.startsWith(DOCS_DIR) || !fs.existsSync(file)) return null;
   return { ...r.rows[0], file };
 }
+
+// Streams a stored file. Never throws into the generic error handler: a broken file is a 404, not a 500.
+const SAFE_MIME = /^[\w.+-]+\/[\w.+-]+$/;
+export async function sendDoc(id, res) {
+  if (!Number.isSafeInteger(id) || id < 1) return res.status(404).json({ error: "No such file" });
+  const d = await readDoc(id);
+  if (!d) return res.status(404).json({ error: "This file is no longer on the server" });
+  const mime = SAFE_MIME.test(d.mime || "") ? d.mime : "application/octet-stream";
+  const size = fs.statSync(d.file).size;
+  res.status(200).set({ "Content-Type": mime, "Content-Length": String(size), "X-Content-Type-Options": "nosniff", "Content-Disposition": `inline; filename*=UTF-8''${encodeURIComponent(d.filename)}` });
+  await new Promise((ok) => {
+    const s = fs.createReadStream(d.file);
+    s.on("error", () => { res.destroy(); ok(); });
+    res.on("close", ok);
+    s.pipe(res);
+  });
+}
