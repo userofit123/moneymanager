@@ -47,9 +47,9 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
 
       if (mergeManual) { // a hand-entered row for the same money: same account, same amount, within 1 day
         const m = await c.query(
-          `SELECT id FROM transactions WHERE source='manual' AND external_id IS NULL AND (from_name=$1 OR to_name=$1)
+          `SELECT id FROM transactions WHERE ((source='manual' AND external_id IS NULL) OR (source=$6 AND external_id LIKE 'act:%')) AND (from_name=$1 OR to_name=$1)
            AND ((orig_currency IS NOT NULL AND orig_currency=$4 AND orig_amount=$2) OR (orig_currency IS NULL AND amount=$3))
-           AND abs(date - $5::date) <= 1 ORDER BY id LIMIT 1`, [account.name, r.amount, ils, cur, r.date]);
+           AND abs(date - $5::date) <= 1 ORDER BY id LIMIT 1`, [account.name, r.amount, ils, cur, r.date, account.source]);
         if (m.rowCount) { // the import wins for amount, date and description; category, tags, note and documents stay
           await c.query(
             "UPDATE transactions SET date=$2,description=$3,amount=$4,orig_currency=$5,orig_amount=$6,rate=$7,source=$8,external_id=$9 WHERE id=$1",

@@ -48,8 +48,8 @@ const toRows = (acc) => (acc.txns || []).map((t) => ({
 const BANKS = { hapoalim: ["Bank Hapoalim", "bank"], max: ["Max", "card"], isracard: ["Isracard", "card"] };
 
 const RUN = {
-  async wise(creds) {
-    const w = await fetchWise(creds.token);
+  async wise(creds, opts = {}) {
+    const w = await fetchWise(creds.token, { days: opts.days || ((await firstTime("wise")) ? HISTORY_DAYS : 30) });
     let added = 0;
     for (const b of w.balances) {
       const a = await tx((c) => account(c, "Wise", b.currency, { kind: "wallet", source: "wise", subtitle: `${b.currency} balance` }));
@@ -137,7 +137,7 @@ async function testInner(name) {
   try {
     let out;
     if (name === "wise") {
-      const w = await fetchWise(creds.token);
+      const w = await fetchWise(creds.token, { days: 30 });
       out = { balances: w.balances.map((b) => ({ currency: b.currency, value: b.value })), transactions: w.transactions.length, note: w.note || "Statements are available" };
     } else {
       const res = await scrape(name, creds, 30);
