@@ -58,6 +58,11 @@ export async function getState() {
   tags.rows.forEach((r) => (tagMap[r.transaction_id] ||= []).push(r.tag));
   docs.rows.forEach((r) => (docMap[r.transaction_id] ||= []).push(r));
   const cfg = { ...DEFAULT_CFG, ...(await setting("cfg", {})) };
+  // only booleans: which sources have credentials saved, and which are locked (never the credentials themselves)
+  const [credRows, stRows] = await Promise.all([q("SELECT source FROM credentials"), q("SELECT source,locked FROM source_state")]);
+  const connected = Object.fromEntries(credRows.rows.map((r) => [r.source, true]));
+  if (process.env.WISE_TOKEN) connected.wise = true;
+  const locked = Object.fromEntries(stRows.rows.filter((r) => r.locked).map((r) => [r.source, true]));
   return {
     v: 4,
     rev: parseInt(rev.rows[0].value, 10),
@@ -88,6 +93,7 @@ export async function getState() {
       id: a.id, n: a.name, cur: a.currency, kind: a.kind, src: a.source, s: a.subtitle, manual: a.manual,
       inNW: a.in_net_worth, v: a.balance, at: a.balance_at,
     })),
+    connected, locked,
     sources: runs.rows.map((r) => ({ n: r.source, ok: r.ok, at: r.finished_at, added: r.added, msg: r.message })),
     nwSnaps: snaps.rows,
     gaps: gaps.rows.map((g) => ({ ...g, window_from: g.window_from.toISOString(), window_to: g.window_to.toISOString() })),

@@ -45,6 +45,10 @@ docker compose -f docker-compose.yml -f docker-compose.strict.yml up -d --build
 If a login then times out, `docker compose logs egress` lists hosts it refused; add only ones you recognise to `EGRESS_ALLOW` in `.env`. See [`docs/SECURITY.md`](docs/SECURITY.md) for the full audit of what can leave the app.
 
 ## Troubleshooting a scraper
+**The bank texted you a code during a login.** The scraper library cannot enter one-time codes for Hapoalim, Max or Isracard (it only supports them for One Zero). The app detects the code page, pauses that source straight away (so no more codes are sent) and tells you. Use the bank's CSV/Excel export through Settings → App and data for that source instead.
+
+**`fetchPostWithinPage parse error: Unexpected end of JSON input`** means the login page accepted the login but the bank's data request came back empty: almost always extra verification or blocked automation (same checks as below).
+
 A message like `TIMEOUT: waiting for redirect…` means the login page did not move on after the login was typed. It is not necessarily a wrong password. Check, in this order:
 1. Log in to the bank's site yourself in a normal browser. Look for a captcha, a one-time code, an expired password, a terms or update notice, or a locked account. Fix that first.
 2. Turn on diagnostics: set `SCRAPER_DEBUG=1` in `.env`, run `docker compose up -d`, then **Unlock** and **Test connection** once in the app.
