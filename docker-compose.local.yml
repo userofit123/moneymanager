@@ -1,8 +1,9 @@
-# Local testing: docker compose -f docker-compose.local.yml up --build
-# Sample data on an empty database, no scraper, nothing exposed except http://localhost:8080
+# Local testing: docker compose -f docker-compose.local.yml up -d --build
+# Open http://localhost:8787 (change with APP_PORT=9000 ...). Loads sample data on first start, restarts by itself.
 services:
   db:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: money
       POSTGRES_PASSWORD: money
@@ -15,6 +16,7 @@ services:
       retries: 10
 
   app:
+    restart: unless-stopped
     build:
       context: .
       dockerfile: server/Dockerfile
@@ -24,11 +26,12 @@ services:
       DATABASE_URL: postgres://money:money@db:5432/money
       DOCS_DIR: /data/documents
       ALLOW_DEMO_SEED: "1"
+      AUTO_DEMO_SEED: "1"
       SCHEDULER: "0"
     volumes:
       - docs:/data/documents
     ports:
-      - "8080:8080"
+      - "${APP_PORT:-8787}:8080"
 
 volumes:
   pgdata:
