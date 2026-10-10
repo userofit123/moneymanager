@@ -200,6 +200,28 @@ html.nt *,html.nt *::before,html.nt *::after{transition:none!important}
 html.mob .dsvg{display:block;margin:0 auto}html.mob #donutHome,html.mob #donutRep{flex-direction:column;align-items:stretch}html.mob .legend{min-width:0;width:100%}
 html.sl,html.sl body{overflow:hidden}html.mob.sl body{position:fixed;left:0;right:0;width:100%}
 .phs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.phs>div{background:var(--s1);border:1px solid var(--ol);border-radius:14px;padding:10px 12px;min-width:0}.phs span{display:block;font-size:11px;color:var(--tx2);font-weight:600;text-transform:uppercase;letter-spacing:.6px}.phs b{font-size:17px;font-variant-numeric:tabular-nums}.phl .ph{cursor:pointer;gap:10px}
+/* ===== phone polish ===== */
+html.mob main{padding-left:16px;padding-right:16px}
+html.mob h2{margin:24px 0 10px}
+html.mob .card{padding:16px;border-radius:20px}
+html.mob #kpis,html.mob #billK,html.mob #budK,html.mob #fcK{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}html.mob #kpis .card,html.mob #billK .card,html.mob #budK .card,html.mob #fcK .card{padding:14px 15px;border-radius:18px}html.mob #kpis .card.hero,html.mob #billK .card.hero,html.mob #budK .card.hero,html.mob #fcK .card.hero{grid-column:1/-1}html.mob #kpis .val,html.mob #billK .val,html.mob #budK .val,html.mob #fcK .val{font-size:23px;margin:4px 0}html.mob #kpis .lbl,html.mob #billK .lbl,html.mob #budK .lbl,html.mob #fcK .lbl{font-size:12px}html.mob #kpis .sm,html.mob #billK .sm,html.mob #budK .sm,html.mob #fcK .sm{font-size:12px}
+html.mob #kpis>.card:last-child:nth-child(even){grid-column:1/-1}
+html.mob [id^="ctl-"]{display:flex;flex-wrap:wrap;gap:8px;align-items:center}html.mob [id^="ctl-"] .rng{display:contents}html.mob [id^="ctl-"] select{flex:1 1 130px;width:auto;min-width:0}
+html.mob .ftools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}
+html.mob .ftools>*{min-width:0!important;width:100%;margin:0}
+html.mob .ftools #q{grid-column:span 4;padding-left:42px;background:var(--s1) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") no-repeat 14px center/18px}
+html.mob .ftools select,html.mob .ftools input{min-height:42px;padding:8px 12px;font-size:15px;border-radius:12px}
+html.mob .ftools #fSrc,html.mob .ftools #fCat,html.mob .ftools #fTy,html.mob .ftools .rng,html.mob .ftools #fGroup{grid-column:span 2}
+html.mob .ftools .rng{display:grid;grid-template-columns:1fr;gap:8px}html.mob .ftools .rng:has(input){grid-column:span 4}html.mob .ftools .rng select{width:100%}
+html.mob .ftools .btn{grid-column:span 1;padding:0 8px;min-height:42px;justify-content:center}
+html.mob .ctl{gap:10px;align-items:flex-end}html.mob .ctl .seg{margin:4px 0 0}html.mob .ctl select{min-height:38px;padding:6px 10px;font-size:14px;width:auto}
+html.mob #repCtl select,html.mob .card>.flex>select{min-height:38px;padding:6px 10px;font-size:14px}
+html.mob .row>.grow[style*="min-width:160px"],html.mob .row>.grow[style*="min-width:200px"]{min-width:0!important;flex:1 1 0!important}
+html.mob .row>div[style*="min-width:120px"]{min-width:0!important;flex:none}
+html.mob .row>.flex{flex:1 1 100%;justify-content:flex-start;padding-top:2px}
+html.mob .jin .fld{margin-bottom:10px}html.mob .jin .fld input,html.mob .jin .fld select{min-height:40px;padding:8px 12px;font-size:15px}
+html.mob .sub{font-size:13px}
+html.mob .seg{overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap}html.mob .seg::-webkit-scrollbar{display:none}html.mob .seg button{flex:1 0 auto;white-space:nowrap}
 .dt{display:inline-block;margin:0 .3em;opacity:.6}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -261,7 +283,7 @@ html.sl,html.sl body{overflow:hidden}html.mob.sl body{position:fixed;left:0;righ
 
 <section class="view" id="tx">
 <div class="seg" id="txTabs"></div>
-<div id="txMain"><div class="card warn" id="txFocus" style="display:none;margin-bottom:12px;padding:12px 16px"></div><div class="tools"><input id="q" type="search" placeholder="Search store, note or tag…" style="min-width:240px"><select id="fSrc"><option value="">All sources</option></select><select id="fCat"><option value="">All categories</option></select><select id="fTy"><option value="">All types</option><option value="income">Income</option><option value="expense">Expenses</option><option value="transfer">Transfers</option><option value="cardpay">Card payments</option></select><span class="rng" id="txRange"></span><select id="fGroup" aria-label="Group by"></select><button class="btn o s" data-a="clearF">Clear</button><button class="btn o s" data-a="exOpen" data-from="activity" data-tip="Export what you are looking at, or change the choices in the next window.">Export…</button></div><div class="sm" id="txSum" style="margin:2px 2px 10px"></div>
+<div id="txMain"><div class="card warn" id="txFocus" style="display:none;margin-bottom:12px;padding:12px 16px"></div><div class="tools ftools"><input id="q" type="search" placeholder="Search store, note or tag…" style="min-width:240px"><select id="fSrc"><option value="">All sources</option></select><select id="fCat"><option value="">All categories</option></select><select id="fTy"><option value="">All types</option><option value="income">Income</option><option value="expense">Expenses</option><option value="transfer">Transfers</option><option value="cardpay">Card payments</option></select><span class="rng" id="txRange"></span><select id="fGroup" aria-label="Group by"></select><button class="btn o s" data-a="clearF">Clear</button><button class="btn o s" data-a="exOpen" data-from="activity" data-tip="Export what you are looking at, or change the choices in the next window.">Export…</button></div><div class="sm" id="txSum" style="margin:2px 2px 10px"></div>
 <table class="dtab"><thead><tr><th>Date</th><th>Description</th><th>From → To</th><th>Category</th><th>Tags</th><th style="text-align:right">Amount</th><th>Docs</th></tr></thead><tbody id="txb"></tbody></table><div class="txl card" id="txl" style="padding:4px 12px"></div></div>
 <div id="txRev" style="display:none"></div>
 </section>
