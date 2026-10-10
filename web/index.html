@@ -75,13 +75,13 @@ select,input,textarea{transition:border-color .15s,box-shadow .15s}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-delay:0s!important;transition-duration:.001ms!important}}
 #toasts{position:fixed;top:18px;right:18px;z-index:160;display:flex;flex-direction:column;gap:10px;width:min(380px,calc(100vw - 36px));pointer-events:none}
 html.mob #toasts{top:auto;right:90px;left:16px;bottom:calc(78px + var(--sb));width:auto;flex-direction:column-reverse}
-.toast{pointer-events:auto;display:flex;align-items:center;gap:12px;background:var(--s1);border:1px solid var(--ol);border-left:4px solid var(--pos);border-radius:16px;padding:12px 14px;box-shadow:0 14px 34px -14px rgba(0,0,0,.4);font-size:14px;animation:tin .22s ease-out}
+.toast{pointer-events:auto;display:flex;align-items:flex-start;gap:12px;background:var(--s1);border:1px solid var(--ol);border-left:4px solid var(--pos);border-radius:16px;padding:12px 14px;box-shadow:0 14px 34px -14px rgba(0,0,0,.4);font-size:14px;animation:tin .22s ease-out}
 .toast.err{border-left-color:var(--neg)}.toast.info{border-left-color:var(--acc)}
 .toast .ti{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;flex:none;background:color-mix(in srgb,var(--pos) 18%,transparent);color:var(--pos)}
 .toast.err .ti{background:color-mix(in srgb,var(--neg) 18%,transparent);color:var(--neg)}.toast.info .ti{background:var(--accc);color:var(--onc)}
 .toast .ti svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .toast .tm{flex:1;min-width:0;line-height:1.35}.toast .tm b{display:block;font-size:13px}.toast .tm div{color:var(--tx2);word-break:break-word}
-.toast .tu{border:0;background:none;color:var(--acc);font:inherit;font-weight:700;cursor:pointer;padding:6px 8px;border-radius:10px}.toast .tu:hover{background:var(--s2)}
+.toast .tacts{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 0 -8px}.toast .tm .tacts button{white-space:nowrap}.toast .tu{border:0;background:none;color:var(--acc);font:inherit;font-weight:700;cursor:pointer;padding:6px 8px;border-radius:10px}.toast .tu:hover{background:var(--s2)}
 .toast .tx{border:0;background:none;color:var(--tx2);font-size:20px;cursor:pointer;line-height:1;padding:2px 6px}
 .toast.out{opacity:0;transform:translateX(12px);transition:.25s}
 @keyframes tin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
@@ -188,8 +188,10 @@ html.mob table.rt{display:block;overflow-x:auto}
 html.mob .flex{gap:14px}
 html.nt *,html.nt *::before,html.nt *::after{transition:none!important}
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.28s}
-.exo{align-items:center;gap:8px;padding:6px 12px;border:1px solid var(--ol);border-radius:12px;font-size:13px;cursor:pointer;background:var(--s1);color:var(--tx)}.exo:hover{border-color:var(--acc)}.exo input{width:18px;height:18px;min-height:0;padding:0;margin:0;flex:none;accent-color:var(--acc)}
-.dt{display:inline-block;margin:0 .5em;opacity:.6}
+.exo{align-items:center;gap:8px;padding:7px 12px;border:1px solid var(--ol);border-radius:99px;font-size:13px;cursor:pointer;background:var(--s1);color:var(--tx);transition:border-color .2s,background .2s;user-select:none}.exo:hover{border-color:var(--acc)}.exo:has(input:checked){border-color:var(--acc);background:var(--accc);color:var(--onc)}
+.exo input{appearance:none;-webkit-appearance:none;width:16px;height:16px;min-height:0;padding:0;margin:0;flex:none;border-radius:5px;border:1.5px solid var(--tx2);background:transparent;position:relative;cursor:pointer;transition:.15s}.exo input:checked{background:var(--acc);border-color:var(--acc)}.exo input:checked::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid var(--on);border-width:0 2px 2px 0;transform:rotate(45deg)}.exo input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+#exCats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}#exCats .exo{margin:0!important;border-radius:12px}
+.dt{display:inline-block;margin:0 .3em;opacity:.6}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 <script>
@@ -257,7 +259,7 @@ html.nt *,html.nt *::before,html.nt *::after{transition:none!important}
 <div class="grid g2s" style="margin-bottom:16px">
 <div class="card"><div class="lbl">Money available to allocate · from your balance</div><div class="val"><small>₪</small><span id="avail"></span></div><div class="sm" id="availSub"></div><div class="fld" style="margin:10px 0 0"><label>Keep untouched (₪)</label><input id="jbuf" type="number" inputmode="numeric" min="0"></div></div>
 <div class="card hero"><div class="lbl">Put into jars this month</div><div class="val" id="left"></div><div class="sm" id="leftSub"></div></div></div>
-<h2 style="margin-top:6px">Jars<span class="flex" style="gap:8px"><button class="btn o s" data-a="jarFill">Fill now</button><button class="btn o s" data-a="jarNew">+ New jar</button></span></h2>
+<h2 style="margin-top:6px">Jars<span class="flex" style="gap:8px"><button class="btn o s" id="jarFillBtn" data-a="jarFill">Fill now</button><button class="btn o s" data-a="jarNew">+ New jar</button></span></h2>
 <div class="grid g2" id="jarg"></div>
 <h2>Goals · jars with a deadline<button class="btn o s" data-a="goalNew">+ New goal</button></h2><div class="card" id="goals"></div>
 </section>
@@ -308,7 +310,7 @@ const CP={L:["#4355b9","#c2185b","#e68a00","#00897b","#7cb342","#8e24aa","#546e7
 let st={mode:"auto",atm:"Indigo",surf:"solid"};try{st=Object.assign(st,JSON.parse(localStorage.getItem("moneyTheme")||"{}"))}catch(e){}
 function isDark(){return st.mode=="dark"||(st.mode=="auto"&&matchMedia("(prefers-color-scheme:dark)").matches)}
 function themeSwap(fn){const go=()=>{const h=document.documentElement;h.classList.add("nt");fn();requestAnimationFrame(()=>requestAnimationFrame(()=>h.classList.remove("nt")))};if(document.startViewTransition&&!matchMedia("(prefers-reduced-motion:reduce)").matches)document.startViewTransition(go);else go()}
-function applyTheme(){const d=isDark(),k=d?"D":"L",a=ATM[st.atm][k],r=document.documentElement.style;
+function applyTheme(){const d=isDark(),k=d?"D":"L",a=ATM[st.atm][k],r=document.documentElement.style;r.colorScheme=d?"dark":"light";
 document.documentElement.dataset.mode=d?"dark":"light";
 [["--acc",a[0]],["--accc",a[1]],["--onc",a[2]],["--bg",a[3]],["--acc2",a[4]],["--on",a[5]],["--tx",d?"#e6e4ea":"#1b1b22"],["--tx2",d?"#a9a7b3":"#5a5865"],["--pos",d?"#6fd69b":"#1b7f4b"],["--neg",d?"#ff9c8f":"#c0392b"],
 ["--s1","color-mix(in srgb,var(--tx) "+(d?"5":"3")+"%,var(--bg))"],["--s2","color-mix(in srgb,var(--tx) "+(d?"10":"7")+"%,var(--bg))"],["--ol","color-mix(in srgb,var(--tx) "+(d?"13":"11")+"%,transparent)"]].forEach(([n,v])=>r.setProperty(n,v));
@@ -369,10 +371,14 @@ const topInc=Object.entries(incS).sort((a,b)=>b[1].reduce((x,y)=>x+y,0)-a[1].red
 topInc.slice(0,4).forEach(([k,v])=>hist.incSrc[k]=v);
 if(topInc.length>4)hist.incSrc["Other income"]=ms.map((_,i)=>topInc.slice(4).reduce((s,[,v])=>s+v[i],0));
 // net worth by month: stored snapshots, with this month live
-const nm=[];for(let i=11;i>=0;i--)nm.push(addM(MK,-i));
+const NWN=60,nm=[];for(let i=NWN-1;i>=0;i--)nm.push(addM(MK,-i));
 const snap=Object.fromEntries(S.nwSnaps.map(x=>[x.month,x])),sumK=(kind)=>S.accounts.filter(a=>a.kind==kind).reduce((s,a)=>s+a.v*(fx[a.cur]||1),0);
-let last={bank:0,wise:0,pension:0};NW={months:nm.map(MSHORT),hap:[],wise:[],pen:[],keys:nm};
-nm.forEach((m,i)=>{const x=i==11?{bank:sumK("bank"),wise:sumK("wallet"),pension:sumK("pension")}:snap[m];if(x)last=x;NW.hap.push(Math.round(last.bank));NW.wise.push(Math.round(last.wise));NW.pen.push(Math.round(last.pension))});
+// months without a stored snapshot are rebuilt from the transactions: balance now minus everything that happened after that month
+const kindOf=Object.fromEntries(S.accounts.map(a=>[a.n,a.kind])),nwD={bank:{},wallet:{}};let firstM="9999-99";
+S.tx.forEach(t=>{if(t.pending||t.virtual||isFuture(t))return;const k=kindOf[t.a<0?t.from:t.to];if(!nwD[k])return;const m=t.d.slice(0,7);if(m<firstM)firstM=m;nwD[k][m]=(nwD[k][m]||0)+t.a});
+const rec={};{let b=sumK("bank"),w=sumK("wallet");for(let i=NWN-1;i>=0;i--){rec[nm[i]]={bank:b,wise:w};b-=nwD.bank[nm[i]]||0;w-=nwD.wallet[nm[i]]||0}}
+let last={bank:0,wise:0,pension:0};NW={months:nm.map(m=>MSHORT(m)+" "+m.slice(2,4)),hap:[],wise:[],pen:[],keys:nm,first:Math.max(0,nm.findIndex(m=>m>=firstM)-1)};
+nm.forEach((m,i)=>{const x=i==NWN-1?{bank:sumK("bank"),wise:sumK("wallet"),pension:sumK("pension")}:snap[m]||(firstM!="9999-99"?{bank:rec[m].bank,wise:rec[m].wise,pension:sumK("pension")}:last);if(x)last=x;NW.hap.push(Math.round(last.bank));NW.wise.push(Math.round(last.wise));NW.pen.push(Math.round(last.pension))});
 // cards: this month's charges against last month's total
 cardsD=S.accounts.filter(a=>a.kind=="card").map(a=>{const mine=S.tx.filter(t=>t.a<0&&t.from==a.n&&!XS.has(t.id)),pm=addM(MK,-1);return[a.n,mine.filter(t=>t.d.startsWith(MK)).reduce((s,t)=>s-t.a,0),mine.filter(t=>t.d.startsWith(pm)).reduce((s,t)=>s-t.a,0)]})}
 /* ---------- transfers, duplicates, effective transactions ---------- */
@@ -436,7 +442,7 @@ series.forEach(x=>x.v.forEach((v,i)=>{const y=o.stack?tot[i]:v;mx=Math.max(mx,y)
 if(o.stack){mn=0}const pad=(mx-mn)*.08||1;if(!o.zero&&!o.stack)mn-=pad;mx+=pad;
 const X=i=>Pl+i*(W-Pl-Pr)/(n-1),Y=v=>H-Pb-(v-mn)/(mx-mn)*(H-Pb-Pt);let s="";
 for(let k=0;k<=3;k++){const v=mn+(mx-mn)*k/3,y=Y(v);s+=`<line class="gl" x1="${Pl}" x2="${W-Pr}" y1="${y}" y2="${y}" stroke-dasharray="3 5"/><text x="${Pl-6}" y="${y+4}" text-anchor="end">${Math.abs(v)>=1000?(v/1000).toFixed(v>=100000?0:1)+"k":Math.round(v)}</text>`}
-labels.forEach((l,i)=>{if(n<=7||i%2==0||i==n-1)s+=`<text x="${X(i)}" y="${H-7}" text-anchor="middle">${l}</text>`});
+const ls=Math.max(1,Math.ceil(n/8));labels.forEach((l,i)=>{if(n<=7||(n-1-i)%ls==0)s+=`<text x="${X(i)}" y="${H-7}" text-anchor="middle">${l}</text>`});
 if(o.stack){let base=labels.map(()=>0);series.forEach(x=>{const top=x.v.map((v,i)=>base[i]+v),pts=top.map((v,i)=>X(i)+","+Y(v)),bot=base.map((v,i)=>X(i)+","+Y(v)).reverse();
 s+=`<polygon fill="${x.c}" fill-opacity=".35" points="${pts.join(" ")} ${bot.join(" ")}"/><polyline fill="none" stroke="${x.c}" stroke-width="2.2" points="${pts.join(" ")}"/>`;base=top});
 labels.forEach((l,i)=>{s+=`<rect x="${X(i)-14}" y="${Pt}" width="28" height="${H-Pb-Pt}" fill="transparent" data-tip="${l}: ${series.map(x=>x.n+" ₪"+f(x.v[i])).join(" · ")} · total ₪${f(tot[i])}"/>`})}
@@ -453,7 +459,7 @@ function tidyHome(){const real=S.tx.filter(t=>!t.pending).length>0,
 has={accts:accts.length>0&&accts.some(a=>a.v!=0||a.manual&&a.v),cards:cardsD.some(c=>c[1]||c[2]),cmp:real&&(monthSum(MK,-1)>0||hist.exp[4]>0),
 bills:billsInfo().length>0,budg:Object.keys(S.budgets).length>0,jars:S.jars.length>0,fx:Object.values(fxSer).some(x=>x.length>1),donut:spend().length>0,recent:ALL().some(t=>!isXf(t))};
 Object.entries(has).forEach(([k,v])=>{const e=$("sec-"+k);if(e)e.style.display=v?"":"none"});
-[["row-bb",["bills","budg"]],["row-jf",["jars","fx"]],["row-dr",["donut","recent"]]].forEach(([id,ks])=>{const n=ks.filter(k=>has[k]).length,r=$(id);r.style.display=n?"":"none";r.classList.toggle("one",n==1)});
+[["row-bb",["bills","budg"]],["row-jf",["jars","fx"]],["row-dr",["donut","recent"]]].forEach(([id,ks])=>{const n=ks.filter(k=>has[k]).length,r=$(id);r.style.display=n?"":"none"});
 const any=Object.values(has).some(Boolean)||accts.some(a=>a.v);$("homeEmpty").style.display=any?"none":"";$("kpis").style.display=any?"":"none"}
 function renderHome(){
 {const gs=[];accts.forEach(a=>{let g=gs.find(x=>x.n==a.n);if(!g)gs.push(g={n:a.n,L:[]});g.L.push(a)});
@@ -476,7 +482,7 @@ $("budHome").innerHTML=bu.map(b=>`<div style="margin-bottom:14px"><div style="di
 renderCmp();renderFx();renderJarHome();donut("donutHome",spend());tidyHome()}
 function renderJarHome(){const{out,rem}=jarCalc();$("jarHome").innerHTML=out.map(j=>{const pc=Math.round(j.bal/j.need*100);return `<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;font-size:14px"><b>${esc(j.n)}</b><span class="num ${j.got?"pos":""}">${j.got?"+₪"+f(j.got)+" this month":j.want>0?"waiting":""}</span></div><div class="bar" style="margin:8px 0 5px"><i style="width:${pc}%;background:var(--c${(j.p-1)%7})"></i></div><div class="sm num">₪${f(j.bal)} of ₪${f(j.need)} · ${pc}%</div></div>`}).join("")+`<div style="border-top:1px solid var(--ol);padding-top:14px;display:flex;justify-content:space-between;align-items:center"><span class="sm">Available now, not in any jar</span><b class="num" style="font-size:18px">₪${f(jarFree().free)}</b></div>`}
 function renderCmp(){const cur=Object.fromEntries(spend()),ks=Object.keys(hist.cat),pm=hist.keys[4],lastTot=hist.exp[4],same=A().filter(t=>t.a<0&&t.d.startsWith(pm)&&+t.d.slice(8)<=DAYN).reduce((s,t)=>s-t.a,0),thisTot=monthSum(MK,-1),d=thisTot-same,p=same?Math.round(Math.abs(d)/same*100):0;
-const rows=ks.map(k=>({k,a:cur[k]||0,b:hist.cat[k][4]})),mx=Math.max(1,...rows.flatMap(r=>[r.a,r.b]));
+const rows=ks.map(k=>({k,a:cur[k]||0,b:hist.cat[k][4]||0})).filter(r=>r.a>0||r.b>0).sort((x,y)=>(y.a+y.b)-(x.a+x.b)),mx=Math.max(1,...rows.flatMap(r=>[r.a,r.b]));
 $("cmp").innerHTML=`<div class="flex" style="align-items:flex-start;gap:36px"><div style="min-width:min(230px,100%)"><div class="lbl">${MNAME(MK)} so far</div><div class="val"><small>₪</small>${f(thisTot)}</div>
 <div class="sm">Same point last month ₪${f(same)} ${same?`<span class="bd ${d>0?"up":"dn"}">${d>0?"▲":"▼"} ${p}%</span>`:""}</div>
 <div class="lbl" style="margin-top:18px">${MNAME(pm)} · full month</div><div class="val" style="font-size:24px"><small>₪</small>${f(lastTot)}</div>
@@ -544,7 +550,7 @@ $("txRev").innerHTML=h}
 function setField(id,fld,v){const t=byId(id);if(!t)return;const old=t[fld];if(old===v)return;t[fld]=v;log("Edited "+({c:"category",note:"note"}[fld]||fld),t.desc+": "+(String(old||"—").slice(0,40))+" → "+(String(v||"—").slice(0,40)),{type:"tx",id,f:fld,old});renderAll();
 if(fld=="c"&&v&&v!="Uncategorized"&&(!old||old=="Uncategorized")&&!isXf(t))ruleOffer(t,v)}
 function openTx(id){const t=ALL().find(x=>x.id==id);if(!t)return;const real=!t.virtual,xf=isXf(t),h=S.audit.filter(a=>(a.undo&&a.undo.id==t.id)||(a.detail||"").startsWith(t.desc)).slice(0,6),pair=xf?S.xf.find(x=>x.o==t.id||x.i==t.id):null;
-openSheet(`<h3>${esc(t.desc)}</h3><div class="flex" style="gap:10px;margin-bottom:6px"><b class="num ${t.a>0&&!xf?"pos":""}" style="font-size:26px">${amtT(t)}</b>${t.orig?`<span class="chip">${SYM[t.orig.cur]}${f(t.orig.amt)} ${t.orig.cur}</span>`:""}</div><div style="margin-bottom:10px">${chipsT(t)}</div>${(()=>{const b=billOf(t);if(b)return `<div class="xfc sm">${esc(whyBill(b))} <button class="btn o s" data-a="nav" data-v="bills">View in Bills</button>${b.once?` <button class="btn o s" data-a="billUnmark" data-id="${t.id}">Remove from bills</button>`:""}</div>`;return t.a<0&&real&&!xf&&!isCardPay(t)?`<div class="sm" style="margin:-4px 0 10px"><button class="btn o s" data-a="billMark" data-id="${t.id}">Mark as a bill…</button></div>`:""})()}${isFuture(t)?`<div class="xfc sm">${esc(futureTip(t))}</div>`:""}${isCardPay(t)?`<div class="xfc sm">Payment of your ${esc(cardOf(t))} bill from the bank. It is not counted as spending because the individual purchases are already counted on the card, so nothing is counted twice. <button class="btn o s" data-a="cpCount" data-id="${t.id}">Count it as spending anyway</button></div>`:(S.ccOverride&&S.ccOverride[t.id]?`<div class="xfc sm">You chose to count this as spending. <button class="btn o s" data-a="cpUncount" data-id="${t.id}">Treat it as a card payment again</button></div>`:"")}<div class="sm" style="margin-bottom:14px">${dstr(t.d)} · ${esc(t.from)} → ${esc(t.to)}</div>
+openSheet(`<h3>${esc(t.desc)}</h3><div class="flex" style="gap:10px;margin-bottom:6px"><b class="num ${t.a>0&&!xf?"pos":""}" style="font-size:26px">${amtT(t)}</b>${t.orig?`<span class="chip">${SYM[t.orig.cur]}${f(t.orig.amt)} ${t.orig.cur}</span>`:""}</div><div style="margin-bottom:10px">${chipsT(t)}</div>${(()=>{const b=billOf(t);if(b)return `<div class="xfc sm">${esc(whyBill(b))} <button class="btn o s" data-a="nav" data-v="bills">View in Bills</button>${b.once?` <button class="btn o s" data-a="billUnmark" data-id="${t.id}">Remove from bills</button>`:""}</div>`;return t.a<0&&real&&!xf&&!isCardPay(t)?`<div class="sm" style="margin:-4px 0 10px"><button class="btn o s" data-a="billMark" data-id="${t.id}">Mark as a bill…</button> <button class="btn o s" data-a="cpMark" data-id="${t.id}" data-tip="A credit card bill paid from your bank. It stops counting as spending, because the card purchases are already counted.">Mark as card payment</button></div>`:""})()}${isFuture(t)?`<div class="xfc sm">${esc(futureTip(t))}</div>`:""}${isCardPay(t)?`<div class="xfc sm">Payment of your ${esc(cardOf(t))} bill from the bank. It is not counted as spending because the individual purchases are already counted on the card, so nothing is counted twice. <button class="btn o s" data-a="cpCount" data-id="${t.id}">Count it as spending anyway</button></div>`:(S.ccOverride&&S.ccOverride[t.id]?`<div class="xfc sm">You chose to count this as spending. <button class="btn o s" data-a="cpUncount" data-id="${t.id}">Treat it as a card payment again</button></div>`:"")}<div class="sm" style="margin-bottom:14px">${dstr(t.d)} · ${esc(t.from)} → ${esc(t.to)}</div>
 ${real&&!xf?`<div class="fld"><label>Category</label><select data-c="txcat" data-id="${t.id}"><option value="">Uncategorized</option>${catNames().filter(k=>k!="Uncategorized").map(k=>`<option ${k==t.c?"selected":""}>${esc(k)}</option>`).join("")}</select></div>
 <div class="fld"><label>Tags</label><div>${t.tags.map((x,i)=>`<button class="tag" data-a="tagDel" data-id="${t.id}" data-i="${i}">${esc(x)} ×</button>`).join("")}</div><input data-c="tagAdd" data-id="${t.id}" placeholder="Add a tag and press Enter"></div>`:""}
 ${pair?`<div class="xfc sm">Transfer between your own accounts. ${costRows().find(r=>r.id=="v"+pair.o)?"Cost "+fm(costRows().find(r=>r.id=="v"+pair.o).cost)+" counted as an expense.":"No cost."} <button class="btn o s" data-a="xfNo" data-o="${pair.o}">Not a transfer</button></div>`:""}
@@ -570,7 +576,7 @@ S.tx.unshift({id,d:date,desc:d,from:sg<0?acc:d,to:sg<0?d:acc,a:amt,...(cur!="ILS
 log("Added transaction",d+" · "+fm(amt));closeSheet();renderAll();
 if(fl){try{await flushNow();const [u]=await uploadDocs(id,[fl]);const t=byId(id);t.docs.push(u.filename);t.docIds.push(u.id);(t.docHas=t.docHas||[]).push(true);renderAll()}catch(e){toast("The receipt could not be uploaded")}}
 if(addCtx){await flushNow();try{await load();renderAll()}catch(e){}addCtx=null}}
-function renderJars(){const{out,rem,cash,inJars,buffer,free,gotT,stillT}=jarCalc();$("avail").textContent=f(free);$("availSub").innerHTML=`Balance ${fm(cash)} − already in jars ${fm(inJars)}${buffer?` − kept untouched ${fm(buffer)}`:""}`;if(document.activeElement!==$("jbuf"))$("jbuf").value=buffer||"";
+function renderJars(){const{out,rem,cash,inJars,buffer,free,gotT,stillT}=jarCalc();$("jarFillBtn").style.display=S.jars.length?"":"none";$("avail").textContent=f(free);$("availSub").innerHTML=`Balance ${fm(cash)} − already in jars ${fm(inJars)}${buffer?` − kept untouched ${fm(buffer)}`:""}`;if(document.activeElement!==$("jbuf"))$("jbuf").value=buffer||"";
 $("left").innerHTML=`<small>₪</small>${f(gotT)}`;$("leftSub").textContent=stillT>0?(free>0?"Still to come this month: ₪"+f(Math.min(stillT,free))+" as the jars below take their share":"Waiting for money: the jars below still need ₪"+f(stillT)+" this month, but nothing is available"):"Every jar has had its share this month";
 $("jarg").innerHTML=out.map((j,ix)=>{const pc=Math.round(j.bal/j.need*100),C=2*Math.PI*34,col=`var(--c${(j.p-1)%7})`;
 return `<div class="card jin"><div class="jar"><svg class="ring" viewBox="0 0 84 84"><circle cx="42" cy="42" r="34" fill="none" stroke="var(--s2)" stroke-width="9"/><circle cx="42" cy="42" r="34" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C*Math.min(1,pc/100)} ${C}" transform="rotate(-90 42 42)"/><text x="42" y="46" text-anchor="middle" style="font-size:15px;font-weight:600;fill:var(--tx)">${pc}%</text></svg>
@@ -642,7 +648,7 @@ $("budL").innerHTML=bi.map(b=>`<div class="card ${b.st=="over"?"warn":""}"><div 
 ${rv[b.k]?`<div class="sugg"><div class="sm" style="color:var(--tx);line-height:1.45">${rv[b.k].kind=="lower"?`You usually spend about <b>${fm(rv[b.k].avg)}</b> here, well under this budget. Lower it to <b>${fm(rv[b.k].prop)}</b>?`:`You went over in <b>${rv[b.k].over} of the last ${ideas.idx.length} months</b> (about ${fm(rv[b.k].avg)} a month). Raise it to <b>${fm(rv[b.k].prop)}</b>?`}</div><div class="flex" style="gap:8px;margin-top:8px"><button class="btn s" data-a="budApply" data-k="${esc(b.k)}" data-v="${rv[b.k].prop}">Use ${fm(rv[b.k].prop)}</button><button class="btn o s" data-a="budLater" data-k="${esc(b.k)}">Not now</button></div></div>`:""}
 <div class="flex" style="margin-top:12px;gap:8px"><input type="number" inputmode="numeric" value="${b.lim}" data-c="budget" data-k="${esc(b.k)}" style="width:120px"><button class="btn r s" data-a="budDel" data-k="${esc(b.k)}">Remove</button></div></div>`).join("");
 const un=spend().filter(([k])=>!(k in S.budgets)&&k!="Uncategorized");
-$("budU").innerHTML=un.length?`<h2>Spending with no budget</h2><div class="card">${un.map(([k,v])=>`<div class="row"><span class="dot" style="background:${cc(k)}"></span><div class="grow">${esc(k)}</div><b class="num">${fm(v)}</b><button class="btn o s" data-a="budNew" data-k="${esc(k)}">Set budget</button></div>`).join("")}</div>`:""}
+$("budU").innerHTML=un.length?`<h2>Spending with no budget</h2><div class="card">${un.map(([k,v])=>`<div class="row"><span class="dot" style="background:${cc(k)}"></span><div class="grow click" style="cursor:pointer" data-a="goCat" data-cat="${k=="Uncategorized"?"":esc(k)}">${esc(k)}</div><b class="num">${fm(v)}</b><button class="btn o s" data-a="budNew" data-k="${esc(k)}">Set budget</button></div>`).join("")}</div>`:""}
 function budForm(k){const avg=hist.cat[k]?Math.round(hist.cat[k].slice(2,5).reduce((a,b)=>a+b,0)/3/50)*50:"";openSheet(`<h3>Add a budget</h3><div class="fld"><label>Category</label><select id="uK">${catNames().filter(c=>!["Income","Uncategorized"].includes(c)&&!(c in S.budgets)||c==k).map(c=>`<option ${c==k?"selected":""}>${esc(c)}</option>`).join("")}</select></div><div class="fld"><label>Monthly limit (₪)</label><input id="uA" type="number" inputmode="numeric" value="${avg}"></div>${avg?`<div class="sm" style="margin-bottom:12px">Suggested from your average of the last 3 months.</div>`:""}<div class="flex" style="justify-content:flex-end;gap:10px"><button class="btn o" data-a="close">Cancel</button><button class="btn" data-a="budSave">Save</button></div>`)}
 const ATYPES=[["bills","Bills due or overdue"],["price","Bill price changes"],["budget","Budget limits"],["card","Card charge much higher than last month"],["large","Large transactions"],["xfer","Transfers and duplicates to review"],["recon","Books do not match the bank"],["sync","A source is out of date"],["uncat","Uncategorized transactions"],["forecast","Forecast turns negative"],["docs","Income without documents"]];
 function alerts(){const c=S.cfg,out=[],add=(id,type,sev,title,text,go,x)=>{if(c[type]&&!S.dismissed[id])out.push({id,type,sev,title,text,go,...(x||{})})};
@@ -669,11 +675,11 @@ $("alS").innerHTML=`<div class="pl" style="margin-bottom:6px">Which alerts to sh
 <div class="fld" style="margin-top:16px"><label>ntfy topic URL (your own server, optional)</label><input data-c="ntfy" value="${esc(S.ntfy)}" placeholder="https://rhs.taile6739f.ts.net:PORT/money"></div><button class="btn o s" data-a="ntfyTest">Send test to ntfy</button>
 <div style="margin-top:14px"><button class="btn o s" data-a="alReset">Show dismissed alerts again</button></div>`}
 let nwR=12;
-function renderNW(){const n=nwR,wp=S.nwPension,hap=[...NW.hap],wise=[...NW.wise],pen=[...NW.pen];
-const cash=hap.map((v,i)=>v+wise[i]),tot=cash.map((v,i)=>v+pen[i]),main=wp?tot:cash,i0=12-n,ch=main[11]-main[i0],pc=main[i0]?ch/main[i0]*100:0;
-$("nwc").innerHTML=`<div class="flex" style="justify-content:space-between;align-items:flex-start"><div><div class="lbl">Net worth${wp?" with pension":""} · last ${n} months</div><div class="val"><small>₪</small>${f(main[11])}</div><div class="sm"><span class="bd ${ch>=0?"dn":"up"}">${ch>=0?"▲":"▼"} ${fm(ch)} (${pc.toFixed(1)}%)</span> since ${NW.months[i0]}</div><div class="sm" style="margin-top:6px">${wp?"Without pension "+fm(cash[11]):"With pension "+fm(tot[11])}</div></div>
-<div><div class="seg" style="margin:0 0 8px"><button data-a="nwP" data-v="0" class="${wp?"":"on"}">Without pension</button><button data-a="nwP" data-v="1" class="${wp?"on":""}">With pension</button></div><div class="seg" style="margin:0"><button data-a="nwR" data-n="6" class="${n==6?"on":""}">6 months</button><button data-a="nwR" data-n="12" class="${n==12?"on":""}">12 months</button></div></div></div><div id="nwA"></div>
-<div class="sm" style="margin-top:6px">Monthly snapshots, stored once a month so history does not move with exchange rates. Months before the first snapshot show the earliest value. The pension is updated by hand, so it is left out unless you switch it on.</div>`;
+function renderNW(){const NN=NW.months.length,n=Math.min(nwR||NN-NW.first,NN),wp=S.nwPension,hap=[...NW.hap],wise=[...NW.wise],pen=[...NW.pen];
+const cash=hap.map((v,i)=>v+wise[i]),tot=cash.map((v,i)=>v+pen[i]),main=wp?tot:cash,i0=NN-n,ch=main[NN-1]-main[i0],pc=main[i0]?ch/main[i0]*100:0;
+$("nwc").innerHTML=`<div class="flex" style="justify-content:space-between;align-items:flex-start"><div><div class="lbl">Net worth${wp?" with pension":""} · ${nwR?"last "+n+" months":"all history · "+n+" months"}</div><div class="val"><small>₪</small>${f(main[NN-1])}</div><div class="sm"><span class="bd ${ch>=0?"dn":"up"}">${ch>=0?"▲":"▼"} ${fm(ch)} (${pc.toFixed(1)}%)</span> since ${NW.months[i0]}</div><div class="sm" style="margin-top:6px">${wp?"Without pension "+fm(cash[NN-1]):"With pension "+fm(tot[NN-1])}</div></div>
+<div><div class="seg" style="margin:0 0 8px"><button data-a="nwP" data-v="0" class="${wp?"":"on"}">Without pension</button><button data-a="nwP" data-v="1" class="${wp?"on":""}">With pension</button></div><div class="seg" style="margin:0"><button data-a="nwR" data-n="6" class="${nwR==6?"on":""}">6 months</button><button data-a="nwR" data-n="12" class="${nwR==12?"on":""}">12 months</button><button data-a="nwR" data-n="36" class="${nwR==36?"on":""}">3 years</button><button data-a="nwR" data-n="0" class="${nwR==0?"on":""}">All</button></div></div></div><div id="nwA"></div>
+<div class="sm" style="margin-top:6px">Monthly snapshots, stored once a month so history does not move with exchange rates. Months without a snapshot are worked out from your transactions (today's balance minus what moved since). The pension is updated by hand, so it is left out unless you switch it on.</div>`;
 if(wp)chart("nwA",NW.months.slice(-n),[{n:"Net worth with pension",v:tot.slice(-n),c:"var(--acc)"}],{area:1,h:220});
 else chart("nwA",NW.months.slice(-n),[{n:"Bank Hapoalim",v:hap.slice(-n),c:"var(--c0)"},{n:"Wise (in ₪)",v:wise.slice(-n),c:"var(--c3)"}],{stack:1,h:220})}
 const nice=v=>{v=Math.max(v,1);const p=10**Math.floor(Math.log10(v)),n=v/p,st=n<=1?1:n<=2?2:n<=5?5:10;return st*p};
@@ -706,19 +712,25 @@ $("merch").innerHTML=(e.length?e.map(([n,v])=>`<div class="mrow" style="margin-b
 $("tagrep").innerHTML=Object.keys(cur).length?Object.entries(cur).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<span class="chip t" style="margin:3px">#${esc(k)} · ₪${f(v)}${prev?` <span style="opacity:.7">(before ₪${f(prev[k]||0)})</span> ${dlt(v,prev[k]||0)}`:""}</span>`).join("")+(B.prev?`<div class="sm" style="margin-top:8px">Compared with ${esc(cmpName(B.cr))}</div>`:""):'<span class="sm">No tagged expenses in this period.</span>'}
 lineChart(seriesN(RN.lines));barChart(seriesN(RN.bars));renderNW()}
 
-let fc={h:12,n:3,m:"avg"};
+let fc={h:12,n:3,m:"smart"};
 const mlab=k=>new Date(NOW.getFullYear(),NOW.getMonth()+k,1).toLocaleDateString("en-GB",{month:"short",year:"2-digit"});
 function fcExp(){const o={};Object.entries(hist.cat).forEach(([k,a])=>o[k]=a.slice(0,5));o["Other / uncategorized"]=hist.exp.slice(0,5).map((t,i)=>t-Object.values(hist.cat).reduce((s,a)=>s+a[i],0));return o}
+// "Smart" estimate: one unusually large or small month (a trip, a refund, a missed bill) is pulled back toward the typical month, and a trend only counts for a few months ahead and by half.
+const medOf=v=>{const x=[...v].sort((a,b)=>a-b),h=x.length>>1;return x.length%2?x[h]:(x[h-1]+x[h])/2};
+function est(v,m,sl){const nn=v.length,avg=v.reduce((x,y)=>x+y,0)/nn;
+if(m!="smart"||nn<3)return{mean:avg,at:k=>m=="avg"||m=="smart"?avg:Math.min(avg*1.5,Math.max(avg*.5,avg+sl*((nn-1)/2+k)))};
+const med=medOf(v),lo=med>0?med*.6:med*1.6,hi=med>0?med*1.6:med*.6,mean=v.map(y=>Math.min(hi,Math.max(lo,y))).reduce((x,y)=>x+y,0)/nn;
+return{mean,at:k=>Math.min(mean*1.3,Math.max(mean*.7,mean+sl*.5*Math.min(k,3)))}}
 // An income source is counted from the month it first appears: before that there is no record of it, which is not the same as zero.
 function proj(a,n,m,inc){let v;
 if(inc){ // an income source seen in two or more months is recurring: use the months it really arrived, this month so far included
 const occ=[];for(let j=hist.first||0;j<=5;j++)if(a[j]>0)occ.push(j);
 if(occ.length>=2){v=occ.map(j=>a[j]);const nn=v.length,mean=v.reduce((x,y)=>x+y,0)/nn;let sl=0;if(nn>1){const xm=(nn-1)/2;let num=0,den=0;v.forEach((y,i)=>{num+=(i-xm)*(y-mean);den+=(i-xm)**2});sl=num/den}
-return{v,mean,sl,nn,recurring:true,at:k=>m=="avg"?mean:Math.min(mean*1.5,Math.max(mean*.5,mean+sl*((nn-1)/2+k)))}}
+const e=est(v,m,sl);return{v,mean:e.mean,sl,nn,recurring:true,at:e.at}}
 return{v:[0],mean:0,sl:0,nn:1,oneoff:true,at:()=>0}} // seen in one month only: a one-off, not part of the forecast
 v=a.slice(Math.max(5-n,hist.first||0),5);
 if(!v.length)v=[0];const nn=v.length,mean=v.reduce((x,y)=>x+y,0)/nn;let sl=0;if(nn>1){const xm=(nn-1)/2;let num=0,den=0;v.forEach((y,i)=>{num+=(i-xm)*(y-mean);den+=(i-xm)**2});sl=num/den}
-return{v,mean,sl,nn,at:k=>m=="avg"?mean:Math.min(mean*1.5,Math.max(mean*.5,mean+sl*((nn-1)/2+k)))}}
+const e=est(v,m,sl);return{v,mean:e.mean,sl,nn,at:e.at}}
 function fcCalc(){const{n,m}=fc,inc=Object.entries(hist.incSrc).map(([k,a])=>({k,...proj(a,n,m,true)})).filter(r=>!r.oneoff),E=fcExp(),ex=Object.entries(E).map(([k,a])=>({k,...proj(a,n,m)})).filter(r=>Math.abs(r.mean)>=0.5);
 const nEff=Math.max(1,Math.min(n,5-(hist.first||0)));
 const start=cashAccts().reduce((s,a)=>s+accILS(a),0),nets=[];
@@ -732,7 +744,7 @@ for(let k=1;k<=60;k++){let rem=pool;J.forEach(j=>{if(j.b<j.need){const want=j.ca
 return{J,total}}
 const fcSeg=(l,o,key)=>`<div><div class="pl">${l}</div><div class="seg">${o.map(([v,t])=>`<button class="${fc[key]==v?"on":""}" data-a="fc" data-k="${key}" data-v="${v}">${t}</button>`).join("")}</div></div>`;
 function renderFc(){const d=fcCalc(),H=fc.h,n=d.nEff;
-$("fcCtl").innerHTML=fcSeg("Forecast horizon",[[3,"3 months"],[6,"6 months"],[12,"1 year"]],"h")+fcSeg("Based on the last",[[2,"2 months"],[3,"3 months"],[5,"5 months"]],"n")+fcSeg("Method",[["avg","Average"],["trend","Trend line"]],"m");
+$("fcCtl").innerHTML=fcSeg("Forecast horizon",[[3,"3 months"],[6,"6 months"],[12,"1 year"]],"h")+fcSeg("Based on the last",[[2,"2 months"],[3,"3 months"],[5,"5 months"]],"n")+fcSeg("Method",[["smart","Smart"],["avg","Average"],["trend","Trend line"]],"m");
 const sg=v=>(v<0?"−":"")+"₪"+f(v);
 {const incM=d.inc.reduce((s,r)=>s+r.mean,0),exM=d.ex.reduce((s,r)=>s+r.mean,0),usedIdx=[];for(let i=5-n;i<5;i++)usedIdx.push(i);const ms=usedIdx.map(i=>hist.months[i]).join(", "),zero=usedIdx.filter(i=>!hist.inc[i]).map(i=>hist.months[i]),cp=S.tx.filter(isCardPay).length;
 $("fcDiag").innerHTML=`<b style="color:var(--tx)">What this is based on:</b> income about ${fm(incM)} a month and expenses about ${fm(exM)} a month, from ${n} complete month${n==1?"":"s"} (${esc(ms)}). ${esc(hist.months[5])} so far is not included. Positive amounts count as income and negative ones as expenses, whatever their category. Income that arrives in two or more months is treated as recurring and estimated from the months it really arrived, this month so far included. Income that arrived in only one month (a one-off, like a refund or a single transfer) is left out, because it would not repeat.${cp?` ${cp} credit card bill payment${cp==1?"":"s"} from the bank ${cp==1?"is":"are"} left out, because the purchases are already counted on the card.`:""}${fc.n>n?` Only ${n} complete month${n==1?"":"s"} of history exist, so that is what is used.`:""}${zero.length?` <span class="neg">No income was found in ${esc(zero.join(", "))}. If you expected some, the history may be incomplete: get older history in Settings → Connections.</span>`:""}`}
@@ -748,7 +760,7 @@ s+=`<polyline fill="none" stroke="var(--acc)" stroke-width="3" stroke-linejoin="
 for(let k=0;k<=H;k++){const mk=[3,6,12].includes(k)||k==0;s+=`<circle data-tip="${k?mlab(k):"Now"}: ${sg(d.bal[k])}${k?" (range "+sg(d.lo[k])+" to "+sg(d.hi[k])+")":""}" cx="${X(k)}" cy="${Y(d.bal[k])}" r="${mk?5.5:4}" fill="${mk?"var(--acc)":"var(--bg)"}" stroke="var(--acc)" stroke-width="2.5"/>`;if(H<=6||k%2==0||k==H)s+=`<text x="${X(k)}" y="${Ht-9}" text-anchor="middle">${k?mlab(k):"Now"}</text>`}
 let fn=-1,fl=-1;for(let k=1;k<=H;k++){if(fn<0&&d.bal[k]<0)fn=k;if(fl<0&&d.lo[k]<0)fl=k}
 const warn=fn>0?`<span class="bd up">⚠ Projected balance turns negative in ${mlab(fn)}</span>`:fl>0?`<span class="bd fl">Worst case dips below zero around ${mlab(fl)}</span>`:`<span class="bd dn">Stays positive across the whole range</span>`;
-$("fcChart").innerHTML=`<div class="flex" style="justify-content:space-between;margin-bottom:6px"><div class="sm">Method: ${fc.m=="avg"?"average":"straight trend line"} of the last ${n} complete month${n==1?"":"s"} with data, per source and category.</div>${warn}</div>
+$("fcChart").innerHTML=`<div class="flex" style="justify-content:space-between;margin-bottom:6px"><div class="sm">Method: ${fc.m=="smart"?"smart estimate (unusually big or small months are pulled toward the typical month, and a trend counts only a little, for a few months ahead)":fc.m=="avg"?"average":"straight trend line"} of the last ${n} complete month${n==1?"":"s"} with data, per source and category.</div>${warn}</div>
 <svg width="100%" viewBox="0 0 ${W} ${Ht}">${s}</svg>
 <div class="flex sm" style="gap:18px"><span><span class="dot" style="background:var(--acc)"></span> Projected balance</span><span><span class="dot" style="background:color-mix(in srgb,var(--acc) 25%,transparent)"></span> Likely range (±1 standard deviation of past monthly net, widening over time)</span></div>`;
 const row=(r,ty)=>{const pc=r.mean?r.sl/r.mean*100:0,flat=Math.abs(pc)<2,good=ty=="in"?pc>0:pc<0,tot=Array.from({length:12},(_,i)=>r.at(i+1)).reduce((a,b)=>a+b,0);
@@ -791,7 +803,7 @@ let JOB=null,jobTick=null,jobPoll=null;
 const JK={test:["Testing","Test"],sync:["Syncing","Sync"],assist:["Verifying","Verify"]},SRCN={hapoalim:"Bank Hapoalim",max:"Max",isracard:"Isracard",wise:"Wise",all:"all sources"};
 const srcName=x=>SRCN[x]||x,mmss=t=>{t=Math.max(0,Math.round(t/1000));return Math.floor(t/60)+":"+String(t%60).padStart(2,"0")};
 function applyJobUI(){const bar=$("jobBar");if(!bar)return;bar.style.display=JOB?"flex":"none";
-if(JOB)$("jobTxt").textContent=JK[JOB.kind][0]+" "+srcName(JOB.source)+"… "+mmss(Date.now()-JOB.since)+(JOB.kind=="assist"?" · finish in the verification window":" · this can take up to 2 minutes, please wait");
+if(JOB)$("jobTxt").textContent=JK[JOB.kind][0]+" "+srcName(JOB.source)+"… "+mmss(Date.now()-JOB.since)+(JOB.kind=="assist"?" · finish in the verification window":" · "+(JOB.source!="all"&&JOB.kind=="sync"?"usually a few minutes; a long history can take much longer. It keeps going while the bank is answering, please wait":"this can take a few minutes, please wait"));
 $("syncb")&&$("syncb").classList.toggle("spinning",!!JOB);
 document.querySelectorAll('[data-a="connTest"],[data-a="connSync"],[data-a="connHist"],[data-a="syncNow"],[data-a="connAssist"]').forEach(b=>{if(b.dataset.l==null)b.dataset.l=b.textContent;
 const kind=b.dataset.a=="connTest"?"test":b.dataset.a=="connAssist"?"assist":"sync",mine=JOB&&JOB.kind==kind&&(b.dataset.a=="syncNow"?JOB.source=="all":(JOB.source==b.dataset.s||JOB.source=="all"));
@@ -854,7 +866,7 @@ function toast(m,o){o=o||{};m=String(m);const kind=o.kind||(/…$|\.\.\.$/.test(
 let box=$("toasts");if(!box){box=document.createElement("div");box.id="toasts";box.setAttribute("role","status");box.setAttribute("aria-live","polite");document.body.appendChild(box)}
 if(o.sticky){const old=box.querySelector(`[data-sticky="${o.sticky}"]`);if(old)old.remove()}
 const d=document.createElement("div");d.className="toast "+kind;if(o.sticky)d.dataset.sticky=o.sticky;
-d.innerHTML=`<span class="ti">${TI[kind]}</span><div class="tm">${o.title?`<b>${esc(o.title)}</b>`:""}<div>${esc(m)}</div></div>${o.undo?`<button class="tu" data-a="toastUndo" data-id="${o.undo}">Undo</button>`:""}${(o.actions||[]).map(x=>`<button class="tu" data-a="${x.a}" data-id="${esc(x.id||"")}">${esc(x.label)}</button>`).join("")}<button class="tx" aria-label="Dismiss">×</button>`;
+d.innerHTML=`<span class="ti">${TI[kind]}</span><div class="tm">${o.title?`<b>${esc(o.title)}</b>`:""}<div>${esc(m)}</div>${o.undo||(o.actions||[]).length?`<div class="tacts">${o.undo?`<button class="tu" data-a="toastUndo" data-id="${o.undo}">Undo</button>`:""}${(o.actions||[]).map(x=>`<button class="tu" data-a="${x.a}" data-id="${esc(x.id||"")}">${esc(x.label)}</button>`).join("")}</div>`:""}</div><button class="tx" aria-label="Dismiss">×</button>`;
 d.querySelector(".tx").onclick=()=>d.remove();box.appendChild(d);while(box.children.length>4)box.firstChild.remove();
 if(!o.sticky)setTimeout(()=>{d.classList.add("out");setTimeout(()=>d.remove(),260)},o.ms||(kind=="info"?2600:o.undo?6500:3800));return d}
 const toastClear=k=>{const e=document.querySelector(`#toasts [data-sticky="${k}"]`);if(e)e.remove()};
@@ -864,7 +876,8 @@ const SRCL={hapoalim:"Bank Hapoalim",max:"Max",isracard:"Isracard",wise:"Wise",m
 // Counting both would double every card purchase (and show the card company as your biggest merchant).
 const ccRe=name=>{const n=String(name).toLowerCase();if(n=="max")return /(\bmax\b|max it|מקס|leumi ?card|לאומי ?קארד)/i;if(n=="isracard")return /(isracard|ישראכרט)/i;return new RegExp(n.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i")};
 let CC=[],BANKN=new Set();
-const isCardPay=t=>{if(t.virtual||t.a>=0||(S.ccOverride&&S.ccOverride[t.id])||!BANKN.has(t.from))return false;const x=t.desc+" "+(t.to||"");return CC.some(c=>c.re.test(x))};
+// ccOverride: 1 = counted as spending anyway, 2 = marked as a card payment by hand
+const isCardPay=t=>{if(t.virtual||t.a>=0)return false;if(S.ccOverride&&S.ccOverride[t.id]==2)return true;if((S.ccOverride&&S.ccOverride[t.id])||!BANKN.has(t.from))return false;const x=t.desc+" "+(t.to||"");return CC.some(c=>c.re.test(x))};
 const cardOf=t=>{const x=t.desc+" "+(t.to||"");const c=CC.find(c=>c.re.test(x));return c?c.n:"your card"};
 const isFuture=t=>!t.virtual&&String(t.d)>TODAY;
 let BC=[],FOCUS=null;
@@ -983,6 +996,7 @@ case"roSave":{const kw=$("roK").value.trim().toLowerCase(),cat=$("roC").value;if
 if(ex){const old=ex.c;ex.c=cat;log("Changed rule",`"${kw}": ${old} → ${cat}`)}else{S.rules.push({k:kw,c:cat,t:""});log("Added rule",`"${kw}" → ${cat}${n?` · ${n} similar item${n==1?"":"s"} categorized`:""}`)}
 closeSheet();renderAll();break}
 case"cpCount":S.ccOverride[d.id]=1;log("Counted card payment as spending",byId(+d.id)?.desc||"");closeSheet();renderAll();break;
+case"cpMark":S.ccOverride[d.id]=2;log("Marked as a card payment",byId(+d.id)?.desc||"");closeSheet();renderAll();break;
 case"cpUncount":delete S.ccOverride[d.id];log("Treated as a card payment again",byId(+d.id)?.desc||"");closeSheet();renderAll();break;
 case"openDocs":openDocs(+d.id,d.i);break;
 case"docClose":closeDocs();break;
@@ -1159,7 +1173,7 @@ openSheet(`<h3>Export</h3><div class="sm" style="margin-bottom:12px">Creates a f
 <div class="fld"><label>What to export</label><select data-ex="what">${sel("what",EXWHAT.map(([v,t])=>[v,t]))}</select><div class="sm" id="exWhatD" style="margin-top:4px"></div></div>
 <div id="exFilt">
 <div class="two"><div class="fld"><label>Period</label><select data-ex="p">${sel("p",RANGES)}</select></div><div class="fld" id="exCust" style="display:none"><label>From → to</label><div class="flex" style="gap:6px"><input type="date" data-ex="from"><input type="date" data-ex="to"></div></div></div>
-<div class="fld"><label>Categories <span class="sm" id="exCn"></span></label><div class="flex" style="gap:6px;margin-bottom:6px"><input id="exCq" placeholder="Find a category…" style="flex:1" data-ex="cq"><button class="btn o s" data-a="exCats" data-v="all">All</button><button class="btn o s" data-a="exCats" data-v="none">None</button></div><div id="exCats" style="max-height:180px;overflow:auto">${exCatList()}</div></div>
+<div class="fld"><label>Categories <span class="sm" id="exCn"></span></label><div class="flex" style="gap:6px;margin-bottom:6px"><input id="exCq" placeholder="Find a category…" style="flex:1" data-ex="cq"><button class="btn o s" data-a="exCats" data-v="all">All</button><button class="btn o s" data-a="exCats" data-v="none">None</button></div><div id="exCats" style="max-height:200px;overflow:auto;padding:2px">${exCatList()}</div></div>
 <div class="fld"><label>Accounts <span class="sm">(leave all ticked for every account)</span></label><div>${S.accounts.map(a=>`<label class="exo" style="display:inline-flex;margin:0 6px 6px 0"><input type="checkbox" data-ex="acct" value="${esc(a.n)}" checked> ${esc(a.n)} · ${esc(a.cur)}</label>`).join("")}</div></div>
 <div class="two"><div class="fld"><label>Type</label><select data-ex="ty">${sel("ty",[["all","Income and expenses"],["income","Income only"],["expense","Expenses only"]])}</select></div><div class="fld"><label>Text contains</label><input data-ex="q" placeholder="Store, person or note" value="${esc(EX.q)}"></div></div>
 <div class="two"><div class="fld"><label>Tag</label><input data-ex="tag" placeholder="e.g. vacation"></div><div></div></div>
@@ -1189,6 +1203,6 @@ else return;exSync()});
 /* ---------- roomier " · " separators everywhere ---------- */
 (()=>{const SKIP=/^(SCRIPT|STYLE|TEXTAREA|INPUT|OPTION|SELECT|TITLE)$/;let q=0,busy=false;
 function pass(){q=0;busy=true;const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.nodeValue.includes(" · ")&&n.parentElement&&!SKIP.test(n.parentElement.tagName)&&!n.parentElement.closest("svg,.dt,[contenteditable]")?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT}),L=[];while(w.nextNode())L.push(w.currentNode);
-L.forEach(n=>{const f=document.createDocumentFragment();n.nodeValue.split(" · ").forEach((t,i)=>{if(i){const d=document.createElement("span");d.className="dt";d.textContent="·";f.appendChild(d)}if(t)f.appendChild(document.createTextNode(t))});n.replaceWith(f)});busy=false}
+L.forEach(n=>{const f=document.createDocumentFragment();n.nodeValue.split(" · ").forEach((t,i)=>{if(i){const d=document.createElement("span");d.className="dt";d.textContent="·";f.appendChild(d)}if(t)f.appendChild(document.createTextNode(t))});const w=document.createElement("span");w.appendChild(f);n.replaceWith(w)});busy=false}
 new MutationObserver(()=>{if(!busy&&!q)q=requestAnimationFrame(pass)}).observe(document.body,{childList:true,subtree:true,characterData:true});pass()})();
 </script></body></html>
