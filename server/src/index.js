@@ -79,5 +79,9 @@ const port = +process.env.PORT || 8080;
 migrate().then(ensureDefaults).then(() => {
   app.listen(port, () => console.log("money manager on :" + port));
   if (process.env.SCHEDULER !== "0") startScheduler();
-  refreshRates().catch((e) => console.error("rates:", e.message));
+  refreshRates().catch((e) => console.error("rates:", e.message)).then(async () => {
+    if (process.env.AUTO_DEMO_SEED !== "1") return;
+    const n = (await q("SELECT count(*)::int AS n FROM transactions")).rows[0].n;
+    if (!n) console.log("sample data loaded:", await seedDemo());
+  }).catch((e) => console.error("seed:", e.message));
 }).catch((e) => { console.error("startup failed:", e); process.exit(1); });
