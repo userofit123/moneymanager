@@ -207,6 +207,7 @@ Object.assign(D,{
 "a month": "בחודש",
 "a month on average": "בחודש בממוצע",
 "in total": "בסך הכול",
+"Delete this category": "מחיקת הקטגוריה הזו",
 "Safe to put in jars": "בטוח להפקיד בקופות",
 "What is left after the money that is already spoken for": "מה שנשאר אחרי הכסף שכבר מיועד",
 "See how this is worked out": "איך זה מחושב",
