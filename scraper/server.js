@@ -15,6 +15,18 @@ const scrub = (msg, creds) => Object.values(creds || {}).reduce((m, v) => (v && 
 const DEBUG = process.env.SCRAPER_DEBUG === "1";
 const UA = process.env.SCRAPER_UA || "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
+// The library cannot enter one-time codes for Hapoalim, Max or Isracard. If the page it is stuck on asks for one,
+// say so clearly (instead of a bare timeout) so the app stops retrying and the bank stops texting you.
+const OTP_RE = /(ה?קוד|את\s*ה?קוד)\s*ה?(חד[\s-]?פעמי|אימות|זיהוי|אבטחה|סודי)|הקוד\s*נשלח|נשלח\s*(אליך\s*)?(קוד|sms|הודעה)|one[\s-]?time\s*(code|password|passcode)|verification\s*code|security\s*code|sms\s*code|enter\s*the\s*code/i;
+async function asksForCode(page) {
+  try {
+    return await page.evaluate((src) => {
+      const re = new RegExp(src[0], src[1]);
+      return !!document.querySelector('input[autocomplete="one-time-code"],input[name*="otp" i],input[id*="otp" i]') || re.test((document.body && document.body.innerText) || "");
+    }, [OTP_RE.source, OTP_RE.flags]);
+  } catch { return false; }
+}
+
 async function scrape(company, credentials, startDate) {
   let page = null;
   const s = createScraper({
@@ -42,6 +54,11 @@ async function scrape(company, credentials, startDate) {
     if (!r.success) throw new Error(`${r.errorType || "error"}: ${r.errorMessage || "login failed"}`);
     return { success: true, accounts: r.accounts };
   } catch (e) {
+    if (page && (await asksForCode(page))) {
+      const err = new Error("OTP_REQUIRED: the bank asked for a one-time code, which this scraper cannot enter");
+      if (DEBUG) { try { await page.screenshot({ path: `/debug/${company}.png` }); } catch {} }
+      throw err;
+    }
     // opt-in diagnostics: a screenshot of where it got stuck (a captcha, a notice, a changed page). No credentials are typed into it after login.
     if (DEBUG && page) { try { await page.screenshot({ path: `/debug/${company}.png` }); console.log(`debug screenshot: /debug/${company}.png (${page.url().split("?")[0]})`); } catch {} }
     throw e;

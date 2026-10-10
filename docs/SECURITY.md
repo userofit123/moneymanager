@@ -47,4 +47,4 @@ Nothing else: no analytics, telemetry, error reporting, fonts or CDN scripts. Th
 - A compromised host or Docker daemon can read everything the app can.
 - The screen of an unlocked device with a live session shows your data; there is no separate app PIN yet.
 - Without strict mode, the scraper container can reach the whole internet. The app container also has internet access (it needs rates, Wise and ntfy) and is limited only by its code, which the audit above lists.
-- Hapoalim one-time codes are not supported by the scraper; use CSV import for it if the bank insists.
+- One-time codes (SMS) are not supported by the scraper for Hapoalim, Max or Isracard; use CSV import for a source whose bank insists on them.

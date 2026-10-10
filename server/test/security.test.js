@@ -219,3 +219,10 @@ test("ntfy alerts may only go to your own network", () => {
   for (const bad of ["https://ntfy.sh/mytopic", "https://example.com/x", "http://8.8.8.8/x", "http://172.32.0.1/x"]) assert.ok(ntfyProblem(bad), bad);
   assert.ok(ntfyProblem("not a url"));
 });
+
+test("a bank asking for a one-time code locks the source on the first failure", async () => {
+  await saveCreds("max", { username: "u@example.com", password: "pw-otp-test" });
+  assert.equal(await recordResult("max", false, "OTP_REQUIRED: the bank asked for a one-time code, which this scraper cannot enter", {}), true);
+  assert.equal(await isLocked("max"), true);
+  await unlock("max");
+});

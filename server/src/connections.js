@@ -67,7 +67,8 @@ export async function recordResult(source, ok, error, creds) {
     `INSERT INTO source_state (source,consecutive_failures,last_error) VALUES ($1,1,$2)
      ON CONFLICT (source) DO UPDATE SET consecutive_failures=source_state.consecutive_failures+1, last_error=$2
      RETURNING consecutive_failures`, [source, msg]);
-  const locked = r.rows[0].consecutive_failures >= LIMIT(source);
+  // a bank asking for a one-time code can never succeed unattended: lock at once so no more codes are sent to your phone
+  const locked = /^OTP_REQUIRED/.test(msg) || r.rows[0].consecutive_failures >= LIMIT(source);
   if (locked) await q("UPDATE source_state SET locked=TRUE WHERE source=$1", [source]);
   return locked;
 }
