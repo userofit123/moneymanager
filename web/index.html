@@ -64,7 +64,7 @@ details.jrec{margin-top:10px;border-top:1px solid var(--ol);padding-top:8px}deta
 /* motion */
 @keyframes vin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes rin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-#dash>div,#dash .grid>div,#dash .grid>.card{animation:vin .32s both}
+html.intro #dash>div,html.intro #dash .grid>div,html.intro #dash .grid>.card{animation:vin .32s both}
 tr.gin>td,div.gin{animation:rin .24s both}
 tr.gx>td,div.gx{opacity:0;transform:translateY(-6px);transition:opacity .16s,transform .16s}
 .ghead .gc{display:inline-block;transition:transform .2s}.ghead.closed .gc{transform:rotate(-90deg)}
@@ -156,7 +156,7 @@ svg text{font-family:inherit;fill:var(--tx2);font-size:11px}svg .gl{stroke:var(-
 .ctl{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end;margin-bottom:6px}.ctl .seg{margin:6px 0 0}
 .tip{position:fixed;left:0;top:0;z-index:300;max-width:min(320px,calc(100vw - 20px));padding:10px 13px;border-radius:12px;background:var(--s2);color:var(--tx);border:1px solid var(--ol);box-shadow:0 14px 34px -12px rgba(0,0,0,.5);font-size:13px;font-weight:400;line-height:1.5;pointer-events:none;opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .16s,transform .16s,visibility .16s;white-space:normal;word-break:break-word}.tip.on{opacity:1;visibility:visible;transform:none}
 .scrim{position:fixed;inset:0;background:#0007;z-index:70;display:none}.scrim.on{display:block}
-.sheet{position:fixed;left:50%;top:50%;transform:translate(-50%,-48%);width:min(560px,94vw);max-height:88vh;overflow:auto;background:var(--bg);border:1px solid var(--ol);border-radius:26px;padding:22px;z-index:80;display:none;box-shadow:0 30px 80px -20px #000a}.sheet.on{display:block;animation:fi .2s}
+.sheet{position:fixed;inset:0;margin:auto;height:fit-content;width:min(560px,94vw);max-height:88vh;overflow:auto;background:var(--bg);border:1px solid var(--ol);border-radius:26px;padding:22px;z-index:80;display:none;box-shadow:0 30px 80px -20px #000a}.sheet.on{display:block;animation:sheetIn .24s cubic-bezier(.2,.8,.2,1)}@keyframes sheetIn{from{opacity:0;scale:.55}}
 .sheet h3{font-size:20px;font-weight:600;margin-bottom:12px;letter-spacing:-.3px}.sheet .grab{display:none}
 .fld{display:grid;gap:6px;margin-bottom:12px;min-width:0}.fld label{font-size:12px;color:var(--tx2);font-weight:600}.fld input,.fld select,.fld textarea{width:100%}
 .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}.two>*{min-width:0}
@@ -180,7 +180,7 @@ html.mob .pop{left:8px;right:8px;bottom:calc(76px + var(--sb));width:auto}
 html.mob .fab{display:none}html.mob .navplus{flex:none;width:56px;min-height:0;align-self:center;justify-content:center;padding:0}html.mob .navplus .pb{display:grid;place-items:center;width:44px;height:44px;border-radius:15px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:var(--on);font-size:26px;font-weight:300;line-height:1;box-shadow:0 6px 16px -6px var(--acc)}
 html.mob input,html.mob select,html.mob textarea{font-size:16px}
 html.mob .jin .fld input{font-size:16px}
-html.mob .sheet{left:0;right:0;bottom:0;top:auto;transform:none;width:100%;max-height:92vh;border-radius:26px 26px 0 0;border-width:1px 0 0;overscroll-behavior:contain;padding:10px 18px calc(22px + var(--sb))}html.mob .sheet.on{animation:up .25s}html.mob .sheet .grab{display:block;width:42px;height:5px;border-radius:3px;background:var(--ol);margin:0 auto 14px}
+html.mob .sheet{left:0;right:0;bottom:0;top:auto;transform:none;margin:0;height:auto;width:100%;max-height:92vh;border-radius:26px 26px 0 0;border-width:1px 0 0;overscroll-behavior:contain;padding:10px 18px calc(22px + var(--sb))}html.mob .sheet.on{animation:up .25s}html.mob .sheet .grab{display:block;width:42px;height:5px;border-radius:3px;background:var(--ol);margin:0 auto 14px}
 @keyframes up{from{transform:translateY(40px);opacity:0}}
 html.mob .dtab{display:none}html.mob .txl{display:block}
 html.mob .tools input,html.mob .tools select{flex:1;min-width:130px}
@@ -479,7 +479,10 @@ const lp=last?last.d:B.lastPaid,paid=lp&&new Date(lp)>=new Date(pd-4*864e5),stt=
 return{...B,idx,pd,nx,days:Math.ceil((nx-NOW)/864e5),lp,status:stt,amt,was,pred,vari,lo:rc.length?Math.min(...rc):amt,hi:rc.length?Math.max(...rc):amt,fresh:last?(NOW-new Date(last.d))/864e5<=45:false,mo:pred/B.every,n_tx:mt.length,ev}}).filter(b=>all||b.flag!="canceled")}
 function budgetInfo(){const sp=Object.fromEntries(spend());return Object.entries(S.budgets).map(([k,lim])=>{const s=sp[k]||0,pace=s/DAYN*DIM,pc=lim?s/lim*100:0;return{k,lim,s,pace,pc,left:lim-s,perDay:Math.max(0,(lim-s)/(DIM-DAYN)),st:s>lim?"over":pc>=S.cfg.budgetPct?"warn":pace>lim?"pace":"ok"}})}
 
-function openSheet(h){$("sheet").innerHTML='<div class="grab"></div>'+h;$("sheet").classList.add("on");$("scrim").classList.add("on")}
+// popups grow out of the button that opened them: the origin of the opening animation is the last tap
+let lastTap=null;addEventListener("pointerdown",e=>{lastTap=e.target.closest&&e.target.closest("[data-a]")?{x:e.clientX,y:e.clientY,t:Date.now()}:null},true);
+function openSheet(h){const sh=$("sheet");sh.innerHTML='<div class="grab"></div>'+h;const was=sh.classList.contains("on");sh.classList.add("on");$("scrim").classList.add("on");
+if(!was&&!document.documentElement.classList.contains("mob")){const w=sh.offsetWidth,hh=sh.offsetHeight,x=lastTap&&Date.now()-lastTap.t<1500?lastTap.x-(innerWidth-w)/2:w/2,y=lastTap&&Date.now()-lastTap.t<1500?lastTap.y-(innerHeight-hh)/2:hh/2;sh.style.transformOrigin=Math.round(x)+"px "+Math.round(y)+"px"}}
 function closeSheet(){$("sheet").classList.remove("on");$("scrim").classList.remove("on");$("pop").classList.remove("on");setTimeout(()=>{if(!$("sheet").classList.contains("on"))$("sheet").innerHTML=""},350)}
 let sid=0;
 function spark(a,col){const w=200,h=46,mn=Math.min(...a),mx=Math.max(...a),p=a.map((v,i)=>[i*w/(a.length-1),h-6-(v-mn)/(mx-mn||1)*(h-14)]),l=p.map(x=>x.join(",")).join(" "),id="sg"+(sid++);
@@ -1220,10 +1223,10 @@ if(r.ok){need2fa=false;await afterLogin();return}
 if(j.need2fa){need2fa=true;showAuth();$("authE").textContent=j.error||"";$("authC").focus();return}
 if(j.setup){showAuth("setup");return}$("authE").textContent=j.error||"Could not sign in"}
 document.addEventListener("keydown",e=>{if(e.key=="Enter"&&$("auth").style.display=="flex")authGo();if(DV){const t=byId(DV.id);if(e.key=="Escape")closeDocs();else if(t&&(e.key=="ArrowRight"||e.key=="ArrowLeft")){const n=t.docs.length,k=e.key=="ArrowRight"?1:-1;DV.i=DV.i==null?0:(DV.i+k+n)%n;renderDocs()}}});
-async function afterLogin(){hideAuth();try{await load();renderAll();syncLabel()}catch(e){bootDone();fail();return}loadFX();watchJobs();if(!window.__poll)window.__poll=setInterval(()=>{if(!dirty&&!saving&&document.visibilityState=="visible")load().then(()=>{renderAll();syncLabel()}).catch(()=>{})},5*60*1000);const p=new URLSearchParams(location.search),hv=location.hash.slice(1);if(p.get("view")&&TITLES[p.get("view")])nav(p.get("view"));else if(TITLES[hv])nav(hv,true);if(p.get("add"))openAdd();if("Notification" in window&&Notification.permission=="granted"){alerts().filter(x=>x.sev=="high").slice(0,2).forEach(x=>notify("Money · "+x.title,x.text))}}
+async function afterLogin(){hideAuth();try{await load();await Promise.race([loadFX(),sleep(1500)]);renderAll();syncLabel()}catch(e){bootDone();fail();return}watchJobs();if(!window.__poll)window.__poll=setInterval(()=>{if(!dirty&&!saving&&document.visibilityState=="visible")load().then(()=>{renderAll();syncLabel()}).catch(()=>{})},5*60*1000);const p=new URLSearchParams(location.search),hv=location.hash.slice(1);if(p.get("view")&&TITLES[p.get("view")])nav(p.get("view"));else if(TITLES[hv])nav(hv,true);if(p.get("add"))openAdd();if("Notification" in window&&Notification.permission=="granted"){alerts().filter(x=>x.sev=="high").slice(0,2).forEach(x=>notify("Money · "+x.title,x.text))}}
 const fail=()=>document.querySelector("main").insertAdjacentHTML("afterbegin",'<div class="card warn" style="margin-bottom:16px"><b>Cannot reach the server</b><div class="sm">Your data lives on the server. Check that you are on the home network or Tailscale, then reload.</div></div>');
 addEventListener("online",()=>{if(dirty)flush()});
-const bootDone=()=>document.documentElement.classList.remove("boot");setTimeout(bootDone,10000); // never leave the splash up if something goes wrong
+const bootDone=()=>{const h=document.documentElement;if(!h.classList.contains("boot"))return;h.classList.add("intro");h.classList.remove("boot");setTimeout(()=>h.classList.remove("intro"),700)}; // the entrance animation plays once, not on every redrawsetTimeout(bootDone,10000); // never leave the splash up if something goes wrong
 async function boot(){applyTheme();let st;try{st=await (await fetch("/api/auth/status",{cache:"no-store"})).json()}catch(e){bootDone();fail();return}
 if(!st.authed){need2fa=false;bootDone();showAuth(st.setup?"setup":"login");return}await afterLogin();bootDone()}
 boot();
