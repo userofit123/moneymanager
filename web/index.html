@@ -74,7 +74,7 @@ select,input,textarea{transition:border-color .15s,box-shadow .15s}
 .card.click{transition:transform .2s,border-color .2s,box-shadow .2s}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-delay:0s!important;transition-duration:.001ms!important}}
 #toasts{position:fixed;top:18px;right:18px;z-index:160;display:flex;flex-direction:column;gap:10px;width:min(380px,calc(100vw - 36px));pointer-events:none}
-html.mob #toasts{top:auto;right:90px;left:16px;bottom:calc(78px + var(--sb));width:auto;flex-direction:column-reverse}
+html.mob #toasts{top:calc(8px + var(--st));right:10px;left:10px;bottom:auto;width:auto;gap:6px}html.mob .toast{padding:8px 10px;gap:8px;border-radius:12px;font-size:13px}html.mob .toast .ti{width:20px;height:20px}html.mob .toast .ti svg{width:12px;height:12px}html.mob .toast .tm{line-height:1.25}html.mob .toast .tm b{font-size:12px}html.mob .toast .tacts{margin-top:2px}html.mob .toast .tu{padding:4px 8px;font-size:13px}
 .toast{pointer-events:auto;display:flex;align-items:flex-start;gap:12px;background:var(--s1);border:1px solid var(--ol);border-left:4px solid var(--pos);border-radius:16px;padding:12px 14px;box-shadow:0 14px 34px -14px rgba(0,0,0,.4);font-size:14px;animation:tin .22s ease-out}
 .toast.err{border-left-color:var(--neg)}.toast.info{border-left-color:var(--acc)}
 .toast .ti{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;flex:none;background:color-mix(in srgb,var(--pos) 18%,transparent);color:var(--pos)}
