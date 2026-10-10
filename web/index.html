@@ -4,6 +4,7 @@
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="favicon.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#4355b9" id="themeMeta"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Money"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>try{var T0=JSON.parse(localStorage.getItem("moneyTheme")||"{}");["bg","rad","den","fnt","nav"].forEach(function(k){if(T0[k])document.documentElement.dataset[k]=T0[k]})}catch(e){}</script>
 <script>try{if(localStorage.getItem("moneyLang")=="he"){document.documentElement.classList.add("he");document.documentElement.lang="he"}}catch(e){}</script>
 <script src="he-core.js"></script><script src="he-dict.js"></script><script>try{HE.on=localStorage.getItem("moneyLang")=="he"}catch(e){}</script>
 <script>try{var h=document.documentElement,b=JSON.parse(localStorage.getItem("moneyBoot")||"null");h.classList.add("boot");if(b){h.style.background=b.bg;h.style.colorScheme=b.d?"dark":"light";}}catch(e){}</script>
@@ -266,6 +267,27 @@ html.he .kin input{padding:8px 4px 8px 14px}html.he .kin .kc{padding:0 14px 0 4p
 .dnt path{transition:opacity .15s,transform .15s;transform-origin:100px 100px;cursor:pointer}.dnt.hl path{opacity:.3}.dnt.hl path.on{opacity:1;transform:scale(1.045)}
 .legend div[data-k]{padding:3px 8px;margin:-3px -8px;border-radius:9px;transition:background .15s,opacity .15s}.dnt.hl .legend div[data-k]{opacity:.5}.dnt.hl .legend div[data-k].on{opacity:1;font-weight:700;background:var(--s2)}
 svg [data-tip]{cursor:default}
+/* ===== appearance: backgrounds, surfaces, corners, density, fonts, navigation ===== */
+.pop{width:340px;max-height:calc(100vh - 32px);overflow:auto}.pop .pl{margin-top:2px}.pop .kchips{margin:8px 0 14px}.pop .sw{margin:8px 0 14px;grid-template-columns:repeat(4,1fr)}
+.sw button{border:2px solid transparent;border-radius:14px;height:auto;padding:5px;background:var(--s1);color:var(--tx);text-shadow:none;display:grid;gap:5px;justify-items:center}.sw .swp{display:block;width:100%;aspect-ratio:1.5;border-radius:10px;border:1.5px solid}.sw .swn{font-size:10.5px;font-weight:600}.sw button.on{border-color:var(--tx)}
+html[data-bg="mesh"] body{background:radial-gradient(900px 600px at 0 0,color-mix(in srgb,var(--acc) 26%,transparent),transparent 60%),radial-gradient(800px 600px at 100% 0,color-mix(in srgb,var(--acc2) 22%,transparent),transparent 60%),radial-gradient(900px 700px at 100% 100%,color-mix(in srgb,var(--acc) 18%,transparent),transparent 60%),radial-gradient(800px 600px at 0 100%,color-mix(in srgb,var(--acc2) 16%,transparent),transparent 60%),var(--bg);background-attachment:fixed}
+html[data-bg="diagonal"] body{background:linear-gradient(155deg,color-mix(in srgb,var(--acc) 22%,var(--bg)) 0%,var(--bg) 42%,color-mix(in srgb,var(--acc2) 18%,var(--bg)) 100%);background-attachment:fixed}
+html[data-bg="spot"] body{background:radial-gradient(1100px 650px at 50% -8%,color-mix(in srgb,var(--acc) 30%,transparent),transparent 70%),var(--bg);background-attachment:fixed}
+html[data-bg="dots"] body{background:radial-gradient(color-mix(in srgb,var(--tx) 16%,transparent) 1.2px,transparent 1.7px) 0 0/22px 22px,radial-gradient(700px 420px at 0 0,color-mix(in srgb,var(--acc) 14%,transparent),transparent),var(--bg);background-attachment:fixed}
+html[data-bg="stripes"] body{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--tx) 4.5%,transparent) 0 2px,transparent 2px 16px),radial-gradient(800px 500px at 100% 0,color-mix(in srgb,var(--acc2) 14%,transparent),transparent),var(--bg);background-attachment:fixed}
+html[data-bg="flat"] body{background:var(--bg)}
+body.outline .card:not(.hero),body.outline table,body.outline .bgrp{background:transparent;border-width:1.5px}
+body.raised .card:not(.hero),body.raised table,body.raised .bgrp{background:linear-gradient(180deg,color-mix(in srgb,var(--tx) 7%,var(--bg)),var(--s1));box-shadow:0 16px 34px -20px #000a,inset 0 1px 0 color-mix(in srgb,var(--tx) 10%,transparent);border-color:color-mix(in srgb,var(--tx) 9%,transparent)}
+html[data-rad="soft"]{--r:14px}html[data-rad="sharp"]{--r:5px}
+html[data-rad="soft"] :is(.sheet,.pop,.bgrp,.toast,.jstats>div,.trstats>div,.phs>div,.inf,.bbin,.exo,.kin){border-radius:12px}
+html[data-rad="sharp"] :is(.sheet,.pop,.bgrp,.toast,.jstats>div,.trstats>div,.phs>div,.inf,.bbin,.exo,.kin){border-radius:4px}
+html[data-rad="soft"] :is(input,select,textarea,.btn,.seg,.seg button,.chip,.tag,.kchips button,.sw button,.sw .swp,.ib,.logo,.nb .ic){border-radius:10px}
+html[data-rad="sharp"] :is(input,select,textarea,.btn,.seg,.seg button,.chip,.tag,.kchips button,.sw button,.sw .swp,.ib,.logo,.nb .ic){border-radius:3px}
+html.mob[data-rad="soft"] .sheet{border-radius:14px 14px 0 0}html.mob[data-rad="sharp"] .sheet{border-radius:5px 5px 0 0}
+html[data-den="compact"] .card{padding:12px 14px}html[data-den="compact"] .grid{gap:10px}html[data-den="compact"] .row{padding:7px 0}html[data-den="compact"] h2{margin:18px 0 8px}html[data-den="compact"] .val{font-size:26px}html[data-den="compact"] .txi{padding:7px 4px}html[data-den="compact"] td{padding-top:7px;padding-bottom:7px}
+html[data-den="roomy"] .card{padding:24px 26px}html[data-den="roomy"] .grid{gap:22px}html[data-den="roomy"] .row{padding:17px 0}html[data-den="roomy"] h2{margin:38px 0 16px}html[data-den="roomy"] .txi{padding:15px 6px}html[data-den="roomy"] td{padding-top:15px;padding-bottom:15px}
+html[data-nav="mini"]:not(.mob) nav{width:68px}html[data-nav="mini"]:not(.mob) .nb{font-size:0;gap:0}html[data-nav="mini"]:not(.mob) .nb .ic{width:46px}html[data-nav="mini"]:not(.mob) .syncb #sync{display:none}html[data-nav="mini"]:not(.mob) .pop{left:80px}html[data-nav="mini"]:not(.mob) .badge{right:10px}
+html.mob .only-d{display:none!important}
 .dt{display:inline-block;margin:0 .3em;opacity:.6}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -302,9 +324,14 @@ svg [data-tip]{cursor:default}
 <button class="nb" id="themeBtn" data-a="theme"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18a9 9 0 0 0 0-18z" fill="currentColor"/></svg></span>Appearance</button></div>
 </nav>
 <div class="pop" id="pop"><div class="pl">Mode</div><div class="seg" id="segMode"><button data-a="mode" data-m="light">Light</button><button data-a="mode" data-m="dark">Dark</button><button data-a="mode" data-m="auto">Auto</button></div>
-<div class="pl">Atmosphere</div><div class="sw" id="sw" style="margin:8px 0 16px"></div>
-<div class="pl">Language</div><div class="seg" id="segLang" style="margin-bottom:16px"><button data-a="lang" data-l="en">English</button><button data-a="lang" data-l="he">עברית</button></div>
-<div class="pl">Surface</div><div class="seg" id="segSurf" style="margin-bottom:0"><button data-a="surf" data-s="solid">Solid</button><button data-a="surf" data-s="glass">Glass</button></div></div>
+<div class="pl">Atmosphere</div><div class="sw" id="sw"></div>
+<div class="pl">Background</div><div class="kchips"><button data-a="opt" data-k="bg" data-v="glow">Glow</button><button data-a="opt" data-k="bg" data-v="mesh">Mesh</button><button data-a="opt" data-k="bg" data-v="diagonal">Diagonal</button><button data-a="opt" data-k="bg" data-v="spot">Spotlight</button><button data-a="opt" data-k="bg" data-v="dots">Dots</button><button data-a="opt" data-k="bg" data-v="stripes">Stripes</button><button data-a="opt" data-k="bg" data-v="flat">Flat</button></div>
+<div class="pl">Surface</div><div class="kchips"><button data-a="surf" data-s="solid">Solid</button><button data-a="surf" data-s="glass">Glass</button><button data-a="surf" data-s="outline">Outline</button><button data-a="surf" data-s="raised">Raised</button></div>
+<div class="pl">Corners</div><div class="kchips"><button data-a="opt" data-k="rad" data-v="round">Round</button><button data-a="opt" data-k="rad" data-v="soft">Soft</button><button data-a="opt" data-k="rad" data-v="sharp">Sharp</button></div>
+<div class="pl">Density</div><div class="kchips"><button data-a="opt" data-k="den" data-v="compact">Compact</button><button data-a="opt" data-k="den" data-v="cozy">Cozy</button><button data-a="opt" data-k="den" data-v="roomy">Roomy</button></div>
+<div class="pl">Font</div><div class="kchips"><button data-a="opt" data-k="fnt" data-v="sans">Sans</button><button data-a="opt" data-k="fnt" data-v="serif">Serif</button><button data-a="opt" data-k="fnt" data-v="round">Rounded</button><button data-a="opt" data-k="fnt" data-v="mono">Mono</button></div>
+<div class="pl only-d">Navigation</div><div class="kchips only-d"><button data-a="opt" data-k="nav" data-v="full">Labels</button><button data-a="opt" data-k="nav" data-v="mini">Icons only</button></div>
+<div class="pl">Language</div><div class="kchips" id="segLang" style="margin-bottom:0"><button data-a="lang" data-l="en">English</button><button data-a="lang" data-l="he">עברית</button></div></div>
 <div class="scrim" id="scrim" data-a="close"></div><div class="sheet" id="sheet"></div>
 <button class="fab" data-a="quick" aria-label="Add or update">+</button>
 <main>
@@ -387,22 +414,36 @@ Ocean:{L:["#006b7d","#b3ebff","#001f26","#f4fafc","#2d7dd2","#fff"],D:["#4fd8eb"
 Forest:{L:["#2e6b3a","#b4f1b8","#002106","#f6faf4","#8a7a1f","#fff"],D:["#98d49f","#135025","#b4f1b8","#0e1410","#d6c46b","#00390f"]},
 Sunset:{L:["#a8431e","#ffdbcf","#380d00","#fff8f5","#c2185b","#fff"],D:["#ffb59a","#7f2a05","#ffdbcf","#17100d","#ff8fb1","#5b1a00"]},
 Aurora:{L:["#6d4bc4","#e9ddff","#23005c","#faf7ff","#0a9aa6","#fff"],D:["#c8b3ff","#4b2d9a","#e9ddff","#0b0a16","#4fe0cf","#2a0c70"]},
-Mono:{L:["#3b3b3b","#e4e4e4","#1b1b1b","#fafafa","#777","#fff"],D:["#e0e0e0","#3a3a3a","#f0f0f0","#101010","#9a9a9a","#1a1a1a"]}};
+Mono:{L:["#3b3b3b","#e4e4e4","#1b1b1b","#fafafa","#777","#fff"],D:["#e0e0e0","#3a3a3a","#f0f0f0","#101010","#9a9a9a","#1a1a1a"]},
+Rose:{L:["#952345","#ffd6e2","#470015","#fdf7f9","#a54027","#ffffff"],D:["#f896b3","#6f2038","#fecddc","#170d10","#f4937b","#440417"]},
+Ember:{L:["#954523","#ffe2d6","#471500","#fdf9f7","#a52746","#ffffff"],D:["#f8b396","#6f3820","#fedccd","#17100d","#f47b99","#441704"]},
+Gold:{L:["#927526","#fef4d7","#463402","#fdfbf7","#a2562a","#ffffff"],D:["#f6dd98","#6d5922","#fdf0ce","#17140d","#f1a87e","#423205"]},
+Meadow:{L:["#4b8f29","#e4fdd8","#194404","#f9fcf7","#9f9f2d","#ffffff"],D:["#b8f39a","#3c6b24","#defbd0","#10160d","#eeee81","#1a4107"]},
+Lagoon:{L:["#298f8c","#d8fdfc","#044442","#f7fcfc","#2d6f9f","#ffffff"],D:["#9af3f0","#246b68","#d0fbfa","#0d1616","#81c1ee","#07413f"]},
+Sky:{L:["#236595","#d6eeff","#002a47","#f7fafd","#4627a5","#ffffff"],D:["#96cff8","#204e6f","#cdeafe","#0d1317","#997bf4","#042944"]},
+Slate:{L:["#455873","#e2e9f3","#152132","#f9fafb","#4d777f","#ffffff"],D:["#b3c4db","#384557","#dce4ef","#101214","#9fc8d0","#172231"]},
+Plum:{L:["#8c2b8c","#fcd9fc","#420542","#fcf8fc","#9c3066","#ffffff"],D:["#f19df1","#692669","#fad1fa","#160e16","#eb84b8","#3f083f"]},
+Mocha:{L:["#7b5a3c","#f6eadf","#372210","#fbfaf8","#897743","#ffffff"],D:["#e2c5ac","#5d4632","#f3e5d8","#15120f","#d9c896","#352312"]},
+Mint:{L:["#2e895c","#dafbeb","#074024","#f8fcfa","#339990","#ffffff"],D:["#9feec7","#286747","#d2f9e6","#0e1612","#87e8e0","#0a3d24"]},
+Midnight:{L:["#233a95","#d6deff","#000e47","#f7f8fd","#2790a5","#ffffff"],D:["#96a9f8","#20306f","#cdd7fe","#0d0f17","#7be0f4","#041044"]},
+Candy:{L:["#95235c","#ffd6eb","#470024","#fdf7fa","#2790a5","#ffffff"],D:["#f896c7","#6f2047","#fecde6","#170d12","#7be0f4","#440424"]}};
+const FONTS={sans:'Inter,"Segoe UI",Roboto,system-ui,sans-serif',serif:'"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif',round:'ui-rounded,"SF Pro Rounded",Nunito,"Varela Round","Segoe UI",system-ui,sans-serif',mono:'ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace'};
 const CP={L:["#4355b9","#c2185b","#e68a00","#00897b","#7cb342","#8e24aa","#546e7a"],D:["#9fb0ff","#f48fb1","#ffcc80","#80cbc4","#c5e1a5","#ce93d8","#b0bec5"]};
-let st={mode:"auto",atm:"Indigo",surf:"solid"};try{st=Object.assign(st,JSON.parse(localStorage.getItem("moneyTheme")||"{}"))}catch(e){}
+let st={mode:"auto",atm:"Indigo",surf:"solid",bg:"glow",rad:"round",den:"cozy",fnt:"sans",nav:"full"};try{st=Object.assign(st,JSON.parse(localStorage.getItem("moneyTheme")||"{}"))}catch(e){}
 function isDark(){return st.mode=="dark"||(st.mode=="auto"&&matchMedia("(prefers-color-scheme:dark)").matches)}
 function themeSwap(fn){const go=()=>{const h=document.documentElement;h.classList.add("nt");fn();requestAnimationFrame(()=>requestAnimationFrame(()=>h.classList.remove("nt")))};if(document.startViewTransition&&!matchMedia("(prefers-reduced-motion:reduce)").matches)document.startViewTransition(go);else go()}
 function applyTheme(){const d=isDark(),k=d?"D":"L",a=ATM[st.atm][k],r=document.documentElement.style;r.colorScheme=d?"dark":"light";
-document.documentElement.dataset.mode=d?"dark":"light";
+document.documentElement.dataset.mode=d?"dark":"light";["bg","rad","den","fnt","nav"].forEach(k=>document.documentElement.dataset[k]=st[k]);r.setProperty("--font",FONTS[st.fnt]||FONTS.sans);
 [["--acc",a[0]],["--accc",a[1]],["--onc",a[2]],["--bg",a[3]],["--acc2",a[4]],["--on",a[5]],["--tx",d?"#e6e4ea":"#1b1b22"],["--tx2",d?"#a9a7b3":"#5a5865"],["--pos",d?"#6fd69b":"#1b7f4b"],["--neg",d?"#ff9c8f":"#c0392b"],
 ["--s1","color-mix(in srgb,var(--tx) "+(d?"5":"3")+"%,var(--bg))"],["--s2","color-mix(in srgb,var(--tx) "+(d?"10":"7")+"%,var(--bg))"],["--ol","color-mix(in srgb,var(--tx) "+(d?"13":"11")+"%,transparent)"]].forEach(([n,v])=>r.setProperty(n,v));
 CP[k].forEach((c,i)=>r.setProperty("--c"+i,c));$("themeMeta").content=a[3];
-document.body.classList.toggle("glass",st.surf=="glass");
+["glass","outline","raised"].forEach(c=>document.body.classList.toggle(c,st.surf==c));document.querySelectorAll("#pop [data-a=opt]").forEach(b=>b.classList.toggle("on",st[b.dataset.k]==b.dataset.v));
 document.querySelectorAll("#segMode button").forEach(b=>b.classList.toggle("on",b.dataset.m==st.mode));
-document.querySelectorAll("#segSurf button").forEach(b=>b.classList.toggle("on",b.dataset.s==st.surf));document.querySelectorAll("#segLang button").forEach(b=>b.classList.toggle("on",b.dataset.l==(HE.on?"he":"en")));
-document.querySelectorAll("#sw button").forEach(b=>b.classList.toggle("on",b.dataset.a2==st.atm));
+document.querySelectorAll("#pop [data-a=surf]").forEach(b=>b.classList.toggle("on",b.dataset.s==st.surf));document.querySelectorAll("#segLang button").forEach(b=>b.classList.toggle("on",b.dataset.l==(HE.on?"he":"en")));
+swatches();
 try{localStorage.setItem("moneyTheme",JSON.stringify(st));localStorage.setItem("moneyBoot",JSON.stringify({bg:a[3],d}))}catch(e){}}
-$("sw").innerHTML=Object.entries(ATM).map(([n,v])=>`<button data-a="atm" data-a2="${n}" style="background:linear-gradient(135deg,${v.D[0]},${v.D[4]} 60%,${v.D[3]})">${n}</button>`).join("");
+function swatches(){const k=isDark()?"D":"L";$("sw").innerHTML=Object.entries(ATM).map(([n,v])=>{const c=v[k];return `<button data-a="atm" data-a2="${n}" class="${st.atm==n?"on":""}" aria-label="${n}"><span class="swp" style="background:radial-gradient(circle at 30% 38%,${c[0]} 0 24%,transparent 25%),radial-gradient(circle at 70% 64%,${c[4]} 0 15%,transparent 16%),${c[3]};border-color:${c[0]}"></span><span class="swn">${n}</span></button>`}).join("")}
+swatches();
 
 /* ---------- state: lives on the server (Postgres) ---------- */
 const T=(id,d,desc,from,to,a,c)=>({id,d,desc,from,to,a,c:c||"",tags:[],docs:[],note:""});
@@ -1155,6 +1196,7 @@ function act(a,d,el){switch(a){
 case"nav":FOCUS=null;nav(d.v);break;case"more":openMore();break;case"sync":openSync();break;case"close":closeSheet();break;case"add":openAdd();break;case"addSave":addSave();break;
 case"theme":$("pop").classList.toggle("on");break;case"theme2":closeSheet();$("pop").classList.add("on");break;
 case"lang":try{localStorage.setItem("moneyLang",d.l)}catch(e){}location.reload();break;
+case"opt":st[d.k]=d.v;themeSwap(applyTheme);break;
 case"mode":st.mode=d.m;themeSwap(()=>{applyTheme();renderAll()});break;case"surf":st.surf=d.s;themeSwap(applyTheme);break;case"atm":st.atm=d.a2;themeSwap(()=>{applyTheme();renderAll()});break;
 case"openTx":openTx(d.id);break;case"txTab":txTab=d.t;renderTx();break;
 case"grpTog":{const k=d.g;if(GCOL.has(k)){GCOL.delete(k);GJUST=k;renderTx()}else{ // collapse: fade the rows out first, then drop them
