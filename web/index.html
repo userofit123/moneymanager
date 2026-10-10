@@ -1023,7 +1023,7 @@ case"jarDel":{const j=S.jars.find(x=>x.id==d.id);if(j&&confirm(`Delete the jar "
 case"jarNoDue":jset(+d.id,"due","");break;
 case"curAdd":{const c=$("curSel").value;if(!c)break;S.currencies=[...new Set([...(S.currencies||["ILS"]),c])];log("Added currency",c);renderAll();(async()=>{try{await flushNow();await api("/api/fx/refresh",{method:"POST"});await loadFX();toast(c+" rates loaded")}catch(e){toast("Saved, but rates could not be fetched yet: "+e.message)}})();break}
 case"curDel":S.currencies=(S.currencies||[]).filter(x=>x!=d.c);log("Removed currency",d.c);renderAll();flushNow().then(loadFX);break;
-case"catSuggest":api("/api/categories/suggested",{method:"POST"}).then(async r=>{await load();renderAll();toast(r.categories||r.rules?`Added ${r.categories} categories and ${r.rules} rules`:"You already have them all")}).catch(e=>toast(e.message));break;
+case"catSuggest":api("/api/categories/suggested",{method:"POST"}).then(async r=>{await load();renderAll();toast(r.categories||r.rules||r.applied?`Added ${r.categories} categories and ${r.rules} rules${r.applied?`, and sorted ${r.applied} uncategorized transaction${r.applied==1?"":"s"}`:""}`:"You already have them all")}).catch(e=>toast(e.message));break;
 case"catDel":{const k=d.k;if(!confirm(`Delete "${k}"? Its transactions become uncategorized, and its rules and budget are removed.`))break;delete S.cats[k];S.tx.forEach(t=>{if(t.c==k)t.c=""});S.rules=S.rules.filter(r=>r.c!=k);delete S.budgets[k];log("Deleted category",k);renderAll();break}
 case"billCanceled":{const b=S.bills[+d.i];b.flag="canceled";b.canceledAt=TODAY;log("Marked bill as canceled",b.n);renderAll();break}
 case"billRestore":{const b=S.bills[+d.i];b.flag="";delete b.canceledAt;log("Restored bill",b.n);renderAll();break}

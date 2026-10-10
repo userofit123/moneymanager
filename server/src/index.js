@@ -14,7 +14,8 @@ import { parseWiseCsv, parseBankCsv } from "./sources/csv.js";
 import { seedDemo } from "./seed.js";
 import { addSuggested } from "./categories.js";
 import { fillJars, readJars } from "./jars.js";
-import { bumpRev } from "./db.js";
+import { bumpRev, tx } from "./db.js";
+import { applyRules } from "./engine.js";
 import { sendNtfy, ntfyProblem, ntfyUrl } from "./notify.js";
 import { listConnections, saveCreds, removeCreds, unlock, getCreds, markAssisted, FIELDS } from "./connections.js";
 import * as auth from "./auth.js";
@@ -224,7 +225,7 @@ app.post("/api/gaps/:id/:action", json, wrap(async (req, res) => {
   res.json(r);
 }));
 app.post("/api/jars/fill", wrap(async (_req, res) => { const r = await fillJars(); res.json({ ...r, jars: await readJars({ query: q }) }); }));
-app.post("/api/categories/suggested", wrap(async (_req, res) => { const r = await addSuggested(); if (r.categories || r.rules) await bumpRev(); res.json(r); }));
+app.post("/api/categories/suggested", wrap(async (_req, res) => { const r = await addSuggested(); const applied = await tx((c) => applyRules(c)); if (r.categories || r.rules || applied) await bumpRev(); res.json({ ...r, applied }); }));
 app.post("/api/networth/snapshot", wrap(async (_req, res) => { await snapshotNetWorth(); res.json({ ok: true }); }));
 if (process.env.ALLOW_DEMO_SEED === "1") app.post("/api/demo/seed", wrap(async (_req, res) => res.json(await seedDemo())));
 

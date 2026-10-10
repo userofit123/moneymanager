@@ -13,12 +13,11 @@ export async function addSuggested(c = null) {
   let cats = 0, rules = 0;
   for (const [name, color] of SUGGESTED_CATEGORIES) cats += (await run("INSERT INTO categories (name,color) VALUES ($1,$2) ON CONFLICT (name) DO NOTHING", [name, color])).rowCount;
   const have = new Set((await run("SELECT lower(keyword) AS k FROM rules")).rows.map((r) => r.k));
-  const pos = (await run("SELECT COALESCE(max(position),0)+1 AS p FROM rules")).rows[0].p;
-  let i = 0;
-  for (const [k, cat] of SUGGESTED_RULES) {
-    if (have.has(k.toLowerCase())) continue;
-    have.add(k.toLowerCase());
-    await run("INSERT INTO rules (keyword,category,tag,position) VALUES ($1,$2,'',$3)", [k, cat, pos + i++]);
+  const fresh = SUGGESTED_RULES.filter(([k]) => { const l = k.toLowerCase(); if (have.has(l)) return false; have.add(l); return true; });
+  // New rules go in front of the old ones: the specific names must win over broad words like "ביטוח" that an earlier version added.
+  const first = (await run("SELECT COALESCE(min(position),1) AS p FROM rules")).rows[0].p - fresh.length;
+  for (const [i, [k, cat]] of fresh.entries()) {
+    await run("INSERT INTO rules (keyword,category,tag,position) VALUES ($1,$2,'',$3)", [k, cat, first + i]);
     rules++;
   }
   return { categories: cats, rules };
