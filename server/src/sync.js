@@ -67,15 +67,25 @@ const RUN = {
 };
 
 export const SOURCE_NAMES = Object.keys(RUN);
-const running = new Set();
 
-export async function syncSource(name) {
+// Only one connection job (test or sync) runs at a time, so a bank is never hit twice at once and the scraper is never overloaded.
+let job = null;
+export const activeJob = () => (job ? { ...job } : null);
+const busyResult = () => ({ ok: false, busy: true, job: activeJob(), error: `${job.kind === "test" ? "A test" : "A sync"} is already running (${job.source === "all" ? "all sources" : LABELS[job.source] || job.source}). Wait for it to finish.` });
+async function withJob(source, kind, fn) {
+  if (job) return busyResult();
+  job = { source, kind, since: Date.now() };
+  try { return await fn(); } finally { job = null; }
+}
+
+export const syncSource = (name) => {
   if (!RUN[name]) throw new Error("unknown source " + name);
+  return withJob(name, "sync", () => syncInner(name));
+};
+async function syncInner(name) {
   const creds = await getCreds(name);
   if (!creds) return { ok: false, skipped: true, error: "not connected" };
   if (await isLocked(name)) return { ok: false, locked: true, error: `${LABELS[name]} is locked after failed attempts. Check the credentials, then unlock it in Settings.` };
-  if (running.has(name)) return { skipped: true };
-  running.add(name);
   const run = await q("INSERT INTO sync_runs (source) VALUES ($1) RETURNING id", [name]);
   try {
     const res = await RUN[name](creds);
@@ -91,14 +101,15 @@ export async function syncSource(name) {
     const locked = await recordResult(name, false, msg, creds);
     await notifyOnce(`fail:${name}`, `Money · ${LABELS[name]} sync failed`, locked ? `${msg}\nAutomatic attempts are paused. Check the login, then unlock it in Settings.` : msg, "high");
     return { ok: false, error: msg, locked };
-  } finally {
-    running.delete(name);
   }
 }
 
 // Dry run for the "Test connection" button (spec section 9): last 30 days, summary only, nothing saved.
-export async function testSource(name) {
+export const testSource = (name) => {
   if (!RUN[name]) throw new Error("unknown source " + name);
+  return withJob(name, "test", () => testInner(name));
+};
+async function testInner(name) {
   const creds = await getCreds(name);
   if (!creds) return { ok: false, error: "not connected" };
   if (await isLocked(name)) return { ok: false, locked: true, error: "Locked after failed attempts. Unlock it first." };
@@ -120,10 +131,11 @@ export async function testSource(name) {
   }
 }
 
-export async function syncAll() {
+export const syncAll = () => withJob("all", "sync", syncAllInner);
+async function syncAllInner() {
   await refreshRates(7).catch((e) => console.error("rates:", e.message));
   const out = {};
-  for (const s of SOURCE_NAMES) out[s] = await syncSource(s);
+  for (const s of SOURCE_NAMES) out[s] = await syncInner(s);
   const open = (await q("SELECT count(*)::int AS n FROM balance_gaps WHERE status='open'")).rows[0].n;
   if (open) await notifyOnce(`gaps:${open}`, "Money · missing money", `${open} balance gap${open > 1 ? "s" : ""} to explain in Activity → Needs review`);
   return out;
