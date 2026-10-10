@@ -41,7 +41,7 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
       if (rate == null) throw new Error(`no exchange rate for ${cur} on ${r.date}; run a rates refresh first`);
       const ils = +(r.amount * rate).toFixed(2);
       const out = r.amount < 0;
-      const from = out ? account.name : r.counterparty || "Bank transfer";
+      const from = out ? account.name : r.counterparty || r.description || "Bank transfer"; // the description names the payer
       const to = out ? r.counterparty || r.description : account.name;
       const foreign = cur !== "ILS";
 
