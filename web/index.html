@@ -254,6 +254,12 @@ html.mob .bgr .row>div[style*="min-width:120px"]>.sm:last-child{display:none}htm
 html.mob .bgh{padding:14px 16px;gap:12px}html.mob .bgr{padding:2px 16px}html.mob .bgi{width:36px;height:36px}html.mob .bgs b{font-size:16px}html.mob .bgs span{display:none}
 .rule{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.rule input,.rule select{min-height:38px;padding:6px 12px;font-size:14px}.rule input[data-c="rulek"]{flex:1 1 160px;min-width:120px}.rule select{flex:0 1 200px}.rule input[data-c="rulet"]{flex:0 1 130px;min-width:90px}
 .cx{border:0;background:none;color:var(--tx2);cursor:pointer;font:inherit;font-size:16px;line-height:1;padding:0 2px;margin:0 -2px 0 0;border-radius:50%;width:18px;height:18px;display:inline-grid;place-items:center;opacity:.7}.cx:hover{opacity:1;background:var(--s2);color:var(--neg)}
+.jtop .kbuf{margin-top:16px;padding-top:14px;border-top:1px solid var(--ol)}.kh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.kh b{font-size:14px}.kh .sm{font-size:12px;margin-top:2px;line-height:1.35}.kv{font-weight:700;font-size:15px;white-space:nowrap}
+.kchips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 10px}.kchips button{border:1px solid var(--ol);background:var(--s1);color:var(--tx);font:inherit;font-size:13px;padding:7px 13px;border-radius:99px;cursor:pointer;transition:.15s}.kchips button:hover{border-color:var(--acc)}.kchips button.on{background:var(--accc);color:var(--onc);border-color:var(--acc);font-weight:600}
+.kin{display:flex;align-items:center;gap:0;background:var(--s1);border:1px solid var(--ol);border-radius:14px;overflow:hidden}.kin:focus-within{border-color:var(--acc)}.kin .kc{padding:0 4px 0 14px;color:var(--tx2)}.kin input{border:0;background:transparent;min-height:40px;flex:1;padding:8px 14px 8px 4px;border-radius:0}.kin input:focus{outline:0}
+.jmo .val .of{font-size:15px;font-weight:500;color:var(--tx2);letter-spacing:0}.jbar{height:10px;background:var(--s2);border-radius:99px;overflow:hidden;margin:14px 0 10px}.jbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .5s}.jbar i.w{background:#e6a100}.jbar i.d{background:var(--pos)}
+.jstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px}.jstats>div{background:var(--s1);border:1px solid var(--ol);border-radius:14px;padding:10px 12px;min-width:0}.jstats span{display:block;font-size:11px;color:var(--tx2);font-weight:600;text-transform:uppercase;letter-spacing:.5px}.jstats b{display:block;font-size:15px;margin-top:2px;overflow:hidden;text-overflow:ellipsis}
+html.he .kin input{padding:8px 4px 8px 14px}html.he .kin .kc{padding:0 14px 0 4px}
 .dt{display:inline-block;margin:0 .3em;opacity:.6}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -323,8 +329,11 @@ html.mob .bgh{padding:14px 16px;gap:12px}html.mob .bgr{padding:2px 16px}html.mob
 
 <section class="view" id="jars">
 <div class="grid g2s" style="margin-bottom:16px">
-<div class="card"><div class="lbl">Safe to put in jars</div><div class="val"><small>₪</small><span id="avail"></span></div><div class="sm" id="availSub"></div><div class="fld" style="margin:10px 0 0"><label>Keep untouched (₪)</label><input id="jbuf" type="number" inputmode="numeric" min="0"></div></div>
-<div class="card hero"><div class="lbl">Put into jars this month</div><div class="val" id="left"></div><div class="sm" id="leftSub"></div></div></div>
+<div class="card jtop"><div class="lbl">Safe to put in jars</div><div class="val"><small>₪</small><span id="avail"></span></div><div class="sm" id="availSub"></div>
+<div class="kbuf"><div class="kh"><div><b>Keep untouched</b><div class="sm">A cushion the jars never touch, like an emergency buffer</div></div><span class="kv num" id="kbufV"></span></div>
+<div class="kchips" id="kbufC"></div>
+<div class="kin"><span class="kc">₪</span><input id="jbuf" type="number" inputmode="numeric" min="0" placeholder="Other amount" aria-label="Keep untouched (₪)"></div></div></div>
+<div class="card jmo"><div class="lbl">Put into jars this month</div><div class="val" id="left"></div><div class="jbar"><i id="leftBar"></i></div><div class="sm" id="leftSub"></div><div class="jstats" id="leftStats"></div></div></div>
 <h2 style="margin-top:6px">Jars<span class="flex" style="gap:8px"><button class="btn o s" id="jarFillBtn" data-a="jarFill">Fill now</button><button class="btn o s" data-a="jarNew">+ New jar</button></span></h2>
 <div class="grid g2" id="jarg"></div>
 <h2>Goals · jars with a deadline<button class="btn o s" data-a="goalNew">+ New goal</button></h2><div class="card" id="goals"></div>
@@ -690,7 +699,11 @@ ${R.rows.length?`<div class="lbl" style="margin:0 0 4px">Still to pay this month
 <div class="sm" style="line-height:1.5">A bill is held back until it is paid. A budget holds back what is still unspent, and a bill and a budget in the same category are never counted twice. Categories without a budget use their typical month.</div>
 <div class="flex" style="justify-content:flex-end;margin-top:14px"><button class="btn" data-a="close">Done</button></div>`)}
 function renderJars(){const{out,rem,cash,inJars,buffer,free,gotT,stillT}=jarCalc();$("jarFillBtn").style.display=S.jars.length?"":"none";$("avail").textContent=f(free);$("availSub").innerHTML=`<div class="sm">What is left after the money that is already spoken for</div><button class="btn o s" style="margin-top:10px" data-a="availWhy">See how this is worked out</button>`;if(document.activeElement!==$("jbuf"))$("jbuf").value=buffer||"";
-$("left").innerHTML=`<small>₪</small>${f(gotT)}`;$("leftSub").textContent=stillT>0?(free>0?"Still to come this month: ₪"+f(Math.min(stillT,free))+" as the jars below take their share":"Waiting for money: the jars below still need ₪"+f(stillT)+" this month, but nothing is available"):"Every jar has had its share this month";
+$("kbufV").textContent=buffer?fm(buffer):"None";$("kbufC").innerHTML=[0,1000,2000,5000,10000].map(v=>`<button class="${buffer==v?"on":""}" data-a="bufSet" data-v="${v}">${v?fm(v):"None"}</button>`).join("");
+{const planned=gotT+stillT,pct=planned>0?Math.round(gotT/planned*100):100,waiting=stillT>0&&free<=0,done=stillT<=0,coming=Math.min(stillT,free);
+$("left").innerHTML=`<small>₪</small>${f(gotT)}${planned>0?`<span class="of"> of ₪${f(planned)}</span>`:""}`;$("leftBar").style.width=pct+"%";$("leftBar").className=waiting?"w":done?"d":"";
+$("leftSub").textContent=done?"Every jar has had its share this month":waiting?"Waiting for money: the jars below still need ₪"+f(stillT)+" this month, but nothing is available":"The jars below take their share as money is available";
+$("leftStats").innerHTML=`<div><span>Received</span><b class="num">${fm(gotT)}</b></div><div><span>Still to come</span><b class="num">${fm(Math.max(0,coming))}</b></div><div><span>Status</span><b class="${waiting?"neg":done?"pos":""}">${done?"All filled":waiting?"Waiting":"Filling"}</b></div>`}
 $("jarg").innerHTML=out.map((j,ix)=>{const pc=Math.round(j.bal/j.need*100),C=2*Math.PI*34,col=`var(--c${(j.p-1)%7})`;
 return `<div class="card jin"><div class="jar"><svg class="ring" viewBox="0 0 84 84"><circle cx="42" cy="42" r="34" fill="none" stroke="var(--s2)" stroke-width="9"/><circle cx="42" cy="42" r="34" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C*Math.min(1,pc/100)} ${C}" transform="rotate(-90 42 42)"/><text x="42" y="46" text-anchor="middle" style="font-size:15px;font-weight:600;fill:var(--tx)">${pc}%</text></svg>
 <div style="flex:1;min-width:0"><div class="flex" style="gap:6px"><span class="chip t">Priority ${ix+1}</span><button class="btn o s" data-a="jarUp" data-id="${j.id}" ${ix==0?"disabled":""} aria-label="Move up">▲</button><button class="btn o s" data-a="jarDown" data-id="${j.id}" ${ix==out.length-1?"disabled":""} aria-label="Move down">▼</button></div><div style="font-size:18px;font-weight:600;margin:8px 0 2px">${esc(j.n)}</div><div class="sm num">₪${f(j.bal)} of ₪${f(j.need)}</div></div></div>
@@ -1183,6 +1196,7 @@ openSheet(`<h3>Change bill type</h3><div class="sm" style="margin-bottom:12px">$
 case"billTypeSave":{const b=S.bills[+d.i];if(!b)break;const v=$("btT").value;if(v=="irregular"){b.rec="irregular";delete b.every;delete b.anchor;delete b.dom}else{const last=billTx(b).slice(-1)[0],ld=last?new Date(last.d):NOW;b.rec="recurring";b.every=+v;b.anchor=ld.getMonth()+1;b.dom=Math.min(28,ld.getDate()||1)}log("Changed bill type",b.n+" → "+(v=="irregular"?"irregular":"every "+v+" month"+(v==1?"":"s")));closeSheet();renderAll();break}
 case"ruleApply":{const[i,old]=String(d.id).split("|"),r=S.rules[+i];if(!r)break;let n=0;S.tx.forEach(t=>{if(!t.virtual&&t.c==old&&t.desc.toLowerCase().includes(r.k.toLowerCase())){t.c=r.c;n++}});log("Updated past transactions",n+" · \""+r.k+"\" → "+r.c);renderAll();toast(n+" transactions moved to "+r.c);break}
 case"availWhy":openAvail();break;
+case"bufSet":S.jarsBuffer=+d.v;renderAll();break;
 case"cpMark":S.ccOverride[d.id]=2;log("Marked as a card payment",byId(+d.id)?.desc||"");closeSheet();renderAll();break;
 case"cpUncount":delete S.ccOverride[d.id];log("Treated as a card payment again",byId(+d.id)?.desc||"");closeSheet();renderAll();break;
 case"openDocs":openDocs(+d.id,d.i);break;
