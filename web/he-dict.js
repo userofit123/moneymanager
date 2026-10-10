@@ -157,7 +157,7 @@ Object.assign(D,{
 "Card payment": "תשלום כרטיס",
 "card payment": "תשלום כרטיס",
 "Manual": "ידני",
-"Recurring": "חוזר",
+"Recurring": "חוזרים",
 "Recurring bill": "חשבון חוזר",
 "One-off": "חד‑פעמי",
 "Irregular": "לא סדיר",
@@ -974,7 +974,26 @@ Object.assign(D,{
 "Large income:": "הכנסה גדולה:",
 "Next month net:": "נטו בחודש הבא:",
 "No document on income:": "אין מסמך להכנסה:",
-"Waiting for money: the jars below still need ₪": "ממתין לכסף: הקופות למטה עוד צריכות ₪"
+"Waiting for money: the jars below still need ₪": "ממתין לכסף: הקופות למטה עוד צריכות ₪",
+"One-off bills": "חשבונות חד‑פעמיים",
+"A regular rhythm, so the next payment is predicted and tracked": "קצב קבוע, ולכן התשלום הבא נחזה ונעקב",
+"Every payment to the store counts as a bill, even though it does not repeat regularly": "כל תשלום לעסק נחשב לחשבון, גם אם הוא לא חוזר באופן קבוע",
+"A single payment you marked as a bill": "תשלום בודד שסימנתם כחשבון",
+"Change type": "שינוי סוג",
+"Change bill type": "שינוי סוג חשבון",
+"Charged at a regular rhythm. The app predicts the next payment, warns when it is late or the price changes, and holds it back from your safe-to-use amount.": "מחויב בקצב קבוע. האפליקציה חוזה את התשלום הבא, מתריעה כשהוא מתאחר או כשהמחיר משתנה, ושומרת אותו בצד מהסכום הבטוח לשימוש.",
+"Every payment to this store counts as a bill, but there is no fixed rhythm. Good for things that come at different times.": "כל תשלום לעסק הזה נחשב לחשבון, אבל אין קצב קבוע. מתאים לדברים שמגיעים בזמנים שונים.",
+"Recurring · every month": "חוזר · כל חודש",
+"Recurring · every 2 months": "חוזר · כל חודשיים",
+"Recurring · every year": "חוזר · כל שנה",
+"Rule updated": "הכלל עודכן",
+"Leave them": "להשאיר אותן",
+"If description contains": "אם התיאור מכיל",
+"Text to match": "טקסט להתאמה",
+"tag (optional)": "תגית (לא חובה)",
+"Updated past transactions": "עודכנו תנועות קודמות",
+"Changed rule tag": "שונתה תגית של כלל",
+"Changed bill type": "שונה סוג חשבון"
 });
 // sentences with names or amounts inside: a pattern captures the variable parts (names are translated too when they are known categories)
 const N=(s,T)=>T(s),Q=(a,b)=>[a,b];
@@ -1066,6 +1085,11 @@ P.push(
 [/^(\d+)% of last month's total spent so far$/,(p)=>p+"% מסך ההוצאות של חודש שעבר עד כה"],
 [/^(\d+) payments?, about (\d+) in the last 12 months · last (.+) on (.+)$/,(n,c,a,d)=>n+" תשלומים, בערך "+c+" ב‑12 החודשים האחרונים · אחרון "+a+" ב‑"+d],
 [/^Found automatically: (.*)$/,(r,T)=>"זוהה אוטומטית: "+T(r)]
+);
+P.push(
+[/^New transactions with "(.+)" now go to (.+)\.$/,(k,c,T)=>"תנועות חדשות עם \""+k+"\" יועברו מעכשיו ל"+T(c)+"."],
+[/^Move (\d+) past transactions? too$/,(n)=>n==1?"להעביר גם תנועה קודמת אחת":"להעביר גם "+n+" תנועות קודמות"],
+[/^(\d+) transactions moved to (.+)$/,(n,c,T)=>n+" תנועות הועברו ל"+T(c)]
 );
 
 })();
