@@ -136,3 +136,79 @@ test("a new hand-entered transaction from the UI explains an open gap", async ()
   const after_ = (await q("SELECT sum(remaining)::float s FROM balance_gaps WHERE status='open' AND amount<0")).rows[0].s;
   assert.equal(+(after_ - before_).toFixed(2), 20);
 });
+
+test("recurring items that share a bank reference number are all imported (same amount, same place, a month apart)", async () => {
+  const acc = { name: "Bank Hapoalim", currency: "ILS", source: "hapoalim" };
+  const row = (date) => ({ date, description: "Salary Acme", amount: 15000, externalId: `123:0000777:${date}:15000`, legacyId: "123:0000777" });
+  const r = await ingest(acc, [row("2026-08-03"), row("2026-09-03"), row("2026-10-03")]);
+  assert.equal(r.added, 3);
+  assert.equal((await ingest(acc, [row("2026-08-03"), row("2026-09-03"), row("2026-10-03")])).added, 0); // still never twice
+});
+
+test("rows imported by the older version under the bare bank id are recognised and upgraded, not duplicated", async () => {
+  const acc = { name: "Max", currency: "ILS", source: "max" };
+  await q("INSERT INTO transactions (date,description,from_name,to_name,amount,source,external_id) VALUES ('2026-07-05','Gym','Max','Gym',-250,'max','999:AB12')");
+  const rows = [
+    { date: "2026-07-05", description: "Gym", amount: -250, externalId: "999:AB12:2026-07-05:-250", legacyId: "999:AB12" },
+    { date: "2026-08-05", description: "Gym", amount: -250, externalId: "999:AB12:2026-08-05:-250", legacyId: "999:AB12" }, // same reference, a month later: new
+  ];
+  const r = await ingest(acc, rows);
+  assert.deepEqual([r.added, r.migrated], [1, 1]);
+  assert.equal((await q("SELECT count(*)::int n FROM transactions WHERE description='Gym'")).rows[0].n, 2);
+  assert.equal((await q("SELECT external_id FROM transactions WHERE date='2026-07-05' AND description='Gym'")).rows[0].external_id, "999:AB12:2026-07-05:-250");
+});
+
+test("suggested categories and rules are added without touching what exists", async () => {
+  const { addSuggested } = await import("../src/categories.js");
+  await q("DELETE FROM rules"); await q("INSERT INTO rules (keyword,category,tag) VALUES ('wolt','Groceries','')"); // the user's own choice
+  const r1 = await addSuggested();
+  assert.ok(r1.rules > 50);
+  assert.equal((await q("SELECT category FROM rules WHERE keyword='wolt'")).rows[0].category, "Groceries"); // not overwritten
+  for (const c of ["Bills & utilities", "Insurance", "Health & pharmacy", "Salary"]) assert.equal((await q("SELECT 1 FROM categories WHERE name=$1", [c])).rowCount, 1, c);
+  const r2 = await addSuggested();
+  assert.deepEqual([r2.categories, r2.rules], [0, 0]); // idempotent
+});
+
+test("currencies: chosen ones plus any in use are refreshed; ILS is never needed", async () => {
+  const { activeCurrencies, configuredCurrencies } = await import("../src/fx.js");
+  assert.deepEqual(await configuredCurrencies(), ["ILS", "USD"]);
+  await q("INSERT INTO settings (key,value) VALUES ('currencies','[\"EUR\"]') ON CONFLICT (key) DO UPDATE SET value='[\"EUR\"]'");
+  const act = await activeCurrencies();
+  assert.ok(act.includes("EUR") && act.includes("USD") && !act.includes("ILS")); // USD stays: the Wise account holds it
+  await q("DELETE FROM settings WHERE key='currencies'");
+});
+
+test("jars: priority allocation matches the spec example (20,000; bills 5,000; trip capped 500)", async () => {
+  const { allocate } = await import("../src/jars.js");
+  const jars = [
+    { id: 1, priority: 1, target: 5000, cap: null, balance: 5000 },
+    { id: 2, priority: 2, target: 20000, cap: 500, balance: 3500 },
+    { id: 3, priority: 3, target: 8000, cap: 1000, balance: 2000 },
+  ];
+  const a = allocate(20000, jars);
+  assert.deepEqual(a.map((x) => x.give), [5000, 500, 1000]);
+  assert.equal(Math.ceil((20000 - 3500) / 500), 33); // 33 months to fill the trip jar
+  const tight = allocate(5200, jars); // not enough for everyone: higher priority first
+  assert.deepEqual(tight.map((x) => x.give), [5000, 200, 0]);
+  const full = allocate(20000, [{ id: 9, priority: 1, target: 1000, cap: 800, balance: 700 }]);
+  assert.equal(full[0].give, 300); // only what it still needs
+});
+
+test("jars fill themselves once per month, catch up after downtime, never twice, and never retroactively", async () => {
+  const { fillJars } = await import("../src/jars.js");
+  await q("TRUNCATE jars, jar_movements RESTART IDENTITY");
+  await q("INSERT INTO settings (key,value) VALUES ('jars_total','2000') ON CONFLICT (key) DO UPDATE SET value='2000'");
+  await q("INSERT INTO jars (name,priority,target,cap,balance) VALUES ('Trip',1,3000,500,1000),('Bills',2,800,NULL,800),('Fun',3,1000,0,0)");
+  assert.equal((await fillJars("2026-10")).applied, 0); // first sight: starts this month, nothing added
+  assert.equal((await q("SELECT balance FROM jars WHERE name='Trip'")).rows[0].balance, 1000);
+  assert.equal((await fillJars("2026-10")).applied, 0); // same month again: nothing
+  await fillJars("2026-11");
+  assert.equal((await q("SELECT balance FROM jars WHERE name='Trip'")).rows[0].balance, 1500);
+  await fillJars("2026-11");
+  assert.equal((await q("SELECT balance FROM jars WHERE name='Trip'")).rows[0].balance, 1500); // never twice
+  await fillJars("2027-02"); // app was off for Dec, Jan, Feb: three catch-up fills
+  assert.equal((await q("SELECT balance FROM jars WHERE name='Trip'")).rows[0].balance, 3000); // 1500 + 3 x 500 = full target, capped
+  assert.equal((await q("SELECT balance FROM jars WHERE name='Bills'")).rows[0].balance, 800); // bill jar stays at its target
+  assert.equal((await q("SELECT balance FROM jars WHERE name='Fun'")).rows[0].balance, 0); // monthly amount 0 = no auto-fill
+  assert.ok((await q("SELECT count(*)::int n FROM jar_movements WHERE jar_id=1")).rows[0].n >= 4);
+});

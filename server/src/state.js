@@ -2,6 +2,9 @@
 import { q, tx, bumpRev } from "./db.js";
 import { explainGaps } from "./engine.js";
 import { listConnections } from "./connections.js";
+import { addSuggested } from "./categories.js";
+import { lastMoves } from "./jars.js";
+import { activeCurrencies, configuredCurrencies } from "./fx.js";
 
 export const DEFAULT_CFG = {
   bills: 1, price: 1, budget: 1, card: 1, large: 1, xfer: 1, recon: 1, sync: 1, uncat: 1, forecast: 1, docs: 1,
@@ -17,9 +20,7 @@ const setting = async (key, dflt) => {
 
 export async function ensureDefaults() {
   const n = await q("SELECT count(*)::int AS n FROM categories");
-  if (n.rows[0].n === 0) {
-    for (const c of DEFAULT_CATS) await q("INSERT INTO categories (name,color) VALUES ($1,$2) ON CONFLICT DO NOTHING", [c, CAT_COLOR[c] ?? 6]);
-  }
+  if (n.rows[0].n === 0) await addSuggested(); // fresh install: a full set of categories and starter rules
   const a = await q("SELECT count(*)::int AS n FROM accounts");
   if (a.rows[0].n === 0) {
     const rows = [
@@ -45,7 +46,7 @@ export async function getState() {
     q("SELECT category,monthly_limit FROM budgets"),
     q("SELECT data FROM bills ORDER BY id"),
     q("SELECT match FROM ignored_bills"),
-    q("SELECT id,name,priority,target,cap,balance,due FROM jars ORDER BY priority"),
+    q("SELECT id,name,priority,target,cap,balance,due,last_filled FROM jars ORDER BY priority"),
     q("SELECT id,at,who,action,detail,undo FROM audit_log ORDER BY id DESC LIMIT 2000"),
     q("SELECT id FROM dismissed_alerts"),
     q("SELECT account,sum(amount)::float AS amount FROM reconciliation_adjustments GROUP BY account"),
@@ -58,6 +59,7 @@ export async function getState() {
   const tagMap = {}, docMap = {};
   tags.rows.forEach((r) => (tagMap[r.transaction_id] ||= []).push(r.tag));
   docs.rows.forEach((r) => (docMap[r.transaction_id] ||= []).push(r));
+  const jarMoves = await lastMoves();
   const cfg = { ...DEFAULT_CFG, ...(await setting("cfg", {})) };
   // only booleans: which sources have credentials saved, and which are locked (never the credentials themselves)
   const [credRows, stRows] = await Promise.all([q("SELECT source FROM credentials"), q("SELECT source,locked FROM source_state")]);
@@ -81,7 +83,7 @@ export async function getState() {
     budgets: Object.fromEntries(budgets.rows.map((b) => [b.category, b.monthly_limit])),
     bills: bills.rows.map((b) => b.data),
     ignoredBills: ign.rows.map((r) => r.match),
-    jars: jars.rows.map((j) => ({ id: j.id, n: j.name, p: j.priority, need: j.target, cap: j.cap, bal: j.balance, due: j.due || "" })),
+    jars: jars.rows.map((j) => { const mv = jarMoves.find((m) => m.jar_id === j.id); return { id: j.id, n: j.name, p: j.priority, need: j.target, cap: j.cap, bal: j.balance, due: j.due || "", filled: j.last_filled || "", lastFill: mv ? { amt: mv.amount, note: mv.note } : null }; }),
     audit: audit.rows.map((a) => ({ id: a.id, t: a.at.toISOString(), who: a.who, action: a.action, detail: a.detail, undo: a.undo })),
     xf: xf.rows.map((x) => ({ o: x.out_id, i: x.in_id, st: x.status })),
     dismissed: Object.fromEntries(dism.rows.map((r) => [r.id, 1])),
@@ -91,6 +93,7 @@ export async function getState() {
     jarsTotal: await setting("jars_total", 0),
     nwPension: await setting("nw_pension", false),
     cfg,
+    currencies: await configuredCurrencies(), fxCurrencies: await activeCurrencies(),
     accounts: accounts.rows.map((a) => ({
       id: a.id, n: a.name, cur: a.currency, kind: a.kind, src: a.source, s: a.subtitle, manual: a.manual,
       inNW: a.in_net_worth, v: a.balance, at: a.balance_at,
@@ -181,6 +184,7 @@ export async function putState(S) {
 
     // settings and dismissed alerts
     const put = (k, v) => c.query("INSERT INTO settings (key,value) VALUES ($1,$2) ON CONFLICT (key) DO UPDATE SET value=$2", [k, JSON.stringify(v)]);
+    if (Array.isArray(S.currencies)) await put("currencies", [...new Set(S.currencies.map(String).filter((x) => /^[A-Z]{3}$/.test(x) && x !== "ILS"))].slice(0, 12));
     await put("cfg", S.cfg || {}); await put("ntfy", S.ntfy || ""); await put("jars_total", +S.jarsTotal || 0); await put("nw_pension", !!S.nwPension);
     await c.query("DELETE FROM dismissed_alerts");
     for (const id of Object.keys(S.dismissed || {})) await c.query("INSERT INTO dismissed_alerts (id) VALUES ($1) ON CONFLICT DO NOTHING", [id]);

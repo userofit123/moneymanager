@@ -71,6 +71,8 @@ A message like `TIMEOUT: waiting for redirect…` means the login page did not m
 - The UI loads `GET /api/state` and saves edits with `PUT /api/state`. If a sync changed data in between, the server answers 409 and the UI reloads.
 - Sync: Wise balances via API, bank/card transactions via the scraper, then dedupe (never imported twice), conversion at the transaction date's rate (stored on the row), category rules (never overwriting manual ones), transfer pairing, balance snapshots and gaps.
 - **Missing money** (addendum v1.1): a balance that moved without a transaction becomes a gap in Activity → Needs review. Clear it by adding the transaction, importing the Wise CSV (merges with hand-entered rows), recording a small charge as a fee, or marking it reviewed with a note. There is no ignore button.
+- **Jars** fill themselves: on the 1st of each month (and as a catch-up after downtime) every jar takes its monthly amount in priority order from "Money available each month"; a bill jar is refilled to its target. A jar you create is first filled next month, nothing is added retroactively. Jars and goals have separate forms; a deadline is optional.
+- **Re-import history:** if a bank's older transactions look incomplete, Settings → Connections → the bank → *Re-import history* reads up to 2 years again. Existing rows are matched, not duplicated.
 - Alerts: shown in the app; sync failures, new gaps and gaps older than 3 days are also pushed to your ntfy address.
 
 ## Develop
