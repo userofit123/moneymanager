@@ -5,7 +5,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
 COPY server.js ./
-RUN mkdir -p /debug && chown node:node /debug
+RUN mkdir -p /debug /profiles && chown node:node /debug /profiles
 VOLUME /debug
+VOLUME /profiles
 USER node
 CMD ["node", "server.js"]
