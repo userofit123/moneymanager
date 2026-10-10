@@ -11,7 +11,7 @@ docker compose up -d --build
 Open **http://localhost:8787**. The first visit asks you to choose a password. Then:
 
 1. **Settings → Security**: turn on two-factor sign-in (recommended).
-2. **Settings → Connections**: enter your Wise token and bank logins, **Save**, then **Test connection** (last 30 days, nothing is saved). Test one source at a time. After two failed logins in a row a source locks itself; fix the login, then **Unlock**.
+2. **Settings → Connections**: enter your Wise token and bank logins, **Save**, then **Test connection** (last 30 days, nothing is saved). If a bank sends you a code, use **Verify this device** first (see Troubleshooting). Test one source at a time. After two failed logins in a row a source locks itself; fix the login, then **Unlock**.
 3. **Sync now** (or wait; it syncs every 8 hours). The first sync of a bank imports up to a year of history.
 4. Settings → **App and data**: import a Wise statement CSV or a bank/card CSV, update the pension balance.
 5. Settings → Alerts: add your ntfy address for background alerts.
@@ -45,9 +45,12 @@ docker compose -f docker-compose.yml -f docker-compose.strict.yml up -d --build
 If a login then times out, `docker compose logs egress` lists hosts it refused; add only ones you recognise to `EGRESS_ALLOW` in `.env`. See [`docs/SECURITY.md`](docs/SECURITY.md) for the full audit of what can leave the app.
 
 ## Troubleshooting a scraper
-**The bank texted you a code during a login.** The scraper library cannot enter one-time codes for Hapoalim, Max or Isracard (it only supports them for One Zero). The app detects the code page, pauses that source straight away (so no more codes are sent) and tells you. Use the bank's CSV/Excel export through Settings → App and data for that source instead.
+**The bank texted you a code during a login (Hapoalim does this on a device it does not recognise).** The scraper library cannot type a one-time code itself, but you can make the scraper's browser a device the bank recognises:
+1. Settings → Connections → the bank → **Verify this device**.
+2. A live view of the scraper's browser opens. Click the page to focus a field. Use "Type my user code / password" to fill your saved login without it passing through this page, type the code with the box and **Send**, and tick the bank's "remember this device" option if it has one.
+3. When you reach your account, press **Done**, then **Test connection**.
 
-**`fetchPostWithinPage parse error: Unexpected end of JSON input`** means the login page accepted the login but the bank's data request came back empty: almost always extra verification or blocked automation (same checks as below).
+The browser profile is kept per bank (a Docker volume), so later automatic syncs should not ask again. If the bank still asks every time, or you would rather not, use its CSV/Excel export (Settings → App and data). If the bank starts asking again, repeat the steps. The app pauses a source as soon as it sees a code page, so it never keeps triggering SMS messages.
 
 A message like `TIMEOUT: waiting for redirect…` means the login page did not move on after the login was typed. It is not necessarily a wrong password. Check, in this order:
 1. Log in to the bank's site yourself in a normal browser. Look for a captcha, a one-time code, an expired password, a terms or update notice, or a locked account. Fix that first.
@@ -74,7 +77,8 @@ A message like `TIMEOUT: waiting for redirect…` means the login page did not m
 ```sh
 cd server && npm install
 createdb money_test
-DATABASE_URL=postgres://money:money@localhost/money_test npm test      # 26 tests
+DATABASE_URL=postgres://money:money@localhost/money_test npm test      # server tests
+(cd ../scraper && npm ci && node --test)                               # needs a Chromium; uses a fake bank
 ```
 
 ## Status against the spec
@@ -85,3 +89,4 @@ Not verified or not built:
 - Bills, budgets, forecast and most alert rules still calculate in the browser from the loaded data, so they have no server-side tests yet.
 - Hebrew right-to-left, split transactions, budget rollover, planned one-off items, matching card bills paid from the bank, and a PIN lock for the installed phone app (all open questions in the spec).
 - Bank CSV import is CSV only (no Excel files).
+- **Verify this device** is tested against a fake bank that behaves like Hapoalim (code only on an unknown device), not against the real banks. Whether a given bank keeps trusting the saved browser is up to the bank.

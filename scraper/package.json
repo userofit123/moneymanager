@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "israeli-bank-scrapers": "6.12.2"
+    "israeli-bank-scrapers": "6.12.2",
+    "puppeteer": "24.43.1"
+  },
+  "scripts": {
+    "test": "node --test"
   }
 }

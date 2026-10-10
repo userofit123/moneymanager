@@ -1,18 +1,19 @@
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { migrate, q } from "./db.js";
+import { migrate, q, audit } from "./db.js";
 import { loadKey } from "./secrets.js";
 import { ensureDefaults, getState, putState, StaleError } from "./state.js";
 import { ratesSummary, refreshRates, rateOn } from "./fx.js";
 import { recordGap } from "./gaps.js";
-import { syncSource, syncAll, SOURCE_NAMES, startScheduler, snapshotNetWorth, testSource, activeJob } from "./sync.js";
+import { syncSource, syncAll, SOURCE_NAMES, startScheduler, snapshotNetWorth, testSource, activeJob, acquireJob, releaseJob, extendJob } from "./sync.js";
+import { assist as scraperAssist } from "./sources/scraper.js";
 import { saveDoc, readDoc } from "./docs.js";
 import { ingest } from "./sources/ingest.js";
 import { parseWiseCsv, parseBankCsv } from "./sources/csv.js";
 import { seedDemo } from "./seed.js";
 import { sendNtfy, ntfyProblem, ntfyUrl } from "./notify.js";
-import { listConnections, saveCreds, removeCreds, unlock, FIELDS } from "./connections.js";
+import { listConnections, saveCreds, removeCreds, unlock, getCreds, markAssisted, FIELDS } from "./connections.js";
 import * as auth from "./auth.js";
 
 const WEB = process.env.WEB_DIR || path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "web");
@@ -20,6 +21,7 @@ export const app = express();
 app.disable("x-powered-by");
 app.set("trust proxy", process.env.TRUST_PROXY === "1"); // set when Caddy or another proxy sits in front
 
+const ASSIST_BANKS = ["hapoalim", "max", "isracard"];
 const wrap = (fn) => (req, res) => Promise.resolve(fn(req, res)).catch((e) => { console.error(req.method, req.path, e.message); res.status(500).json({ error: "Something went wrong" }); });
 const json = express.json({ limit: "20mb" });
 
@@ -117,7 +119,11 @@ app.put("/api/connections/:source", json, wrap(async (req, res) => {
   try { await saveCreds(req.params.source, req.body); } catch (e) { return res.status(400).json({ error: e.message }); }
   res.json({ ok: true });
 }));
-app.delete("/api/connections/:source", wrap(async (req, res) => { await removeCreds(req.params.source); res.json({ ok: true }); }));
+app.delete("/api/connections/:source", wrap(async (req, res) => {
+  await removeCreds(req.params.source);
+  if (ASSIST_BANKS.includes(req.params.source)) { try { await scraperAssist("forget", { company: req.params.source }); } catch {} } // also forget the remembered device
+  res.json({ ok: true });
+}));
 app.post("/api/connections/:source/unlock", wrap(async (req, res) => { await unlock(req.params.source); res.json({ ok: true }); }));
 app.post("/api/connections/:source/test", wrap(async (req, res) => {
   if (!FIELDS[req.params.source]) return res.status(404).json({ error: "unknown source" });
@@ -125,6 +131,45 @@ app.post("/api/connections/:source/test", wrap(async (req, res) => {
   res.status(r.busy ? 409 : 200).json(r);
 }));
 app.get("/api/jobs", wrap(async (_req, res) => res.set("Cache-Control", "no-store").json(activeJob())));
+// ---------- assisted login: verify this device by hand (log in, enter the bank's code, tick "remember this device") ----------
+const ASSIST_TTL = 11 * 60 * 1000;
+const assistJob = () => { const j = activeJob(); return j && j.kind === "assist" ? j : null; };
+const needAssist = (res) => { const j = assistJob(); if (!j) { res.status(409).json({ error: "No verification window is open." }); return null; } extendJob(ASSIST_TTL); return j; };
+const assistErr = (e) => String(e.message || e).slice(0, 160);
+app.post("/api/connections/:source/assist/start", wrap(async (req, res) => {
+  const src = req.params.source;
+  if (!ASSIST_BANKS.includes(src)) return res.status(404).json({ error: "Not available for this source" });
+  if (!(await getCreds(src))) return res.status(400).json({ error: "Save the login first." });
+  const busy = acquireJob(src, "assist", ASSIST_TTL);
+  if (busy) return res.status(409).json(busy);
+  try { res.json(await scraperAssist("start", { company: src })); }
+  catch (e) { releaseJob("assist"); res.status(502).json({ error: "The scraper could not open the bank page: " + assistErr(e) }); }
+}));
+app.get("/api/assist/screen", wrap(async (_req, res) => {
+  if (!needAssist(res)) return;
+  try { res.set("Content-Type", "image/jpeg").set("Cache-Control", "no-store").send(await scraperAssist("screen", null, { raw: true })); }
+  catch { res.status(409).json({ error: "The verification window closed." }); }
+}));
+const num = (v) => Number.isFinite(+v) ? +v : 0;
+app.post("/api/assist/click", json, wrap(async (req, res) => { if (needAssist(res)) res.json(await scraperAssist("click", { x: num(req.body?.x), y: num(req.body?.y) })); }));
+app.post("/api/assist/type", json, wrap(async (req, res) => { if (needAssist(res)) res.json(await scraperAssist("type", { text: String(req.body?.text || "").slice(0, 200) })); }));
+app.post("/api/assist/key", json, wrap(async (req, res) => { if (needAssist(res)) { try { res.json(await scraperAssist("key", { key: String(req.body?.key || "") })); } catch (e) { res.status(400).json({ error: assistErr(e) }); } } }));
+app.post("/api/assist/scroll", json, wrap(async (req, res) => { if (needAssist(res)) res.json(await scraperAssist("scroll", { dy: num(req.body?.dy) })); }));
+// type one of your saved credentials into the focused field. The value goes server to scraper only; the browser never receives it.
+app.post("/api/assist/credential", json, wrap(async (req, res) => {
+  const j = needAssist(res); if (!j) return;
+  const creds = await getCreds(j.source), f = String(req.body?.field || "");
+  if (!creds || !FIELDS[j.source].some((x) => x.k === f) || !creds[f]) return res.status(400).json({ error: "No such saved field." });
+  await scraperAssist("type", { text: creds[f] });
+  res.json({ ok: true });
+}));
+app.post("/api/assist/stop", wrap(async (_req, res) => {
+  const j = assistJob();
+  try { await scraperAssist("stop", {}); } catch {}
+  if (j) { releaseJob("assist"); await unlock(j.source); await markAssisted(j.source); await audit(null, "Device verified", `${j.source}: browser profile saved for later automatic logins`, "You"); }
+  res.json({ ok: true });
+}));
+
 app.post("/api/ntfy/test", wrap(async (_req, res) => {
   const url = await ntfyUrl();
   const reason = url ? ntfyProblem(url) : "Save your ntfy address first.";

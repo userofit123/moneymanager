@@ -17,6 +17,11 @@ What protects your data, and what does not.
 - **Lock-out guard:** two failed logins in a row (three for Wise) lock a source. No automatic retries until you unlock it, so a bank never locks your account for you. Saving new credentials also unlocks.
 - Read-only by design: the scrapers only read, and the Wise token should be created with read-only permissions.
 
+## The remembered-device profile
+- **Verify this device** keeps a browser profile per bank in the `scraperprofiles` Docker volume. It holds the bank's cookies, including the "this device is trusted" marker and possibly a live session. Treat it like a credential: with your password and that profile, a bank may let someone in without a code.
+- It is not in `backup.sh`, it is never sent to the browser, and it is wiped when you remove the bank's credentials in Settings → Connections (or with `docker volume rm`).
+- The live view shows the bank's pages (including your balances) only to a signed-in session, only while a verification window is open, and the window closes itself after 10 idle minutes. "Type my password" sends the saved value from the server to the scraper; the page never receives it.
+
 ## Network
 - The database is on an internal Docker network, reachable only from the app. The scraper is reachable only from the app and is the only container that talks to the banks. Nothing is published except the app, bound to `127.0.0.1` by default.
 - Serve it to other devices through Tailscale or the home network, with HTTPS (Caddy). Never expose it to the open internet. Set `TRUST_PROXY=1` behind Caddy so cookies are marked `Secure`.

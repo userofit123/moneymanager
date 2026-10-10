@@ -68,14 +68,26 @@ const RUN = {
 
 export const SOURCE_NAMES = Object.keys(RUN);
 
-// Only one connection job (test or sync) runs at a time, so a bank is never hit twice at once and the scraper is never overloaded.
+// Only one connection job (test, sync or device verification) runs at a time, so a bank is never hit twice at once,
+// the scraper is never overloaded, and the browser profile is never opened twice.
 let job = null;
-export const activeJob = () => (job ? { ...job } : null);
-const busyResult = () => ({ ok: false, busy: true, job: activeJob(), error: `${job.kind === "test" ? "A test" : "A sync"} is already running (${job.source === "all" ? "all sources" : LABELS[job.source] || job.source}). Wait for it to finish.` });
+export const activeJob = () => {
+  if (job?.expires && Date.now() > job.expires) job = null; // a verification window nobody closed
+  return job ? { source: job.source, kind: job.kind, since: job.since } : null;
+};
+const KIND = { test: "A test", sync: "A sync", assist: "A device verification" };
+const busyResult = () => ({ ok: false, busy: true, job: activeJob(), error: `${KIND[job.kind]} is already running (${job.source === "all" ? "all sources" : LABELS[job.source] || job.source}). Wait for it to finish.` });
+export function acquireJob(source, kind, ttlMs = 0) {
+  if (activeJob()) return busyResult();
+  job = { source, kind, since: Date.now(), expires: ttlMs ? Date.now() + ttlMs : null };
+  return null;
+}
+export const extendJob = (ttlMs) => { if (job?.expires) job.expires = Date.now() + ttlMs; };
+export const releaseJob = (kind) => { if (job && (!kind || job.kind === kind)) job = null; };
 async function withJob(source, kind, fn) {
-  if (job) return busyResult();
-  job = { source, kind, since: Date.now() };
-  try { return await fn(); } finally { job = null; }
+  const busy = acquireJob(source, kind);
+  if (busy) return busy;
+  try { return await fn(); } finally { releaseJob(kind); }
 }
 
 export const syncSource = (name) => {

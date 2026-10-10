@@ -154,6 +154,11 @@ test("sync with a mock scraper: credentials are sent, data lands, lock-out stops
   const seen = [];
   mock = http.createServer(async (req, res) => {
     let b = ""; for await (const c of req) b += c;
+    if (req.url.startsWith("/assist/")) {
+      const act = req.url.slice(8); globalThis.__assist = (globalThis.__assist || []).concat(act + (b ? " " + b : ""));
+      if (act === "screen") { res.setHeader("content-type", "image/jpeg"); return res.end(Buffer.from([0xff, 0xd8, 0xff, 0xd9])); }
+      res.setHeader("content-type", "application/json"); return res.end(JSON.stringify({ ok: true, width: 1024, height: 768 }));
+    }
     const j = JSON.parse(b); seen.push({ key: req.headers["x-scraper-key"], j });
     if (globalThis.__delay) await new Promise((r) => setTimeout(r, globalThis.__delay));
     res.setHeader("content-type", "application/json");
@@ -256,4 +261,34 @@ test("status is computed end to end: save, test, sync", async () => {
   assert.equal(await st(), "connected");
   await recordResult("isracard", false, "boom", {});
   assert.equal(await st(), "failed");
+});
+
+test("device verification: one window at a time, drives the scraper, never reveals credentials, unlocks the source", async () => {
+  globalThis.__assist = [];
+  await call("PUT", "/api/connections/hapoalim", { cookie, headers: X, body: { userCode: "AB12345", password: "very-secret-pw" } });
+  await recordResult("hapoalim", false, "OTP_REQUIRED: the bank asked for a one-time code", {});
+  assert.equal(await isLocked("hapoalim"), true);
+  assert.equal((await call("POST", "/api/connections/wise/assist/start", { cookie, headers: X })).status, 404);
+  assert.equal((await call("GET", "/api/assist/screen", { cookie })).status, 409); // no window yet
+  const start = await call("POST", "/api/connections/hapoalim/assist/start", { cookie, headers: X });
+  assert.equal(start.status, 200);
+  assert.equal((await call("GET", "/api/jobs", { cookie })).body.kind, "assist");
+  await call("PUT", "/api/connections/max", { cookie, headers: X, body: { username: "u@example.com", password: "pw-max-assist" } });
+  assert.equal((await call("POST", "/api/connections/max/assist/start", { cookie, headers: X })).status, 409);
+  assert.equal((await call("POST", "/api/connections/max/test", { cookie, headers: X })).status, 409);
+  assert.equal((await call("POST", "/api/sync", { cookie, headers: X })).status, 409);
+  const img = await fetch(base + "/api/assist/screen", { headers: { cookie } });
+  assert.equal(img.headers.get("content-type"), "image/jpeg");
+  await call("POST", "/api/assist/click", { cookie, headers: X, body: { x: 10, y: 20 } });
+  await call("POST", "/api/assist/key", { cookie, headers: X, body: { key: "Tab" } });
+  const typed = await call("POST", "/api/assist/credential", { cookie, headers: X, body: { field: "password" } });
+  assert.deepEqual(typed.body, { ok: true }); // the response never carries the value
+  assert.equal((await call("POST", "/api/assist/credential", { cookie, headers: X, body: { field: "nonsense" } })).status, 400);
+  assert.ok(globalThis.__assist.some((a) => a.startsWith("type") && a.includes("very-secret-pw"))); // it went to the scraper
+  assert.equal((await call("POST", "/api/assist/stop", { cookie, headers: X })).status, 200);
+  assert.equal(await isLocked("hapoalim"), false); // verified: the OTP lock is lifted
+  assert.equal((await call("GET", "/api/jobs", { cookie })).body, null);
+  assert.equal((await call("GET", "/api/assist/screen", { cookie })).status, 409);
+  const c = (await call("GET", "/api/connections", { cookie })).body.find((x) => x.source === "hapoalim");
+  assert.ok(c.assistedAt);
 });

@@ -38,6 +38,10 @@ export async function removeCreds(source) {
   await q("DELETE FROM source_state WHERE source=$1", [source]);
 }
 
+export async function markAssisted(source) {
+  await q("INSERT INTO source_state (source,assisted_at) VALUES ($1,now()) ON CONFLICT (source) DO UPDATE SET assisted_at=now()", [source]);
+}
+
 export async function markTested(source) {
   await q("INSERT INTO source_state (source,tested_at) VALUES ($1,now()) ON CONFLICT (source) DO UPDATE SET tested_at=now()", [source]);
 }
@@ -72,7 +76,7 @@ export async function listConnections() {
       savedAt: has?.updated_at || null, testedAt: state?.tested_at || null, syncedAt: sy.rows.find((r) => r.source === s)?.at || null,
     };
     return {
-      source: s, label: LABELS[s], fields: FIELDS[s], ...info, lastOk: state?.last_ok_at || null, status: connectionStatus(info),
+      source: s, label: LABELS[s], fields: FIELDS[s], ...info, lastOk: state?.last_ok_at || null, assistedAt: state?.assisted_at || null, status: connectionStatus(info),
     };
   });
 }

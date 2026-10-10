@@ -53,6 +53,7 @@ services:
       SCRAPER_DEBUG: ${SCRAPER_DEBUG:-0}   # 1 = save a screenshot of where a login got stuck to /debug
     volumes:
       - scraperdebug:/debug
+      - scraperprofiles:/profiles          # the browser profile per bank: what makes a bank remember this device
     networks: [scraper_net, egress]
     shm_size: 1gb
     security_opt: ["no-new-privileges:true"]
@@ -67,3 +68,4 @@ volumes:
   pgdata:
   appdata:
   scraperdebug:
+  scraperprofiles:
