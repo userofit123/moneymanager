@@ -1,0 +1,9 @@
+{
+  "name": "money-manager-scraper",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "israeli-bank-scrapers": "6.4.0"
+  }
+}
