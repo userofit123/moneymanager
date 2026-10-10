@@ -7,7 +7,7 @@ import { ingest } from "./sources/ingest.js";
 import { fetchWise } from "./sources/wise.js";
 import { scrape } from "./sources/scraper.js";
 import { recordSnapshot, detectTransfers } from "./engine.js";
-import { getCreds, isLocked, recordResult, LABELS } from "./connections.js";
+import { getCreds, isLocked, recordResult, markTested, LABELS } from "./connections.js";
 import { scrub } from "./secrets.js";
 import { sendNtfy, notifyOnce, clearNotified, remindOldGaps } from "./notify.js";
 
@@ -123,6 +123,7 @@ async function testInner(name) {
       out = { accounts: (res.accounts || []).map((a) => ({ balance: a.balance ?? null, transactions: (a.txns || []).length, first: toRows(a).slice(0, 3).map((r) => ({ date: r.date, description: r.description, amount: r.amount })) })) };
     }
     await recordResult(name, true);
+    await markTested(name);
     return { ok: true, ...out };
   } catch (e) {
     const msg = scrub(e.message || e, Object.values(creds));

@@ -1,6 +1,7 @@
 // Assembles the whole app state from the tables (the shape the UI works with) and writes UI edits back.
 import { q, tx, bumpRev } from "./db.js";
 import { explainGaps } from "./engine.js";
+import { listConnections } from "./connections.js";
 
 export const DEFAULT_CFG = {
   bills: 1, price: 1, budget: 1, card: 1, large: 1, xfer: 1, recon: 1, sync: 1, uncat: 1, forecast: 1, docs: 1,
@@ -63,6 +64,7 @@ export async function getState() {
   const connected = Object.fromEntries(credRows.rows.map((r) => [r.source, true]));
   if (process.env.WISE_TOKEN) connected.wise = true;
   const locked = Object.fromEntries(stRows.rows.filter((r) => r.locked).map((r) => [r.source, true]));
+  const connStatus = Object.fromEntries((await listConnections()).map((c) => [c.source, { ...c.status, error: c.lastError }]));
   return {
     v: 4,
     rev: parseInt(rev.rows[0].value, 10),
@@ -93,7 +95,7 @@ export async function getState() {
       id: a.id, n: a.name, cur: a.currency, kind: a.kind, src: a.source, s: a.subtitle, manual: a.manual,
       inNW: a.in_net_worth, v: a.balance, at: a.balance_at,
     })),
-    connected, locked,
+    connected, locked, connStatus,
     sources: runs.rows.map((r) => ({ n: r.source, ok: r.ok, at: r.finished_at, added: r.added, msg: r.message })),
     nwSnaps: snaps.rows,
     gaps: gaps.rows.map((g) => ({ ...g, window_from: g.window_from.toISOString(), window_to: g.window_to.toISOString() })),

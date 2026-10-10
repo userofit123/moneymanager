@@ -30,7 +30,7 @@ export async function saveCreds(source, input) {
   await q(
     "INSERT INTO credentials (source,data) VALUES ($1,$2) ON CONFLICT (source) DO UPDATE SET data=$2, updated_at=now()",
     [source, encrypt(JSON.stringify(data))]);
-  await q("INSERT INTO source_state (source) VALUES ($1) ON CONFLICT (source) DO UPDATE SET consecutive_failures=0, locked=FALSE, last_error=''", [source]);
+  await q("INSERT INTO source_state (source) VALUES ($1) ON CONFLICT (source) DO UPDATE SET consecutive_failures=0, locked=FALSE, last_error='', tested_at=NULL", [source]);
 }
 
 export async function removeCreds(source) {
@@ -38,14 +38,41 @@ export async function removeCreds(source) {
   await q("DELETE FROM source_state WHERE source=$1", [source]);
 }
 
+export async function markTested(source) {
+  await q("INSERT INTO source_state (source,tested_at) VALUES ($1,now()) ON CONFLICT (source) DO UPDATE SET tested_at=now()", [source]);
+}
+
+const DAY = 864e5;
+/** One place that decides what to tell the user about a source. tone: gray | yellow | green | red */
+export function connectionStatus({ configured, locked, failures, lastError, savedAt, testedAt, syncedAt }, now = Date.now()) {
+  const after = (t) => t && (!savedAt || new Date(t) >= new Date(savedAt)); // anything older than the saved credentials does not count
+  if (!configured) return { key: "none", label: "No credentials", tone: "gray" };
+  if (locked && /^OTP_REQUIRED/.test(lastError || "")) return { key: "otp", label: "Needs a code", tone: "red" };
+  if (locked) return { key: "locked", label: "Locked", tone: "red" };
+  if (failures > 0) return { key: "failed", label: "Last attempt failed", tone: "red" };
+  if (after(syncedAt)) {
+    return now - new Date(syncedAt).getTime() > 2 * DAY
+      ? { key: "stale", label: "Out of date", tone: "yellow", since: syncedAt }
+      : { key: "connected", label: "Connected", tone: "green", since: syncedAt };
+  }
+  if (after(testedAt)) return { key: "tested", label: "Tested · not synced", tone: "yellow", since: testedAt };
+  return { key: "untested", label: "Not tested", tone: "yellow" };
+}
+
 export async function listConnections() {
-  const [c, st] = await Promise.all([q("SELECT source,updated_at FROM credentials"), q("SELECT * FROM source_state")]);
+  const [c, st, sy] = await Promise.all([
+    q("SELECT source,updated_at FROM credentials"), q("SELECT * FROM source_state"),
+    q("SELECT source, max(finished_at) AS at FROM sync_runs WHERE ok GROUP BY source"),
+  ]);
   return Object.keys(FIELDS).map((s) => {
     const has = c.rows.find((r) => r.source === s) || (s === "wise" && process.env.WISE_TOKEN ? { updated_at: null } : null);
     const state = st.rows.find((r) => r.source === s);
+    const info = {
+      configured: !!has, locked: !!state?.locked, failures: state?.consecutive_failures || 0, lastError: state?.last_error || "",
+      savedAt: has?.updated_at || null, testedAt: state?.tested_at || null, syncedAt: sy.rows.find((r) => r.source === s)?.at || null,
+    };
     return {
-      source: s, label: LABELS[s], fields: FIELDS[s], configured: !!has, savedAt: has?.updated_at || null,
-      locked: !!state?.locked, failures: state?.consecutive_failures || 0, lastOk: state?.last_ok_at || null, lastError: state?.last_error || "",
+      source: s, label: LABELS[s], fields: FIELDS[s], ...info, lastOk: state?.last_ok_at || null, status: connectionStatus(info),
     };
   });
 }
