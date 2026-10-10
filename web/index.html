@@ -32,6 +32,7 @@ h2{font-size:12px;font-weight:600;margin:28px 0 12px;color:var(--tx2);letter-spa
 .chip.t{background:var(--accc);color:var(--onc);border-color:transparent;border-radius:99px}
 .live{width:7px;height:7px;border-radius:50%;background:var(--pos);box-shadow:0 0 0 0 var(--pos);animation:pl 2s infinite;display:inline-block;flex:none}.live.off,.live.bad{background:var(--neg);animation:none}.live.warn{background:#e6a100;animation:none}
 @keyframes pl{70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.grid.one{grid-template-columns:1fr!important}
 .grid{display:grid;gap:16px}.g4{grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))}.g3{grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr))}.g2{grid-template-columns:repeat(auto-fit,minmax(min(400px,100%),1fr))}.g2s{grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))}
 .card{background:var(--s1);border:1px solid var(--ol);border-radius:var(--r);padding:18px 20px;transition:transform .2s,border-color .2s,box-shadow .2s;position:relative;overflow:hidden;min-width:0}
 .card.click{cursor:pointer}.card.click:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--acc) 50%,var(--ol));box-shadow:0 14px 34px -16px var(--acc)}
@@ -163,16 +164,17 @@ html.mob .flex{gap:14px}
 
 <section class="view on" id="dash">
 <div id="attn"></div>
+<div class="card" id="homeEmpty" style="display:none;margin-bottom:16px"><b>Nothing here yet</b><div class="sm" style="margin:6px 0 12px">Connect your accounts in Settings → Connections, import a CSV in Settings → App and data, or add a transaction with the + button. Sections appear here as soon as they have something to show.</div><div class="flex" style="gap:8px;flex-wrap:wrap"><button class="btn s" data-a="goConn">Connect an account</button><button class="btn o s" data-a="add">Add a transaction</button></div></div>
 <div class="grid g4" id="kpis"></div>
-<h2>Accounts</h2><div class="grid g3" id="accts"></div>
-<h2>Credit cards · upcoming vs last month</h2><div class="grid g3" id="cards"></div>
-<h2>Spending · this month vs last month</h2><div class="card" id="cmp"></div>
-<div class="grid g2" style="margin-top:28px"><div><h2 style="margin-top:0">Upcoming bills<a class="sm" style="cursor:pointer;color:var(--acc);text-transform:none;letter-spacing:0" data-a="nav" data-v="bills">All →</a></h2><div class="card" id="billHome"></div></div>
-<div><h2 style="margin-top:0">Budgets<a class="sm" style="cursor:pointer;color:var(--acc);text-transform:none;letter-spacing:0" data-a="nav" data-v="budg">All →</a></h2><div class="card" id="budHome"></div></div></div>
-<div class="grid g2" style="margin-top:28px"><div><h2 style="margin-top:0">Jars</h2><div class="card" id="jarHome"></div></div>
-<div><h2 style="margin-top:0">Exchange rates</h2><div class="card" id="fxc"></div></div></div>
-<div class="grid g2" style="margin-top:28px"><div><h2 style="margin-top:0">Spending by category</h2><div class="card"><div class="flex" id="donutHome"></div></div></div>
-<div><h2 style="margin-top:0">Recent activity</h2><div class="card" id="recent" style="padding:8px 12px"></div></div></div>
+<div id="sec-accts"><h2>Accounts</h2><div class="grid g3" id="accts"></div></div>
+<div id="sec-cards"><h2>Credit cards · upcoming vs last month</h2><div class="grid g3" id="cards"></div></div>
+<div id="sec-cmp"><h2>Spending · this month vs last month</h2><div class="card" id="cmp"></div></div>
+<div class="grid g2" id="row-bb" style="margin-top:28px"><div id="sec-bills"><h2 style="margin-top:0">Upcoming bills<a class="sm" style="cursor:pointer;color:var(--acc);text-transform:none;letter-spacing:0" data-a="nav" data-v="bills">All →</a></h2><div class="card" id="billHome"></div></div>
+<div id="sec-budg"><h2 style="margin-top:0">Budgets<a class="sm" style="cursor:pointer;color:var(--acc);text-transform:none;letter-spacing:0" data-a="nav" data-v="budg">All →</a></h2><div class="card" id="budHome"></div></div></div>
+<div class="grid g2" id="row-jf" style="margin-top:28px"><div id="sec-jars"><h2 style="margin-top:0">Jars</h2><div class="card" id="jarHome"></div></div>
+<div id="sec-fx"><h2 style="margin-top:0">Exchange rates</h2><div class="card" id="fxc"></div></div></div>
+<div class="grid g2" id="row-dr" style="margin-top:28px"><div id="sec-donut"><h2 style="margin-top:0">Spending by category</h2><div class="card"><div class="flex" id="donutHome"></div></div></div>
+<div id="sec-recent"><h2 style="margin-top:0">Recent activity</h2><div class="card" id="recent" style="padding:8px 12px"></div></div></div>
 </section>
 
 <section class="view" id="tx">
@@ -357,6 +359,13 @@ const amtT=t=>`${t.a>0?"+":"−"}₪${f(t.a)}`;
 function renderKpis(){const inc=monthSum(MK,1),ex=monthSum(MK,-1),net=inc-ex,cash=cashAccts().reduce((s,a)=>s+accILS(a),0),wp=accts.reduce((s,a)=>s+accILS(a),0),pm=hist.keys[4],spk=NW.hap.map((v,i)=>v+NW.wise[i]).slice(-6),hasNW=spk.filter(v=>v>0).length>1,nz=a=>a.some(v=>v>0)?a.map(v=>v/1000):null;
 $("kpis").innerHTML=[["hero","Net worth",cash,"With pension "+fm(wp),hasNW?spk:null],["","Income · "+MNAME(MK),inc,"vs "+fm(hist.inc[4])+" in "+MNAME(pm),nz(hist.inc)],["","Expenses · "+MNAME(MK),ex,"Last month "+fm(hist.exp[4]),nz(hist.exp)],["","Net · "+MNAME(MK),net,"Income minus expenses, transfers excluded",null]]
 .map(([c,l,v,s,sp],i)=>`<div class="card ${c}"><div class="lbl">${l}</div><div class="val"><small>₪</small>${i==3&&net<0?"−":""}${f(v)}</div><div class="sm">${s}</div>${sp?spark(sp,i==0?"var(--onc)":i==2?"var(--neg)":"var(--pos)"):""}</div>`).join("")}
+// Home shows only blocks that have something to show; when one of a pair is empty the other takes the full width.
+function tidyHome(){const real=S.tx.filter(t=>!t.pending).length>0,
+has={accts:accts.length>0&&accts.some(a=>a.v!=0||a.manual&&a.v),cards:cardsD.some(c=>c[1]||c[2]),cmp:real&&(monthSum(MK,-1)>0||hist.exp[4]>0),
+bills:billsInfo().length>0,budg:Object.keys(S.budgets).length>0,jars:S.jars.length>0,fx:(fxSer.USD||[]).length>1,donut:spend().length>0,recent:ALL().some(t=>!isXf(t))};
+Object.entries(has).forEach(([k,v])=>{const e=$("sec-"+k);if(e)e.style.display=v?"":"none"});
+[["row-bb",["bills","budg"]],["row-jf",["jars","fx"]],["row-dr",["donut","recent"]]].forEach(([id,ks])=>{const n=ks.filter(k=>has[k]).length,r=$(id);r.style.display=n?"":"none";r.classList.toggle("one",n==1)});
+const any=Object.values(has).some(Boolean)||accts.some(a=>a.v);$("homeEmpty").style.display=any?"none":"";$("kpis").style.display=any?"":"none"}
 function renderHome(){
 $("accts").innerHTML=accts.map(a=>{const fo=a.cur!="ILS";return `<div class="card ${a.manual?"":"click"}" ${a.manual?"":`data-a="goSrc" data-src="${a.n}"`} style="${a.manual?"opacity:.85":""}"><div class="lbl">${a.n}${fo?`<span class="chip" style="margin-left:auto;padding:1px 9px">${a.cur}</span>`:a.manual?`<span class="chip" style="margin-left:auto;padding:1px 9px">manual</span>`:""}</div><div class="val"><small>₪</small>${f(accILS(a))}</div><div class="sm">${fo?`${SYM[a.cur]}${a.v.toLocaleString("en-US",{minimumFractionDigits:2})} × ${(fx[a.cur]||1).toFixed(4)} · ${fxSrc=="live"?(fxStale?"stale rate":"today's rate"):"no rate yet"}`:a.s}</div></div>`}).join("")||`<div class="card sm">No accounts yet.</div>`;
 $("cards").innerHTML=cardsD.map(([n,u,l])=>{const d=u-l,p=l?Math.round(Math.abs(d)/l*100):0;return `<div class="card click" data-a="goSrc" data-src="${n}"><div class="lbl">${n} · upcoming charge</div><div class="val"><small>₪</small>${f(u)}</div><div class="sm">Last month ₪${f(l)} ${l?`<span class="bd ${d>0?"up":"dn"}">${d>0?"▲":"▼"} ${p}%</span>`:""}</div><div class="bar"><i style="width:${Math.min(100,u/Math.max(u,l,1)*100)}%;background:${d>0?"var(--neg)":"var(--pos)"}"></i></div></div>`}).join("");
@@ -366,7 +375,7 @@ const bi=billsInfo().sort((a,b)=>(a.status=="overdue"?-1e3:0)+a.days-((b.status=
 $("billHome").innerHTML=bi.map(b=>`<div class="row"><div class="grow"><b style="font-size:14px">${esc(b.n)}</b><div class="sm">${b.status=="overdue"?"Overdue since "+dstr(b.pd):"Due "+dstr(b.nx)+" · in "+b.days+" days"}</div></div><b class="num">${b.vari?"≈ ":""}${fm(b.pred)}</b></div>`).join("");
 const bu=budgetInfo().sort((a,b)=>b.pc-a.pc).slice(0,3);
 $("budHome").innerHTML=bu.map(b=>`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:14px"><b>${esc(b.k)}</b><span class="sm num">${fm(b.s)} / ${fm(b.lim)}</span></div><div class="bar" style="margin:8px 0 2px"><i style="width:${Math.min(100,b.pc)}%;background:${b.st=="over"?"var(--neg)":b.st=="warn"?"#e68a00":""}"></i><u style="left:${DAYN/DIM*100}%"></u></div></div>`).join("");
-renderCmp();renderFx();renderJarHome();donut("donutHome",spend())}
+renderCmp();renderFx();renderJarHome();donut("donutHome",spend());tidyHome()}
 function renderJarHome(){const{out,rem}=jarCalc();$("jarHome").innerHTML=out.map(j=>{const pc=Math.round(j.bal/j.need*100);return `<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;font-size:14px"><b>${esc(j.n)}</b><span class="num pos">+₪${f(j.give)}</span></div><div class="bar" style="margin:8px 0 5px"><i style="width:${pc}%;background:var(--c${(j.p-1)%7})"></i></div><div class="sm num">₪${f(j.bal)} of ₪${f(j.need)} · ${pc}%</div></div>`}).join("")+`<div style="border-top:1px solid var(--ol);padding-top:14px;display:flex;justify-content:space-between;align-items:center"><span class="sm">Unallocated this month</span><b class="num" style="font-size:18px">₪${f(rem)}</b></div>`}
 function renderCmp(){const cur=Object.fromEntries(spend()),ks=Object.keys(hist.cat),pm=hist.keys[4],lastTot=hist.exp[4],same=A().filter(t=>t.a<0&&t.d.startsWith(pm)&&+t.d.slice(8)<=DAYN).reduce((s,t)=>s-t.a,0),thisTot=monthSum(MK,-1),d=thisTot-same,p=same?Math.round(Math.abs(d)/same*100):0;
 const rows=ks.map(k=>({k,a:cur[k]||0,b:hist.cat[k][4]})),mx=Math.max(1,...rows.flatMap(r=>[r.a,r.b]));
