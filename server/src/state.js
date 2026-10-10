@@ -90,7 +90,7 @@ export async function getState() {
     dupOk: Object.fromEntries(txs.rows.filter((r) => r.dup_ok).map((r) => [r.id, 1])),
     adj: Object.fromEntries(adj.rows.map((r) => [r.account, r.amount])),
     ntfy: await setting("ntfy", ""),
-    jarsTotal: await setting("jars_total", 0),
+    jarsTotal: await setting("jars_total", 0), jarsBuffer: await setting("jars_buffer", 0),
     nwPension: await setting("nw_pension", false),
     cfg,
     currencies: await configuredCurrencies(), fxCurrencies: await activeCurrencies(),
@@ -185,7 +185,7 @@ export async function putState(S) {
     // settings and dismissed alerts
     const put = (k, v) => c.query("INSERT INTO settings (key,value) VALUES ($1,$2) ON CONFLICT (key) DO UPDATE SET value=$2", [k, JSON.stringify(v)]);
     if (Array.isArray(S.currencies)) await put("currencies", [...new Set(S.currencies.map(String).filter((x) => /^[A-Z]{3}$/.test(x) && x !== "ILS"))].slice(0, 12));
-    await put("cfg", S.cfg || {}); await put("ntfy", S.ntfy || ""); await put("jars_total", +S.jarsTotal || 0); await put("nw_pension", !!S.nwPension);
+    await put("cfg", S.cfg || {}); await put("ntfy", S.ntfy || ""); await put("jars_total", +S.jarsTotal || 0); await put("jars_buffer", Math.max(0, +S.jarsBuffer || 0)); await put("nw_pension", !!S.nwPension);
     await c.query("DELETE FROM dismissed_alerts");
     for (const id of Object.keys(S.dismissed || {})) await c.query("INSERT INTO dismissed_alerts (id) VALUES ($1) ON CONFLICT DO NOTHING", [id]);
 

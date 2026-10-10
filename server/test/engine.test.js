@@ -178,26 +178,25 @@ test("currencies: chosen ones plus any in use are refreshed; ILS is never needed
   await q("DELETE FROM settings WHERE key='currencies'");
 });
 
-test("jars: priority allocation matches the spec example (20,000; bills 5,000; trip capped 500)", async () => {
+test("jars: fill from the free balance in priority order, only what each still needs", async () => {
   const { allocate } = await import("../src/jars.js");
   const jars = [
-    { id: 1, priority: 1, target: 5000, cap: null, balance: 5000 },
+    { id: 1, priority: 1, target: 5000, cap: null, balance: 4000 }, // bill jar: topped up to target
     { id: 2, priority: 2, target: 20000, cap: 500, balance: 3500 },
     { id: 3, priority: 3, target: 8000, cap: 1000, balance: 2000 },
   ];
-  const a = allocate(20000, jars);
-  assert.deepEqual(a.map((x) => x.give), [5000, 500, 1000]);
-  assert.equal(Math.ceil((20000 - 3500) / 500), 33); // 33 months to fill the trip jar
-  const tight = allocate(5200, jars); // not enough for everyone: higher priority first
-  assert.deepEqual(tight.map((x) => x.give), [5000, 200, 0]);
-  const full = allocate(20000, [{ id: 9, priority: 1, target: 1000, cap: 800, balance: 700 }]);
-  assert.equal(full[0].give, 300); // only what it still needs
+  assert.deepEqual(allocate(10000, jars).map((x) => x.give), [1000, 500, 1000]);
+  assert.deepEqual(allocate(1200, jars).map((x) => x.give), [1000, 200, 0]); // not enough: higher priority first
+  assert.deepEqual(allocate(0, jars).map((x) => x.give), [0, 0, 0]);
+  assert.deepEqual(allocate(-50, jars).map((x) => x.give), [0, 0, 0]); // never negative
+  assert.equal(allocate(20000, [{ id: 9, priority: 1, target: 1000, cap: 800, balance: 700 }])[0].give, 300); // only what it still needs
+  assert.equal(Math.ceil((20000 - 3500) / 500), 33); // 33 months to fill the trip jar at 500 a month
 });
 
 test("jars fill themselves once per month, catch up after downtime, never twice, and never retroactively", async () => {
   const { fillJars } = await import("../src/jars.js");
   await q("TRUNCATE jars, jar_movements RESTART IDENTITY");
-  await q("INSERT INTO settings (key,value) VALUES ('jars_total','2000') ON CONFLICT (key) DO UPDATE SET value='2000'");
+  await q("UPDATE accounts SET balance=100000 WHERE name='Bank Hapoalim'"); // plenty of free money
   await q("INSERT INTO jars (name,priority,target,cap,balance) VALUES ('Trip',1,3000,500,1000),('Bills',2,800,NULL,800),('Fun',3,1000,0,0)");
   assert.equal((await fillJars("2026-10")).applied, 0); // first sight: starts this month, nothing added
   assert.equal((await q("SELECT balance FROM jars WHERE name='Trip'")).rows[0].balance, 1000);
@@ -211,4 +210,31 @@ test("jars fill themselves once per month, catch up after downtime, never twice,
   assert.equal((await q("SELECT balance FROM jars WHERE name='Bills'")).rows[0].balance, 800); // bill jar stays at its target
   assert.equal((await q("SELECT balance FROM jars WHERE name='Fun'")).rows[0].balance, 0); // monthly amount 0 = no auto-fill
   assert.ok((await q("SELECT count(*)::int n FROM jar_movements WHERE jar_id=1")).rows[0].n >= 4);
+});
+
+test("jars never take more than the free balance (balance minus what is in jars minus the buffer)", async () => {
+  const { fillJars } = await import("../src/jars.js");
+  await q("TRUNCATE jars, jar_movements RESTART IDENTITY");
+  await q("UPDATE accounts SET balance=2000 WHERE name='Bank Hapoalim'");
+  await q("UPDATE accounts SET balance=0 WHERE kind='wallet'");
+  await q("INSERT INTO settings (key,value) VALUES ('jars_buffer','100') ON CONFLICT (key) DO UPDATE SET value='100'");
+  await q("INSERT INTO jars (name,priority,target,cap,balance) VALUES ('Trip',1,5000,500,1000),('Laptop',2,5000,500,700)");
+  await fillJars("2026-10"); await fillJars("2026-11");
+  // free = 2000 - 1700 - 100 buffer = 200: the first jar takes it all, the second gets nothing
+  assert.equal((await q("SELECT balance FROM jars WHERE name='Trip'")).rows[0].balance, 1200);
+  assert.equal((await q("SELECT balance FROM jars WHERE name='Laptop'")).rows[0].balance, 700);
+  await fillJars("2026-12"); // nothing free any more
+  assert.equal((await q("SELECT balance FROM jars WHERE name='Trip'")).rows[0].balance, 1200);
+  await q("DELETE FROM settings WHERE key='jars_buffer'");
+});
+
+test("a Wise CSV row replaces the same payment that came from the activity list (no double counting)", async () => {
+  await q("DELETE FROM transactions WHERE description IN ('Dropbox','Dropbox Inc')");
+  const acc = { name: "Wise", currency: "USD", source: "wise" };
+  await ingest(acc, [{ date: "2026-10-04", description: "Dropbox", amount: -12, currency: "USD", externalId: "act:ZZ1", pending: false }], { mergeManual: true });
+  const csv = [{ date: "2026-10-04", description: "Dropbox Inc", amount: -12, currency: "USD", externalId: "CARD-77" }];
+  const r = await ingest(acc, csv, { mergeManual: true });
+  assert.deepEqual([r.added, r.merged], [0, 1]);
+  assert.equal((await q("SELECT count(*)::int n FROM transactions WHERE description LIKE 'Dropbox%'")).rows[0].n, 1);
+  assert.equal((await q("SELECT external_id FROM transactions WHERE description='Dropbox Inc'")).rows[0].external_id, "CARD-77");
 });
