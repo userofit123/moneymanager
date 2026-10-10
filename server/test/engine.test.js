@@ -260,3 +260,15 @@ test("a Wise CSV row replaces the same payment that came from the activity list 
   assert.equal((await q("SELECT count(*)::int n FROM transactions WHERE description LIKE 'Dropbox%'")).rows[0].n, 1);
   assert.equal((await q("SELECT external_id FROM transactions WHERE description='Dropbox Inc'")).rows[0].external_id, "CARD-77");
 });
+
+test("suggested rules: specific names beat broad words, and adding them sorts existing uncategorized rows", async () => {
+  const { SUGGESTED_RULES } = await import("../src/categories.js");
+  const cat = (d) => (SUGGESTED_RULES.find(([k]) => d.toLowerCase().includes(k.toLowerCase())) || [])[1];
+  assert.equal(cat("ביטוח לאומי הוראות ק"), "Taxes & government");
+  assert.equal(cat("הפניקס ביטוח"), "Insurance");
+  assert.equal(cat("זיכוי מלאומי"), "Other income");
+  assert.equal(cat("זיכוי"), "Salary");
+  assert.equal(cat("פז YELLOW א.ת מודיעין"), "Car & fuel");
+  assert.equal(cat("GITHUB, INC.           GITHUB.COM    US"), "Software & hosting");
+  assert.equal(cat("מקס איט פיננסי"), undefined); // a card bill payment is not a spending category
+});
