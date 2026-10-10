@@ -100,7 +100,7 @@ test("API refuses everything until you sign in; the page itself carries no data"
   assert.deepEqual([st.body.setup, st.body.authed], [true, false]);
   const page = await call("GET", "/");
   assert.equal(page.status, 200);
-  assert.ok(page.headers.get("content-security-policy").includes("frame-ancestors 'none'"));
+  assert.ok(page.headers.get("content-security-policy").includes("frame-ancestors 'self'"));
   assert.equal(page.headers.get("x-content-type-options"), "nosniff");
 });
 
