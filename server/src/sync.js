@@ -12,7 +12,21 @@ import { scrub } from "./secrets.js";
 import { sendNtfy, notifyOnce, clearNotified, remindOldGaps } from "./notify.js";
 import { fillJars } from "./jars.js";
 
-const HISTORY_DAYS = +process.env.HISTORY_DAYS || 365; // used for the first import of a source only
+const HISTORY_DAYS = +process.env.HISTORY_DAYS || 365; // default for the first import of a source, changeable in Settings
+const getSet = async (k, d) => { const r = await q("SELECT value FROM settings WHERE key=$1", [k]); return r.rowCount ? r.rows[0].value : d; };
+const putSet = (k, v) => q("INSERT INTO settings (key,value) VALUES ($1,$2::jsonb) ON CONFLICT (key) DO UPDATE SET value=$2::jsonb", [k, JSON.stringify(v)]);
+// Settings → Connections: how often the server syncs by itself (hours, 0 = never), how much the first import reads, and the routine window.
+export async function getSyncSettings() {
+  return { hours: await getSet("sync_hours", 8), firstDays: await getSet("sync_first_days", HISTORY_DAYS), routineDays: await getSet("sync_routine_days", 30), lastAuto: await getSet("sync_last_auto", null) };
+}
+export async function putSyncSettings(b) {
+  const pick = (v, ok) => (ok.includes(+v) ? +v : undefined);
+  const h = pick(b.hours, [0, 4, 8, 12, 24]), f = pick(b.firstDays, [90, 180, 365, 730, 1825]), r = pick(b.routineDays, [14, 30, 60, 90]);
+  if (h !== undefined) await putSet("sync_hours", h);
+  if (f !== undefined) await putSet("sync_first_days", f);
+  if (r !== undefined) await putSet("sync_routine_days", r);
+  return getSyncSettings();
+}
 
 async function account(c, name, currency, patch = {}) {
   const r = await c.query("SELECT * FROM accounts WHERE name=$1 AND currency=$2", [name, currency]);
@@ -49,7 +63,7 @@ const BANKS = { hapoalim: ["Bank Hapoalim", "bank"], max: ["Max", "card"], israc
 
 const RUN = {
   async wise(creds, opts = {}) {
-    const w = await fetchWise(creds.token, { days: opts.days || ((await firstTime("wise")) ? HISTORY_DAYS : 30) });
+    const w = await fetchWise(creds.token, { days: opts.days || ((await firstTime("wise")) ? await getSet("sync_first_days", HISTORY_DAYS) : await getSet("sync_routine_days", 30)) });
     let added = 0;
     for (const b of w.balances) {
       const a = await tx((c) => account(c, "Wise", b.currency, { kind: "wallet", source: "wise", subtitle: `${b.currency} balance` }));
@@ -62,7 +76,7 @@ const RUN = {
   ...Object.fromEntries(Object.entries(BANKS).map(([key, [name, kind]]) => [key, async (creds, opts = {}) => {
     const flag = `backfill:${key}`;
     const backfill = (await q("SELECT 1 FROM settings WHERE key=$1", [flag])).rowCount > 0;
-    const days = opts.days || ((await firstTime(key)) || backfill ? HISTORY_DAYS : 30);
+    const days = opts.days || ((await firstTime(key)) || backfill ? await getSet("sync_first_days", HISTORY_DAYS) : await getSet("sync_routine_days", 30));
     const res = await scrape(key, creds, days);
     let added = 0, balance = null;
     for (const acc of res.accounts || []) {
@@ -178,12 +192,19 @@ export async function snapshotNetWorth() {
 }
 
 export function startScheduler() {
-  const every = process.env.SYNC_CRON || "0 */8 * * *";
-  cron.schedule(every, () => syncAll().then(snapshotNetWorth).catch((e) => console.error("sync:", e.message)));
+  // An hourly tick checks the "sync every N hours" setting, so it can be changed in the app without a restart.
+  cron.schedule("5 * * * *", async () => {
+    try {
+      const { hours, lastAuto } = await getSyncSettings();
+      if (!hours || (lastAuto && Date.now() - new Date(lastAuto) < (hours * 3600e3 - 5 * 60e3))) return;
+      await putSet("sync_last_auto", new Date().toISOString());
+      await syncAll().then(snapshotNetWorth);
+    } catch (e) { console.error("sync:", e.message); }
+  });
   cron.schedule("30 3 * * *", () => refreshRates(7).catch((e) => console.error("rates:", e.message)));
   cron.schedule("10 */6 * * *", () => fillJars().catch((e) => console.error("jars:", e.message))); // retried through the day: a jar waiting for money takes it when it arrives
   fillJars().catch((e) => console.error("jars:", e.message));
   cron.schedule("0 9 * * *", () => remindOldGaps().catch((e) => console.error("remind:", e.message)));
-  console.log("scheduler on:", every);
+  console.log("scheduler on");
 }
 export { sendNtfy };

@@ -6,9 +6,9 @@ import { loadKey } from "./secrets.js";
 import { ensureDefaults, getState, putState, StaleError } from "./state.js";
 import { ratesSummary, refreshRates, rateOn } from "./fx.js";
 import { recordGap } from "./gaps.js";
-import { syncSource, syncAll, SOURCE_NAMES, startScheduler, snapshotNetWorth, testSource, activeJob, acquireJob, releaseJob, extendJob } from "./sync.js";
+import { syncSource, syncAll, SOURCE_NAMES, startScheduler, snapshotNetWorth, getSyncSettings, putSyncSettings, testSource, activeJob, acquireJob, releaseJob, extendJob } from "./sync.js";
 import { assist as scraperAssist } from "./sources/scraper.js";
-import { saveDoc, readDoc } from "./docs.js";
+import { saveDoc, sendDoc } from "./docs.js";
 import { ingest } from "./sources/ingest.js";
 import { parseWiseCsv, parseBankCsv } from "./sources/csv.js";
 import { seedDemo } from "./seed.js";
@@ -181,6 +181,8 @@ app.post("/api/ntfy/test", wrap(async (_req, res) => {
 }));
 
 // ---------- sync and import ----------
+app.get("/api/sync/settings", wrap(async (_req, res) => res.json(await getSyncSettings())));
+app.put("/api/sync/settings", json, wrap(async (req, res) => res.json(await putSyncSettings(req.body || {}))));
 app.post("/api/sync", wrap(async (_req, res) => { const r = await syncAll(); res.status(r.busy ? 409 : 200).json(r); }));
 app.post("/api/sync/:source", wrap(async (req, res) => {
   if (!SOURCE_NAMES.includes(req.params.source)) return res.status(404).json({ error: "unknown source" });
@@ -213,11 +215,8 @@ app.post("/api/transactions/:id/documents", express.raw({ type: "*/*", limit: "2
   const name = decodeURIComponent(req.get("x-filename") || "file");
   res.json(await saveDoc(+req.params.id, name, req.get("content-type") || "application/octet-stream", req.body));
 }));
-app.get("/api/documents/:id", wrap(async (req, res) => {
-  const d = await readDoc(+req.params.id);
-  if (!d) return res.status(404).end();
-  res.set("Content-Type", d.mime).set("Content-Disposition", `inline; filename="${encodeURIComponent(d.filename)}"`).set("X-Content-Type-Options", "nosniff").sendFile(d.file);
-}));
+app.get("/api/documents/:id", wrap((req, res) => sendDoc(+req.params.id, res)));
+
 
 app.post("/api/gaps/:id/:action", json, wrap(async (req, res) => {
   let r; try { r = await recordGap(+req.params.id, req.params.action, req.body || {}); } catch (e) { return res.status(400).json({ error: e.message }); }

@@ -34,7 +34,6 @@ services:
       DOCS_DIR: /data/documents
       SCRAPER_URL: http://scraper:8080
       SCRAPER_KEY: ${SCRAPER_KEY:?run ./setup.sh first}
-      SYNC_CRON: ${SYNC_CRON:-0 */8 * * *}
       HISTORY_DAYS: ${HISTORY_DAYS:-365}
       SESSION_DAYS: ${SESSION_DAYS:-14}
       TRUST_PROXY: ${TRUST_PROXY:-0}
