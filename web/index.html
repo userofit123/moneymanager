@@ -175,7 +175,7 @@ html.mob main{padding:calc(14px + var(--st)) 14px calc(100px + var(--sb));margin
 html.mob h1{font-size:25px}html.mob .val{font-size:27px}
 html.mob .g2,html.mob .g2s{grid-template-columns:minmax(0,1fr)}
 html.mob .pop{left:8px;right:8px;bottom:calc(76px + var(--sb));width:auto}
-html.mob .fab{right:16px;bottom:calc(78px + var(--sb))}
+html.mob .fab{display:none}html.mob .navplus{flex:none;width:64px;min-height:0;justify-content:center}html.mob .navplus .pb{display:grid;place-items:center;width:52px;height:52px;border-radius:18px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:var(--on);font-size:30px;line-height:1;box-shadow:0 8px 22px -8px var(--acc);margin-top:-14px}
 html.mob input,html.mob select,html.mob textarea{font-size:16px}
 html.mob .jin .fld input{font-size:16px}
 html.mob .sheet{left:0;right:0;bottom:0;top:auto;transform:none;width:100%;max-height:92vh;border-radius:26px 26px 0 0;padding:10px 18px calc(22px + var(--sb))}html.mob .sheet.on{animation:up .25s}html.mob .sheet .grab{display:block;width:42px;height:5px;border-radius:3px;background:var(--ol);margin:0 auto 14px}
@@ -213,6 +213,7 @@ html.nt *,html.nt *::before,html.nt *::after{transition:none!important}
 <nav><div class="logo">₪</div>
 <button class="nb on" data-a="nav" data-v="dash"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span>Home</button>
 <button class="nb" data-a="nav" data-v="tx"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>Activity<span class="badge" id="bTx"></span></button>
+<button class="nb only-m navplus" data-a="quick" aria-label="Add or update"><span class="pb">+</span></button>
 <button class="nb" data-a="nav" data-v="jars"><span class="ic"><svg viewBox="0 0 24 24"><path d="M7 3h10v3H7zM6 6h12v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/></svg></span>Jars</button>
 <button class="nb" data-a="nav" data-v="bills"><span class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>Bills</button>
 <button class="nb sec" data-a="nav" data-v="budg"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6 4"/></svg></span>Budgets</button>
