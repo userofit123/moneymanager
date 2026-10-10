@@ -91,7 +91,7 @@ export async function getState() {
     ntfy: await setting("ntfy", ""),
     jarsTotal: await setting("jars_total", 0), jarsBuffer: await setting("jars_buffer", 0), jarsReserve: await setting("jars_reserve", 0),
     nwPension: await setting("nw_pension", false),
-    hiddenMerchants: await setting("hidden_merchants", []), ccOverride: await setting("cc_override", {}), budgetNo: await setting("budget_no", []),
+    hiddenMerchants: await setting("hidden_merchants", []), ccOverride: await setting("cc_override", {}), txIgnore: await setting("tx_ignore", {}), budgetNo: await setting("budget_no", []),
     cfg,
     currencies: await configuredCurrencies(), fxCurrencies: await activeCurrencies(),
     accounts: accounts.rows.map((a) => ({
@@ -190,6 +190,7 @@ export async function putState(S) {
     await put("cfg", S.cfg || {}); await put("ntfy", S.ntfy || ""); await put("jars_total", +S.jarsTotal || 0); await put("jars_buffer", Math.max(0, +S.jarsBuffer || 0)); await put("jars_reserve", Math.max(0, +S.jarsReserve || 0)); await put("nw_pension", !!S.nwPension);
     await put("hidden_merchants", Array.isArray(S.hiddenMerchants) ? S.hiddenMerchants.map(String).slice(0, 500) : []);
     await put("cc_override", S.ccOverride && typeof S.ccOverride === "object" ? S.ccOverride : {});
+    await put("tx_ignore", S.txIgnore && typeof S.txIgnore === "object" ? S.txIgnore : {});
     await put("budget_no", Array.isArray(S.budgetNo) ? S.budgetNo.map(String).slice(0, 200) : []);
     await c.query("DELETE FROM dismissed_alerts");
     for (const id of Object.keys(S.dismissed || {})) await c.query("INSERT INTO dismissed_alerts (id) VALUES ($1) ON CONFLICT DO NOTHING", [id]);
