@@ -1,0 +1,21 @@
+# Strict mode: the scraper has NO direct internet access. Its browser can only reach the bank domains below,
+# through a small allowlist proxy that refuses everything else and logs the host names it refused.
+#   docker compose -f docker-compose.yml -f docker-compose.strict.yml up -d --build
+# Bank pages sometimes load helper scripts from other domains. If a login times out in strict mode, look at
+#   docker compose logs egress
+# for BLOCKED lines, add only the hosts you recognise to EGRESS_ALLOW in .env, and retry once.
+services:
+  scraper:
+    networks: !override [scraper_net, egress_net]
+    environment:
+      SCRAPER_PROXY: http://egress:3128
+  egress:
+    build: ./egress
+    restart: unless-stopped
+    environment:
+      EGRESS_ALLOW: ${EGRESS_ALLOW:-bankhapoalim.co.il,max.co.il,isracard.co.il}
+    networks: [egress_net, egress]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+networks:
+  egress_net: { internal: true }
