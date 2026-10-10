@@ -4,7 +4,9 @@
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="favicon.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#4355b9" id="themeMeta"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Money"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>try{var h=document.documentElement,b=JSON.parse(localStorage.getItem("moneyBoot")||"null");h.classList.add("boot");if(b){h.style.background=b.bg;h.style.colorScheme=b.d?"dark":"light";}}catch(e){}</script>
 <style>
+html.boot body>*:not(#splash){visibility:hidden!important}#splash{position:fixed;inset:0;z-index:500;display:none;place-items:center}html.boot #splash{display:grid}#splash i{width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,#6f7cff,#c28bff);color:#fff;display:grid;place-items:center;font:700 26px system-ui,sans-serif;font-style:normal;animation:spl 1.2s ease-in-out infinite}@keyframes spl{50%{transform:scale(.92);opacity:.7}}
 :root{--r:22px;--font:Inter,"Segoe UI",Roboto,system-ui,sans-serif;--sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%;max-width:100%;overflow-x:clip}
@@ -197,12 +199,14 @@ html.nt *,html.nt *::before,html.nt *::after{transition:none!important}
 .mrow{cursor:pointer;min-height:52px;gap:14px}.mrow .grow{font-size:16px}.mi{width:36px;height:36px;border-radius:12px;background:var(--accc);color:var(--onc);display:grid;place-items:center;flex:none}.mi svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 html.mob .dsvg{display:block;margin:0 auto}html.mob #donutHome,html.mob #donutRep{flex-direction:column;align-items:stretch}html.mob .legend{min-width:0;width:100%}
 html.sl,html.sl body{overflow:hidden}html.mob.sl body{position:fixed;left:0;right:0;width:100%}
+.phs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.phs>div{background:var(--s1);border:1px solid var(--ol);border-radius:14px;padding:10px 12px;min-width:0}.phs span{display:block;font-size:11px;color:var(--tx2);font-weight:600;text-transform:uppercase;letter-spacing:.6px}.phs b{font-size:17px;font-variant-numeric:tabular-nums}.phl .ph{cursor:pointer;gap:10px}
 .dt{display:inline-block;margin:0 .3em;opacity:.6}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 <script>
 (function(){var m=function(){var w=Math.min(innerWidth,document.documentElement.clientWidth||innerWidth),touch=matchMedia("(pointer:coarse)").matches;document.documentElement.classList.toggle("mob",w<=860||(touch&&w<=1100))};m();addEventListener("resize",m);addEventListener("orientationchange",m)})();
 </script></head><body>
+<div id="splash"><i>₪</i></div>
 <div id="auth" style="display:none;position:fixed;inset:0;z-index:300;background:var(--bg);align-items:center;justify-content:center;padding:20px"><div class="card" style="max-width:380px;width:100%"><div class="logo" style="margin:0 0 14px">₪</div><h3 id="authT" style="margin:0 0 6px"></h3><div class="sm" id="authS" style="margin-bottom:14px"></div>
 <form id="authF" onsubmit="return false"><div class="fld"><label>Password</label><input id="authP" type="password" autocomplete="current-password"></div><div class="fld" id="authP2w" style="display:none"><label>Repeat password</label><input id="authP2" type="password" autocomplete="new-password"></div><div class="fld" id="authCw" style="display:none"><label>Code from your authenticator app</label><input id="authC" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></div>
 <div class="sm" id="authE" style="color:var(--neg);min-height:18px;margin-bottom:8px"></div><button class="btn" id="authB" style="width:100%" data-a="authGo">Continue</button></form></div></div>
@@ -326,7 +330,7 @@ document.body.classList.toggle("glass",st.surf=="glass");
 document.querySelectorAll("#segMode button").forEach(b=>b.classList.toggle("on",b.dataset.m==st.mode));
 document.querySelectorAll("#segSurf button").forEach(b=>b.classList.toggle("on",b.dataset.s==st.surf));
 document.querySelectorAll("#sw button").forEach(b=>b.classList.toggle("on",b.dataset.a2==st.atm));
-try{localStorage.setItem("moneyTheme",JSON.stringify(st))}catch(e){}}
+try{localStorage.setItem("moneyTheme",JSON.stringify(st));localStorage.setItem("moneyBoot",JSON.stringify({bg:a[3],d}))}catch(e){}}
 $("sw").innerHTML=Object.entries(ATM).map(([n,v])=>`<button data-a="atm" data-a2="${n}" style="background:linear-gradient(135deg,${v.D[0]},${v.D[4]} 60%,${v.D[3]})">${n}</button>`).join("");
 
 /* ---------- state: lives on the server (Postgres) ---------- */
@@ -477,7 +481,7 @@ if(multi){const L=[...g.L];if(wallet&&!L.some(x=>x.cur=="ILS"))L.push({cur:"ILS"
 // every currency pocket is listed, with what it is worth in shekels, so it is clear what makes up the total
 sub=L.map(x=>`<div class="flex" style="justify-content:space-between;gap:8px;margin-top:3px"><span>${x.none?`ILS · <i>no shekel balance</i>`:`${x.cur} · ${money(x)}${x.cur!="ILS"?` <span style="opacity:.65">× ${(fx[x.cur]||1).toFixed(4)}</span>`:""}`}</span><b class="num" style="color:var(--tx)">₪${f(x.none?0:accILS(x))}</b></div>`).join("")+(L.some(x=>x.cur!="ILS")&&(fxSrc!="live"||fxStale)?`<div style="margin-top:4px;opacity:.7">${fxSrc!="live"?"no exchange rate yet":"stale exchange rate"}</div>`:"");
 chips=L.filter(x=>!x.none||wallet).map(x=>x.cur).join(" + ")}
-else{sub=g.L[0].s;chips=man?"manual":""}
+else{sub=g.L[0].s;chips=man?"Manual":""}
 return `<div class="card ${man?"":"click"}" ${man?"":`data-a="goSrc" data-src="${esc(g.n)}"`} style="${man?"opacity:.85":""}"><div class="lbl">${esc(g.n)}${chips?`<span class="chip" style="margin-left:auto;padding:1px 9px">${esc(chips)}</span>`:""}</div><div class="val"><small>₪</small>${f(tot)}</div><div class="sm">${sub}</div></div>`}).join("")||`<div class="card sm">No accounts yet.</div>`}
 $("cards").innerHTML=cardsD.map(([n,u,l])=>{const d=u-l,p=l?Math.round(Math.abs(d)/l*100):0;return `<div class="card click" data-a="goSrc" data-src="${n}"><div class="lbl">${n} · upcoming charge</div><div class="val"><small>₪</small>${f(u)}</div><div class="sm">Last month ₪${f(l)} ${l?`<span class="bd ${d>0?"up":"dn"}">${d>0?"▲":"▼"} ${p}%</span>`:""}</div><div class="bar"><i style="width:${Math.min(100,u/Math.max(u,l,1)*100)}%;background:${d>0?"var(--neg)":"var(--pos)"}"></i></div></div>`}).join("");
 $("recent").innerHTML=ALL().filter(t=>!isXf(t)&&t.d>=MK&&!isFuture(t)).sort((a,b)=>b.d.localeCompare(a.d)).slice(0,5).map(t=>`<div class="txi" data-a="openTx" data-id="${t.id}">${avT(t)}<div style="flex:1;min-width:0"><div class="mer" style="font-size:14px">${esc(t.desc)}</div><div class="sm">${esc(t.c||"Uncategorized")} · ${t.d.slice(5)}</div></div><b class="num ${t.a>0?"pos":""}">${amtT(t)}</b></div>`).join("");
@@ -561,7 +565,8 @@ const b=billOf(t),cp=isCardPay(t),canMark=t.a<0&&real&&!xf&&!cp,ov=S.ccOverride&
 const inf=(txt,btns,cls)=>`<div class="inf ${cls||""}"><div class="it">${txt}</div>${btns?`<div class="ia">${btns}</div>`:""}</div>`;
 openSheet(`<div class="txh"><h3>${esc(t.desc)}</h3><div class="sm">${dstr(t.d)}${route?" · "+route:""}</div></div>
 <div class="txamt"><b class="num ${t.a>0&&!xf?"pos":""}">${amtT(t)}</b>${t.orig?`<span class="chip">${SYM[t.orig.cur]}${f(t.orig.amt)} ${t.orig.cur}</span>`:""}</div><div class="txchips">${chipsT(t)}</div>
-${b?inf(esc(whyBill(b)),`<button class="btn o s" data-a="nav" data-v="bills">View in Bills</button>${b.once?`<button class="btn o s" data-a="billUnmark" data-id="${t.id}">Remove from bills</button>`:""}`):""}
+${b?inf(esc(whyBill(b)),`<button class="btn o s" data-a="nav" data-v="bills">View in Bills</button><button class="btn o s" data-a="txHist" data-id="${t.id}">Payment history</button>${b.once?`<button class="btn o s" data-a="billUnmark" data-id="${t.id}">Remove from bills</button>`:""}`):""}
+${!b&&real&&!xf&&sameStore(t).length>1?`<div class="acts"><button class="btn o s" data-a="txHist" data-id="${t.id}">All ${sameStore(t).length} payments to this store</button></div>`:""}
 ${canMark?`<div class="acts">${b?"":`<button class="btn o s" data-a="billMark" data-id="${t.id}">Mark as a bill…</button>`}<button class="btn o s" data-a="cpMark" data-id="${t.id}">Mark as card payment</button></div><div class="hint">A card payment is a credit card bill paid from your bank. It stops counting as spending, because the card purchases are already counted.</div>`:""}
 ${isFuture(t)?inf(esc(futureTip(t))):""}
 ${cp?inf(`Payment of your ${esc(cardOf(t))} bill from the bank. Not counted as spending, because the purchases are already counted on the card.`,`<button class="btn o s" data-a="cpCount" data-id="${t.id}">Count it as spending anyway</button>`):(ov?inf("You chose to count this as spending.",`<button class="btn o s" data-a="cpUncount" data-id="${t.id}">Treat it as a card payment again</button>`):"")}
@@ -573,6 +578,15 @@ ${real?`<div class="fld"><label>Note</label><textarea data-c="note" data-id="${t
 <div class="fld"><label>Documents</label>${t.docs.length?`<div class="tags">${t.docs.map((d,i)=>`<button class="chip dchip" data-a="openDocs" data-id="${t.id}" data-i="${i}">📎 ${esc(d)}</button>`).join("")}</div>`:'<span class="sm">None yet</span>'}<input type="file" data-c="txfile" data-id="${t.id}" accept="image/*,application/pdf" multiple></div>`:`<div class="sm">Added automatically from a transfer. It cannot be edited.</div>`}
 ${h.length?`<div class="fld"><label>History</label><div class="hist">${h.map(a=>`<div class="sm">${new Date(a.t).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})} · ${esc(a.action)} · ${esc(a.detail)}</div>`).join("")}</div></div>`:""}
 <div class="flex" style="justify-content:flex-end;margin-top:8px"><button class="btn" data-a="close">Done</button></div>`)}
+
+/* ---------- payment history: every earlier payment of a recurring bill or of the same store ---------- */
+function payHist(title,L,sub){L=[...L].sort((a,b)=>b.d.localeCompare(a.d)||String(b.id).localeCompare(String(a.id)));if(!L.length){toast("No payments found");return}
+const abs=L.map(t=>Math.abs(t.a)),tot=abs.reduce((a,b)=>a+b,0),avg=tot/L.length,mn=Math.min(...abs),mx=Math.max(...abs);
+openSheet(`<div class="txh"><h3>${esc(title)}</h3><div class="sm">${esc(sub||"")}${sub?" · ":""}${dstr(L[L.length-1].d)} to ${dstr(L[0].d)}</div></div>
+<div class="phs"><div><span>Payments</span><b>${L.length}</b></div><div><span>Total</span><b>${fm(tot)}</b></div><div><span>Average</span><b>${fm(avg)}</b></div></div>${mx-mn>.5?`<div class="hint" style="margin:-4px 0 10px">Ranged from ${fm(mn)} to ${fm(mx)}</div>`:""}
+<div class="phl">${L.map((t,i)=>{const nx=L[i+1],d=nx?abs[i]-abs[i+1]:0;return `<div class="row ph" data-a="openTx" data-id="${t.id}"><div class="grow"><b>${dstr(t.d)}</b><div class="sm">${esc(t.from||"")}${t.c?" · "+esc(t.c):""}</div></div>${nx&&Math.abs(d)>.5?`<span class="bd ${d>0?"up":"dn"}">${d>0?"▲":"▼"} ${fm(Math.abs(d))}</span>`:""}<b class="num">${t.a<0?"":"+"}${fm(Math.abs(t.a))}</b></div>`}).join("")}</div>
+<div class="flex" style="justify-content:flex-end;margin-top:12px"><button class="btn" data-a="close">Done</button></div>`)}
+const sameStore=t=>{const k=String(t.desc||"").trim().toLowerCase();return k?S.tx.filter(x=>!x.virtual&&(x.a<0)==(t.a<0)&&String(x.desc||"").trim().toLowerCase()==k):[]};
 let addCtx=null;
 function openAdd(ctx){addCtx=ctx||null;const accs=S.accounts.map(a=>a.n+"|"+a.cur),first=ctx?ctx.acc+"|"+ctx.cur:null;
 openSheet(`<h3>${ctx?"Explain missing money":"Add transaction"}</h3><div class="fld"><label>Description</label><input id="nDesc" placeholder="e.g. Pharmacy"></div>
@@ -626,11 +640,11 @@ return `<div class="row" style="flex-wrap:wrap">${av(b)}
 <div class="sm">${b.n_tx?"Last charge "+fm(b.amt)+" on "+dstr(b.lp):"No charge seen yet"}${b.vari?" · varies "+fm(b.lo)+" to "+fm(b.hi):""}</div>
 ${chg?`<span class="bd ${d>0?"up":"dn"}" style="margin-top:4px">${d>0?"▲ "+fm(d)+" more":"▼ "+fm(-d)+" less"} than the charge before</span>`:""}</div>
 <div style="text-align:right;min-width:120px"><b class="num">${b.vari?"≈ ":""}${fm(b.pred)}</b><div class="sm">${b.status=="overdue"?`<span class="neg">Overdue since ${dstr(b.pd)}</span>`:b.status=="pending"?"Due now":(b.days<=7?"Due in "+b.days+" days":"Next "+dstr(b.nx))}</div><div class="sm" style="opacity:.75">${b.vari?"average of last 3":"same as last charge"}</div></div>
-<div class="flex" style="gap:6px">${b.flag?`<button class="btn s" data-a="billCanceled" data-i="${b.idx}">Mark as canceled</button><button class="btn o s" data-a="billFlag" data-i="${b.idx}">Keep</button>`:`<button class="btn o s" data-a="billFlag" data-i="${b.idx}">Mark to cancel</button>`}<button class="btn r s" data-a="billDel" data-i="${b.idx}" aria-label="Remove">✕</button></div></div>`};
+<div class="flex" style="gap:6px"><button class="btn o s" data-a="billHist" data-i="${b.idx}">History</button>${b.flag?`<button class="btn s" data-a="billCanceled" data-i="${b.idx}">Mark as canceled</button><button class="btn o s" data-a="billFlag" data-i="${b.idx}">Keep</button>`:`<button class="btn o s" data-a="billFlag" data-i="${b.idx}">Mark to cancel</button>`}<button class="btn r s" data-a="billDel" data-i="${b.idx}" aria-label="Remove">✕</button></div></div>`};
 const irrRow=b=>`<div class="row" style="flex-wrap:wrap">${av(b)}<div class="grow" style="min-width:160px"><b>${esc(b.n)}</b>${b.flag?` <span class="bd am2">To cancel</span>`:""}<div class="sm">Irregular · ${esc(b.src||"")} · <span data-tip="${ev(b)}" style="cursor:help;border-bottom:1px dotted">why is this a bill? ⓘ</span></div><div class="sm">${b.n_tx?`${b.n_tx} payment${b.n_tx==1?"":"s"}, about ${b.cnt12} in the last 12 months · last ${fm(b.amt)} on ${dstr(b.lp)}`:"No payment seen yet"}${b.hi>b.lo?` · from ${fm(b.lo)} to ${fm(b.hi)}`:""}</div></div>
 <div style="text-align:right;min-width:120px"><b class="num">≈ ${fm(b.pred)}</b><div class="sm">typical payment</div><div class="sm" style="opacity:.75">${fm(b.mo)} a month on average</div></div>
-<div class="flex" style="gap:6px"><button class="btn r s" data-a="billDel" data-i="${b.idx}" aria-label="Remove">✕</button></div></div>`;
-const oneRow=b=>`<div class="row" style="flex-wrap:wrap">${av(b)}<div class="grow" style="min-width:160px"><b>${esc(b.n)}</b><div class="sm">One-off · ${esc(b.src||"")} · ${b.lp?"paid "+dstr(b.lp):"no payment found"}</div></div><div style="text-align:right;min-width:120px"><b class="num">${fm(b.amt)}</b></div><div class="flex" style="gap:6px"><button class="btn r s" data-a="billDel" data-i="${b.idx}" aria-label="Remove">✕</button></div></div>`;
+<div class="flex" style="gap:6px"><button class="btn o s" data-a="billHist" data-i="${b.idx}">History</button><button class="btn r s" data-a="billDel" data-i="${b.idx}" aria-label="Remove">✕</button></div></div>`;
+const oneRow=b=>`<div class="row" style="flex-wrap:wrap">${av(b)}<div class="grow" style="min-width:160px"><b>${esc(b.n)}</b><div class="sm">One-off · ${esc(b.src||"")} · ${b.lp?"paid "+dstr(b.lp):"no payment found"}</div></div><div style="text-align:right;min-width:120px"><b class="num">${fm(b.amt)}</b></div><div class="flex" style="gap:6px"><button class="btn o s" data-a="billHist" data-i="${b.idx}">History</button><button class="btn r s" data-a="billDel" data-i="${b.idx}" aria-label="Remove">✕</button></div></div>`;
 const head=t=>`<div class="lbl" style="padding:18px 0 4px">${t}</div>`;
 let h=rec.sort((a,b)=>(a.status=="overdue"?-1e4:0)+a.days-((b.status=="overdue"?-1e4:0)+b.days)).map(recRow).join("");
 if(irr.length)h+=head(`Irregular · every payment counts as a bill · ${irr.length}`)+irr.map(irrRow).join("");
@@ -811,7 +825,8 @@ row=(a,ic,l,extra)=>`<div class="row mrow" data-a="${a[0]}"${a[1]?` data-v="${a[
 openSheet(`<h3>More</h3>`+[["budg","Budgets"],["rep","Reports and net worth"],["fc","Forecast"],["set","Settings, rules and log"]].map(([v,l])=>row(["nav",v],v,l)).join("")+row(["theme2"],"theme","Appearance")+row(["sync"],"sync","Sync status")+(dip?row(["install"],"install","Install app"):""))}
 function openSync(){openSheet(`<h3>Sources</h3>`+SRC.map(s=>`<div class="row"><i class="live ${s.state}"></i><div class="grow"><b>${esc(s.n)}</b><div class="sm">${esc(s.text)}${s.msg?" · "+esc(s.msg):""}</div></div>${s.goConn?`<button class="btn o s" data-a="goConn">${s.state=="bad"?"Fix":"Connect"}</button>`:""}</div>`).join("")+`<div class="sm" style="margin-top:10px"><i class="live ok"></i> connected and synced &nbsp; <i class="live warn"></i> not connected or waiting &nbsp; <i class="live bad"></i> failed or locked</div><div class="sm" style="margin-top:6px">Read-only: the app never changes anything at your banks.</div><div class="flex" style="justify-content:flex-end;gap:8px;margin-top:10px"><button class="btn o" data-a="syncNow">Sync now</button><button class="btn" data-a="close">Done</button></div>`)}
 const TITLES={dash:"Home",tx:"Activity",jars:"Jars",bills:"Bills",budg:"Budgets",rep:"Reports",fc:"Forecast",alerts:"Alerts",set:"Settings"};
-function nav(v){closeSheet();document.querySelectorAll(".view").forEach(x=>x.classList.toggle("on",x.id==v));document.querySelectorAll(".nb[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v==v));$("title").textContent=TITLES[v];scrollTo(0,0)}
+let curView="dash";
+function nav(v,noPush){closeSheet();document.querySelectorAll(".view").forEach(x=>x.classList.toggle("on",x.id==v));document.querySelectorAll(".nb[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v==v));$("title").textContent=TITLES[v];scrollTo(0,0);if(!noPush&&v!=curView){const st={v};if(history.state&&history.state.o)history.replaceState(st,"","#"+v);else history.pushState(st,"","#"+v)}else if(history.state&&history.state.o)history.replaceState({v},"","#"+v);curView=v}
 async function notify(title,body){if(!("Notification" in window)||Notification.permission!="granted")return false;try{const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();if(reg&&reg.active){reg.active.postMessage({type:"notify",title,body});return true}new Notification(title,{body});return true}catch(e){return false}}
 function fillFilters(){const s=$("fSrc"),c=$("fCat"),sv=s.value,cv=c.value;s.innerHTML='<option value="">All sources</option>'+["Bank Hapoalim","Max","Isracard","Wise"].map(x=>`<option>${x}</option>`).join("");c.innerHTML='<option value="">All categories</option>'+catNames().map(x=>`<option>${esc(x)}</option>`).join("");s.value=sv;c.value=cv}
 function badges(){const n=alerts().length,r=reviewCount();[["bAl",n],["bBell",n],["bMore",n],["bTx",r]].forEach(([id,v])=>{const e=$(id);e.textContent=v;e.style.display=v?"grid":"none"})}
@@ -1013,6 +1028,8 @@ case"roSave":{const kw=$("roK").value.trim().toLowerCase(),cat=$("roC").value;if
 if(ex){const old=ex.c;ex.c=cat;log("Changed rule",`"${kw}": ${old} → ${cat}`)}else{S.rules.push({k:kw,c:cat,t:""});log("Added rule",`"${kw}" → ${cat}${n?` · ${n} similar item${n==1?"":"s"} categorized`:""}`)}
 closeSheet();renderAll();break}
 case"cpCount":S.ccOverride[d.id]=1;log("Counted card payment as spending",byId(+d.id)?.desc||"");closeSheet();renderAll();break;
+case"txHist":{const t=byId(+d.id)||ALL().find(x=>x.id==d.id);if(t){const b=billOf(t);if(b)payHist(b.n,billTx(b),"Recurring bill");else payHist(t.desc,sameStore(t),"All payments")}break}
+case"billHist":{const b=S.bills[+d.i];if(b)payHist(b.n,billTx(b),b.mode=="once"?"One-off bill":"Bill");break}
 case"cpMark":S.ccOverride[d.id]=2;log("Marked as a card payment",byId(+d.id)?.desc||"");closeSheet();renderAll();break;
 case"cpUncount":delete S.ccOverride[d.id];log("Treated as a card payment again",byId(+d.id)?.desc||"");closeSheet();renderAll();break;
 case"openDocs":openDocs(+d.id,d.i);break;
@@ -1152,11 +1169,12 @@ if(r.ok){need2fa=false;await afterLogin();return}
 if(j.need2fa){need2fa=true;showAuth();$("authE").textContent=j.error||"";$("authC").focus();return}
 if(j.setup){showAuth("setup");return}$("authE").textContent=j.error||"Could not sign in"}
 document.addEventListener("keydown",e=>{if(e.key=="Enter"&&$("auth").style.display=="flex")authGo();if(DV){const t=byId(DV.id);if(e.key=="Escape")closeDocs();else if(t&&(e.key=="ArrowRight"||e.key=="ArrowLeft")){const n=t.docs.length,k=e.key=="ArrowRight"?1:-1;DV.i=DV.i==null?0:(DV.i+k+n)%n;renderDocs()}}});
-async function afterLogin(){hideAuth();try{await load();renderAll();syncLabel()}catch(e){fail();return}loadFX();watchJobs();if(!window.__poll)window.__poll=setInterval(()=>{if(!dirty&&!saving&&document.visibilityState=="visible")load().then(()=>{renderAll();syncLabel()}).catch(()=>{})},5*60*1000);const p=new URLSearchParams(location.search);if(p.get("view")&&TITLES[p.get("view")])nav(p.get("view"));if(p.get("add"))openAdd();if("Notification" in window&&Notification.permission=="granted"){alerts().filter(x=>x.sev=="high").slice(0,2).forEach(x=>notify("Money · "+x.title,x.text))}}
+async function afterLogin(){hideAuth();try{await load();renderAll();syncLabel()}catch(e){bootDone();fail();return}loadFX();watchJobs();if(!window.__poll)window.__poll=setInterval(()=>{if(!dirty&&!saving&&document.visibilityState=="visible")load().then(()=>{renderAll();syncLabel()}).catch(()=>{})},5*60*1000);const p=new URLSearchParams(location.search),hv=location.hash.slice(1);if(p.get("view")&&TITLES[p.get("view")])nav(p.get("view"));else if(TITLES[hv])nav(hv,true);if(p.get("add"))openAdd();if("Notification" in window&&Notification.permission=="granted"){alerts().filter(x=>x.sev=="high").slice(0,2).forEach(x=>notify("Money · "+x.title,x.text))}}
 const fail=()=>document.querySelector("main").insertAdjacentHTML("afterbegin",'<div class="card warn" style="margin-bottom:16px"><b>Cannot reach the server</b><div class="sm">Your data lives on the server. Check that you are on the home network or Tailscale, then reload.</div></div>');
 addEventListener("online",()=>{if(dirty)flush()});
-async function boot(){applyTheme();renderAll();let st;try{st=await (await fetch("/api/auth/status",{cache:"no-store"})).json()}catch(e){fail();return}
-if(!st.authed){need2fa=false;showAuth(st.setup?"setup":"login");return}await afterLogin()}
+const bootDone=()=>document.documentElement.classList.remove("boot");setTimeout(bootDone,10000); // never leave the splash up if something goes wrong
+async function boot(){applyTheme();let st;try{st=await (await fetch("/api/auth/status",{cache:"no-store"})).json()}catch(e){bootDone();fail();return}
+if(!st.authed){need2fa=false;bootDone();showAuth(st.setup?"setup":"login");return}await afterLogin();bootDone()}
 boot();
 /* ---------- export: choose exactly what leaves the app (a file on this device, nothing is sent anywhere) ---------- */
 const EXCOLS=[["date","Date",t=>t.d],["desc","Description",t=>t.desc],["from","From",t=>t.from],["to","To",t=>t.to],["amount","Amount (₪)",t=>t.a],["ocur","Original currency",t=>t.orig?t.orig.cur:""],["oamt","Original amount",t=>t.orig?t.orig.amt:""],["cat","Category",t=>t.c||(isXf(t)?"Transfer":"Uncategorized")],["tags","Tags",t=>(t.tags||[]).join(" ")],["note","Note",t=>t.note||""],["docs","Attachments",t=>(t.docs||[]).join("; ")],["src","Source",t=>t.src||""],["id","ID",t=>t.id]];
@@ -1221,7 +1239,8 @@ else return;exSync()});
 (()=>{const SKIP=/^(SCRIPT|STYLE|TEXTAREA|INPUT|OPTION|SELECT|TITLE)$/;let q=0,busy=false;
 function pass(){q=0;busy=true;const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.nodeValue.includes(" · ")&&n.parentElement&&!SKIP.test(n.parentElement.tagName)&&!n.parentElement.closest("svg,.dt,[contenteditable]")?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT}),L=[];while(w.nextNode())L.push(w.currentNode);
 L.forEach(n=>{const f=document.createDocumentFragment();n.nodeValue.split(" · ").forEach((t,i)=>{if(i){const d=document.createElement("span");d.className="dt";d.textContent="·";f.appendChild(d)}if(t)f.appendChild(document.createTextNode(t))});const w=document.createElement("span");w.appendChild(f);n.replaceWith(w)});busy=false}
-new MutationObserver(()=>{if(!busy&&!q)q=requestAnimationFrame(pass)}).observe(document.body,{childList:true,subtree:true,characterData:true});pass()})();
+const CAPS=".bd,.chip:not(.t):not(.dchip),.lbl,.pl,.badge-l";function caps(){document.querySelectorAll(CAPS).forEach(e=>{let n=e.firstChild;while(n&&n.nodeType==3&&!n.nodeValue.trim())n=n.nextSibling;if(n&&n.nodeType==3){const v=n.nodeValue,m=v.match(/^(\s*)([a-z])/);if(m)n.nodeValue=m[1]+m[2].toUpperCase()+v.slice(m[0].length)}})}
+new MutationObserver(()=>{if(!busy&&!q)q=requestAnimationFrame(()=>{pass();caps()})}).observe(document.body,{childList:true,subtree:true,characterData:true});pass();caps()})();
 
 (()=>{const sh=document.getElementById("sheet");let y0=null,dy=0,ok=false;
 sh.addEventListener("touchstart",e=>{if(!document.documentElement.classList.contains("mob"))return;y0=e.touches[0].clientY;dy=0;ok=sh.scrollTop<=0||!!e.target.closest(".grab");sh.style.transition="none"},{passive:true});
@@ -1233,4 +1252,15 @@ sh.addEventListener("touchcancel",()=>{y0=null;sh.style.transform="";sh.style.tr
 new MutationObserver(()=>{const on=sc.classList.contains("on");if(on===H.classList.contains("sl"))return;
 if(on){y=scrollY;H.classList.add("sl");if(H.classList.contains("mob"))document.body.style.top="-"+y+"px"}else{H.classList.remove("sl");document.body.style.top="";if(H.classList.contains("mob"))scrollTo(0,y)}}).observe(sc,{attributes:true,attributeFilter:["class"]});
 sc.addEventListener("touchmove",e=>e.preventDefault(),{passive:false})})();
+
+/* ---------- back button: closes the open popup first, then goes to the previous screen; the address keeps the page across a refresh ---------- */
+(()=>{const sc=document.getElementById("scrim"),dv=document.getElementById("docv"),as=document.getElementById("assist");
+const open=()=>sc.classList.contains("on")||!!DV||as.style.display=="block";
+try{history.scrollRestoration="manual"}catch(e){}
+history.replaceState({v:location.hash.slice(1)||"dash"},"");
+const sync=()=>{const o=open(),st=history.state||{};if(o&&!st.o)history.pushState({o:1,v:curView},"",location.href);else if(!o&&st.o)history.back()};
+const mo=new MutationObserver(sync);mo.observe(sc,{attributes:true,attributeFilter:["class"]});mo.observe(as,{attributes:true,attributeFilter:["style"]});mo.observe(dv,{attributes:true,attributeFilter:["style","class"]});
+addEventListener("popstate",e=>{const st=e.state||{};
+if(open()){if(as.style.display=="block")assistClose();else if(DV)closeDocs();else closeSheet();if(open())history.pushState({o:1,v:curView},"",location.href);return}
+const v=st.v||location.hash.slice(1)||"dash";if(TITLES[v]&&v!=curView)nav(v,true)})})();
 </script></body></html>
