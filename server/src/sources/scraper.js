@@ -6,7 +6,7 @@ export async function scrape(company, credentials, days = 30) {
   const r = await fetch(`${URL_}/scrape`, {
     method: "POST", headers: { "content-type": "application/json", "x-scraper-key": process.env.SCRAPER_KEY || "" },
     body: JSON.stringify({ company, credentials, startDate: new Date(Date.now() - days * 864e5).toISOString().slice(0, 10) }),
-    signal: AbortSignal.timeout(5 * 60 * 1000),
+    signal: AbortSignal.timeout(Math.min(60, 8 + Math.ceil(days / 30) * 0.75) * 60 * 1000), // longer history = longer wait (1 year ≈ 17 min, 5 years ≈ 60 min cap)
   });
   const j = await r.json().catch(() => ({}));
   if (!r.ok || !j.success) throw new Error(j.error || `scraper HTTP ${r.status}`);
