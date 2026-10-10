@@ -154,6 +154,7 @@ test("sync with a mock scraper: credentials are sent, data lands, lock-out stops
   mock = http.createServer(async (req, res) => {
     let b = ""; for await (const c of req) b += c;
     const j = JSON.parse(b); seen.push({ key: req.headers["x-scraper-key"], j });
+    if (globalThis.__delay) await new Promise((r) => setTimeout(r, globalThis.__delay));
     res.setHeader("content-type", "application/json");
     if (j.credentials.password === "wrong") { res.statusCode = 500; return res.end(JSON.stringify({ success: false, error: "INVALID_PASSWORD for wrong" })); }
     res.end(JSON.stringify({ success: true, accounts: [{ accountNumber: "77", balance: 1000, txns: [{ date: "2026-10-02T00:00:00Z", description: "Shufersal", chargedAmount: -120, identifier: "t1" }] }] }));
@@ -189,4 +190,25 @@ test("bank CSV import through the API, then sign out ends the session", async ()
   assert.equal(r.status, 200); assert.equal((await r.json()).added, 1);
   assert.equal((await call("POST", "/api/auth/logout", { cookie, headers: X })).status, 200);
   assert.equal((await call("GET", "/api/state", { cookie })).status, 401);
+});
+
+test("only one connection job at a time: a second test or sync is refused while one runs", async () => {
+  await call("PUT", "/api/connections/max", { cookie, headers: X, body: { username: "u@example.com", password: "pw-max-1" } });
+  await call("PUT", "/api/connections/hapoalim", { cookie, headers: X, body: { userCode: "AB12345", password: "very-secret-pw" } });
+  cookie = (await call("POST", "/api/auth/login", { body: { password: "my long password" } })).setCookie.split(";")[0];
+  globalThis.__delay = 600;
+  const first = call("POST", "/api/connections/max/test", { cookie, headers: X });
+  await new Promise((r) => setTimeout(r, 150));
+  const job = await call("GET", "/api/jobs", { cookie });
+  assert.deepEqual([job.body.source, job.body.kind], ["max", "test"]);
+  const t2 = await call("POST", "/api/connections/hapoalim/test", { cookie, headers: X });
+  assert.equal(t2.status, 409); assert.equal(t2.body.busy, true); assert.match(t2.body.error, /Wait for it to finish/);
+  const s2 = await call("POST", "/api/sync/hapoalim", { cookie, headers: X });
+  assert.equal(s2.status, 409);
+  const all = await call("POST", "/api/sync", { cookie, headers: X });
+  assert.equal(all.status, 409);
+  assert.equal((await first).body.ok, true);
+  globalThis.__delay = 0;
+  assert.equal((await call("GET", "/api/jobs", { cookie })).body, null);
+  assert.equal((await call("POST", "/api/connections/hapoalim/test", { cookie, headers: X })).status, 200); // free again
 });

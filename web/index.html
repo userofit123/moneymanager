@@ -55,6 +55,14 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);outline-off
 input[type=checkbox]{width:22px;height:22px;min-height:0;accent-color:var(--acc)}
 input[type=number]{-moz-appearance:textfield}input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .bigin{border:0;background:transparent;font:inherit;font-size:inherit;font-weight:inherit;letter-spacing:inherit;color:inherit;width:calc(100% - 28px);padding:0 6px;min-height:0;border-radius:10px;font-variant-numeric:tabular-nums}.bigin:focus{outline:2px solid var(--acc);background:var(--s2)}
+@keyframes sp{to{transform:rotate(360deg)}}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .8s linear infinite;vertical-align:-2px;margin-right:8px}
+@media (prefers-reduced-motion:reduce){.spinner{animation-duration:3s}}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn.running:disabled{opacity:1;cursor:progress}
+.jobnote{font-size:13px;color:var(--tx2);margin-top:8px;min-height:0}.jobnote.act{color:var(--acc);font-weight:600}
+#jobBar{display:none;position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:150;align-items:center;gap:0;background:var(--tx);color:var(--bg);padding:10px 18px;border-radius:99px;font-size:13px;max-width:92vw;box-shadow:0 4px 18px rgba(0,0,0,.25)}
+.syncb.spinning i.live{animation:sp .8s linear infinite;border-radius:50%;border:2px solid var(--acc);border-right-color:transparent;background:none}
 .btn{font:inherit;font-size:14px;font-weight:600;border:0;border-radius:99px;padding:10px 22px;background:var(--acc);color:var(--on);cursor:pointer;transition:.2s;min-height:42px}.btn:hover{filter:brightness(1.1)}.btn:disabled{opacity:.35;cursor:default}
 .btn.o{background:none;border:1px solid var(--ol);color:var(--acc)}.btn.s{padding:5px 13px;font-size:12px;min-height:32px}.btn.r{background:none;border:1px solid color-mix(in srgb,var(--neg) 40%,transparent);color:var(--neg)}
 table{width:100%;border-collapse:separate;border-spacing:0;background:var(--s1);border:1px solid var(--ol);border-radius:var(--r);overflow:hidden}
@@ -121,6 +129,7 @@ html.mob .flex{gap:14px}
 <div id="auth" style="display:none;position:fixed;inset:0;z-index:300;background:var(--bg);align-items:center;justify-content:center;padding:20px"><div class="card" style="max-width:380px;width:100%"><div class="logo" style="margin:0 0 14px">₪</div><h3 id="authT" style="margin:0 0 6px"></h3><div class="sm" id="authS" style="margin-bottom:14px"></div>
 <form id="authF" onsubmit="return false"><div class="fld"><label>Password</label><input id="authP" type="password" autocomplete="current-password"></div><div class="fld" id="authP2w" style="display:none"><label>Repeat password</label><input id="authP2" type="password" autocomplete="new-password"></div><div class="fld" id="authCw" style="display:none"><label>Code from your authenticator app</label><input id="authC" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></div>
 <div class="sm" id="authE" style="color:var(--neg);min-height:18px;margin-bottom:8px"></div><button class="btn" id="authB" style="width:100%" data-a="authGo">Continue</button></form></div></div>
+<div id="jobBar" role="status" aria-live="polite"><i class="spinner"></i><span id="jobTxt"></span></div>
 <div class="banner" id="offline">You are offline · showing saved data</div>
 <nav><div class="logo">₪</div>
 <button class="nb on" data-a="nav" data-v="dash"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span>Home</button>
@@ -564,7 +573,7 @@ return `<div class="row" style="flex-wrap:wrap"><div style="min-width:150px;flex
 <div style="text-align:right;min-width:130px">${full?`<span class="bd dn">Funded monthly</span>`:j.eta?`<b>Full in ${j.eta} month${j.eta>1?"s":""}</b><div class="sm">${mlab(j.eta)}</div>`:`<span class="bd fl">Not within 5 years</span>`}</div></div>`}).join("")+`<div class="sm" style="margin-top:10px">Assumes ₪${f(js.total)} is available each month (set on the Jars page). Jars fill in priority order; a full jar frees its share for the next one.</div>`;
 $("fcNote").innerHTML=`<b style="color:var(--tx)">How this is calculated:</b> no AI. For each income source and expense category the app takes the last ${n} complete months. <i>Average</i> projects the same monthly value forward. <i>Trend line</i> extends the straight line through those months, limited to ±50% of the average. Month by month, income minus expenses is added to today's bank + Wise balance (converted to ₪). The pension is manual, so it is not part of the forecast. One-off items are not predicted unless they happened in the chosen months.`}
 let setTab="rules",dip=null,swOk=false;
-function renderSet(){
+function renderSet(){setTimeout(applyJobUI,0);
 ["rules","log","data","conn","sec"].forEach(t=>{$("set"+t[0].toUpperCase()+t.slice(1)).style.display=setTab==t?"":"none"});
 document.querySelectorAll("#setTabs button").forEach(b=>b.classList.toggle("on",b.dataset.t==setTab));
 $("setRules").innerHTML=`<div class="card" style="margin-bottom:16px"><div class="lbl">Auto-categorize rules · applied to every new transaction</div><div style="margin-top:14px">${S.rules.map((r,i)=>`<div class="rule">If description contains <b>"${esc(r.k)}"</b> → <span class="chip t">${esc(r.c)}</span>${r.t?`<span class="tag">${esc(r.t)}</span>`:""}<button class="btn o s" style="margin-left:auto" data-a="ruleDel" data-i="${i}">Delete</button></div>`).join("")}</div>
@@ -583,12 +592,32 @@ function toast(m){const d=document.createElement("div");d.textContent=m;d.style.
 async function notify(title,body){if(!("Notification" in window)||Notification.permission!="granted")return false;try{const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();if(reg&&reg.active){reg.active.postMessage({type:"notify",title,body});return true}new Notification(title,{body});return true}catch(e){return false}}
 function fillFilters(){const s=$("fSrc"),c=$("fCat"),sv=s.value,cv=c.value;s.innerHTML='<option value="">All sources</option>'+["Bank Hapoalim","Max","Isracard","Wise"].map(x=>`<option>${x}</option>`).join("");c.innerHTML='<option value="">All categories</option>'+Object.keys(S.cats).map(x=>`<option>${esc(x)}</option>`).join("");s.value=sv;c.value=cv}
 function badges(){const n=alerts().length,r=reviewCount();[["bAl",n],["bBell",n],["bMore",n],["bTx",r]].forEach(([id,v])=>{const e=$(id);e.textContent=v;e.style.display=v?"grid":"none"})}
+/* ---------- one connection job at a time: test or sync ---------- */
+let JOB=null,jobTick=null,jobPoll=null;
+const JK={test:["Testing","Test"],sync:["Syncing","Sync"]},SRCN={hapoalim:"Bank Hapoalim",max:"Max",isracard:"Isracard",wise:"Wise",all:"all sources"};
+const srcName=x=>SRCN[x]||x,mmss=t=>{t=Math.max(0,Math.round(t/1000));return Math.floor(t/60)+":"+String(t%60).padStart(2,"0")};
+function applyJobUI(){const bar=$("jobBar");if(!bar)return;bar.style.display=JOB?"flex":"none";
+if(JOB)$("jobTxt").textContent=JK[JOB.kind][0]+" "+srcName(JOB.source)+"… "+mmss(Date.now()-JOB.since)+" · this can take up to 2 minutes, please wait";
+$("syncb")&&$("syncb").classList.toggle("spinning",!!JOB);
+document.querySelectorAll('[data-a="connTest"],[data-a="connSync"],[data-a="syncNow"]').forEach(b=>{if(b.dataset.l==null)b.dataset.l=b.textContent;
+const kind=b.dataset.a=="connTest"?"test":"sync",mine=JOB&&JOB.kind==kind&&(b.dataset.a=="syncNow"?JOB.source=="all":(JOB.source==b.dataset.s||JOB.source=="all"));
+b.disabled=!!JOB;b.classList.toggle("running",!!mine);b.title=JOB&&!mine?"Wait for the current one to finish":"";
+if(mine)b.innerHTML='<i class="spinner"></i>'+JK[kind][0]+"…";else if(b.dataset.l!=null&&b.querySelector(".spinner"))b.textContent=b.dataset.l});
+document.querySelectorAll(".jobnote").forEach(n=>{const x=n.dataset.src,me=JOB&&(JOB.source==x||JOB.source=="all");n.classList.toggle("act",!!me);
+n.textContent=!JOB?"":me?JK[JOB.kind][0]+" "+srcName(x)+"… "+mmss(Date.now()-JOB.since)+". Please wait, do not close this page.":srcName(JOB.source)+" is busy ("+JK[JOB.kind][0].toLowerCase()+"). Wait for it to finish before starting another."})}
+function startJob(source,kind,since){JOB={source,kind,since:since||Date.now()};clearInterval(jobTick);jobTick=setInterval(applyJobUI,1000);applyJobUI()}
+function endJob(){JOB=null;clearInterval(jobTick);applyJobUI()}
+async function runJob(source,kind,fn){if(JOB){toast("Wait for the current one to finish");return null}startJob(source,kind);try{return await fn()}finally{endJob()}}
+// a job started elsewhere (another tab, the schedule, before a reload): show it and wait for it to end
+async function watchJobs(){try{const j=await (await fetch("/api/jobs",{cache:"no-store"})).json();
+if(j&&!JOB){startJob(j.source,j.kind,j.since);clearInterval(jobPoll);jobPoll=setInterval(async()=>{try{const x=await (await fetch("/api/jobs",{cache:"no-store"})).json();if(!x){clearInterval(jobPoll);endJob();await load();renderAll();if(setTab=="conn")loadConn()}}catch(e){}},2500)}}catch(e){}}
+{const o=openSheet;openSheet=h=>{o(h);applyJobUI()}}
 let CONN=[];
 async function loadConn(){try{CONN=await (await fetch("/api/connections")).json();renderConn()}catch(e){}}
-function renderConn(){const st=c=>c.locked?'<span class="bd up">Locked</span>':c.configured?'<span class="bd dn">Connected</span>':'<span class="bd fl">Not connected</span>';
+function renderConn(){setTimeout(applyJobUI,0);const st=c=>c.locked?'<span class="bd up">Locked</span>':c.configured?'<span class="bd dn">Connected</span>':'<span class="bd fl">Not connected</span>';
 $("setConn").innerHTML=`<div class="card" style="margin-bottom:16px"><div class="lbl">Credentials</div><div class="sm" style="margin:8px 0">Stored encrypted on your server and never shown again. The app only reads: it cannot move money. Test one source at a time. After two failed logins in a row a source is locked so a bank never locks your account for you.</div></div>`+CONN.map(c=>`<div class="card" style="margin-bottom:12px"><div class="flex" style="justify-content:space-between"><b>${esc(c.label)}</b>${st(c)}</div>
 ${c.lastError?`<div class="sm" style="color:var(--neg);margin-top:6px">Last error: ${esc(c.lastError)}</div>`:""}${c.lastOk?`<div class="sm" style="margin-top:6px">Last success ${new Date(c.lastOk).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</div>`:""}
-<form onsubmit="return false" autocomplete="off" style="margin-top:10px">${c.fields.map(f=>`<div class="fld"><label>${esc(f.label)}</label><input type="password" autocomplete="off" data-cf="${c.source}:${f.k}" placeholder="${c.configured?"saved · type to replace":""}"></div>`).join("")}</form>
+<div class="jobnote" data-src="${c.source}"></div><form onsubmit="return false" autocomplete="off" style="margin-top:10px">${c.fields.map(f=>`<div class="fld"><label>${esc(f.label)}</label><input type="password" autocomplete="off" data-cf="${c.source}:${f.k}" placeholder="${c.configured?"saved · type to replace":""}"></div>`).join("")}</form>
 <div class="flex" style="gap:8px;flex-wrap:wrap"><button class="btn s" data-a="connSave" data-s="${c.source}">Save</button>${c.configured?`<button class="btn o s" data-a="connTest" data-s="${c.source}">Test connection</button><button class="btn o s" data-a="connSync" data-s="${c.source}">Sync now</button>`:""}${c.locked?`<button class="btn o s" data-a="connUnlock" data-s="${c.source}">Unlock</button>`:""}${c.configured?`<button class="btn r s" data-a="connDel" data-s="${c.source}">Remove</button>`:""}</div></div>`).join("")+`<div class="sm" style="margin-top:8px">Hapoalim may ask for a one-time code; if so, use a file import (Settings → App and data) until that is supported. Wise: create a personal token with read-only permissions.</div>`}
 async function connCall(src,path,method,body,msg){try{const r=await api(`/api/connections/${src}${path}`,{method,headers:{"content-type":"application/json"},body:body?JSON.stringify(body):undefined});await loadConn();if(msg)toast(msg);return r}catch(e){toast(e.message);return null}}
 function showTest(label,r){openSheet(`<h3>${esc(label)} · test</h3>`+(r.ok?`<div class="sm" style="margin-bottom:10px">Login worked. Nothing was saved.</div>`+(r.balances?r.balances.map(b=>`<div class="row"><div class="grow">Balance ${esc(b.currency)}</div><b>${b.value}</b></div>`).join("")+`<div class="sm" style="margin-top:8px">${esc(r.note||"")}</div>`:(r.accounts||[]).map(a=>`<div class="row" style="display:block"><b>${a.balance==null?"Balance not provided":"Balance ₪"+f(a.balance)}</b> · ${a.transactions} transactions in the last 30 days${a.first.map(t=>`<div class="sm">${esc(t.date)} · ${esc(t.description)} · ${t.amount}</div>`).join("")}</div>`).join("")):`<div class="card warn"><b>${r.locked?"Locked":"Failed"}</b><div class="sm">${esc(r.error||"")}</div>${r.locked?'<div class="sm" style="margin-top:6px">Two failures in a row. Check the credentials, then unlock it.</div>':""}</div>`)+`<div class="flex" style="justify-content:flex-end;margin-top:12px"><button class="btn" data-a="close">Done</button></div>`)}
@@ -599,8 +628,8 @@ $("setSec").innerHTML=`<div class="card" style="margin-bottom:16px"><div class="
 <div class="card"><div class="lbl">Sessions</div><div class="sm" style="margin:8px 0 12px">You stay signed in on this device for 14 days.</div><div class="flex" style="gap:8px"><button class="btn o s" data-a="logout">Sign out</button><button class="btn o s" data-a="logoutAll">Sign out everywhere</button></div></div>`}
 async function secCall(path,body,msg){try{const r=await api(path,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body||{})});if(msg)toast(msg);return r}catch(e){toast(e.message);return null}}
 async function gapCall(id,what,msg,body){try{await api(`/api/gaps/${id}/${what}`,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body||{})});await load();renderAll();toast(msg)}catch(e){toast(e.message)}}
-async function syncNow(){toast("Syncing…");try{const r=await api("/api/sync",{method:"POST"});await load();await loadFX();toast("Sync finished")}catch(e){toast("Sync failed: "+e.message)}}
-function renderAll(){detect();derive();detectBills();applyRules();fillFilters();renderKpis();renderHome();renderTx();renderJars();renderBills();renderBudg();renderAlerts();reps();renderFc();renderSet();badges();save()}
+async function syncNow(){try{const r=await runJob("all","sync",()=>api("/api/sync",{method:"POST"}));if(!r)return;await load();await loadFX();renderAll();if(setTab=="conn")loadConn();const bad=Object.entries(r).filter(([,v])=>v&&v.ok===false&&!v.skipped);toast(bad.length?bad.map(([k])=>srcName(k)).join(", ")+" failed. See Settings → Connections":"Sync finished")}catch(e){toast(e.message)}}
+function renderAll(){setTimeout(applyJobUI,0);detect();derive();detectBills();applyRules();fillFilters();renderKpis();renderHome();renderTx();renderJars();renderBills();renderBudg();renderAlerts();reps();renderFc();renderSet();badges();save()}
 function jset(id,fld,v){const j=S.jars.find(x=>x.id==id);if(!j||j[fld]===v)return;const old=j[fld];j[fld]=v;log("Changed jar "+(fld=="cap"?"monthly cap":"target"),j.n+": "+fm(old)+" → "+fm(v),{type:"jar",id:j.id,f:fld,old});renderAll()}
 function act(a,d,el){switch(a){
 case"nav":nav(d.v);break;case"more":openMore();break;case"sync":openSync();break;case"close":closeSheet();break;case"add":openAdd();break;case"addSave":addSave();break;
@@ -621,8 +650,8 @@ case"gapRev":{const n=prompt("Why is this gap fine to leave? (saved in the log)"
 case"authGo":authGo();break;
 case"syncNow":syncNow();break;
 case"connSave":{const src=d.s,def=(CONN.find(c=>c.source==src)||{fields:[]}).fields,body={};def.forEach(f=>{const el=document.querySelector(`[data-cf="${src}:${f.k}"]`);body[f.k]=el?el.value:""});connCall(src,"","PUT",body,"Saved, encrypted");break}
-case"connTest":{toast("Testing…");connCall(d.s,"/test","POST",null).then(r=>{if(r)showTest((CONN.find(c=>c.source==d.s)||{}).label||d.s,r)});break}
-case"connSync":{toast("Syncing…");api(`/api/sync/${d.s}`,{method:"POST"}).then(async r=>{await load();renderAll();await loadConn();toast(r.ok?"Synced · "+(r.added||0)+" new":(r.error||"Failed"))}).catch(e=>toast(e.message));break}
+case"connTest":runJob(d.s,"test",()=>connCall(d.s,"/test","POST",null)).then(r=>{if(r)showTest((CONN.find(c=>c.source==d.s)||{}).label||d.s,r)});break;
+case"connSync":runJob(d.s,"sync",()=>api(`/api/sync/${d.s}`,{method:"POST"})).then(async r=>{if(!r)return;await load();renderAll();await loadConn();toast(r.ok?"Synced · "+(r.added||0)+" new":(r.error||"Failed"))}).catch(e=>toast(e.message));break;
 case"connUnlock":connCall(d.s,"/unlock","POST",null,"Unlocked");break;
 case"connDel":if(confirm("Remove the saved credentials?"))connCall(d.s,"","DELETE",null,"Removed");break;
 case"pwChange":secCall("/api/auth/password",{current:$("pwCur").value,next:$("pwNew").value},"Password changed").then(r=>{if(r)renderSec()});break;
@@ -688,7 +717,7 @@ if(r.ok){need2fa=false;await afterLogin();return}
 if(j.need2fa){need2fa=true;showAuth();$("authE").textContent=j.error||"";$("authC").focus();return}
 if(j.setup){showAuth("setup");return}$("authE").textContent=j.error||"Could not sign in"}
 document.addEventListener("keydown",e=>{if(e.key=="Enter"&&$("auth").style.display=="flex")authGo()});
-async function afterLogin(){hideAuth();try{await load();renderAll();syncLabel()}catch(e){fail();return}loadFX();if(!window.__poll)window.__poll=setInterval(()=>{if(!dirty&&!saving&&document.visibilityState=="visible")load().then(()=>{renderAll();syncLabel()}).catch(()=>{})},5*60*1000);const p=new URLSearchParams(location.search);if(p.get("view")&&TITLES[p.get("view")])nav(p.get("view"));if(p.get("add"))openAdd();if("Notification" in window&&Notification.permission=="granted"){alerts().filter(x=>x.sev=="high").slice(0,2).forEach(x=>notify("Money · "+x.title,x.text))}}
+async function afterLogin(){hideAuth();try{await load();renderAll();syncLabel()}catch(e){fail();return}loadFX();watchJobs();if(!window.__poll)window.__poll=setInterval(()=>{if(!dirty&&!saving&&document.visibilityState=="visible")load().then(()=>{renderAll();syncLabel()}).catch(()=>{})},5*60*1000);const p=new URLSearchParams(location.search);if(p.get("view")&&TITLES[p.get("view")])nav(p.get("view"));if(p.get("add"))openAdd();if("Notification" in window&&Notification.permission=="granted"){alerts().filter(x=>x.sev=="high").slice(0,2).forEach(x=>notify("Money · "+x.title,x.text))}}
 const fail=()=>document.querySelector("main").insertAdjacentHTML("afterbegin",'<div class="card warn" style="margin-bottom:16px"><b>Cannot reach the server</b><div class="sm">Your data lives on the server. Check that you are on the home network or Tailscale, then reload.</div></div>');
 addEventListener("online",()=>{if(dirty)flush()});
 async function boot(){applyTheme();renderAll();let st;try{st=await (await fetch("/api/auth/status",{cache:"no-store"})).json()}catch(e){fail();return}

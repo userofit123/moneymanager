@@ -6,7 +6,7 @@ import { loadKey } from "./secrets.js";
 import { ensureDefaults, getState, putState, StaleError } from "./state.js";
 import { ratesSummary, refreshRates, rateOn } from "./fx.js";
 import { recordGap } from "./gaps.js";
-import { syncSource, syncAll, SOURCE_NAMES, startScheduler, snapshotNetWorth, testSource } from "./sync.js";
+import { syncSource, syncAll, SOURCE_NAMES, startScheduler, snapshotNetWorth, testSource, activeJob } from "./sync.js";
 import { saveDoc, readDoc } from "./docs.js";
 import { ingest } from "./sources/ingest.js";
 import { parseWiseCsv, parseBankCsv } from "./sources/csv.js";
@@ -121,15 +121,18 @@ app.delete("/api/connections/:source", wrap(async (req, res) => { await removeCr
 app.post("/api/connections/:source/unlock", wrap(async (req, res) => { await unlock(req.params.source); res.json({ ok: true }); }));
 app.post("/api/connections/:source/test", wrap(async (req, res) => {
   if (!FIELDS[req.params.source]) return res.status(404).json({ error: "unknown source" });
-  res.json(await testSource(req.params.source));
+  const r = await testSource(req.params.source);
+  res.status(r.busy ? 409 : 200).json(r);
 }));
+app.get("/api/jobs", wrap(async (_req, res) => res.set("Cache-Control", "no-store").json(activeJob())));
 app.post("/api/ntfy/test", wrap(async (_req, res) => res.json({ ok: await sendNtfy("Money", "Test alert: background notifications work") })));
 
 // ---------- sync and import ----------
-app.post("/api/sync", wrap(async (_req, res) => res.json(await syncAll())));
+app.post("/api/sync", wrap(async (_req, res) => { const r = await syncAll(); res.status(r.busy ? 409 : 200).json(r); }));
 app.post("/api/sync/:source", wrap(async (req, res) => {
   if (!SOURCE_NAMES.includes(req.params.source)) return res.status(404).json({ error: "unknown source" });
-  res.json(await syncSource(req.params.source));
+  const r = await syncSource(req.params.source);
+  res.status(r.busy ? 409 : 200).json(r);
 }));
 
 app.post("/api/import/wise-csv", express.text({ type: "*/*", limit: "10mb" }), wrap(async (req, res) => {
