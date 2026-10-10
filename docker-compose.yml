@@ -1,0 +1,55 @@
+# Money Manager. Put the repo (or just this file and .env) in ~/docker/finance/ on the server.
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: money
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      POSTGRES_DB: money
+    volumes:
+      - /mnt/data/finance/postgres:/var/lib/postgresql/data
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U money"]
+      interval: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgres://money:${POSTGRES_PASSWORD}@db:5432/money
+      DOCS_DIR: /data/documents
+      WISE_TOKEN: ${WISE_TOKEN:-}
+      SCRAPER_URL: http://scraper:8080
+      SCRAPER_KEY: ${SCRAPER_KEY:?set in .env}
+      SYNC_CRON: ${SYNC_CRON:-0 */8 * * *}
+      ALLOW_DEMO_SEED: ${ALLOW_DEMO_SEED:-0}
+    volumes:
+      - /mnt/data/finance/documents:/data/documents
+    ports:
+      - "127.0.0.1:${APP_PORT:-9010}:8080"   # Caddy reverse proxy on the host; never exposed to the internet
+    networks: [internal, proxy]
+
+  # Isolated scraper with Chromium. Only this container needs outbound access to the banks.
+  scraper:
+    build: ./scraper
+    restart: unless-stopped
+    environment:
+      SCRAPER_KEY: ${SCRAPER_KEY}
+      CREDENTIALS_FILE: /run/secrets/bank_credentials.json
+    volumes:
+      - ./secrets/bank_credentials.json:/run/secrets/bank_credentials.json:ro
+    networks: [internal]
+    shm_size: 1gb
+
+networks:
+  internal:
+  proxy:
+    external: true
+    name: proxy
