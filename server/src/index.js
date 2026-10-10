@@ -13,6 +13,7 @@ import { ingest } from "./sources/ingest.js";
 import { parseWiseCsv, parseBankCsv } from "./sources/csv.js";
 import { seedDemo } from "./seed.js";
 import { addSuggested } from "./categories.js";
+import { fillJars, readJars } from "./jars.js";
 import { bumpRev } from "./db.js";
 import { sendNtfy, ntfyProblem, ntfyUrl } from "./notify.js";
 import { listConnections, saveCreds, removeCreds, unlock, getCreds, markAssisted, FIELDS } from "./connections.js";
@@ -30,8 +31,8 @@ const json = express.json({ limit: "20mb" });
 // ---------- security headers ----------
 app.use((req, res, next) => {
   res.set({
-    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
-    "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer", "X-Frame-Options": "DENY",
+    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'self'; frame-ancestors 'self'",
+    "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer", "X-Frame-Options": "SAMEORIGIN",
     "Permissions-Policy": "geolocation=(), microphone=(), camera=(self)",
   });
   if (req.secure) res.set("Strict-Transport-Security", "max-age=31536000");
@@ -223,6 +224,7 @@ app.post("/api/gaps/:id/:action", json, wrap(async (req, res) => {
   if (!r) return res.status(404).json({ error: "no such open gap" });
   res.json(r);
 }));
+app.post("/api/jars/fill", wrap(async (_req, res) => { const r = await fillJars(); res.json({ ...r, jars: await readJars({ query: q }) }); }));
 app.post("/api/categories/suggested", wrap(async (_req, res) => { const r = await addSuggested(); if (r.categories || r.rules) await bumpRev(); res.json(r); }));
 app.post("/api/networth/snapshot", wrap(async (_req, res) => { await snapshotNetWorth(); res.json({ ok: true }); }));
 if (process.env.ALLOW_DEMO_SEED === "1") app.post("/api/demo/seed", wrap(async (_req, res) => res.json(await seedDemo())));

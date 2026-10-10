@@ -1,16 +1,22 @@
-// Jars are informational (not linked to real accounts). Each month, in priority order, every jar takes the lesser of
-// what it still needs and its monthly amount; a full jar frees its share for the next; the rest is "Unallocated".
-// A bill jar (no monthly amount) is refilled to its target every month.
-import { tx, audit, bumpRev, q } from "./db.js";
+// Jars are informational (not linked to real accounts). Each month, in priority order, every jar takes what it is still
+// entitled to from the money that is really available: cash (bank + Wise) minus what is already in jars minus a buffer.
+//   fixed jar:  up to its monthly amount in total this month, never beyond its target
+//   bill jar:   topped up to its target
+// A fill that could not happen yet (not enough money) is retried on the next run, so a jar that did not get its money
+// this month takes it as soon as money is available, in priority order. Every fill is recorded.
+import { tx, audit, bumpRev } from "./db.js";
 
-// Jars fill from the money you actually have: cash (bank + Wise) minus what is already set aside in jars minus an optional
-// buffer you keep untouched. A bill jar is topped up to its target each month.
-export function allocate(free, jars) {
+export const thisMonth = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+
+export const wantOf = (j, received = 0) => {
+  const need = Math.max(0, j.target - j.balance);
+  return j.cap == null ? need : Math.max(0, Math.min(j.cap - received, need));
+};
+
+export function allocate(free, jars, received = {}) {
   let rem = Math.max(0, +free || 0);
   return [...jars].sort((a, b) => a.priority - b.priority).map((j) => {
-    const need = Math.max(0, j.target - j.balance);
-    const want = j.cap == null ? need : Math.max(0, Math.min(j.cap, need));
-    const give = Math.max(0, Math.min(rem, want));
+    const give = Math.max(0, Math.min(rem, wantOf(j, received[j.id] || 0)));
     rem -= give;
     return { id: j.id, give, balance: Math.min(j.target, j.balance + give) };
   });
@@ -23,38 +29,41 @@ export async function cashNow(c) {
   return (await c.query("SELECT currency,balance FROM accounts WHERE in_net_worth AND kind IN ('bank','wallet')")).rows.reduce((s, a) => s + a.balance * (rates[a.currency] ?? 1), 0);
 }
 
-const nextMonth = (m) => { const [y, mo] = m.split("-").map(Number); const d = new Date(Date.UTC(y, mo, 1)); return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`; };
-export const thisMonth = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+export async function fillJarsTx(c, month = thisMonth()) {
+  const buffer = +((await c.query("SELECT value FROM settings WHERE key='jars_buffer'")).rows[0]?.value ?? 0);
+  const jars = (await c.query("SELECT id,priority,target,cap,balance FROM jars")).rows;
+  if (!jars.length) return { applied: 0, total: 0 };
+  const received = Object.fromEntries((await c.query("SELECT jar_id, sum(amount)::float AS s FROM jar_movements WHERE month=$1 GROUP BY jar_id", [month])).rows.map((r) => [r.jar_id, r.s]));
+  const free = (await cashNow(c)) - jars.reduce((t, j) => t + j.balance, 0) - buffer;
+  let applied = 0, total = 0;
+  for (const p of allocate(free, jars, received)) {
+    if (p.give <= 0) continue;
+    await c.query("UPDATE jars SET balance=$2, last_filled=$3 WHERE id=$1", [p.id, p.balance, month]);
+    await c.query("INSERT INTO jar_movements (jar_id,amount,note,month) VALUES ($1,$2,$3,$4)", [p.id, p.give, `Auto-fill ${month}`, month]);
+    applied++; total += p.give;
+  }
+  return { applied, total };
+}
 
-// Applies every month that has not been applied yet, up to and including `month` (at most 12 at once).
-// A jar seen for the first time starts with this month: nothing is added retroactively.
 export async function fillJars(month = thisMonth()) {
   return tx(async (c) => {
-    const buffer = +((await c.query("SELECT value FROM settings WHERE key='jars_buffer'")).rows[0]?.value ?? 0);
-    const cash = await cashNow(c);
-    await c.query("UPDATE jars SET last_filled=$1 WHERE last_filled IS NULL", [month]);
-    let applied = 0;
-    for (let guard = 0; guard < 12; guard++) {
-      const jars = (await c.query("SELECT id,priority,target,cap,balance,last_filled FROM jars")).rows;
-      const due = jars.filter((j) => j.last_filled < month);
-      if (!due.length) break;
-      const m = nextMonth(due.map((j) => j.last_filled).sort()[0]);
-      // allocate across all jars (priority order), but only apply to jars that have not had month m yet
-      const free = cash - jars.reduce((t, j) => t + j.balance, 0) - buffer; // recomputed each month from the current balances
-      const plan = allocate(free, jars);
-      for (const j of jars.filter((x) => x.last_filled < m)) {
-        const p = plan.find((x) => x.id === j.id);
-        if (p.give > 0) {
-          await c.query("UPDATE jars SET balance=$2 WHERE id=$1", [j.id, p.balance]);
-          await c.query("INSERT INTO jar_movements (jar_id,amount,note) VALUES ($1,$2,$3)", [j.id, p.give, `Auto-fill ${m}`]);
-          applied++;
-        }
-        await c.query("UPDATE jars SET last_filled=$2 WHERE id=$1", [j.id, m]);
-      }
-    }
-    if (applied) { await audit(c, "Jars filled", `${applied} jar fill${applied > 1 ? "s" : ""} applied for ${month}`); await bumpRev(c); }
-    return { applied };
+    const r = await fillJarsTx(c, month);
+    if (r.applied) { await audit(c, "Jars filled", `${r.applied} jar${r.applied > 1 ? "s" : ""} received ₪${Math.round(r.total)} for ${month}`); await bumpRev(c); }
+    return r;
   });
 }
 
-export const lastMoves = async () => (await q("SELECT DISTINCT ON (jar_id) jar_id, amount, note FROM jar_movements ORDER BY jar_id, id DESC")).rows;
+// the jars as the UI shows them: with what each received this month and the last fills
+export async function readJars(c) {
+  const month = thisMonth();
+  const jars = (await c.query("SELECT id,name,priority,target,cap,balance,due FROM jars ORDER BY priority,id")).rows;
+  const mv = (await c.query("SELECT jar_id,amount,note,month,created_at FROM jar_movements ORDER BY id DESC LIMIT 400")).rows;
+  return jars.map((j) => {
+    const mine = mv.filter((m) => m.jar_id === j.id);
+    return {
+      id: j.id, n: j.name, p: j.priority, need: j.target, cap: j.cap, bal: j.balance, due: j.due || "",
+      got: +mine.filter((m) => m.month === month).reduce((s, m) => s + m.amount, 0).toFixed(2),
+      moves: mine.slice(0, 8).map((m) => ({ amt: m.amount, note: m.note, at: m.created_at.toISOString() })),
+    };
+  });
+}

@@ -158,6 +158,7 @@ async function syncAllInner() {
   await refreshRates(7).catch((e) => console.error("rates:", e.message));
   const out = {};
   for (const s of SOURCE_NAMES) out[s] = await syncInner(s);
+  await fillJars().catch((e) => console.error("jars:", e.message));
   const open = (await q("SELECT count(*)::int AS n FROM balance_gaps WHERE status='open'")).rows[0].n;
   if (open) await notifyOnce(`gaps:${open}`, "Money · missing money", `${open} balance gap${open > 1 ? "s" : ""} to explain in Activity → Needs review`);
   return out;
@@ -180,8 +181,8 @@ export function startScheduler() {
   const every = process.env.SYNC_CRON || "0 */8 * * *";
   cron.schedule(every, () => syncAll().then(snapshotNetWorth).catch((e) => console.error("sync:", e.message)));
   cron.schedule("30 3 * * *", () => refreshRates(7).catch((e) => console.error("rates:", e.message)));
-  cron.schedule("5 0 1 * *", () => fillJars().catch((e) => console.error("jars:", e.message))); // the 1st of every month
-  fillJars().catch((e) => console.error("jars:", e.message)); // catch up after downtime
+  cron.schedule("10 */6 * * *", () => fillJars().catch((e) => console.error("jars:", e.message))); // retried through the day: a jar waiting for money takes it when it arrives
+  fillJars().catch((e) => console.error("jars:", e.message));
   cron.schedule("0 9 * * *", () => remindOldGaps().catch((e) => console.error("remind:", e.message)));
   console.log("scheduler on:", every);
 }

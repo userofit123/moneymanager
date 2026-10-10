@@ -3,7 +3,7 @@ import { q, tx, bumpRev } from "./db.js";
 import { explainGaps } from "./engine.js";
 import { listConnections } from "./connections.js";
 import { addSuggested } from "./categories.js";
-import { lastMoves } from "./jars.js";
+import { readJars, fillJarsTx, thisMonth } from "./jars.js";
 import { activeCurrencies, configuredCurrencies } from "./fx.js";
 
 export const DEFAULT_CFG = {
@@ -41,12 +41,12 @@ export async function getState() {
     q("SELECT keyword,category,tag FROM rules ORDER BY position,id"),
     q("SELECT id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,pending,source FROM transactions ORDER BY date DESC, id DESC"),
     q("SELECT transaction_id,tag FROM transaction_tags ORDER BY position"),
-    q("SELECT id,transaction_id,filename FROM documents ORDER BY id"),
+    q("SELECT id,transaction_id,filename,(path IS NOT NULL) AS has FROM documents ORDER BY id"),
     q("SELECT out_id,in_id,status FROM transfer_links"),
     q("SELECT category,monthly_limit FROM budgets"),
     q("SELECT data FROM bills ORDER BY id"),
     q("SELECT match FROM ignored_bills"),
-    q("SELECT id,name,priority,target,cap,balance,due,last_filled FROM jars ORDER BY priority"),
+    Promise.resolve(null),
     q("SELECT id,at,who,action,detail,undo FROM audit_log ORDER BY id DESC LIMIT 2000"),
     q("SELECT id FROM dismissed_alerts"),
     q("SELECT account,sum(amount)::float AS amount FROM reconciliation_adjustments GROUP BY account"),
@@ -59,7 +59,6 @@ export async function getState() {
   const tagMap = {}, docMap = {};
   tags.rows.forEach((r) => (tagMap[r.transaction_id] ||= []).push(r.tag));
   docs.rows.forEach((r) => (docMap[r.transaction_id] ||= []).push(r));
-  const jarMoves = await lastMoves();
   const cfg = { ...DEFAULT_CFG, ...(await setting("cfg", {})) };
   // only booleans: which sources have credentials saved, and which are locked (never the credentials themselves)
   const [credRows, stRows] = await Promise.all([q("SELECT source FROM credentials"), q("SELECT source,locked FROM source_state")]);
@@ -76,14 +75,14 @@ export async function getState() {
       id: r.id, d: r.date, desc: r.description, from: r.from_name, to: r.to_name, a: r.amount,
       ...(r.orig_currency ? { orig: { cur: r.orig_currency, amt: r.orig_amount } } : {}),
       c: r.category || "", tags: tagMap[r.id] || [],
-      docs: (docMap[r.id] || []).map((d) => d.filename), docIds: (docMap[r.id] || []).map((d) => d.id),
+      docs: (docMap[r.id] || []).map((d) => d.filename), docIds: (docMap[r.id] || []).map((d) => d.id), docHas: (docMap[r.id] || []).map((d) => d.has),
       note: r.note, ...(r.pending ? { pending: true } : {}), src: r.source,
       ...(r.dup_ok ? { dupOk: true } : {}),
     })),
     budgets: Object.fromEntries(budgets.rows.map((b) => [b.category, b.monthly_limit])),
     bills: bills.rows.map((b) => b.data),
     ignoredBills: ign.rows.map((r) => r.match),
-    jars: jars.rows.map((j) => { const mv = jarMoves.find((m) => m.jar_id === j.id); return { id: j.id, n: j.name, p: j.priority, need: j.target, cap: j.cap, bal: j.balance, due: j.due || "", filled: j.last_filled || "", lastFill: mv ? { amt: mv.amount, note: mv.note } : null }; }),
+    jars: await readJars({ query: q }),
     audit: audit.rows.map((a) => ({ id: a.id, t: a.at.toISOString(), who: a.who, action: a.action, detail: a.detail, undo: a.undo })),
     xf: xf.rows.map((x) => ({ o: x.out_id, i: x.in_id, st: x.status })),
     dismissed: Object.fromEntries(dism.rows.map((r) => [r.id, 1])),
@@ -92,6 +91,7 @@ export async function getState() {
     ntfy: await setting("ntfy", ""),
     jarsTotal: await setting("jars_total", 0), jarsBuffer: await setting("jars_buffer", 0),
     nwPension: await setting("nw_pension", false),
+    hiddenMerchants: await setting("hidden_merchants", []), ccOverride: await setting("cc_override", {}), budgetNo: await setting("budget_no", []),
     cfg,
     currencies: await configuredCurrencies(), fxCurrencies: await activeCurrencies(),
     accounts: accounts.rows.map((a) => ({
@@ -172,13 +172,15 @@ export async function putState(S) {
     await c.query("DELETE FROM ignored_bills");
     for (const m of S.ignoredBills || []) await c.query("INSERT INTO ignored_bills (match) VALUES ($1) ON CONFLICT DO NOTHING", [m]);
 
-    // jars
+    // jars: the balance is only written when the user edited it (or the jar is new); fills are the server's job
     const jids = (S.jars || []).map((j) => j.id);
-    for (const j of S.jars || [])
-      await c.query(
-        `INSERT INTO jars (id,name,priority,target,cap,balance,due) VALUES ($1,$2,$3,$4,$5,$6,$7)
-         ON CONFLICT (id) DO UPDATE SET name=$2,priority=$3,target=$4,cap=$5,balance=$6,due=$7`,
-        [j.id, j.n, j.p, j.need, j.cap ?? null, j.bal, j.due || null]);
+    for (const j of S.jars || []) {
+      const ex = await c.query("SELECT 1 FROM jars WHERE id=$1", [j.id]);
+      if (ex.rowCount) {
+        await c.query("UPDATE jars SET name=$2,priority=$3,target=$4,cap=$5,due=$6 WHERE id=$1", [j.id, j.n, j.p, j.need, j.cap ?? null, j.due || null]);
+        if (j.balEdit) await c.query("UPDATE jars SET balance=$2 WHERE id=$1", [j.id, j.bal]);
+      } else await c.query("INSERT INTO jars (id,name,priority,target,cap,balance,due) VALUES ($1,$2,$3,$4,$5,$6,$7)", [j.id, j.n, j.p, j.need, j.cap ?? null, j.bal, j.due || null]);
+    }
     await c.query("DELETE FROM jars WHERE NOT (id = ANY($1))", [jids]);
     await c.query("SELECT setval(pg_get_serial_sequence('jars','id'), GREATEST((SELECT COALESCE(max(id),1) FROM jars),1))");
 
@@ -186,6 +188,9 @@ export async function putState(S) {
     const put = (k, v) => c.query("INSERT INTO settings (key,value) VALUES ($1,$2) ON CONFLICT (key) DO UPDATE SET value=$2", [k, JSON.stringify(v)]);
     if (Array.isArray(S.currencies)) await put("currencies", [...new Set(S.currencies.map(String).filter((x) => /^[A-Z]{3}$/.test(x) && x !== "ILS"))].slice(0, 12));
     await put("cfg", S.cfg || {}); await put("ntfy", S.ntfy || ""); await put("jars_total", +S.jarsTotal || 0); await put("jars_buffer", Math.max(0, +S.jarsBuffer || 0)); await put("nw_pension", !!S.nwPension);
+    await put("hidden_merchants", Array.isArray(S.hiddenMerchants) ? S.hiddenMerchants.map(String).slice(0, 500) : []);
+    await put("cc_override", S.ccOverride && typeof S.ccOverride === "object" ? S.ccOverride : {});
+    await put("budget_no", Array.isArray(S.budgetNo) ? S.budgetNo.map(String).slice(0, 200) : []);
     await c.query("DELETE FROM dismissed_alerts");
     for (const id of Object.keys(S.dismissed || {})) await c.query("INSERT INTO dismissed_alerts (id) VALUES ($1) ON CONFLICT DO NOTHING", [id]);
 
@@ -203,7 +208,7 @@ export async function putState(S) {
     // audit log: insert new entries (no id), drop removed ones
     const ids = [];
     const known = (S.audit || []).filter((a) => a.id).map((a) => a.id);
-    await c.query("DELETE FROM audit_log WHERE NOT (id = ANY($1)) AND id <= (SELECT COALESCE(max(id),0) FROM audit_log)", [known]);
+    if (known.length) await c.query("DELETE FROM audit_log WHERE id < $1", [Math.min(...known)]); // only entries older than what the UI holds (trimmed); never rows added by the server meanwhile
     const fresh = (S.audit || []).filter((a) => !a.id).reverse();
     const newIds = [];
     for (const a of fresh) {
@@ -213,8 +218,11 @@ export async function putState(S) {
     // known-id deletion above ran before inserts, so fresh rows are safe; map ids back to the client entries
     let k = 0;
     for (const a of (S.audit || []).slice().reverse()) if (!a.id) ids.push(newIds[k++]);
+    // money available to jars is checked on every save too: a jar that has not had its money yet takes it now
+    const fill = await fillJarsTx(c, thisMonth());
+    if (fill.applied) await c.query("INSERT INTO audit_log (who,action,detail) VALUES ('System','Jars filled',$1)", [`${fill.applied} jar${fill.applied > 1 ? "s" : ""} received ₪${Math.round(fill.total)} for ${thisMonth()}`]);
     await bumpRev(c);
     const nr = await c.query("SELECT value FROM app_meta WHERE key='rev'");
-    return { rev: parseInt(nr.rows[0].value, 10), auditIds: ids.reverse() };
+    return { rev: parseInt(nr.rows[0].value, 10), auditIds: ids.reverse(), ...(fill.applied ? { jars: await readJars(c), filled: fill.applied } : {}) };
   });
 }
