@@ -59,6 +59,15 @@ const toRows = (acc) => (acc.txns || []).map((t) => ({
   pending: t.status === "pending", bankCategory: t.category,
 })).filter((r) => typeof r.amount === "number");
 
+// What a sync really read, not just what was asked for. Banks only keep about a year of history online: when the oldest row they returned
+// is much newer than the start date requested, say so, instead of implying the whole range was read.
+export function readNote(days, seen, oldest, added, today = new Date()) {
+  if (!seen || !oldest) return `asked for the last ${days} days, the bank returned no transactions`;
+  const asked = new Date(today.getTime() - days * 864e5), gotFrom = new Date(oldest);
+  const short = (gotFrom - asked) / 864e5 > 45;
+  return `read ${seen} transactions back to ${oldest}, ${added} new` + (short ? `. You asked for ${days} days, but the bank only returned history back to ${oldest}. Banks usually keep about 12 months online. For older history, import their statement export (Settings → App and data)` : "");
+}
+
 const BANKS = { hapoalim: ["Bank Hapoalim", "bank"], max: ["Max", "card"], isracard: ["Isracard", "card"] };
 
 const RUN = {
@@ -78,14 +87,17 @@ const RUN = {
     const backfill = (await q("SELECT 1 FROM settings WHERE key=$1", [flag])).rowCount > 0;
     const days = opts.days || ((await firstTime(key)) || backfill ? await getSet("sync_first_days", HISTORY_DAYS) : await getSet("sync_routine_days", 30));
     const res = await scrape(key, creds, days);
-    let added = 0, balance = null;
+    let added = 0, balance = null, seen = 0, oldest = null;
     for (const acc of res.accounts || []) {
-      added += (await ingest({ name, currency: "ILS", source: key }, toRows(acc))).added;
+      const rows = toRows(acc);
+      seen += rows.length;
+      for (const r of rows) if (!oldest || r.date < oldest) oldest = r.date;
+      added += (await ingest({ name, currency: "ILS", source: key }, rows)).added;
       if (typeof acc.balance === "number") balance = (balance || 0) + acc.balance;
     }
     if (balance != null) await setBalance(await tx((c) => account(c, name, "ILS", { kind, source: key })), balance);
     await q("DELETE FROM settings WHERE key=$1", [flag]); // the one-off history re-read is done
-    return { added, message: `read the last ${days} days` };
+    return { added, message: readNote(days, seen, oldest, added) };
   }])),
 };
 
