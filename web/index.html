@@ -4,6 +4,8 @@
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="favicon.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#4355b9" id="themeMeta"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Money"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>try{if(localStorage.getItem("moneyLang")=="he"){document.documentElement.classList.add("he");document.documentElement.lang="he"}}catch(e){}</script>
+<script src="he-core.js"></script><script src="he-dict.js"></script><script>try{HE.on=localStorage.getItem("moneyLang")=="he"}catch(e){}</script>
 <script>try{var h=document.documentElement,b=JSON.parse(localStorage.getItem("moneyBoot")||"null");h.classList.add("boot");if(b){h.style.background=b.bg;h.style.colorScheme=b.d?"dark":"light";}}catch(e){}</script>
 <style>
 html.boot body>*:not(#splash){visibility:hidden!important}#splash{position:fixed;inset:0;z-index:500;display:none;place-items:center}html.boot #splash{display:grid}#splash i{width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,#6f7cff,#c28bff);color:#fff;display:grid;place-items:center;font:700 26px system-ui,sans-serif;font-style:normal;animation:spl 1.2s ease-in-out infinite}@keyframes spl{50%{transform:scale(.92);opacity:.7}}
@@ -229,6 +231,19 @@ html.mob .seg{overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap}html.mob .se
 .trstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:14px}.trstats>div{background:var(--s1);border:1px solid var(--ol);border-radius:14px;padding:10px 12px;min-width:0}.trstats span{display:block;font-size:11px;color:var(--tx2);font-weight:600;text-transform:uppercase;letter-spacing:.5px}.trstats b{display:block;font-size:16px;margin-top:2px;overflow:hidden;text-overflow:ellipsis}.trstats small{color:var(--tx2);font-size:11px}
 html.mob .trstats{grid-template-columns:repeat(2,minmax(0,1fr))}html.mob .trctl select{flex:1 1 100%}
 .catl{cursor:pointer}.catl:hover{text-decoration:underline;text-underline-offset:3px}
+/* ===== Hebrew: right to left. The page itself stays left-to-right so the scrollbar remains on the right; only the content is mirrored ===== */
+html.he body{direction:rtl}html.he svg{direction:ltr}
+html.he .sheet,html.he #exCats,html.he .seg,html.he .tablewrap{direction:ltr}html.he .sheet>*,html.he #exCats>*{direction:rtl}
+html.he input[type=number],html.he input[type=date],html.he input[type=password],html.he input[type=time]{direction:ltr;text-align:right}
+html.he .num,html.he .val,html.he b.num{direction:ltr;unicode-bidi:isolate}
+html.he [style*="text-align:right"],html.he td.am,html.he th[style*="right"]{text-align:left!important}
+html.he nav{border-right:0;border-left:1px solid var(--ol)}
+html.he .pop{left:auto;right:98px}html.he .fab{right:auto;left:22px}html.he #toasts{right:auto;left:18px}
+html.he .toast{border-left:1px solid var(--ol);border-right:4px solid var(--pos)}html.he .toast.err{border-left-color:var(--ol);border-right-color:var(--neg)}html.he .toast.info{border-left-color:var(--ol);border-right-color:var(--acc)}
+html.he .badge{right:auto;left:12px}
+html.he .tag,html.he .chip{direction:rtl}
+html.mob.he .pop{left:8px;right:8px}html.mob.he .fab{display:none}html.mob.he #toasts{left:10px;right:10px}html.mob.he .badge{left:auto;right:calc(50% - 22px)}
+html.he .trtip{direction:rtl}
 .dt{display:inline-block;margin:0 .3em;opacity:.6}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -266,6 +281,7 @@ html.mob .trstats{grid-template-columns:repeat(2,minmax(0,1fr))}html.mob .trctl 
 </nav>
 <div class="pop" id="pop"><div class="pl">Mode</div><div class="seg" id="segMode"><button data-a="mode" data-m="light">Light</button><button data-a="mode" data-m="dark">Dark</button><button data-a="mode" data-m="auto">Auto</button></div>
 <div class="pl">Atmosphere</div><div class="sw" id="sw" style="margin:8px 0 16px"></div>
+<div class="pl">Language</div><div class="seg" id="segLang" style="margin-bottom:16px"><button data-a="lang" data-l="en">English</button><button data-a="lang" data-l="he">עברית</button></div>
 <div class="pl">Surface</div><div class="seg" id="segSurf" style="margin-bottom:0"><button data-a="surf" data-s="solid">Solid</button><button data-a="surf" data-s="glass">Glass</button></div></div>
 <div class="scrim" id="scrim" data-a="close"></div><div class="sheet" id="sheet"></div>
 <button class="fab" data-a="quick" aria-label="Add or update">+</button>
@@ -335,6 +351,7 @@ html.mob .trstats{grid-template-columns:repeat(2,minmax(0,1fr))}html.mob .trctl 
 </section>
 </main><div class="tip" id="tip"></div>
 <script>
+["confirm","alert","prompt"].forEach(k=>{const o=window[k].bind(window);window[k]=(m,...a)=>o(HE.T(String(m)),...a)});
 const _fetch=window.fetch.bind(window);window.fetch=async(u,o={})=>{o={...o,credentials:"same-origin"};if(o.method&&o.method!="GET")o.headers=Object.assign({},o.headers,{"x-requested-with":"money"});const r=await _fetch(u,o);if(r.status==401&&String(u).startsWith("/api/")&&!String(u).startsWith("/api/auth/")){need2fa=false;showAuth("login")}return r};
 const $=id=>document.getElementById(id),f=n=>Math.abs(n).toLocaleString("en-IL",{maximumFractionDigits:0}),fm=n=>(n<0?"−":"")+"₪"+f(n),esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const NOW=new Date(),p2=n=>String(n).padStart(2,"0"),MK=NOW.getFullYear()+"-"+p2(NOW.getMonth()+1),TODAY=MK+"-"+p2(NOW.getDate()),DAYN=NOW.getDate(),DIM=new Date(NOW.getFullYear(),NOW.getMonth()+1,0).getDate(),SYM=new Proxy({ILS:"₪",USD:"$",EUR:"€",GBP:"£",JPY:"¥"},{get:(t,k)=>k in t?t[k]:typeof k=="string"?k+" ":undefined});
@@ -357,7 +374,7 @@ document.documentElement.dataset.mode=d?"dark":"light";
 CP[k].forEach((c,i)=>r.setProperty("--c"+i,c));$("themeMeta").content=a[3];
 document.body.classList.toggle("glass",st.surf=="glass");
 document.querySelectorAll("#segMode button").forEach(b=>b.classList.toggle("on",b.dataset.m==st.mode));
-document.querySelectorAll("#segSurf button").forEach(b=>b.classList.toggle("on",b.dataset.s==st.surf));
+document.querySelectorAll("#segSurf button").forEach(b=>b.classList.toggle("on",b.dataset.s==st.surf));document.querySelectorAll("#segLang button").forEach(b=>b.classList.toggle("on",b.dataset.l==(HE.on?"he":"en")));
 document.querySelectorAll("#sw button").forEach(b=>b.classList.toggle("on",b.dataset.a2==st.atm));
 try{localStorage.setItem("moneyTheme",JSON.stringify(st));localStorage.setItem("moneyBoot",JSON.stringify({bg:a[3],d}))}catch(e){}}
 $("sw").innerHTML=Object.entries(ATM).map(([n,v])=>`<button data-a="atm" data-a2="${n}" style="background:linear-gradient(135deg,${v.D[0]},${v.D[4]} 60%,${v.D[3]})">${n}</button>`).join("");
@@ -914,9 +931,10 @@ let setTab="rules",dip=null,swOk=false;
 function renderSet(){setTimeout(applyJobUI,0);
 ["rules","log","data","conn","sec"].forEach(t=>{$("set"+t[0].toUpperCase()+t.slice(1)).style.display=setTab==t?"":"none"});
 document.querySelectorAll("#setTabs button").forEach(b=>b.classList.toggle("on",b.dataset.t==setTab));
+const catCount={};S.tx.forEach(t=>{if(t.virtual)return;const k=t.c||"Uncategorized";catCount[k]=(catCount[k]||0)+1});
 $("setRules").innerHTML=`<div class="card" style="margin-bottom:16px"><div class="lbl">Auto-categorize rules · applied to every new transaction</div><div style="margin-top:14px">${S.rules.map((r,i)=>`<div class="rule">If description contains <b>"${esc(r.k)}"</b> → <span class="chip t">${esc(r.c)}</span>${r.t?`<span class="tag">${esc(r.t)}</span>`:""}<button class="btn o s" style="margin-left:auto" data-a="ruleDel" data-i="${i}">Delete</button></div>`).join("")}</div>
 <div class="tools" style="margin-top:14px"><input id="rk" placeholder="If description contains…"><select id="rc">${catNames().map(c=>`<option>${esc(c)}</option>`).join("")}</select><input id="rt" placeholder="add tag (optional)"><button class="btn" data-a="ruleAdd">Add rule</button></div></div>
-<div class="card"><div class="lbl">Categories · ${Object.keys(S.cats).length}</div><div style="margin:14px 0">${catNames().map(k=>`<span class="chip" style="margin:3px"><span class="dot" style="background:${cc(k)}"></span><span class="catl" data-a="goCat" data-cat="${k=="Uncategorized"?"":esc(k)}">${esc(k)}</span>${["Uncategorized","Income","Fees & FX costs"].includes(k)?"":` <button class="tag" style="border:0;background:none;cursor:pointer" data-a="catDel" data-k="${esc(k)}" aria-label="Delete ${esc(k)}">×</button>`}</span>`).join("")}</div><div class="tools"><input id="nc" placeholder="New category name"><button class="btn o" data-a="catAdd">Add category</button></div><div class="sm" style="margin:12px 0 8px">Common categories (bills, insurance, health, car, income types…) and starter rules for Israeli merchants, in English and Hebrew. Nothing you already have is changed.</div><button class="btn o s" data-a="catSuggest">Add suggested categories and rules</button></div>`;
+<div class="card"><div class="lbl">Categories · ${Object.keys(S.cats).length}</div><div style="margin:14px 0">${catNames().map(k=>`<span class="chip" style="margin:3px"><span class="dot" style="background:${cc(k)}"></span><span class="catl" data-a="goCat" data-cat="${k=="Uncategorized"?"":esc(k)}">${esc(k)}</span> <span class="sm num" style="opacity:.75" data-tip="Transactions in this category">(${catCount[k]||0})</span>${["Uncategorized","Income","Fees & FX costs"].includes(k)?"":` <button class="tag" style="border:0;background:none;cursor:pointer" data-a="catDel" data-k="${esc(k)}" aria-label="Delete ${esc(k)}">×</button>`}</span>`).join("")}</div><div class="tools"><input id="nc" placeholder="New category name"><button class="btn o" data-a="catAdd">Add category</button></div><div class="sm" style="margin:12px 0 8px">Common categories (bills, insurance, health, car, income types…) and starter rules for Israeli merchants, in English and Hebrew. Nothing you already have is changed.</div><button class="btn o s" data-a="catSuggest">Add suggested categories and rules</button></div>`;
 $("setLog").innerHTML=`<div class="card" style="padding:6px 18px"><div class="sm" style="padding:12px 0">Every change is recorded here. Edits to categories, notes, budgets and jars can be undone.</div>${S.audit.slice(0,80).map((a,i)=>`<div class="al"><span class="sev ${a.who=="System"?"low":"med"}"></span><div style="flex:1;min-width:0"><b style="font-size:14px">${esc(a.action)}</b><div class="sm" style="word-break:break-word">${esc(a.detail)}</div><div class="sm" style="opacity:.7">${a.who} · ${new Date(a.t).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</div></div>${a.undo?`<button class="btn o s" data-a="undo" data-i="${i}">Undo</button>`:""}</div>`).join("")}</div>`;
 $("setData").innerHTML=`<div class="card" style="margin-bottom:16px"><div class="lbl">Install this app</div><div class="sm" style="margin:8px 0 12px">${matchMedia("(display-mode: standalone)").matches?"You are running the installed app.":dip?"Install it for a full-screen app icon on this device.":"On Android or desktop Chrome: use the browser menu → Install app. On iPhone: Share → Add to Home Screen. It needs to be opened over HTTPS."}</div>${dip?`<button class="btn" data-a="install">Install app</button>`:""}<div class="sm" style="margin-top:10px">Offline support: <b>${swOk?"ready, the app opens without a connection":"not active (open it over HTTPS to enable)"}</b></div></div>
 <div class="card" style="margin-bottom:16px"><div class="lbl">Import and pension</div><div class="sm" style="margin:8px 0 12px">Import a Wise statement CSV. Rows clear matching gaps and merge into transactions you entered by hand.</div><div class="flex" style="gap:8px;flex-wrap:wrap"><button class="btn o s" data-a="importCsv">Import Wise CSV</button><button class="btn o s" data-a="pensionSet">Update pension balance</button><button class="btn o s" data-a="syncNow">Sync now</button></div><input type="file" id="csvFile" accept=".csv,text/csv" style="display:none">
@@ -1095,6 +1113,7 @@ function jset(id,fld,v){const j=S.jars.find(x=>x.id==id);if(!j||j[fld]===v)retur
 function act(a,d,el){switch(a){
 case"nav":FOCUS=null;nav(d.v);break;case"more":openMore();break;case"sync":openSync();break;case"close":closeSheet();break;case"add":openAdd();break;case"addSave":addSave();break;
 case"theme":$("pop").classList.toggle("on");break;case"theme2":closeSheet();$("pop").classList.add("on");break;
+case"lang":try{localStorage.setItem("moneyLang",d.l)}catch(e){}location.reload();break;
 case"mode":st.mode=d.m;themeSwap(()=>{applyTheme();renderAll()});break;case"surf":st.surf=d.s;themeSwap(applyTheme);break;case"atm":st.atm=d.a2;themeSwap(()=>{applyTheme();renderAll()});break;
 case"openTx":openTx(d.id);break;case"txTab":txTab=d.t;renderTx();break;
 case"grpTog":{const k=d.g;if(GCOL.has(k)){GCOL.delete(k);GJUST=k;renderTx()}else{ // collapse: fade the rows out first, then drop them
@@ -1349,8 +1368,15 @@ else return;exSync()});
 (()=>{const SKIP=/^(SCRIPT|STYLE|TEXTAREA|INPUT|OPTION|SELECT|TITLE)$/;let q=0,busy=false;
 function pass(){q=0;busy=true;const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.nodeValue.includes(" · ")&&n.parentElement&&!SKIP.test(n.parentElement.tagName)&&!n.parentElement.closest("svg,.dt,[contenteditable]")?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT}),L=[];while(w.nextNode())L.push(w.currentNode);
 L.forEach(n=>{const f=document.createDocumentFragment();n.nodeValue.split(" · ").forEach((t,i)=>{if(i){const d=document.createElement("span");d.className="dt";d.textContent="·";f.appendChild(d)}if(t)f.appendChild(document.createTextNode(t))});const w=document.createElement("span");w.appendChild(f);n.replaceWith(w)});busy=false}
+const TSKIP=/^(SCRIPT|STYLE|TEXTAREA|INPUT|TITLE)$/;
+// amounts and numbers stay left-to-right inside Hebrew sentences (the \u2066 ... \u2069 isolates)
+function trPass(){if(!HE.on)return;const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:n=>/[A-Za-z]/.test(n.nodeValue)&&n.parentElement&&!TSKIP.test(n.parentElement.tagName)&&!n.parentElement.closest(".mt,.mer:not(td),[data-nt]")?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT}),L=[];while(w.nextNode())L.push(w.currentNode);
+L.forEach(n=>{const v=n.nodeValue,o=n.parentElement;if(o.tagName=="OPTION"&&!o.hasAttribute("value"))o.setAttribute("value",v.trim()); // an option without a value attribute uses its text as the value: keep the English one
+let r=HE.T(v);if(r!==v){n.nodeValue=r.replace(/→/g,"←").replace(/›/g,"‹").replace(/[−+]?₪?\d[\d,]*(?:\.\d+)?%?/g,"\u2066$&\u2069")}});
+document.querySelectorAll("input[disabled][value]").forEach(e=>{const v=e.value;if(/[A-Za-z]/.test(v)){const r=HE.T(v);if(r!==v)e.value=r}});
+document.querySelectorAll("[placeholder],[title],[aria-label],[data-tip]").forEach(e=>{["placeholder","title","aria-label","data-tip"].forEach(a=>{const v=e.getAttribute(a);if(v&&/[A-Za-z]/.test(v)){const r=HE.T(v);if(r!==v)e.setAttribute(a,r.replace(/→/g,"←"))}})})}
 const CAPS=".bd,.chip:not(.t):not(.dchip),.lbl,.pl,.badge-l";function caps(){document.querySelectorAll(CAPS).forEach(e=>{let n=e.firstChild;while(n&&n.nodeType==3&&!n.nodeValue.trim())n=n.nextSibling;if(n&&n.nodeType==3){const v=n.nodeValue,m=v.match(/^(\s*)([a-z])/);if(m)n.nodeValue=m[1]+m[2].toUpperCase()+v.slice(m[0].length)}})}
-new MutationObserver(()=>{if(!busy&&!q)q=requestAnimationFrame(()=>{pass();caps()})}).observe(document.body,{childList:true,subtree:true,characterData:true});pass();caps()})();
+new MutationObserver(()=>{if(!busy&&!q)q=requestAnimationFrame(()=>{pass();caps();trPass()})}).observe(document.body,{childList:true,subtree:true,characterData:true});pass();caps();trPass()})();
 
 (()=>{const sh=document.getElementById("sheet");let y0=null,dy=0,ok=false;
 sh.addEventListener("touchstart",e=>{if(!document.documentElement.classList.contains("mob"))return;y0=e.touches[0].clientY;dy=0;ok=sh.scrollTop<=0||!!e.target.closest(".grab");sh.style.transition="none"},{passive:true});
@@ -1377,5 +1403,7 @@ const v=st.v||location.hash.slice(1)||"dash";if(TITLES[v]&&v!=curView)nav(v,true
 (()=>{const box=document.getElementById("nwc");if(!box)return;
 box.addEventListener("change",e=>{const t=e.target;if(t.dataset.t=="trM"){TR.m=t.value;saveTR();renderNW()}else if(t.dataset.t=="trC"){TR.c=t.checked;saveTR();renderNW()}});
 box.addEventListener("click",e=>{const b=e.target.closest("[data-t]");if(!b)return;if(b.dataset.t=="trR"){TR.r=+b.dataset.v;saveTR();renderNW()}else if(b.dataset.t=="trV"){TR.v=b.dataset.v;saveTR();renderNW()}});
-let rt=null;addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=>{const a=document.getElementById("nwA");if(a&&a.clientWidth&&Math.abs(a.clientWidth-(TR._w||0))>24)renderNW()},150)})})();
+let rt=null;const chk=()=>{clearTimeout(rt);rt=setTimeout(()=>{const a=document.getElementById("nwA");if(a&&a.clientWidth&&Math.abs(a.clientWidth-(TR._w||0))>24)renderNW()},120)};
+// the chart is drawn at the width of its space: redraw when that changes, including when the Reports page is first shown
+if(window.ResizeObserver)new ResizeObserver(chk).observe(box);addEventListener("resize",chk)})();
 </script></body></html>
