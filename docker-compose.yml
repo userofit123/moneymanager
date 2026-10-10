@@ -50,6 +50,9 @@ services:
     restart: unless-stopped
     environment:
       SCRAPER_KEY: ${SCRAPER_KEY}
+      SCRAPER_DEBUG: ${SCRAPER_DEBUG:-0}   # 1 = save a screenshot of where a login got stuck to /debug
+    volumes:
+      - scraperdebug:/debug
     networks: [scraper_net, egress]
     shm_size: 1gb
     security_opt: ["no-new-privileges:true"]
@@ -63,3 +66,4 @@ networks:
 volumes:
   pgdata:
   appdata:
+  scraperdebug:
