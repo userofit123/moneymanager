@@ -6,6 +6,7 @@ import * as auth from "../src/auth.js";
 import { encrypt, decrypt, scrub } from "../src/secrets.js";
 import { saveCreds, getCreds, listConnections, recordResult, isLocked, unlock } from "../src/connections.js";
 import { parseBankCsv } from "../src/sources/csv.js";
+import { ntfyProblem } from "../src/notify.js";
 
 before(reset);
 after(() => pool.end());
@@ -211,4 +212,10 @@ test("only one connection job at a time: a second test or sync is refused while 
   globalThis.__delay = 0;
   assert.equal((await call("GET", "/api/jobs", { cookie })).body, null);
   assert.equal((await call("POST", "/api/connections/hapoalim/test", { cookie, headers: X })).status, 200); // free again
+});
+
+test("ntfy alerts may only go to your own network", () => {
+  for (const ok of ["http://localhost:8080/money", "http://192.168.1.20/money", "http://10.0.0.4:2586/x", "http://100.101.102.103/x", "https://rhs.taile6739f.ts.net/money", "http://ntfy/money", "http://nas.local/x"]) assert.equal(ntfyProblem(ok), null, ok);
+  for (const bad of ["https://ntfy.sh/mytopic", "https://example.com/x", "http://8.8.8.8/x", "http://172.32.0.1/x"]) assert.ok(ntfyProblem(bad), bad);
+  assert.ok(ntfyProblem("not a url"));
 });

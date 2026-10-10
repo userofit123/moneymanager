@@ -11,7 +11,7 @@ import { saveDoc, readDoc } from "./docs.js";
 import { ingest } from "./sources/ingest.js";
 import { parseWiseCsv, parseBankCsv } from "./sources/csv.js";
 import { seedDemo } from "./seed.js";
-import { sendNtfy } from "./notify.js";
+import { sendNtfy, ntfyProblem, ntfyUrl } from "./notify.js";
 import { listConnections, saveCreds, removeCreds, unlock, FIELDS } from "./connections.js";
 import * as auth from "./auth.js";
 
@@ -125,7 +125,12 @@ app.post("/api/connections/:source/test", wrap(async (req, res) => {
   res.status(r.busy ? 409 : 200).json(r);
 }));
 app.get("/api/jobs", wrap(async (_req, res) => res.set("Cache-Control", "no-store").json(activeJob())));
-app.post("/api/ntfy/test", wrap(async (_req, res) => res.json({ ok: await sendNtfy("Money", "Test alert: background notifications work") })));
+app.post("/api/ntfy/test", wrap(async (_req, res) => {
+  const url = await ntfyUrl();
+  const reason = url ? ntfyProblem(url) : "Save your ntfy address first.";
+  if (reason) return res.json({ ok: false, reason });
+  res.json({ ok: await sendNtfy("Money", "Test alert: background notifications work"), reason: "The ntfy server did not accept it." });
+}));
 
 // ---------- sync and import ----------
 app.post("/api/sync", wrap(async (_req, res) => { const r = await syncAll(); res.status(r.busy ? 409 : 200).json(r); }));

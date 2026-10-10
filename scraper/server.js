@@ -21,7 +21,14 @@ async function scrape(company, credentials, startDate) {
     companyId: COMPANIES[company], startDate: new Date(startDate), combineInstallments: false, showBrowser: false,
     timeout: 120000, defaultTimeout: 90000, skipCloseBrowser: true, verbose: false,
     viewportSize: { width: 1366, height: 900 },
-    args: ["--no-sandbox", "--disable-dev-shm-usage", "--disable-blink-features=AutomationControlled", "--window-size=1366,900", "--lang=he-IL,he,en-US"],
+    args: [
+      "--no-sandbox", "--disable-dev-shm-usage", "--disable-blink-features=AutomationControlled", "--window-size=1366,900", "--lang=he-IL,he,en-US",
+      // no background phone-home from the browser (updates, sync, metrics, safe-browsing pings)
+      "--disable-background-networking", "--disable-component-update", "--disable-sync", "--no-pings", "--metrics-recording-only",
+      "--disable-features=OptimizationHints,Translate,MediaRouter,InterestFeedContentSuggestions",
+      // strict mode: the browser may only go out through the allowlist proxy
+      ...(process.env.SCRAPER_PROXY ? [`--proxy-server=${process.env.SCRAPER_PROXY}`] : []),
+    ],
     // look like an ordinary desktop browser: banks often stall headless-looking sessions
     preparePage: async (p) => {
       page = p;

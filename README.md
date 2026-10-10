@@ -37,6 +37,13 @@ Point a Caddy block at `app:8080` (or `127.0.0.1:8787`) and open `https://rhs.ta
 | Port 8787 is taken | set `APP_PORT=9000` in `.env`, `docker compose up -d` |
 | Logs | `docker compose logs -f app` (or `scraper`) |
 
+### Strict mode (scraper can only reach the banks)
+Once a bank login works, switch on strict mode so the scraper has no other route out:
+```sh
+docker compose -f docker-compose.yml -f docker-compose.strict.yml up -d --build
+```
+If a login then times out, `docker compose logs egress` lists hosts it refused; add only ones you recognise to `EGRESS_ALLOW` in `.env`. See [`docs/SECURITY.md`](docs/SECURITY.md) for the full audit of what can leave the app.
+
 ## Troubleshooting a scraper
 A message like `TIMEOUT: waiting for redirect…` means the login page did not move on after the login was typed. It is not necessarily a wrong password. Check, in this order:
 1. Log in to the bank's site yourself in a normal browser. Look for a captcha, a one-time code, an expired password, a terms or update notice, or a locked account. Fix that first.

@@ -26,8 +26,25 @@ What protects your data, and what does not.
 - `backup.sh` dumps the database and documents. It does **not** include `app.key`. Keep that in your password manager: `docker compose exec app cat /data/app.key`. Without it a restored database works, but you must re-enter the bank logins.
 - Documents (receipts, invoices) are stored unencrypted on the `appdata` volume. Use disk encryption on the host.
 
+## Read-only: what is and is not guaranteed
+- **In the code:** the app only calls the scraper's `scrape()` (log in, read accounts and transactions). The scraper service has no endpoint for anything else, the app has no screen or API that sends an instruction to a bank, and the Wise client only issues GET requests (balances, statements).
+- **At the bank:** your login is a normal full login. A bank cannot tell "the scraper" from you, so *technically* anything holding those credentials could do more than read. The protection is the code above, the encrypted write-only storage, and the container isolation, not a permission at the bank.
+- **Where the bank can enforce it, use it:** create the Wise token with read-only permissions (Wise enforces that). Ask your bank and card companies whether they offer a view-only web user; if one exists, use its credentials here. Turn on the banks' own login and transfer alerts, and any online-transfer limits, so an unexpected action is noticed.
+
+## Where data can go (audit of every outbound connection)
+| From | To | What is sent |
+|---|---|---|
+| app | `api.frankfurter.dev` | currency and date range only (exchange rates) |
+| app | `api.wise.com` | your Wise token, read requests |
+| app | your ntfy address | alert text (account names, amounts). Only addresses on your own network or Tailscale are allowed; a public address such as ntfy.sh is refused unless you set `ALLOW_PUBLIC_NTFY=1` |
+| app | scraper container (private network) | bank credentials for one login |
+| scraper | the banks | the login and read requests |
+Nothing else: no analytics, telemetry, error reporting, fonts or CDN scripts. The page's Content-Security-Policy (`connect-src 'self'`) stops the browser page from sending data anywhere but your own server, and the service worker never caches `/api/` data. The browser inside the scraper has its update, sync and metrics pings switched off.
+
+**Strict mode (recommended once the scrapers work):** `docker compose -f docker-compose.yml -f docker-compose.strict.yml up -d --build`. The scraper then has no internet route at all; its browser can only reach the bank domains through an allowlist proxy that refuses everything else, refuses names that resolve to private addresses, and logs refused host names (`docker compose logs egress`). Test one login in strict mode before relying on it, because bank pages sometimes load helper scripts from other domains.
+
 ## Not covered
 - A compromised host or Docker daemon can read everything the app can.
 - The screen of an unlocked device with a live session shows your data; there is no separate app PIN yet.
-- The scraper container can reach the whole internet, not only bank domains (Docker cannot filter by domain without a proxy).
+- Without strict mode, the scraper container can reach the whole internet. The app container also has internet access (it needs rates, Wise and ntfy) and is limited only by its code, which the audit above lists.
 - Hapoalim one-time codes are not supported by the scraper; use CSV import for it if the bank insists.

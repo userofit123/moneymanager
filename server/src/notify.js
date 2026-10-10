@@ -7,9 +7,20 @@ export async function ntfyUrl() {
   return typeof u === "string" && /^https?:\/\//.test(u) ? u : "";
 }
 
+// Alerts mention account names and amounts, so they may only go to a server on your own network
+// (localhost, private ranges, Tailscale, .local/.lan/.ts.net or a single-word hostname) unless you opt in with ALLOW_PUBLIC_NTFY=1.
+export function ntfyProblem(url) {
+  let h;
+  try { h = new URL(url).hostname.toLowerCase().replace(/^\[|\]$/g, ""); } catch { return "That is not a valid address."; }
+  if (process.env.ALLOW_PUBLIC_NTFY === "1") return null;
+  const priv = h === "localhost" || /^(10\.|127\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.)/.test(h) ||
+    h === "::1" || /^f[cd]/.test(h) || !h.includes(".") || /\.(local|lan|internal|home\.arpa|ts\.net)$/.test(h);
+  return priv ? null : "That address is on the public internet. Alerts contain account names and amounts, so only addresses on your own network or Tailscale are allowed (or set ALLOW_PUBLIC_NTFY=1).";
+}
+
 export async function sendNtfy(title, body, priority = "default") {
   const url = await ntfyUrl();
-  if (!url) return false;
+  if (!url || ntfyProblem(url)) return false;
   try {
     const r = await fetch(url, { method: "POST", body, headers: { Title: title, Priority: priority }, signal: AbortSignal.timeout(8000) });
     return r.ok;

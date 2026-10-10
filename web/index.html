@@ -676,7 +676,7 @@ case"budDel":{const old=S.budgets[d.k];delete S.budgets[d.k];log("Removed budget
 case"alDismiss":S.dismissed[d.id]=1;renderAll();break;case"alReset":S.dismissed={};renderAll();break;
 case"notifOn":if("Notification" in window)Notification.requestPermission().then(()=>{renderAlerts();toast("Permission: "+Notification.permission)});else toast("Not supported on this browser");break;
 case"notifTest":notify("Money","Test alert: notifications work").then(ok=>toast(ok?"Sent":"Allow notifications first"));break;
-case"ntfyTest":api("/api/ntfy/test",{method:"POST"}).then(r=>toast(r.ok?"Sent to ntfy":"Not sent. Save a valid ntfy address first")).catch(()=>toast("Could not reach the server"));break;
+case"ntfyTest":api("/api/ntfy/test",{method:"POST"}).then(r=>r.ok?toast("Sent to ntfy"):openSheet(`<h3>Not sent</h3><div class="sm" style="margin-bottom:12px">${esc(r.reason||"")}</div><div class="flex" style="justify-content:flex-end"><button class="btn" data-a="close">Done</button></div>`)).catch(()=>toast("Could not reach the server"));break;
 case"nwR":nwR=+d.n;renderNW();break;case"nwP":S.nwPension=d.v=="1";save();renderNW();break;
 case"fc":fc[d.k]=isNaN(+d.v)?d.v:+d.v;renderFc();renderAlerts();break;
 case"setTab":setTab=d.t;renderSet();if(d.t=="conn")loadConn();if(d.t=="sec")renderSec();break;
