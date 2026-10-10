@@ -135,6 +135,7 @@ input[type=number]{-moz-appearance:textfield}input[type=number]::-webkit-inner-s
 table{width:100%;border-collapse:separate;border-spacing:0;background:var(--s1);border:1px solid var(--ol);border-radius:var(--r);overflow:hidden}
 th{font-size:11px;font-weight:600;color:var(--tx2);text-align:left;padding:13px 14px;text-transform:uppercase;letter-spacing:.8px;background:var(--s2)}
 td{padding:12px 14px;font-size:14px;border-top:1px solid var(--ol);vertical-align:middle}tbody tr{transition:background .15s}tbody tr:hover td{background:var(--s2)}
+td.mer{max-width:0;width:46%}.mc{display:flex;align-items:center;gap:10px;min-width:0}.mc .av{flex:none}.mc .mt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mc .bd,.mc .chip{flex:none}td.ft{max-width:0;width:24%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 td.am{text-align:right;font-weight:600;white-space:nowrap}.pos{color:var(--pos)}.neg{color:var(--neg)}.mer{font-weight:600}
 tr.grp td{background:var(--s2);font-size:11px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--tx2)}tr.tot td{font-weight:700;background:var(--s2)}
 td select{padding:5px 10px;font-size:13px;border-radius:99px;min-height:34px}
@@ -565,7 +566,7 @@ const L0=ALL().filter(t=>inRange(t.d,RNG.tx)&&(!q||(t.desc+" "+t.to+" "+(t.note|
 const L=FOCUS?ALL().filter(t=>FOCUS.ids.has(t.id)).sort(SORT):L0;
 $("txFocus").style.display=FOCUS?"":"none";if(FOCUS)$("txFocus").innerHTML=`<div class="flex" style="justify-content:space-between;gap:10px"><div><b>Showing only ${L.length} item${L.length==1?"":"s"}</b><div class="sm">${esc(FOCUS.label)}. Everything else is hidden until you clear this.</div></div><button class="btn o s" data-a="focusClear">Show all activity</button></div>`;
 const catOpts=t=>`<option value="">Uncategorized</option>${catNames().filter(k=>k!="Uncategorized").map(k=>`<option ${k==t.c?"selected":""}>${esc(k)}</option>`).join("")}`;
-const rowT=(t,g)=>`<tr ${g?`data-grp="${esc(g)}" class="${GJUST==g?"gin":""}"`:""}><td class="sm num">${t.d.slice(5).replace("-","/")}</td><td class="mer" data-a="openTx" data-id="${t.id}" style="cursor:pointer">${avT(t)}${esc(t.desc)} ${chipsT(t)}</td><td class="sm">${esc(t.from)} → ${esc(t.to)}</td>
+const rowT=(t,g)=>`<tr ${g?`data-grp="${esc(g)}" class="${GJUST==g?"gin":""}"`:""}><td class="sm num">${t.d.slice(5).replace("-","/")}</td><td class="mer" data-a="openTx" data-id="${t.id}" style="cursor:pointer"><div class="mc">${avT(t)}<span class="mt" title="${esc(t.desc)}">${esc(t.desc)}</span>${chipsT(t)}</div></td><td class="sm ft" title="${esc(t.from)} → ${esc(t.to)}">${esc(t.from)} → ${esc(t.to)}</td>
 <td>${t.virtual||isXf(t)?`<span class="sm">${esc(t.c||"—")}</span>`:`<select data-c="txcat" data-id="${t.id}">${catOpts(t)}</select>`}</td>
 <td>${t.tags.map(x=>`<span class="tag">${esc(x)}</span>`).join("")}</td>
 <td class="am ${t.a>0&&!isXf(t)?"pos":""}">${amtT(t)}${t.orig?`<div class="sm" style="font-weight:400">${SYM[t.orig.cur]}${f(t.orig.amt)} ${t.orig.cur}</div>`:""}</td>
