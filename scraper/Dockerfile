@@ -3,7 +3,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends chromium fonts-
 ENV PUPPETEER_SKIP_DOWNLOAD=true PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 WORKDIR /app
 COPY package*.json ./
-RUN npm install --omit=dev
+RUN npm ci --omit=dev
 COPY server.js ./
 USER node
 CMD ["node", "server.js"]
