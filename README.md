@@ -37,6 +37,13 @@ Point a Caddy block at `app:8080` (or `127.0.0.1:8787`) and open `https://rhs.ta
 | Port 8787 is taken | set `APP_PORT=9000` in `.env`, `docker compose up -d` |
 | Logs | `docker compose logs -f app` (or `scraper`) |
 
+## Troubleshooting a scraper
+A message like `TIMEOUT: waiting for redirect…` means the login page did not move on after the login was typed. It is not necessarily a wrong password. Check, in this order:
+1. Log in to the bank's site yourself in a normal browser. Look for a captcha, a one-time code, an expired password, a terms or update notice, or a locked account. Fix that first.
+2. Turn on diagnostics: set `SCRAPER_DEBUG=1` in `.env`, run `docker compose up -d`, then **Unlock** and **Test connection** once in the app.
+3. Copy out the screenshot of where it got stuck: `docker compose cp scraper:/debug/max.png .` (use `hapoalim.png` or `isracard.png` for the others). Set `SCRAPER_DEBUG=0` again afterwards.
+4. Bank sites change; update the scraper library (`scraper/package.json`), rebuild, and retry. Wait a while between attempts, and never retry in a loop. Two failures lock the source on purpose.
+
 ## Layout
 | Path | What |
 |---|---|

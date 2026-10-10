@@ -5,5 +5,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
 COPY server.js ./
+RUN mkdir -p /debug && chown node:node /debug
+VOLUME /debug
 USER node
 CMD ["node", "server.js"]

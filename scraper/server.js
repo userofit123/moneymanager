@@ -12,14 +12,35 @@ let busy = false;
 
 const scrub = (msg, creds) => Object.values(creds || {}).reduce((m, v) => (v && String(v).length >= 3 ? m.split(String(v)).join("***") : m), String(msg)).slice(0, 200);
 
+const DEBUG = process.env.SCRAPER_DEBUG === "1";
+const UA = process.env.SCRAPER_UA || "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+
 async function scrape(company, credentials, startDate) {
+  let page = null;
   const s = createScraper({
     companyId: COMPANIES[company], startDate: new Date(startDate), combineInstallments: false, showBrowser: false,
-    args: ["--no-sandbox", "--disable-dev-shm-usage"],
+    timeout: 120000, defaultTimeout: 90000, skipCloseBrowser: true, verbose: false,
+    viewportSize: { width: 1366, height: 900 },
+    args: ["--no-sandbox", "--disable-dev-shm-usage", "--disable-blink-features=AutomationControlled", "--window-size=1366,900", "--lang=he-IL,he,en-US"],
+    // look like an ordinary desktop browser: banks often stall headless-looking sessions
+    preparePage: async (p) => {
+      page = p;
+      await p.setUserAgent(UA);
+      await p.setExtraHTTPHeaders({ "Accept-Language": "he-IL,he;q=0.9,en-US;q=0.8,en;q=0.7" });
+      await p.evaluateOnNewDocument(() => { Object.defineProperty(navigator, "webdriver", { get: () => false }); });
+    },
   });
-  const r = await s.scrape(credentials);
-  if (!r.success) throw new Error(`${r.errorType || "error"}: ${r.errorMessage || "login failed"}`);
-  return { success: true, accounts: r.accounts };
+  try {
+    const r = await s.scrape(credentials);
+    if (!r.success) throw new Error(`${r.errorType || "error"}: ${r.errorMessage || "login failed"}`);
+    return { success: true, accounts: r.accounts };
+  } catch (e) {
+    // opt-in diagnostics: a screenshot of where it got stuck (a captcha, a notice, a changed page). No credentials are typed into it after login.
+    if (DEBUG && page) { try { await page.screenshot({ path: `/debug/${company}.png` }); console.log(`debug screenshot: /debug/${company}.png (${page.url().split("?")[0]})`); } catch {} }
+    throw e;
+  } finally {
+    try { if (page) await page.browser().close(); } catch {}
+  }
 }
 
 http.createServer(async (req, res) => {
