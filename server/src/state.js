@@ -89,7 +89,7 @@ export async function getState() {
     dupOk: Object.fromEntries(txs.rows.filter((r) => r.dup_ok).map((r) => [r.id, 1])),
     adj: Object.fromEntries(adj.rows.map((r) => [r.account, r.amount])),
     ntfy: await setting("ntfy", ""),
-    jarsTotal: await setting("jars_total", 0), jarsBuffer: await setting("jars_buffer", 0),
+    jarsTotal: await setting("jars_total", 0), jarsBuffer: await setting("jars_buffer", 0), jarsReserve: await setting("jars_reserve", 0),
     nwPension: await setting("nw_pension", false),
     hiddenMerchants: await setting("hidden_merchants", []), ccOverride: await setting("cc_override", {}), budgetNo: await setting("budget_no", []),
     cfg,
@@ -177,9 +177,9 @@ export async function putState(S) {
     for (const j of S.jars || []) {
       const ex = await c.query("SELECT 1 FROM jars WHERE id=$1", [j.id]);
       if (ex.rowCount) {
-        await c.query("UPDATE jars SET name=$2,priority=$3,target=$4,cap=$5,due=$6 WHERE id=$1", [j.id, j.n, j.p, j.need, j.cap ?? null, j.due || null]);
+        await c.query("UPDATE jars SET name=$2,priority=$3,target=$4,cap=$5,due=$6,bill_match=$7 WHERE id=$1", [j.id, j.n, j.p, j.need, j.cap ?? null, j.due || null, j.bill || null]);
         if (j.balEdit) await c.query("UPDATE jars SET balance=$2 WHERE id=$1", [j.id, j.bal]);
-      } else await c.query("INSERT INTO jars (id,name,priority,target,cap,balance,due) VALUES ($1,$2,$3,$4,$5,$6,$7)", [j.id, j.n, j.p, j.need, j.cap ?? null, j.bal, j.due || null]);
+      } else await c.query("INSERT INTO jars (id,name,priority,target,cap,balance,due,bill_match) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)", [j.id, j.n, j.p, j.need, j.cap ?? null, j.bal, j.due || null, j.bill || null]);
     }
     await c.query("DELETE FROM jars WHERE NOT (id = ANY($1))", [jids]);
     await c.query("SELECT setval(pg_get_serial_sequence('jars','id'), GREATEST((SELECT COALESCE(max(id),1) FROM jars),1))");
@@ -187,7 +187,7 @@ export async function putState(S) {
     // settings and dismissed alerts
     const put = (k, v) => c.query("INSERT INTO settings (key,value) VALUES ($1,$2) ON CONFLICT (key) DO UPDATE SET value=$2", [k, JSON.stringify(v)]);
     if (Array.isArray(S.currencies)) await put("currencies", [...new Set(S.currencies.map(String).filter((x) => /^[A-Z]{3}$/.test(x) && x !== "ILS"))].slice(0, 12));
-    await put("cfg", S.cfg || {}); await put("ntfy", S.ntfy || ""); await put("jars_total", +S.jarsTotal || 0); await put("jars_buffer", Math.max(0, +S.jarsBuffer || 0)); await put("nw_pension", !!S.nwPension);
+    await put("cfg", S.cfg || {}); await put("ntfy", S.ntfy || ""); await put("jars_total", +S.jarsTotal || 0); await put("jars_buffer", Math.max(0, +S.jarsBuffer || 0)); await put("jars_reserve", Math.max(0, +S.jarsReserve || 0)); await put("nw_pension", !!S.nwPension);
     await put("hidden_merchants", Array.isArray(S.hiddenMerchants) ? S.hiddenMerchants.map(String).slice(0, 500) : []);
     await put("cc_override", S.ccOverride && typeof S.ccOverride === "object" ? S.ccOverride : {});
     await put("budget_no", Array.isArray(S.budgetNo) ? S.budgetNo.map(String).slice(0, 200) : []);
