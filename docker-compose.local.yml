@@ -1,0 +1,35 @@
+# Local testing: docker compose -f docker-compose.local.yml up --build
+# Sample data on an empty database, no scraper, nothing exposed except http://localhost:8080
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: money
+      POSTGRES_PASSWORD: money
+      POSTGRES_DB: money
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U money"]
+      interval: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgres://money:money@db:5432/money
+      DOCS_DIR: /data/documents
+      ALLOW_DEMO_SEED: "1"
+      SCHEDULER: "0"
+    volumes:
+      - docs:/data/documents
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:
+  docs:
