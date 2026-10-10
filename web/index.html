@@ -260,6 +260,7 @@ html.mob .bgh{padding:14px 16px;gap:12px}html.mob .bgr{padding:2px 16px}html.mob
 .jmo .val .of{font-size:15px;font-weight:500;color:var(--tx2);letter-spacing:0}.jbar{height:10px;background:var(--s2);border-radius:99px;overflow:hidden;margin:14px 0 10px}.jbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .5s}.jbar i.w{background:#e6a100}.jbar i.d{background:var(--pos)}
 .jstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px}.jstats>div{background:var(--s1);border:1px solid var(--ol);border-radius:14px;padding:10px 12px;min-width:0}.jstats span{display:block;font-size:11px;color:var(--tx2);font-weight:600;text-transform:uppercase;letter-spacing:.5px}.jstats b{display:block;font-size:15px;margin-top:2px;overflow:hidden;text-overflow:ellipsis}
 html.he .kin input{padding:8px 4px 8px 14px}html.he .kin .kc{padding:0 14px 0 4px}
+.bbin{margin-top:12px;padding:10px 12px;border-radius:14px;background:var(--s1);border:1px solid var(--ol)}.bbin .lbl{display:block;margin-bottom:2px}.bbin .chn{padding:5px 0;font-size:13px}.bbin .chn:first-of-type{border-top:0}
 .dt{display:inline-block;margin:0 .3em;opacity:.6}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -767,6 +768,9 @@ if(!(k in S.budgets)){if(avg>=100&&billMo(k)<avg*.6&&!S.budgetNo.includes("new|"
 else{const lim=S.budgets[k],over=vals.filter(v=>v>lim).length;if(S.budgetNo.includes("rev|"+k+"|"+MK))return;
 if(avg*1.25<lim&&prop<lim)review.push({k,lim,avg,vals,kind:"lower",prop,over});else if(over>=2&&avg>lim*1.05&&prop>lim)review.push({k,lim,avg,vals,kind:"raise",prop,over})}});
 fresh.sort((a,b)=>b.avg-a.avg);return{fresh,review,idx}}
+// bills that sit inside a budget's category: they are part of that budget, shown so it is clear what the limit includes
+function budBills(k){const L=BC.filter(b=>!b.once&&b.flag!="canceled"&&b.cat==k&&(b.nx||b.irregular));if(!L.length)return"";
+return `<div class="bbin"><span class="lbl">Includes ${L.length==1?"a bill":L.length+" bills"}</span>${L.map(b=>{const paid=b.lp&&b.lp.startsWith(MK),st=b.irregular?"irregular":paid?"paid "+dstr(b.lp):b.status=="overdue"?"overdue":"due "+dstr(b.nx);return `<div class="chn"><span>${esc(b.n)} <small class="sm">${st}</small></span><b class="num">${b.irregular?"≈ ":""}${fm(b.pred)}</b></div>`}).join("")}</div>`}
 function renderBudg(){const bi=budgetInfo(),tl=bi.reduce((s,b)=>s+b.lim,0),ts=bi.reduce((s,b)=>s+b.s,0);
 $("budK").innerHTML=[["hero","Budgeted this month",tl,"Across "+bi.length+" categories"],["","Spent so far",ts,(tl?Math.round(ts/tl*100):0)+"% of budget · "+Math.round(DAYN/DIM*100)+"% of the month gone"],["","Left to spend",tl-ts,"About "+fm(Math.max(0,tl-ts)/(DIM-DAYN))+" per day for the rest of the month"]].map(([c,l,v,s])=>`<div class="card ${c}"><div class="lbl">${l}</div><div class="val"><small>₪</small>${v<0?"−":""}${f(v)}</div><div class="sm">${s}</div></div>`).join("");
 const M=monthlyByCat(),ideas=budgetIdeas(M),mlab=ideas.idx.map(m=>MSHORT(m)).join(", "),rv=Object.fromEntries(ideas.review.map(r=>[r.k,r]));
@@ -775,7 +779,7 @@ $("budL").innerHTML=bi.map(b=>`<div class="card ${b.st=="over"?"warn":""}"><div 
 <div class="val" style="font-size:26px"><small>₪</small>${f(b.s)} <span class="sm" style="font-weight:400">of ${fm(b.lim)}</span></div>
 <div class="bar"><i style="width:${Math.min(100,b.pc)}%;background:${b.st=="over"?"var(--neg)":b.st=="warn"||b.st=="pace"?"#e68a00":""}"></i><u style="left:${DAYN/DIM*100}%" data-tip="Today"></u></div>
 <div class="sm">${b.left>=0?fm(b.left)+" left · "+fm(b.perDay)+" per day":"Over budget"} · at this pace you will spend ${fm(b.pace)}</div>
-<div class="sm" style="margin-top:8px">Last months: ${budMonths().map(m=>{const v=(M[b.k]||{})[m]||0;return `<span style="color:${v>b.lim?"var(--neg)":"inherit"};font-weight:600">${fm(v)}</span>`}).join(" · ")||"not enough history yet"}</div>
+${budBills(b.k)}<div class="sm" style="margin-top:8px">Last months: ${budMonths().map(m=>{const v=(M[b.k]||{})[m]||0;return `<span style="color:${v>b.lim?"var(--neg)":"inherit"};font-weight:600">${fm(v)}</span>`}).join(" · ")||"not enough history yet"}</div>
 ${rv[b.k]?`<div class="sugg"><div class="sm" style="color:var(--tx);line-height:1.45">${rv[b.k].kind=="lower"?`You usually spend about <b>${fm(rv[b.k].avg)}</b> here, well under this budget. Lower it to <b>${fm(rv[b.k].prop)}</b>?`:`You went over in <b>${rv[b.k].over} of the last ${ideas.idx.length} months</b> (about ${fm(rv[b.k].avg)} a month). Raise it to <b>${fm(rv[b.k].prop)}</b>?`}</div><div class="flex" style="gap:8px;margin-top:8px"><button class="btn s" data-a="budApply" data-k="${esc(b.k)}" data-v="${rv[b.k].prop}">Use ${fm(rv[b.k].prop)}</button><button class="btn o s" data-a="budLater" data-k="${esc(b.k)}">Not now</button></div></div>`:""}
 <div class="flex" style="margin-top:12px;gap:8px"><input type="number" inputmode="numeric" value="${b.lim}" data-c="budget" data-k="${esc(b.k)}" style="width:120px"><button class="btn r s" data-a="budDel" data-k="${esc(b.k)}">Remove</button></div></div>`).join("");
 const un=spend().filter(([k])=>!(k in S.budgets)&&k!="Uncategorized");
