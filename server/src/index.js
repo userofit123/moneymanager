@@ -12,6 +12,8 @@ import { saveDoc, readDoc } from "./docs.js";
 import { ingest } from "./sources/ingest.js";
 import { parseWiseCsv, parseBankCsv } from "./sources/csv.js";
 import { seedDemo } from "./seed.js";
+import { addSuggested } from "./categories.js";
+import { bumpRev } from "./db.js";
 import { sendNtfy, ntfyProblem, ntfyUrl } from "./notify.js";
 import { listConnections, saveCreds, removeCreds, unlock, getCreds, markAssisted, FIELDS } from "./connections.js";
 import * as auth from "./auth.js";
@@ -181,7 +183,8 @@ app.post("/api/ntfy/test", wrap(async (_req, res) => {
 app.post("/api/sync", wrap(async (_req, res) => { const r = await syncAll(); res.status(r.busy ? 409 : 200).json(r); }));
 app.post("/api/sync/:source", wrap(async (req, res) => {
   if (!SOURCE_NAMES.includes(req.params.source)) return res.status(404).json({ error: "unknown source" });
-  const r = await syncSource(req.params.source);
+  const days = Math.max(0, Math.min(1825, parseInt(req.query.days, 10) || 0)); // 0 = the usual window; up to 5 years of history
+  const r = await syncSource(req.params.source, { days: days || undefined });
   res.status(r.busy ? 409 : 200).json(r);
 }));
 
@@ -220,6 +223,7 @@ app.post("/api/gaps/:id/:action", json, wrap(async (req, res) => {
   if (!r) return res.status(404).json({ error: "no such open gap" });
   res.json(r);
 }));
+app.post("/api/categories/suggested", wrap(async (_req, res) => { const r = await addSuggested(); if (r.categories || r.rules) await bumpRev(); res.json(r); }));
 app.post("/api/networth/snapshot", wrap(async (_req, res) => { await snapshotNetWorth(); res.json({ ok: true }); }));
 if (process.env.ALLOW_DEMO_SEED === "1") app.post("/api/demo/seed", wrap(async (_req, res) => res.json(await seedDemo())));
 

@@ -10,6 +10,7 @@ import { recordSnapshot, detectTransfers } from "./engine.js";
 import { getCreds, isLocked, recordResult, markTested, LABELS } from "./connections.js";
 import { scrub } from "./secrets.js";
 import { sendNtfy, notifyOnce, clearNotified, remindOldGaps } from "./notify.js";
+import { fillJars } from "./jars.js";
 
 const HISTORY_DAYS = +process.env.HISTORY_DAYS || 365; // used for the first import of a source only
 
@@ -18,8 +19,8 @@ async function account(c, name, currency, patch = {}) {
   if (r.rowCount) return r.rows[0];
   const kind = patch.kind || "bank";
   const n = await c.query(
-    "INSERT INTO accounts (name,currency,kind,source,subtitle,in_net_worth,sort) VALUES ($1,$2,$3,$4,$5,$6,50) RETURNING *",
-    [name, currency, kind, patch.source || "manual", patch.subtitle || "", kind !== "card"]);
+    "INSERT INTO accounts (name,currency,kind,source,subtitle,in_net_worth,sort) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *",
+    [name, currency, kind, patch.source || "manual", patch.subtitle || "", kind !== "card", { bank: 0, card: 1, wallet: 3, pension: 4 }[kind] ?? 50]);
   return n.rows[0];
 }
 
@@ -36,7 +37,11 @@ const firstTime = async (source) => (await q("SELECT 1 FROM transactions WHERE s
 // Map one scraped account to the rows the importer takes
 const toRows = (acc) => (acc.txns || []).map((t) => ({
   date: String(t.date).slice(0, 10), description: t.description, amount: t.chargedAmount ?? t.originalAmount,
-  currency: t.chargedCurrency || "ILS", externalId: t.identifier ? `${acc.accountNumber}:${t.identifier}` : undefined,
+  currency: t.chargedCurrency || "ILS",
+  // A bank reference number repeats for recurring items (a monthly salary, a standing order), so it is only part of the id:
+  // account + reference + date + amount. legacyId is the id older versions used, so earlier imports are recognised.
+  externalId: t.identifier ? `${acc.accountNumber}:${t.identifier}:${String(t.date).slice(0, 10)}:${t.chargedAmount ?? t.originalAmount}` : undefined,
+  legacyId: t.identifier ? `${acc.accountNumber}:${t.identifier}` : undefined,
   pending: t.status === "pending", bankCategory: t.category,
 })).filter((r) => typeof r.amount === "number");
 
@@ -54,15 +59,19 @@ const RUN = {
     }
     return { added, message: w.note };
   },
-  ...Object.fromEntries(Object.entries(BANKS).map(([key, [name, kind]]) => [key, async (creds) => {
-    const res = await scrape(key, creds, (await firstTime(key)) ? HISTORY_DAYS : 30);
+  ...Object.fromEntries(Object.entries(BANKS).map(([key, [name, kind]]) => [key, async (creds, opts = {}) => {
+    const flag = `backfill:${key}`;
+    const backfill = (await q("SELECT 1 FROM settings WHERE key=$1", [flag])).rowCount > 0;
+    const days = opts.days || ((await firstTime(key)) || backfill ? HISTORY_DAYS : 30);
+    const res = await scrape(key, creds, days);
     let added = 0, balance = null;
     for (const acc of res.accounts || []) {
       added += (await ingest({ name, currency: "ILS", source: key }, toRows(acc))).added;
       if (typeof acc.balance === "number") balance = (balance || 0) + acc.balance;
     }
     if (balance != null) await setBalance(await tx((c) => account(c, name, "ILS", { kind, source: key })), balance);
-    return { added, message: "" };
+    await q("DELETE FROM settings WHERE key=$1", [flag]); // the one-off history re-read is done
+    return { added, message: `read the last ${days} days` };
   }])),
 };
 
@@ -90,17 +99,17 @@ async function withJob(source, kind, fn) {
   try { return await fn(); } finally { releaseJob(kind); }
 }
 
-export const syncSource = (name) => {
+export const syncSource = (name, opts = {}) => {
   if (!RUN[name]) throw new Error("unknown source " + name);
-  return withJob(name, "sync", () => syncInner(name));
+  return withJob(name, "sync", () => syncInner(name, opts));
 };
-async function syncInner(name) {
+async function syncInner(name, opts = {}) {
   const creds = await getCreds(name);
   if (!creds) return { ok: false, skipped: true, error: "not connected" };
   if (await isLocked(name)) return { ok: false, locked: true, error: `${LABELS[name]} is locked after failed attempts. Check the credentials, then unlock it in Settings.` };
   const run = await q("INSERT INTO sync_runs (source) VALUES ($1) RETURNING id", [name]);
   try {
-    const res = await RUN[name](creds);
+    const res = await RUN[name](creds, opts);
     await q("UPDATE sync_runs SET finished_at=now(), ok=true, added=$2, message=$3 WHERE id=$1", [run.rows[0].id, res.added, res.message || ""]);
     await recordResult(name, true);
     await clearNotified(`fail:${name}`);
@@ -171,6 +180,8 @@ export function startScheduler() {
   const every = process.env.SYNC_CRON || "0 */8 * * *";
   cron.schedule(every, () => syncAll().then(snapshotNetWorth).catch((e) => console.error("sync:", e.message)));
   cron.schedule("30 3 * * *", () => refreshRates(7).catch((e) => console.error("rates:", e.message)));
+  cron.schedule("5 0 1 * *", () => fillJars().catch((e) => console.error("jars:", e.message))); // the 1st of every month
+  fillJars().catch((e) => console.error("jars:", e.message)); // catch up after downtime
   cron.schedule("0 9 * * *", () => remindOldGaps().catch((e) => console.error("remind:", e.message)));
   console.log("scheduler on:", every);
 }
