@@ -1,0 +1,8 @@
+# Join the shared "proxy" network so Caddy can reach the app (server setup).
+services:
+  app:
+    networks: [backend, scraper_net, egress, proxy]
+networks:
+  proxy:
+    external: true
+    name: proxy

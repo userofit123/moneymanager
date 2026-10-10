@@ -1,0 +1,6 @@
+# Adds fake sample data on first start (only into an empty database). Do not use for real data.
+services:
+  app:
+    environment:
+      ALLOW_DEMO_SEED: "1"
+      AUTO_DEMO_SEED: "1"

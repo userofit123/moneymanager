@@ -1,15 +1,21 @@
-# Money Manager. Put the repo (or just this file and .env) in ~/docker/finance/ on the server.
+# Money Manager. Works on a laptop and on the home server:
+#   ./setup.sh && docker compose up -d --build        then open http://localhost:8787
+# Sample data instead of an empty app:  docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d --build
+# Behind Caddy on the shared "proxy" network: add  -f docker-compose.proxy.yml
+#
+# Networks: the database is only reachable from the app. The scraper is reachable only from the app, and is the
+# only container that talks to the banks. Nothing is published except the app, on 127.0.0.1 by default.
 services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
       POSTGRES_USER: money
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run ./setup.sh first}
       POSTGRES_DB: money
     volumes:
-      - /mnt/data/finance/postgres:/var/lib/postgresql/data
-    networks: [internal]
+      - pgdata:/var/lib/postgresql/data
+    networks: [backend]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U money"]
       interval: 5s
@@ -24,32 +30,36 @@ services:
       db: { condition: service_healthy }
     environment:
       DATABASE_URL: postgres://money:${POSTGRES_PASSWORD}@db:5432/money
+      DATA_DIR: /data                      # app.key (encryption key for saved credentials) lives here, not in the database
       DOCS_DIR: /data/documents
-      WISE_TOKEN: ${WISE_TOKEN:-}
       SCRAPER_URL: http://scraper:8080
-      SCRAPER_KEY: ${SCRAPER_KEY:?set in .env}
+      SCRAPER_KEY: ${SCRAPER_KEY:?run ./setup.sh first}
       SYNC_CRON: ${SYNC_CRON:-0 */8 * * *}
-      ALLOW_DEMO_SEED: ${ALLOW_DEMO_SEED:-0}
+      HISTORY_DAYS: ${HISTORY_DAYS:-365}
+      SESSION_DAYS: ${SESSION_DAYS:-14}
+      TRUST_PROXY: ${TRUST_PROXY:-0}
+      WISE_TOKEN: ${WISE_TOKEN:-}          # optional; normally enter it in Settings → Connections
     volumes:
-      - /mnt/data/finance/documents:/data/documents
+      - appdata:/data
     ports:
-      - "127.0.0.1:${APP_PORT:-9010}:8080"   # Caddy reverse proxy on the host; never exposed to the internet
-    networks: [internal, proxy]
+      - "${BIND:-127.0.0.1}:${APP_PORT:-8787}:8080"
+    networks: [backend, scraper_net, egress]
 
-  # Isolated scraper with Chromium. Only this container needs outbound access to the banks.
   scraper:
     build: ./scraper
     restart: unless-stopped
     environment:
       SCRAPER_KEY: ${SCRAPER_KEY}
-      CREDENTIALS_FILE: /run/secrets/bank_credentials.json
-    volumes:
-      - ./secrets/bank_credentials.json:/run/secrets/bank_credentials.json:ro
-    networks: [internal]
+    networks: [scraper_net, egress]
     shm_size: 1gb
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
 
 networks:
-  internal:
-  proxy:
-    external: true
-    name: proxy
+  backend: { internal: true }
+  scraper_net: { internal: true }
+  egress: {}
+
+volumes:
+  pgdata:
+  appdata:

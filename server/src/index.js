@@ -2,25 +2,106 @@ import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { migrate, q } from "./db.js";
+import { loadKey } from "./secrets.js";
 import { ensureDefaults, getState, putState, StaleError } from "./state.js";
 import { ratesSummary, refreshRates, rateOn } from "./fx.js";
 import { recordGap } from "./gaps.js";
-import { syncSource, syncAll, SOURCE_NAMES, startScheduler, snapshotNetWorth } from "./sync.js";
+import { syncSource, syncAll, SOURCE_NAMES, startScheduler, snapshotNetWorth, testSource } from "./sync.js";
 import { saveDoc, readDoc } from "./docs.js";
 import { ingest } from "./sources/ingest.js";
-import { parseWiseCsv } from "./sources/csv.js";
+import { parseWiseCsv, parseBankCsv } from "./sources/csv.js";
 import { seedDemo } from "./seed.js";
+import { sendNtfy } from "./notify.js";
+import { listConnections, saveCreds, removeCreds, unlock, FIELDS } from "./connections.js";
+import * as auth from "./auth.js";
 
 const WEB = process.env.WEB_DIR || path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "web");
-const app = express();
+export const app = express();
 app.disable("x-powered-by");
+app.set("trust proxy", process.env.TRUST_PROXY === "1"); // set when Caddy or another proxy sits in front
 
-const wrap = (fn) => (req, res) => Promise.resolve(fn(req, res)).catch((e) => { console.error(req.method, req.path, e.message); res.status(500).json({ error: e.message }); });
+const wrap = (fn) => (req, res) => Promise.resolve(fn(req, res)).catch((e) => { console.error(req.method, req.path, e.message); res.status(500).json({ error: "Something went wrong" }); });
+const json = express.json({ limit: "20mb" });
+
+// ---------- security headers ----------
+app.use((req, res, next) => {
+  res.set({
+    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
+    "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer", "X-Frame-Options": "DENY",
+    "Permissions-Policy": "geolocation=(), microphone=(), camera=(self)",
+  });
+  if (req.secure) res.set("Strict-Transport-Security", "max-age=31536000");
+  next();
+});
 
 app.get("/healthz", wrap(async (_req, res) => { await q("SELECT 1"); res.json({ ok: true }); }));
 
+// ---------- auth ----------
+const cookieOpts = (req) => ({ httpOnly: true, sameSite: "strict", secure: req.secure, path: "/", maxAge: auth.cookieMaxAge * 1000 });
+const setCookie = (req, res, token) => res.cookie(auth.COOKIE, token, cookieOpts(req));
+
+app.get("/api/auth/status", wrap(async (req, res) => {
+  const u = await auth.getUser();
+  res.set("Cache-Control", "no-store").json({ setup: !u, authed: !!u && (await auth.sessionValid(auth.readCookie(req))), totp: !!u?.totp_enabled });
+}));
+app.post("/api/auth/setup", json, wrap(async (req, res) => {
+  if (await auth.getUser()) return res.status(409).json({ error: "Already set up" });
+  try { await auth.createUser(req.body?.password); } catch (e) { return res.status(400).json({ error: e.message }); }
+  setCookie(req, res, await auth.startSession(req.get("user-agent")));
+  res.json({ ok: true });
+}));
+app.post("/api/auth/login", json, wrap(async (req, res) => {
+  const ip = req.ip;
+  if (await auth.tooManyAttempts(ip)) return res.status(429).json({ error: "Too many attempts. Try again in 15 minutes." });
+  const u = await auth.getUser();
+  if (!u) return res.status(409).json({ setup: true });
+  const okPw = typeof req.body?.password === "string" && auth.checkPassword(req.body.password, u.password_hash);
+  if (okPw && u.totp_enabled) {
+    if (!req.body.code) return res.status(401).json({ need2fa: true });
+    if (!auth.totpOk(auth.readTotpSecret(u), req.body.code)) { await auth.noteAttempt(ip, false); await new Promise((r) => setTimeout(r, 400)); return res.status(401).json({ error: "That code is not right.", need2fa: true }); }
+  } else if (!okPw) { await auth.noteAttempt(ip, false); await new Promise((r) => setTimeout(r, 400)); return res.status(401).json({ error: "Wrong password." }); }
+  await auth.noteAttempt(ip, true);
+  setCookie(req, res, await auth.startSession(req.get("user-agent")));
+  res.json({ ok: true });
+}));
+
+// Everything else under /api needs a session; changes also need the custom header (on top of SameSite=Strict).
+app.use("/api", (req, res, next) => {
+  auth.sessionValid(auth.readCookie(req)).then((ok) => {
+    if (!ok) return res.status(401).json({ error: "auth" });
+    if (!["GET", "HEAD"].includes(req.method) && req.get("x-requested-with") !== "money") return res.status(403).json({ error: "bad request" });
+    next();
+  }).catch(() => res.status(500).json({ error: "Something went wrong" }));
+});
+
+app.post("/api/auth/logout", wrap(async (req, res) => { await auth.endSession(auth.readCookie(req)); res.clearCookie(auth.COOKIE, { path: "/" }).json({ ok: true }); }));
+app.post("/api/auth/logout-all", wrap(async (_req, res) => { await q("DELETE FROM sessions"); res.clearCookie(auth.COOKIE, { path: "/" }).json({ ok: true }); }));
+app.post("/api/auth/password", json, wrap(async (req, res) => {
+  const u = await auth.getUser();
+  if (!auth.checkPassword(String(req.body?.current || ""), u.password_hash)) return res.status(400).json({ error: "Current password is wrong." });
+  try { await auth.setPassword(req.body?.next); } catch (e) { return res.status(400).json({ error: e.message }); }
+  setCookie(req, res, await auth.startSession(req.get("user-agent"))); // other sessions were signed out
+  res.json({ ok: true });
+}));
+app.post("/api/auth/2fa/start", wrap(async (_req, res) => {
+  const s = auth.newTotpSecret();
+  await auth.storeTotpSecret(s);
+  res.json({ secret: s, uri: `otpauth://totp/Money%20Manager?secret=${s}&issuer=Money%20Manager` });
+}));
+app.post("/api/auth/2fa/enable", json, wrap(async (req, res) => {
+  const s = auth.readTotpSecret(await auth.getUser());
+  if (!s || !auth.totpOk(s, req.body?.code)) return res.status(400).json({ error: "That code is not right." });
+  await auth.enableTotp(); res.json({ ok: true });
+}));
+app.post("/api/auth/2fa/disable", json, wrap(async (req, res) => {
+  const u = await auth.getUser();
+  if (!auth.checkPassword(String(req.body?.password || ""), u.password_hash)) return res.status(400).json({ error: "Password is wrong." });
+  await auth.disableTotp(); res.json({ ok: true });
+}));
+
+// ---------- app data ----------
 app.get("/api/state", wrap(async (_req, res) => { res.set("Cache-Control", "no-store"); res.json(await getState()); }));
-app.put("/api/state", express.json({ limit: "20mb" }), wrap(async (req, res) => {
+app.put("/api/state", json, wrap(async (req, res) => {
   try { res.json(await putState(req.body)); }
   catch (e) { if (e instanceof StaleError) return res.status(409).json({ error: "stale", state: await getState() }); throw e; }
 }));
@@ -29,15 +110,30 @@ app.get("/api/fx/rate", wrap(async (req, res) => res.json({ rate: await rateOn(S
 app.get("/api/fx", wrap(async (_req, res) => res.json(await ratesSummary(30))));
 app.post("/api/fx/refresh", wrap(async (_req, res) => res.json({ rows: await refreshRates() })));
 
+// ---------- connections (credentials are write-only) ----------
+app.get("/api/connections", wrap(async (_req, res) => res.json(await listConnections())));
+app.put("/api/connections/:source", json, wrap(async (req, res) => {
+  if (!FIELDS[req.params.source]) return res.status(404).json({ error: "unknown source" });
+  try { await saveCreds(req.params.source, req.body); } catch (e) { return res.status(400).json({ error: e.message }); }
+  res.json({ ok: true });
+}));
+app.delete("/api/connections/:source", wrap(async (req, res) => { await removeCreds(req.params.source); res.json({ ok: true }); }));
+app.post("/api/connections/:source/unlock", wrap(async (req, res) => { await unlock(req.params.source); res.json({ ok: true }); }));
+app.post("/api/connections/:source/test", wrap(async (req, res) => {
+  if (!FIELDS[req.params.source]) return res.status(404).json({ error: "unknown source" });
+  res.json(await testSource(req.params.source));
+}));
+app.post("/api/ntfy/test", wrap(async (_req, res) => res.json({ ok: await sendNtfy("Money", "Test alert: background notifications work") })));
+
+// ---------- sync and import ----------
 app.post("/api/sync", wrap(async (_req, res) => res.json(await syncAll())));
 app.post("/api/sync/:source", wrap(async (req, res) => {
   if (!SOURCE_NAMES.includes(req.params.source)) return res.status(404).json({ error: "unknown source" });
   res.json(await syncSource(req.params.source));
 }));
 
-// Wise statement CSV: matched against open gaps and hand-entered rows
 app.post("/api/import/wise-csv", express.text({ type: "*/*", limit: "10mb" }), wrap(async (req, res) => {
-  const rows = parseWiseCsv(req.body);
+  let rows; try { rows = parseWiseCsv(req.body); } catch (e) { return res.status(400).json({ error: e.message }); }
   const byCur = {};
   rows.forEach((r) => (byCur[r.currency] ||= []).push(r));
   const out = {};
@@ -47,36 +143,47 @@ app.post("/api/import/wise-csv", express.text({ type: "*/*", limit: "10mb" }), w
   }
   res.json(out);
 }));
+// A bank or card export as CSV: the fallback for any source
+app.post("/api/import/bank-csv", express.text({ type: "*/*", limit: "10mb" }), wrap(async (req, res) => {
+  const a = (await q("SELECT name,currency,source FROM accounts WHERE name=$1 AND kind IN ('bank','card')", [String(req.query.account || "")])).rows[0];
+  if (!a) return res.status(400).json({ error: "Choose a bank or card account" });
+  let rows; try { rows = parseBankCsv(req.body, { positiveIsExpense: req.query.positiveIsExpense === "1" }); } catch (e) { return res.status(400).json({ error: e.message }); }
+  res.json({ rows: rows.length, ...(await ingest({ name: a.name, currency: a.currency, source: a.source }, rows, { mergeManual: true })) });
+}));
 
-// Documents
+// ---------- documents ----------
 app.post("/api/transactions/:id/documents", express.raw({ type: "*/*", limit: "25mb" }), wrap(async (req, res) => {
   const name = decodeURIComponent(req.get("x-filename") || "file");
-  const d = await saveDoc(+req.params.id, name, req.get("content-type") || "application/octet-stream", req.body);
-  res.json(d);
+  res.json(await saveDoc(+req.params.id, name, req.get("content-type") || "application/octet-stream", req.body));
 }));
 app.get("/api/documents/:id", wrap(async (req, res) => {
   const d = await readDoc(+req.params.id);
   if (!d) return res.status(404).end();
-  res.set("Content-Type", d.mime).set("Content-Disposition", `inline; filename="${encodeURIComponent(d.filename)}"`).sendFile(d.file);
+  res.set("Content-Type", d.mime).set("Content-Disposition", `inline; filename="${encodeURIComponent(d.filename)}"`).set("X-Content-Type-Options", "nosniff").sendFile(d.file);
 }));
 
-app.post("/api/gaps/:id/:action", express.json(), wrap(async (req, res) => {
-  const r = await recordGap(+req.params.id, req.params.action, req.body || {});
+app.post("/api/gaps/:id/:action", json, wrap(async (req, res) => {
+  let r; try { r = await recordGap(+req.params.id, req.params.action, req.body || {}); } catch (e) { return res.status(400).json({ error: e.message }); }
   if (!r) return res.status(404).json({ error: "no such open gap" });
   res.json(r);
 }));
 app.post("/api/networth/snapshot", wrap(async (_req, res) => { await snapshotNetWorth(); res.json({ ok: true }); }));
 if (process.env.ALLOW_DEMO_SEED === "1") app.post("/api/demo/seed", wrap(async (_req, res) => res.json(await seedDemo())));
 
-// Front end: the page and service worker must never be cached
+app.use("/api", (_req, res) => res.status(404).json({ error: "not found" }));
+
+// ---------- front end: the page and service worker are never cached ----------
 app.use((req, res, next) => {
   if (req.path === "/" || req.path.endsWith(".html") || req.path === "/sw.js") res.set("Cache-Control", req.path === "/sw.js" ? "no-store" : "no-cache");
   next();
 });
 app.use(express.static(WEB, { extensions: ["html"] }));
 
-const port = +process.env.PORT || 8080;
-migrate().then(ensureDefaults).then(() => {
+export async function start() {
+  loadKey(); // fails early if the key is unusable
+  await migrate();
+  await ensureDefaults();
+  const port = +process.env.PORT || 8080;
   app.listen(port, () => console.log("money manager on :" + port));
   if (process.env.SCHEDULER !== "0") startScheduler();
   refreshRates().catch((e) => console.error("rates:", e.message)).then(async () => {
@@ -84,4 +191,5 @@ migrate().then(ensureDefaults).then(() => {
     const n = (await q("SELECT count(*)::int AS n FROM transactions")).rows[0].n;
     if (!n) console.log("sample data loaded:", await seedDemo());
   }).catch((e) => console.error("seed:", e.message));
-}).catch((e) => { console.error("startup failed:", e); process.exit(1); });
+}
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) start().catch((e) => { console.error("startup failed:", e.message); process.exit(1); });
