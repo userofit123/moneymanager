@@ -224,6 +224,10 @@ html.mob .jin .fld{margin-bottom:10px}html.mob .jin .fld input,html.mob .jin .fl
 html.mob .sub{font-size:13px}
 html.mob .seg{overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap}html.mob .seg::-webkit-scrollbar{display:none}html.mob .seg button{flex:1 0 auto;white-space:nowrap}
 .chain{margin-top:8px}.chain summary{cursor:pointer;font-size:13px;color:var(--acc);font-weight:600;list-style:none}.chain summary::-webkit-details-marker{display:none}.chn{display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:14px;border-top:1px solid var(--ol)}.chn:first-child{border-top:0}.chn.tot{font-weight:700;border-top:2px solid var(--ol)}.chn small{display:block}.chl{margin-top:8px}
+#nwc{display:block}#nwA{width:100%;min-width:0}.trtop{margin-bottom:6px}.trctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:12px 0 0}.trctl select{min-height:40px;padding:8px 14px;border-radius:12px;font-size:14px;font-weight:600;max-width:100%;flex:1 1 220px}.trctl .trseg{margin:0}.trctl.sec{margin-top:8px}.trchk{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--tx2);cursor:pointer}.trchk input{width:18px;height:18px;accent-color:var(--acc)}
+.trw{position:relative;margin-top:14px;touch-action:pan-y}.trs{display:block;max-width:100%;overflow:visible}.trtip{position:absolute;pointer-events:none;background:var(--s2);border:1px solid var(--ol);border-radius:12px;padding:8px 11px;font-size:12px;box-shadow:0 10px 26px -10px #0009;display:flex;flex-direction:column;gap:1px;white-space:nowrap;z-index:5}.trtip b{font-size:11px;color:var(--tx2);font-weight:600}.trtip span{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}.trtip small{color:var(--tx2)}
+.trstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:14px}.trstats>div{background:var(--s1);border:1px solid var(--ol);border-radius:14px;padding:10px 12px;min-width:0}.trstats span{display:block;font-size:11px;color:var(--tx2);font-weight:600;text-transform:uppercase;letter-spacing:.5px}.trstats b{display:block;font-size:16px;margin-top:2px;overflow:hidden;text-overflow:ellipsis}.trstats small{color:var(--tx2);font-size:11px}
+html.mob .trstats{grid-template-columns:repeat(2,minmax(0,1fr))}html.mob .trctl select{flex:1 1 100%}
 .dt{display:inline-block;margin:0 .3em;opacity:.6}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -751,14 +755,64 @@ $("alS").innerHTML=`<div class="pl" style="margin-bottom:6px">Which alerts to sh
 <div class="flex" style="gap:8px"><button class="btn s" data-a="notifOn">Allow notifications</button><button class="btn o s" data-a="notifTest">Send a test</button></div>
 <div class="fld" style="margin-top:16px"><label>ntfy topic URL (your own server, optional)</label><input data-c="ntfy" value="${esc(S.ntfy)}" placeholder="https://rhs.taile6739f.ts.net:PORT/money"></div><button class="btn o s" data-a="ntfyTest">Send test to ntfy</button>
 <div style="margin-top:14px"><button class="btn o s" data-a="alReset">Show dismissed alerts again</button></div>`}
-let nwR=12;
-function renderNW(){const NN=NW.months.length,n=Math.min(nwR||NN-NW.first,NN),wp=S.nwPension,hap=[...NW.hap],wise=[...NW.wise],pen=[...NW.pen];
-const cash=hap.map((v,i)=>v+wise[i]),tot=cash.map((v,i)=>v+pen[i]),main=wp?tot:cash,i0=NN-n,ch=main[NN-1]-main[i0],pc=main[i0]?ch/main[i0]*100:0;
-$("nwc").innerHTML=`<div class="flex" style="justify-content:space-between;align-items:flex-start"><div><div class="lbl">Net worth${wp?" with pension":""} · ${nwR?"last "+n+" months":"all history · "+n+" months"}</div><div class="val"><small>₪</small>${f(main[NN-1])}</div><div class="sm"><span class="bd ${ch>=0?"dn":"up"}">${ch>=0?"▲":"▼"} ${fm(ch)} (${pc.toFixed(1)}%)</span> since ${NW.months[i0]}</div><div class="sm" style="margin-top:6px">${wp?"Without pension "+fm(cash[NN-1]):"With pension "+fm(tot[NN-1])}</div></div>
-<div><div class="seg" style="margin:0 0 8px"><button data-a="nwP" data-v="0" class="${wp?"":"on"}">Without pension</button><button data-a="nwP" data-v="1" class="${wp?"on":""}">With pension</button></div><div class="seg" style="margin:0"><button data-a="nwR" data-n="6" class="${nwR==6?"on":""}">6 months</button><button data-a="nwR" data-n="12" class="${nwR==12?"on":""}">12 months</button><button data-a="nwR" data-n="36" class="${nwR==36?"on":""}">3 years</button><button data-a="nwR" data-n="0" class="${nwR==0?"on":""}">All</button></div></div></div><div id="nwA"></div>
-<div class="sm" style="margin-top:6px">Monthly snapshots, stored once a month so history does not move with exchange rates. Months without a snapshot are worked out from your transactions (today's balance minus what moved since). The pension is updated by hand, so it is left out unless you switch it on.</div>`;
-if(wp)chart("nwA",NW.months.slice(-n),[{n:"Net worth with pension",v:tot.slice(-n),c:"var(--acc)"}],{area:1,h:220});
-else chart("nwA",NW.months.slice(-n),[{n:"Bank Hapoalim",v:hap.slice(-n),c:"var(--c0)"},{n:"Wise (in ₪)",v:wise.slice(-n),c:"var(--c3)"}],{stack:1,h:220})}
+/* ---------- main trend chart: pick what to look at and for how long ---------- */
+let nwR=12,TR={m:"nw",r:12,v:"auto",c:false};try{Object.assign(TR,JSON.parse(localStorage.getItem("moneyTrend")||"{}"))}catch(e){}
+const saveTR=()=>{try{localStorage.setItem("moneyTrend",JSON.stringify(TR))}catch(e){}};
+const trFull=m=>MNAME(m)+" "+m.slice(0,4),trShort=(m,long)=>MSHORT(m)+(long?" "+m.slice(2,4):"");
+function trOptions(){const rows=A().filter(t=>!t.pending),cat={},src={},tag={};
+rows.forEach(t=>{const v=Math.abs(t.a);if(t.a>0){const k=incKey(t);src[k]=(src[k]||0)+v}else{const c=t.c||"Uncategorized";cat[c]=(cat[c]||0)+v;(t.tags||[]).forEach(g=>tag[g]=(tag[g]||0)+v)}});
+const top=(o,n)=>Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,n).map(x=>x[0]);
+return[["Overview",[["nw","Net worth"],["inc","Income"],["exp","Expenses"],["net","Net cash flow (income − expenses)"]]],["Types",[["bills","Bills (recurring and one-off)"]]],["Spending by category",top(cat,40).map(k=>["cat:"+k,k])],["Income by source",top(src,12).map(k=>["src:"+k,k.length>34?k.slice(0,34)+"…":k])],["Spending by tag",top(tag,20).map(k=>["tag:"+k,"#"+k])]].filter(g=>g[1].length)}
+// one number per month for the chosen measure
+function trSeries(spec,ms){const rows=A().filter(t=>!t.pending),by=(pred,sg)=>{const m={};rows.forEach(t=>{if(pred(t))m[t.d.slice(0,7)]=(m[t.d.slice(0,7)]||0)+(sg?t.a:Math.abs(t.a))});return ms.map(k=>m[k]||0)};
+const [k,...r]=spec.split(":"),arg=r.join(":");
+if(k=="inc")return by(t=>t.a>0);if(k=="exp")return by(t=>t.a<0);if(k=="net")return by(()=>true,1);
+if(k=="cat")return by(t=>t.a<0&&(t.c||"Uncategorized")==arg);if(k=="src")return by(t=>t.a>0&&incKey(t)==arg);if(k=="tag")return by(t=>t.a<0&&(t.tags||[]).includes(arg));
+if(k=="bills"){const ids=new Set();BC.filter(b=>b.flag!="canceled").forEach(b=>billTx(b).forEach(t=>ids.add(t.id)));return by(t=>t.a<0&&ids.has(t.id))}
+return null}
+const trName=spec=>{const[k,...r]=spec.split(":"),a=r.join(":");return{nw:"Net worth",inc:"Income",exp:"Expenses",net:"Net cash flow",bills:"Bills",cat:a,src:"Income from "+a,tag:"#"+a}[k]||spec}
+const trColor=spec=>{const k=spec.split(":")[0],a=spec.split(":").slice(1).join(":");return k=="nw"?"var(--acc)":k=="inc"||k=="src"?"var(--pos)":k=="exp"?"var(--c1)":k=="net"?"var(--acc)":k=="bills"?"var(--c3)":k=="cat"?cc(a):"var(--c5)"}
+const fmAx=v=>{const a=Math.abs(v),x=a>=1e6?+(a/1e6).toFixed(1)+"M":a>=1000?+(a/1000).toFixed(a%1000?1:0)+"k":Math.round(a);return(v<0?"−":"")+x};
+function trDraw(el,labels,fullL,vals,prev,o){const W=Math.max(260,Math.floor(el.clientWidth||320)),narrow=W<520,H=narrow?210:250,Pl=narrow?36:44,Pr=8,Pt=14,Pb=26,n=vals.length,band=(W-Pl-Pr)/n;
+const all=vals.concat(prev||[]);let lo=Math.min(...all),hi=Math.max(...all);
+if(o.kind=="bars"){lo=Math.min(0,lo);hi=Math.max(0,hi)}else{const pad=(hi-lo)*.18||Math.abs(hi)*.06||1;lo-=pad;hi+=pad;if(o.zero)lo=Math.min(0,lo)}
+if(hi<=lo)hi=lo+1;const step=nice((hi-lo)/4);lo=Math.floor(lo/step+1e-9)*step;hi=Math.ceil(hi/step-1e-9)*step;
+const X=i=>Pl+(i+.5)*band,Y=v=>Pt+(hi-v)/(hi-lo)*(H-Pt-Pb),id="tg"+(sid++);let s=`<defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${o.c}" stop-opacity=".32"/><stop offset="1" stop-color="${o.c}" stop-opacity="0"/></linearGradient></defs>`;
+for(let v=lo;v<=hi+step/2;v+=step){const y=Y(v);s+=`<line class="gl" x1="${Pl}" x2="${W-Pr}" y1="${y}" y2="${y}" ${Math.abs(v)<1e-9?'':'stroke-dasharray="2 5"'}/><text x="${Pl-7}" y="${y+4}" text-anchor="end">${fmAx(v)}</text>`}
+const ls=Math.max(1,Math.ceil(n/Math.max(2,Math.floor((W-Pl-Pr)/(narrow?44:54)))));labels.forEach((l,i)=>{if((n-1-i)%ls==0)s+=`<text x="${X(i)}" y="${H-8}" text-anchor="middle">${l}</text>`});
+if(o.kind=="bars"){const bw=Math.max(3,Math.min(34,band*.58)),z=Y(0);vals.forEach((v,i)=>{const y=Y(v),h=Math.max(1.5,Math.abs(y-z)),top=v>=0?y:z,neg=o.signed&&v<0;s+=`<rect x="${X(i)-bw/2}" y="${top}" width="${bw}" height="${h}" rx="${Math.min(5,bw/2)}" fill="${neg?"var(--neg)":o.c}" fill-opacity="${i==n-1?1:.82}"/>`;if(prev)s+=`<line x1="${X(i)-bw/2-2}" x2="${X(i)+bw/2+2}" y1="${Y(prev[i])}" y2="${Y(prev[i])}" stroke="var(--tx)" stroke-opacity=".55" stroke-width="2" stroke-dasharray="3 3" stroke-linecap="round"/>`})}
+else{const pts=vals.map((v,i)=>X(i)+","+Y(v)).join(" ");if(prev)s+=`<polyline fill="none" stroke="var(--tx)" stroke-opacity=".5" stroke-width="2" stroke-dasharray="4 4" stroke-linecap="round" stroke-linejoin="round" points="${prev.map((v,i)=>X(i)+","+Y(v)).join(" ")}"/>`;
+if(o.kind=="area")s+=`<polygon fill="url(#${id})" points="${X(0)},${Y(Math.max(lo,Math.min(0,hi)))} ${pts} ${X(n-1)},${Y(Math.max(lo,Math.min(0,hi)))}"/>`;
+s+=`<polyline fill="none" stroke="${o.c}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" points="${pts}"/>`+(n<=24?vals.map((v,i)=>i==n-1?"":`<circle cx="${X(i)}" cy="${Y(v)}" r="3" fill="var(--bg)" stroke="${o.c}" stroke-width="2"/>`).join(""):"")+`<circle cx="${X(n-1)}" cy="${Y(vals[n-1])}" r="9" fill="${o.c}" fill-opacity=".18"/><circle cx="${X(n-1)}" cy="${Y(vals[n-1])}" r="4.5" fill="${o.c}"/>`}
+s+=`<line class="trx" x1="0" x2="0" y1="${Pt}" y2="${H-Pb}" stroke="var(--tx)" stroke-opacity=".35" stroke-dasharray="3 3" style="display:none"/><circle class="trd" r="5.5" fill="${o.c}" stroke="var(--bg)" stroke-width="2" style="display:none"/>`;
+el.innerHTML=`<div class="trw"><svg class="trs" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${s}</svg><div class="trtip" style="display:none"></div></div>`;
+const wrap=el.firstChild,svg=wrap.firstChild,tp=wrap.querySelector(".trtip"),gx=svg.querySelector(".trx"),gd=svg.querySelector(".trd");
+const show=e=>{const r=svg.getBoundingClientRect(),i=Math.max(0,Math.min(n-1,Math.floor((e.clientX-r.left-Pl)/band)));if(e.clientX-r.left<Pl-6)return;const x=X(i),y=Y(vals[i]);gx.setAttribute("x1",x);gx.setAttribute("x2",x);gx.style.display="";gd.setAttribute("cx",x);gd.setAttribute("cy",y);gd.style.display=o.kind=="bars"?"none":"";
+tp.innerHTML=`<b>${fullL[i]}</b><span>${o.fmt(vals[i])}</span>${prev?`<small>before: ${o.fmt(prev[i])}</small>`:""}`;tp.style.display="block";const w=tp.offsetWidth;tp.style.left=Math.max(0,Math.min(W-w,x-w/2))+"px";tp.style.top=Math.max(0,y-(prev?78:62))+"px"};
+const hide=()=>{gx.style.display=gd.style.display=tp.style.display="none"};svg.addEventListener("pointermove",show);svg.addEventListener("pointerdown",show);svg.addEventListener("pointerleave",hide)}
+function renderNW(){const box=$("nwc");if(!box)return;const opts=trOptions(),flat=opts.flatMap(g=>g[1].map(x=>x[0]));if(!flat.includes(TR.m))TR.m="nw";
+const isNW=TR.m=="nw",wp=S.nwPension,NN=NW.months.length;let n;
+if(TR.r){n=TR.r}else{const e=isNW?NW.keys[NW.first]:A().reduce((m,t)=>t.d<m?t.d:m,MK+"-31").slice(0,7);n=1;while(n<60&&addM(MK,-n)>=e)n++;n=Math.max(n,3)}
+n=Math.min(n,isNW?NN:60);const ms=Array.from({length:n},(_,i)=>addM(MK,-(n-1-i))),pms=ms.map(m=>addM(m,-n));
+let vals,prev=null,kind,fmt=v=>fm(v),signed=false;
+if(isNW){const cash=NW.hap.map((v,i)=>v+NW.wise[i]),tot=cash.map((v,i)=>v+NW.pen[i]),main=wp?tot:cash;vals=main.slice(-n);if(TR.c&&NN>=2*n)prev=main.slice(NN-2*n,NN-n);kind=TR.v=="line"?"line":"area"}
+else{vals=trSeries(TR.m,ms);if(TR.c)prev=trSeries(TR.m,pms);kind=TR.v=="line"?"line":"bars";signed=TR.m=="net"}
+const sum=a=>a.reduce((x,y)=>x+y,0),name=trName(TR.m),col=trColor(TR.m),labels=ms.map(m=>trShort(m,n>12)),fullL=ms.map(trFull);
+let head,delta,big;
+if(isNW){big=vals[n-1];const ch=big-vals[0],pc=vals[0]?ch/Math.abs(vals[0])*100:0;delta=`<span class="bd ${ch>=0?"dn":"up"}">${ch>=0?"▲":"▼"} ${fm(Math.abs(ch))} (${Math.abs(pc).toFixed(1)}%)</span> since ${esc(fullL[0])}`}
+else{big=sum(vals);const pt=prev?sum(prev):null;delta=pt==null?`${fm(sum(vals)/n)} a month on average`:`<span class="bd ${(big>=pt)==(TR.m=="inc"||TR.m=="net"||TR.m=="src")?"dn":"up"}">${big>=pt?"▲":"▼"} ${pt?Math.abs((big/pt-1)*100).toFixed(0)+"%":"new"}</span> vs ${fm(pt)} before`}
+const rngL={3:"3 months",6:"6 months",12:"12 months",36:"3 years"}[TR.r]||"all history";
+const hi=Math.max(...vals),lo=Math.min(...vals),stats=isNW?[["Now",vals[n-1]],["Change",vals[n-1]-vals[0]],["Highest",hi,fullL[vals.indexOf(hi)]],["Lowest",lo,fullL[vals.indexOf(lo)]]]:[["Total",sum(vals)],["Monthly average",sum(vals)/n],["Highest",hi,fullL[vals.indexOf(hi)]],["Lowest",lo,fullL[vals.indexOf(lo)]]];
+const R=[[3,"3M"],[6,"6M"],[12,"12M"],[36,"3Y"],[0,"All"]];
+box.innerHTML=`<div class="trtop"><div><div class="lbl">${esc(name)}${isNW&&wp?" with pension":""} · ${rngL}</div><div class="val"><small>₪</small>${big<0?"−":""}${f(big)}</div><div class="sm">${delta}</div></div></div>
+<div class="trctl"><select data-t="trM" aria-label="What to show">${opts.map(g=>`<optgroup label="${esc(g[0])}">${g[1].map(([v,l])=>`<option value="${esc(v)}" ${TR.m==v?"selected":""}>${esc(l)}</option>`).join("")}</optgroup>`).join("")}</select>
+<div class="seg trseg">${R.map(([v,l])=>`<button data-t="trR" data-v="${v}" class="${TR.r==v?"on":""}">${l}</button>`).join("")}</div></div>
+<div class="trctl sec"><div class="seg trseg"><button data-t="trV" data-v="auto" class="${TR.v!="line"?"on":""}">${isNW?"Area":"Bars"}</button><button data-t="trV" data-v="line" class="${TR.v=="line"?"on":""}">Line</button></div>
+<label class="trchk"><input type="checkbox" data-t="trC" ${TR.c?"checked":""}> Compare with the ${rngL=="all history"?"same length before":"previous "+rngL}</label>${isNW?`<div class="seg trseg"><button data-a="nwP" data-v="0" class="${wp?"":"on"}">Without pension</button><button data-a="nwP" data-v="1" class="${wp?"on":""}">With pension</button></div>`:""}</div>
+<div id="nwA"></div>${isNW&&TR.c&&!prev?`<div class="sm">Not enough history to compare this length.</div>`:""}
+<div class="trstats">${stats.map(([l,v,w])=>`<div><span>${l}</span><b class="num ${l=="Change"&&v<0?"neg":""}">${v<0?"−":""}${fm(Math.abs(v))}</b>${w?`<small>${esc(w)}</small>`:""}</div>`).join("")}</div>
+<div class="sm" style="margin-top:10px">${isNW?"Monthly snapshots, stored once a month so history does not move with exchange rates. Months without a snapshot are worked out from your transactions (today's balance minus what moved since). The pension is updated by hand, so it is left out unless you switch it on.":"Month by month from your transactions. Transfers between your own accounts, card bill payments and anything you counted out are not included. "+esc(trFull(MK))+" is month to date."}</div>`;
+trDraw($("nwA"),labels,fullL,vals,prev,{kind,c:col,fmt,signed,zero:isNW&&Math.min(...vals)<0});TR._w=$("nwA").clientWidth}
 const nice=v=>{v=Math.max(v,1);const p=10**Math.floor(Math.log10(v)),n=v/p,st=n<=1?1:n<=2?2:n<=5?5:10;return st*p};
 function scale(v){const mx=Math.max(1,...v),step=nice(mx/3);return{mx:Math.ceil(mx/step)*step,step}}
 function axis(W,H,P,mx,step,fmt){let s="";for(let v=0;v<=mx;v+=step){const y=H-24-v/mx*(H-40);s+=`<line class="gl" x1="${P}" x2="${W-10}" y1="${y}" y2="${y}" stroke-dasharray="3 5"/><text x="${P-6}" y="${y+4}" text-anchor="end">${fmt(v)}</text>`}return s}
@@ -1166,7 +1220,7 @@ case"alDismiss":S.dismissed[d.id]=1;renderAll();break;case"alReset":S.dismissed=
 case"notifOn":if("Notification" in window)Notification.requestPermission().then(()=>{renderAlerts();toast("Permission: "+Notification.permission)});else toast("Not supported on this browser");break;
 case"notifTest":notify("Money","Test alert: notifications work").then(ok=>toast(ok?"Sent":"Allow notifications first"));break;
 case"ntfyTest":api("/api/ntfy/test",{method:"POST"}).then(r=>r.ok?toast("Sent to ntfy"):openSheet(`<h3>Not sent</h3><div class="sm" style="margin-bottom:12px">${esc(r.reason||"")}</div><div class="flex" style="justify-content:flex-end"><button class="btn" data-a="close">Done</button></div>`)).catch(()=>toast("Could not reach the server"));break;
-case"nwR":nwR=+d.n;renderNW();break;case"nwP":S.nwPension=d.v=="1";save();renderNW();break;
+case"nwR":renderNW();break;case"nwP":S.nwPension=d.v=="1";save();renderNW();break;
 case"fc":fc[d.k]=isNaN(+d.v)?d.v:+d.v;renderFc();renderAlerts();break;
 case"setTab":setTab=d.t;renderSet();if(d.t=="conn")loadConn();if(d.t=="sec")renderSec();break;
 case"ruleAdd":if($("rk").value){S.rules.push({k:$("rk").value,c:$("rc").value,t:$("rt").value});log("Added rule",'"'+$("rk").value+'" → '+$("rc").value);renderAll()}break;
@@ -1317,4 +1371,9 @@ const mo=new MutationObserver(sync);mo.observe(sc,{attributes:true,attributeFilt
 addEventListener("popstate",e=>{const st=e.state||{};
 if(open()){if(as.style.display=="block")assistClose();else if(DV)closeDocs();else closeSheet();if(open())history.pushState({o:1,v:curView},"",location.href);return}
 const v=st.v||location.hash.slice(1)||"dash";if(TITLES[v]&&v!=curView)nav(v,true)})})();
+
+(()=>{const box=document.getElementById("nwc");if(!box)return;
+box.addEventListener("change",e=>{const t=e.target;if(t.dataset.t=="trM"){TR.m=t.value;saveTR();renderNW()}else if(t.dataset.t=="trC"){TR.c=t.checked;saveTR();renderNW()}});
+box.addEventListener("click",e=>{const b=e.target.closest("[data-t]");if(!b)return;if(b.dataset.t=="trR"){TR.r=+b.dataset.v;saveTR();renderNW()}else if(b.dataset.t=="trV"){TR.v=b.dataset.v;saveTR();renderNW()}});
+let rt=null;addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=>{const a=document.getElementById("nwA");if(a&&a.clientWidth&&Math.abs(a.clientWidth-(TR._w||0))>24)renderNW()},150)})})();
 </script></body></html>
