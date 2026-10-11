@@ -590,6 +590,8 @@ Object.assign(D,{
 "Fill history": "היסטוריית מילוי",
 "Fill history · {}": "היסטוריית מילוי · {}",
 "New look": "מראה חדש",
+"All your bills": "כל החשבונות שלך",
+"A bill": "חשבון",
 ". Everything that counts as a bill carries a": ". כל מה שנחשב לחשבון מסומן ב",
 "marker in Activity.": "בעמוד הפעילות.",
 ": mark a single payment as a bill. To do either, open the payment in Activity and press": ": סימון תשלום בודד כחשבון. כדי לעשות כל אחד מהם, פתחו את התשלום בפעילות ולחצו על",
