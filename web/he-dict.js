@@ -1414,4 +1414,8 @@ Object.assign(D,{
 "Planned": "מתוכנן",
 "Other budgets": "תקציבים אחרים",
 });
+Object.assign(D,{
+"Bills to pay": "חשבונות לתשלום",
+"Planned, available": "מתוכנן, זמין",
+});
 })();
