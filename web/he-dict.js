@@ -1408,4 +1408,10 @@ Object.assign(D,{
 "Unassigned · safe to put in jars": "לא מוקצה · בטוח להפקיד בקופות",
 "Everything you have today, what is already set aside, what is only planned (not spent yet), and what is left unassigned.": "כל מה שיש לכם היום, מה כבר מוקצה, מה רק מתוכנן (עוד לא הוצא), ומה נשאר לא מוקצה.",
 });
+Object.assign(D,{
+"Available to spend": "זמין להוצאה",
+"Set aside": "מוקצה",
+"Planned": "מתוכנן",
+"Other budgets": "תקציבים אחרים",
+});
 })();
