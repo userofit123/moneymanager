@@ -68,12 +68,12 @@ export async function fillJars(month = thisMonth()) {
 // the jars as the UI shows them: with what each received this month and the last fills
 export async function readJars(c) {
   const month = thisMonth();
-  const jars = (await c.query("SELECT id,name,priority,target,cap,balance,due,bill_match,auto_cap FROM jars ORDER BY priority,id")).rows;
+  const jars = (await c.query("SELECT id,name,priority,target,cap,balance,due,bill_match,auto_cap,description,bill_months FROM jars ORDER BY priority,id")).rows;
   const mv = (await c.query("SELECT jar_id,amount,note,month,created_at FROM jar_movements ORDER BY id DESC LIMIT 400")).rows;
   return jars.map((j) => {
     const mine = mv.filter((m) => m.jar_id === j.id);
     return {
-      id: j.id, n: j.name, p: j.priority, need: j.target, cap: j.cap, bal: j.balance, due: j.due || "", bill: j.bill_match || "", auto: !!j.auto_cap,
+      id: j.id, n: j.name, p: j.priority, need: j.target, cap: j.cap, bal: j.balance, due: j.due || "", bill: j.bill_match || "", auto: !!j.auto_cap, desc: j.description || "", months: j.bill_months || 0,
       got: +mine.filter((m) => m.month === month).reduce((s, m) => s + m.amount, 0).toFixed(2),
       moves: mine.slice(0, 8).map((m) => ({ amt: m.amount, note: m.note, at: m.created_at.toISOString() })),
     };
