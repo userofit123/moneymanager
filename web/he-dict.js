@@ -594,6 +594,7 @@ Object.assign(D,{
 "A bill": "חשבון",
 "Released from the jars": "שוחרר מהקופות",
 "Click for the fill history.": "לחצו להיסטוריית המילוי.",
+"Priority: jars take money in this order, so jar 1 is filled first. Click to pick a position, or use the arrows to move it one step.": "עדיפות: הקופות לוקחות כסף לפי הסדר הזה, כך שקופה 1 מתמלאת ראשונה. לחצו לבחירת מיקום, או השתמשו בחצים כדי להזיז צעד אחד.",
 ". Everything that counts as a bill carries a": ". כל מה שנחשב לחשבון מסומן ב",
 "marker in Activity.": "בעמוד הפעילות.",
 ": mark a single payment as a bill. To do either, open the payment in Activity and press": ": סימון תשלום בודד כחשבון. כדי לעשות כל אחד מהם, פתחו את התשלום בפעילות ולחצו על",
