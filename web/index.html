@@ -295,8 +295,8 @@ html.mob .ftools{grid-template-columns:repeat(4,minmax(0,1fr))}
 .tsug{margin-top:6px;max-height:176px;overflow:auto;border:1px solid var(--ol);border-radius:14px;background:var(--s2);padding:4px}.tsug[hidden]{display:none}.tpick{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;background:none;color:var(--tx);font:inherit;font-size:13.5px;padding:8px 10px;border-radius:10px;cursor:pointer;text-align:start}.tpick small{color:var(--tx2);font-size:11.5px}.tpick:hover,.tpick.hi{background:var(--accc);color:var(--onc)}.tpick.new{font-weight:600}
 .rule .tbox{flex:1 1 220px}.rule .tcs{min-height:38px;padding:4px 8px}
 .row[data-a=billHist],.chn[data-a=billHist]{cursor:pointer}.row[data-a=billHist]:hover{background:color-mix(in srgb,var(--tx) 4%,transparent)}
-.cmpcol{display:grid;gap:10px;flex:0 0 260px;min-width:min(240px,100%)}.cmpb{--c:var(--acc);padding:14px 16px;border-radius:16px;background:var(--s1);border:1px solid var(--ol);border-inline-start:4px solid var(--c)}.cmpb.cur{background:color-mix(in srgb,var(--acc) 9%,var(--s1))}.cmpb.prev{--c:color-mix(in srgb,var(--tx) 38%,transparent)}.cmpb .lbl{display:flex;align-items:center;gap:7px}.cmpb .cd{width:9px;height:9px;border-radius:50%;background:var(--c);display:inline-block;flex:none}.cmpb .val{margin:6px 0 4px}
-html.mob .cmpcol{flex:1 1 100%}
+.cmpcol{display:grid;gap:0;flex:0 0 250px;min-width:min(230px,100%);padding-inline-end:28px;border-inline-end:1px solid var(--ol)}.cmpb{--c:var(--acc);padding:0 0 16px}.cmpb.prev{--c:color-mix(in srgb,var(--tx) 38%,transparent);padding:16px 0 0;border-top:1px solid var(--ol)}.cmpb .lbl{display:flex;align-items:center;gap:7px}.cmpb .cd{width:9px;height:9px;border-radius:50%;background:var(--c);display:inline-block;flex:none}.cmpb .val{margin:6px 0 4px}
+html.mob .cmpcol{flex:1 1 100%;padding-inline-end:0;border-inline-end:0;padding-bottom:16px;border-bottom:1px solid var(--ol)}
 .dt{display:inline-block;margin:0 .3em;opacity:.6}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
