@@ -196,7 +196,7 @@ test("jars: waterfall in priority order, each only up to what it is still entitl
 
 test("jars: a new jar gets its money this month, once, with a record; a jar waiting for money takes it when it arrives", async () => {
   const { fillJars } = await import("../src/jars.js");
-  await q("TRUNCATE jars, jar_movements RESTART IDENTITY");
+  await q("DELETE FROM jar_movements"); await q("DELETE FROM jars"); await q("ALTER SEQUENCE jars_id_seq RESTART");
   await q("UPDATE accounts SET balance=1000 WHERE name='Bank Hapoalim'");
   await q("UPDATE accounts SET balance=0 WHERE kind='wallet'");
   await q("INSERT INTO jars (name,priority,target,cap,balance) VALUES ('Bills',1,800,NULL,0),('Trip',2,5000,500,0)");
@@ -217,7 +217,7 @@ test("jars: a new jar gets its money this month, once, with a record; a jar wait
 
 test("jars never take more than the free balance (balance minus what is in jars minus the buffer)", async () => {
   const { fillJars } = await import("../src/jars.js");
-  await q("TRUNCATE jars, jar_movements RESTART IDENTITY");
+  await q("DELETE FROM jar_movements"); await q("DELETE FROM jars"); await q("ALTER SEQUENCE jars_id_seq RESTART");
   await q("UPDATE accounts SET balance=2000 WHERE name='Bank Hapoalim'");
   await q("INSERT INTO settings (key,value) VALUES ('jars_buffer','100') ON CONFLICT (key) DO UPDATE SET value='100'");
   await q("INSERT INTO jars (name,priority,target,cap,balance) VALUES ('Trip',1,5000,500,1000),('Laptop',2,5000,500,700)");
@@ -229,7 +229,7 @@ test("jars never take more than the free balance (balance minus what is in jars 
 });
 
 test("saving the app state fills waiting jars and returns them; a user-edited balance is respected, an untouched one is not overwritten", async () => {
-  await q("TRUNCATE jars, jar_movements RESTART IDENTITY");
+  await q("DELETE FROM jar_movements"); await q("DELETE FROM jars"); await q("ALTER SEQUENCE jars_id_seq RESTART");
   await q("UPDATE accounts SET balance=5000 WHERE name='Bank Hapoalim'");
   await q("INSERT INTO jars (name,priority,target,cap,balance) VALUES ('Trip',1,5000,500,0)");
   let S = await getState();
@@ -271,4 +271,28 @@ test("suggested rules: specific names beat broad words, and adding them sorts ex
   assert.equal(cat("פז YELLOW א.ת מודיעין"), "Car & fuel");
   assert.equal(cat("GITHUB, INC.           GITHUB.COM    US"), "Software & hosting");
   assert.equal(cat("מקס איט פיננסי"), undefined); // a card bill payment is not a spending category
+});
+
+test("a Wise conversion has one line in each currency under the same reference: both are kept, a re-import adds nothing", async () => {
+  await q("DELETE FROM transactions WHERE external_id='CONVERSION-9'");
+  const usd = [{ date: "2026-10-05", description: "Converted USD to ILS", amount: -100, currency: "USD", externalId: "CONVERSION-9" }];
+  const ils = [{ date: "2026-10-05", description: "Converted USD to ILS", amount: 305, currency: "ILS", externalId: "CONVERSION-9" }];
+  const a = await ingest({ name: "Wise", currency: "USD", source: "wise" }, usd);
+  const b = await ingest({ name: "Wise", currency: "ILS", source: "wise" }, ils);
+  assert.deepEqual([a.added, b.added], [1, 1]);
+  assert.equal((await q("SELECT count(*)::int n FROM transactions WHERE external_id='CONVERSION-9'")).rows[0].n, 2);
+  const again = [await ingest({ name: "Wise", currency: "USD", source: "wise" }, usd), await ingest({ name: "Wise", currency: "ILS", source: "wise" }, ils)];
+  assert.deepEqual(again.map((r) => r.added), [0, 0]);
+  assert.equal((await q("SELECT count(*)::int n FROM transactions WHERE external_id='CONVERSION-9'")).rows[0].n, 2);
+});
+
+test("saving a new jar together with a transaction attached to it keeps the attachment", async () => {
+  await q("DELETE FROM jar_movements"); await q("DELETE FROM jars"); await q("ALTER SEQUENCE jars_id_seq RESTART");
+  await q("UPDATE accounts SET balance=0 WHERE kind IN ('bank','wallet')");
+  let S = await getState();
+  const id = S.tx[0].id;
+  S.jars.push({ id: 77, n: "Fresh", p: 1, need: 100, cap: 0, bal: 0, due: "", bill: "", auto: false, desc: "", months: 0, done: "" });
+  S.tx.find((t) => t.id === id).jar = { id: 77, amt: 10 };
+  await putState(S);
+  assert.equal((await q("SELECT jar_id FROM transactions WHERE id=$1", [id])).rows[0].jar_id, 77);
 });
