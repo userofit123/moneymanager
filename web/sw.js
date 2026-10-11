@@ -1,7 +1,11 @@
-const V="money-v9",SHELL=["./","index.html","he-core.js","he-dict.js","manifest.webmanifest","icon-192.png","icon-512.png","icon-maskable-512.png","apple-touch-icon.png","favicon.png"];
+const V="money-v11",SHELL=["./","index.html","he-core.js","he-dict.js","manifest.webmanifest","icon-192.png","icon-512.png","icon-maskable-512.png","apple-touch-icon.png","favicon.png"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()))});
-self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
-self.addEventListener("fetch",e=>{const r=e.request;if(r.method!=="GET")return;const u=new URL(r.url);if(u.pathname.startsWith("/api/"))return; /* data is never cached by the service worker */
+self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V&&x!=="money-data").map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
+self.addEventListener("fetch",e=>{const r=e.request;if(r.method!=="GET")return;const u=new URL(r.url);const D="money-data";
+/* The last good copy of the data is kept on this device so the app opens, read-only, without a connection. Signing out clears it. */
+if(u.pathname==="/api/state"||u.pathname==="/api/fx"||u.pathname==="/api/auth/status"){const key=u.pathname,saved=()=>caches.open(D).then(ch=>ch.match(key)).then(h=>{if(!h)return Response.error();const hd=new Headers(h.headers);hd.set("x-offline-cache","1");return h.blob().then(b=>new Response(b,{status:200,headers:hd}))});
+e.respondWith(Promise.race([fetch(r).then(x=>{if(x.ok){const c=x.clone();caches.open(D).then(ch=>ch.put(key,c))}return x}),new Promise((_,no)=>setTimeout(()=>no(new Error("slow")),9000))]).catch(saved));return}
+if(u.pathname.startsWith("/api/"))return; /* everything else from the API is never cached */
 if(u.origin!==location.origin){e.respondWith(fetch(r).then(x=>{const c=x.clone();caches.open(V+"-rates").then(ch=>ch.put(r,c));return x}).catch(()=>caches.match(r)));return}
 if(r.mode==="navigate"){e.respondWith(fetch(r).then(x=>{const c=x.clone();caches.open(V).then(ch=>ch.put("index.html",c));return x}).catch(()=>caches.match("index.html")));return}
 e.respondWith(caches.match(r).then(h=>h||fetch(r).then(x=>{const c=x.clone();caches.open(V).then(ch=>ch.put(r,c));return x})))});
