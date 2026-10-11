@@ -100,7 +100,7 @@ html.mob #toasts{top:calc(8px + var(--st));right:10px;left:10px;bottom:auto;widt
 @media(max-width:520px){.qa{grid-template-columns:1fr}}
 .ghead{cursor:pointer;background:color-mix(in srgb,var(--acc) 9%,transparent);user-select:none}
 tr.ghead td{padding:11px 12px;font-size:14px}.ghead .gtot{float:right;margin-left:12px;font-variant-numeric:tabular-nums;font-size:13px}
-div.ghead{padding:10px 12px;border-radius:10px;margin:12px 0 4px;font-size:14px}
+div.ghead{padding:10px 12px;border-radius:10px;margin:12px 0 4px;font-size:14px}.ghead .gh1{display:flex;justify-content:space-between;align-items:baseline;gap:10px}.ghead .gl{display:flex;align-items:baseline;gap:8px;min-width:0}.ghead .gl b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}html.mob div.ghead{margin:10px -16px 2px;border-radius:0;padding:11px 16px;border-block:1px solid var(--ol)}html.mob div.ghead:first-child{margin-top:-16px;border-top:0;border-radius:20px 20px 0 0}
 .tools .rng{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .grid{display:grid;gap:16px}.g4{grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))}.g3{grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr))}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}@media(max-width:860px){.g2{grid-template-columns:1fr}}.g2s{grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))}
 .card{background:var(--s1);border:1px solid var(--ol);border-radius:var(--r);padding:18px 20px;transition:transform .2s,border-color .2s,box-shadow .2s;position:relative;overflow:hidden;min-width:0}
@@ -364,7 +364,7 @@ html.mob .cmpcol{flex:1 1 100%;padding-inline-end:0;border-inline-end:0;padding-
 
 <section class="view" id="tx">
 <div class="seg" id="txTabs"></div>
-<div id="txMain"><div class="card warn" id="txFocus" style="display:none;margin-bottom:12px;padding:12px 16px"></div><div class="tools ftools"><div class="frow f1"><input id="q" type="search" placeholder="Search store, note or tag…"><button class="btn o s" data-a="clearF">Clear</button><button class="btn o s" data-a="exOpen" data-from="activity" data-tip="Export what you are looking at, or change the choices in the next window.">Export…</button></div><div class="frow f2"><div class="fsel"><svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/></svg><select id="fSrc"><option value="">All sources</option></select></div><div class="fsel"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><path d="M7.5 8h.01"/></svg><select id="fCat"><option value="">All categories</option></select></div><div class="fsel"><svg viewBox="0 0 24 24"><path d="M5 9h14M5 15h14M10 4L8 20M16 4l-2 16"/></svg><select id="fTag" aria-label="Tag"><option value="">All tags</option></select></div><div class="fsel"><svg viewBox="0 0 24 24"><path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/></svg><select id="fTy"><option value="">All types</option><option value="income">Income</option><option value="expense">Expenses</option><option value="transfer">Transfers</option><option value="cardpay">Card payments</option></select></div><div class="fsel"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span class="rng" id="txRange"></span></div><div class="fsel"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5"/></svg><select id="fGroup" aria-label="Group by"></select></div></div></div>
+<div id="txMain"><div class="card warn" id="txFocus" style="display:none;margin-bottom:12px;padding:12px 16px"></div><div class="tools ftools"><div class="frow f1"><input id="q" type="search" placeholder="Search store, note or tag…"><button class="btn o s" data-a="clearF">Clear</button><button class="btn o s" data-a="exOpen" data-from="activity" data-tip="Export what you are looking at, or change the choices in the next window.">Export…</button></div><div class="frow f2"><div class="fsel"><svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/></svg><select id="fSrc"><option value="">All sources</option></select></div><div class="fsel"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><path d="M7.5 8h.01"/></svg><select id="fCat"><option value="">All categories</option></select></div><div class="fsel"><svg viewBox="0 0 24 24"><path d="M5 9h14M5 15h14M10 4L8 20M16 4l-2 16"/></svg><select id="fTag" aria-label="Tag"><option value="">All tags</option></select></div><div class="fsel"><svg viewBox="0 0 24 24"><path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/></svg><select id="fTy"><option value="">All types</option><option value="income">Income</option><option value="expense">Expenses</option><option value="transfer">Transfers</option><option value="bill">Bills</option><option value="cardpay">Card payments</option></select></div><div class="fsel"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span class="rng" id="txRange"></span></div><div class="fsel"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5"/></svg><select id="fGroup" aria-label="Group by"></select></div></div></div>
 <div class="sm" id="txSum" style="margin:2px 2px 10px"></div>
 <table class="dtab"><thead><tr><th>Date</th><th>Description</th><th>From → To</th><th>Category</th><th>Tags</th><th style="text-align:right">Amount</th><th>Docs</th></tr></thead><tbody id="txb"></tbody></table><div class="txl card" id="txl" style="padding:4px 12px"></div></div>
 <div id="txRev" style="display:none"></div>
@@ -468,7 +468,7 @@ async function flush(){if(saving||!dirty||!loaded)return;saving=true;dirty=false
 try{const r=await fetch("/api/state",{method:"PUT",headers:{"content-type":"application/json"},body:JSON.stringify(S)});
 if(r.status==409){const j=await r.json();adopt(j.state);toast("Updated from a sync · please repeat your last change");renderAll();saving=false;return}
 if(!r.ok)throw new Error("HTTP "+r.status);const j=await r.json();S.rev=j.rev;fresh.forEach((a,i)=>{a.id=j.auditIds[i]});S.jars.forEach(x=>{if(editedJars.includes(x.id))delete x.balEdit});if(j.jars){applyJars(j.jars);toast(`${j.filled} jar${j.filled==1?"":"s"} received money`,{title:"Jars"});setTimeout(renderAll,0)}lastSig=sigOf();saveErr=false;toastClear("savefail");
-const mine=fresh.filter(a=>a.who!="System");if(mine.length){const e=mine[0];toast(mine.length>1?mine.length+" changes saved":(e.detail||"Saved"),{title:mine.length>1?"Saved":e.action,undo:mine.length==1&&e.undo?e.id:0})}}
+}
 catch(e){saveErr=true;dirty=true;toast("Your last change is not saved yet. It will retry automatically.",{kind:"err",title:"Not saved",sticky:"savefail"});setTimeout(flush,8000)}
 saving=false;if(dirty&&!saveErr){clearTimeout(saveT);saveT=setTimeout(flush,200)}}
 async function flushNow(){clearTimeout(saveT);while(saving)await sleep(40);if(dirty||sigOf()!==lastSig){dirty=true;await flush()}}
@@ -477,7 +477,9 @@ function applyJars(list){(list||[]).forEach(sj=>{const j=S.jars.find(x=>x.id==sj
 function adopt(j){S=Object.assign(emptyState(),j);S.cfg=Object.assign({...DEF_CFG},S.cfg);loaded=true;lastSig=sigOf();dirty=false}
 async function load(){const r=await fetch("/api/state",{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);adopt(await r.json())}
 async function api(path,opt){await flushNow();const r=await fetch(path,opt);const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"HTTP "+r.status);return j}
-function log(action,detail,undo,who){S.audit.unshift({t:new Date().toISOString(),who:who||"You",action,detail,undo:undo||null});S.audit=S.audit.slice(0,2000);save()}
+let LK=0,LQ=[],LT=0;
+function log(action,detail,undo,who){const e={t:new Date().toISOString(),who:who||"You",action,detail,undo:undo||null};S.audit.unshift(e);S.audit=S.audit.slice(0,2000);save();
+if(e.who!="System"){Object.defineProperty(e,"_k",{value:"k"+(++LK),enumerable:false});LQ.push(e);clearTimeout(LT);LT=setTimeout(()=>{const m=LQ;LQ=[];if(!m.length)return;const e1=m[0];toast(m.length>1?m.length+" changes saved":(e1.detail||"Saved"),{title:m.length>1?"Saved":e1.action,undo:m.length==1&&e1.undo?(e1.id||e1._k):0})},40)}}
 const cc=n=>n=="Income"||S.cats[n]===99?"var(--pos)":`var(--c${(S.cats[n]==null?6:S.cats[n])%7})`;
 const byId=id=>S.tx.find(t=>t.id==id);
 let accts=[],SRC=[],hist={months:[],inc:[],exp:[],cat:{},incSrc:{}},NW={months:[],hap:[],wise:[],pen:[]},cardsD=[];
@@ -691,7 +693,7 @@ $("txMain").style.display=txTab=="all"?"":"none";$("txRev").style.display=txTab=
 const q=$("q").value.toLowerCase(),s=$("fSrc").value,c=$("fCat").value,ty=$("fTy").value,tg=$("fTag").value;
 putRange($("txRange"),"tx");if(!$("fGroup").options.length){$("fGroup").innerHTML=GROUPS.map(([v,t])=>`<option value="${v}">${t}</option>`).join("");$("fGroup").value=GMODE}
 const SORT=(a,b)=>b.d.localeCompare(a.d)||String(b.id).localeCompare(String(a.id));
-const L0=ALL().filter(t=>inRange(t.d,RNG.tx)&&(!q||(t.desc+" "+t.to+" "+(t.note||"")+" "+t.tags.join(" ")).toLowerCase().includes(q))&&(!s||t.from==s||t.to==s)&&(!tg||(t.tags||[]).includes(tg))&&(!c||(c=="Uncategorized"?(!t.c||t.c=="Uncategorized")&&!isXf(t):t.c==c))&&(!ty||(ty=="transfer"?isXf(t):ty=="cardpay"?isCardPay(t):!isXf(t)&&!isCardPay(t)&&(ty=="income")==(t.a>0)))).sort((a,b)=>b.d.localeCompare(a.d)||String(b.id).localeCompare(String(a.id)));
+const L0=ALL().filter(t=>inRange(t.d,RNG.tx)&&(!q||(t.desc+" "+t.to+" "+(t.note||"")+" "+t.tags.join(" ")).toLowerCase().includes(q))&&(!s||t.from==s||t.to==s)&&(!tg||(t.tags||[]).includes(tg))&&(!c||(c=="Uncategorized"?(!t.c||t.c=="Uncategorized")&&!isXf(t):t.c==c))&&(!ty||(ty=="transfer"?isXf(t):ty=="cardpay"?isCardPay(t):ty=="bill"?!!billOf(t):!isXf(t)&&!isCardPay(t)&&(ty=="income")==(t.a>0)))).sort((a,b)=>b.d.localeCompare(a.d)||String(b.id).localeCompare(String(a.id)));
 const L=FOCUS?ALL().filter(t=>FOCUS.ids.has(t.id)).sort(SORT):L0;
 $("txFocus").style.display=FOCUS?"":"none";if(FOCUS)$("txFocus").innerHTML=`<div class="flex" style="justify-content:space-between;gap:10px"><div><b>Showing only ${L.length} item${L.length==1?"":"s"}</b><div class="sm">${esc(FOCUS.label)}. Everything else is hidden until you clear this.</div></div><button class="btn o s" data-a="focusClear">Show all activity</button></div>`;
 const catOpts=t=>`<option value="">Uncategorized</option>${catNames().filter(k=>k!="Uncategorized").map(k=>`<option ${k==t.c?"selected":""}>${esc(k)}</option>`).join("")}`;
@@ -709,7 +711,7 @@ else{const gs=new Map();L.forEach(t=>{const[k,lab,chrono]=groupOf(t,GMODE);if(!g
 const arr=[...gs.values()].map(g=>({...g,T:totalsOf(g.L)})).sort((a,b)=>a.chrono?b.k.localeCompare(a.k):(Math.abs(b.T.out)+Math.abs(b.T.inc))-(Math.abs(a.T.out)+Math.abs(a.T.inc)));
 arr.forEach(g=>{const key=GMODE+"|"+g.k,col=GCOL.has(key),n=g.L.length,sum=`<span class="gtot">In ${fm(g.T.inc)} · Out ${fm(g.T.out)} · <b class="${g.T.net<0?"neg":"pos"}">Net ${fm(g.T.net)}</b></span>`,head=`<span class="gc">▾</span> <b>${esc(g.lab)}</b> <span class="sm">${n} transaction${n==1?"":"s"}</span>`;
 tb+=`<tr class="ghead ${col?"closed":""}" data-a="grpTog" data-g="${esc(key)}"><td colspan="7">${sum}${head}</td></tr>`+(col?"":g.L.map(t=>rowT(t,key)).join(""));
-lb+=`<div class="ghead ${col?"closed":""}" data-a="grpTog" data-g="${esc(key)}"><div class="flex" style="justify-content:space-between;gap:8px">${head}</div><div class="sm" style="margin-top:2px">In ${fm(g.T.inc)} · Out ${fm(g.T.out)} · <b class="${g.T.net<0?"neg":"pos"}">Net ${fm(g.T.net)}</b></div></div>`+(col?"":g.L.map(t=>itemT(t,key)).join(""))})}
+lb+=`<div class="ghead ${col?"closed":""}" data-a="grpTog" data-g="${esc(key)}"><div class="gh1"><span class="gl"><span class="gc">▾</span><b>${esc(g.lab)}</b></span><span class="sm">${n} transaction${n==1?"":"s"}</span></div><div class="sm" style="margin-top:3px;padding-inline-start:20px">In ${fm(g.T.inc)} · Out ${fm(g.T.out)} · <b class="${g.T.net<0?"neg":"pos"}">Net ${fm(g.T.net)}</b></div></div>`+(col?"":g.L.map(t=>itemT(t,key)).join(""))})}
 $("txb").innerHTML=tb;GJUST=null;
 $("txl").innerHTML=L.length?lb:`<div class="sm" style="padding:20px;text-align:center">Nothing matches</div>`}
 function renderRev(){const xs=S.xf.filter(x=>x.st=="auto"),dups=[...DUPS].map(byId).filter(Boolean);let h="";
@@ -1313,7 +1315,7 @@ case"openDocs":openDocs(+d.id,d.i);break;
 case"docClose":closeDocs();break;
 case"docPick":if(DV){DV.i=+d.i;renderDocs()}break;
 case"quick":openQuick();break;
-case"toastUndo":{const i=S.audit.findIndex(x=>x.id==d.id);if(i>=0)act("undo",{i});break}
+case"toastUndo":{const i=S.audit.findIndex(x=>x._k==d.id||x.id==d.id);if(i>=0)act("undo",{i});break}
 case"qaTx":openAdd();break;
 case"qaPhoto":openAdd();setTimeout(()=>{const f=$("nFile");if(f)f.click()},80);break;
 case"qaImport":closeSheet();FOCUS=null;nav("set");setTab="data";renderSet();break;
