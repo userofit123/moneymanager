@@ -218,6 +218,13 @@ app.post("/api/transactions/:id/documents", express.raw({ type: "*/*", limit: "2
   res.json(await saveDoc(+req.params.id, name, req.get("content-type") || "application/octet-stream", req.body));
 }));
 app.get("/api/documents/:id", wrap((req, res) => sendDoc(+req.params.id, res)));
+// everything the bank returned for one transaction (kept out of the main state so it stays small)
+app.get("/api/transactions/:id/details", wrap(async (req, res) => {
+  const r = await q("SELECT source,external_id,bank_category,pending,details FROM transactions WHERE id=$1", [+req.params.id]);
+  if (!r.rowCount) return res.status(404).json({ error: "No such transaction" });
+  const x = r.rows[0];
+  res.set("Cache-Control", "no-store").json({ source: x.source, externalId: x.external_id, bankCategory: x.bank_category, pending: !!x.pending, details: x.details || null });
+}));
 
 
 app.post("/api/gaps/:id/:action", json, wrap(async (req, res) => {
