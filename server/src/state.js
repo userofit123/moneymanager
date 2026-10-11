@@ -177,9 +177,9 @@ export async function putState(S) {
     for (const j of S.jars || []) {
       const ex = await c.query("SELECT 1 FROM jars WHERE id=$1", [j.id]);
       if (ex.rowCount) {
-        await c.query("UPDATE jars SET name=$2,priority=$3,target=$4,cap=$5,due=$6,bill_match=$7 WHERE id=$1", [j.id, j.n, j.p, j.need, j.cap ?? null, j.due || null, j.bill || null]);
+        await c.query("UPDATE jars SET name=$2,priority=$3,target=$4,cap=$5,due=$6,bill_match=$7,auto_cap=$8 WHERE id=$1", [j.id, j.n, j.p, j.need, j.cap ?? null, j.due || null, j.bill || null, !!j.auto]);
         if (j.balEdit) await c.query("UPDATE jars SET balance=$2 WHERE id=$1", [j.id, j.bal]);
-      } else await c.query("INSERT INTO jars (id,name,priority,target,cap,balance,due,bill_match) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)", [j.id, j.n, j.p, j.need, j.cap ?? null, j.bal, j.due || null, j.bill || null]);
+      } else await c.query("INSERT INTO jars (id,name,priority,target,cap,balance,due,bill_match,auto_cap) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)", [j.id, j.n, j.p, j.need, j.cap ?? null, j.bal, j.due || null, j.bill || null, !!j.auto]);
     }
     await c.query("DELETE FROM jars WHERE NOT (id = ANY($1))", [jids]);
     await c.query("SELECT setval(pg_get_serial_sequence('jars','id'), GREATEST((SELECT COALESCE(max(id),1) FROM jars),1))");
