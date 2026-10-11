@@ -72,7 +72,8 @@ const BANKS = { hapoalim: ["Bank Hapoalim", "bank"], max: ["Max", "card"], israc
 
 const RUN = {
   async wise(creds, opts = {}) {
-    const w = await fetchWise(creds.token, { days: opts.days || ((await firstTime("wise")) ? await getSet("sync_first_days", HISTORY_DAYS) : await getSet("sync_routine_days", 30)) });
+    const days = opts.days || ((await firstTime("wise")) ? await getSet("sync_first_days", HISTORY_DAYS) : await getSet("sync_routine_days", 30));
+    const w = await fetchWise(creds.token, { days });
     let added = 0;
     for (const b of w.balances) {
       const a = await tx((c) => account(c, "Wise", b.currency, { kind: "wallet", source: "wise", subtitle: `${b.currency} balance` }));
@@ -80,7 +81,8 @@ const RUN = {
       if (rows.length) added += (await ingest({ name: "Wise", currency: b.currency, source: "wise" }, rows, { mergeManual: true })).added;
       await setBalance(a, b.value);
     }
-    return { added, message: w.note };
+    const dates = w.transactions.map((t) => String(t.date || "").slice(0, 10)).filter(Boolean).sort();
+    return { added, message: w.note, days, seen: w.transactions.length, oldest: dates[0] || null };
   },
   ...Object.fromEntries(Object.entries(BANKS).map(([key, [name, kind]]) => [key, async (creds, opts = {}) => {
     const flag = `backfill:${key}`;
@@ -97,7 +99,7 @@ const RUN = {
     }
     if (balance != null) await setBalance(await tx((c) => account(c, name, "ILS", { kind, source: key })), balance);
     await q("DELETE FROM settings WHERE key=$1", [flag]); // the one-off history re-read is done
-    return { added, message: readNote(days, seen, oldest, added) };
+    return { added, message: readNote(days, seen, oldest, added), days, seen, oldest };
   }])),
 };
 
@@ -133,10 +135,10 @@ async function syncInner(name, opts = {}) {
   const creds = await getCreds(name);
   if (!creds) return { ok: false, skipped: true, error: "not connected" };
   if (await isLocked(name)) return { ok: false, locked: true, error: `${LABELS[name]} is locked after failed attempts. Check the credentials, then unlock it in Settings.` };
-  const run = await q("INSERT INTO sync_runs (source) VALUES ($1) RETURNING id", [name]);
+  const run = await q("INSERT INTO sync_runs (source,origin) VALUES ($1,$2) RETURNING id", [name, opts.origin || "manual"]);
   try {
     const res = await RUN[name](creds, opts);
-    await q("UPDATE sync_runs SET finished_at=now(), ok=true, added=$2, message=$3 WHERE id=$1", [run.rows[0].id, res.added, res.message || ""]);
+    await q("UPDATE sync_runs SET finished_at=now(), ok=true, added=$2, message=$3, days=$4, seen=$5, oldest=$6 WHERE id=$1", [run.rows[0].id, res.added, res.message || "", res.days ?? null, res.seen ?? null, res.oldest || null]);
     await recordResult(name, true);
     await clearNotified(`fail:${name}`);
     if (res.added) await audit(null, "Sync", `${LABELS[name]} synced · ${res.added} new transactions`);
@@ -179,11 +181,11 @@ async function testInner(name) {
   }
 }
 
-export const syncAll = () => withJob("all", "sync", syncAllInner);
-async function syncAllInner() {
+export const syncAll = (origin = "manual") => withJob("all", "sync", () => syncAllInner(origin));
+async function syncAllInner(origin) {
   await refreshRates(7).catch((e) => console.error("rates:", e.message));
   const out = {};
-  for (const s of SOURCE_NAMES) out[s] = await syncInner(s);
+  for (const s of SOURCE_NAMES) out[s] = await syncInner(s, { origin });
   await fillJars().catch((e) => console.error("jars:", e.message));
   const open = (await q("SELECT count(*)::int AS n FROM balance_gaps WHERE status='open'")).rows[0].n;
   if (open) await notifyOnce(`gaps:${open}`, "Money · missing money", `${open} balance gap${open > 1 ? "s" : ""} to explain in Activity → Needs review`);
@@ -210,7 +212,7 @@ export function startScheduler() {
       const { hours, lastAuto } = await getSyncSettings();
       if (!hours || (lastAuto && Date.now() - new Date(lastAuto) < (hours * 3600e3 - 5 * 60e3))) return;
       await putSet("sync_last_auto", new Date().toISOString());
-      await syncAll().then(snapshotNetWorth);
+      await syncAll("auto").then(snapshotNetWorth);
     } catch (e) { console.error("sync:", e.message); }
   });
   cron.schedule("30 3 * * *", () => refreshRates(7).catch((e) => console.error("rates:", e.message)));
@@ -220,3 +222,9 @@ export function startScheduler() {
   console.log("scheduler on");
 }
 export { sendNtfy };
+
+// Newest first, for the Sync log in Settings.
+export async function syncLog(limit = 200) {
+  const r = await q("SELECT id,source,started_at,finished_at,ok,added,message,days,seen,oldest,origin FROM sync_runs ORDER BY id DESC LIMIT $1", [limit]);
+  return r.rows.map((x) => ({ ...x, label: LABELS[x.source] || x.source, oldest: x.oldest ? new Date(x.oldest).toISOString().slice(0, 10) : null }));
+}
