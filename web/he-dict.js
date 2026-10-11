@@ -1398,4 +1398,14 @@ Object.assign(D,{
 "Your cushion": "כרית הביטחון שלכם",
 "Bills paid from jars · already inside “Already in jars”, not taken off again": "חשבונות שמשולמים מקופות · כבר כלולים ב״כבר בקופות״, ולא מופחתים שוב",
 });
+Object.assign(D,{
+"Unassigned": "לא מוקצה",
+"Planned · not spent yet": "מתוכנן · עוד לא הוצא",
+"Planned spending, not spent yet": "הוצאות מתוכננות, עוד לא הוצאו",
+"Set aside: bills, jars, cushion": "מוקצה: חשבונות, קופות, כרית",
+"Nothing unassigned": "אין סכום לא מוקצה",
+"Not promised to anything: safe to put in jars": "לא מובטח לשום דבר: בטוח להפקיד בקופות",
+"Unassigned · safe to put in jars": "לא מוקצה · בטוח להפקיד בקופות",
+"Everything you have today, what is already set aside, what is only planned (not spent yet), and what is left unassigned.": "כל מה שיש לכם היום, מה כבר מוקצה, מה רק מתוכנן (עוד לא הוצא), ומה נשאר לא מוקצה.",
+});
 })();
