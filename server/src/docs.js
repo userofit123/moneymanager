@@ -29,7 +29,7 @@ export async function sendDoc(id, res) {
   if (!Number.isSafeInteger(id) || id < 1) return res.status(404).json({ error: "No such file" });
   const d = await readDoc(id);
   if (!d) return res.status(404).json({ error: "This file is no longer on the server" });
-  const mime = SAFE_MIME.test(d.mime || "") ? d.mime : "application/octet-stream";
+  const mime = /\.pdf$/i.test(d.filename) ? "application/pdf" : SAFE_MIME.test(d.mime || "") ? d.mime : "application/octet-stream";
   const size = fs.statSync(d.file).size;
   res.status(200).set({ "Content-Type": mime, "Content-Length": String(size), "X-Content-Type-Options": "nosniff", "Content-Security-Policy": "default-src 'none'; object-src 'self'; style-src 'unsafe-inline'; img-src 'self' data: blob:; frame-ancestors 'self'", "Content-Disposition": `inline; filename*=UTF-8''${encodeURIComponent(d.filename)}` });
   await new Promise((ok) => {
