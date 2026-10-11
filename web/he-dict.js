@@ -266,6 +266,14 @@ Object.assign(D,{
 "Mint": "נענע",
 "Midnight": "חצות",
 "Candy": "סוכריה",
+"All tags": "כל התגיות",
+"Add a tag…": "הוספת תגית…",
+"Add another…": "הוספת עוד אחת…",
+"Remove tag": "הסרת תגית",
+"Show in Activity": "הצגה בפעילות",
+"Merchant": "עסק",
+"Rule added. Tagged {} existing transactions.": "הכלל נוסף. {} תנועות קיימות סומנו בתגית.",
+"Rule added. Tagged {} existing transaction.": "הכלל נוסף. תנועה קיימת אחת סומנה בתגית.",
 "Safe to put in jars": "בטוח להפקיד בקופות",
 "What is left after the money that is already spoken for": "מה שנשאר אחרי הכסף שכבר מיועד",
 "See how this is worked out": "איך זה מחושב",
@@ -1151,6 +1159,12 @@ P.push(
 [/^New transactions with "(.+)" now go to (.+)\.$/,(k,c,T)=>"תנועות חדשות עם \""+k+"\" יועברו מעכשיו ל"+T(c)+"."],
 [/^Move (\d+) past transactions? too$/,(n)=>n==1?"להעביר גם תנועה קודמת אחת":"להעביר גם "+n+" תנועות קודמות"],
 [/^(\d+) transactions moved to (.+)$/,(n,c,T)=>n+" תנועות הועברו ל"+T(c)]
+);
+P.push(
+[/^Create “(.+)”$/,(t)=>"יצירת “"+t+"”"],
+[/^Tagged (\d+) existing transactions? with (.+)$/,(n,t)=>(n==1?"תנועה קיימת אחת סומנה":n+" תנועות קיימות סומנו")+" ב‑"+t],
+[/^Tag added to the rule: (.+)$/,(t)=>"התגית נוספה לכלל: "+t],
+[/^(.+) \((\d+)\)$/,(t,n,T)=>{const r=T(t);return r===t?null:r+" ("+n+")"}]
 );
 
 })();
