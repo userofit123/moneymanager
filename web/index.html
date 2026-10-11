@@ -880,12 +880,13 @@ ${R.rows.length?"":`<div class="inf" style="margin-bottom:12px"><div class="it">
 <div class="sm" style="line-height:1.5">A bill is held back until it is paid. In a category with a budget, the bills in it are part of that budget, so they are never counted twice: the larger of the unpaid bills and the unspent budget is held back. Categories without a budget use their typical month. A bill that a jar covers is not held back again.</div>
 <div class="flex" style="justify-content:flex-end;margin-top:14px"><button class="btn" data-a="close">Done</button></div>`)}
 // what a jar is doing this month, and when it will be full: the pill goes in the header, the detail is its tooltip
-function jarState(j){const full=!j.open&&j.bal>=j.need,bill=j.cap==null,ent=bill?Math.max(0,j.need-j.bal+j.got):j.capE;let cls,label,tip;
+function jarState(j){const full=!j.open&&j.bal>=j.need,bill=j.cap==null,share=bill?Math.max(0,j.need-j.bal+j.got):j.capE,got=j.got||0;let cls,label,tip;
+// one rule: compare what was put in this month (money taken out is subtracted) with the monthly share
 if(!bill&&!(j.capE>0)){cls="fl";label="No auto-fill";tip="Nothing is added automatically. Edit the jar to set an amount per month."}
-else if(full&&!j.got){cls="dn";label="Full";tip=bill?"At its goal. It is topped up whenever it drops.":"It has reached its goal."}
-else if(j.got>0&&j.want<=0.5){cls="dn";label="Funded";tip=`Received ₪${f(j.got)} this month${bill?"":" of its ₪"+f(j.capE)}.`}
-else if(j.got>0){cls="am2";label="Partly filled";tip=`Received ₪${f(j.got)} of ₪${f(ent)} this month. ₪${f(j.want)} more is due; it takes it as soon as money is available.`}
-else{cls="am2";label=`Needs ₪${f(j.want)}`;tip=`Nothing received yet this month. It is due ₪${f(j.want)}${j.give>0?" and will take it on the next fill.":"; there is no money available for it right now."}`}
+else if(full&&!got){cls="dn";label="Full";tip=bill?"At its goal. It is topped up whenever it drops.":"It has reached its goal."}
+else if(got>0&&j.want<=0.5){cls="dn";label="Funded";tip=`This month: ₪${f(got)}${bill?"":" of ₪"+f(share)} put in. Money taken out would be subtracted.`}
+else if(got>0){cls="am2";label="Partly funded";tip=`This month: ₪${f(got)} of ₪${f(share)} put in. ₪${f(j.want)} more is due; it takes it as soon as money is available.`}
+else{cls="am2";label=`Needs ₪${f(j.want)}`;tip=`Nothing put in this month${share>0?" (its share is ₪"+f(share)+")":""}. It is due ₪${f(j.want)}${j.give>0?" and will take it on the next fill.":"; there is no money available for it right now."}`}
 let eta=null,late="";const left=Math.max(0,j.need-j.bal);
 if(!j.open&&!bill&&left>0&&j.capE>0){const k=Math.ceil(left/j.capE),m=addM(MK,j.got>=j.capE?k:k-1),when=new Date(+m.slice(0,4),+m.slice(5,7)-1,1).toLocaleDateString("en-GB",{month:"short",year:"numeric"});eta={v:when,tip:`At ₪${f(j.capE)} a month: ${k} more fill${k==1?"":"s"}${j.due?" · deadline "+new Date(j.due).toLocaleDateString("en-GB",{month:"short",year:"numeric"}):""}`};
 if(j.due&&m>j.due.slice(0,7))late=`At this rate it is full in ${when}, after the deadline (${new Date(j.due).toLocaleDateString("en-GB",{month:"short",year:"numeric"})}). Raise it to ₪${f(Math.ceil(left/monthsTo(j.due)))} a month to make it.`}
