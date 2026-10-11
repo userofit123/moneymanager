@@ -43,7 +43,7 @@ export async function fillJarsTx(c, month = thisMonth()) {
   const buffer = +((await c.query("SELECT value FROM settings WHERE key='jars_buffer'")).rows[0]?.value ?? 0);
   // what the app has set aside for bills still to pay and the unspent part of budgets (worked out by the app, refreshed whenever it is open)
   const reserve = Math.max(0, +((await c.query("SELECT value FROM settings WHERE key='jars_reserve'")).rows[0]?.value ?? 0));
-  const jars = (await c.query("SELECT id,priority,target,cap,balance,due,auto_cap FROM jars")).rows;
+  const jars = (await c.query("SELECT id,priority,target,cap,balance,due,auto_cap FROM jars WHERE done_at IS NULL")).rows;
   if (!jars.length) return { applied: 0, total: 0 };
   const received = Object.fromEntries((await c.query("SELECT jar_id, sum(amount)::float AS s FROM jar_movements WHERE month=$1 GROUP BY jar_id", [month])).rows.map((r) => [r.jar_id, r.s]));
   const free = (await cashNow(c)) - jars.reduce((t, j) => t + j.balance, 0) - buffer - reserve;
@@ -68,12 +68,12 @@ export async function fillJars(month = thisMonth()) {
 // the jars as the UI shows them: with what each received this month and the last fills
 export async function readJars(c) {
   const month = thisMonth();
-  const jars = (await c.query("SELECT id,name,priority,target,cap,balance,due,bill_match,auto_cap,description,bill_months FROM jars ORDER BY priority,id")).rows;
+  const jars = (await c.query("SELECT id,name,priority,target,cap,balance,due,bill_match,auto_cap,description,bill_months,done_at FROM jars ORDER BY priority,id")).rows;
   const mv = (await c.query("SELECT jar_id,amount,note,month,created_at FROM jar_movements ORDER BY id DESC LIMIT 400")).rows;
   return jars.map((j) => {
     const mine = mv.filter((m) => m.jar_id === j.id);
     return {
-      id: j.id, n: j.name, p: j.priority, need: j.target, cap: j.cap, bal: j.balance, due: j.due || "", bill: j.bill_match || "", auto: !!j.auto_cap, desc: j.description || "", months: j.bill_months || 0,
+      id: j.id, n: j.name, p: j.priority, need: j.target, cap: j.cap, bal: j.balance, due: j.due || "", bill: j.bill_match || "", auto: !!j.auto_cap, desc: j.description || "", months: j.bill_months || 0, done: j.done_at ? String(j.done_at).slice(0, 10) : "",
       got: +mine.filter((m) => m.month === month).reduce((s, m) => s + m.amount, 0).toFixed(2),
       moves: mine.slice(0, 8).map((m) => ({ amt: m.amount, note: m.note, at: m.created_at.toISOString() })),
     };

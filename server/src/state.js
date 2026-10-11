@@ -7,7 +7,7 @@ import { readJars, fillJarsTx, thisMonth } from "./jars.js";
 import { activeCurrencies, configuredCurrencies } from "./fx.js";
 
 export const DEFAULT_CFG = {
-  bills: 1, price: 1, budget: 1, card: 1, large: 1, xfer: 1, recon: 1, sync: 1, uncat: 1, forecast: 1, docs: 1,
+  jars: 1, bills: 1, price: 1, budget: 1, card: 1, large: 1, xfer: 1, recon: 1, sync: 1, uncat: 1, forecast: 1, docs: 1,
   cardPct: 10, largeAmt: 5000, billDays: 3, budgetPct: 80, gapDays: 3,
 };
 export const DEFAULT_CATS = ["Groceries", "Rent & housing", "Eating out", "Subscriptions", "Transport", "Fees & FX costs", "Income", "Uncategorized"];
@@ -39,7 +39,7 @@ export async function getState() {
   const [cats, rules, txs, tags, docs, xf, budgets, bills, ign, jars, audit, dism, adj, accounts, runs, rev, snaps, gaps] = await Promise.all([
     q("SELECT name,color FROM categories ORDER BY sort"),
     q("SELECT keyword,category,tag FROM rules ORDER BY position,id"),
-    q("SELECT id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,pending,source,inst_n,inst_total FROM transactions ORDER BY date DESC, id DESC"),
+    q("SELECT id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,pending,source,inst_n,inst_total,jar_id,jar_amount FROM transactions ORDER BY date DESC, id DESC"),
     q("SELECT transaction_id,tag FROM transaction_tags ORDER BY position"),
     q("SELECT id,transaction_id,filename,(path IS NOT NULL) AS has FROM documents ORDER BY id"),
     q("SELECT out_id,in_id,status FROM transfer_links"),
@@ -79,6 +79,7 @@ export async function getState() {
       note: r.note, ...(r.pending ? { pending: true } : {}), src: r.source,
       ...(r.dup_ok ? { dupOk: true } : {}),
       ...(r.inst_total ? { inst: [r.inst_n, r.inst_total] } : {}),
+      ...(r.jar_id ? { jar: { id: r.jar_id, amt: r.jar_amount } } : {}),
     })),
     budgets: Object.fromEntries(budgets.rows.map((b) => [b.category, b.monthly_limit])),
     bills: bills.rows.map((b) => b.data),
@@ -127,22 +128,22 @@ export async function putState(S) {
       await c.query("INSERT INTO rules (keyword,category,tag,position) VALUES ($1,$2,$3,$4)", [r.k, r.c, r.t || "", i]);
 
     // transactions
-    const have = new Map((await c.query("SELECT id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok FROM transactions")).rows.map((r) => [r.id, r]));
+    const have = new Map((await c.query("SELECT id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,jar_id,jar_amount FROM transactions")).rows.map((r) => [r.id, r]));
     const tagRows = await c.query("SELECT transaction_id,tag FROM transaction_tags ORDER BY position");
     const haveTags = {};
     tagRows.rows.forEach((r) => (haveTags[r.transaction_id] ||= []).push(r.tag));
     const keep = new Set();
     for (const t of S.tx || []) {
       keep.add(t.id);
-      const row = [t.id, t.d, t.desc, t.from || "", t.to || "", t.a, t.orig?.cur || null, t.orig?.amt ?? null, t.c || null, t.note || "", !!S.dupOk?.[t.id]];
+      const row = [t.id, t.d, t.desc, t.from || "", t.to || "", t.a, t.orig?.cur || null, t.orig?.amt ?? null, t.c || null, t.note || "", !!S.dupOk?.[t.id], t.jar?.id || null, t.jar?.id ? +t.jar.amt || 0 : null];
       const old = have.get(t.id);
-      const same = old && sig([old.id, old.date, old.description, old.from_name, old.to_name, old.amount, old.orig_currency, old.orig_amount, old.category, old.note, old.dup_ok]) === sig(row);
+      const same = old && sig([old.id, old.date, old.description, old.from_name, old.to_name, old.amount, old.orig_currency, old.orig_amount, old.category, old.note, old.dup_ok, old.jar_id, old.jar_amount == null ? null : +old.jar_amount]) === sig(row);
       if (!same) {
         const isNew = !old;
         await c.query(
-          `INSERT INTO transactions (id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,source)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'manual')
-           ON CONFLICT (id) DO UPDATE SET date=$2,description=$3,from_name=$4,to_name=$5,amount=$6,orig_currency=$7,orig_amount=$8,category=$9,note=$10,dup_ok=$11`, row);
+          `INSERT INTO transactions (id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,jar_id,jar_amount,source)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,(SELECT id FROM jars WHERE id=$12),$13,'manual')
+           ON CONFLICT (id) DO UPDATE SET date=$2,description=$3,from_name=$4,to_name=$5,amount=$6,orig_currency=$7,orig_amount=$8,category=$9,note=$10,dup_ok=$11,jar_id=(SELECT id FROM jars WHERE id=$12),jar_amount=$13`, row);
         if (isNew) { // a hand-entered transaction explains open balance gaps on its account
           const acct = t.a < 0 ? t.from : t.to, cur = t.orig?.cur || "ILS", amt = t.orig?.amt != null ? t.orig.amt * Math.sign(t.a) : t.a;
           await explainGaps(c, t.id, acct, cur, amt);
@@ -178,9 +179,9 @@ export async function putState(S) {
     for (const j of S.jars || []) {
       const ex = await c.query("SELECT 1 FROM jars WHERE id=$1", [j.id]);
       if (ex.rowCount) {
-        await c.query("UPDATE jars SET name=$2,priority=$3,target=$4,cap=$5,due=$6,bill_match=$7,auto_cap=$8,description=$9,bill_months=$10 WHERE id=$1", [j.id, j.n, j.p, j.need, j.cap ?? null, j.due || null, j.bill || null, !!j.auto, String(j.desc || "").slice(0, 400), j.months || null]);
+        await c.query("UPDATE jars SET name=$2,priority=$3,target=$4,cap=$5,due=$6,bill_match=$7,auto_cap=$8,description=$9,bill_months=$10,done_at=$11 WHERE id=$1", [j.id, j.n, j.p, j.need, j.cap ?? null, j.due || null, j.bill || null, !!j.auto, String(j.desc || "").slice(0, 400), j.months || null, j.done || null]);
         if (j.balEdit) await c.query("UPDATE jars SET balance=$2 WHERE id=$1", [j.id, j.bal]);
-      } else await c.query("INSERT INTO jars (id,name,priority,target,cap,balance,due,bill_match,auto_cap,description,bill_months) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)", [j.id, j.n, j.p, j.need, j.cap ?? null, j.bal, j.due || null, j.bill || null, !!j.auto, String(j.desc || "").slice(0, 400), j.months || null]);
+      } else await c.query("INSERT INTO jars (id,name,priority,target,cap,balance,due,bill_match,auto_cap,description,bill_months,done_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)", [j.id, j.n, j.p, j.need, j.cap ?? null, j.bal, j.due || null, j.bill || null, !!j.auto, String(j.desc || "").slice(0, 400), j.months || null, j.done || null]);
     }
     await c.query("DELETE FROM jars WHERE NOT (id = ANY($1))", [jids]);
     await c.query("SELECT setval(pg_get_serial_sequence('jars','id'), GREATEST((SELECT COALESCE(max(id),1) FROM jars),1))");
