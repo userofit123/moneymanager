@@ -71,13 +71,14 @@ export async function fillJars(month = thisMonth()) {
 export async function readJars(c) {
   const month = thisMonth();
   const jars = (await c.query("SELECT id,name,priority,target,cap,balance,due,bill_match,auto_cap,description,bill_months,done_at FROM jars ORDER BY priority,id")).rows;
-  const mv = (await c.query("SELECT jar_id,amount,note,month,created_at FROM jar_movements ORDER BY id DESC LIMIT 400")).rows;
+  const mv = (await c.query("SELECT jar_id,amount,note,month,created_at FROM jar_movements ORDER BY id DESC LIMIT 600")).rows;
+  const ledger = Object.fromEntries((await c.query("SELECT jar_id, sum(amount)::float AS s FROM jar_movements GROUP BY jar_id")).rows.map((r) => [r.jar_id, r.s]));
   return jars.map((j) => {
     const mine = mv.filter((m) => m.jar_id === j.id);
     return {
       id: j.id, n: j.name, p: j.priority, need: j.target, cap: j.cap, bal: j.balance, due: j.due || "", bill: j.bill_match || "", auto: !!j.auto_cap, desc: j.description || "", months: j.bill_months || 0, done: j.done_at ? String(j.done_at).slice(0, 10) : "",
       got: Math.min(Math.max(0, j.balance), Math.max(0, +mine.filter((m) => m.month === month).reduce((s, m) => s + m.amount, 0).toFixed(2))),
-      moves: mine.slice(0, 8).map((m) => ({ amt: m.amount, note: m.note, at: m.created_at.toISOString() })),
+      ledger: +(ledger[j.id] || 0).toFixed(2), moves: mine.slice(0, 40).map((m) => ({ amt: m.amount, note: m.note, at: m.created_at.toISOString() })),
     };
   });
 }
