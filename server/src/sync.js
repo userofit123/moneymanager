@@ -71,6 +71,15 @@ async function setBalance(a, value) {
 
 const firstTime = async (source) => (await q("SELECT 1 FROM transactions WHERE source=$1 LIMIT 1", [source])).rowCount === 0;
 
+// "payment 3 of 10": the bank reports it for card purchases in instalments; some banks only put it in the description
+export const instFromText = (s = "") => {
+  const m = String(s).match(/תשלום\s*(\d{1,2})\s*(?:\/|מתוך)\s*(\d{1,2})/) || String(s).match(/payment\s*(\d{1,2})\s*(?:\/|of)\s*(\d{1,2})/i) || String(s).match(/(\d{1,2})\s*מתוך\s*(\d{1,2})/);
+  return m && +m[2] >= 2 && +m[2] <= 60 && +m[1] >= 1 && +m[1] <= +m[2] ? { n: +m[1], total: +m[2] } : null;
+};
+const instOf = (t) => {
+  const i = t.installments && t.installments.total >= 2 ? { n: t.installments.number, total: t.installments.total } : instFromText(t.memo) || instFromText(t.description);
+  return i ? { instN: i.n, instTotal: i.total } : {};
+};
 // Map one scraped account to the rows the importer takes
 const toRows = (acc) => (acc.txns || []).map((t) => ({
   date: String(t.date).slice(0, 10), description: t.description, amount: t.chargedAmount ?? t.originalAmount,
@@ -80,6 +89,7 @@ const toRows = (acc) => (acc.txns || []).map((t) => ({
   externalId: t.identifier ? `${acc.accountNumber}:${t.identifier}:${String(t.date).slice(0, 10)}:${t.chargedAmount ?? t.originalAmount}` : undefined,
   legacyId: t.identifier ? `${acc.accountNumber}:${t.identifier}` : undefined,
   pending: t.status === "pending", bankCategory: t.category,
+  ...instOf(t),
 })).filter((r) => typeof r.amount === "number");
 
 // What a sync really read, not just what was asked for. Banks only keep about a year of history online: when the oldest row they returned
