@@ -32,7 +32,7 @@ const json = express.json({ limit: "20mb" });
 // ---------- security headers ----------
 app.use((req, res, next) => {
   res.set({
-    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'self'; frame-ancestors 'self'",
+    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'self'; base-uri 'none'; form-action 'self'; frame-src 'self'; frame-ancestors 'self'",
     "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer", "X-Frame-Options": "SAMEORIGIN",
     "Permissions-Policy": "geolocation=(), microphone=(), camera=(self)",
   });
