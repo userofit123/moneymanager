@@ -15,9 +15,9 @@ export async function applyRules(c) {
     const r = rules.find((r) => t.description.toLowerCase().includes(r.keyword.toLowerCase()));
     if (!r) continue;
     await c.query("UPDATE transactions SET category=$2 WHERE id=$1", [t.id, r.category]);
-    if (r.tag) {
-      await c.query("INSERT INTO tags (name) VALUES ($1) ON CONFLICT DO NOTHING", [r.tag]);
-      await c.query("INSERT INTO transaction_tags (transaction_id,tag,position) VALUES ($1,$2,99) ON CONFLICT DO NOTHING", [t.id, r.tag]);
+    for (const tag of String(r.tag || "").split(",").map((x) => x.trim().replace(/^#+/, "")).filter(Boolean)) { // a rule can carry several tags, separated by commas
+      await c.query("INSERT INTO tags (name) VALUES ($1) ON CONFLICT DO NOTHING", [tag]);
+      await c.query("INSERT INTO transaction_tags (transaction_id,tag,position) VALUES ($1,$2,99) ON CONFLICT DO NOTHING", [t.id, tag]);
     }
     n++;
   }
