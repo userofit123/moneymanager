@@ -16,13 +16,36 @@ const HISTORY_DAYS = +process.env.HISTORY_DAYS || 365; // default for the first 
 const getSet = async (k, d) => { const r = await q("SELECT value FROM settings WHERE key=$1", [k]); return r.rowCount ? r.rows[0].value : d; };
 const putSet = (k, v) => q("INSERT INTO settings (key,value) VALUES ($1,$2::jsonb) ON CONFLICT (key) DO UPDATE SET value=$2::jsonb", [k, JSON.stringify(v)]);
 // Settings → Connections: how often the server syncs by itself (hours, 0 = never), how much the first import reads, and the routine window.
+// The automatic sync runs at fixed times of day: the first at "at" (HH:MM), then every "hours" hours, in the time zone the app was
+// last saved from. A tick every few minutes runs the latest slot that has passed and has not run yet, so a restart or a missed
+// tick never skips one.
+const validTz = (z) => { try { new Intl.DateTimeFormat("en-GB", { timeZone: z }); return true; } catch { return false; } };
+export const localMinutes = (tz, d = new Date()) => {
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" }).formatToParts(d).map((x) => [x.type, +x.value]));
+  return p.hour * 60 + p.minute + p.second / 60;
+};
+export const slotMinutes = (at, hours) => {
+  const [h, m] = String(at).split(":").map(Number), start = h * 60 + m, out = [];
+  for (let k = 0; k * hours * 60 < 1440; k++) out.push((start + k * hours * 60) % 1440);
+  return out.sort((a, b) => a - b);
+};
+// timestamps of the latest slot that has passed and of the next one
+export function slotsAround(at, hours, tz, now = new Date()) {
+  const slots = slotMinutes(at, hours), n = localMinutes(tz, now), at0 = now.getTime();
+  const past = slots.filter((s) => s <= n), prev = past.length ? past[past.length - 1] - n : slots[slots.length - 1] - 1440 - n;
+  const fut = slots.filter((s) => s > n), nxt = fut.length ? fut[0] - n : slots[0] + 1440 - n;
+  return { prev: new Date(at0 + prev * 60000), next: new Date(at0 + nxt * 60000) };
+}
 export async function getSyncSettings() {
-  return { hours: await getSet("sync_hours", 8), firstDays: await getSet("sync_first_days", HISTORY_DAYS), routineDays: await getSet("sync_routine_days", 30), lastAuto: await getSet("sync_last_auto", null) };
+  const hours = await getSet("sync_hours", 8), at = await getSet("sync_at", "06:00"), tz = await getSet("sync_tz", Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
+  return { hours, at, tz, next: hours ? slotsAround(at, hours, tz).next.toISOString() : null, firstDays: await getSet("sync_first_days", HISTORY_DAYS), routineDays: await getSet("sync_routine_days", 30), lastAuto: await getSet("sync_last_auto", null) };
 }
 export async function putSyncSettings(b) {
   const pick = (v, ok) => (ok.includes(+v) ? +v : undefined);
-  const h = pick(b.hours, [0, 4, 8, 12, 24]), f = pick(b.firstDays, [90, 180, 365, 730, 1825]), r = pick(b.routineDays, [14, 30, 60, 90]);
+  const h = pick(b.hours, [0, 4, 6, 8, 12, 24]), f = pick(b.firstDays, [90, 180, 365, 730, 1825]), r = pick(b.routineDays, [14, 30, 60, 90]);
   if (h !== undefined) await putSet("sync_hours", h);
+  if (/^([01]\d|2[0-3]):[0-5]\d$/.test(b.at || "")) await putSet("sync_at", b.at);
+  if (typeof b.tz === "string" && validTz(b.tz)) await putSet("sync_tz", b.tz);
   if (f !== undefined) await putSet("sync_first_days", f);
   if (r !== undefined) await putSet("sync_routine_days", r);
   return getSyncSettings();
@@ -206,11 +229,13 @@ export async function snapshotNetWorth() {
 }
 
 export function startScheduler() {
-  // An hourly tick checks the "sync every N hours" setting, so it can be changed in the app without a restart.
-  cron.schedule("5 * * * *", async () => {
+  // A tick every 5 minutes checks the schedule (times of day), so it can be changed in the app without a restart.
+  cron.schedule("*/5 * * * *", async () => {
     try {
-      const { hours, lastAuto } = await getSyncSettings();
-      if (!hours || (lastAuto && Date.now() - new Date(lastAuto) < (hours * 3600e3 - 5 * 60e3))) return;
+      const { hours, at, tz, lastAuto } = await getSyncSettings();
+      if (!hours || activeJob()) return;
+      const { prev } = slotsAround(at, hours, tz);
+      if (lastAuto && new Date(lastAuto) >= prev) return;
       await putSet("sync_last_auto", new Date().toISOString());
       await syncAll("auto").then(snapshotNetWorth);
     } catch (e) { console.error("sync:", e.message); }
