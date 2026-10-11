@@ -6,7 +6,7 @@ import { loadKey } from "./secrets.js";
 import { ensureDefaults, getState, putState, StaleError } from "./state.js";
 import { ratesSummary, refreshRates, rateOn } from "./fx.js";
 import { recordGap } from "./gaps.js";
-import { syncSource, syncAll, SOURCE_NAMES, startScheduler, snapshotNetWorth, getSyncSettings, putSyncSettings, testSource, activeJob, acquireJob, releaseJob, extendJob } from "./sync.js";
+import { syncSource, syncAll, SOURCE_NAMES, startScheduler, snapshotNetWorth, getSyncSettings, putSyncSettings, testSource, syncLog, activeJob, acquireJob, releaseJob, extendJob } from "./sync.js";
 import { assist as scraperAssist } from "./sources/scraper.js";
 import { saveDoc, sendDoc } from "./docs.js";
 import { ingest } from "./sources/ingest.js";
@@ -184,6 +184,7 @@ app.post("/api/ntfy/test", wrap(async (_req, res) => {
 // ---------- sync and import ----------
 app.get("/api/sync/settings", wrap(async (_req, res) => res.json(await getSyncSettings())));
 app.put("/api/sync/settings", json, wrap(async (req, res) => res.json(await putSyncSettings(req.body || {}))));
+app.get("/api/sync/log", wrap(async (_req, res) => res.set("Cache-Control", "no-store").json(await syncLog())));
 app.post("/api/sync", wrap(async (_req, res) => { const r = await syncAll(); res.status(r.busy ? 409 : 200).json(r); }));
 app.post("/api/sync/:source", wrap(async (req, res) => {
   if (!SOURCE_NAMES.includes(req.params.source)) return res.status(404).json({ error: "unknown source" });
