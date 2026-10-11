@@ -81,6 +81,7 @@ Object.assign(D,{
 "This month": "החודש",
 "Last month": "חודש שעבר",
 "Same point last month {}": "באותה נקודה בחודש שעבר {}",
+"Same point last month: {}": "באותה נקודה בחודש שעבר: {}",
 "{} of last month's total spent so far": "{} מסך ההוצאות של חודש שעבר עד כה",
 "Income {m}": "הכנסות {m}",
 "Nothing here yet": "עדיין אין כאן כלום",
