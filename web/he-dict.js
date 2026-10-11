@@ -1418,4 +1418,14 @@ Object.assign(D,{
 "Bills to pay": "חשבונות לתשלום",
 "Planned, available": "מתוכנן, זמין",
 });
+Object.assign(D,{
+"Balance": "יתרה",
+"Due": "לתשלום",
+"Left in budget": "נשאר בתקציב",
+"Left · usual month": "נשאר · חודש רגיל",
+"Free": "פנוי",
+"Set aside or due": "מוקצה או לתשלום",
+"Left in budget, not spent yet": "נשאר בתקציב, עוד לא הוצא",
+"Left in budgets": "נשאר בתקציבים",
+});
 })();
