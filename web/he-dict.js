@@ -1597,4 +1597,14 @@ P.push(
 [/^Covered by jar (.+)$/,(n)=>"מכוסה על ידי הקופה "+n],
 [/^Priority (\d+) of (\d+)$/,(a,b)=>"עדיפות "+a+" מתוך "+b]
 );
+Object.assign(D,{
+"Bills a jar already pays": "חשבונות שקופה כבר משלמת",
+"Planned spending": "הוצאות מתוכננות",
+"Other categories": "קטגוריות אחרות",
+"Other categories · Left to spend": "קטגוריות אחרות · נשאר להוצאה",
+"Bills and planned spending": "חשבונות והוצאות מתוכננות",
+"Bills in this category that one of your jars already pays are taken out, so they are not counted twice.": "חשבונות בקטגוריה הזו שאחת הקופות כבר משלמת עליהם מוחסרים, כדי שלא ייספרו פעמיים.",
+"Your accounts minus what is set aside and the bills to pay. It is real money you can spend now. What you do not spend this month can go into jars next month.": "החשבונות שלכם פחות מה שמוקצה והחשבונות לתשלום. זה כסף אמיתי שאפשר להוציא עכשיו. מה שלא תוציאו החודש יכול להיכנס לקופות בחודש הבא.",
+"Your accounts minus everything above. It is not promised to anything, so it is free to spend or save. Jars take unassigned money on their own while they have room, so this is often ₪0.": "החשבונות שלכם פחות כל מה שמעל. זה לא מובטח לשום דבר, ולכן אפשר להוציא או לחסוך אותו. קופות לוקחות כסף לא מוקצה מעצמן כל עוד יש בהן מקום, ולכן הסכום הזה הוא לרוב ₪0.",
+});
 })();
