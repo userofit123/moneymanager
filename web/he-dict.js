@@ -1386,4 +1386,16 @@ P.push(
 [/^(.+) \((\d+)\)$/,(t,n,T)=>{const r=T(t);return r===t?null:r+" ("+n+")"}]
 );
 
+Object.assign(D,{
+"Where my money goes": "לאן הכסף הולך",
+"Full breakdown →": "פירוט מלא ←",
+"Everything you have today, where it is spoken for (biggest first), and what is left.": "כל מה שיש לכם היום, למה הוא מיועד (מהגדול לקטן), ומה נשאר.",
+"Bank and Wise today": "בנק ו‑Wise היום",
+"Left over": "נשאר",
+"Nothing to put in jars": "אין מה להפקיד בקופות",
+"In jars": "בקופות",
+"Already saved": "כבר נחסך",
+"Your cushion": "כרית הביטחון שלכם",
+"Bills paid from jars · already inside “Already in jars”, not taken off again": "חשבונות שמשולמים מקופות · כבר כלולים ב״כבר בקופות״, ולא מופחתים שוב",
+});
 })();
