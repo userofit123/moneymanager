@@ -26,8 +26,11 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
         seen[ext] = (seen[ext] || 0) + 1;
         if (seen[ext] > 1) ext = `${ext}#${seen[ext]}`;
       }
-      const dup = await c.query("SELECT id FROM transactions WHERE source=$1 AND external_id=$2", [account.source, ext]);
-      if (dup.rowCount) continue;
+      const dup = await c.query("SELECT id,inst_total FROM transactions WHERE source=$1 AND external_id=$2", [account.source, ext]);
+      if (dup.rowCount) { // already there: only learn the instalment numbers if an earlier import did not have them
+        if (r.instTotal && !dup.rows[0].inst_total) await c.query("UPDATE transactions SET inst_n=$2,inst_total=$3 WHERE id=$1", [dup.rows[0].id, r.instN, r.instTotal]);
+        continue;
+      }
       if (r.legacyId && seen[r.externalId] === 1) { // imported by an older version under the bare bank id: recognise it and upgrade its id
         const old = (await c.query("SELECT id,date,amount,orig_amount FROM transactions WHERE source=$1 AND external_id=$2", [account.source, r.legacyId])).rows[0];
         if (old && String(old.date) === r.date && Math.abs((old.orig_amount ?? old.amount) - r.amount) < 0.005) {
@@ -60,9 +63,9 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
         }
       }
       const ins = await c.query(
-        `INSERT INTO transactions (date,description,from_name,to_name,amount,orig_currency,orig_amount,rate,source,external_id,pending,bank_category)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`,
-        [r.date, r.description, from, to, ils, foreign ? cur : null, foreign ? r.amount : null, rate, account.source, ext, !!r.pending, r.bankCategory || null]);
+        `INSERT INTO transactions (date,description,from_name,to_name,amount,orig_currency,orig_amount,rate,source,external_id,pending,bank_category,inst_n,inst_total)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING id`,
+        [r.date, r.description, from, to, ils, foreign ? cur : null, foreign ? r.amount : null, rate, account.source, ext, !!r.pending, r.bankCategory || null, r.instN || null, r.instTotal || null]);
       added++;
       if (r.amount && !r.pending) await explainGaps(c, ins.rows[0].id, account.name, cur, r.amount);
     }

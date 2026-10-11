@@ -39,7 +39,7 @@ export async function getState() {
   const [cats, rules, txs, tags, docs, xf, budgets, bills, ign, jars, audit, dism, adj, accounts, runs, rev, snaps, gaps] = await Promise.all([
     q("SELECT name,color FROM categories ORDER BY sort"),
     q("SELECT keyword,category,tag FROM rules ORDER BY position,id"),
-    q("SELECT id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,pending,source FROM transactions ORDER BY date DESC, id DESC"),
+    q("SELECT id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,pending,source,inst_n,inst_total FROM transactions ORDER BY date DESC, id DESC"),
     q("SELECT transaction_id,tag FROM transaction_tags ORDER BY position"),
     q("SELECT id,transaction_id,filename,(path IS NOT NULL) AS has FROM documents ORDER BY id"),
     q("SELECT out_id,in_id,status FROM transfer_links"),
@@ -78,6 +78,7 @@ export async function getState() {
       docs: (docMap[r.id] || []).map((d) => d.filename), docIds: (docMap[r.id] || []).map((d) => d.id), docHas: (docMap[r.id] || []).map((d) => d.has),
       note: r.note, ...(r.pending ? { pending: true } : {}), src: r.source,
       ...(r.dup_ok ? { dupOk: true } : {}),
+      ...(r.inst_total ? { inst: [r.inst_n, r.inst_total] } : {}),
     })),
     budgets: Object.fromEntries(budgets.rows.map((b) => [b.category, b.monthly_limit])),
     bills: bills.rows.map((b) => b.data),
