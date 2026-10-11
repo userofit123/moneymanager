@@ -90,6 +90,8 @@ app.post("/api/auth/password", json, wrap(async (req, res) => {
   res.json({ ok: true });
 }));
 app.post("/api/auth/2fa/start", wrap(async (_req, res) => {
+  // starting over replaces the secret and switches 2FA off, so with 2FA on it needs the password first (the disable route)
+  if ((await auth.getUser())?.totp_enabled) return res.status(409).json({ error: "Two-factor sign-in is already on. Turn it off first (it asks for your password)." });
   const s = auth.newTotpSecret();
   await auth.storeTotpSecret(s);
   res.json({ secret: s, uri: `otpauth://totp/Money%20Manager?secret=${s}&issuer=Money%20Manager` });

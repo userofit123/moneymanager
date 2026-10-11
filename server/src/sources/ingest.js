@@ -26,7 +26,7 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
         seen[ext] = (seen[ext] || 0) + 1;
         if (seen[ext] > 1) ext = `${ext}#${seen[ext]}`;
       }
-      const dup = await c.query("SELECT id,inst_total,(details IS NULL) AS nodet FROM transactions WHERE source=$1 AND external_id=$2", [account.source, ext]);
+      const dup = await c.query("SELECT id,inst_total,(details IS NULL) AS nodet FROM transactions WHERE source=$1 AND external_id=$2 AND (from_name=$3 OR to_name=$3) AND COALESCE(orig_currency,'ILS')=$4", [account.source, ext, account.name, cur]);
       if (dup.rowCount) { // already there: only learn what an earlier import did not have (instalment numbers, the bank's own details)
         if (r.instTotal && !dup.rows[0].inst_total) await c.query("UPDATE transactions SET inst_n=$2,inst_total=$3 WHERE id=$1", [dup.rows[0].id, r.instN, r.instTotal]);
         if (r.details && dup.rows[0].nodet) await c.query("UPDATE transactions SET details=$2 WHERE id=$1", [dup.rows[0].id, JSON.stringify(r.details)]);
