@@ -53,7 +53,11 @@ Two identical transactions on the same day are flagged so you can delete one or 
 Each category has a limit. The app shows how much is left, a safe amount per day, and whether you are on pace to go over, given how far into the month you are.
 
 ### Jars and goals
-Jars are for information only and do not touch real accounts. Each jar takes what it needs in priority order, up to its cap. A full jar passes its share to the next one. A jar with a deadline shows the monthly amount it needs and offers a button to set the cap to that amount.
+A jar is a pot of money inside the app. It does not move any money in your real accounts.
+
+A jar can **pay for categories**. Example: link the jar "Small spending" to "Shopping & home". When you buy a ₪120 lamp in that category, the jar goes down by ₪120. This happens by itself, and you can detach any payment. A category belongs to one jar. Only spending after you link it counts (or since the start of the month if you tick that box).
+
+Each jar takes what it needs in priority order, up to its cap. A full jar passes its share to the next one. A jar with a deadline shows the monthly amount it needs and offers a button to set the cap to that amount.
 
 ### Forecast
 No AI. For each income source and expense category the app looks at the last 2, 3 or 5 complete months and projects either the average or a straight trend line. It adds income minus expenses month by month to today's balance. The shaded band shows how much your past months varied, so it grows over time. One-off items such as a trip are not predicted unless they happened in the months it looked at.
