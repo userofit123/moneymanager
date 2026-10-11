@@ -1607,4 +1607,11 @@ Object.assign(D,{
 "Your accounts minus what is set aside and the bills to pay. It is real money you can spend now. What you do not spend this month can go into jars next month.": "החשבונות שלכם פחות מה שמוקצה והחשבונות לתשלום. זה כסף אמיתי שאפשר להוציא עכשיו. מה שלא תוציאו החודש יכול להיכנס לקופות בחודש הבא.",
 "Your accounts minus everything above. It is not promised to anything, so it is free to spend or save. Jars take unassigned money on their own while they have room, so this is often ₪0.": "החשבונות שלכם פחות כל מה שמעל. זה לא מובטח לשום דבר, ולכן אפשר להוציא או לחסוך אותו. קופות לוקחות כסף לא מוקצה מעצמן כל עוד יש בהן מקום, ולכן הסכום הזה הוא לרוב ₪0.",
 });
+Object.assign(D,{
+"expected bill": "חשבון צפוי",
+"Expected on": "צפוי בתאריך",
+"Usually about": "בדרך כלל בערך",
+"Last paid": "שולם לאחרונה",
+"A prediction from your past payments, not a transaction yet. It is not counted in your totals. Click to open the bill.": "תחזית על סמך התשלומים הקודמים שלכם, עדיין לא תנועה. היא לא נספרת בסכומים שלכם. לחצו כדי לפתוח את החשבון.",
+});
 })();
