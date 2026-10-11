@@ -296,3 +296,55 @@ test("saving a new jar together with a transaction attached to it keeps the atta
   await putState(S);
   assert.equal((await q("SELECT jar_id FROM transactions WHERE id=$1", [id])).rows[0].jar_id, 77);
 });
+
+test("a jar can pay for categories: saved, one jar per category, unknown categories dropped, automatic payments kept", async () => {
+  await q("DELETE FROM jar_movements"); await q("DELETE FROM jars"); await q("ALTER SEQUENCE jars_id_seq RESTART");
+  await q("UPDATE accounts SET balance=0 WHERE kind IN ('bank','wallet')");
+  let S = await getState();
+  const cat = Object.keys(S.cats).find((c) => c !== "Income" && c !== "Uncategorized");
+  const jar = (id, n, cats) => ({ id, n, p: id, need: 0, cap: 500, bal: 300, due: "", bill: "", auto: false, desc: "", months: 0, done: "", cats });
+  S.jars = [jar(1, "Small spending", [{ c: cat, since: "2026-10-01" }, { c: "No such category", since: "2026-10-01" }]), jar(2, "Other", [{ c: cat, since: "2026-10-01" }])];
+  const t = S.tx.find((x) => x.a < 0);
+  t.jar = { id: 1, amt: 40, auto: true }; t.jarNo = undefined;
+  await putState(S);
+  S = await getState();
+  assert.deepEqual(S.jars.find((j) => j.id === 1).cats, [{ c: cat, since: "2026-10-01" }]);
+  assert.deepEqual(S.jars.find((j) => j.id === 2).cats, []); // the category belongs to the first jar only
+  const back = S.tx.find((x) => x.id === t.id);
+  assert.deepEqual([back.jar.id, back.jar.amt, back.jar.auto], [1, 40, true]);
+  // detached by hand: remembered for that category
+  back.jar = undefined; back.jarNo = cat;
+  await putState(S);
+  S = await getState();
+  const again = S.tx.find((x) => x.id === t.id);
+  assert.equal(again.jar, undefined);
+  assert.equal(again.jarNo, cat);
+  // deleting the jar frees its categories
+  S.jars = [];
+  await putState(S);
+  assert.equal((await q("SELECT count(*)::int n FROM jar_categories")).rows[0].n, 0);
+});
+
+test("paying from a jar is spending: it does not reopen the month's allowance, while money taken out by hand does", async () => {
+  await q("DELETE FROM jar_movements"); await q("DELETE FROM jars"); await q("ALTER SEQUENCE jars_id_seq RESTART");
+  await q("DELETE FROM settings WHERE key IN ('jars_buffer','jars_reserve')");
+  await q("UPDATE accounts SET balance=50000 WHERE name='Bank Hapoalim'");
+  await q("INSERT INTO jars (name,priority,target,cap,balance) VALUES ('Spending',1,0,500,0)");
+  let S = await getState();
+  S.tx[0].note = "touch";
+  let r = await putState(S);
+  assert.equal(r.jars[0].bal, 500); // this month's allowance
+  S = await getState();
+  const j = S.jars[0];
+  j.bal = 380; j.balEdit = true; j.balNote = "Paid: lamp"; j.balPaid = true; // a ₪120 payment out of the jar
+  S.tx[0].note = "touch2";
+  await putState(S);
+  assert.equal((await q("SELECT balance FROM jars")).rows[0].balance, 380); // nothing refilled it
+  S = await getState();
+  assert.equal(S.jars[0].got, 500); // still counts as received this month
+  // money handed back by hand (not a payment) does reopen it
+  S.jars[0].bal = 300; S.jars[0].balEdit = true; S.jars[0].balNote = "Released back to free money";
+  S.tx[0].note = "touch3";
+  const r2 = await putState(S);
+  assert.equal(r2.jars[0].bal, 380); // topped up by the 80 that was handed back (380 to 300), not by the 120 payment
+});
