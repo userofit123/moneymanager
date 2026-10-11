@@ -15,7 +15,7 @@ test("amount strings: incoming marked positive, outgoing plain or minus, currenc
 
 test("an activity becomes a transaction row; cancelled and unreadable ones are skipped; in-progress is pending", () => {
   const a = { id: "TU1", status: "COMPLETED", title: "<strong>Figma</strong>", primaryAmount: "- 50 USD", createdOn: "2026-10-04T10:00:00.000Z" };
-  assert.deepEqual(activityToRow(a), { date: "2026-10-04", description: "Figma", amount: -50, currency: "USD", externalId: "act:TU1", counterparty: "Figma", pending: false });
+  assert.deepEqual(activityToRow(a), { date: "2026-10-04", description: "Figma", amount: -50, currency: "USD", externalId: "act:TU1", counterparty: "Figma", pending: false, details: { ...a, via: "activity list" } });
   assert.equal(activityToRow({ ...a, status: "CANCELLED" }), null);
   assert.equal(activityToRow({ ...a, primaryAmount: "?" }), null);
   assert.equal(activityToRow({ ...a, status: "IN_PROGRESS" }).pending, true);

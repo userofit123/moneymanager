@@ -34,7 +34,7 @@ export function activityToRow(a) {
   const date = String(a.createdOn || a.updatedOn || "").slice(0, 10);
   if (!m || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
   const title = stripTags(a.title) || stripTags(a.description) || "Wise";
-  return { date, description: title, amount: m.amount, currency: m.currency, externalId: `act:${a.id}`, counterparty: title, pending: a.status && a.status !== "COMPLETED" };
+  return { date, description: title, amount: m.amount, currency: m.currency, externalId: `act:${a.id}`, counterparty: title, pending: a.status && a.status !== "COMPLETED", details: { ...a, via: "activity list" } };
 }
 
 export async function fetchActivities(token, profileId, days = 30) {
@@ -68,6 +68,7 @@ export async function fetchWise(token, { days = 30 } = {}) {
         out.transactions.push({
           date: t.date.slice(0, 10), description: t.details?.description || t.details?.type || "Wise", amount: t.amount.value,
           currency: t.amount.currency, externalId: t.referenceNumber, counterparty: t.details?.merchant?.name || t.details?.recipient?.name,
+          details: { ...t, via: "statement" },
         });
       }
     } catch { statements = false; break; }

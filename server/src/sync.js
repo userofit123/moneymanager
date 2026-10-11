@@ -90,6 +90,7 @@ const toRows = (acc) => (acc.txns || []).map((t) => ({
   legacyId: t.identifier ? `${acc.accountNumber}:${t.identifier}` : undefined,
   pending: t.status === "pending", bankCategory: t.category,
   ...instOf(t),
+  details: { ...t, account: acc.accountNumber ?? null }, // everything the bank returned for it
 })).filter((r) => typeof r.amount === "number");
 
 // What a sync really read, not just what was asked for. Banks only keep about a year of history online: when the oldest row they returned

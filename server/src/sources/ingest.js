@@ -26,9 +26,10 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
         seen[ext] = (seen[ext] || 0) + 1;
         if (seen[ext] > 1) ext = `${ext}#${seen[ext]}`;
       }
-      const dup = await c.query("SELECT id,inst_total FROM transactions WHERE source=$1 AND external_id=$2", [account.source, ext]);
-      if (dup.rowCount) { // already there: only learn the instalment numbers if an earlier import did not have them
+      const dup = await c.query("SELECT id,inst_total,(details IS NULL) AS nodet FROM transactions WHERE source=$1 AND external_id=$2", [account.source, ext]);
+      if (dup.rowCount) { // already there: only learn what an earlier import did not have (instalment numbers, the bank's own details)
         if (r.instTotal && !dup.rows[0].inst_total) await c.query("UPDATE transactions SET inst_n=$2,inst_total=$3 WHERE id=$1", [dup.rows[0].id, r.instN, r.instTotal]);
+        if (r.details && dup.rows[0].nodet) await c.query("UPDATE transactions SET details=$2 WHERE id=$1", [dup.rows[0].id, JSON.stringify(r.details)]);
         continue;
       }
       if (r.legacyId && seen[r.externalId] === 1) { // imported by an older version under the bare bank id: recognise it and upgrade its id
@@ -55,17 +56,17 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
            AND abs(date - $5::date) <= 1 ORDER BY id LIMIT 1`, [account.name, r.amount, ils, cur, r.date, account.source]);
         if (m.rowCount) { // the import wins for amount, date and description; category, tags, note and documents stay
           await c.query(
-            "UPDATE transactions SET date=$2,description=$3,amount=$4,orig_currency=$5,orig_amount=$6,rate=$7,source=$8,external_id=$9 WHERE id=$1",
-            [m.rows[0].id, r.date, r.description, ils, foreign ? cur : null, foreign ? r.amount : null, rate, account.source, ext]);
+            "UPDATE transactions SET date=$2,description=$3,amount=$4,orig_currency=$5,orig_amount=$6,rate=$7,source=$8,external_id=$9,details=$10 WHERE id=$1",
+            [m.rows[0].id, r.date, r.description, ils, foreign ? cur : null, foreign ? r.amount : null, rate, account.source, ext, r.details ? JSON.stringify(r.details) : null]);
           await audit(c, "Merged with import", `${r.description}: matched your hand-entered transaction`);
           merged++;
           continue;
         }
       }
       const ins = await c.query(
-        `INSERT INTO transactions (date,description,from_name,to_name,amount,orig_currency,orig_amount,rate,source,external_id,pending,bank_category,inst_n,inst_total)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING id`,
-        [r.date, r.description, from, to, ils, foreign ? cur : null, foreign ? r.amount : null, rate, account.source, ext, !!r.pending, r.bankCategory || null, r.instN || null, r.instTotal || null]);
+        `INSERT INTO transactions (date,description,from_name,to_name,amount,orig_currency,orig_amount,rate,source,external_id,pending,bank_category,inst_n,inst_total,details)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id`,
+        [r.date, r.description, from, to, ils, foreign ? cur : null, foreign ? r.amount : null, rate, account.source, ext, !!r.pending, r.bankCategory || null, r.instN || null, r.instTotal || null, r.details ? JSON.stringify(r.details) : null]);
       added++;
       if (r.amount && !r.pending) await explainGaps(c, ins.rows[0].id, account.name, cur, r.amount);
     }
