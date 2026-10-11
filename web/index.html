@@ -631,7 +631,7 @@ return{total:tot,rows,bills:b,limits:tot-b}}
 const recBills=()=>BC.filter(b=>!b.once&&!b.irregular&&b.flag!="canceled"&&b.mo>0),billMo=k=>recBills().filter(b=>b.cat==k).reduce((s,b)=>s+b.mo,0);
 function jarFree(){const cash=cashNow(),inJars=jarsS().reduce((s,j)=>s+(+j.bal||0),0),buffer=Math.max(0,+S.jarsBuffer||0),R=reserveCalc(),reserve=R.total;const raw=cash-inJars-buffer-reserve;return{cash,inJars,buffer,reserve,R,raw,over:-raw>=1?Math.round(-raw):0,free:Math.max(0,raw)}}
 // jars fill from the money you actually have: balance minus what is already in jars minus what you keep untouched
-function jarCalc(){const F=jarFree();let rem=F.free,gotT=0,stillT=0;const out=jarsS().map(j=>{const got=+j.got||0,open=!(j.need>0),capE=capOf(j,got),need=open?0:Math.max(0,j.need-j.bal),want=capE==null?need:Math.max(0,Math.min(capE-got,open?1e12:need)),give=Math.max(0,Math.min(rem,want));rem-=give;gotT+=got;stillT+=want;return{...j,got,want,give,capE,open}});return{out,rem,gotT,stillT,...F}}
+function jarCalc(){const F=jarFree();let rem=F.free,gotT=0,stillT=0;const out=jarsS().map(j=>{const got=Math.min(+j.got||0,Math.max(0,+j.bal||0)),open=!(j.need>0),capE=capOf(j,got),need=open?0:Math.max(0,j.need-j.bal),want=capE==null?need:Math.max(0,Math.min(capE-got,open?1e12:need)),give=Math.max(0,Math.min(rem,want));rem-=give;gotT+=got;stillT+=want;return{...j,got,want,give,capE,open}});return{out,rem,gotT,stillT,...F}}
 const monthsTo=d=>Math.max(1,Math.ceil((new Date(d)-NOW)/(864e5*30.44)));
 // A jar with no goal (target 0) just puts its monthly amount aside. With "auto" and a deadline it works out its own monthly amount.
 const capOf=(j,got,off)=>j.cap==null?null:(j.auto&&j.due&&j.need>0)?Math.max(0,Math.ceil((j.need-(j.bal-(got||0)))/Math.max(1,monthsTo(j.due)-(off||0)))):j.cap;
@@ -885,7 +885,7 @@ if(!bill&&!(j.capE>0)){cls="fl";label="No auto-fill";tip="Nothing is added autom
 else if(full&&!j.got){cls="dn";label="Full";tip=bill?"At its goal. It is topped up whenever it drops.":"It has reached its goal."}
 else if(j.got>0&&j.want<=0.5){cls="dn";label="Funded";tip=`Received ₪${f(j.got)} this month${bill?"":" of its ₪"+f(j.capE)}.`}
 else if(j.got>0){cls="am2";label="Partly filled";tip=`Received ₪${f(j.got)} of ₪${f(ent)} this month. ₪${f(j.want)} more is due; it takes it as soon as money is available.`}
-else{cls="am2";label="Waiting";tip=`Nothing received yet this month. It is due ₪${f(j.want)}${j.give>0?" and will take it on the next fill.":"; there is no money available for it right now."}`}
+else{cls="am2";label=`Needs ₪${f(j.want)}`;tip=`Nothing received yet this month. It is due ₪${f(j.want)}${j.give>0?" and will take it on the next fill.":"; there is no money available for it right now."}`}
 let eta=null,late="";const left=Math.max(0,j.need-j.bal);
 if(!j.open&&!bill&&left>0&&j.capE>0){const k=Math.ceil(left/j.capE),m=addM(MK,j.got>=j.capE?k:k-1),when=new Date(+m.slice(0,4),+m.slice(5,7)-1,1).toLocaleDateString("en-GB",{month:"short",year:"numeric"});eta={v:when,tip:`At ₪${f(j.capE)} a month: ${k} more fill${k==1?"":"s"}${j.due?" · deadline "+new Date(j.due).toLocaleDateString("en-GB",{month:"short",year:"numeric"}):""}`};
 if(j.due&&m>j.due.slice(0,7))late=`At this rate it is full in ${when}, after the deadline (${new Date(j.due).toLocaleDateString("en-GB",{month:"short",year:"numeric"})}). Raise it to ₪${f(Math.ceil(left/monthsTo(j.due)))} a month to make it.`}
@@ -905,8 +905,8 @@ function renderJars(){const F=jarCalc(),{out,rem,cash,inJars,buffer,free,gotT,st
 $("kbufC").innerHTML=[0,1000,2000,5000,10000].map(v=>`<button class="${buffer==v?"on":""}" data-a="bufSet" data-v="${v}">${v?fm(v):"None"}</button>`).join("");
 {const planned=gotT+stillT,pct=planned>0?Math.round(gotT/planned*100):100,waiting=stillT>0&&free<=0,done=stillT<=0,coming=Math.min(stillT,free);
 $("left").innerHTML=`<small>₪</small>${f(gotT)}${planned>0?`<span class="of"> of ₪${f(planned)}</span>`:""}`;$("leftBar").style.width=pct+"%";$("leftBar").className=waiting?"w":done?"d":"";
-$("leftSub").textContent=done?"Every jar has had its share this month":waiting?"Waiting for money: the jars below still need ₪"+f(stillT)+" this month, but nothing is available":"The jars below take their share as money is available";
-$("leftStats").innerHTML=`<div><span>Received</span><b class="num">${fm(gotT)}</b></div><div><span>Still to come</span><b class="num">${fm(Math.max(0,coming))}</b></div><div><span>Status</span><b class="${waiting?"neg":done?"pos":""}">${done?"All filled":waiting?"Waiting":"Filling"}</b></div>`}
+$("leftSub").textContent=done?"Every jar has had its share this month":waiting?"Not enough money: the jars below still need ₪"+f(stillT)+" this month, but nothing is available":"The jars below take their share as money is available";
+$("leftStats").innerHTML=`<div><span>Received</span><b class="num">${fm(gotT)}</b></div><div><span>Still to come</span><b class="num">${fm(Math.max(0,coming))}</b></div><div><span>Status</span><b class="${waiting?"neg":done?"pos":""}">${done?"All filled":waiting?"No money yet":"Filling"}</b></div>`}
 $("jarg").innerHTML=out.map((j,ix)=>jarCard(j,ix,out)).join("");
 const gs=jarsS().filter(j=>j.need>0&&!j.bill);
 $("goals").innerHTML=gs.map(j=>{const left=Math.max(0,j.need-j.bal),c=capOf(j,j.got)||0,pc=Math.min(100,j.bal/j.need*100),mlab=m=>new Date(+m.slice(0,4),+m.slice(5,7)-1,1).toLocaleDateString("en-GB",{month:"short",year:"numeric"}),k=c>0&&left>0?Math.ceil(left/c):0,when=k?mlab(addM(MK,j.got>=c?k:k-1)):"";

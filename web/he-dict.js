@@ -619,6 +619,8 @@ Object.assign(D,{
 "Nothing has been put into or paid out of this jar yet.": "עדיין לא הוכנס או שולם כסף מהקופה הזו.",
 "Reopened jar": "קופה נפתחה מחדש",
 "Completed jar": "קופה הושלמה",
+"No money yet": "עדיין אין כסף",
+"Not enough money: the jars below still need ₪{} this month, but nothing is available": "אין מספיק כסף: הקופות למטה עדיין צריכות ₪{} החודש, אבל אין כסף זמין",
 ". Everything that counts as a bill carries a": ". כל מה שנחשב לחשבון מסומן ב",
 "marker in Activity.": "בעמוד הפעילות.",
 ": mark a single payment as a bill. To do either, open the payment in Activity and press": ": סימון תשלום בודד כחשבון. כדי לעשות כל אחד מהם, פתחו את התשלום בפעילות ולחצו על",
