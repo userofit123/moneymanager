@@ -835,6 +835,7 @@ Object.assign(D,{
 "This protects your financial data. Use at least 10 characters. It is stored only as a hash on your server.": "זה מגן על הנתונים הפיננסיים שלכם. השתמשו ב‑10 תווים לפחות. הסיסמה נשמרת בשרת רק כגיבוב.",
 "The two passwords are different.": "שתי הסיסמאות שונות.",
 "Wrong password.": "סיסמה שגויה.",
+"Something here needs a look": "יש כאן משהו שדורש תשומת לב",
 "How syncing works": "איך הסנכרון עובד",
 "The server syncs by itself on a schedule, even when the app is closed. Opening the app does not start a sync (that would log in to your bank every time), and you can always press Sync now. A routine sync only reads the recent window below, which is quick and gentle on the bank. When a source is connected for the first time it reads as much history as you choose here, once. To pull older history later, use Get older history on that source.": "השרת מסנכרן בעצמו לפי לוח זמנים, גם כשהאפליקציה סגורה. פתיחת האפליקציה לא מתחילה סנכרון (זה היה מתחבר לבנק בכל פעם), ותמיד אפשר ללחוץ על סנכרון עכשיו. סנכרון שגרתי קורא רק את החלון האחרון שמוגדר למטה, מה שמהיר ועדין לבנק. כשמקור מתחבר בפעם הראשונה הוא קורא פעם אחת כמה היסטוריה שתבחרו כאן. כדי למשוך היסטוריה ישנה יותר מאוחר יותר, השתמשו ב\"קבלת היסטוריה ישנה\" במקור הזה.",
 "Sync automatically": "סנכרון אוטומטי",
