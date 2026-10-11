@@ -1428,4 +1428,9 @@ Object.assign(D,{
 "Left in budget, not spent yet": "נשאר בתקציב, עוד לא הוצא",
 "Left in budgets": "נשאר בתקציבים",
 });
+Object.assign(D,{
+"Left to spend · est.": "נשאר להוצאה · הערכה",
+"Left to spend, not spent yet": "נשאר להוצאה, עוד לא הוצא",
+"Left to spend in categories": "נשאר להוצאה בקטגוריות",
+});
 })();
