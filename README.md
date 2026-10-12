@@ -1,6 +1,6 @@
 # Money Manager
 
-Self-hosted, read-only personal finance hub: Bank Hapoalim, Max, Isracard, Wise and a manual pension, with categories, bills, budgets, jars, alerts, reports and a forecast. No AI in the core. Requirements: [`docs/finance_app_spec_final.md`](docs/finance_app_spec_final.md) and [`docs/spec-addendum-v1.1-missing-money.md`](docs/spec-addendum-v1.1-missing-money.md). Plain-language overview: [`docs/app_explained.md`](docs/app_explained.md). Security details: [`docs/SECURITY.md`](docs/SECURITY.md).
+Self-hosted, read-only personal finance hub: Israeli banks and credit cards (Hapoalim, Leumi, Discount, Mercantile, Mizrahi-Tefahot, Otsar Hahayal, Union, First International, Massad, Yahav, Max, Isracard, Visa Cal, American Express), Wise and a manual pension, with categories, bills, budgets, jars, alerts, reports and a forecast. No AI in the core. Requirements: [`docs/finance_app_spec_final.md`](docs/finance_app_spec_final.md) and [`docs/spec-addendum-v1.1-missing-money.md`](docs/spec-addendum-v1.1-missing-money.md). Plain-language overview: [`docs/app_explained.md`](docs/app_explained.md). Security details: [`docs/SECURITY.md`](docs/SECURITY.md).
 
 ## Start it (laptop or server)
 ```sh
@@ -27,6 +27,19 @@ Use the same steps, then add the proxy file so Caddy can reach it, and set `TRUS
 docker compose -f docker-compose.yml -f docker-compose.proxy.yml up -d --build
 ```
 Point a Caddy block at `app:8080` (or `127.0.0.1:8787`) and open `https://rhs.taile6739f.ts.net:PORT` over Tailscale. 9008 is reserved for n8n. Schedule `backup.sh` (nightly, optional rsync to the Dell server via `BACKUP_DEST`).
+
+## Windows app (no Docker)
+One installer for Windows. The person installs it, opens it, creates a password, connects their accounts, and that's it. Everything is saved on their own computer (`%APPDATA%\Money Manager`) and nothing is sent anywhere. The Docker setup below is unchanged; this is an extra way to run the same app.
+
+**How to get the installer (`Money Manager Setup.exe`):**
+1. On GitHub open the repository → **Actions** → **Windows desktop app** → **Run workflow** (pick the branch, press the green button).
+2. Wait about 10 to 15 minutes. Open the finished run and download **money-manager-windows** under *Artifacts*. Unzip it: the `.exe` inside is the installer. Send that file.
+
+**Releases are automatic.** `node scripts/bump.mjs minor` (or `patch` / `major`) starts the next version: it adds a section to `CHANGELOG.md` and sets the version everywhere. Fill the section in and merge to `main`. The **Release** workflow then runs the tests, tags the version, builds the Windows installer and publishes a GitHub release with the changelog as its notes. Nothing else to do. (You can also publish a release by hand on GitHub: the installer is built and attached.) **Actions → Release → Run workflow** builds an installer without publishing, to try it.
+
+**Updates:** installed copies check this repository's latest release (it must be public), show "Update available" in the sidebar and in Settings → App and data → Version and updates, and download it by themselves unless you switch **Update automatically** off. An update replaces the installed app and keeps the data. The Docker version shows the same notice with the commands to run on the server (`git pull`, `docker compose up -d --build`); it doesn't update itself.
+
+Windows shows "unknown publisher" (More info → Run anyway) the first time, because the installer isn't code-signed. Details and how it works: [`desktop/README.md`](desktop/README.md).
 
 ## Forgot something
 | Problem | Fix |

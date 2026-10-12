@@ -3,13 +3,32 @@
 import { q } from "./db.js";
 import { encrypt, decrypt, scrub } from "./secrets.js";
 
-export const FIELDS = {
-  wise: [{ k: "token", label: "Personal API token" }],
-  hapoalim: [{ k: "userCode", label: "User code" }, { k: "password", label: "Password" }],
-  max: [{ k: "username", label: "Username" }, { k: "password", label: "Password" }],
-  isracard: [{ k: "id", label: "ID number" }, { k: "card6Digits", label: "Last 6 digits of the card" }, { k: "password", label: "Password" }],
+// Every source the app can connect to. kind: what the account is (bank, card, wallet). `url` is the login page used by "Verify this device".
+const F = {
+  userCode: { k: "userCode", label: "User code" }, username: { k: "username", label: "Username" }, password: { k: "password", label: "Password" },
+  id: { k: "id", label: "ID number" }, num: { k: "num", label: "Account code (מספר סימון)" }, nationalID: { k: "nationalID", label: "ID number" },
+  card6: { k: "card6Digits", label: "Last 6 digits of the card" },
 };
-export const LABELS = { wise: "Wise", hapoalim: "Bank Hapoalim", max: "Max", isracard: "Isracard" };
+export const PROVIDERS = {
+  wise: { label: "Wise", kind: "wallet", fields: [{ k: "token", label: "Personal API token" }] },
+  hapoalim: { label: "Bank Hapoalim", kind: "bank", fields: [F.userCode, F.password] },
+  leumi: { label: "Bank Leumi", kind: "bank", fields: [F.username, F.password] },
+  discount: { label: "Discount Bank", kind: "bank", fields: [F.id, F.password, F.num] },
+  mercantile: { label: "Mercantile Discount", kind: "bank", fields: [F.id, F.password, F.num] },
+  mizrahi: { label: "Mizrahi-Tefahot", kind: "bank", fields: [F.username, F.password] },
+  otsarHahayal: { label: "Otsar Hahayal", kind: "bank", fields: [F.username, F.password] },
+  union: { label: "Union Bank", kind: "bank", fields: [F.username, F.password] },
+  beinleumi: { label: "First International Bank", kind: "bank", fields: [F.username, F.password] },
+  massad: { label: "Bank Massad", kind: "bank", fields: [F.username, F.password] },
+  yahav: { label: "Bank Yahav", kind: "bank", fields: [F.username, F.nationalID, F.password] },
+  max: { label: "Max", kind: "card", fields: [F.username, F.password] },
+  isracard: { label: "Isracard", kind: "card", fields: [F.id, F.card6, F.password] },
+  visaCal: { label: "Visa Cal", kind: "card", fields: [F.username, F.password] },
+  amex: { label: "American Express", kind: "card", fields: [F.username, F.card6, F.password] },
+};
+export const FIELDS = Object.fromEntries(Object.entries(PROVIDERS).map(([k, p]) => [k, p.fields]));
+export const LABELS = Object.fromEntries(Object.entries(PROVIDERS).map(([k, p]) => [k, p.label]));
+export const KINDS = Object.fromEntries(Object.entries(PROVIDERS).map(([k, p]) => [k, p.kind]));
 const LIMIT = (s) => (s === "wise" ? 3 : 2);
 
 export async function getCreds(source) {
@@ -76,7 +95,7 @@ export async function listConnections() {
       savedAt: has?.updated_at || null, testedAt: state?.tested_at || null, syncedAt: sy.rows.find((r) => r.source === s)?.at || null,
     };
     return {
-      source: s, label: LABELS[s], fields: FIELDS[s], ...info, lastOk: state?.last_ok_at || null, assistedAt: state?.assisted_at || null, status: connectionStatus(info),
+      source: s, label: LABELS[s], kind: KINDS[s], fields: FIELDS[s], ...info, lastOk: state?.last_ok_at || null, assistedAt: state?.assisted_at || null, status: connectionStatus(info),
     };
   });
 }

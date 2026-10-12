@@ -147,6 +147,9 @@ test("2FA: enable, then login needs the code", async () => {
   assert.equal(good.status, 200);
   const stored = (await q("SELECT totp_secret FROM auth_user")).rows[0].totp_secret;
   assert.ok(!stored.includes(secret)); // encrypted at rest
+  // a stolen session must not be able to switch 2FA off by starting over: with 2FA on, "start" is refused and nothing changes
+  assert.equal((await call("POST", "/api/auth/2fa/start", { cookie, headers: X })).status, 409);
+  assert.equal((await q("SELECT totp_enabled FROM auth_user")).rows[0].totp_enabled, true);
   await call("POST", "/api/auth/2fa/disable", { cookie, headers: X, body: { password: "my long password" } });
 });
 
