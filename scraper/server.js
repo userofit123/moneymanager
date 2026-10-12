@@ -35,6 +35,14 @@ const SUPPORTED = {
 const COMPANIES = Object.fromEntries(Object.entries(SUPPORTED).map(([k, [id]]) => [k, CompanyTypes[id]]));
 const NEED = Object.fromEntries(Object.entries(SUPPORTED).map(([k, v]) => [k, v[1]]));
 const LOGIN_URL = Object.fromEntries(Object.entries(SUPPORTED).map(([k, v]) => [k, v[2]]));
+// "Verify this device" may only stay on the bank's own websites. Extra domains are banks' known sign-in / sister sites.
+const EXTRA_DOMAINS = { leumi: ["leumi.co.il"], discount: ["discountbank.co.il"], mercantile: ["discountbank.co.il"], mizrahi: ["mizrahi-tefahot.co.il"], max: ["max.co.il"], visaCal: ["cal-online.co.il", "cal.co.il"], isracard: ["isracard.co.il"], amex: ["americanexpress.co.il"], hapoalim: ["bankhapoalim.co.il"] };
+const regDomain = (h) => { const p = h.split("."); return p.slice(-(h.endsWith(".co.il") ? 3 : 2)).join("."); };
+function allowedHosts(company) {
+  const set = new Set([regDomain(new URL(LOGIN_URL[company]).hostname), ...(EXTRA_DOMAINS[company] || [])]);
+  if (process.env.TEST_LOGIN_URL) set.add(new URL(process.env.TEST_LOGIN_URL).hostname);
+  return (url) => { try { const u = new URL(url); if (["about:", "blob:", "data:"].includes(u.protocol)) return true; if (!/^https?:$/.test(u.protocol)) return false; return [...set].some((d) => u.hostname === d || u.hostname.endsWith("." + d)); } catch { return false; } };
+}
 const PROFILE_DIR = process.env.PROFILE_DIR || "/profiles";
 const DEBUG = process.env.SCRAPER_DEBUG === "1";
 const UA = process.env.SCRAPER_UA || "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
@@ -56,8 +64,10 @@ const ARGS = [
 ];
 
 // Same browser, same profile, same look every time: the bank recognises it as the device you verified.
-async function launch(company) {
-  const dir = path.join(PROFILE_DIR, company);
+// profile = the connection id ("max", "max~2"): two logins at one company each keep their own remembered device
+const profName = (company, profile) => (/^[a-z][A-Za-z0-9]*(~\d{1,3})?$/.test(profile || "") && String(profile).split("~")[0] === company ? String(profile).replace("~", "_") : company);
+async function launch(company, profile) {
+  const dir = path.join(PROFILE_DIR, profName(company, profile));
   fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
   return puppeteer.launch({ headless: true, userDataDir: dir, args: ARGS, executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined });
 }
@@ -79,11 +89,11 @@ async function asksForCode(page) {
   } catch { return false; }
 }
 
-async function scrape(company, credentials, startDate) {
+async function scrape(company, credentials, startDate, profile) {
   if (assist) throw new Error("A verification window is open. Finish or cancel it first.");
   let page = null, browser = null;
   try {
-    browser = await launch(company);
+    browser = await launch(company, profile);
     const s = createScraper({
       companyId: COMPANIES[company], startDate: new Date(startDate), combineInstallments: false, showBrowser: false,
       timeout: 120000, defaultTimeout: 90000, skipCloseBrowser: true, verbose: false, browser,
@@ -112,13 +122,18 @@ async function assistStop() {
   const a = assist; assist = null; clearTimeout(a.timer);
   try { await a.browser.close(); } catch {}
 }
-async function assistStart(company) {
+async function assistStart(company, profile) {
   if (busy) throw new Error("A scrape is running");
   await assistStop();
-  const browser = await launch(company);
+  const browser = await launch(company, profile);
   const page = (await browser.pages())[0] || (await browser.newPage());
   await look(page); await page.setViewport({ ...VIEW });
   const url = process.env.TEST_LOGIN_URL || LOGIN_URL[company];
+  // block any page load (this tab, popups, redirects) that leaves the bank's domains; images/scripts the page itself loads are unaffected
+  const ok = allowedHosts(company);
+  await page.setRequestInterception(true);
+  page.on("request", (rq) => { if (rq.isNavigationRequest() && !ok(rq.url())) rq.abort("blockedbyclient").catch(() => {}); else rq.continue().catch(() => {}); });
+  browser.on("targetcreated", async (t) => { try { if (t.type() === "page" && t.url() && !ok(t.url())) { const p = await t.page(); if (p) await p.close(); } } catch {} });
   assist = { company, browser, page, timer: setTimeout(assistStop, ASSIST_IDLE_MS) };
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 }).catch(() => {});
   return { width: VIEW.width, height: VIEW.height };
@@ -151,12 +166,12 @@ http.createServer(async (req, res) => {
       }
       if (req.method !== "POST") return send(404, { error: "not found" });
       const b = await readBody(req);
-      if (act === "start") { if (!COMPANIES[b.company]) return send(400, { error: "unknown company" }); return send(200, { ok: true, ...(await assistStart(b.company)) }); }
+      if (act === "start") { if (!COMPANIES[b.company]) return send(400, { error: "unknown company" }); return send(200, { ok: true, ...(await assistStart(b.company, b.profile)) }); }
       if (act === "stop") { await assistStop(); return send(200, { ok: true }); }
       if (act === "forget") { // wipe the remembered device for a bank (used when its credentials are removed)
         if (!COMPANIES[b.company]) return send(400, { error: "unknown company" });
         if (busy || assist) return send(409, { error: "busy" });
-        fs.rmSync(path.join(PROFILE_DIR, b.company), { recursive: true, force: true });
+        fs.rmSync(path.join(PROFILE_DIR, profName(b.company, b.profile)), { recursive: true, force: true });
         return send(200, { ok: true });
       }
       if (!assist) return send(409, { error: "no verification window is open" });
@@ -175,7 +190,7 @@ http.createServer(async (req, res) => {
       if (!COMPANIES[j.company]) return send(400, { error: "unknown company" });
       if (!NEED[j.company].every((k) => typeof credentials?.[k] === "string" && credentials[k])) return send(400, { error: "missing credentials" });
       busy = true;
-      send(200, await scrape(j.company, credentials, j.startDate));
+      send(200, await scrape(j.company, credentials, j.startDate, j.profile));
     } catch (e) { send(500, { success: false, error: scrub(e.message, credentials) }); }
     finally { busy = false; }
   } catch (e) { send(e.code === 413 ? 413 : 500, { error: String(e.message).slice(0, 200) }); }
