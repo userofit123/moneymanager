@@ -2,7 +2,7 @@
 import crypto from "node:crypto";
 import { tx, audit, bumpRev } from "../db.js";
 import { rateOn } from "../fx.js";
-import { applyRules, detectTransfers, explainGaps } from "../engine.js";
+import { applyRules, applyTagRules, detectTransfers, explainGaps } from "../engine.js";
 
 const hash = (...p) => crypto.createHash("sha1").update(p.join("|")).digest("hex").slice(0, 20);
 
@@ -13,6 +13,7 @@ const hash = (...p) => crypto.createHash("sha1").update(p.join("|")).digest("hex
 export async function ingest(account, rows, { mergeManual = false } = {}) {
   return tx(async (c) => {
     let added = 0, merged = 0, migrated = 0;
+    const fresh = [];
     const seen = {};
     await c.query("DELETE FROM transactions WHERE pending AND source=$1 AND (from_name=$2 OR to_name=$2)", [account.source, account.name]);
     for (const r of rows) {
@@ -68,9 +69,11 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id`,
         [r.date, r.description, from, to, ils, foreign ? cur : null, foreign ? r.amount : null, rate, account.source, ext, !!r.pending, r.bankCategory || null, r.instN || null, r.instTotal || null, r.details ? JSON.stringify(r.details) : null]);
       added++;
+      fresh.push(ins.rows[0].id);
       if (r.amount && !r.pending) await explainGaps(c, ins.rows[0].id, account.name, cur, r.amount);
     }
     await applyRules(c);
+    await applyTagRules(c, fresh);
     const pairs = await detectTransfers(c);
     if (added || merged || pairs) await bumpRev(c);
     return { added, merged, migrated, transfers: pairs };

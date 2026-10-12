@@ -24,6 +24,26 @@ export async function applyRules(c) {
   return n;
 }
 
+// Tag rules: every rule whose text is in the description adds its tags. Only the given (new) transactions are tagged,
+// so a tag you remove by hand is not put back on the next sync.
+export async function applyTagRules(c, ids) {
+  if (!ids || !ids.length) return 0;
+  const rules = (await c.query("SELECT keyword,tag FROM tag_rules ORDER BY position,id")).rows;
+  if (!rules.length) return 0;
+  const rows = (await c.query("SELECT id,description FROM transactions WHERE id = ANY($1)", [ids])).rows;
+  let n = 0;
+  for (const t of rows) {
+    const d = t.description.toLowerCase(), tags = new Set();
+    for (const r of rules) if (r.keyword && d.includes(r.keyword.toLowerCase())) String(r.tag).split(",").map((x) => x.trim().replace(/^#+/, "")).filter(Boolean).forEach((g) => tags.add(g));
+    for (const tag of tags) {
+      await c.query("INSERT INTO tags (name) VALUES ($1) ON CONFLICT DO NOTHING", [tag]);
+      await c.query("INSERT INTO transaction_tags (transaction_id,tag,position) VALUES ($1,$2,99) ON CONFLICT DO NOTHING", [t.id, tag]);
+    }
+    if (tags.size) n++;
+  }
+  return n;
+}
+
 // 2. Transfers: money out of one of my accounts and in to another within 3 days and about 6% in value.
 export function pairTransfers(txs, own, known = []) {
   const taken = new Set(known.flatMap((x) => [x.out_id, x.in_id]));

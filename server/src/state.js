@@ -36,9 +36,10 @@ export async function ensureDefaults() {
 }
 
 export async function getState() {
-  const [cats, rules, txs, tags, docs, xf, budgets, bills, ign, jars, audit, dism, adj, accounts, runs, rev, snaps, gaps] = await Promise.all([
+  const [cats, rules, tagRules, txs, tags, docs, xf, budgets, bills, ign, jars, audit, dism, adj, accounts, runs, rev, snaps, gaps] = await Promise.all([
     q("SELECT name,color FROM categories ORDER BY sort"),
     q("SELECT keyword,category,tag FROM rules ORDER BY position,id"),
+    q("SELECT keyword,tag FROM tag_rules ORDER BY position,id"),
     q("SELECT id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,pending,source,inst_n,inst_total,jar_id,jar_amount,jar_auto,jar_skip,(details IS NOT NULL) AS has_det FROM transactions ORDER BY date DESC, id DESC"),
     q("SELECT transaction_id,tag FROM transaction_tags ORDER BY position"),
     q("SELECT id,transaction_id,filename,(path IS NOT NULL) AS has FROM documents ORDER BY id"),
@@ -71,6 +72,7 @@ export async function getState() {
     rev: parseInt(rev.rows[0].value, 10),
     cats: Object.fromEntries(cats.rows.map((c) => [c.name, c.color])),
     rules: rules.rows.map((r) => ({ k: r.keyword, c: r.category, t: r.tag })),
+    tagRules: tagRules.rows.map((r) => ({ k: r.keyword, t: r.tag })),
     tx: txs.rows.map((r) => ({
       id: r.id, d: r.date, desc: r.description, from: r.from_name, to: r.to_name, a: r.amount,
       ...(r.orig_currency ? { orig: { cur: r.orig_currency, amt: r.orig_amount } } : {}),
@@ -128,6 +130,11 @@ export async function putState(S) {
     await c.query("DELETE FROM rules");
     for (const [i, r] of (S.rules || []).entries())
       await c.query("INSERT INTO rules (keyword,category,tag,position) VALUES ($1,$2,$3,$4)", [r.k, r.c, r.t || "", i]);
+
+    // tag rules (wholesale, order kept)
+    await c.query("DELETE FROM tag_rules");
+    for (const [i, r] of (S.tagRules || []).entries())
+      if (r.k && r.t) await c.query("INSERT INTO tag_rules (keyword,tag,position) VALUES ($1,$2,$3)", [r.k, r.t, i]);
 
     // jars: the balance is only written when the user edited it (or the jar is new); fills are the server's job
     const jids = (S.jars || []).map((j) => j.id);
