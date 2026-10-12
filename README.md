@@ -1,6 +1,6 @@
 # Money Manager
 
-Self-hosted, read-only personal finance hub: Bank Hapoalim, Max, Isracard, Wise and a manual pension, with categories, bills, budgets, jars, alerts, reports and a forecast. No AI in the core. Requirements: [`docs/finance_app_spec_final.md`](docs/finance_app_spec_final.md) and [`docs/spec-addendum-v1.1-missing-money.md`](docs/spec-addendum-v1.1-missing-money.md). Plain-language overview: [`docs/app_explained.md`](docs/app_explained.md). Security details: [`docs/SECURITY.md`](docs/SECURITY.md).
+Self-hosted, read-only personal finance hub: Israeli banks and credit cards (Hapoalim, Leumi, Discount, Mercantile, Mizrahi-Tefahot, Otsar Hahayal, Union, First International, Massad, Yahav, Max, Isracard, Visa Cal, American Express), Wise and a manual pension, with categories, bills, budgets, jars, alerts, reports and a forecast. No AI in the core. Requirements: [`docs/finance_app_spec_final.md`](docs/finance_app_spec_final.md) and [`docs/spec-addendum-v1.1-missing-money.md`](docs/spec-addendum-v1.1-missing-money.md). Plain-language overview: [`docs/app_explained.md`](docs/app_explained.md). Security details: [`docs/SECURITY.md`](docs/SECURITY.md).
 
 ## Start it (laptop or server)
 ```sh

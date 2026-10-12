@@ -34,7 +34,7 @@ The demo shows how everything should look and behave. The real app replaces the 
 ## 4. How the automatic parts work
 
 ### Categories
-You create categories and write simple rules, such as "if the description contains Wolt, it is Eating out". The rules run on every new transaction and never overwrite something you set by hand. Anything unmatched waits in a review list.
+You create categories and write simple rules, such as "if the description contains Wolt, it is Eating out". The rules run on every new transaction and never overwrite something you set by hand. Tag rules work the same way (Settings → Tag rules): if the description contains the text, the transaction gets the tags, and when you add one the app offers to tag the transactions you already have. Anything unmatched waits in a review list.
 
 ### Bills
 A store becomes a bill when it charges you at a regular rhythm (every month, every 2 months or once a year) for a similar amount. Groceries are not treated as bills because the timing is irregular.
@@ -84,8 +84,8 @@ Bills due or overdue, price changes, budgets, a card charge much higher than las
 ### Wise
 You already created a personal token with limited permissions. It should read your balances. Whether it can read transactions for your account is unconfirmed. If Wise refuses, you import a monthly CSV instead.
 
-### Hapoalim, Max and Isracard
-A community library, israeli-bank-scrapers, logs in to the websites like you would and reads your data.
+### Banks and credit cards
+A community library, israeli-bank-scrapers, logs in to the websites like you would and reads your data. Supported: Bank Hapoalim, Bank Leumi, Discount, Mercantile Discount, Mizrahi-Tefahot, Otsar Hahayal, Union, First International, Massad, Yahav, and the cards Max, Isracard, Visa Cal and American Express. In Settings → Connections you choose which ones to add; only those you add are shown and synced. A connected one is not offered again and is removed from its own card.
 
 - It needs your real passwords, so keep them in a protected file on the server and never in chat.
 - Banks change their sites, so a scraper can break and need an update.
