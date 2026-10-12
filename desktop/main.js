@@ -33,7 +33,7 @@ if (!app.requestSingleInstanceLock()) app.quit();
 app.on("second-instance", () => { if (win) { win.show(); win.focus(); } });
 
 function openWindow() {
-  win = new BrowserWindow({ width: 1280, height: 860, minWidth: 380, minHeight: 600, title: "Money Manager", icon: path.join(root, "web", "icon-512.png"), backgroundColor: "#f7f8fd", autoHideMenuBar: true });
+  win = new BrowserWindow({ width: 1280, height: 860, minWidth: 380, minHeight: 600, title: "Money Manager", icon: path.join(root, "web", "icon-512.png"), backgroundColor: "#f7f8fd", autoHideMenuBar: true, webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, nodeIntegration: false } });
   win.loadURL(backend.url);
   // links to other sites (a bank, a help page) open in the normal browser, never inside the app
   win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: "deny" }; });
@@ -42,23 +42,39 @@ function openWindow() {
   win.on("close", (e) => { if (!quitting) { e.preventDefault(); win.hide(); } });
 }
 
-// Updates: the installed app checks for a newer version, downloads it quietly and installs it when the app is next closed.
-// Installing a new version replaces this one (same program, same data); it never adds a second copy.
-function checkForUpdates() {
-  if (!app.isPackaged) return;
-  let autoUpdater;
-  try { ({ autoUpdater } = require("electron-updater")); } catch { return; }
-  autoUpdater.autoDownload = true;
+// Updates. The app checks this project's GitHub releases at start and every few hours. With "Update automatically" on (the default) a newer
+// version downloads by itself and installs when the app is next closed (or when you press Restart). With it off, the sidebar only tells you
+// a newer version exists and you decide. Installing replaces this program (same app, same data); it never adds a second copy.
+let autoUpdater = null;
+const upd = { current: app.getVersion(), status: "idle", version: null, notes: "", percent: 0, error: "", auto: true, checkedAt: null };
+const settingsFile = () => path.join(app.getPath("userData"), "desktop-settings.json");
+function loadSettings() { try { upd.auto = JSON.parse(fs.readFileSync(settingsFile(), "utf8")).autoUpdate !== false; } catch { upd.auto = true; } }
+function saveSettings() { try { fs.writeFileSync(settingsFile(), JSON.stringify({ autoUpdate: upd.auto })); } catch {} }
+const pushUpdate = () => { if (win && !win.isDestroyed()) win.webContents.send("update:state", { ...upd }); };
+const notesText = (n) => Array.isArray(n) ? n.map((x) => x.note).join("\n") : String(n || "").replace(/<[^>]+>/g, "");
+
+function setupUpdates() {
+  const { ipcMain } = require("electron");
+  ipcMain.handle("update:get", () => ({ ...upd }));
+  ipcMain.handle("update:auto", (_e, on) => { upd.auto = !!on; saveSettings(); if (autoUpdater) autoUpdater.autoDownload = upd.auto; if (upd.auto && upd.status === "available") autoUpdater && autoUpdater.downloadUpdate().catch(() => {}); pushUpdate(); return { ...upd }; });
+  ipcMain.handle("update:check", async () => { await check(); return { ...upd }; });
+  ipcMain.handle("update:download", () => { if (autoUpdater && upd.status === "available") { upd.status = "downloading"; upd.percent = 0; pushUpdate(); autoUpdater.downloadUpdate().catch((e) => fail(e)); } return { ...upd }; });
+  ipcMain.handle("update:install", () => { if (autoUpdater && upd.status === "ready") { quitting = true; autoUpdater.quitAndInstall(); } });
+  loadSettings();
+  if (!app.isPackaged) { upd.status = "dev"; return; } // updates only apply to the installed app
+  try { ({ autoUpdater } = require("electron-updater")); } catch { upd.status = "dev"; return; }
+  autoUpdater.autoDownload = upd.auto;
   autoUpdater.autoInstallOnAppQuit = true;
-  autoUpdater.on("update-downloaded", (info) => {
-    if (!win) return;
-    dialog.showMessageBox(win, { type: "info", buttons: ["Restart now", "Later"], defaultId: 0, title: "Update ready", message: `Money Manager ${info.version} is ready.`, detail: "Restart to finish updating. Your data stays as it is. If you choose Later, it updates the next time you close the app." })
-      .then((r) => { if (r.response === 0) { quitting = true; autoUpdater.quitAndInstall(); } });
-  });
-  autoUpdater.on("error", (e) => console.log("update check:", e && e.message));
-  const check = () => autoUpdater.checkForUpdates().catch(() => {});
-  check(); setInterval(check, 6 * 60 * 60 * 1000);
+  autoUpdater.on("checking-for-update", () => { upd.status = "checking"; pushUpdate(); });
+  autoUpdater.on("update-not-available", () => { upd.status = "uptodate"; upd.checkedAt = Date.now(); pushUpdate(); });
+  autoUpdater.on("update-available", (i) => { upd.status = upd.auto ? "downloading" : "available"; upd.version = i.version; upd.notes = notesText(i.releaseNotes); upd.percent = 0; upd.checkedAt = Date.now(); pushUpdate(); });
+  autoUpdater.on("download-progress", (p) => { upd.status = "downloading"; upd.percent = Math.round(p.percent || 0); pushUpdate(); });
+  autoUpdater.on("update-downloaded", (i) => { upd.status = "ready"; upd.version = i.version; upd.percent = 100; pushUpdate(); });
+  autoUpdater.on("error", (e) => fail(e));
+  setTimeout(check, 4000); setInterval(check, 6 * 60 * 60 * 1000);
 }
+function fail(e) { upd.status = "error"; upd.error = String(e && e.message || e).slice(0, 200); pushUpdate(); }
+async function check() { if (!autoUpdater || ["downloading", "ready"].includes(upd.status)) return; try { await autoUpdater.checkForUpdates(); } catch (e) { fail(e); } }
 
 app.whenReady().then(async () => {
   Menu.setApplicationMenu(null);
@@ -70,8 +86,8 @@ app.whenReady().then(async () => {
     dialog.showErrorBox("Money Manager could not start", String(e && e.message || e));
     app.exit(1); return;
   }
+  setupUpdates();
   openWindow();
-  checkForUpdates();
   tray = new Tray(path.join(root, "web", "favicon.png"));
   tray.setToolTip("Money Manager");
   tray.setContextMenu(Menu.buildFromTemplate([

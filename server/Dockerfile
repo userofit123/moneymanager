@@ -4,6 +4,7 @@ COPY server/package*.json ./
 RUN npm ci --omit=dev
 COPY server/ ./
 COPY web/ /app/web/
+COPY CHANGELOG.md /app/CHANGELOG.md
 ENV WEB_DIR=/app/web NODE_ENV=production PORT=8080
 RUN mkdir -p /data/documents && chown -R node:node /data
 VOLUME /data
