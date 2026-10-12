@@ -15,13 +15,26 @@ import puppeteer from "puppeteer";
 import { createScraper, CompanyTypes } from "israeli-bank-scrapers";
 
 const KEY = process.env.SCRAPER_KEY || "";
-const COMPANIES = { hapoalim: CompanyTypes.hapoalim, max: CompanyTypes.max, isracard: CompanyTypes.isracard };
-const NEED = { hapoalim: ["userCode", "password"], max: ["username", "password"], isracard: ["id", "card6Digits", "password"] };
-const LOGIN_URL = {
-  hapoalim: "https://login.bankhapoalim.co.il/ng-portals/auth/he/",
-  max: "https://www.max.co.il/login",
-  isracard: "https://digital.isracard.co.il/personalarea/login/",
+// company -> [scraper id, the login fields it needs, its login page (for "Verify this device")]
+const SUPPORTED = {
+  hapoalim: ["hapoalim", ["userCode", "password"], "https://login.bankhapoalim.co.il/ng-portals/auth/he/"],
+  leumi: ["leumi", ["username", "password"], "https://hb2.bankleumi.co.il/H/Login.html"],
+  discount: ["discount", ["id", "password", "num"], "https://start.telebank.co.il/login/#/LOGIN_PAGE"],
+  mercantile: ["mercantile", ["id", "password", "num"], "https://start.telebank.co.il/login/#/LOGIN_PAGE"],
+  mizrahi: ["mizrahi", ["username", "password"], "https://www.mizrahi-tefahot.co.il/login/"],
+  otsarHahayal: ["otsarHahayal", ["username", "password"], "https://www.ebank.ibi.co.il/"],
+  union: ["union", ["username", "password"], "https://hb.unionbank.co.il/"],
+  beinleumi: ["beinleumi", ["username", "password"], "https://www.fibi.co.il/"],
+  massad: ["massad", ["username", "password"], "https://login.bankmassad.co.il/"],
+  yahav: ["yahav", ["username", "nationalID", "password"], "https://www.bank-yahav.co.il/"],
+  max: ["max", ["username", "password"], "https://www.max.co.il/login"],
+  isracard: ["isracard", ["id", "card6Digits", "password"], "https://digital.isracard.co.il/personalarea/login/"],
+  visaCal: ["visaCal", ["username", "password"], "https://www.cal-online.co.il/"],
+  amex: ["amex", ["username", "card6Digits", "password"], "https://he.americanexpress.co.il/personalarea/login"],
 };
+const COMPANIES = Object.fromEntries(Object.entries(SUPPORTED).map(([k, [id]]) => [k, CompanyTypes[id]]));
+const NEED = Object.fromEntries(Object.entries(SUPPORTED).map(([k, v]) => [k, v[1]]));
+const LOGIN_URL = Object.fromEntries(Object.entries(SUPPORTED).map(([k, v]) => [k, v[2]]));
 const PROFILE_DIR = process.env.PROFILE_DIR || "/profiles";
 const DEBUG = process.env.SCRAPER_DEBUG === "1";
 const UA = process.env.SCRAPER_UA || "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";

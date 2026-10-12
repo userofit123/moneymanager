@@ -25,7 +25,7 @@ export const app = express();
 app.disable("x-powered-by");
 app.set("trust proxy", process.env.TRUST_PROXY === "1"); // set when Caddy or another proxy sits in front
 
-const ASSIST_BANKS = ["hapoalim", "max", "isracard"];
+const ASSIST_BANKS = Object.keys(FIELDS).filter((k) => k !== "wise");
 const wrap = (fn) => (req, res) => Promise.resolve(fn(req, res)).catch((e) => { console.error(req.method, req.path, e.message); res.status(500).json({ error: "Something went wrong" }); });
 const json = express.json({ limit: "20mb" });
 

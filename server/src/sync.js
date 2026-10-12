@@ -7,7 +7,7 @@ import { ingest } from "./sources/ingest.js";
 import { fetchWise } from "./sources/wise.js";
 import { scrape } from "./sources/scraper.js";
 import { recordSnapshot, detectTransfers } from "./engine.js";
-import { getCreds, isLocked, recordResult, markTested, LABELS } from "./connections.js";
+import { getCreds, isLocked, recordResult, markTested, LABELS, KINDS } from "./connections.js";
 import { scrub } from "./secrets.js";
 import { sendNtfy, notifyOnce, clearNotified, remindOldGaps } from "./notify.js";
 import { fillJars } from "./jars.js";
@@ -102,7 +102,7 @@ export function readNote(days, seen, oldest, added, today = new Date()) {
   return `read ${seen} transactions back to ${oldest}, ${added} new` + (short ? `. You asked for ${days} days, but the bank only returned history back to ${oldest}. Banks usually keep about 12 months online. For older history, import their statement export (Settings → App and data)` : "");
 }
 
-const BANKS = { hapoalim: ["Bank Hapoalim", "bank"], max: ["Max", "card"], isracard: ["Isracard", "card"] };
+const BANKS = Object.fromEntries(Object.keys(KINDS).filter((k) => k !== "wise").map((k) => [k, [LABELS[k], KINDS[k]]]));
 
 const RUN = {
   async wise(creds, opts = {}) {
