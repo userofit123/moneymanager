@@ -179,4 +179,4 @@ http.createServer(async (req, res) => {
     } catch (e) { send(500, { success: false, error: scrub(e.message, credentials) }); }
     finally { busy = false; }
   } catch (e) { send(e.code === 413 ? 413 : 500, { error: String(e.message).slice(0, 200) }); }
-}).listen(+process.env.PORT || 8080, () => console.log("scraper ready"));
+}).listen(+process.env.PORT || 8080, process.env.HOST || undefined, () => console.log("scraper ready"));

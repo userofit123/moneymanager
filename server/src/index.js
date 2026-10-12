@@ -1,7 +1,7 @@
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { migrate, q, audit } from "./db.js";
+import { migrate, q, audit, pool } from "./db.js";
 import { loadKey } from "./secrets.js";
 import { ensureDefaults, getState, putState, StaleError } from "./state.js";
 import { ratesSummary, refreshRates, rateOn } from "./fx.js";
@@ -248,12 +248,15 @@ app.use((req, res, next) => {
 });
 app.use(express.static(WEB, { extensions: ["html"] }));
 
+let httpServer = null;
+// closes the web server and the database cleanly (the desktop app calls this when it quits)
+export async function stop() { await new Promise((ok) => (httpServer ? httpServer.close(() => ok()) : ok())); await pool.end(); }
 export async function start() {
   loadKey(); // fails early if the key is unusable
   await migrate();
   await ensureDefaults();
   const port = +process.env.PORT || 8080;
-  app.listen(port, () => console.log("money manager on :" + port));
+  httpServer = app.listen(port, process.env.HOST || undefined, () => console.log("money manager on :" + port)); // HOST=127.0.0.1 keeps it local (the desktop app)
   if (process.env.SCHEDULER !== "0") startScheduler();
   refreshRates().catch((e) => console.error("rates:", e.message)).then(async () => {
     if (process.env.AUTO_DEMO_SEED !== "1") return;

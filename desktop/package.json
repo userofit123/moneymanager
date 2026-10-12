@@ -1,0 +1,85 @@
+{
+  "name": "money-manager-desktop",
+  "productName": "Money Manager",
+  "version": "0.1.0",
+  "description": "Money Manager for Windows: the same app, with its own database and bank scraper built in",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --x64 --publish never",
+    "release": "electron-builder --win --x64 --publish always"
+  },
+  "dependencies": {
+    "electron-updater": "^6.6.0"
+  },
+  "devDependencies": {
+    "electron": "^44.7.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "app.moneymanager.desktop",
+    "productName": "Money Manager",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "launcher.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../server",
+        "to": "server",
+        "filter": [
+          "**/*",
+          "!test/**",
+          "!Dockerfile*"
+        ]
+      },
+      {
+        "from": "../scraper",
+        "to": "scraper",
+        "filter": [
+          "**/*",
+          "!test/**",
+          "!Dockerfile*"
+        ]
+      },
+      {
+        "from": "../web",
+        "to": "web"
+      },
+      {
+        "from": "chrome",
+        "to": "chrome"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "../web/icon-512.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false,
+      "createDesktopShortcut": true,
+      "guid": "6f1c1c0e-7a52-4d0b-9f0e-3b6a2f6d5c11"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "userofit123",
+        "repo": "moneymanager"
+      }
+    ]
+  }
+}
