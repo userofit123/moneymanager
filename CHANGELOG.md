@@ -2,6 +2,8 @@
 
 What changed in each version. The web app (Docker) and the Windows app share one version number. Entries under **Windows app** only apply to the installer.
 
+Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
+
 ## [0.1.0] - 2026-10-12
 
 ### App
