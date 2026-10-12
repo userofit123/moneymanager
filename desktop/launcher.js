@@ -27,9 +27,10 @@ function findChrome(dir) {
 /**
  * dataDir: where everything is kept (database, encryption key, receipts, bank browser profiles)
  * root: folder holding server/, scraper/, web/ and chrome/ (the app's resources, or the repository when developing)
+ * appKey: base64 key for saved logins; without it the server keeps its own key file in the data folder
  * nodeBin: the executable that runs the scraper (Electron's own binary with ELECTRON_RUN_AS_NODE, or plain node)
  */
-async function startBackend({ dataDir, root, nodeBin = process.execPath, log = console.log }) {
+async function startBackend({ dataDir, root, nodeBin = process.execPath, appKey = null, log = console.log }) {
   fs.mkdirSync(dataDir, { recursive: true });
   fs.mkdirSync(dataDir, { recursive: true });
   // 1. the database: PostgreSQL running inside the app, kept as plain files in the data folder (no separate database program to install or start)
@@ -47,6 +48,7 @@ async function startBackend({ dataDir, root, nodeBin = process.execPath, log = c
   // 3. the app itself, in this process
   const port = await freePort();
   Object.assign(process.env, {
+    ...(appKey ? { APP_KEY: appKey } : {}), // the key that encrypts saved logins, when the caller keeps it protected (see main.js)
     DB_DRIVER: "pglite", PGLITE_DIR: dbDir, DATA_DIR: path.join(dataDir, "data"), DOCS_DIR: path.join(dataDir, "data", "documents"),
     WEB_DIR: path.join(root, "web"), SCRAPER_URL: `http://127.0.0.1:${scraperPort}`, SCRAPER_KEY: scraperKey, HOST: "127.0.0.1", PORT: String(port), NODE_ENV: "production",
   });
