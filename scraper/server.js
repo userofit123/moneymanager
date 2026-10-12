@@ -35,6 +35,14 @@ const SUPPORTED = {
 const COMPANIES = Object.fromEntries(Object.entries(SUPPORTED).map(([k, [id]]) => [k, CompanyTypes[id]]));
 const NEED = Object.fromEntries(Object.entries(SUPPORTED).map(([k, v]) => [k, v[1]]));
 const LOGIN_URL = Object.fromEntries(Object.entries(SUPPORTED).map(([k, v]) => [k, v[2]]));
+// "Verify this device" may only stay on the bank's own websites. Extra domains are banks' known sign-in / sister sites.
+const EXTRA_DOMAINS = { leumi: ["leumi.co.il"], discount: ["discountbank.co.il"], mercantile: ["discountbank.co.il"], mizrahi: ["mizrahi-tefahot.co.il"], max: ["max.co.il"], visaCal: ["cal-online.co.il", "cal.co.il"], isracard: ["isracard.co.il"], amex: ["americanexpress.co.il"], hapoalim: ["bankhapoalim.co.il"] };
+const regDomain = (h) => { const p = h.split("."); return p.slice(-(h.endsWith(".co.il") ? 3 : 2)).join("."); };
+function allowedHosts(company) {
+  const set = new Set([regDomain(new URL(LOGIN_URL[company]).hostname), ...(EXTRA_DOMAINS[company] || [])]);
+  if (process.env.TEST_LOGIN_URL) set.add(new URL(process.env.TEST_LOGIN_URL).hostname);
+  return (url) => { try { const u = new URL(url); if (["about:", "blob:", "data:"].includes(u.protocol)) return true; if (!/^https?:$/.test(u.protocol)) return false; return [...set].some((d) => u.hostname === d || u.hostname.endsWith("." + d)); } catch { return false; } };
+}
 const PROFILE_DIR = process.env.PROFILE_DIR || "/profiles";
 const DEBUG = process.env.SCRAPER_DEBUG === "1";
 const UA = process.env.SCRAPER_UA || "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
@@ -119,6 +127,11 @@ async function assistStart(company) {
   const page = (await browser.pages())[0] || (await browser.newPage());
   await look(page); await page.setViewport({ ...VIEW });
   const url = process.env.TEST_LOGIN_URL || LOGIN_URL[company];
+  // block any page load (this tab, popups, redirects) that leaves the bank's domains; images/scripts the page itself loads are unaffected
+  const ok = allowedHosts(company);
+  await page.setRequestInterception(true);
+  page.on("request", (rq) => { if (rq.isNavigationRequest() && !ok(rq.url())) rq.abort("blockedbyclient").catch(() => {}); else rq.continue().catch(() => {}); });
+  browser.on("targetcreated", async (t) => { try { if (t.type() === "page" && t.url() && !ok(t.url())) { const p = await t.page(); if (p) await p.close(); } } catch {} });
   assist = { company, browser, page, timer: setTimeout(assistStop, ASSIST_IDLE_MS) };
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 }).catch(() => {});
   return { width: VIEW.width, height: VIEW.height };
