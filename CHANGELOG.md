@@ -26,3 +26,4 @@ What changed in each version. The web app (Docker) and the Windows app share one
 - First release of the installer: the database, the bank scraper and the app run inside it, with data kept on your computer. No Docker, no setup.
 - Updates itself from this repository's GitHub releases, with an "Update automatically" switch. An update replaces the installed app and keeps your data.
 - The key for saved bank logins is protected by Windows.
+- Fixed: the first installer was missing the server's libraries ("Cannot find package 'express'"). They are now shipped and restored on first start.

@@ -20,6 +20,11 @@ jobs:
         working-directory: server
       - run: npm ci --omit=dev
         working-directory: scraper
+      - name: Ship the dependencies as app_modules (the installer builder skips folders named node_modules)
+        shell: pwsh
+        run: |
+          Rename-Item server/node_modules app_modules
+          Rename-Item scraper/node_modules app_modules
       - run: npm install --no-audit --no-fund
         working-directory: desktop
       - name: Version and release notes from the tag and CHANGELOG.md
