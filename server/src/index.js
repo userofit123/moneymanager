@@ -248,8 +248,9 @@ const newer = (a, b) => { const x = a.split(".").map(Number), y = b.split(".").m
 let latestCache = { at: 0, v: null };
 app.get("/api/version", wrap(async (_req, res) => { const t = readChangelog(); res.json({ version: versionOf(t), changelog: t }); }));
 // asks GitHub (public repository) for the latest release; cached for an hour; a failure just means "unknown"
-app.get("/api/update-check", wrap(async (_req, res) => {
+app.get("/api/update-check", wrap(async (req, res) => {
   const cur = versionOf(readChangelog());
+  if (req.query.force) latestCache.at = 0; // the "Check for updates" button
   if (Date.now() - latestCache.at > 36e5) {
     try {
       const r = await fetch("https://api.github.com/repos/userofit123/moneymanager/releases/latest", { headers: { "user-agent": "money-manager", accept: "application/vnd.github+json" }, signal: AbortSignal.timeout(8000) });

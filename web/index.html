@@ -1268,7 +1268,7 @@ $("alS").innerHTML=`<div class="pl" style="margin-bottom:6px">Which alerts to sh
 // release exists and says how to update the server.
 let UP={cur:"",latest:null,status:"idle",percent:0,notes:"",url:"",auto:true,desk:!!window.desktop,err:""};
 function upFromDesk(s){UP.cur=s.current;UP.status=s.status;UP.latest=s.version;UP.percent=s.percent||0;UP.notes=s.notes||"";UP.auto=s.auto!==false;UP.err=s.error||""}
-async function upWeb(){try{const j=await (await fetch("/api/update-check")).json();UP.cur=j.current;UP.latest=j.latest;UP.status=j.available?"available":(j.latest?"uptodate":"idle");UP.notes=j.notes||"";UP.url=j.url||""}catch(e){}updUI()}
+async function upWeb(force){if(force){UP.status="checking";updUI()}try{const j=await (await fetch("/api/update-check"+(force?"?force=1":""))).json();UP.cur=j.current;UP.latest=j.latest;UP.status=j.available?"available":(j.latest?"uptodate":(force?"error":"idle"));UP.err=j.latest?"":"GitHub could not be reached.";UP.notes=j.notes||"";UP.url=j.url||""}catch(e){if(force){UP.status="error";UP.err="GitHub could not be reached."}}updUI()}
 function initUpdates(){if(window.desktop){window.desktop.onUpdate(s=>{upFromDesk(s);updUI()});window.desktop.getUpdate().then(s=>{upFromDesk(s);updUI()}).catch(()=>{})}else{upWeb();setInterval(upWeb,6*36e5)}}
 function updUI(){const b=$("updb");if(b){const s=UP.status,show=["available","downloading","ready"].includes(s);b.style.display=show?"":"none";b.innerHTML=show?`<i></i>${s=="ready"?"Restart to update":s=="downloading"?"Updating… "+UP.percent+"%":"Update available"}`:""}
 if(typeof curView!="undefined"&&curView=="set"&&setTab=="data"&&$("updCard"))$("updCard").innerHTML=updCardHtml()}
@@ -1284,6 +1284,7 @@ if(d&&s=="available")btn=`<button class="btn s" data-a="updDownload">Download an
 if(d&&s=="ready")btn=`<button class="btn s" data-a="updInstall">Restart and update</button>`;
 if(d&&!["downloading","checking","ready","dev"].includes(s))btn+=`<button class="btn o s" data-a="updCheck">Check for updates</button>`;
 if(!d&&UP.url&&s=="available")btn=`<a class="btn s" href="${esc(UP.url)}" target="_blank" rel="noopener">See what changed</a>`;
+if(!d&&s!="checking")btn+=`<button class="btn o s" data-a="updCheck">Check for updates</button>`;
 return ssh("install","Version and updates",d?"This app keeps itself up to date.":"You run this app on your own server.")+`<div class="ssb">${sr("Installed version",UP.cur?"v"+esc(UP.cur):"","<button class=\"btn o s\" data-a=\"updNotes\">What's new</button>")}${st?`<div class="sinfo"><span>${st}</span></div>`:""}${btn?`<div class="flex" style="gap:8px;flex-wrap:wrap;margin:0 0 6px">${btn}</div>`:""}${d&&s!="dev"?`<label class="tg"><span><b style="font-weight:600">Update automatically</b><div class="sm">Download and install new versions by itself. It installs the next time you close the app.</div></span><input type="checkbox" data-upd="auto" ${UP.auto?"checked":""}></label>`:""}</div>`}
 const mdLite=t=>{let h="",ul=false;const inl=x=>esc(x).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`(.+?)`/g,"<code>$1</code>");String(t).split("\n").forEach(l=>{const m3=l.match(/^### (.*)/),m2=l.match(/^## (.*)/),li=l.match(/^- (.*)/);if(ul&&!li){h+="</ul>";ul=false}if(m2)h+=`<h4 class="clv">${inl(m2[1].replace(/[\[\]]/g,""))}</h4>`;else if(m3)h+=`<h5 class="cls">${inl(m3[1])}</h5>`;else if(li){if(!ul){h+="<ul class=\"cll\">";ul=true}h+=`<li>${inl(li[1])}</li>`}else if(l.trim()&&!/^# /.test(l))h+=`<p class="sm">${inl(l)}</p>`});return h+(ul?"</ul>":"")};
 async function openNotes(){let t="";try{t=(await (await fetch("/api/version")).json()).changelog||""}catch(e){}
@@ -1760,7 +1761,7 @@ case"alOpen":{const al=alerts().find(x=>x.id==d.id);if(!al)break;if(al.attach){n
 case"clearF":FOCUS=null;RNG.tx={p:"all",from:"",to:""};saveRng();$("q").value="";$("fSrc").value="";$("fCat").value="";$("fTag").value="";$("fTy").value="";renderTx();break;
 case"goSrc":nav("tx");txTab="all";$("fSrc").value=d.src;$("fCat").value="";$("fTag").value="";$("fTy").value="";renderTx();break;
 case"updOpen":nav("set");setTab="data";renderSet();break;
-case"updCheck":if(window.desktop){UP.status="checking";updUI();window.desktop.check().then(s=>{upFromDesk(s);updUI()})}break;
+case"updCheck":if(window.desktop){UP.status="checking";updUI();window.desktop.check().then(s=>{upFromDesk(s);updUI()})}else upWeb(true);break;
 case"updDownload":if(window.desktop)window.desktop.download().then(s=>{upFromDesk(s);updUI()});break;
 case"updInstall":if(window.desktop)window.desktop.install();break;
 case"updNotes":openNotes();break;
