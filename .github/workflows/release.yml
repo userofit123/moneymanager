@@ -92,11 +92,12 @@ jobs:
           $log = Get-Content ../CHANGELOG.md -Raw
           $m = [regex]::Match($log, "(?ms)^## \[" + [regex]::Escape($v) + "\][^\n]*\n(.*?)(?=^## |\z)")
           if ($m.Success) { Set-Content release-notes.md $m.Groups[1].Value.Trim() } else { Set-Content release-notes.md "See CHANGELOG.md" }
-      - name: Tag the release
+      - name: Create the release (and its tag) first, so the installer files are all added to the same one
         if: needs.version.outputs.publish == 'true'
-        run: |
-          git tag "${{ needs.version.outputs.tag }}"
-          git push origin "${{ needs.version.outputs.tag }}"
+        shell: pwsh
+        run: gh release create "${{ needs.version.outputs.tag }}" --target "${{ github.sha }}" --title "${{ needs.version.outputs.version }}" --notes-file desktop/release-notes.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Build the installer
         working-directory: desktop
         run: npm run ${{ (needs.version.outputs.publish == 'true' || github.event_name == 'release') && 'release' || 'dist' }}
