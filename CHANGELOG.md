@@ -13,6 +13,8 @@ What changed in each version. The web app (Docker) and the Windows app share one
 - **Activity.** A tidier summary strip (count, In, Out, Net) and no stray separator line under group headers on mobile.
 - **Payment history** has a bar chart, year headers and date tiles. **Bills** show "Found automatically" and "Added by you" as matching pills. **Jars**: a better category picker in the jar form, and the whole "Full by" cell has its tooltip.
 - **Appearance.** A redesigned panel with previews. Textures (Dots, Stripes, Grid, Static) are separate from backgrounds and have a density slider. Glass now looks like glass, Raised is fixed, and Static is a new surface.
+- **Glass** shows the app's own background (and texture) through blurred panels, with Blur and Transparency sliders. Textures and the glass effect were hidden behind the start-up colour; fixed. The atmosphere swatches are round again.
+- **Hebrew.** A pass over the translation: more natural wording, a consistent vocabulary (קופה, יעד, חשבון, תנועה), and text that was missing.
 - **Version and updates** in Settings → App and data, with this changelog.
 
 ### Windows app
