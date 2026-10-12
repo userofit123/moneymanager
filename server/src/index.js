@@ -18,7 +18,7 @@ import { fillJars, readJars } from "./jars.js";
 import { bumpRev, tx } from "./db.js";
 import { applyRules } from "./engine.js";
 import { sendNtfy, sendNtfyOnly, ntfyProblem, ntfyUrl, channelStatus, saveChannel, removeChannel, sendChannel } from "./notify.js";
-import { listConnections, saveCreds, removeCreds, unlock, getCreds, markAssisted, FIELDS } from "./connections.js";
+import { listConnections, saveCreds, removeCreds, unlock, getCreds, markAssisted, FIELDS, baseOf, validId, nextId, setNickname } from "./connections.js";
 import * as auth from "./auth.js";
 
 const WEB = process.env.WEB_DIR || path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "web");
@@ -121,19 +121,29 @@ app.post("/api/fx/refresh", wrap(async (_req, res) => res.json({ rows: await ref
 
 // ---------- connections (credentials are write-only) ----------
 app.get("/api/connections", wrap(async (_req, res) => res.json(await listConnections())));
+app.post("/api/connections/:provider/new", wrap(async (req, res) => { // the id for one more login at a company
+  if (!FIELDS[req.params.provider]) return res.status(404).json({ error: "unknown source" });
+  res.json({ source: await nextId(req.params.provider) });
+}));
+app.put("/api/connections/:source/nickname", json, wrap(async (req, res) => {
+  if (!validId(req.params.source)) return res.status(404).json({ error: "unknown source" });
+  try { await setNickname(req.params.source, req.body?.nickname); } catch (e) { return res.status(400).json({ error: e.message }); }
+  res.json({ ok: true });
+}));
 app.put("/api/connections/:source", json, wrap(async (req, res) => {
-  if (!FIELDS[req.params.source]) return res.status(404).json({ error: "unknown source" });
+  if (!validId(req.params.source)) return res.status(404).json({ error: "unknown source" });
   try { await saveCreds(req.params.source, req.body); } catch (e) { return res.status(400).json({ error: e.message }); }
   res.json({ ok: true });
 }));
 app.delete("/api/connections/:source", wrap(async (req, res) => {
+  if (!validId(req.params.source)) return res.status(404).json({ error: "unknown source" });
   await removeCreds(req.params.source);
-  if (ASSIST_BANKS.includes(req.params.source)) { try { await scraperAssist("forget", { company: req.params.source }); } catch {} } // also forget the remembered device
+  if (ASSIST_BANKS.includes(baseOf(req.params.source))) { try { await scraperAssist("forget", { company: baseOf(req.params.source), profile: req.params.source }); } catch {} } // also forget the remembered device
   res.json({ ok: true });
 }));
-app.post("/api/connections/:source/unlock", wrap(async (req, res) => { await unlock(req.params.source); res.json({ ok: true }); }));
+app.post("/api/connections/:source/unlock", wrap(async (req, res) => { if (!validId(req.params.source)) return res.status(404).json({ error: "unknown source" }); await unlock(req.params.source); res.json({ ok: true }); }));
 app.post("/api/connections/:source/test", wrap(async (req, res) => {
-  if (!FIELDS[req.params.source]) return res.status(404).json({ error: "unknown source" });
+  if (!validId(req.params.source)) return res.status(404).json({ error: "unknown source" });
   const r = await testSource(req.params.source);
   res.status(r.busy ? 409 : 200).json(r);
 }));
@@ -145,11 +155,11 @@ const needAssist = (res) => { const j = assistJob(); if (!j) { res.status(409).j
 const assistErr = (e) => String(e.message || e).slice(0, 160);
 app.post("/api/connections/:source/assist/start", wrap(async (req, res) => {
   const src = req.params.source;
-  if (!ASSIST_BANKS.includes(src)) return res.status(404).json({ error: "Not available for this source" });
+  if (!validId(src) || !ASSIST_BANKS.includes(baseOf(src))) return res.status(404).json({ error: "Not available for this source" });
   if (!(await getCreds(src))) return res.status(400).json({ error: "Save the login first." });
   const busy = acquireJob(src, "assist", ASSIST_TTL);
   if (busy) return res.status(409).json(busy);
-  try { res.json(await scraperAssist("start", { company: src })); }
+  try { res.json(await scraperAssist("start", { company: baseOf(src), profile: src })); }
   catch (e) { releaseJob("assist"); res.status(502).json({ error: "The scraper could not open the bank page: " + assistErr(e) }); }
 }));
 app.get("/api/assist/screen", wrap(async (_req, res) => {
@@ -166,7 +176,7 @@ app.post("/api/assist/scroll", json, wrap(async (req, res) => { if (needAssist(r
 app.post("/api/assist/credential", json, wrap(async (req, res) => {
   const j = needAssist(res); if (!j) return;
   const creds = await getCreds(j.source), f = String(req.body?.field || "");
-  if (!creds || !FIELDS[j.source].some((x) => x.k === f) || !creds[f]) return res.status(400).json({ error: "No such saved field." });
+  if (!creds || !FIELDS[baseOf(j.source)].some((x) => x.k === f) || !creds[f]) return res.status(400).json({ error: "No such saved field." });
   await scraperAssist("type", { text: creds[f] });
   res.json({ ok: true });
 }));
@@ -195,7 +205,7 @@ app.put("/api/sync/settings", json, wrap(async (req, res) => res.json(await putS
 app.get("/api/sync/log", wrap(async (_req, res) => res.set("Cache-Control", "no-store").json(await syncLog())));
 app.post("/api/sync", wrap(async (_req, res) => { const r = await syncAll(); res.status(r.busy ? 409 : 200).json(r); }));
 app.post("/api/sync/:source", wrap(async (req, res) => {
-  if (!SOURCE_NAMES.includes(req.params.source)) return res.status(404).json({ error: "unknown source" });
+  if (!validId(req.params.source)) return res.status(404).json({ error: "unknown source" });
   const days = Math.max(0, Math.min(1825, parseInt(req.query.days, 10) || 0)); // 0 = the usual window; up to 5 years of history
   const r = await syncSource(req.params.source, { days: days || undefined });
   res.status(r.busy ? 409 : 200).json(r);
