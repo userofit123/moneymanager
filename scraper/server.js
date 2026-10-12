@@ -64,8 +64,10 @@ const ARGS = [
 ];
 
 // Same browser, same profile, same look every time: the bank recognises it as the device you verified.
-async function launch(company) {
-  const dir = path.join(PROFILE_DIR, company);
+// profile = the connection id ("max", "max~2"): two logins at one company each keep their own remembered device
+const profName = (company, profile) => (/^[a-z][A-Za-z0-9]*(~\d{1,3})?$/.test(profile || "") && String(profile).split("~")[0] === company ? String(profile).replace("~", "_") : company);
+async function launch(company, profile) {
+  const dir = path.join(PROFILE_DIR, profName(company, profile));
   fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
   return puppeteer.launch({ headless: true, userDataDir: dir, args: ARGS, executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined });
 }
@@ -87,11 +89,11 @@ async function asksForCode(page) {
   } catch { return false; }
 }
 
-async function scrape(company, credentials, startDate) {
+async function scrape(company, credentials, startDate, profile) {
   if (assist) throw new Error("A verification window is open. Finish or cancel it first.");
   let page = null, browser = null;
   try {
-    browser = await launch(company);
+    browser = await launch(company, profile);
     const s = createScraper({
       companyId: COMPANIES[company], startDate: new Date(startDate), combineInstallments: false, showBrowser: false,
       timeout: 120000, defaultTimeout: 90000, skipCloseBrowser: true, verbose: false, browser,
@@ -120,10 +122,10 @@ async function assistStop() {
   const a = assist; assist = null; clearTimeout(a.timer);
   try { await a.browser.close(); } catch {}
 }
-async function assistStart(company) {
+async function assistStart(company, profile) {
   if (busy) throw new Error("A scrape is running");
   await assistStop();
-  const browser = await launch(company);
+  const browser = await launch(company, profile);
   const page = (await browser.pages())[0] || (await browser.newPage());
   await look(page); await page.setViewport({ ...VIEW });
   const url = process.env.TEST_LOGIN_URL || LOGIN_URL[company];
@@ -164,12 +166,12 @@ http.createServer(async (req, res) => {
       }
       if (req.method !== "POST") return send(404, { error: "not found" });
       const b = await readBody(req);
-      if (act === "start") { if (!COMPANIES[b.company]) return send(400, { error: "unknown company" }); return send(200, { ok: true, ...(await assistStart(b.company)) }); }
+      if (act === "start") { if (!COMPANIES[b.company]) return send(400, { error: "unknown company" }); return send(200, { ok: true, ...(await assistStart(b.company, b.profile)) }); }
       if (act === "stop") { await assistStop(); return send(200, { ok: true }); }
       if (act === "forget") { // wipe the remembered device for a bank (used when its credentials are removed)
         if (!COMPANIES[b.company]) return send(400, { error: "unknown company" });
         if (busy || assist) return send(409, { error: "busy" });
-        fs.rmSync(path.join(PROFILE_DIR, b.company), { recursive: true, force: true });
+        fs.rmSync(path.join(PROFILE_DIR, profName(b.company, b.profile)), { recursive: true, force: true });
         return send(200, { ok: true });
       }
       if (!assist) return send(409, { error: "no verification window is open" });
@@ -188,7 +190,7 @@ http.createServer(async (req, res) => {
       if (!COMPANIES[j.company]) return send(400, { error: "unknown company" });
       if (!NEED[j.company].every((k) => typeof credentials?.[k] === "string" && credentials[k])) return send(400, { error: "missing credentials" });
       busy = true;
-      send(200, await scrape(j.company, credentials, j.startDate));
+      send(200, await scrape(j.company, credentials, j.startDate, j.profile));
     } catch (e) { send(500, { success: false, error: scrub(e.message, credentials) }); }
     finally { busy = false; }
   } catch (e) { send(e.code === 413 ? 413 : 500, { error: String(e.message).slice(0, 200) }); }
