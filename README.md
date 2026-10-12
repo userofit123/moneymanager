@@ -35,7 +35,7 @@ One installer for Windows. The person installs it, opens it, creates a password,
 1. On GitHub open the repository → **Actions** → **Windows desktop app** → **Run workflow** (pick the branch, press the green button).
 2. Wait about 10 to 15 minutes. Open the finished run and download **money-manager-windows** under *Artifacts*. Unzip it: the `.exe` inside is the installer. Send that file.
 
-**Updates:** bump `version` in `desktop/package.json`, then push a tag such as `v0.2.0` (`git tag v0.2.0 && git push origin v0.2.0`). The same workflow builds the installer and publishes it as a GitHub release; installed copies find it, download it and offer to restart. Running a newer `Setup.exe` over an old install also just replaces it, with the data kept. The repository (or at least its releases) must be public for installed copies to check for updates.
+**Updates:** bump `version` in `desktop/package.json`, then push a tag such as `v0.2.0` (`git tag v0.2.0 && git push origin v0.2.0`). The same workflow builds the installer and publishes it as a GitHub release; installed copies find it, download it and offer to restart. Running a newer `Setup.exe` over an old install also just replaces it, with the data kept. Installed copies check a separate public repository that only holds the installers, so this one can stay private. One-time setup (create that repo and a token) is at the bottom of [`desktop/README.md`](desktop/README.md).
 
 Windows shows "unknown publisher" (More info → Run anyway) the first time, because the installer isn't code-signed. Details and how it works: [`desktop/README.md`](desktop/README.md).
 

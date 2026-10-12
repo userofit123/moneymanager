@@ -1,5 +1,6 @@
 # Builds the Windows installer (Money Manager Setup.exe). Run it by hand (Actions -> Windows desktop app -> Run workflow),
-# or push a tag like v1.2.0 to also publish it as a GitHub release, which is what installed copies check for updates.
+# or push a tag like v1.2.0 to also publish it to the public "moneymanager-releases" repository, which is what installed copies check for updates
+# (this code repository can stay private).
 name: Windows desktop app
 on:
   workflow_dispatch:
@@ -26,7 +27,7 @@ jobs:
         working-directory: desktop
         run: npm run ${{ startsWith(github.ref, 'refs/tags/v') && 'release' || 'dist' }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN }}   # a token that may write releases in the public releases repo (see desktop/README.md)
       - uses: actions/upload-artifact@v4
         with:
           name: money-manager-windows

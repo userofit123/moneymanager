@@ -78,7 +78,8 @@
       {
         "provider": "github",
         "owner": "userofit123",
-        "repo": "moneymanager"
+        "repo": "moneymanager-releases",
+        "releaseType": "release"
       }
     ]
   }
