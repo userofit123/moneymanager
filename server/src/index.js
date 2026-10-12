@@ -245,22 +245,22 @@ const CHANGELOG = process.env.CHANGELOG_FILE || path.join(WEB, "..", "CHANGELOG.
 const readChangelog = () => { try { return fs.readFileSync(CHANGELOG, "utf8"); } catch { return ""; } };
 const versionOf = (t) => (t.match(/^## \[?v?(\d+\.\d+\.\d+)/m) || [])[1] || "";
 const newer = (a, b) => { const x = a.split(".").map(Number), y = b.split(".").map(Number); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); return false; };
-let latestCache = { at: 0, v: null };
+let latestCache = { at: 0, v: null, err: "" };
 app.get("/api/version", wrap(async (_req, res) => { const t = readChangelog(); res.json({ version: versionOf(t), changelog: t }); }));
-// asks GitHub (public repository) for the latest release; cached for an hour; a failure just means "unknown"
+// asks GitHub (public repository) for the latest release; cached for an hour. No release published yet is not an error.
 app.get("/api/update-check", wrap(async (req, res) => {
   const cur = versionOf(readChangelog());
   if (req.query.force) latestCache.at = 0; // the "Check for updates" button
   if (Date.now() - latestCache.at > 36e5) {
     try {
       const r = await fetch("https://api.github.com/repos/userofit123/moneymanager/releases/latest", { headers: { "user-agent": "money-manager", accept: "application/vnd.github+json" }, signal: AbortSignal.timeout(8000) });
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      const j = await r.json();
-      latestCache = { at: Date.now(), v: { version: String(j.tag_name || "").replace(/^v/, ""), notes: String(j.body || "").slice(0, 6000), url: j.html_url } };
-    } catch { latestCache = { at: Date.now() - 36e5 + 6e4, v: null }; } // try again in a minute
+      if (r.status === 404) latestCache = { at: Date.now(), v: { version: "", notes: "", url: "" }, err: "" }; // reachable, but nothing has been published yet
+      else if (!r.ok) throw new Error(r.status === 403 ? "GitHub refused the request (too many checks, try again later)" : "GitHub answered HTTP " + r.status);
+      else { const j = await r.json(); latestCache = { at: Date.now(), v: { version: String(j.tag_name || "").replace(/^v/, ""), notes: String(j.body || "").slice(0, 6000), url: j.html_url }, err: "" }; }
+    } catch (e) { latestCache = { at: Date.now() - 36e5 + 6e4, v: null, err: String(e.cause?.code || e.message || e).slice(0, 160) }; } // try again in a minute
   }
   const l = latestCache.v;
-  res.json({ current: cur, latest: l ? l.version : null, available: !!(l && cur && newer(l.version, cur)), notes: l ? l.notes : "", url: l ? l.url : "" });
+  res.json({ current: cur, latest: l && l.version ? l.version : null, reachable: !!l, available: !!(l && l.version && cur && newer(l.version, cur)), notes: l ? l.notes : "", url: l ? l.url : "", error: l ? "" : latestCache.err });
 }));
 
 app.use("/api", (_req, res) => res.status(404).json({ error: "not found" }));

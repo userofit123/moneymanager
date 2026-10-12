@@ -230,3 +230,25 @@ P.unshift(
 [/^Version (\S+) is ready\. Restart the app to finish updating\. Your data stays as it is\.$/,(v)=>"גרסה "+v+" מוכנה. הפעילו מחדש את האפליקציה כדי לסיים את העדכון. הנתונים שלכם נשארים כמו שהם."]
 );
 })();
+(function(){const D=HE.D,P=HE.P;
+Object.assign(D,{
+"Transactions with this tag":"תנועות עם התגית הזו","Rename this tag":"שינוי שם התגית","Delete this tag":"מחיקת התגית","A tag rule adds this tag to new transactions":"כלל תגית מוסיף את התגית הזו לתנועות חדשות",
+"Click a tag to see its activity. Rename a tag to change it everywhere; renaming it to a tag that exists merges the two. Deleting a tag never deletes transactions.":"לחצו על תגית כדי לראות את הפעילות שלה. שינוי שם של תגית משנה אותה בכל מקום, ושינוי לשם של תגית קיימת ימזג ביניהן. מחיקת תגית לא מוחקת תנועות.",
+"No tags yet.":"עדיין אין תגיות.","Tags appear here once a transaction has one. Add tags when you open a transaction, or let a tag rule add them automatically.":"תגיות מופיעות כאן ברגע שיש תנועה שמסומנת בהן. אפשר להוסיף תגית כשפותחים תנועה, או לתת לכלל תגית להוסיף אותן אוטומטית.","Go to tag rules":"למעבר לכללי התגיות",
+"Rename tag":"שינוי שם תגית","Changes it on every transaction and in every tag rule. If a tag with the new name already exists, they become one.":"השינוי חל על כל התנועות ועל כל כללי התגיות. אם כבר קיימת תגית בשם החדש, שתיהן יהפכו לאחת.","New name":"שם חדש","Rename":"שינוי שם","Type a name first":"קודם הקלידו שם",
+"Tag more like this?":"לתייג גם תנועות דומות?","No other transactions look like “{}” yet, but a rule would tag future ones.":"עדיין אין תנועות נוספות שדומות ל‑״{}״, אבל כלל יתייג את העתידיות.",
+"New tag rule":"כלל תגית חדש","Also tag the {} similar transactions I already have":"לתייג גם את {} התנועות הדומות שכבר יש לי","No other transactions match yet. The rule will tag future ones.":"עדיין אין תנועות נוספות שמתאימות. הכלל יתייג את העתידיות.",
+"Rule created. It tags new transactions.":"הכלל נוצר. הוא יתייג תנועות חדשות.","Type the text to match first":"קודם הקלידו את הטקסט להתאמה",
+"App icon":"אייקון האפליקציה","Shekel":"שקל","Dollar":"דולר","Euro":"יורו","Pound":"לירה","Yen":"ין","Coin":"מטבע",
+"You have the latest version. No newer release has been published yet.":"יש לכם את הגרסה העדכנית. עדיין לא פורסמה גרסה חדשה יותר.","The server needs internet access to github.com.":"השרת צריך גישה לאינטרנט אל github.com.","GitHub could not be reached.":"אי אפשר היה להגיע ל‑GitHub.","Could not check for updates right now.":"אי אפשר לבדוק עדכונים כרגע.",
+});
+P.unshift(
+[/^(\d+) other transactions? look like “(.+)”\.$/,(n,k)=>(n==1?"תנועה אחת נוספת דומה ל‑":n+" תנועות נוספות דומות ל‑")+"״"+k+"״."],
+[/^You tagged (.+) with (.+)\. A rule does this automatically for similar transactions from now on\.$/,(d,t)=>"תייגתם את "+d+" ב‑"+t+". כלל יעשה זאת אוטומטית לתנועות דומות מעכשיו."],
+[/^Rule created\. (\d+) transactions? tagged\.$/,(n)=>"הכלל נוצר. "+(n==1?"תנועה אחת תויגה.":n+" תנועות תויגו.")],
+[/^Renamed to #(.+)$/,(t)=>"השם שונה ל‑#"+t],
+[/^Delete the tag "(.+)"\? It is removed from (\d+) transactions? and from tag rules\. The transactions stay\.$/,(g,n)=>"למחוק את התגית ״"+g+"״? היא תוסר מ‑"+n+" תנועות ומכללי התגיות. התנועות נשארות."],
+[/^Rename (.+)$/,(g)=>"שינוי שם "+g],
+[/^Also tag the (\d+) similar transactions? I already have$/,(n)=>"לתייג גם "+(n==1?"את התנועה הדומה שכבר יש לי":"את "+n+" התנועות הדומות שכבר יש לי")]
+);
+})();
