@@ -1,7 +1,8 @@
 import express from "express";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { migrate, q, audit } from "./db.js";
+import { migrate, q, audit, pool } from "./db.js";
 import { loadKey } from "./secrets.js";
 import { ensureDefaults, getState, putState, StaleError } from "./state.js";
 import { ratesSummary, refreshRates, rateOn } from "./fx.js";
@@ -16,7 +17,7 @@ import { addSuggested } from "./categories.js";
 import { fillJars, readJars } from "./jars.js";
 import { bumpRev, tx } from "./db.js";
 import { applyRules } from "./engine.js";
-import { sendNtfy, ntfyProblem, ntfyUrl } from "./notify.js";
+import { sendNtfy, sendNtfyOnly, ntfyProblem, ntfyUrl, channelStatus, saveChannel, removeChannel, sendChannel } from "./notify.js";
 import { listConnections, saveCreds, removeCreds, unlock, getCreds, markAssisted, FIELDS } from "./connections.js";
 import * as auth from "./auth.js";
 
@@ -25,7 +26,7 @@ export const app = express();
 app.disable("x-powered-by");
 app.set("trust proxy", process.env.TRUST_PROXY === "1"); // set when Caddy or another proxy sits in front
 
-const ASSIST_BANKS = ["hapoalim", "max", "isracard"];
+const ASSIST_BANKS = Object.keys(FIELDS).filter((k) => k !== "wise");
 const wrap = (fn) => (req, res) => Promise.resolve(fn(req, res)).catch((e) => { console.error(req.method, req.path, e.message); res.status(500).json({ error: "Something went wrong" }); });
 const json = express.json({ limit: "20mb" });
 
@@ -90,6 +91,8 @@ app.post("/api/auth/password", json, wrap(async (req, res) => {
   res.json({ ok: true });
 }));
 app.post("/api/auth/2fa/start", wrap(async (_req, res) => {
+  // starting over replaces the secret and switches 2FA off, so with 2FA on it needs the password first (the disable route)
+  if ((await auth.getUser())?.totp_enabled) return res.status(409).json({ error: "Two-factor sign-in is already on. Turn it off first (it asks for your password)." });
   const s = auth.newTotpSecret();
   await auth.storeTotpSecret(s);
   res.json({ secret: s, uri: `otpauth://totp/Money%20Manager?secret=${s}&issuer=Money%20Manager` });
@@ -178,10 +181,15 @@ app.post("/api/ntfy/test", wrap(async (_req, res) => {
   const url = await ntfyUrl();
   const reason = url ? ntfyProblem(url) : "Save your ntfy address first.";
   if (reason) return res.json({ ok: false, reason });
-  res.json({ ok: await sendNtfy("Money", "Test alert: background notifications work"), reason: "The ntfy server did not accept it." });
+  res.json({ ok: await sendNtfyOnly("Money", "Test alert: background notifications work"), reason: "The ntfy server did not accept it." });
 }));
 
 // ---------- sync and import ----------
+// other places alerts can go: Telegram bot, webhook (secrets are write-only)
+app.get("/api/notify/channels", wrap(async (_req, res) => res.json(await channelStatus())));
+app.put("/api/notify/channels/:kind", json, wrap(async (req, res) => { try { await saveChannel(req.params.kind, req.body); res.json({ ok: true }); } catch (e) { res.status(400).json({ error: e.message }); } }));
+app.delete("/api/notify/channels/:kind", wrap(async (req, res) => { await removeChannel(req.params.kind); res.json({ ok: true }); }));
+app.post("/api/notify/channels/:kind/test", wrap(async (req, res) => res.json({ ok: await sendChannel(req.params.kind, "Money", "Test alert: notifications work") })));
 app.get("/api/sync/settings", wrap(async (_req, res) => res.json(await getSyncSettings())));
 app.put("/api/sync/settings", json, wrap(async (req, res) => res.json(await putSyncSettings(req.body || {}))));
 app.get("/api/sync/log", wrap(async (_req, res) => res.set("Cache-Control", "no-store").json(await syncLog())));
@@ -237,6 +245,29 @@ app.post("/api/categories/suggested", wrap(async (_req, res) => { const r = awai
 app.post("/api/networth/snapshot", wrap(async (_req, res) => { await snapshotNetWorth(); res.json({ ok: true }); }));
 if (process.env.ALLOW_DEMO_SEED === "1") app.post("/api/demo/seed", wrap(async (_req, res) => res.json(await seedDemo())));
 
+// ---------- version, changelog and "is there a newer version?" ----------
+const CHANGELOG = process.env.CHANGELOG_FILE || path.join(WEB, "..", "CHANGELOG.md");
+const readChangelog = () => { try { return fs.readFileSync(CHANGELOG, "utf8"); } catch { return ""; } };
+const versionOf = (t) => (t.match(/^## \[?v?(\d+\.\d+\.\d+)/m) || [])[1] || "";
+const newer = (a, b) => { const x = a.split(".").map(Number), y = b.split(".").map(Number); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); return false; };
+let latestCache = { at: 0, v: null, err: "" };
+app.get("/api/version", wrap(async (_req, res) => { const t = readChangelog(); res.json({ version: versionOf(t), changelog: t }); }));
+// asks GitHub (public repository) for the latest release; cached for an hour. No release published yet is not an error.
+app.get("/api/update-check", wrap(async (req, res) => {
+  const cur = versionOf(readChangelog());
+  if (req.query.force) latestCache.at = 0; // the "Check for updates" button
+  if (Date.now() - latestCache.at > 36e5) {
+    try {
+      const r = await fetch("https://api.github.com/repos/userofit123/moneymanager/releases/latest", { headers: { "user-agent": "money-manager", accept: "application/vnd.github+json" }, signal: AbortSignal.timeout(8000) });
+      if (r.status === 404) latestCache = { at: Date.now(), v: { version: "", notes: "", url: "" }, err: "" }; // reachable, but nothing has been published yet
+      else if (!r.ok) throw new Error(r.status === 403 ? "GitHub refused the request (too many checks, try again later)" : "GitHub answered HTTP " + r.status);
+      else { const j = await r.json(); latestCache = { at: Date.now(), v: { version: String(j.tag_name || "").replace(/^v/, ""), notes: String(j.body || "").slice(0, 6000), url: j.html_url }, err: "" }; }
+    } catch (e) { latestCache = { at: Date.now() - 36e5 + 6e4, v: null, err: String(e.cause?.code || e.message || e).slice(0, 160) }; } // try again in a minute
+  }
+  const l = latestCache.v;
+  res.json({ current: cur, latest: l && l.version ? l.version : null, reachable: !!l, available: !!(l && l.version && cur && newer(l.version, cur)), notes: l ? l.notes : "", url: l ? l.url : "", error: l ? "" : latestCache.err });
+}));
+
 app.use("/api", (_req, res) => res.status(404).json({ error: "not found" }));
 
 // ---------- front end: the page and service worker are never cached ----------
@@ -246,12 +277,15 @@ app.use((req, res, next) => {
 });
 app.use(express.static(WEB, { extensions: ["html"] }));
 
+let httpServer = null;
+// closes the web server and the database cleanly (the desktop app calls this when it quits)
+export async function stop() { await new Promise((ok) => (httpServer ? httpServer.close(() => ok()) : ok())); await pool.end(); }
 export async function start() {
   loadKey(); // fails early if the key is unusable
   await migrate();
   await ensureDefaults();
   const port = +process.env.PORT || 8080;
-  app.listen(port, () => console.log("money manager on :" + port));
+  httpServer = app.listen(port, process.env.HOST || undefined, () => console.log("money manager on :" + port)); // HOST=127.0.0.1 keeps it local (the desktop app)
   if (process.env.SCHEDULER !== "0") startScheduler();
   refreshRates().catch((e) => console.error("rates:", e.message)).then(async () => {
     if (process.env.AUTO_DEMO_SEED !== "1") return;

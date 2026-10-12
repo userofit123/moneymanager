@@ -8,9 +8,40 @@ pg.types.setTypeParser(1082, (v) => v);
 pg.types.setTypeParser(1700, (v) => parseFloat(v));
 pg.types.setTypeParser(20, (v) => parseInt(v, 10));
 
-export const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL || "postgres://money:money@localhost:5432/money",
-});
+// Two ways to run the same database. Normally a PostgreSQL server (Docker). The Windows desktop app sets DB_DRIVER=pglite:
+// the same PostgreSQL engine running inside this process, keeping its data as plain files in PGLITE_DIR (no server, no port, no setup).
+// PGlite has one connection, so queries take turns; code inside a transaction keeps using the transaction's connection.
+let pool;
+if (process.env.DB_DRIVER === "pglite") {
+  const { PGlite, types: T } = await import("@electric-sql/pglite");
+  const { AsyncLocalStorage } = await import("node:async_hooks");
+  const db = new PGlite(process.env.PGLITE_DIR || path.resolve("data", "pgdata"), {
+    parsers: { [T.DATE]: (v) => v, [T.NUMERIC]: (v) => parseFloat(v), [T.INT8]: (v) => parseInt(v, 10) },
+  });
+  await db.waitReady;
+  const inTx = new AsyncLocalStorage();
+  let tail = Promise.resolve();
+  const exclusive = (fn) => { const run = tail.then(fn, fn); tail = run.then(() => {}, () => {}); return run; };
+  const run = async (text, params) => {
+    if (params == null) { const rs = await db.exec(text); const r = rs[rs.length - 1] || { rows: [] }; return { rows: r.rows, rowCount: r.rows.length || r.affectedRows || 0 }; }
+    const r = await db.query(text, params);
+    return { rows: r.rows, rowCount: r.rows.length || r.affectedRows || 0 }; // a SELECT reports 0 affected rows
+  };
+  pool = {
+    query: (text, params) => (inTx.getStore() ? run(text, params) : exclusive(() => run(text, params))),
+    // a checked-out client holds the connection until it is released, like a pooled client would
+    async connect() {
+      let release; const held = new Promise((ok) => (release = ok));
+      await new Promise((ready) => exclusive(() => { ready(); return held; }));
+      return { query: (text, params) => run(text, params), release: () => release() };
+    },
+    end: () => db.close(),
+  };
+  pool.runInTx = (fn) => inTx.run(true, fn);
+} else {
+  pool = new pg.Pool({ connectionString: process.env.DATABASE_URL || "postgres://money:money@localhost:5432/money" });
+}
+export { pool };
 
 export const q = (text, params) => pool.query(text, params);
 
@@ -18,7 +49,7 @@ export async function tx(fn) {
   const c = await pool.connect();
   try {
     await c.query("BEGIN");
-    const r = await fn(c);
+    const r = await (pool.runInTx ? pool.runInTx(() => fn(c)) : fn(c));
     await c.query("COMMIT");
     return r;
   } catch (e) {

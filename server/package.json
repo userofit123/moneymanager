@@ -7,8 +7,11 @@
     "start": "node src/index.js",
     "test": "node --test --test-concurrency=1 test/*.test.js"
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
+    "@electric-sql/pglite": "0.5.9",
     "express": "4.21.2",
     "node-cron": "3.0.3",
     "pg": "8.13.1"
