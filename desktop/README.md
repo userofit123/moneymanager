@@ -20,8 +20,6 @@ Needs Windows (or the GitHub workflow in `.github/workflows/windows-desktop.yml`
 The installer is not code-signed, so Windows SmartScreen shows "More info → Run anyway" the first time. A code-signing certificate removes that.
 
 ## Releasing an update
-1. Add a section for the new version at the top of `CHANGELOG.md` (`## [0.2.0] - date`, with `### App` and `### Windows app` lists).
-2. Push a tag: `git tag v0.2.0 && git push origin v0.2.0`.
-3. The workflow sets the version from the tag, builds the installer and publishes a GitHub release of this repository, using that version's section of the changelog as the release notes.
+Automatic: `node scripts/bump.mjs minor`, fill in the new section of `CHANGELOG.md`, merge to `main`. The **Release** workflow (`.github/workflows/release.yml`) runs the tests, tags `vX.Y.Z`, builds the installer and publishes the GitHub release, using that version's changelog section as the release notes.
 
 Installed apps check this repository's latest release (it must be public). In the app: **Settings → App and data → Version and updates** shows the installed version, "Check for updates", "What's new" (the changelog), and an **Update automatically** switch (on by default). A newer version also shows as a notice in the sidebar. With the switch on, the update downloads by itself and installs the next time the app is closed; with it off, you press Download and update.
