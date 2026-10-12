@@ -28,6 +28,17 @@ docker compose -f docker-compose.yml -f docker-compose.proxy.yml up -d --build
 ```
 Point a Caddy block at `app:8080` (or `127.0.0.1:8787`) and open `https://rhs.taile6739f.ts.net:PORT` over Tailscale. 9008 is reserved for n8n. Schedule `backup.sh` (nightly, optional rsync to the Dell server via `BACKUP_DEST`).
 
+## Windows app (no Docker)
+One installer for Windows. The person installs it, opens it, creates a password, connects their accounts, and that's it. Everything is saved on their own computer (`%APPDATA%\Money Manager`) and nothing is sent anywhere. The Docker setup below is unchanged; this is an extra way to run the same app.
+
+**How to get the installer (`Money Manager Setup.exe`):**
+1. On GitHub open the repository → **Actions** → **Windows desktop app** → **Run workflow** (pick the branch, press the green button).
+2. Wait about 10 to 15 minutes. Open the finished run and download **money-manager-windows** under *Artifacts*. Unzip it: the `.exe` inside is the installer. Send that file.
+
+**Updates:** bump `version` in `desktop/package.json`, then push a tag such as `v0.2.0` (`git tag v0.2.0 && git push origin v0.2.0`). The same workflow builds the installer and publishes it as a GitHub release; installed copies find it, download it and offer to restart. Running a newer `Setup.exe` over an old install also just replaces it, with the data kept. The repository (or at least its releases) must be public for installed copies to check for updates.
+
+Windows shows "unknown publisher" (More info → Run anyway) the first time, because the installer isn't code-signed. Details and how it works: [`desktop/README.md`](desktop/README.md).
+
 ## Forgot something
 | Problem | Fix |
 |---|---|
