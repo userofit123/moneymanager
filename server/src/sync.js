@@ -7,7 +7,7 @@ import { ingest } from "./sources/ingest.js";
 import { fetchWise } from "./sources/wise.js";
 import { scrape } from "./sources/scraper.js";
 import { recordSnapshot, detectTransfers } from "./engine.js";
-import { getCreds, isLocked, recordResult, markTested, LABELS, KINDS } from "./connections.js";
+import { getCreds, isLocked, recordResult, markTested, LABELS, KINDS, baseOf, validId, connName } from "./connections.js";
 import { scrub } from "./secrets.js";
 import { sendNtfy, notifyOnce, clearNotified, remindOldGaps } from "./notify.js";
 import { fillJars } from "./jars.js";
@@ -105,39 +105,63 @@ export function readNote(days, seen, oldest, added, today = new Date()) {
 const BANKS = Object.fromEntries(Object.keys(KINDS).filter((k) => k !== "wise").map((k) => [k, [LABELS[k], KINDS[k]]]));
 
 const RUN = {
-  async wise(creds, opts = {}) {
-    const days = opts.days || ((await firstTime("wise")) ? await getSet("sync_first_days", HISTORY_DAYS) : await getSet("sync_routine_days", 30));
+  async wise(creds, opts = {}, ctx = { id: "wise", name: "Wise" }) {
+    const days = opts.days || ((await firstTime(ctx.id)) ? await getSet("sync_first_days", HISTORY_DAYS) : await getSet("sync_routine_days", 30));
     const w = await fetchWise(creds.token, { days });
     let added = 0;
     for (const b of w.balances) {
-      const a = await tx((c) => account(c, "Wise", b.currency, { kind: "wallet", source: "wise", subtitle: `${b.currency} balance` }));
+      const a = await tx((c) => account(c, ctx.name, b.currency, { kind: "wallet", source: ctx.id, subtitle: `${b.currency} balance` }));
       const rows = w.transactions.filter((t) => t.currency === b.currency);
-      if (rows.length) added += (await ingest({ name: "Wise", currency: b.currency, source: "wise" }, rows, { mergeManual: true })).added;
+      if (rows.length) added += (await ingest({ name: ctx.name, currency: b.currency, source: ctx.id }, rows, { mergeManual: true })).added;
       await setBalance(a, b.value);
     }
     const dates = w.transactions.map((t) => String(t.date || "").slice(0, 10)).filter(Boolean).sort();
     return { added, message: w.note, days, seen: w.transactions.length, oldest: dates[0] || null };
   },
-  ...Object.fromEntries(Object.entries(BANKS).map(([key, [name, kind]]) => [key, async (creds, opts = {}) => {
-    const flag = `backfill:${key}`;
+  ...Object.fromEntries(Object.entries(BANKS).map(([key, [name, kind]]) => [key, async (creds, opts = {}, ctx = { id: key, name: name }) => {
+    const flag = `backfill:${ctx.id}`;
     const backfill = (await q("SELECT 1 FROM settings WHERE key=$1", [flag])).rowCount > 0;
-    const days = opts.days || ((await firstTime(key)) || backfill ? await getSet("sync_first_days", HISTORY_DAYS) : await getSet("sync_routine_days", 30));
-    const res = await scrape(key, creds, days);
-    let added = 0, balance = null, seen = 0, oldest = null;
-    for (const acc of res.accounts || []) {
+    const days = opts.days || ((await firstTime(ctx.id)) || backfill ? await getSet("sync_first_days", HISTORY_DAYS) : await getSet("sync_routine_days", 30));
+    const res = await scrape(key, creds, days, ctx.id);
+    let added = 0, seen = 0, oldest = null;
+    const accs = res.accounts || [], split = accs.length > 1; // one login can hold several cards or accounts: each gets its own
+    const taken = new Set();
+    for (const [i, acc] of accs.entries()) {
       const rows = toRows(acc);
       seen += rows.length;
       for (const r of rows) if (!oldest || r.date < oldest) oldest = r.date;
-      added += (await ingest({ name, currency: "ILS", source: key }, rows)).added;
-      if (typeof acc.balance === "number") balance = (balance || 0) + acc.balance;
+      let accName = ctx.name;
+      if (split) { // "Max ·· 1234"; two with the same last digits get a number
+        const tail = String(acc.accountNumber ?? "").replace(/\s/g, "").slice(-4) || String(i + 1);
+        accName = `${ctx.name} ·· ${tail}`;
+        for (let n = 2; taken.has(accName); n++) accName = `${ctx.name} ·· ${tail}-${n}`;
+        taken.add(accName);
+      }
+      const a = await tx(async (c) => {
+        const row = await account(c, accName, "ILS", { kind, source: ctx.id, subtitle: split ? `${kind === "card" ? "Card" : "Account"} ending ${accName.slice(-4)}` : undefined });
+        if (split && acc.accountNumber != null) { // this login used to be one combined account: move what belongs to this one across
+          for (const col of ["from_name", "to_name"])
+            await c.query(`UPDATE transactions SET ${col}=$3 WHERE source=$1 AND ${col}=$2 AND details->>'account'=$4`, [ctx.id, ctx.name, accName, String(acc.accountNumber)]);
+        }
+        return row;
+      });
+      added += (await ingest({ name: accName, currency: "ILS", source: ctx.id }, rows)).added;
+      if (typeof acc.balance === "number") await setBalance(a, acc.balance);
     }
-    if (balance != null) await setBalance(await tx((c) => account(c, name, "ILS", { kind, source: key })), balance);
+    if (split) await tx(async (c) => { // the old combined account: gone once empty, otherwise kept without a balance (so it is not counted twice)
+      const left = (await c.query("SELECT 1 FROM transactions WHERE from_name=$1 OR to_name=$1 LIMIT 1", [ctx.name])).rowCount;
+      if (!left) await c.query("DELETE FROM accounts WHERE source=$1 AND name=$2", [ctx.id, ctx.name]);
+      else await c.query("UPDATE accounts SET balance=0 WHERE source=$1 AND name=$2", [ctx.id, ctx.name]);
+    });
     await q("DELETE FROM settings WHERE key=$1", [flag]); // the one-off history re-read is done
     return { added, message: readNote(days, seen, oldest, added), days, seen, oldest };
   }])),
 };
 
 export const SOURCE_NAMES = Object.keys(RUN);
+const labelOf = (id) => connName(id).catch(() => LABELS[baseOf(id)] || id);
+// every connection that can sync: each provider, plus the extra logins that have credentials
+const allIds = async () => [...SOURCE_NAMES, ...(await q("SELECT source FROM credentials")).rows.map((r) => r.source).filter((x) => x.includes("~") && validId(x))];
 
 // Only one connection job (test, sync or device verification) runs at a time, so a bank is never hit twice at once,
 // the scraper is never overloaded, and the browser profile is never opened twice.
@@ -147,7 +171,7 @@ export const activeJob = () => {
   return job ? { source: job.source, kind: job.kind, since: job.since } : null;
 };
 const KIND = { test: "A test", sync: "A sync", assist: "A device verification" };
-const busyResult = () => ({ ok: false, busy: true, job: activeJob(), error: `${KIND[job.kind]} is already running (${job.source === "all" ? "all sources" : LABELS[job.source] || job.source}). Wait for it to finish.` });
+const busyResult = () => ({ ok: false, busy: true, job: activeJob(), error: `${KIND[job.kind]} is already running (${job.source === "all" ? "all sources" : LABELS[baseOf(job.source)] || job.source}). Wait for it to finish.` });
 export function acquireJob(source, kind, ttlMs = 0) {
   if (activeJob()) return busyResult();
   job = { source, kind, since: Date.now(), expires: ttlMs ? Date.now() + ttlMs : null };
@@ -162,34 +186,35 @@ async function withJob(source, kind, fn) {
 }
 
 export const syncSource = (name, opts = {}) => {
-  if (!RUN[name]) throw new Error("unknown source " + name);
+  if (!RUN[baseOf(name)] || !validId(name)) throw new Error("unknown source " + name);
   return withJob(name, "sync", () => syncInner(name, opts));
 };
 async function syncInner(name, opts = {}) {
   const creds = await getCreds(name);
   if (!creds) return { ok: false, skipped: true, error: "not connected" };
-  if (await isLocked(name)) return { ok: false, locked: true, error: `${LABELS[name]} is locked after failed attempts. Check the credentials, then unlock it in Settings.` };
+  const label = await labelOf(name);
+  if (await isLocked(name)) return { ok: false, locked: true, error: `${label} is locked after failed attempts. Check the credentials, then unlock it in Settings.` };
   const run = await q("INSERT INTO sync_runs (source,origin) VALUES ($1,$2) RETURNING id", [name, opts.origin || "manual"]);
   try {
-    const res = await RUN[name](creds, opts);
+    const res = await RUN[baseOf(name)](creds, opts, { id: name, name: label });
     await q("UPDATE sync_runs SET finished_at=now(), ok=true, added=$2, message=$3, days=$4, seen=$5, oldest=$6 WHERE id=$1", [run.rows[0].id, res.added, res.message || "", res.days ?? null, res.seen ?? null, res.oldest || null]);
     await recordResult(name, true);
     await clearNotified(`fail:${name}`);
-    if (res.added) await audit(null, "Sync", `${LABELS[name]} synced · ${res.added} new transactions`);
+    if (res.added) await audit(null, "Sync", `${label} synced · ${res.added} new transactions`);
     await q("UPDATE app_meta SET value=(value::int+1)::text WHERE key='rev'");
     return { ok: true, ...res };
   } catch (e) {
     const msg = scrub(e.message || e, Object.values(creds)); // never include credentials
     await q("UPDATE sync_runs SET finished_at=now(), ok=false, message=$2 WHERE id=$1", [run.rows[0].id, msg]);
     const locked = await recordResult(name, false, msg, creds);
-    await notifyOnce(`fail:${name}`, `Money · ${LABELS[name]} sync failed`, locked ? `${msg}\nAutomatic attempts are paused. Check the login, then unlock it in Settings.` : msg, "high");
+    await notifyOnce(`fail:${name}`, `Money · ${label} sync failed`, locked ? `${msg}\nAutomatic attempts are paused. Check the login, then unlock it in Settings.` : msg, "high");
     return { ok: false, error: msg, locked };
   }
 }
 
 // Dry run for the "Test connection" button (spec section 9): last 30 days, summary only, nothing saved.
 export const testSource = (name) => {
-  if (!RUN[name]) throw new Error("unknown source " + name);
+  if (!RUN[baseOf(name)] || !validId(name)) throw new Error("unknown source " + name);
   return withJob(name, "test", () => testInner(name));
 };
 async function testInner(name) {
@@ -198,11 +223,11 @@ async function testInner(name) {
   if (await isLocked(name)) return { ok: false, locked: true, error: "Locked after failed attempts. Unlock it first." };
   try {
     let out;
-    if (name === "wise") {
+    if (baseOf(name) === "wise") {
       const w = await fetchWise(creds.token, { days: 30 });
       out = { balances: w.balances.map((b) => ({ currency: b.currency, value: b.value })), transactions: w.transactions.length, note: w.note || "Statements are available" };
     } else {
-      const res = await scrape(name, creds, 30);
+      const res = await scrape(baseOf(name), creds, 30, name);
       out = { accounts: (res.accounts || []).map((a) => ({ balance: a.balance ?? null, transactions: (a.txns || []).length, first: toRows(a).slice(0, 3).map((r) => ({ date: r.date, description: r.description, amount: r.amount })) })) };
     }
     await recordResult(name, true);
@@ -219,7 +244,7 @@ export const syncAll = (origin = "manual") => withJob("all", "sync", () => syncA
 async function syncAllInner(origin) {
   await refreshRates(7).catch((e) => console.error("rates:", e.message));
   const out = {};
-  for (const s of SOURCE_NAMES) out[s] = await syncInner(s, { origin });
+  for (const s of await allIds()) out[s] = await syncInner(s, { origin });
   await fillJars().catch((e) => console.error("jars:", e.message));
   const open = (await q("SELECT count(*)::int AS n FROM balance_gaps WHERE status='open'")).rows[0].n;
   if (open) await notifyOnce(`gaps:${open}`, "Money · missing money", `${open} balance gap${open > 1 ? "s" : ""} to explain in Activity → Needs review`);
@@ -262,5 +287,5 @@ export { sendNtfy };
 // Newest first, for the Sync log in Settings.
 export async function syncLog(limit = 200) {
   const r = await q("SELECT id,source,started_at,finished_at,ok,added,message,days,seen,oldest,origin FROM sync_runs ORDER BY id DESC LIMIT $1", [limit]);
-  return r.rows.map((x) => ({ ...x, label: LABELS[x.source] || x.source, oldest: x.oldest ? new Date(x.oldest).toISOString().slice(0, 10) : null }));
+  return r.rows.map((x) => ({ ...x, label: LABELS[baseOf(x.source)] || x.source, oldest: x.oldest ? new Date(x.oldest).toISOString().slice(0, 10) : null }));
 }

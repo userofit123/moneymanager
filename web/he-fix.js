@@ -259,3 +259,24 @@ Object.assign(D,{
 "Stop sending alerts there?":"להפסיק לשלוח לשם התראות?","Not sent. Check the details.":"לא נשלח. בדקו את הפרטים.","Sent":"נשלח","Removed":"הוסר","Send a test":"שליחת בדיקה",
 });
 })();
+
+/* ---- spacing, history wording, several logins at one company ---- */
+(function(){const D=HE.D,P=HE.P;
+Object.assign(D,{
+"Spacing":"רווח בין אזורים","Tight":"צפוף","Standard":"רגיל","Loose":"מאוורר","Wide":"רחב",
+"Import history":"ייבוא היסטוריה","Import more history":"ייבוא היסטוריה נוספת",
+"Last year":"שנה אחרונה","Last 2 years":"שנתיים אחרונות","Up to 5 years (whatever the bank has)":"עד 5 שנים (כל מה שיש בבנק)",
+"Reads further back than the routine sync, once. It asks for the period you pick and keeps whatever the bank still has. Nothing already in the app is duplicated.":"קוראים פעם אחת רחוק יותר אחורה מהסנכרון הרגיל. האפליקציה מבקשת את התקופה שבחרתם ושומרת מה שהבנק עדיין מחזיק. שום דבר שכבר באפליקציה לא יוכפל.",
+"Used once, when you connect a source. The app asks the bank for this much history and keeps whatever the bank still has (banks usually keep 1 to 2 years online). It stops by itself when there is nothing older. You can read further back later with Import history.":"נעשה פעם אחת, כשמחברים מקור. האפליקציה מבקשת מהבנק את כמות ההיסטוריה הזו ושומרת מה שהבנק עדיין מחזיק (בדרך כלל שנה עד שנתיים באינטרנט). היא עוצרת לבד כשאין מידע ישן יותר. אפשר לקרוא רחוק יותר מאוחר יותר עם ״ייבוא היסטוריה״.",
+"(another login)":"(התחברות נוספת)","new login":"התחברות חדשה","Nickname saved":"הכינוי נשמר",
+"Nickname (optional)":"כינוי (לא חובה)","Nickname (required, so you can tell the logins apart)":"כינוי (חובה, כדי להבדיל בין ההתחברויות)",
+"e.g. Business, Joint, Partner":"למשל: עסקי, משותף, בן/בת זוג","Nothing to add.":"אין מה להוסיף.",
+"Connected: ":"מחוברים: ",
+"Give this extra login a nickname so you can tell them apart":"תנו להתחברות הנוספת כינוי כדי להבדיל ביניהן",
+});
+P.unshift(
+[/^Connected: (.+?)\. Have two logins at one company \(two Wise accounts, two sets of cards\)\? Add it again and give each a nickname\. To disconnect one, press Remove on its own card\.$/,(a)=>"מחוברים: "+a+". יש לכם שתי התחברויות באותה חברה (שני חשבונות Wise, שני סטים של כרטיסים)? הוסיפו אותה שוב ותנו לכל אחת כינוי. כדי לנתק אחת, לחצו על הסרה בכרטיס שלה."],
+[/^(.+) \(another login\)$/,(a)=>a+" (התחברות נוספת)"],
+[/^(.+) · new login$/,(a)=>a+" · התחברות חדשה"]
+);
+})();

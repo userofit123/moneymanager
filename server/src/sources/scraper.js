@@ -2,10 +2,10 @@
 // compose network and are never stored there.
 const URL_ = process.env.SCRAPER_URL || "http://scraper:8080";
 
-export async function scrape(company, credentials, days = 30) {
+export async function scrape(company, credentials, days = 30, profile) {
   const r = await fetch(`${URL_}/scrape`, {
     method: "POST", headers: { "content-type": "application/json", "x-scraper-key": process.env.SCRAPER_KEY || "" },
-    body: JSON.stringify({ company, credentials, startDate: new Date(Date.now() - days * 864e5).toISOString().slice(0, 10) }),
+    body: JSON.stringify({ company, profile, credentials, startDate: new Date(Date.now() - days * 864e5).toISOString().slice(0, 10) }),
     signal: AbortSignal.timeout(Math.min(60, 8 + Math.ceil(days / 30) * 0.75) * 60 * 1000), // longer history = longer wait (1 year ≈ 17 min, 5 years ≈ 60 min cap)
   });
   const j = await r.json().catch(() => ({}));
