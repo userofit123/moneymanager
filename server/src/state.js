@@ -66,7 +66,7 @@ export async function getState() {
   const connected = Object.fromEntries(credRows.rows.map((r) => [r.source, true]));
   if (process.env.WISE_TOKEN) connected.wise = true;
   const locked = Object.fromEntries(stRows.rows.filter((r) => r.locked).map((r) => [r.source, true]));
-  const connStatus = Object.fromEntries((await listConnections()).map((c) => [c.source, { ...c.status, error: c.lastError }]));
+  const connStatus = Object.fromEntries((await listConnections()).map((c) => [c.source, { ...c.status, error: c.lastError, label: c.label }]));
   return {
     v: 4,
     rev: parseInt(rev.rows[0].value, 10),
