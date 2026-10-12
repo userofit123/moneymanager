@@ -1279,7 +1279,7 @@ const trColor=spec=>{const k=spec.split(":")[0],a=spec.split(":").slice(1).join(
 const fmAx=v=>{const a=Math.abs(v),x=a>=1e6?+(a/1e6).toFixed(1)+"M":a>=1000?+(a/1000).toFixed(a%1000?1:0)+"k":Math.round(a);return(v<0?"−":"")+x};
 function trDraw(el,labels,fullL,vals,prev,o){const W=Math.max(260,Math.floor(el.clientWidth||320)),narrow=W<520,H=narrow?210:250,Pl=narrow?36:44,Pr=8,Pt=14,Pb=26,n=vals.length,band=(W-Pl-Pr)/n;
 const all=vals.concat(prev||[]);let lo=Math.min(...all),hi=Math.max(...all);
-if(o.kind=="bars"){lo=Math.min(0,lo);hi=Math.max(0,hi)}else{const pad=(hi-lo)*.18||Math.abs(hi)*.06||1;lo-=pad;hi+=pad;if(o.zero)lo=Math.min(0,lo)}
+if(o.kind=="bars"){lo=Math.min(0,lo);hi=Math.max(0,hi)}else{const pad=(hi-lo)*.18||Math.abs(hi)*.06||1;lo-=pad;hi+=pad;if(o.zero)lo=Math.min(0,lo);if(Math.min(...all)>=0)lo=Math.max(0,lo)}
 if(hi<=lo)hi=lo+1;const step=nice((hi-lo)/4);lo=Math.floor(lo/step+1e-9)*step;hi=Math.ceil(hi/step-1e-9)*step;
 const X=i=>Pl+(i+.5)*band,Y=v=>Pt+(hi-v)/(hi-lo)*(H-Pt-Pb),id="tg"+(sid++);let s=`<defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${o.c}" stop-opacity=".32"/><stop offset="1" stop-color="${o.c}" stop-opacity="0"/></linearGradient></defs>`;
 for(let v=lo;v<=hi+step/2;v+=step){const y=Y(v);s+=`<line class="gl" x1="${Pl}" x2="${W-Pr}" y1="${y}" y2="${y}" ${Math.abs(v)<1e-9?'':'stroke-dasharray="2 5"'}/><text x="${Pl-7}" y="${y+4}" text-anchor="end">${fmAx(v)}</text>`}
