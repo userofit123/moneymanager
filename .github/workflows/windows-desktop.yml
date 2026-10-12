@@ -14,8 +14,8 @@ jobs:
     env:
       PUPPETEER_CACHE_DIR: ${{ github.workspace }}/desktop/chrome   # the scraper's browser is downloaded here and shipped inside the installer
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with: { node-version: 22 }
       - run: npm ci --omit=dev
         working-directory: server
@@ -28,7 +28,7 @@ jobs:
         run: npm run ${{ startsWith(github.ref, 'refs/tags/v') && 'release' || 'dist' }}
         env:
           GH_TOKEN: ${{ secrets.RELEASES_TOKEN }}   # a token that may write releases in the public releases repo (see desktop/README.md)
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: money-manager-windows
           path: |
