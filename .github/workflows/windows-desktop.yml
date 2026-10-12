@@ -1,0 +1,35 @@
+# Builds the Windows installer (Money Manager Setup.exe). Run it by hand (Actions -> Windows desktop app -> Run workflow),
+# or push a tag like v1.2.0 to also publish it as a GitHub release, which is what installed copies check for updates.
+name: Windows desktop app
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    env:
+      PUPPETEER_CACHE_DIR: ${{ github.workspace }}/desktop/chrome   # the scraper's browser is downloaded here and shipped inside the installer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci --omit=dev
+        working-directory: server
+      - run: npm ci --omit=dev
+        working-directory: scraper
+      - run: npm install --no-audit --no-fund
+        working-directory: desktop
+      - name: Build the installer
+        working-directory: desktop
+        run: npm run ${{ startsWith(github.ref, 'refs/tags/v') && 'release' || 'dist' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: money-manager-windows
+          path: |
+            desktop/dist/*.exe
+            desktop/dist/latest.yml
