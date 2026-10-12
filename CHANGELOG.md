@@ -11,8 +11,13 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 - **One account per card.** If one login holds several cards or bank accounts, each now gets its own account ("Max ·· 1234") with its own balance. Existing history is moved to the right card on the next sync.
 - **Import history** is clearer: the first-import setting and the per-connection "Import history" both ask for a period (up to 5 years) and keep whatever the bank still has.
 - **Settings tabs have icons.**
-- **Tabs slide.** The selected tab's background glides to the new tab, stretching and pinching as it moves.
-- **Glass surfaces show the background texture** as well as its colours.
+- **Tabs slide.** The selected tab's background is pulled to the new tab: its front edge runs ahead, the back catches up, and it thins a little while it stretches. It runs as one smooth browser animation.
+- **Glass is just glass.** Choosing it changes only the blocks: no tint, no gradient, no change to the background. A Tint slider adds colour if you want it. The page texture shows on the glass, and Static texture no longer changes how blocks look.
+- **Backgrounds match their previews** exactly (the page and the thumbnails use the same definition).
+- **Custom colour** in Appearance → Atmosphere: pick any colour and the whole app follows it, light and dark.
+- **Appearance only shows what applies:** Blur and Tint only with Glass, Texture density only with a texture.
+- **Spacing** keeps a header with its block: the gap is between groups, not between a header and its block.
+- **Windows app looks like the web version:** the app's own font is bundled (Windows no longer substitutes Segoe UI), the logo symbol is drawn rather than a font character (it was off-centre), and scrollbars are thin.
 - **Appearance:** Density now changes spacing inside blocks on every page, and a new Spacing option sets the gap between blocks and sections.
 - **Safer "Verify this device":** its browser can only load the bank's own websites.
 
