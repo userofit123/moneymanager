@@ -10,6 +10,14 @@ const { pathToFileURL } = require("node:url");
 
 const freePort = () => new Promise((ok, no) => { const s = net.createServer(); s.listen(0, "127.0.0.1", () => { const p = s.address().port; s.close(() => ok(p)); }); s.on("error", no); });
 
+// The installer builder never copies folders named node_modules, so the build ships them as app_modules (see the workflow).
+// The first time the app starts, they are put back under their real name. Renaming is instant and keeps the files where they are.
+function restoreModules(dir) {
+  const want = path.join(dir, "node_modules"), have = path.join(dir, "app_modules");
+  if (fs.existsSync(want) || !fs.existsSync(have)) return;
+  try { fs.renameSync(have, want); } catch { fs.cpSync(have, want, { recursive: true }); }
+}
+
 function findChrome(dir) {
   const want = process.platform === "win32" ? "chrome.exe" : "chrome";
   const walk = (d, depth) => {
@@ -33,6 +41,7 @@ function findChrome(dir) {
 async function startBackend({ dataDir, root, nodeBin = process.execPath, appKey = null, log = console.log }) {
   fs.mkdirSync(dataDir, { recursive: true });
   fs.mkdirSync(dataDir, { recursive: true });
+  restoreModules(path.join(root, "server")); restoreModules(path.join(root, "scraper"));
   // 1. the database: PostgreSQL running inside the app, kept as plain files in the data folder (no separate database program to install or start)
   const dbDir = path.join(dataDir, "database");
 

@@ -36,6 +36,7 @@
         "filter": [
           "**/*",
           "!test/**",
+          "!data/**",
           "!Dockerfile*"
         ]
       },
@@ -45,6 +46,7 @@
         "filter": [
           "**/*",
           "!test/**",
+          "!data/**",
           "!Dockerfile*"
         ]
       },
