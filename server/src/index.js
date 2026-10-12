@@ -1,4 +1,5 @@
 import express from "express";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { migrate, q, audit, pool } from "./db.js";
@@ -238,6 +239,28 @@ app.post("/api/jars/fill", wrap(async (_req, res) => { const r = await fillJars(
 app.post("/api/categories/suggested", wrap(async (_req, res) => { const r = await addSuggested(); const applied = await tx((c) => applyRules(c)); if (r.categories || r.rules || applied) await bumpRev(); res.json({ ...r, applied }); }));
 app.post("/api/networth/snapshot", wrap(async (_req, res) => { await snapshotNetWorth(); res.json({ ok: true }); }));
 if (process.env.ALLOW_DEMO_SEED === "1") app.post("/api/demo/seed", wrap(async (_req, res) => res.json(await seedDemo())));
+
+// ---------- version, changelog and "is there a newer version?" ----------
+const CHANGELOG = process.env.CHANGELOG_FILE || path.join(WEB, "..", "CHANGELOG.md");
+const readChangelog = () => { try { return fs.readFileSync(CHANGELOG, "utf8"); } catch { return ""; } };
+const versionOf = (t) => (t.match(/^## \[?v?(\d+\.\d+\.\d+)/m) || [])[1] || "";
+const newer = (a, b) => { const x = a.split(".").map(Number), y = b.split(".").map(Number); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); return false; };
+let latestCache = { at: 0, v: null };
+app.get("/api/version", wrap(async (_req, res) => { const t = readChangelog(); res.json({ version: versionOf(t), changelog: t }); }));
+// asks GitHub (public repository) for the latest release; cached for an hour; a failure just means "unknown"
+app.get("/api/update-check", wrap(async (_req, res) => {
+  const cur = versionOf(readChangelog());
+  if (Date.now() - latestCache.at > 36e5) {
+    try {
+      const r = await fetch("https://api.github.com/repos/userofit123/moneymanager/releases/latest", { headers: { "user-agent": "money-manager", accept: "application/vnd.github+json" }, signal: AbortSignal.timeout(8000) });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const j = await r.json();
+      latestCache = { at: Date.now(), v: { version: String(j.tag_name || "").replace(/^v/, ""), notes: String(j.body || "").slice(0, 6000), url: j.html_url } };
+    } catch { latestCache = { at: Date.now() - 36e5 + 6e4, v: null }; } // try again in a minute
+  }
+  const l = latestCache.v;
+  res.json({ current: cur, latest: l ? l.version : null, available: !!(l && cur && newer(l.version, cur)), notes: l ? l.notes : "", url: l ? l.url : "" });
+}));
 
 app.use("/api", (_req, res) => res.status(404).json({ error: "not found" }));
 

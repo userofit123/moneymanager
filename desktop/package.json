@@ -26,6 +26,7 @@
     "files": [
       "main.js",
       "launcher.js",
+      "preload.js",
       "package.json"
     ],
     "extraResources": [
@@ -54,6 +55,10 @@
       {
         "from": "chrome",
         "to": "chrome"
+      },
+      {
+        "from": "../CHANGELOG.md",
+        "to": "CHANGELOG.md"
       }
     ],
     "win": {
@@ -78,9 +83,12 @@
       {
         "provider": "github",
         "owner": "userofit123",
-        "repo": "moneymanager-releases",
+        "repo": "moneymanager",
         "releaseType": "release"
       }
-    ]
+    ],
+    "releaseInfo": {
+      "releaseNotesFile": "release-notes.md"
+    }
   }
 }
