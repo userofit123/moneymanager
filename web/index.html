@@ -178,6 +178,7 @@ svg text{font-family:inherit;fill:var(--tx2);font-size:11px}svg .gl{stroke:var(-
 .ring{width:84px;height:84px;flex:none}.jar{display:flex;gap:16px;align-items:center}
 .row{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--ol)}.row:first-child{border-top:0}.row .grow{flex:1;min-width:0}
 .seg{display:flex;background:var(--s2);border-radius:99px;padding:3px;margin:8px 0 16px;overflow-x:auto;scrollbar-width:none;max-width:100%}.seg button{flex:1;border:0;background:none;font:inherit;font-size:13px;padding:8px 14px;border-radius:99px;color:var(--tx2);cursor:pointer;white-space:nowrap;min-height:34px}.seg button.on{background:var(--acc);color:var(--on);font-weight:600}
+.seg{position:relative}.seg.sl button{position:relative;z-index:1}.seg.sl button.on{background:none}.segi{position:absolute;left:0;top:0;z-index:0;background:var(--acc);pointer-events:none;will-change:transform,width}
 .pop{position:fixed;left:98px;bottom:16px;width:310px;background:var(--bg);border:1px solid var(--ol);border-radius:20px;padding:18px;z-index:60;box-shadow:0 24px 60px -20px #0008;display:none}.pop.on{display:block;animation:fi .2s}
 .sw{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.sw button{border:2px solid transparent;border-radius:14px;height:54px;cursor:pointer;font:inherit;font-size:11px;color:#fff;font-weight:600;text-shadow:0 1px 3px #0006}.sw button.on{border-color:var(--tx)}
 .pl{font-size:12px;color:var(--tx2);font-weight:600;text-transform:uppercase;letter-spacing:.8px}
@@ -458,10 +459,12 @@ html.mob .pop{max-height:calc(100vh - 100px - var(--sb))}
 /* ===== background textures: a layer of its own, with its own density ===== */
 :root{--tsc:1;--noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1.4 0 0 0 -.2 1.4 0 0 0 -.2 1.4 0 0 0 -.2 0 0 0 0 .2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
 body::before,body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;display:none}
-html[data-tex="dots"] body::before{display:block;background:radial-gradient(color-mix(in srgb,var(--tx) 20%,transparent) 1.3px,transparent 1.9px) 0 0/calc(22px / var(--tsc)) calc(22px / var(--tsc))}
-html[data-tex="stripes"] body::before{display:block;background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--tx) 7%,transparent) 0 2px,transparent 2px calc(16px / var(--tsc)))}
-html[data-tex="grid"] body::before{display:block;background:linear-gradient(color-mix(in srgb,var(--tx) 8%,transparent) 1px,transparent 1px) 0 0/calc(28px / var(--tsc)) calc(28px / var(--tsc)),linear-gradient(90deg,color-mix(in srgb,var(--tx) 8%,transparent) 1px,transparent 1px) 0 0/calc(28px / var(--tsc)) calc(28px / var(--tsc))}
-html[data-tex="static"] body::before{display:block;background:var(--noise) 0 0/calc(160px / var(--tsc));opacity:.65}
+html[data-tex="dots"]{--texi:radial-gradient(color-mix(in srgb,var(--tx) 20%,transparent) 1.3px,transparent 1.9px);--texs:calc(22px / var(--tsc)) calc(22px / var(--tsc))}
+html[data-tex="stripes"]{--texi:repeating-linear-gradient(135deg,color-mix(in srgb,var(--tx) 7%,transparent) 0 2px,transparent 2px calc(16px / var(--tsc)));--texs:auto}
+html[data-tex="grid"]{--texi:linear-gradient(color-mix(in srgb,var(--tx) 8%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--tx) 8%,transparent) 1px,transparent 1px);--texs:calc(28px / var(--tsc)) calc(28px / var(--tsc)),calc(28px / var(--tsc)) calc(28px / var(--tsc))}
+html[data-tex="static"]{--texi:var(--noise);--texs:calc(160px / var(--tsc)) calc(160px / var(--tsc))}
+html:is([data-tex="dots"],[data-tex="stripes"],[data-tex="grid"],[data-tex="static"]) body::before{display:block;background-image:var(--texi);background-size:var(--texs);background-position:0 0}
+html[data-tex="static"] body::before{opacity:.65}
 /* ===== surfaces ===== */
 body.outline :is(.card,table,.bgrp):not(.hero){background:transparent;border-width:1.5px}
 /* raised: a soft edge light on top, a darker edge below, and a shadow that falls behind whatever is underneath */
@@ -476,6 +479,8 @@ body.glass :is(.card,table,.bgrp):not(.hero){background:color-mix(in srgb,var(--
 body.glass .card.hero,body.glass .jhero{background:linear-gradient(140deg,color-mix(in srgb,var(--accc) var(--gfillh,65%),transparent),color-mix(in srgb,var(--accc) calc(var(--gfillh,65%) * .6),transparent));border-color:color-mix(in srgb,var(--tx) 10%,transparent)}
 body.glass :is(nav,.pop,.sheet,.ddm,.cmenu){background:color-mix(in srgb,var(--bg) 84%,transparent)}
 body.glass .toast,body.glass .tip{background:color-mix(in srgb,var(--s2) 80%,transparent)}
+/* glass: the texture is drawn on the panel too (fixed to the page, so it lines up), because blur alone would wipe a fine texture out */
+body.glass :is(.card,table,.bgrp):not(.hero){background-image:var(--texi,none);background-size:var(--texs,auto);background-attachment:fixed;background-position:0 0}
 /* static: a fine grain on every panel */
 body.static :is(.card,table,.bgrp,.jhero):not(.hero){background-color:var(--s1);background-image:var(--noise);background-size:160px}
 body.static .card.hero{background-image:var(--noise),linear-gradient(140deg,var(--accc),color-mix(in srgb,var(--accc) 55%,var(--s1)));background-size:160px,auto}
@@ -2174,4 +2179,31 @@ if(t.dataset.s!==undefined){const r=t.closest("#lines");if(r)link(r,"[data-s]",{
 else{const r=t.closest(".dnt");if(r)link(r,"[data-k]",{attr:"data-k",v:t.dataset.k},true)}});
 document.addEventListener("mouseout",e=>{const t=e.target.closest&&e.target.closest("[data-s],[data-k]");if(!t)return;const to=e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest("[data-s],[data-k]");
 const r=t.closest("#lines,.dnt");if(!r)return;if(to&&r.contains(to)&&(to.dataset.s!==undefined)===(t.dataset.s!==undefined))return;link(r,"[data-s],[data-k]",{attr:"data-x",v:""},false)})})();
+
+/* sliding tab pill: the selected background glides to the new tab, stretching and pinching (top and bottom curve in) with the distance */
+(()=>{const st=new Map(),RM=matchMedia("(prefers-reduced-motion: reduce)");let raf=0;
+const keyOf=(sg)=>{if(sg.id)return sg.id;const b=sg.querySelector("button"),k=b?(b.dataset.a||b.dataset.t||"x"):"x";let n=0;for(const o of document.querySelectorAll(".seg")){if(o==sg)break;const ob=o.querySelector("button");if(ob&&(ob.dataset.a||ob.dataset.t||"x")==k)n++}return k+"#"+n};
+const path=(w,h,r,p)=>{r=Math.min(r,h/2,w/2);return `path('M${r} 0Q${w/2} ${2*p} ${w-r} 0A${r} ${r} 0 0 1 ${w-r} ${h}Q${w/2} ${h-2*p} ${r} ${h}A${r} ${r} 0 0 1 ${r} 0Z')`};
+const ease=(t,k)=>{t=Math.min(1,Math.max(0,t));return 1-Math.pow(1-t,k)};
+function draw(pill,h,r,l,rt,p){const w=Math.max(4,rt-l);pill.style.width=w+"px";pill.style.height=h+"px";pill.style.transform=`translate(${l}px,0)`;pill.style.clipPath=p>.3?path(w,h,r,p):""}
+function sync(sg){const bs=[...sg.querySelectorAll(":scope>button")],b=sg.querySelector(":scope>button.on");if(!b||!sg.offsetWidth)return;
+ let pill=sg.querySelector(":scope>.segi");if(!pill){pill=document.createElement("i");pill.className="segi";sg.prepend(pill);sg.classList.add("sl")}
+ const k=keyOf(sg),idx=bs.indexOf(b),L=b.offsetLeft,W=b.offsetWidth,H=b.offsetHeight,T=b.offsetTop,R=parseFloat(getComputedStyle(b).borderTopLeftRadius)||99;
+ let s=st.get(k);pill.style.top=T+"px";pill.style.borderRadius=R+"px";
+ if(!s||s.pill!==pill&&!s.cur){st.set(k,{pill,idx,cur:{l:L,r:L+W},anim:0});draw(pill,H,R,L,L+W,0);return}
+ if(s.pill!==pill){s.pill=pill}
+ if(s.idx===idx&&!s.anim){s.cur={l:L,r:L+W};draw(pill,H,R,L,L+W,0);return}
+ if(s.idx===idx){return}
+ s.idx=idx;cancelAnimationFrame(s.anim);draw(pill,H,R,s.cur.l,s.cur.r,0);
+ if(RM.matches){s.anim=0;s.cur={l:L,r:L+W};draw(pill,H,R,L,L+W,0);return}
+ const a=s.cur,dist=Math.abs(L-a.l),dur=Math.min(560,300+dist*.45),t0=performance.now(),right=L>=a.l;
+ const depth=Math.min(H*.2,2+dist/40);
+ const step=(now)=>{const t=Math.min(1,(now-t0)/dur),lead=ease(t,3),trail=ease(Math.max(0,(t-.12)/.88),3);
+  const nl=right?a.l+(L-a.l)*trail:a.l+(L-a.l)*lead,nr=right?a.r+(L+W-a.r)*lead:a.r+(L+W-a.r)*trail;
+  s.cur={l:nl,r:nr};draw(pill,H,R,nl,nr,t<1?depth*Math.sin(Math.PI*t):0);
+  if(t<1)s.anim=requestAnimationFrame(step);else{s.anim=0;s.cur={l:L,r:L+W};draw(pill,H,R,L,L+W,0)}};
+ s.anim=requestAnimationFrame(step)}
+const all=()=>{raf=0;document.querySelectorAll(".seg").forEach(sync)};
+const q=()=>{if(!raf)raf=requestAnimationFrame(all)};
+new MutationObserver(q).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:["class"]});addEventListener("resize",q);addEventListener("DOMContentLoaded",q);q()})();
 </script></body></html>
