@@ -17,7 +17,7 @@ import { addSuggested } from "./categories.js";
 import { fillJars, readJars } from "./jars.js";
 import { bumpRev, tx } from "./db.js";
 import { applyRules } from "./engine.js";
-import { sendNtfy, ntfyProblem, ntfyUrl } from "./notify.js";
+import { sendNtfy, sendNtfyOnly, ntfyProblem, ntfyUrl, channelStatus, saveChannel, removeChannel, sendChannel } from "./notify.js";
 import { listConnections, saveCreds, removeCreds, unlock, getCreds, markAssisted, FIELDS } from "./connections.js";
 import * as auth from "./auth.js";
 
@@ -181,10 +181,15 @@ app.post("/api/ntfy/test", wrap(async (_req, res) => {
   const url = await ntfyUrl();
   const reason = url ? ntfyProblem(url) : "Save your ntfy address first.";
   if (reason) return res.json({ ok: false, reason });
-  res.json({ ok: await sendNtfy("Money", "Test alert: background notifications work"), reason: "The ntfy server did not accept it." });
+  res.json({ ok: await sendNtfyOnly("Money", "Test alert: background notifications work"), reason: "The ntfy server did not accept it." });
 }));
 
 // ---------- sync and import ----------
+// other places alerts can go: Telegram bot, webhook (secrets are write-only)
+app.get("/api/notify/channels", wrap(async (_req, res) => res.json(await channelStatus())));
+app.put("/api/notify/channels/:kind", json, wrap(async (req, res) => { try { await saveChannel(req.params.kind, req.body); res.json({ ok: true }); } catch (e) { res.status(400).json({ error: e.message }); } }));
+app.delete("/api/notify/channels/:kind", wrap(async (req, res) => { await removeChannel(req.params.kind); res.json({ ok: true }); }));
+app.post("/api/notify/channels/:kind/test", wrap(async (req, res) => res.json({ ok: await sendChannel(req.params.kind, "Money", "Test alert: notifications work") })));
 app.get("/api/sync/settings", wrap(async (_req, res) => res.json(await getSyncSettings())));
 app.put("/api/sync/settings", json, wrap(async (req, res) => res.json(await putSyncSettings(req.body || {}))));
 app.get("/api/sync/log", wrap(async (_req, res) => res.set("Cache-Control", "no-store").json(await syncLog())));

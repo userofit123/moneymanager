@@ -1,5 +1,6 @@
 // Background alerts to the user's own ntfy server. Nothing leaves the home network unless the URL says so.
 import { q } from "./db.js";
+import { encrypt, decrypt } from "./secrets.js";
 
 export async function ntfyUrl() {
   const r = await q("SELECT value FROM settings WHERE key='ntfy'");
@@ -18,13 +19,50 @@ export function ntfyProblem(url) {
   return priv ? null : "That address is on the public internet. Alerts contain account names and amounts, so only addresses on your own network or Tailscale are allowed (or set ALLOW_PUBLIC_NTFY=1).";
 }
 
-export async function sendNtfy(title, body, priority = "default") {
+export async function sendNtfyOnly(title, body, priority = "default") {
   const url = await ntfyUrl();
   if (!url || ntfyProblem(url)) return false;
   try {
     const r = await fetch(url, { method: "POST", body, headers: { Title: title, Priority: priority }, signal: AbortSignal.timeout(8000) });
     return r.ok;
   } catch { return false; }
+}
+
+// ---------- more places to send alerts (all optional, off until you add them) ----------
+// Telegram bot and webhook (Discord, Slack, Home Assistant, n8n...). Their secrets are stored encrypted and never sent back to the browser.
+// These carry the alert text over the internet to that service, so they only exist when the user sets them up.
+const CH_KEY = "notify_channels";
+const getChannels = async () => { const v = (await q("SELECT value FROM settings WHERE key=$1", [CH_KEY])).rows[0]?.value; return v && typeof v === "object" ? v : {}; };
+const putChannels = (c) => q("INSERT INTO settings (key,value) VALUES ($1,$2::jsonb) ON CONFLICT (key) DO UPDATE SET value=$2::jsonb", [CH_KEY, JSON.stringify(c)]);
+export async function channelStatus() { const c = await getChannels(); return { telegram: !!c.telegram, telegramChat: c.telegram?.chat || "", webhook: !!c.webhook }; }
+export async function saveChannel(kind, input) {
+  const c = await getChannels();
+  if (kind === "telegram") {
+    const token = String(input?.token || "").trim(), chat = String(input?.chat || "").trim();
+    if (!c.telegram && !/^\d+:[\w-]{20,}$/.test(token)) throw new Error("That does not look like a Telegram bot token (from @BotFather).");
+    if (!/^-?\d{3,}$|^@\w{4,}$/.test(chat)) throw new Error("The chat id is a number (or @channelname).");
+    c.telegram = { token: token ? encrypt(token) : c.telegram.token, chat };
+  } else if (kind === "webhook") {
+    const url = String(input?.url || "").trim();
+    if (!/^https?:\/\/\S+$/.test(url)) throw new Error("Enter a full web address starting with https://");
+    c.webhook = { url: encrypt(url) };
+  } else throw new Error("unknown channel");
+  await putChannels(c);
+}
+export async function removeChannel(kind) { const c = await getChannels(); delete c[kind]; await putChannels(c); }
+const post = async (url, body) => { const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(8000) }); return r.ok; };
+export async function sendChannel(kind, title, body) {
+  const c = await getChannels();
+  try {
+    if (kind === "telegram" && c.telegram) return await post(`https://api.telegram.org/bot${decrypt(c.telegram.token)}/sendMessage`, { chat_id: c.telegram.chat, text: `${title}\n${body}` });
+    if (kind === "webhook" && c.webhook) return await post(decrypt(c.webhook.url), { title, body, text: `${title}\n${body}`, content: `**${title}**\n${body}` }); // text: Slack and generic, content: Discord
+  } catch { /* an unreachable service never breaks a sync */ }
+  return false;
+}
+// every alert goes to ntfy and to each channel that is set up
+export async function sendNtfy(title, body, priority = "default") {
+  const res = await Promise.all([sendNtfyOnly(title, body, priority), sendChannel("telegram", title, body), sendChannel("webhook", title, body)]);
+  return res.some(Boolean);
 }
 
 // Tell the user once per distinct problem, not at every sync.

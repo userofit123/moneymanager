@@ -252,3 +252,10 @@ P.unshift(
 [/^Also tag the (\d+) similar transactions? I already have$/,(n)=>"לתייג גם "+(n==1?"את התנועה הדומה שכבר יש לי":"את "+n+" התנועות הדומות שכבר יש לי")]
 );
 })();
+(function(){const D=HE.D;
+Object.assign(D,{
+"More places to send alerts":"עוד מקומות לשליחת התראות","Telegram":"טלגרם","Webhook":"Webhook","On":"פעיל","Off":"כבוי","Bot token (from @BotFather)":"טוקן הבוט (מ‑@BotFather)","Chat id (message your bot, then open api.telegram.org/bot…/getUpdates)":"מזהה צ׳אט (שלחו הודעה לבוט, ואז פתחו api.telegram.org/bot…/getUpdates)","Webhook address (Discord, Slack, Home Assistant, n8n…)":"כתובת Webhook‏ (Discord, Slack, Home Assistant, n8n…)",
+"Telegram and webhooks send the alert text, including account names and amounts, over the internet to that service. Turn them on only if you are comfortable with that. WhatsApp has no free official way to message yourself. A Telegram bot or a webhook (Discord, Slack, Home Assistant, n8n) does the same job.":"טלגרם ו‑Webhook שולחים את טקסט ההתראה, כולל שמות חשבונות וסכומים, דרך האינטרנט אל השירות הזה. הפעילו אותם רק אם זה מקובל עליכם. ל‑WhatsApp אין דרך רשמית וחינמית לשלוח הודעה לעצמכם. בוט בטלגרם או Webhook‏ (Discord, Slack, Home Assistant, n8n) עושים את אותה עבודה.",
+"Stop sending alerts there?":"להפסיק לשלוח לשם התראות?","Not sent. Check the details.":"לא נשלח. בדקו את הפרטים.","Sent":"נשלח","Removed":"הוסר","Send a test":"שליחת בדיקה",
+});
+})();
