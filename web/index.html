@@ -942,8 +942,11 @@ function billTx0(b){return b.mode=="once"?S.tx.filter(t=>(b.ids||[]).includes(t.
 function billsInfo(all){return billsInfo0(all).map(b=>{const L=billTx(S.bills[b.idx]).filter(t=>t.c&&t.c!="Uncategorized"),lc=L.length?L[L.length-1].c:null;return{...b,cat:lc||(b.manual?b.cat:"")||""}})}
 function billsInfo0(all){return S.bills.map((b,idx)=>{const mt=billTx(b),last=mt[mt.length-1],prev=mt[mt.length-2],ev=mt.slice(-6).map(t=>[t.d,-t.a]);
 let cad=null;if(b.mode!="once"){if(b.every)cad={every:b.every,anchor:b.anchor,dom:b.dom};else if(b.rec!="irregular")cad=cadenceOf(mt)}
-if(cad&&!b.manual&&last){const lg=(NOW-new Date(last.d))/864e5,li=instOf(last); // a series that has ended (no payment for two cycles, or the last instalment was paid) is not expected again
-if(lg>cad.every*30.5*2+15||(li&&li.n>=li.total))cad=null}
+if(cad&&!b.manual&&last){const li=instOf(last); // an automatic bill stops being predicted once a cycle passes without it, or when its last instalment was paid. If it is paid again later, it is found and predicted again.
+ const oc0=[];for(let y=NOW.getFullYear()-2;y<=NOW.getFullYear()+1;y++)for(let m=1;m<=12;m++)if((((m-cad.anchor)%cad.every)+cad.every)%cad.every==0){const d=new Date(y,m-1,Math.min(cad.dom,28),9);if(d<=NOW)oc0.push(d)}
+ const pd0=oc0[oc0.length-1],pd1=oc0[oc0.length-2],ld=new Date(last.d);
+ const missed=(pd1&&ld<new Date(pd1-4*864e5))||(pd0&&ld<new Date(pd0-4*864e5)&&NOW-pd0>10*864e5); // a whole cycle went by without it, or the latest one is more than 10 days late
+ if(missed||(li&&li.n>=li.total))cad=null}
 if(!cad){const once=b.mode=="once",yr=mt.filter(t=>(NOW-new Date(t.d))/864e5<=365),am=mt.slice(-6).map(t=>-t.a),typ=am.length?med(am):(b.amt||0);
 return{...b,idx,irregular:!once,once,status:once?"once":"irregular",pd:null,nx:null,days:99999,lp:last?last.d:null,amt:last?-last.a:(b.amt||0),was:prev?-prev.a:(last?-last.a:0),pred:typ,vari:true,lo:am.length?Math.min(...am):0,hi:am.length?Math.max(...am):0,fresh:false,mo:once?0:yr.reduce((s,t)=>s-t.a,0)/12,n_tx:mt.length,cnt12:yr.length,every:0,ev}}
 const B={...b,...cad},oc=[];for(let y=NOW.getFullYear()-1;y<=NOW.getFullYear()+2;y++)for(let m=1;m<=12;m++)if((((m-B.anchor)%B.every)+B.every)%B.every==0)oc.push(new Date(y,m-1,Math.min(B.dom,28),9));
