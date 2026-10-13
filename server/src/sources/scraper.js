@@ -13,6 +13,13 @@ export async function scrape(company, credentials, days = 30, profile) {
   return j; // { accounts: [{ accountNumber, balance, txns: [{date, description, chargedAmount, identifier, status, category}] }] }
 }
 
+// The screenshot of where the last failed login stopped (kept in the scraper's memory).
+export async function lastShot(company, profile) {
+  const r = await fetch(`${URL_}/assist/lastshot?company=${encodeURIComponent(company)}&profile=${encodeURIComponent(profile || "")}`, { headers: { "x-scraper-key": process.env.SCRAPER_KEY || "" }, signal: AbortSignal.timeout(15000) });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return Buffer.from(await r.arrayBuffer());
+}
+
 // Assisted login: the user drives the scraper's browser from the app (log in, enter the one-time code, tick "remember").
 export async function assist(action, body, { raw = false } = {}) {
   const get = action === "screen" || action === "status";
