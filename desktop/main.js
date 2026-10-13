@@ -55,6 +55,12 @@ const notesText = (n) => Array.isArray(n) ? n.map((x) => x.note).join("\n") : St
 
 function setupUpdates() {
   const { ipcMain } = require("electron");
+  // backup folder: pick one, or open it in Explorer (the page itself cannot reach the file system)
+  ipcMain.handle("backup:choose", async (_e, cur) => {
+    const r = await dialog.showOpenDialog(win || undefined, { title: "Choose the backup folder", defaultPath: typeof cur === "string" ? cur : undefined, properties: ["openDirectory", "createDirectory"] });
+    return r.canceled || !r.filePaths[0] ? null : r.filePaths[0];
+  });
+  ipcMain.handle("backup:open", (_e, dir) => { if (typeof dir === "string" && path.isAbsolute(dir)) { fs.mkdirSync(dir, { recursive: true }); return shell.openPath(dir); } });
   ipcMain.handle("update:get", () => ({ ...upd }));
   ipcMain.handle("update:auto", (_e, on) => { upd.auto = !!on; saveSettings(); if (autoUpdater) autoUpdater.autoDownload = upd.auto; if (upd.auto && upd.status === "available") autoUpdater && autoUpdater.downloadUpdate().catch(() => {}); pushUpdate(); return { ...upd }; });
   ipcMain.handle("update:check", async () => { await check(); return { ...upd }; });

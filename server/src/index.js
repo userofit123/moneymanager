@@ -21,6 +21,7 @@ import { applyRules } from "./engine.js";
 import { sendNtfy, sendNtfyOnly, ntfyProblem, ntfyUrl, channelStatus, saveChannel, removeChannel, sendChannel } from "./notify.js";
 import { listConnections, saveCreds, removeCreds, unlock, getCreds, markAssisted, FIELDS, PROVIDERS, baseOf, validId, nextId, setNickname } from "./connections.js";
 import * as auth from "./auth.js";
+import * as bk from "./backup.js";
 import { createAccount, updateAccount, setBalance, deleteAccount, alertsSeen, alertHistory } from "./accounts.js";
 
 const WEB = process.env.WEB_DIR || path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "web");
@@ -298,6 +299,23 @@ app.get("/api/alerts/history", wrap(async (req, res) => res.set("Cache-Control",
 app.post("/api/networth/snapshot", wrap(async (_req, res) => { await snapshotNetWorth(); res.json({ ok: true }); }));
 if (process.env.ALLOW_DEMO_SEED === "1") app.post("/api/demo/seed", wrap(async (_req, res) => res.json(await seedDemo())));
 
+// ---------- backups ----------
+const bkErr = (res, e) => res.status(e.needPassword ? 401 : 400).json({ error: e.message, needPassword: !!e.needPassword });
+app.get("/api/backup", wrap(async (_req, res) => res.set("Cache-Control", "no-store").json(await bk.view())));
+app.put("/api/backup/settings", json, wrap(async (req, res) => { try { res.json(await bk.putCfg(req.body || {})); } catch (e) { bkErr(res, e); } }));
+app.post("/api/backup/run", wrap(async (_req, res) => { try { await bk.runBackup("manual"); res.json(await bk.view()); } catch (e) { bkErr(res, e); } }));
+app.get("/api/backup/file/:name", wrap(async (req, res) => {
+  try { const f = bk.filePath(await bk.getCfg(), req.params.name); if (!fs.existsSync(f)) return res.status(404).json({ error: "not found" }); res.download(f, req.params.name); } catch (e) { bkErr(res, e); }
+}));
+app.delete("/api/backup/file/:name", wrap(async (req, res) => { try { await bk.removeFile(req.params.name); res.json(await bk.view()); } catch (e) { bkErr(res, e); } }));
+app.post("/api/backup/upload", express.raw({ type: () => true, limit: "600mb" }), wrap(async (req, res) => {
+  try { const name = await bk.saveUpload(req.body, String(req.query.name || "")); res.json({ name, ...(await bk.view()) }); } catch (e) { bkErr(res, e); }
+}));
+app.post("/api/backup/inspect", json, wrap(async (req, res) => { try { res.json(await bk.inspect(String(req.body?.name || ""), req.body?.password)); } catch (e) { bkErr(res, e); } }));
+app.post("/api/backup/restore", json, wrap(async (req, res) => {
+  try { res.json({ summary: await bk.restore(String(req.body?.name || ""), req.body?.password), ...(await bk.view()) }); } catch (e) { bkErr(res, e); }
+}));
+
 // ---------- version, changelog and "is there a newer version?" ----------
 const CHANGELOG = process.env.CHANGELOG_FILE || path.join(WEB, "..", "CHANGELOG.md");
 const readChangelog = () => { try { return fs.readFileSync(CHANGELOG, "utf8"); } catch { return ""; } };
@@ -340,7 +358,7 @@ export async function start() {
   await ensureDefaults({ demoAccounts: false });
   const port = +process.env.PORT || 8080;
   httpServer = app.listen(port, process.env.HOST || undefined, () => console.log("money manager on :" + port)); // HOST=127.0.0.1 keeps it local (the desktop app)
-  if (process.env.SCHEDULER !== "0") startScheduler();
+  if (process.env.SCHEDULER !== "0") { startScheduler(); bk.startBackups(); }
   refreshRates().catch((e) => console.error("rates:", e.message)).then(async () => {
     if (process.env.AUTO_DEMO_SEED !== "1") return;
     const n = (await q("SELECT count(*)::int AS n FROM transactions")).rows[0].n;

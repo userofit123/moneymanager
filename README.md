@@ -57,7 +57,7 @@ Add the proxy file so Caddy can reach it, and set `TRUST_PROXY=1` in `.env`:
 ```sh
 docker compose -f docker-compose.yml -f docker-compose.proxy.yml up -d --build
 ```
-Point a Caddy block at `app:8080` (or `127.0.0.1:8787`). Schedule `backup.sh` for nightly backups (optional rsync via `BACKUP_DEST`).
+Point a Caddy block at `app:8080` (or `127.0.0.1:8787`). The app also backs itself up every day (Settings → Backup and restore): your data without any bank logins, into `/data/backups` in the app volume. To keep them elsewhere, link a host folder in `docker-compose.yml` (see the commented `backups` line) and type its path in the setting. `backup.sh` is still there for a full database dump (optional rsync via `BACKUP_DEST`).
 
 **Strict mode** lets the scraper reach only your banks:
 ```sh
