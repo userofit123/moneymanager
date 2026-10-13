@@ -1690,7 +1690,7 @@ return{mean,at:k=>Math.min(mean*1.3,Math.max(mean*.7,mean+sl*.5*Math.min(k,3)))}
 // An income source is counted from the month it first appears: before that there is no record of it, which is not the same as zero.
 function proj(a,n,m,inc){let v;
 if(inc){ // an income source seen in two or more months is recurring: use the months it really arrived, this month so far included
-const occ=[];for(let j=FH.first||0;j<=FH.last;j++)if(a[j]>0)occ.push(j);
+const occ=[];for(let j=Math.max(FH.first||0,FH.last-n);j<=FH.last;j++)if(a[j]>0)occ.push(j); // only the months you chose to base it on (this month so far included): an income that stopped before that is no longer part of the forecast
 if(occ.length>=2){v=occ.map(j=>a[j]);const nn=v.length,mean=v.reduce((x,y)=>x+y,0)/nn;let sl=0;if(nn>1){const xm=(nn-1)/2;let num=0,den=0;v.forEach((y,i)=>{num+=(i-xm)*(y-mean);den+=(i-xm)**2});sl=num/den}
 const e=est(v,m,sl);return{v,mean:e.mean,sl,nn,recurring:true,at:e.at}}
 return{v:[0],mean:0,sl:0,nn:1,oneoff:true,at:()=>0}} // seen in one month only: a one-off, not part of the forecast
@@ -1741,11 +1741,11 @@ const show=e=>{const r=svg.getBoundingClientRect(),vx=(e.clientX-r.left)/r.width
 gx.setAttribute("x1",X(k));gx.setAttribute("x2",X(k));gx.style.display="";gd.setAttribute("cx",X(k));gd.setAttribute("cy",Y(d.bal[k]));gd.style.display="";
 tp.innerHTML=`<b>${k?mlab(k):"Now"}</b><span>${sg(d.bal[k])}</span>${k?`<small>range ${sg(d.lo[k])} to ${sg(d.hi[k])}</small>`:""}`;tp.style.display="flex";const sx=r.width/W,w=tp.offsetWidth;tp.style.left=Math.max(0,Math.min(r.width-w,X(k)*sx-w/2))+"px";tp.style.top=Math.max(0,Y(d.bal[k])*sx-76)+"px"};
 const hide=()=>{gx.style.display=gd.style.display=tp.style.display="none"};svg.addEventListener("pointermove",show);svg.addEventListener("pointerdown",show);svg.addEventListener("pointerleave",hide)}
-const row=(r,ty)=>{const pc=r.mean?r.sl/r.mean*100:0,flat=Math.abs(pc)<2,good=ty=="in"?pc>0:pc<0,tot=Array.from({length:12},(_,i)=>r.at(i+1)).reduce((a,b)=>a+b,0);
+const row=(r,ty)=>{const pc=r.mean?r.sl/r.mean*100:0,flat=Math.abs(pc)<2,good=ty=="in"?pc>0:pc<0,tot=Array.from({length:fc.h},(_,i)=>r.at(i+1)).reduce((a,b)=>a+b,0);
 const lastN=r.v.map(x=>"₪"+f(x)).join(" · "),word=flat?"Steady":(pc>0?"Going up":"Going down"),tip=`Your last ${r.v.length} months: ${lastN}. ${flat?"It has stayed about the same.":"It is changing by about "+Math.abs(pc).toFixed(0)+"% a month."}`;
 return `<tr><td class="mer">${r.k=="Other / uncategorized"?esc(r.k):`<span class="catl" data-a="goCat" data-cat="${esc(r.k)}">${esc(r.k)}</span>`}</td><td class="am">₪${f(r.mean)}</td><td class="am">₪${f(r.at(1))}</td><td class="am">₪${f(tot)}</td><td><span class="bd ${flat?"fl":good?"dn":"up"}" data-tip="${esc(tip)}">${flat?"● ":(pc>0?"▲ ":"▼ ")}${word}</span></td></tr>`};
-const T2=(arr,fn)=>arr.reduce((s,r)=>s+fn(r),0),y12=r=>Array.from({length:12},(_,i)=>r.at(i+1)).reduce((a,b)=>a+b,0),i12=T2(d.inc,y12),e12=T2(d.ex,y12);
-$("fcTab").innerHTML=`<div class="sm" style="margin:0 2px 12px;line-height:1.55">Based on your last few months. Usually is your normal amount in a month. Next month and Next 12 months are what the app expects if things keep going the way they are. Hover over a trend to see the recent months.</div><table class="rt"><thead><tr><th></th><th style="text-align:end">Usually, each month</th><th style="text-align:end">Next month</th><th style="text-align:end">Next 12 months</th><th>Direction</th></tr></thead><tbody>
+const T2=(arr,fn)=>arr.reduce((s,r)=>s+fn(r),0),y12=r=>Array.from({length:fc.h},(_,i)=>r.at(i+1)).reduce((a,b)=>a+b,0),i12=T2(d.inc,y12),e12=T2(d.ex,y12);
+$("fcTab").innerHTML=`<div class="sm" style="margin:0 2px 12px;line-height:1.55"><span>${n==1?"Based on the last month.":"Based on the last "+n+" months."}</span> <span>Usually is your normal amount in a month. The last column is what the app expects over the forecast period you chose, if things keep going the way they are. Anything that has not happened in these months is not listed. Hover over a direction to see the months.</span></div><table class="rt"><thead><tr><th></th><th style="text-align:end">Usually, each month</th><th style="text-align:end">Next month</th><th style="text-align:end">${fc.h==12?"Next year":"Next "+fc.h+" months"}</th><th>Direction</th></tr></thead><tbody>
 <tr class="grp"><td colspan="5">Money coming in</td></tr>${d.inc.map(r=>row(r,"in")).join("")}
 <tr class="tot"><td>Total coming in</td><td class="am">₪${f(T2(d.inc,r=>r.mean))}</td><td class="am">₪${f(T2(d.inc,r=>r.at(1)))}</td><td class="am pos">₪${f(i12)}</td><td></td></tr>
 <tr class="grp"><td colspan="5">Money going out</td></tr>${d.ex.map(r=>row(r,"out")).join("")}
