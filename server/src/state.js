@@ -106,6 +106,7 @@ export async function getState() {
     accounts: accounts.rows.map((a) => ({
       id: a.id, n: a.name, cur: a.currency, kind: a.kind, src: a.source, s: a.subtitle, manual: a.manual,
       inNW: a.in_net_worth, v: a.balance, at: a.balance_at,
+      hide: a.kind === "pension" && +a.balance === 0, // an empty pension is not shown anywhere until it has a value
     })),
     connected, locked, connStatus, companies: Object.values(PROVIDERS).filter((p) => p.kind !== "wallet").map((p) => ({ label: p.label, kind: p.kind })),
     sources: runs.rows.map((r) => ({ n: r.source, ok: r.ok, at: r.finished_at, added: r.added, msg: r.message })),
