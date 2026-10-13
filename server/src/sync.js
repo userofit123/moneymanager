@@ -90,6 +90,7 @@ const toRows = (acc) => (acc.txns || []).map((t) => ({
   // A bank reference number repeats for recurring items (a monthly salary, a standing order), so it is only part of the id:
   // account + reference + date + amount. legacyId is the id older versions used, so earlier imports are recognised.
   externalId: t.identifier ? `${acc.accountNumber}:${t.identifier}:${String(t.date).slice(0, 10)}:${t.chargedAmount ?? t.originalAmount}` : undefined,
+  stableKey: t.identifier ? `${acc.accountNumber}:${t.identifier}:${String(t.date).slice(0, 10)}` : undefined,
   legacyId: t.identifier ? `${acc.accountNumber}:${t.identifier}` : undefined,
   pending: t.status === "pending", bankCategory: t.category,
   ...instOf(t),
