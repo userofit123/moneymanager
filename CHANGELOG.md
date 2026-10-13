@@ -4,10 +4,9 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
-## [0.4.12] - 2026-10-13
+## [0.4.13] - 2026-10-13
 
 ### App
-- **Card payments are found automatically.** After every sync, a bank payment whose amount equals what a card was charged on that day (taking the card's own charge date) is marked as a card payment, so it is not counted as spending. The name patterns now also cover Visa Cal, Amex and Diners. A card payment you marked or un-marked by hand is left alone.
 - **Card payments, more reliable.** Bank lines such as "כ.א.ל חיוב", "מקס איט פי חיוב", "אמריקן אקס חיוב" and "ישראכרט חיוב" are recognised by name (dots and punctuation are ignored). When you mark one payment as a card payment by hand, the app offers to mark every other one with the same text and to remember it for future syncs.
 - **Other rules.** A new **Other rules** tab in Categories lists the card payment rules and the salary rules (your own, and what is recognised automatically), where you can add or delete them.
 - **Bills stop being predicted when they stop.** A bill the app found by itself is no longer predicted once a whole cycle has gone by without it (or the latest one is more than 10 days late), or when its last instalment was paid. If it is paid again later, it is picked up and predicted again, so bills that run a few months each year work. Bills you added yourself are untouched. To end one for good, use **Remove bill** (it is never detected again) or **Cancel** in the bill's menu on the Bills page.
@@ -17,6 +16,11 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 - **Card digits everywhere.** A card (or account) that is the only one on its login now shows the last 4 digits of its number too (for example "Max ·· 1234"), on the Accounts page, on its page and on the Home credit card tiles. Before, only logins with several cards showed them. The digits come from what the bank returned.
 - **Fewer false duplicates.** Two identical charges on the same day that the same bank or card listed separately (two coffees from the same stall) are real purchases and are no longer flagged. A possible duplicate is now only flagged when the two entries came from different places (for example typed by hand and also imported) or were both typed by hand.
 - **Clearer alerts.** Alerts now say what happened and what to do. "X looks overdue" is now "X: payment expected but not seen", with the expected date and amount and whether to do nothing or cancel the bill. The other alerts (bill due, paid from a jar, budget pace, card charge, large amount, transfers, duplicates, balance changes, income documents) were reworded the same way, in English and Hebrew.
+
+## [0.4.12] - 2026-10-13
+
+### App
+- **Card payments are found automatically.** After every sync, a bank payment whose amount equals what a card was charged on that day (taking the card's own charge date) is marked as a card payment, so it is not counted as spending. The name patterns now also cover Visa Cal, Amex and Diners. A card payment you marked or un-marked by hand is left alone.
 - **Salary is found automatically.** An income that says so (משכורת, שכר, salary, payroll) or that the same payer pays every month in a similar amount (3 months or more, 1,500 or more) is categorised as Salary. Only uncategorised income is touched.
 - **Dates are read in Israel time.** A bank date at local midnight arrived as 21:00 of the day before and could land one day early (or a charge date a day off). New syncs read dates in Israel time and correct rows that an earlier version stored one day off.
 
