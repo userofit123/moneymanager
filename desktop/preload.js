@@ -5,6 +5,8 @@ contextBridge.exposeInMainWorld("desktop", {
   check: () => ipcRenderer.invoke("update:check"),
   download: () => ipcRenderer.invoke("update:download"),
   install: () => ipcRenderer.invoke("update:install"),
+  chooseFolder: (cur) => ipcRenderer.invoke("backup:choose", cur),
+  openFolder: (dir) => ipcRenderer.invoke("backup:open", dir),
   setAuto: (on) => ipcRenderer.invoke("update:auto", !!on),
   onUpdate: (fn) => ipcRenderer.on("update:state", (_e, s) => fn(s)),
 });

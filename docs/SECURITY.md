@@ -28,6 +28,7 @@ What protects your data, and what does not.
 - Response headers: strict Content-Security-Policy (no external scripts, no framing), `nosniff`, no referrer.
 
 ## Backups and the key
+- The in-app backup (Settings → Backup and restore) never contains bank logins, the Wise token, `app.key`, the app password, 2FA secrets or notification links. It can be protected with a password you choose (AES-256-GCM, key from scrypt). Restoring replaces the data and leaves the connections as they are.
 - `backup.sh` dumps the database and documents. It does **not** include `app.key`. Keep that in your password manager: `docker compose exec app cat /data/app.key`. Without it a restored database works, but you must re-enter the bank logins.
 - Documents (receipts, invoices) are stored unencrypted on the `appdata` volume. Use disk encryption on the host.
 

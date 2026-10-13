@@ -40,6 +40,7 @@ services:
       WISE_TOKEN: ${WISE_TOKEN:-}          # optional; normally enter it in Settings → Connections
     volumes:
       - appdata:/data
+      # - /path/on/your/host/backups:/data/backups   # optional: keep the daily backups outside the Docker volume
     ports:
       - "${BIND:-127.0.0.1}:${APP_PORT:-8787}:8080"
     networks: [backend, scraper_net, egress]
