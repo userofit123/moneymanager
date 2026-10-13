@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-title" content="Money"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <script>try{var T0=JSON.parse(localStorage.getItem("moneyTheme")||"{}");if(T0.bg=="dots"||T0.bg=="stripes"){T0.tex=T0.bg;T0.bg="glow"}["bg","tex","rad","den","spc","nsp","fnt","nav"].forEach(function(k){if(T0[k])document.documentElement.dataset[k]=T0[k]});if(T0.tsc)document.documentElement.style.setProperty("--tsc",T0.tsc/100);(function(){var hs=document.documentElement.style;hs.setProperty("--gblur",(T0.gbl==null?18:T0.gbl)+"px");hs.setProperty("--gsat",(T0.gsat==null?160:T0.gsat)+"%");hs.setProperty("--gop",(T0.gop==null?45:T0.gop)+"%")})()}catch(e){}</script>
 <script>try{if(localStorage.getItem("moneyLang")=="he"){document.documentElement.classList.add("he");document.documentElement.lang="he"}}catch(e){}</script>
-<script src="he-core.js"></script><script src="he-dict.js"></script><script src="he-fix.js"></script><script>try{HE.on=localStorage.getItem("moneyLang")=="he"}catch(e){}</script>
+<script src="he-core.js"></script><script src="he-dict.js"></script><script src="he-fix.js"></script><script src="help.js"></script><script src="help-he.js"></script><script>try{HE.on=localStorage.getItem("moneyLang")=="he"}catch(e){}</script>
 <script>(function(){var S=function(d){return "<svg viewBox=\"0 0 24 24\" width=\"58%\" height=\"58%\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\""+d+"\"/></svg>"};window.SYM_SVG={"₪":S("M4 19V5h3.5a3 3 0 0 1 3 3v6M20 5v14h-3.5a3 3 0 0 1-3-3v-6"),"$":S("M12 3v18M16.5 7.5C16.2 6 14.4 5 12 5S7.8 6.2 7.8 8.2c0 4.3 8.4 2.5 8.4 7 0 2-1.8 3.8-4.2 3.8s-4.3-1-4.6-2.8"),"€":S("M17 6.5a6 6 0 0 0-9 2v7a6 6 0 0 0 9 2M5 10.5h9M5 13.5h9"),"£":S("M16.5 7a4 4 0 0 0-7.5 1.5V17M6.5 12.5h8M6 18h11"),"¥":S("M6 5l6 7 6-7M12 12v8M7.5 13.5h9M7.5 17h9")}})();window.COIN_SVG="<svg viewBox=\"0 0 24 24\" width=\"60%\" height=\"60%\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"12\" r=\"2.6\"/><path d=\"M10 10L7 7M14 10l3-3M10 14l-3 3M14 14l3 3\"/></svg>";try{var h=document.documentElement,b=JSON.parse(localStorage.getItem("moneyBoot")||"null");h.classList.add("boot");if(b){h.style.background=b.bg;h.style.colorScheme=b.d?"dark":"light";if(b.a1){h.style.setProperty("--sp1",b.a1);h.style.setProperty("--sp2",b.a2);h.style.setProperty("--sp3",b.on)}}}catch(e){}</script>
 <style>
 @font-face{font-family:Inter;src:url(fonts/inter-latin.woff2) format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
@@ -393,6 +393,21 @@ html[data-nsp="tight"]{--nvg:0px;--nvp:0px}html[data-nsp="roomy"]{--nvg:12px;--n
 .accd{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:var(--spg)}.accH{padding:20px 22px}
 .stg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px}.stl{background:var(--s2);border-radius:14px;padding:11px 14px;min-width:0}.stl span{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--tx2);margin-bottom:3px}.stl b{font-size:19px;font-weight:650;white-space:nowrap}.stl i{display:block;font-style:normal;font-size:12px;color:var(--tx2);margin-top:2px}html.mob .stg{grid-template-columns:repeat(2,minmax(0,1fr))}
 .card.acc .lbl{display:flex;align-items:center;gap:8px}.grid.ga{grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+/* the page guide: a panel beside the page that explains it */
+.hbtns{display:flex;align-items:center;gap:10px}
+.help{position:fixed;inset-block:0;inset-inline-end:0;width:min(420px,100vw);z-index:240;background:var(--bg);border-inline-start:1px solid var(--ol);display:flex;flex-direction:column;transform:translateX(100%);visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s;box-shadow:-18px 0 40px -28px rgba(0,0,0,.4)}
+html.he .help,html[dir=rtl] .help{transform:translateX(-100%);box-shadow:18px 0 40px -28px rgba(0,0,0,.4)}
+html.help-on .help{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.helph{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:18px 20px;border-bottom:1px solid var(--ol)}.helph b{font-size:17px;font-weight:650}
+.helpb{flex:1;overflow-y:auto;padding:18px 20px 60px;overscroll-behavior:contain}
+.hlead{font-size:15px;line-height:1.6;color:var(--tx);margin-bottom:14px}
+.hjump{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}.hjump button{border:0;background:var(--s2);color:var(--tx2);font:inherit;font-size:12.5px;padding:5px 11px;border-radius:99px;cursor:pointer}.hjump button:hover{background:var(--accc);color:var(--onc)}
+.hs{margin:0 0 22px;padding-top:4px}.hs h4{margin:0 0 8px;font-size:15px;font-weight:650;letter-spacing:-.1px}.hs p{margin:0 0 8px;font-size:14px;line-height:1.65;color:var(--tx)}.hs p b{font-weight:650}
+.hdemo{margin:10px 0;padding:12px;border-radius:14px;background:var(--s1);border:1px solid var(--ol);pointer-events:none;overflow:hidden}.hdemo .card{box-shadow:none}
+.hex{margin:10px 0;padding:10px 13px;border-radius:12px;background:color-mix(in srgb,var(--acc) 9%,transparent);font-size:13.5px;line-height:1.6}.hex>b{display:block;font-size:11px;letter-spacing:.7px;text-transform:uppercase;color:var(--acc);margin-bottom:2px}
+.htip{margin:10px 0;padding:10px 13px;border-radius:12px;background:color-mix(in srgb,#e68a00 12%,transparent);font-size:13.5px;line-height:1.6}.htip>b{display:block;font-size:11px;letter-spacing:.7px;text-transform:uppercase;color:#b36b00;margin-bottom:2px}
+@media (min-width:1180px){html.help-on body{padding-inline-end:420px}}
+html.mob .help{width:100vw;border-inline-start:0}
 /* where my money goes (waterfall) */
 .wfq{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 14px;margin-bottom:22px}.wfq>i{font-style:normal;color:var(--tx2);font-size:20px;padding-bottom:5px}.wq span{display:block;font-size:12px;color:var(--tx2);margin-bottom:2px}.wq b{font-size:20px;font-weight:650}.wq.key{padding:9px 15px;border-radius:14px;background:var(--s2)}.wq.key.end{background:color-mix(in srgb,var(--acc) 12%,var(--s2))}
 .wf2{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(86px,1fr);gap:12px;overflow-x:auto;padding:4px 2px 8px}
@@ -591,7 +606,7 @@ html.he.mob .ftools #q{padding-left:14px;padding-right:42px;background-position:
 <button class="fab" data-a="quick" aria-label="Add or update">+</button>
 <main>
 <header><div><h1 id="title">Home</h1><div class="sub" id="date"></div></div>
-<button class="ib" data-a="nav" data-v="alerts" aria-label="Alerts"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0"/></svg><span class="badge" id="bBell"></span></button></header>
+<div class="hbtns"><button class="ib" id="helpBtn" data-a="helpToggle" aria-label="About this page" aria-expanded="false" aria-controls="help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5h.01"/></svg></button><button class="ib" data-a="nav" data-v="alerts" aria-label="Alerts"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0"/></svg><span class="badge" id="bBell"></span></button></div></header>
 
 <section class="view on" id="dash">
 <div id="attn"></div>
@@ -662,7 +677,7 @@ html.he.mob .ftools #q{padding-left:14px;padding-right:42px;background-position:
 <div id="setCats"></div><div id="setRules" style="display:none"></div><div id="setTags" style="display:none"></div><div id="setTagrules" style="display:none"></div>
 </section>
 <section class="view" id="acc"></section>
-</main><div class="tip" id="tip"></div>
+</main><aside class="help" id="help" aria-label="About this page" aria-hidden="true"><div class="helph"><b id="helpT">About this page</b><button class="ib" data-a="helpClose" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="helpb" id="helpB"></div></aside><div class="tip" id="tip"></div>
 <script>
 ["confirm","alert","prompt"].forEach(k=>{const o=window[k].bind(window);window[k]=(m,...a)=>o(HE.T(String(m)),...a)});
 const _fetch=window.fetch.bind(window);window.fetch=async(u,o={})=>{o={...o,credentials:"same-origin"};if(o.method&&o.method!="GET")o.headers=Object.assign({},o.headers,{"x-requested-with":"money"});const r=await _fetch(u,o);if(r.status==401&&String(u).startsWith("/api/")&&!String(u).startsWith("/api/auth/")){need2fa=false;showAuth("login")}return r};
@@ -1451,6 +1466,34 @@ ${ed?"":`<div class="fld"><label>Balance now</label><input id="acB" type="number
 <div class="flex" style="justify-content:flex-end;gap:10px"><button class="btn o" data-a="close">Cancel</button><button class="btn" data-a="accSave" data-id="${a?a.id:""}">${ed?"Save":"Add account"}</button></div>`)}
 function accBalOpen(id){const a=S.accounts.find(x=>x.id==id);if(!a)return;openSheet(`<h3>Update balance</h3><div class="sm" style="margin-bottom:14px">${esc(a.n)} · now ${fm(accILS(a))}. The old balance is kept in its history.</div><div class="fld"><label>New balance (${esc(a.cur)})</label><input id="abV" type="number" inputmode="decimal" step="any" value="${a.v}" autocomplete="off"></div><div class="fld"><label>Note (optional)</label><input id="abN" maxlength="200" placeholder="e.g. Statement of 1 October" autocomplete="off"></div><div class="flex" style="justify-content:flex-end;gap:10px"><button class="btn o" data-a="close">Cancel</button><button class="btn" data-a="accBalSave" data-id="${id}">Save</button></div>`);setTimeout(()=>{const i=$("abV");if(i){i.focus();i.select()}},80)}
 async function accAfter(msg,sel){try{await load();ACC_SEL=sel===undefined?ACC_SEL:sel;renderAll();closeSheet();if(msg)toast(msg)}catch(e){toast(e.message)}}
+/* ---------- the page guide ---------- */
+// Content lives in help.js (English) and help-he.js (Hebrew): HELP.en / HELP.he = { page: { title, lead, blocks:[{h,p:[..],ex,tip,demo}] } }.
+// Settings has one entry per tab ("set.conn", "set.sync", ...).
+let HELPOPEN=false;try{HELPOPEN=localStorage.getItem("moneyHelp")==="1"}catch(e){}
+const helpKey=()=>curView=="set"?"set."+setTab:curView;
+const hMd=t=>esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
+const HDEMO={
+kpis:()=>`<div class="grid g2" style="gap:8px"><div class="card hero" style="padding:12px 14px"><div class="lbl">Net worth</div><div class="val" style="font-size:24px"><small>₪</small>30,583</div></div><div class="card" style="padding:12px 14px"><div class="lbl">Income · October</div><div class="val" style="font-size:24px"><small>₪</small>18,900</div></div></div>`,
+waterfall:()=>{const c=(cls,o,w,col,a,n,sub,x)=>`<div class="wc ${cls}"><div class="wca num" style="font-size:12px">${a}</div><div class="wcp" style="height:110px"><i class="wcs ${x||""}" style="--o:${o};--w:${w};--col:${col};--sp:30">${x?"<b></b>":""}</i></div><div class="wcn" style="font-size:11.5px;margin-top:6px">${n}</div><div class="wcm" style="font-size:10.5px">${sub}</div></div>`;return `<div class="wf2" style="grid-auto-columns:minmax(52px,1fr);gap:6px;overflow:hidden">${c("start",0,100,"var(--acc)","30,583","In accounts","today")}${c("set",0,58,"var(--c4)","17,800","In jars","set aside")}${c("",58,10,"var(--c1)","1,699","Groceries","of 2,600","plan")}${c("",68,6,"var(--c2)","1,050","Bills","due","plan")}${c("end pos",74,20,"var(--pos)","6,027","Unassigned","free")}</div>`},
+budgetbar:()=>`<div style="font-size:13px;display:flex;justify-content:space-between"><b>Groceries</b><span class="sm num">₪901 / ₪2,600</span></div><div class="bar" style="margin:8px 0 2px"><i style="width:35%"></i><u style="left:42%"></u></div><div class="sm">The thin line is today's date in the month.</div>`,
+status:()=>`<div class="flex" style="gap:6px;flex-wrap:wrap"><span class="bd dn">Connected</span><span class="bd am2">Out of date</span><span class="bd up">Needs a code</span><span class="bd up">Locked</span><span class="bd fl">Entered by you</span></div>`,
+alert:()=>`<div class="al" style="padding:4px 0"><span class="sev med"></span><div style="flex:1"><b style="font-size:13.5px">Large income: Salary</b><div class="sm">₪18,900 · 9 Oct</div></div><button class="btn o s">Open</button></div>`,
+tabs:()=>`<div class="seg" style="margin:0"><button class="on">All activity</button><button>Needs review</button></div>`,
+chips:()=>`<div>${[["Groceries","var(--c0)",94],["Eating out","var(--c2)",83],["Rent & housing","var(--c1)",14]].map(([n,c,k])=>`<span class="chip" style="margin:3px"><span class="dot" style="background:${c}"></span>${n} <span class="sm num" style="opacity:.75">(${k})</span></span>`).join("")}</div>`,
+tags:()=>`<div><span class="tag">client</span><span class="tag">taxable</span><span class="tag">kids</span></div>`,
+rule:()=>`<div class="rule" style="gap:6px"><span class="sm">If it contains</span><input value="shufersal" readonly style="max-width:130px"><span class="sm">→</span><select style="max-width:150px"><option>Groceries</option></select></div>`,
+jar:()=>`<div class="card" style="padding:12px 14px"><div class="flex" style="justify-content:space-between"><b>Summer trip</b><span class="bd dn">Funded</span></div><div class="bar" style="margin:10px 0 6px"><i style="width:20%;background:var(--c1)"></i></div><div class="sm num">₪4,000 of ₪20,000 · ₪800 a month</div></div>`,
+bill:()=>`<div class="row" style="padding:6px 0"><span class="av" style="background:color-mix(in srgb,var(--c3) 22%,transparent);color:var(--c3)">N</span><div class="grow"><b style="font-size:14px">Netflix</b><div class="sm">Next 6 Nov · monthly</div></div><b class="num">₪55</b></div>`,
+account:()=>`<div class="card" style="padding:12px 14px"><div class="lbl">Bank Hapoalim<span class="chip" style="margin-inline-start:auto;padding:1px 9px">Bank account</span></div><div class="val" style="font-size:24px"><small>₪</small>23,840</div><div class="flex" style="justify-content:space-between;margin-top:6px"><span class="bd dn">Connected</span><span class="sm">123 transactions</span></div></div>`,
+forecast:()=>`<svg viewBox="0 0 300 90" width="100%"><defs><linearGradient id="hfg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--acc)" stop-opacity=".3"/><stop offset="1" stop-color="var(--acc)" stop-opacity="0"/></linearGradient></defs><polygon fill="url(#hfg)" points="10,80 10,62 80,50 150,38 220,26 290,14 290,80"/><polyline fill="none" stroke="var(--acc)" stroke-width="2.4" stroke-linecap="round" points="10,62 80,50 150,38 220,26 290,14"/></svg>`,
+donut:()=>`<svg viewBox="0 0 120 120" width="110"><circle cx="60" cy="60" r="38" fill="none" stroke="var(--c1)" stroke-width="22" stroke-dasharray="110 239" /><circle cx="60" cy="60" r="38" fill="none" stroke="var(--c2)" stroke-width="22" stroke-dasharray="60 239" stroke-dashoffset="-110"/><circle cx="60" cy="60" r="38" fill="none" stroke="var(--c0)" stroke-width="22" stroke-dasharray="69 239" stroke-dashoffset="-170"/></svg>`,
+sync:()=>`<div class="sinfo" style="display:block;margin:0">Next sync: <b>Tue, 13 Oct, 14:00</b>.</div>`
+};
+function helpRender(){const el=$("helpB");if(!el)return;const he=!!(window.HE&&HE.on),H=(window.HELP||{})[he?"he":"en"]||(window.HELP||{}).en||{},P=H[helpKey()]||H[curView]||(window.HELP&&HELP.en&&(HELP.en[helpKey()]||HELP.en[curView]));
+if(!P){$("helpT").textContent=TITLES[curView]||"About this page";el.innerHTML=`<div class="hlead">There is no guide for this page yet.</div>`;return}
+$("helpT").textContent=P.title||TITLES[curView];
+el.innerHTML=(P.lead?`<div class="hlead">${hMd(P.lead)}</div>`:"")+((P.blocks||[]).length>3?`<div class="hjump">${P.blocks.map((b,i)=>`<button data-a="helpJump" data-i="${i}">${esc(b.h)}</button>`).join("")}</div>`:"")+(P.blocks||[]).map((b,i)=>`<section class="hs" id="hs${i}"><h4>${esc(b.h)}</h4>${(b.p||[]).map(t=>`<p>${hMd(t)}</p>`).join("")}${b.demo&&HDEMO[b.demo]?`<div class="hdemo" aria-hidden="true">${HDEMO[b.demo]()}</div>`:""}${b.ex?`<div class="hex"><b>${he?"דוגמה":"Example"}</b>${hMd(b.ex)}</div>`:""}${b.tip?`<div class="htip"><b>${he?"טיפ":"Tip"}</b>${hMd(b.tip)}</div>`:""}</section>`).join("");el.scrollTop=0}
+function helpSet(on){HELPOPEN=on;document.documentElement.classList.toggle("help-on",on);$("help").setAttribute("aria-hidden",on?"false":"true");$("helpBtn").setAttribute("aria-expanded",on?"true":"false");try{localStorage.setItem("moneyHelp",on?"1":"0")}catch(e){}if(on)helpRender()}
 /* ---------- version and updates ---------- */
 // The Windows app updates itself (the desktop shell reports its state through window.desktop). The Docker version only checks whether a newer
 // release exists and says how to update the server.
@@ -1680,7 +1723,7 @@ openSheet(`<h3>More</h3>`+[["acc","Accounts"],["budg","Budgets"],["rep","Reports
 function openSync(){openSheet(`<h3>Sources</h3>`+SRC.map(s=>`<div class="row"><i class="live ${s.state}"></i><div class="grow"><b>${esc(s.n)}</b><div class="sm">${esc(s.text)}${s.msg?" · "+esc(s.msg):""}</div></div>${s.goConn?`<button class="btn o s" data-a="goConn">${s.state=="bad"?"Fix":"Connect"}</button>`:""}</div>`).join("")+`<div class="sm" style="margin-top:10px"><i class="live ok"></i> connected and synced &nbsp; <i class="live warn"></i> not connected or waiting &nbsp; <i class="live bad"></i> failed or locked</div><div class="sm" style="margin-top:6px">Read-only: the app never changes anything at your banks.</div><div class="flex" style="justify-content:flex-end;gap:8px;margin-top:10px"><button class="btn o" data-a="syncNow">Sync now</button><button class="btn" data-a="close">Done</button></div>`)}
 const TITLES={dash:"Home",tx:"Activity",acc:"Accounts",jars:"Jars",bills:"Bills",budg:"Budgets",rep:"Reports",fc:"Forecast",alerts:"Alerts",cats:"Categories",set:"Settings"};
 let curView="dash";
-function nav(v,noPush){closeSheet();document.querySelectorAll(".view").forEach(x=>x.classList.toggle("on",x.id==v));document.querySelectorAll(".nb[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v==v));$("title").textContent=TITLES[v];scrollTo(0,0);if(!noPush&&v!=curView){const st={v};if(history.state&&history.state.o)history.replaceState(st,"","#"+v);else history.pushState(st,"","#"+v)}else if(history.state&&history.state.o)history.replaceState({v},"","#"+v);curView=v;renderView(v);if(v=="set"){if(setTab=="conn"||setTab=="sync")loadConn();if(setTab=="sync")loadSyncLog();if(setTab=="sec")renderSec();if(setTab=="alr"||setTab=="notify")loadNch()}}
+function nav(v,noPush){closeSheet();document.querySelectorAll(".view").forEach(x=>x.classList.toggle("on",x.id==v));document.querySelectorAll(".nb[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v==v));$("title").textContent=TITLES[v];scrollTo(0,0);if(!noPush&&v!=curView){const st={v};if(history.state&&history.state.o)history.replaceState(st,"","#"+v);else history.pushState(st,"","#"+v)}else if(history.state&&history.state.o)history.replaceState({v},"","#"+v);curView=v;renderView(v);if(HELPOPEN)helpRender();if(v=="set"){if(setTab=="conn"||setTab=="sync")loadConn();if(setTab=="sync")loadSyncLog();if(setTab=="sec")renderSec();if(setTab=="alr"||setTab=="notify")loadNch()}}
 async function notify(title,body){if(!("Notification" in window)||Notification.permission!="granted")return false;try{const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();if(reg&&reg.active){reg.active.postMessage({type:"notify",title,body});return true}new Notification(title,{body});return true}catch(e){return false}}
 const allTags=()=>{const m={};S.tx.forEach(t=>{if(t.virtual)return;(t.tags||[]).forEach(g=>m[g]=(m[g]||0)+1)});(S.tagRules||[]).forEach(r=>ruleTags(r).forEach(g=>{if(!(g in m))m[g]=0}));return Object.entries(m).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))};
 const ruleTags=r=>String(r&&r.t||"").split(",").map(x=>x.trim().replace(/^#+/,"")).filter(Boolean);
@@ -2148,7 +2191,7 @@ case"nchDel":if(confirm("Stop sending alerts there?"))api("/api/notify/channels/
 case"ntfyTest":api("/api/ntfy/test",{method:"POST"}).then(r=>r.ok?toast("Sent to ntfy"):openSheet(`<h3>Not sent</h3><div class="sm" style="margin-bottom:12px">${esc(r.reason||"")}</div><div class="flex" style="justify-content:flex-end"><button class="btn" data-a="close">Done</button></div>`)).catch(()=>toast("Could not reach the server"));break;
 case"nwR":renderNW();break;case"nwP":S.nwPension=d.v=="1";save();renderNW();break;
 case"fc":fc[d.k]=isNaN(+d.v)?d.v:+d.v;try{localStorage.setItem("moneyFc",JSON.stringify(fc))}catch(e){}JPC=null;renderFc();renderAlerts();break;
-case"setTab":setTab=d.t;renderSet();if(d.t=="sync"){loadSyncLog();loadConn()}if(d.t=="conn")loadConn();if(d.t=="sec")renderSec();if(d.t=="alr"||d.t=="notify")loadNch().then(renderAlertSettings);break;
+case"setTab":setTab=d.t;renderSet();if(HELPOPEN)helpRender();if(d.t=="sync"){loadSyncLog();loadConn()}if(d.t=="conn")loadConn();if(d.t=="sec")renderSec();if(d.t=="alr"||d.t=="notify")loadNch().then(renderAlertSettings);break;
 case"accGo":nav("acc");ACC_SEL=d.n;ACCN=50;ACC_Q="";renderAccounts();break;
 case"accOpen":ACC_SEL=d.n;ACCN=50;ACC_Q="";renderAccounts();scrollTo(0,0);break;
 case"accBack":ACC_SEL=null;renderAccounts();scrollTo(0,0);break;
@@ -2160,6 +2203,8 @@ case"accSave":{const id=d.id,body={name:$("acN").value,kind:$("acK").value,count
 case"accBalSave":api("/api/accounts/"+d.id+"/balance",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({balance:$("abV").value,note:$("abN").value})}).then(()=>accAfter("Balance updated")).catch(e=>toast(e.message));break;
 case"accDel":if(confirm("Remove this account? This cannot be undone."))api("/api/accounts/"+d.id,{method:"DELETE"}).then(()=>accAfter("Account removed",null)).catch(e=>toast(e.message));break;
 case"accAddTx":openAdd({acc:d.n,cur:d.cur,amt:0,plain:true});break;
+case"helpToggle":helpSet(!HELPOPEN);break;case"helpClose":helpSet(false);break;
+case"helpJump":{const e=$("hs"+d.i);if(e)e.scrollIntoView({behavior:"smooth",block:"start"});break}
 case"alTab":alTab=d.t;renderAlerts();break;
 case"alHistMore":loadAlertHistory(true);break;
 case"alSettings":nav("set");setTab="alr";renderSet();loadNch().then(renderAlertSettings);break;
@@ -2251,6 +2296,7 @@ addEventListener("online",()=>{if(dirty)flush()});
 const bootDone=()=>{const h=document.documentElement;if(!h.classList.contains("boot"))return;h.style.background="";h.classList.add("intro");h.classList.remove("boot");setTimeout(()=>h.classList.remove("intro"),700)}; // the entrance animation plays once, not on every redrawsetTimeout(bootDone,10000); // never leave the splash up if something goes wrong
 async function boot(){applyTheme();let st;try{st=await (await fetch("/api/auth/status",{cache:"no-store"})).json()}catch(e){bootDone();fail();return}
 if(!st.authed){need2fa=false;bootDone();showAuth(st.setup?"setup":"login");return}await afterLogin();bootDone()}
+if(HELPOPEN)helpSet(true);
 boot();
 /* ---------- export: choose exactly what leaves the app (a file on this device, nothing is sent anywhere) ---------- */
 const EXCOLS=[["date","Date",t=>t.d],["desc","Description",t=>t.desc],["from","From",t=>t.from],["to","To",t=>t.to],["amount","Amount (₪)",t=>t.a],["ocur","Original currency",t=>t.orig?t.orig.cur:""],["oamt","Original amount",t=>t.orig?t.orig.amt:""],["cat","Category",t=>t.c||(isXf(t)?"Transfer":"Uncategorized")],["tags","Tags",t=>(t.tags||[]).join(" ")],["note","Note",t=>t.note||""],["docs","Attachments",t=>(t.docs||[]).join("; ")],["src","Source",t=>t.src||""],["id","ID",t=>t.id]];
