@@ -959,7 +959,7 @@ Object.assign(D,{
 "Transfers between your accounts": "העברות בין החשבונות שלכם",
 "I know what it was": "אני יודע מה זה היה",
 "Count it as a charge": "לספור כחיוב",
-"Leave it, with a note…": "להשאיר, עם הערה…",
+"Dismiss, with a note…": "לסגור, עם הערה…",
 "Not a transfer": "לא העברה",
 "Not this one": "לא זה",
 "Opens the add form with the amount and date filled in, so you can name it and pick a category.": "פותח את טופס ההוספה עם הסכום והתאריך מלאים, כדי שתוכלו לתת שם ולבחור קטגוריה.",
