@@ -93,19 +93,28 @@ async function asksForCode(page) {
   } catch { return false; }
 }
 
+// What the browser could not load, for the error message: the bare "Failed to fetch" says nothing about which request was refused. Only the host and path are kept (no query, which can hold tokens).
+const shortUrl = (u) => { try { const x = new URL(u); return x.host + x.pathname.slice(0, 60); } catch { return String(u).slice(0, 60); } };
+function watchNet(p, log) {
+  p.on("requestfailed", (r) => { const t = r.failure() && r.failure().errorText; if (t && !/ERR_ABORTED/.test(t)) log.push(`${shortUrl(r.url())} ${t}`); });
+  p.on("response", (r) => { if (r.status() >= 400 && ["xhr", "fetch", "document"].includes(r.request().resourceType())) log.push(`${shortUrl(r.url())} HTTP ${r.status()}`); });
+}
+const netNote = (log, page) => { const u = [...new Set(log)].slice(-4); let where = ""; try { if (page) where = shortUrl(page.url()); } catch { /* closed */ } return (u.length ? " · refused: " + u.join("; ") : "") + (where ? " · stopped on: " + where : ""); };
+
 async function scrape(company, credentials, startDate, profile) {
   if (assist) throw new Error("A verification window is open. Finish or cancel it first.");
   let page = null, browser = null;
+  const net = [];
   try {
     browser = await launch(company, profile);
     const s = createScraper({
       companyId: COMPANIES[company], startDate: new Date(startDate), combineInstallments: false, showBrowser: false,
       timeout: 120000, defaultTimeout: 90000, skipCloseBrowser: true, verbose: false, browser,
       viewportSize: { ...VIEW },
-      preparePage: async (p) => { page = p; await look(p); },
+      preparePage: async (p) => { page = p; watchNet(p, net); await look(p); },
     });
     const r = await s.scrape(credentials);
-    if (!r.success) throw new Error(`${r.errorType || "error"}: ${r.errorMessage || "login failed"}`);
+    if (!r.success) throw new Error(`${r.errorType || "error"}: ${r.errorMessage || "login failed"}${netNote(net, page)}`);
     return { success: true, accounts: r.accounts };
   } catch (e) {
     if (page && (await asksForCode(page))) {
@@ -114,6 +123,7 @@ async function scrape(company, credentials, startDate, profile) {
     }
     // opt-in diagnostics: a screenshot of where it got stuck (a captcha, a notice, a changed page)
     if (DEBUG && page) { try { await page.screenshot({ path: `/debug/${company}.png` }); console.log(`debug screenshot: /debug/${company}.png (${page.url().split("?")[0]})`); } catch {} }
+    if (e && e.message && net.length && !/refused:/.test(e.message)) e.message += netNote(net, page);
     throw e;
   } finally {
     try { if (browser) await browser.close(); } catch {} // closing writes the profile
