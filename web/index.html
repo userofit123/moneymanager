@@ -871,7 +871,9 @@ function detect(){const own=[...new Set(["Bank Hapoalim","Wise",...S.accounts.fi
 S.tx.forEach(o=>{if(!(o.a<0&&own.includes(o.from)))return;S.tx.forEach(i=>{if(!(i.a>0&&own.includes(i.to)&&i.to!==o.from))return;if(S.xf.some(x=>x.o==o.id||x.i==i.id))return;
 const dd=Math.abs((new Date(o.d)-new Date(i.d))/864e5),r=i.a/-o.a;if(dd<=3&&r>=.94&&r<=1.03){S.xf.push({o:o.id,i:i.id,st:"auto"});log("Transfer detected",o.from+" → "+i.to+" · "+fm(-o.a)+" out, "+fm(i.a)+" in",null,"System")}})});
 XS=new Set();S.xf.filter(x=>x.st!="rej").forEach(x=>{XS.add(x.o);XS.add(x.i)});
-const m={};DUPS=new Set();S.tx.forEach(t=>{const k=[t.d,t.desc,t.a,t.from].join("|");(m[k]=m[k]||[]).push(t.id)});Object.values(m).forEach(a=>{if(a.length>1&&!a.some(id=>S.dupOk[id]))a.slice(1).forEach(id=>DUPS.add(id))})}
+const m={};DUPS=new Set();S.tx.forEach(t=>{const k=[t.d,t.desc,t.a,t.from].join("|");(m[k]=m[k]||[]).push(t)});
+// Two identical charges on one day that the same bank or card listed separately are two real purchases (two coffees from the same stall). It is only a possible duplicate when they came from different places (for example typed by hand and also imported), or were both typed by hand.
+Object.values(m).forEach(a=>{if(a.length<2||a.some(t=>S.dupOk[t.id]))return;const srcs=new Set(a.map(t=>t.src||"")),one=srcs.size==1?[...srcs][0]:null;if(one!==null&&!["manual","csv",""].includes(one))return;a.slice(1).forEach(t=>DUPS.add(t.id))})}
 const isXf=t=>XS.has(t.id);
 // "Ignored" = kept in Activity but left out of every total (income, spending, reports, forecast). For double counts such as a refund that shows on the card and again in the bank.
 const isIgn=t=>!!(S.txIgnore&&S.txIgnore[t.id]);
