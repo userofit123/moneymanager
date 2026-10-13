@@ -20,6 +20,7 @@ import { applyRules } from "./engine.js";
 import { sendNtfy, sendNtfyOnly, ntfyProblem, ntfyUrl, channelStatus, saveChannel, removeChannel, sendChannel } from "./notify.js";
 import { listConnections, saveCreds, removeCreds, unlock, getCreds, markAssisted, FIELDS, PROVIDERS, baseOf, validId, nextId, setNickname } from "./connections.js";
 import * as auth from "./auth.js";
+import { createAccount, updateAccount, setBalance, deleteAccount, alertsSeen, alertHistory } from "./accounts.js";
 
 const WEB = process.env.WEB_DIR || path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "web");
 export const app = express();
@@ -258,6 +259,15 @@ app.post("/api/gaps/:id/:action", json, wrap(async (req, res) => {
 }));
 app.post("/api/jars/fill", wrap(async (_req, res) => { const r = await fillJars(); res.json({ ...r, jars: await readJars({ query: q }) }); }));
 app.post("/api/categories/suggested", wrap(async (_req, res) => { const r = await addSuggested(); const applied = await tx((c) => applyRules(c)); if (r.categories || r.rules || applied) await bumpRev(); res.json({ ...r, applied }); }));
+// ---------- accounts you make yourself ----------
+const bad = (res, e) => res.status(400).json({ error: e.message });
+app.post("/api/accounts", json, wrap(async (req, res) => { try { res.json(await createAccount(req.body || {})); } catch (e) { bad(res, e); } }));
+app.put("/api/accounts/:id", json, wrap(async (req, res) => { try { res.json(await updateAccount(+req.params.id, req.body || {})); } catch (e) { bad(res, e); } }));
+app.post("/api/accounts/:id/balance", json, wrap(async (req, res) => { try { res.json(await setBalance(+req.params.id, req.body?.balance, req.body?.note)); } catch (e) { bad(res, e); } }));
+app.delete("/api/accounts/:id", wrap(async (req, res) => { try { res.json(await deleteAccount(+req.params.id)); } catch (e) { bad(res, e); } }));
+// ---------- alert history ----------
+app.post("/api/alerts/seen", json, wrap(async (req, res) => res.json(await alertsSeen(req.body?.alerts))));
+app.get("/api/alerts/history", wrap(async (req, res) => res.set("Cache-Control", "no-store").json(await alertHistory(req.query.limit, req.query.offset))));
 app.post("/api/networth/snapshot", wrap(async (_req, res) => { await snapshotNetWorth(); res.json({ ok: true }); }));
 if (process.env.ALLOW_DEMO_SEED === "1") app.post("/api/demo/seed", wrap(async (_req, res) => res.json(await seedDemo())));
 

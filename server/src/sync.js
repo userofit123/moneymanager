@@ -80,9 +80,12 @@ const instOf = (t) => {
   const i = t.installments && t.installments.total >= 2 ? { n: t.installments.number, total: t.installments.total } : instFromText(t.memo) || instFromText(t.description);
   return i ? { instN: i.n, instTotal: i.total } : {};
 };
+// A card purchase is often listed with a charged amount of 0 until the bank has processed it. The amount you spent is the original one, so show that
+// (in shekels only: a foreign amount cannot be converted until the bank has charged it).
+export const shownAmount = (t) => (t.chargedAmount === 0 && t.originalAmount && (!t.originalCurrency || t.originalCurrency === "ILS") ? t.originalAmount : (t.chargedAmount ?? t.originalAmount));
 // Map one scraped account to the rows the importer takes
 const toRows = (acc) => (acc.txns || []).map((t) => ({
-  date: String(t.date).slice(0, 10), description: t.description, amount: t.chargedAmount ?? t.originalAmount,
+  date: String(t.date).slice(0, 10), description: t.description, amount: shownAmount(t),
   currency: t.chargedCurrency || "ILS",
   // A bank reference number repeats for recurring items (a monthly salary, a standing order), so it is only part of the id:
   // account + reference + date + amount. legacyId is the id older versions used, so earlier imports are recognised.
@@ -260,12 +263,12 @@ export async function snapshotNetWorth() {
   const month = new Date().toISOString().slice(0, 7);
   const rates = Object.fromEntries((await q("SELECT DISTINCT ON (base) base,rate FROM exchange_rates WHERE quote='ILS' ORDER BY base,date DESC")).rows.map((r) => [r.base, r.rate]));
   rates.ILS = 1;
-  const acc = (await q("SELECT currency,kind,balance FROM accounts")).rows;
+  const acc = (await q("SELECT currency,kind,balance,in_net_worth FROM accounts")).rows;
   const sum = (f) => acc.filter(f).reduce((s, a) => s + a.balance * (rates[a.currency] || 1), 0);
   await q(
-    `INSERT INTO net_worth_snapshots (month,bank,wise,pension) VALUES ($1,$2,$3,$4)
-     ON CONFLICT (month) DO UPDATE SET bank=$2,wise=$3,pension=$4,taken_at=now()`,
-    [month, sum((a) => a.kind === "bank"), sum((a) => a.kind === "wallet"), sum((a) => a.kind === "pension")]);
+    `INSERT INTO net_worth_snapshots (month,bank,wise,pension,other) VALUES ($1,$2,$3,$4,$5)
+     ON CONFLICT (month) DO UPDATE SET bank=$2,wise=$3,pension=$4,other=$5,taken_at=now()`,
+    [month, sum((a) => a.kind === "bank"), sum((a) => a.kind === "wallet"), sum((a) => a.kind === "pension"), sum((a) => a.kind === "custom" && a.in_net_worth)]);
 }
 
 export function startScheduler() {
