@@ -2,6 +2,7 @@
    that had no translation. Terms used throughout: קופה (jar), יעד (goal), חשבון (bill), תנועה (transaction), סנכרון (sync), לבדיקה (needs review). */
 (function(){const D=HE.D,P=HE.P;
 Object.assign(D,{
+"Rename category":"שינוי שם קטגוריה","Rename this category":"שינוי שם הקטגוריה","Changes it on every transaction, rule, budget, bill and jar. If a category with the new name already exists, the two become one.":"משנה אותו בכל תנועה, כלל, תקציב, חשבון וקופה. אם כבר קיימת קטגוריה בשם החדש, שתיהן הופכות לאחת.","Bank, wallet and your own accounts today":"בנק, ארנק והחשבונות שלכם היום",
 "Change log":"יומן שינויים","Everything that changed in each version, newest first.":"כל מה שהשתנה בכל גרסה, מהחדשה לישנה.","Installed":"מותקנת","Newer":"חדשה","See what changed":"מה השתנה",
 "Closing to update…":"נסגר כדי להתעדכן…",
 "Installing…":"מתקין…",
