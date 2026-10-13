@@ -4,6 +4,13 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.4.16] - 2026-10-13
+
+### App
+- **Dates always show the year.** Every date in Activity is dd/mm/yyyy. A new Date format setting (Appearance) switches it to mm/dd/yyyy.
+- **Sorting in Activity.** A new Sort box: newest, oldest, largest or smallest amount. It also orders the groups when you group.
+- **Clear resets everything.** The Clear button now also resets the grouping and the sort.
+
 ## [0.4.15] - 2026-10-13
 
 ### App
