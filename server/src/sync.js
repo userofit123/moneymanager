@@ -80,9 +80,12 @@ const instOf = (t) => {
   const i = t.installments && t.installments.total >= 2 ? { n: t.installments.number, total: t.installments.total } : instFromText(t.memo) || instFromText(t.description);
   return i ? { instN: i.n, instTotal: i.total } : {};
 };
+// A card purchase is often listed with a charged amount of 0 until the bank has processed it. The amount you spent is the original one, so show that
+// (in shekels only: a foreign amount cannot be converted until the bank has charged it).
+export const shownAmount = (t) => (t.chargedAmount === 0 && t.originalAmount && (!t.originalCurrency || t.originalCurrency === "ILS") ? t.originalAmount : (t.chargedAmount ?? t.originalAmount));
 // Map one scraped account to the rows the importer takes
 const toRows = (acc) => (acc.txns || []).map((t) => ({
-  date: String(t.date).slice(0, 10), description: t.description, amount: t.chargedAmount ?? t.originalAmount,
+  date: String(t.date).slice(0, 10), description: t.description, amount: shownAmount(t),
   currency: t.chargedCurrency || "ILS",
   // A bank reference number repeats for recurring items (a monthly salary, a standing order), so it is only part of the id:
   // account + reference + date + amount. legacyId is the id older versions used, so earlier imports are recognised.

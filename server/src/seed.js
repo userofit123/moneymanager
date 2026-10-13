@@ -69,10 +69,10 @@ export function buildDemo(today = new Date()) {
 
   const next = (months) => iso(today.getUTCFullYear(), today.getUTCMonth() + months, 28);
   const jars = [
-    { n: "Bills / expenses", p: 1, need: 6000, cap: null, bal: 6000, due: null },
-    { n: "Summer trip", p: 2, need: 20000, cap: 800, bal: 6200, due: next(9) },
-    { n: "New laptop", p: 3, need: 8000, cap: 1000, bal: 3000, due: next(4) },
-    { n: "Emergency fund", p: 4, need: 50000, cap: 2000, bal: 14000, due: next(26) },
+    { n: "Bills / expenses", p: 1, need: 3000, cap: null, bal: 3000, due: null },
+    { n: "Summer trip", p: 2, need: 20000, cap: 800, bal: 3200, due: next(9) },
+    { n: "New laptop", p: 3, need: 8000, cap: 1000, bal: 1800, due: next(4) },
+    { n: "Emergency fund", p: 4, need: 50000, cap: 2000, bal: 6000, due: next(26) },
   ];
   const budgets = { Groceries: 2600, "Eating out": 1100, Transport: 600, Subscriptions: 300, "Car & fuel": 900, "Shopping & home": 800, "Entertainment & leisure": 500 };
   const balances = { "Bank Hapoalim": 23840, Wise: 1860, Max: -2980, Isracard: -1540, Pension: 428000 };
