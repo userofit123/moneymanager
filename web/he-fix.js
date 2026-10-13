@@ -273,7 +273,7 @@ Object.assign(D,{
 "e.g. Business, Joint, Partner":"למשל: עסקי, משותף, בן/בת זוג","Nothing to add.":"אין מה להוסיף.",
 "Connected: ":"מחוברים: ",
 "Give this extra login a nickname so you can tell them apart":"תנו להתחברות הנוספת כינוי כדי להבדיל ביניהן",
-"Tint":"גוון","Custom":"מותאם אישית","Your colour":"הצבע שלך","Custom colour":"צבע מותאם אישית",
+"Vibrance":"עוצמת צבע","Opacity":"אטימות","Custom":"מותאם אישית","Your colour":"הצבע שלך","Custom colour":"צבע מותאם אישית",
 });
 P.unshift(
 [/^Connected: (.+?)\. Have two logins at one company \(two Wise accounts, two sets of cards\)\? Add it again and give each a nickname\. To disconnect one, press Remove on its own card\.$/,(a)=>"מחוברים: "+a+". יש לכם שתי התחברויות באותה חברה (שני חשבונות Wise, שני סטים של כרטיסים)? הוסיפו אותה שוב ותנו לכל אחת כינוי. כדי לנתק אחת, לחצו על הסרה בכרטיס שלה."],
