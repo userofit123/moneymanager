@@ -123,6 +123,25 @@ export async function explainGaps(c, txId, accountName, currency, signedAmount) 
   return left;
 }
 
+// A gap that a transaction in its window now explains closes by itself. This is the usual case: a charge the bank listed with no amount,
+// whose real amount arrived at a later sync, after the balance had already dropped.
+export async function healGaps(c, accountName, currency) {
+  const gaps = (await c.query(
+    `SELECT g.id,g.remaining,g.window_from,g.window_to FROM balance_gaps g JOIN accounts a ON a.id=g.account_id
+     WHERE a.name=$1 AND a.currency=$2 AND g.status='open'`, [accountName, currency])).rows;
+  let n = 0;
+  for (const g of gaps) {
+    const t = (await c.query(
+      `SELECT id, COALESCE(orig_amount, amount)::float AS amt FROM transactions
+       WHERE (from_name=$1 OR to_name=$1) AND NOT pending AND COALESCE(gap_explained,0)=0 AND COALESCE(orig_currency,'ILS')=$2
+         AND abs(COALESCE(orig_amount, amount) - $3::numeric) < 0.01
+         AND date >= ($4::timestamptz - interval '3 days')::date AND date <= ($5::timestamptz + interval '3 days')::date
+       ORDER BY id LIMIT 1`, [accountName, currency, g.remaining, g.window_from, g.window_to])).rows[0];
+    if (t) { await explainGaps(c, t.id, accountName, currency, t.amt); n++; }
+  }
+  return n;
+}
+
 // A drop in one currency with a rise in another inside the same window looks like a conversion.
 export function suggestConversion(gaps) {
   const out = gaps.filter((g) => g.amount < 0), inn = gaps.filter((g) => g.amount > 0);

@@ -370,3 +370,22 @@ test("a charge first listed with 0 is updated, not duplicated, when the bank rep
   assert.deepEqual(rows.map((x) => x.amount), [-85]);
   assert.equal((await ingest(acc, [row(-85)])).added, 0);
 });
+
+test("a balance gap closes by itself when a charge first listed at 0 gets its real amount", async () => {
+  await reset();
+  const acc = { name: "Bank Hapoalim", currency: "ILS", source: "hapoalim" };
+  const a = (await q("SELECT * FROM accounts WHERE name='Bank Hapoalim'")).rows[0];
+  const row = (amt) => ({ date: "2026-10-12", description: "Wolt", amount: amt, currency: "ILS", externalId: `9:ref1:2026-10-12:${amt}`, stableKey: "9:ref1:2026-10-12" });
+  await ingest(acc, [row(0)]);
+  await tx((c) => recordSnapshot(c, a, 1000, new Date("2026-10-11T10:00:00Z")));
+  await tx((c) => recordSnapshot(c, a, 566, new Date("2026-10-13T10:00:00Z")));
+  assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 1);
+  await ingest(acc, [row(-412)]);
+  assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 0);
+  // and an already-updated charge closes the gap on the next sync
+  await tx((c) => recordSnapshot(c, a, 400, new Date("2026-10-14T10:00:00Z")));
+  assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 1);
+  await q("INSERT INTO transactions (date,description,from_name,to_name,amount,source) VALUES ('2026-10-13','Late fill','Bank Hapoalim','Shop',-166,'manual')");
+  await ingest(acc, []);
+  assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 0);
+});

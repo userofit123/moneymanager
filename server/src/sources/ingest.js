@@ -2,7 +2,7 @@
 import crypto from "node:crypto";
 import { tx, audit, bumpRev } from "../db.js";
 import { rateOn, normCur } from "../fx.js";
-import { applyRules, applyTagRules, detectTransfers, explainGaps } from "../engine.js";
+import { applyRules, applyTagRules, detectTransfers, explainGaps, healGaps } from "../engine.js";
 
 const hash = (...p) => crypto.createHash("sha1").update(p.join("|")).digest("hex").slice(0, 20);
 
@@ -52,6 +52,7 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
           await c.query("UPDATE transactions SET amount=$2,orig_currency=$3,orig_amount=$4,rate=$5,external_id=$6,pending=$7,details=$8 WHERE id=$1",
             [prov.rows[0].id, ils, cur !== "ILS" ? cur : null, cur !== "ILS" ? r.amount : null, rate, ext, !!r.pending, r.details ? JSON.stringify(r.details) : null]);
           await audit(c, "Amount filled in", `${r.description}: the bank now reports the real charge`);
+          if (!r.pending) await explainGaps(c, prov.rows[0].id, account.name, cur, r.amount);
           updated++;
           continue;
         }
@@ -86,7 +87,8 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
     await applyRules(c);
     await applyTagRules(c, fresh);
     const pairs = await detectTransfers(c);
-    if (added || merged || updated || pairs) await bumpRev(c);
+    const healed = await healGaps(c, account.name, normCur(account.currency));
+    if (added || merged || updated || pairs || healed) await bumpRev(c);
     return { added, merged, migrated, updated, transfers: pairs };
   });
 }
