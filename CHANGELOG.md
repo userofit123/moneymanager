@@ -20,6 +20,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 - **Help says what is counted.** The info panels of Home, Activity, Bills and Budgets now explain that predicted and upcoming bills are information only, and that only unpaid bills due this month reduce the available figure.
 - **Appearance.** "Spacing" is now **Layout spacing**, and **Sidebar spacing** sits right under it with the same picture buttons.
 - **"Money Manager has been updated" popup.** After an update, the app shows a popup once with what changed (all versions you skipped). Closing it with Got it, the backdrop or Esc means it does not come back. A link opens the full change log.
+- **Smoother, softer theme shuffle.** The circle that spreads from the top icon no longer stalls near the end and jumps. It now moves steadily, and its edge is a soft blend between the old and new look instead of a sharp line.
 - **See where a bank login stopped.** When a connection fails, **See where it stopped** (on the connection, and in the Test result) shows a screenshot of what the app's bank browser saw: a captcha, a notice, a blank page. It is kept in memory only, never saved.
 - **American Express and Isracard sign-in.** The bank library reset the browser's identity (client hints) at login, undoing the earlier fix. It is now kept, and the page gets a moment to finish loading and see mouse movement before the login request, as a person would. This should stop the "bank accepted the login but sent back no data" error.
 
