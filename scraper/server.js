@@ -72,7 +72,11 @@ async function launch(company, profile) {
   return puppeteer.launch({ headless: true, userDataDir: dir, args: ARGS, executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined });
 }
 async function look(page) {
-  await page.setUserAgent(UA);
+  // The fixed user agent says "Linux". That matches the Docker browser, but on Windows or macOS it contradicts the real browser (platform, fonts, client hints),
+  // which bank bot protection notices: sign-in works and the later data request is refused ("Failed to fetch"). Off Linux, use the browser's own, honest string.
+  let ua = UA;
+  if (!process.env.SCRAPER_UA && process.platform !== "linux") { try { ua = (await page.browser().userAgent()).replace("HeadlessChrome", "Chrome"); } catch { /* keep the fixed one */ } }
+  await page.setUserAgent(ua);
   await page.setExtraHTTPHeaders({ "Accept-Language": "he-IL,he;q=0.9,en-US;q=0.8,en;q=0.7" });
   await page.evaluateOnNewDocument(() => { Object.defineProperty(navigator, "webdriver", { get: () => false }); });
 }
