@@ -2,6 +2,7 @@
    that had no translation. Terms used throughout: קופה (jar), יעד (goal), חשבון (bill), תנועה (transaction), סנכרון (sync), לבדיקה (needs review). */
 (function(){const D=HE.D,P=HE.P;
 Object.assign(D,{
+"Copy details":"העתקת פרטים","Details copied":"הפרטים הועתקו",
 /* ---- appearance ---- */
 "Appearance":"מראה","Reset":"איפוס","Mode":"מצב תצוגה","Light":"בהיר","Dark":"כהה","Auto":"לפי המכשיר","Atmosphere":"ערכת צבעים",
 "Background":"רקע","Texture":"מרקם","Texture density":"צפיפות המרקם","Surface":"סגנון כרטיסים",
