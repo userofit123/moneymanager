@@ -263,12 +263,12 @@ export async function snapshotNetWorth() {
   const month = new Date().toISOString().slice(0, 7);
   const rates = Object.fromEntries((await q("SELECT DISTINCT ON (base) base,rate FROM exchange_rates WHERE quote='ILS' ORDER BY base,date DESC")).rows.map((r) => [r.base, r.rate]));
   rates.ILS = 1;
-  const acc = (await q("SELECT currency,kind,balance FROM accounts")).rows;
+  const acc = (await q("SELECT currency,kind,balance,in_net_worth FROM accounts")).rows;
   const sum = (f) => acc.filter(f).reduce((s, a) => s + a.balance * (rates[a.currency] || 1), 0);
   await q(
-    `INSERT INTO net_worth_snapshots (month,bank,wise,pension) VALUES ($1,$2,$3,$4)
-     ON CONFLICT (month) DO UPDATE SET bank=$2,wise=$3,pension=$4,taken_at=now()`,
-    [month, sum((a) => a.kind === "bank"), sum((a) => a.kind === "wallet"), sum((a) => a.kind === "pension")]);
+    `INSERT INTO net_worth_snapshots (month,bank,wise,pension,other) VALUES ($1,$2,$3,$4,$5)
+     ON CONFLICT (month) DO UPDATE SET bank=$2,wise=$3,pension=$4,other=$5,taken_at=now()`,
+    [month, sum((a) => a.kind === "bank"), sum((a) => a.kind === "wallet"), sum((a) => a.kind === "pension"), sum((a) => a.kind === "custom" && a.in_net_worth)]);
 }
 
 export function startScheduler() {

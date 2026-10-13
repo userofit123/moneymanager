@@ -54,10 +54,10 @@ export async function getState() {
     q("SELECT id,at,who,action,detail,undo FROM audit_log ORDER BY id DESC LIMIT 2000"),
     q("SELECT id FROM dismissed_alerts"),
     q("SELECT account,sum(amount)::float AS amount FROM reconciliation_adjustments GROUP BY account"),
-    q("SELECT id,name,currency,kind,source,subtitle,manual,in_net_worth,balance,balance_at FROM accounts a WHERE manual OR balance_at IS NOT NULL OR EXISTS (SELECT 1 FROM transactions t WHERE t.from_name=a.name OR t.to_name=a.name) ORDER BY sort,id"),
+    q("SELECT id,name,currency,kind,source,subtitle,manual,in_net_worth,balance,balance_at,custom,custom_kind,in_reports FROM accounts a WHERE manual OR balance_at IS NOT NULL OR EXISTS (SELECT 1 FROM transactions t WHERE t.from_name=a.name OR t.to_name=a.name) ORDER BY sort,id"),
     q("SELECT DISTINCT ON (source) source,finished_at,ok,added,message FROM sync_runs WHERE finished_at IS NOT NULL ORDER BY source, id DESC"),
     q("SELECT value FROM app_meta WHERE key='rev'"),
-    q("SELECT month,bank,wise,pension FROM net_worth_snapshots ORDER BY month"),
+    q("SELECT month,bank,wise,pension,other FROM net_worth_snapshots ORDER BY month"),
     q("SELECT g.id,a.name AS account,a.currency,g.amount,g.remaining,g.window_from,g.window_to,g.status,g.review_note FROM balance_gaps g JOIN accounts a ON a.id=g.account_id WHERE g.status='open' ORDER BY g.id"),
   ]);
   const tagMap = {}, docMap = {};
@@ -107,10 +107,12 @@ export async function getState() {
       id: a.id, n: a.name, cur: a.currency, kind: a.kind, src: a.source, s: a.subtitle, manual: a.manual,
       inNW: a.in_net_worth, v: a.balance, at: a.balance_at,
       hide: a.kind === "pension" && +a.balance === 0, // an empty pension is not shown anywhere until it has a value
+      custom: !!a.custom, ck: a.custom_kind || "", inR: a.in_reports !== false,
     })),
     connected, locked, connStatus, companies: Object.values(PROVIDERS).filter((p) => p.kind !== "wallet").map((p) => ({ label: p.label, kind: p.kind })),
     sources: runs.rows.map((r) => ({ n: r.source, ok: r.ok, at: r.finished_at, added: r.added, msg: r.message })),
     nwSnaps: snaps.rows,
+    balUpdates: (await q("SELECT u.id,a.name AS acc,u.at,u.old_balance::float AS old,u.new_balance::float AS nu,u.note FROM account_updates u JOIN accounts a ON a.id=u.account_id ORDER BY u.at DESC, u.id DESC LIMIT 300")).rows,
     gaps: gaps.rows.map((g) => ({ ...g, window_from: g.window_from.toISOString(), window_to: g.window_to.toISOString() })),
   };
 }
@@ -234,8 +236,14 @@ export async function putState(S) {
     }
 
     // accounts the user edits (pension balance)
-    for (const a of S.accounts || [])
-      if (a.manual) await c.query("UPDATE accounts SET balance=$2, balance_at=now() WHERE id=$1 AND balance<>$2", [a.id, a.v]);
+    for (const a of S.accounts || []) {
+      if (!a.manual) continue;
+      const cur = (await c.query("SELECT balance FROM accounts WHERE id=$1", [a.id])).rows[0];
+      if (cur && +cur.balance !== +a.v) {
+        await c.query("UPDATE accounts SET balance=$2, balance_at=now() WHERE id=$1", [a.id, a.v]);
+        await c.query("INSERT INTO account_updates (account_id,old_balance,new_balance) VALUES ($1,$2,$3)", [a.id, cur.balance, a.v]); // the history of a hand-entered balance
+      }
+    }
 
     // audit log: insert new entries (no id), drop removed ones
     const ids = [];
