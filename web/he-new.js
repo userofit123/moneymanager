@@ -462,5 +462,7 @@ Object.assign(D,{
 "That is not a backup file name.":"זה לא שם של קובץ גיבוי.","Backup restored":"הגיבוי שוחזר",
 });
 P.unshift([/^From ([\w.\- ()]+\.mmbackup)$/,x=>"מתוך "+x]);
+Object.assign(D,{"Downloaded money-export.json. Look in your Downloads folder.":"money-export.json הורד. חפשו בתיקיית ההורדות.","Downloading the backup. Look in your Downloads folder.":"מוריד את הגיבוי. חפשו בתיקיית ההורדות."});
+P.unshift([/^Downloaded (.+)\. Look in your Downloads folder\.$/,x=>x+" הורד. חפשו בתיקיית ההורדות."]);
 P.splice(0,P.length,...P.filter(p=>typeof p[1]=="function"));
 })();
