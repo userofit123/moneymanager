@@ -4,10 +4,17 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.4.1] - 2026-10-13
+
+### App
+- **Design fixes.** The ₪ sign is bundled with the font and drawn at the same weight as the other symbols. Tabs use one sliding highlight whose corners follow its position (Activity too), and switching Categories tabs no longer rebuilds the page. Categories and Tags are tidy card lists. The Static surface option is removed.
+- **Where my money goes** is now a true waterfall: each bar is your balance after the items before it, with the amount taken shown above it, and a table below lists budget, spent and left to spend for every item.
+- **One spacing rule.** A header and its block are a group on every page; groups, blocks and grid columns all follow the Spacing setting.
+- **Activity and accounts.** The summary row keeps "All time" and what is not counted on the left; more space under the filters; the account graph matches the Reports graph; "Open in Activity" sits on the search row.
+
 ## [0.4.0] - 2026-10-13
 
 ### App
-- **Design fixes.** The ₪ sign is now bundled with the font, so it looks the same everywhere. Tab highlight is one piece with corners that follow its position (also in Activity). Categories and Tags are tidy card lists. "Where my money goes" bars all grow from the bottom, numbers are centred, and tooltips no longer cover the bar. Activity summary sits on one row; the account graph is no longer oversized; the "Open in Activity" button sits on the search row. The Static surface option is removed.
 - **Connections.** A connected account shows only its status and details; the login, nickname and test forms appear for accounts that are not connected, or behind **Edit connection**.
 - **Settings tidied.** Left-hand sections (Connections, Sync, Alerts & notifications, Appearance, Data, Security, Activity log). Notifications moved here from Alerts. "Audit log" is now **Activity log**. Block spacing follows the Spacing setting like the rest of the app; new **Sidebar spacing** option.
 - **Alerts page.** New **History** tab with everything that fired; alert types and thresholds stay on the page, delivery settings moved to Settings.
