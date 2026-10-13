@@ -428,8 +428,8 @@ html.mob .help{width:100vw;border-inline-start:0}
 .wc{display:grid;grid-row:1/span 4;grid-column:var(--c);grid-template-rows:subgrid;min-width:0;text-align:center}
 .wca{font-size:15px;font-weight:650;min-height:24px;line-height:24px;white-space:nowrap;position:relative;margin-bottom:6px}.wca small{font-size:.7em;opacity:.55;margin-inline-end:1px}.wca .tinfo{position:absolute;margin:0;margin-inline-start:4px;top:50%;transform:translateY(-50%)}
 .wcp{position:relative;border-radius:10px 10px 0 0;background:repeating-linear-gradient(0deg,transparent 0 41px,var(--ol) 41px 42px)}
-.wcs,.wcg{position:absolute;left:0;right:0;display:block}.wcs{bottom:0;height:calc(var(--h)*1%);min-height:3px;border-radius:7px 7px 3px 3px;background:var(--acc)}.wcs.end{background:var(--col2,var(--pos))}.wcs.end.neg{background:var(--neg)}.wcs.end.none{background:var(--tx2)}
-.wcg{bottom:calc(var(--b)*1%);height:calc(var(--h)*1%);background:color-mix(in srgb,var(--acc) 30%,transparent);border-radius:7px 7px 0 0}.wcs.jn{border-radius:0 0 3px 3px}
+.wcs,.wcg{position:absolute;left:0;right:0;display:block}.wcs{bottom:0;height:calc(var(--h)*1%);min-height:3px;border-radius:7px 7px 0 0;background:var(--acc)}.wcs.end{background:var(--col2,var(--pos))}.wcs.end.neg{background:var(--neg)}.wcs.end.none{background:var(--tx2)}
+.wcg{bottom:calc(var(--b)*1%);height:calc(var(--h)*1%);background:color-mix(in srgb,var(--acc) 30%,transparent);border-radius:7px 7px 0 0}.wcs.jn{border-radius:0}
 .wcn{padding:10px 4px 8px;line-height:1.25;overflow-wrap:anywhere;display:flex;flex-direction:column;align-items:center;gap:2px}.wcn b{font-size:13.5px;font-weight:600;display:block}.wcn .dot{width:18px;height:4px;border-radius:99px;margin-bottom:3px}.wcn .wcm{font-size:12px;color:var(--tx2);margin:0}
 .wcb,.wcx,.wcl,.wct,.wrl{padding:9px 4px;border-top:1px solid var(--ol);font-size:13.5px;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;font-variant-numeric:tabular-nums}.wcl,.wct{font-weight:650}.wct{background:color-mix(in srgb,var(--acc) 14%,var(--s1));border-top:0;border-radius:0 0 10px 10px}.wrl.w1{border-top:0;align-items:flex-start;padding-top:2px}.wrl.nb{border-top:0}.wcl small{font-size:11px;color:var(--tx2);font-weight:500}.wrl{grid-column:1;justify-content:flex-start;text-align:start;color:var(--tx2);font-size:12px;font-weight:600;white-space:nowrap;flex-wrap:nowrap;padding-inline:0 4px}.dim{color:var(--tx2);opacity:.5}
 .wc.end.pos .wca,.wc.end.pos .wcl{color:var(--pos)}.wc.end.neg .wca{color:var(--neg)}
@@ -739,6 +739,7 @@ const NOW=new Date(),p2=n=>String(n).padStart(2,"0"),MK=NOW.getFullYear()+"-"+p2
 const MNAME=m=>new Date(+m.slice(0,4),+m.slice(5,7)-1,1).toLocaleDateString("en-GB",{month:"long"}),MSHORT=m=>new Date(+m.slice(0,4),+m.slice(5,7)-1,1).toLocaleDateString("en-GB",{month:"short"}),addM=(m,k)=>{const d=new Date(+m.slice(0,4),+m.slice(5,7)-1+k,1);return d.getFullYear()+"-"+p2(d.getMonth()+1)};
 let DF="dmy";try{DF=localStorage.getItem("moneyDf")=="mdy"?"mdy":"dmy"}catch(e){}
 // "Count in another month": a transaction can belong to a different month in reports. Its own date never changes; rdOf is the date reports use.
+const penEmpty=a=>a.kind=="pension"&&!(+a.v>0); // the pension shows up everywhere only once you have entered an amount
 const rmOf=t=>t.rm&&t.rm!==String(t.d).slice(0,7)?t.rm:"";
 const rdOf=t=>{const m=rmOf(t);if(!m)return t.d;const last=new Date(+m.slice(0,4),+m.slice(5,7),0).getDate();return m+"-"+String(Math.min(+String(t.d).slice(8,10)||1,last)).padStart(2,"0")};
 const dnum=(y,m,d)=>{const p=n=>String(n).padStart(2,"0");return DF=="mdy"?p(m)+"/"+p(d)+"/"+y:p(d)+"/"+p(m)+"/"+y}; // always with the year, in the order the user chose
@@ -849,7 +850,7 @@ accts=S.accounts.filter(a=>a.kind!="card"&&!a.hide).map(a=>({id:a.id,n:a.n,v:a.v
 SRC=(()=>{const L=Object.keys(S.connStatus||{}).filter(k=>S.connected[k]).map(k=>[S.connStatus[k].label||k,k]);return L.length?L:SRCDEF})().map(([n,k])=>{const c=S.connStatus[k]||{key:"none",label:"No credentials",tone:"gray"},when=c.since?fmtWhen(c.since):"never",
 state=c.tone=="green"?"ok":c.tone=="red"?"bad":"warn",
 msg={none:"Add it in Settings → Connections",untested:"Saved. Press Test connection to check the login",tested:"The login works. Press Sync now to import",connected:"Synced "+when,stale:"Last synced "+when+" (over 2 days ago)",failed:friendlyErr(c.error)||"Check the login",locked:"Paused after failed attempts. Check the login, then unlock",otp:friendlyErr(c.error)}[c.key]||"";
-return{n,k,state,text:c.label,msg,t:when,failed:state=="bad",stale:c.key=="stale"?3:0,goConn:c.key!="connected"}}).concat(S.accounts.some(a=>a.kind=="pension"&&!a.hide)?[{n:"Pension",k:"pension",state:"ok",text:"Manual",t:"manual",msg:"Updated by you when you move money"}]:[]);
+return{n,k,state,text:c.label,msg,t:when,failed:state=="bad",stale:c.key=="stale"?3:0,goConn:c.key!="connected"}}).concat(S.accounts.some(a=>a.kind=="pension"&&!a.hide&&+a.v>0)?[{n:"Pension",k:"pension",state:"ok",text:"Manual",t:"manual",msg:"Updated by you when you move money"}]:[]);
 // monthly history from the transactions (transfers excluded, costs included)
 const ms=[];for(let i=5;i>=0;i--)ms.push(addM(MK,-i));
 const rows=A().filter(t=>!t.pending);const cats={},incS={};
@@ -1012,7 +1013,7 @@ Object.entries(has).forEach(([k,v])=>{const e=$("sec-"+k);if(e)e.style.display=v
 [["row-bb",["bills","budg","jars","fx","donut","recent"]]].forEach(([id,ks])=>{const n=ks.filter(k=>has[k]).length,r=$(id);r.style.display=n?"":"none"});
 const any=Object.values(has).some(Boolean)||accts.some(a=>a.v);$("homeEmpty").style.display=any?"none":"";$("kpis").style.display=any?"":"none"}
 function renderHome(){
-{const gs=[];accts.forEach(a=>{let g=gs.find(x=>x.n==a.n);if(!g)gs.push(g={n:a.n,L:[]});g.L.push(a)});
+{const gs=[];accts.filter(a=>!penEmpty(a)).forEach(a=>{let g=gs.find(x=>x.n==a.n);if(!g)gs.push(g={n:a.n,L:[]});g.L.push(a)});
 $("accts").innerHTML=gs.map(g=>{const tot=g.L.reduce((s,a)=>s+accILS(a),0),man=g.L.every(x=>x.manual),wallet=g.L[0].kind=="wallet",multi=g.L.length>1||wallet||g.L.some(x=>x.cur!="ILS");
 const money=x=>(x.cur=="ILS"?"₪":SYM[x.cur])+x.v.toLocaleString("en-US",{minimumFractionDigits:2});
 let sub,chips;
@@ -1470,7 +1471,7 @@ const ACC_KIND={bank:"Bank account",card:"Credit card",wallet:"Wallet",pension:"
 const accByName=n=>S.accounts.filter(a=>a.n==n&&!a.hide),accTail=n=>{const m=/··\s*(\S+)$/.exec(n);if(m)return m[1];const a=S.accounts.find(x=>x.n==n&&x.tail);return a?a.tail:""},accLbl=n=>{const t=accTail(n);return esc(n)+(t&&!/··/.test(n)?` <span class="sm" style="font-weight:500;opacity:.8">·· ${esc(t)}</span>`:"")};
 function accState(a){if(a.manual)return{label:a.custom?"Entered by you":"Entered by you",tone:"gray"};const c=(S.connStatus||{})[a.src];if(!c)return{label:"Not connected",tone:"gray"};return{label:CONN_LBL[c.key]||c.key,tone:c.tone,since:c.since,key:c.key}}
 const TONEC={green:"dn",yellow:"am2",red:"up",gray:"fl"},CONN_LBL={none:"No credentials",untested:"Not tested",tested:"Tested · not synced",connected:"Connected",stale:"Out of date",failed:"Last attempt failed",locked:"Locked",otp:"Needs a code"};
-function accGroupList(){const gs=[];S.accounts.filter(a=>!a.hide).forEach(a=>{let g=gs.find(x=>x.n==a.n);if(!g)gs.push(g={n:a.n,L:[]});g.L.push(a)});return gs}
+function accGroupList(){const gs=[];S.accounts.filter(a=>!a.hide&&!penEmpty(a)).forEach(a=>{let g=gs.find(x=>x.n==a.n);if(!g)gs.push(g={n:a.n,L:[]});g.L.push(a)});return gs}
 function accMonthly(name,kind){ // balance at the end of each of the last 12 months, worked back from today's balance and the transactions
 const L=accByName(name),now=L.reduce((s,a)=>s+accILS(a),0),keys=Array.from({length:13},(_,i)=>addM(MK,-(12-i))),after={};
 S.tx.forEach(t=>{if(t.virtual||t.pending||isFuture(t))return;const v=t.to==name?t.a:t.from==name?t.a:0;if(!v)return;const m=t.d.slice(0,7);after[m]=(after[m]||0)+v});
@@ -1651,7 +1652,7 @@ box.innerHTML=`<div class="trtop"><div class="trpick"><select data-t="trM" aria-
 <div class="trhead"><div class="val"><small>₪</small>${big<0?"−":""}${f(big)}</div><div class="sm trdelta">${delta}</div></div>
 <div id="nwA"></div>${isNW&&TR.c&&!prev?`<div class="sm">Not enough history to compare this length.</div>`:""}
 <div class="trtools"><div class="seg trseg">${V.map(([v,l])=>`<button data-t="trV" data-v="${v}" class="${vOn(v)?"on":""}">${l}</button>`).join("")}</div>
-<label class="tg trtog"><input type="checkbox" data-t="trC" ${TR.c?"checked":""}><span>Compare with ${rngL=="all history"?"the same length before":"the previous "+rngL}</span></label>${isNW?`<label class="tg trtog"><input type="checkbox" data-t="trP" ${wp?"checked":""}><span>Include pension</span></label>`:""}<span class="trabout" data-tip="${esc(about.join("\n"))}">About this chart</span></div>
+<label class="tg trtog"><input type="checkbox" data-t="trC" ${TR.c?"checked":""}><span>Compare with ${rngL=="all history"?"the same length before":"the previous "+rngL}</span></label>${isNW&&S.accounts.some(a=>a.kind=="pension"&&+a.v>0)?`<label class="tg trtog"><input type="checkbox" data-t="trP" ${wp?"checked":""}><span>Include pension</span></label>`:""}<span class="trabout" data-tip="${esc(about.join("\n"))}">About this chart</span></div>
 <div class="trstats">${stats.map(([l,v,w])=>`<div><span>${l}</span><b class="num ${l=="Change"&&v<0?"neg":""}">${v<0?"−":""}${fm(Math.abs(v))}</b>${w?`<small>${esc(w)}</small>`:""}</div>`).join("")}</div>`;
 const goSpec=m=>{const[k,...r]=TR.m.split(":"),arg=r.join(":"),o={from:m+"-01",to:m+"-31"};if(k=="cat")o.cat=arg;else if(k=="tag")o.tag=arg;else if(k=="inc"||k=="src")o.ty="income";else if(k=="exp")o.ty="expense";else if(k=="bills")o.ty="bill";return o};
 trDraw($("nwA"),labels,fullL,vals,prev,{kind,c:col,fmt,signed,zero:isNW&&Math.min(...vals)<0,go:i=>goSpec(ms[i])});TR._w=$("nwA").clientWidth}
