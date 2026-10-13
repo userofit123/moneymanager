@@ -49,6 +49,12 @@ const UA = process.env.SCRAPER_UA || "Mozilla/5.0 (X11; Linux x86_64) AppleWebKi
 const VIEW = { width: 1024, height: 768 };
 const ASSIST_IDLE_MS = +process.env.ASSIST_IDLE_MS || 10 * 60 * 1000;
 
+const LASTSHOT = new Map(); // profile -> { at, url, buf }: where the last failed login stopped (memory only, replaced on the next failure)
+// A bank's bot protection needs a moment of page activity before it trusts a data request: let the page finish loading and move the mouse a little, as a person would.
+async function settle(p) {
+  try { await p.waitForNetworkIdle({ idleTime: 800, timeout: 8000 }); } catch { /* a busy page is fine */ }
+  try { for (let i = 0; i < 3; i++) { await p.mouse.move(120 + Math.random() * 600, 100 + Math.random() * 400, { steps: 6 }); await new Promise((r) => setTimeout(r, 250 + Math.random() * 300)); } } catch { /* page navigated away */ }
+}
 let busy = false;       // a scrape is running
 let assist = null;      // { company, browser, page, timer }
 
@@ -87,6 +93,10 @@ async function look(page) {
       userAgent: ua, acceptLanguage: "he-IL,he;q=0.9,en-US;q=0.8,en;q=0.7", platform: win ? "Win32" : mac ? "MacIntel" : "Linux x86_64",
       userAgentMetadata: { brands, fullVersionList: brands.map((b) => ({ brand: b.brand, version: b.brand === "Not.A/Brand" ? "99.0.0.0" : full })), fullVersion: full, platform: win ? "Windows" : mac ? "macOS" : "Linux", platformVersion: win ? "10.0.0" : mac ? "14.0.0" : "6.5.0", architecture: "x86", model: "", mobile: false, bitness: "64", wow64: false },
     });
+  // israeli-bank-scrapers calls page.setUserAgent(...) again at login (Isracard, American Express) with no client hints, which turns them back into "HeadlessChrome". Keep ours.
+    const meta = { brands, fullVersionList: brands.map((b) => ({ brand: b.brand, version: b.brand === "Not.A/Brand" ? "99.0.0.0" : full })), fullVersion: full, platform: win ? "Windows" : mac ? "macOS" : "Linux", platformVersion: win ? "10.0.0" : mac ? "13.0.0" : "6.0.0", architecture: "x86", model: "", mobile: false, bitness: "64", wow64: false };
+    const orig = page.setUserAgent.bind(page);
+    page.setUserAgent = (u, m) => orig(typeof u === "string" ? u.replace("HeadlessChrome", "Chrome") : u, m || meta);
   } catch { /* the plain user agent above still applies */ }
   await page.setExtraHTTPHeaders({ "Accept-Language": "he-IL,he;q=0.9,en-US;q=0.8,en;q=0.7" });
   await page.evaluateOnNewDocument(() => {
@@ -128,7 +138,7 @@ async function scrape(company, credentials, startDate, profile) {
       companyId: COMPANIES[company], startDate: new Date(startDate), combineInstallments: false, showBrowser: false,
       timeout: 120000, defaultTimeout: 90000, skipCloseBrowser: true, verbose: false, browser,
       viewportSize: { ...VIEW },
-      preparePage: async (p) => { page = p; watchNet(p, net); await look(p); },
+      preparePage: async (p) => { page = p; watchNet(p, net); await look(p); const go = p.goto.bind(p); p.goto = async (...a) => { const r = await go(...a); await settle(p); return r; }; },
     });
     const r = await s.scrape(credentials);
     if (!r.success) throw new Error(`${r.errorType || "error"}: ${r.errorMessage || "login failed"}${netNote(net, page)}`);
@@ -138,7 +148,9 @@ async function scrape(company, credentials, startDate, profile) {
       if (DEBUG) { try { await page.screenshot({ path: `/debug/${company}.png` }); } catch {} }
       throw new Error("OTP_REQUIRED: the bank asked for a one-time code. Use \"Verify this device\" once so the bank remembers this browser");
     }
-    // opt-in diagnostics: a screenshot of where it got stuck (a captcha, a notice, a changed page)
+    // where it got stuck (a captcha, a notice, a changed page): kept in memory so the app can show it, never written to disk
+    if (page) { try { LASTSHOT.set(profName(company, profile), { at: Date.now(), url: shortUrl(page.url()), buf: await page.screenshot({ type: "jpeg", quality: 60 }) }); } catch {} }
+    // opt-in diagnostics: the same screenshot saved to /debug
     if (DEBUG && page) { try { await page.screenshot({ path: `/debug/${company}.png` }); console.log(`debug screenshot: /debug/${company}.png (${page.url().split("?")[0]})`); } catch {} }
     if (e && e.message && net.length && !/refused:/.test(e.message)) e.message += netNote(net, page);
     throw e;
@@ -189,6 +201,11 @@ http.createServer(async (req, res) => {
       if (req.method === "GET" && act === "status") {
         const u = assist ? new URL(assist.page.url() || "about:blank", "about:blank") : null;
         return send(200, { active: !!assist, company: assist?.company || null, host: u?.hostname || "", path: u?.pathname || "" });
+      }
+      if (req.method === "GET" && act === "lastshot") {
+        const q = new URL(req.url, "http://x").searchParams, c = q.get("company") || "", sh = LASTSHOT.get(profName(c, q.get("profile") || ""));
+        if (!sh) return send(404, { error: "no failed login to show" });
+        return send(200, sh.buf, "image/jpeg");
       }
       if (req.method === "GET" && act === "screen") {
         if (!assist) return send(409, { error: "no verification window is open" });

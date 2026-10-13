@@ -9,7 +9,7 @@ import { ensureDefaults, getState, putState, StaleError } from "./state.js";
 import { ratesSummary, refreshRates, rateOn } from "./fx.js";
 import { recordGap } from "./gaps.js";
 import { syncSource, syncAll, SOURCE_NAMES, startScheduler, snapshotNetWorth, getSyncSettings, putSyncSettings, testSource, syncLog, activeJob, acquireJob, releaseJob, extendJob } from "./sync.js";
-import { assist as scraperAssist } from "./sources/scraper.js";
+import { assist as scraperAssist, lastShot as scraperLastShot } from "./sources/scraper.js";
 import { saveDoc, sendDoc } from "./docs.js";
 import { ingest } from "./sources/ingest.js";
 import { parseWiseCsv, parseBankCsv } from "./sources/csv.js";
@@ -183,6 +183,12 @@ app.post("/api/connections/:source/assist/start", wrap(async (req, res) => {
   if (busy) return res.status(409).json(busy);
   try { res.json(await scraperAssist("start", { company: baseOf(src), profile: src })); }
   catch (e) { releaseJob("assist"); res.status(502).json({ error: "The scraper could not open the bank page: " + assistErr(e) }); }
+}));
+app.get("/api/connections/:source/shot", wrap(async (req, res) => {
+  const src = req.params.source;
+  if (!validId(src)) return res.status(404).json({ error: "unknown source" });
+  try { res.set("Content-Type", "image/jpeg").set("Cache-Control", "no-store").send(await scraperLastShot(baseOf(src), src)); }
+  catch { res.status(404).json({ error: "No screenshot of a failed login is kept yet." }); }
 }));
 app.get("/api/assist/screen", wrap(async (_req, res) => {
   if (!needAssist(res)) return;
