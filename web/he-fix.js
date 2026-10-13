@@ -2,6 +2,8 @@
    that had no translation. Terms used throughout: קופה (jar), יעד (goal), חשבון (bill), תנועה (transaction), סנכרון (sync), לבדיקה (needs review). */
 (function(){const D=HE.D,P=HE.P;
 Object.assign(D,{
+"Other rules":"כללים נוספים","Card payments":"חיובי כרטיס אשראי","Salary":"משכורת","If it contains":"אם מכיל","Card payment":"חיוב כרטיס","Add rule":"הוספת כלל",
+"Always count these as card payments?":"לספור תמיד אלה כחיובי כרטיס אשראי?","Yes, all {}":"כן, את כולם","Create rule":"יצירת כלל","No thanks":"לא, תודה","Rule added.":"הכלל נוסף.","That rule already exists.":"הכלל הזה כבר קיים.",
 "Copy details":"העתקת פרטים","Details copied":"הפרטים הועתקו",
 /* ---- appearance ---- */
 "Appearance":"מראה","Reset":"איפוס","Mode":"מצב תצוגה","Light":"בהיר","Dark":"כהה","Auto":"לפי המכשיר","Atmosphere":"ערכת צבעים",
