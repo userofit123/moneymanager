@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [0.4.0] - 2026-10-13
 
 ### App
+- **Design fixes.** The ₪ sign is now bundled with the font, so it looks the same everywhere. Tab highlight is one piece with corners that follow its position (also in Activity). Categories and Tags are tidy card lists. "Where my money goes" bars all grow from the bottom, numbers are centred, and tooltips no longer cover the bar. Activity summary sits on one row; the account graph is no longer oversized; the "Open in Activity" button sits on the search row. The Static surface option is removed.
 - **Connections.** A connected account shows only its status and details; the login, nickname and test forms appear for accounts that are not connected, or behind **Edit connection**.
 - **Settings tidied.** Left-hand sections (Connections, Sync, Alerts & notifications, Appearance, Data, Security, Activity log). Notifications moved here from Alerts. "Audit log" is now **Activity log**. Block spacing follows the Spacing setting like the rest of the app; new **Sidebar spacing** option.
 - **Alerts page.** New **History** tab with everything that fired; alert types and thresholds stay on the page, delivery settings moved to Settings.
