@@ -304,7 +304,8 @@ const readChangelog = () => { try { return fs.readFileSync(CHANGELOG, "utf8"); }
 const versionOf = (t) => (t.match(/^## \[?v?(\d+\.\d+\.\d+)/m) || [])[1] || "";
 const newer = (a, b) => { const x = a.split(".").map(Number), y = b.split(".").map(Number); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); return false; };
 let latestCache = { at: 0, v: null, err: "" };
-app.get("/api/version", wrap(async (_req, res) => { const t = readChangelog(); res.json({ version: versionOf(t), changelog: t }); }));
+const readChangelogHe = () => { try { return fs.readFileSync(path.join(WEB, "changelog-he.md"), "utf8"); } catch { return ""; } };
+app.get("/api/version", wrap(async (_req, res) => { const t = readChangelog(); res.json({ version: versionOf(t), changelog: t, changelogHe: readChangelogHe() }); }));
 // asks GitHub (public repository) for the latest release; cached for an hour. No release published yet is not an error.
 app.get("/api/update-check", wrap(async (req, res) => {
   const cur = versionOf(readChangelog());

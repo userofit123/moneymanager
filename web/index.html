@@ -1592,7 +1592,7 @@ if(d&&["available","ready"].includes(s))btn+=`<button class="btn o s" data-a="go
 if(!d&&s!="checking")btn+=`<button class="btn o s" data-a="updCheck">Check for updates</button>`;
 return ssh("install","Version and updates",d?"This app keeps itself up to date.":"You run this app on your own server.")+`<div class="ssb">${sr("Installed version",UP.cur?"\u2066v"+esc(UP.cur)+"\u2069":"","<button class=\"btn o s\" data-a=\"updNotes\">What's new</button>")}${st?`<div class="sinfo"><span>${st}</span></div>`:""}${btn?`<div class="flex" style="gap:8px;flex-wrap:wrap;margin:0 0 6px">${btn}</div>`:""}${d&&s!="dev"?`<label class="tg"><span><b style="font-weight:600">Update automatically</b><div class="sm">Download and install new versions by itself. It installs the next time you close the app.</div></span><input type="checkbox" data-upd="auto" ${UP.auto?"checked":""}></label>`:""}</div>`}
 const mdLite=t=>{let h="",ul=false;const inl=x=>esc(x).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`(.+?)`/g,"<code>$1</code>");String(t).split("\n").forEach(l=>{const m3=l.match(/^### (.*)/),m2=l.match(/^## (.*)/),li=l.match(/^- (.*)/);if(ul&&!li){h+="</ul>";ul=false}if(m2)h+=`<h4 class="clv">${inl("\u2066"+m2[1].replace(/[\[\]]/g,"")+"\u2069")}</h4>`;else if(m3)h+=`<h5 class="cls">${inl(m3[1])}</h5>`;else if(li){if(!ul){h+="<ul class=\"cll\">";ul=true}h+=`<li>${inl(li[1])}</li>`}else if(l.trim()&&!/^# /.test(l))h+=`<p class="sm">${inl(l)}</p>`});return h+(ul?"</ul>":"")};
-async function openNotes(){let t="";try{t=(await (await fetch("/api/version")).json()).changelog||""}catch(e){}
+async function openNotes(){let t="";try{const j=await (await fetch("/api/version")).json();t=relPick(j).map(r=>"## ["+r.v+"] - "+(r.date||"")+"\n"+r.body).join("\n")}catch(e){}
 openSheet(`<h3>What's new</h3><div class="clg">${mdLite(t)||'<div class="sm">No changelog available.</div>'}</div><div class="flex" style="justify-content:flex-end;margin-top:12px"><button class="btn" data-a="close">Done</button></div>`)}
 /* ---------- main trend chart: pick what to look at and for how long ---------- */
 let nwR=12,TR={m:"nw",r:12,v:"area",c:false};try{Object.assign(TR,JSON.parse(localStorage.getItem("moneyTrend")||"{}"))}catch(e){}if(!["area","line","bars"].includes(TR.v))TR.v="area"; // the chart style is the same for every measure; Area unless you pick another
@@ -1822,10 +1822,10 @@ const srcName=x=>SRCN[x]||x,mmss=t=>{t=Math.max(0,Math.round(t/1000));return Mat
 function applyJobUI(){const bar=$("jobBar");if(!bar)return;bar.style.display=JOB?"flex":"none";
 if(JOB)$("jobTxt").textContent=JK[JOB.kind][0]+" "+srcName(JOB.source)+"… "+mmss(Date.now()-JOB.since)+(JOB.kind=="assist"?" · finish in the verification window":" · "+(JOB.source!="all"&&JOB.kind=="sync"?"usually a few minutes; a long history can take much longer. It keeps going while the bank is answering, please wait":"this can take a few minutes, please wait"));
 $("syncb")&&$("syncb").classList.toggle("spinning",!!JOB);
-document.querySelectorAll('[data-a="connTest"],[data-a="connSync"],[data-a="connHist"],[data-a="syncNow"],[data-a="connAssist"]').forEach(b=>{if(b.dataset.l==null)b.dataset.l=b.textContent;
+document.querySelectorAll('[data-a="connTest"],[data-a="connSync"],[data-a="connHist"],[data-a="syncNow"],[data-a="connAssist"]').forEach(b=>{if(b.dataset.l==null){b.dataset.l=b.textContent;b.dataset.h=b.innerHTML}
 const kind=b.dataset.a=="connTest"?"test":b.dataset.a=="connAssist"?"assist":"sync",mine=JOB&&JOB.kind==kind&&(b.dataset.a=="syncNow"?JOB.source=="all":(JOB.source==b.dataset.s||JOB.source=="all"));
 b.disabled=!!JOB;b.classList.toggle("running",!!mine);b.title=JOB&&!mine?"Wait for the current one to finish":"";
-if(mine)b.innerHTML='<i class="spinner"></i>'+JK[kind][0]+"…";else if(b.dataset.l!=null&&b.querySelector(".spinner"))b.textContent=b.dataset.l});
+if(mine)b.innerHTML='<i class="spinner"></i>'+JK[kind][0]+"…";else if(b.dataset.l!=null&&b.querySelector(".spinner"))b.innerHTML=b.dataset.h});
 document.querySelectorAll("[data-badge]").forEach(b=>{if(b.dataset.orig==null)b.dataset.orig=b.textContent;const x=b.dataset.badge,me=JOB&&(JOB.source==x||JOB.source=="all");
 b.className="bd "+(me?"fl":b.dataset.bcls);if(me)b.innerHTML='<i class="spinner"></i>'+JK[JOB.kind][0]+"…";else b.textContent=b.dataset.orig});
 document.querySelectorAll(".jobnote").forEach(n=>{const x=n.dataset.src,me=JOB&&(JOB.source==x||JOB.source=="all");n.classList.toggle("act",!!me);
@@ -1900,7 +1900,7 @@ const normD=s=>String(s||"").toLowerCase().replace(/[.'"״׳_,\-]/g,"").replace(
 const CARD_STRONG=/(ישראכרט|isracard|(^| )כאל( |$)|visa ?cal|ויזה ?כאל|אמריקן ?אקס|american ?express|amex|דיינרס|diners|לאומי ?קארד|leumi ?card|כרטיסי אשראי|מקס ?איט|max ?it)/,CARD_WEAK=/((^| )(מקס|max|cal)( |$).*(חיוב|charge|debit))|((חיוב|charge|debit).*(^| )(מקס|max|cal)( |$))/;
 const cardRuleHit=t=>{const x=normD(t.desc+" "+(t.to||""));return CARD_STRONG.test(x)||CARD_WEAK.test(x)||(S.cardRules||[]).some(r=>{const n=normD(r);return n.length>1&&x.includes(n)})};
 const isCardPay=t=>{if(t.virtual||t.a>=0)return false;if(S.ccOverride&&S.ccOverride[t.id]==2)return true;if((S.ccOverride&&S.ccOverride[t.id])||!BANKN.has(t.from))return false;const x=t.desc+" "+(t.to||"");return cardRuleHit(t)||CC.some(c=>c.re.test(x))};
-const cardOf=t=>{const x=t.desc+" "+(t.to||"");const c=CC.find(c=>c.re.test(x));return c?c.n:"your card"};
+const cardOf=t=>{const x=t.desc+" "+(t.to||"");const c=CC.find(c=>c.re.test(x));return c?c.n:"card"};
 const isFuture=t=>t.upBill!=null||(!t.virtual&&String(t.d)>TODAY);
 let BC=[],FOCUS=null;
 const billOf=t=>t.a<0&&!t.virtual?BC.find(b=>b.mode=="once"?(b.ids||[]).includes(t.id):(t.desc+" "+t.to).toLowerCase().includes(b.match)):null;
@@ -2055,7 +2055,7 @@ function jarShell(edit){return `<h3>${edit?"Edit jar":"New jar"}</h3>${edit?"":`
 <div class="fld"><label>What is it for?</label><div class="jtype" id="njTy"></div></div>
 <div id="njF"></div>
 <div class="fld" id="njK"></div>
-<div class="sm" style="margin:2px 0 16px">Each month the jars take free money in order, jar 1 first.${edit?"":" New jars go last in line."} A jar with a goal but no monthly amount takes everything it can, up to its goal, before the jars after it get anything. A jar with no goal and no monthly amount takes nothing by itself.</div>
+<div class="sm" style="margin:2px 0 16px"><span>Each month the jars take free money in order, jar 1 first.</span>${edit?"":" <span>New jars go last in line.</span>"} <span>A jar with a goal but no monthly amount takes everything it can, up to its goal, before the jars after it get anything.</span> <span>A jar with no goal and no monthly amount takes nothing by itself.</span></div>
 <div class="flex" style="justify-content:flex-end;gap:10px;${edit?"margin-top:6px":""}"><button class="btn o" data-a="close">Cancel</button><button class="btn" data-a="jarSave">${edit?"Save changes":"Create jar"}</button></div>`}
 const sig2=a=>JSON.stringify([...a].sort());
 function jarNewOpen(kind){JEID=0;JNT=kind||"goal";JP={};JCAT=[];JCQ="";JCO=false;openSheet(jarShell(false));jarForm()}
@@ -2171,8 +2171,8 @@ case"billOpen":{const b=S.bills[+d.i];if(!b)break;const last=billTx(b).slice(-1)
 case"billHist":{const b=S.bills[+d.i];if(b)payHist(b.n,billTx(b),b.mode=="once"?"One-off bill":"Bill",b.mode=="once"?b.n:b.match);break}
 case"merchHist":{const L=S.tx.filter(t=>!t.virtual&&t.a<0&&t.to==d.n).sort(byDate),last=L[L.length-1];if(last)openTx(last.id);else payHist(d.n,L,"Merchant",d.n);break}
 case"moOpen":{const t=byId(+d.id)||byId(d.id);if(!t)break;const own=String(t.d).slice(0,7),cur=rmOf(t)||own,mk=m=>MNAME(m)+" "+m.slice(0,4);
-openSheet(`<h3>Count in another month</h3><div class="sm" style="margin-bottom:12px;line-height:1.55">${esc(t.desc)} · ${dstr(t.d)}. Choose the month this should be counted in, in reports and totals. The transaction itself does not change: its date, amount and details stay as they are.</div>
-<div class="stk" style="gap:8px"><button class="btn o" data-a="moSet" data-id="${esc(String(t.id))}" data-m="${addM(cur,-1)}">Previous month · ${mk(addM(cur,-1))}</button><button class="btn o" data-a="moSet" data-id="${esc(String(t.id))}" data-m="${addM(cur,1)}">Next month · ${mk(addM(cur,1))}</button></div>
+openSheet(`<h3>Count in another month</h3><div class="sm" style="margin-bottom:12px;line-height:1.55"><b>${esc(t.desc)}</b> · ${dstr(t.d)}<br><span>Choose the month this should be counted in, in reports and totals. The transaction itself does not change: its date, amount and details stay as they are.</span></div>
+<div class="stk" style="gap:8px"><button class="btn o" data-a="moSet" data-id="${esc(String(t.id))}" data-m="${addM(cur,-1)}"><span>Previous month</span> · ${mk(addM(cur,-1))}</button><button class="btn o" data-a="moSet" data-id="${esc(String(t.id))}" data-m="${addM(cur,1)}"><span>Next month</span> · ${mk(addM(cur,1))}</button></div>
 <div class="fld" style="margin-top:14px"><label>Or pick a month</label><div class="flex" style="gap:8px"><input type="month" id="moPick" value="${cur}" style="flex:1"><button class="btn s" data-a="moPickGo" data-id="${esc(String(t.id))}">Use this month</button></div></div>
 <div class="flex" style="justify-content:space-between;margin-top:14px;gap:8px">${rmOf(t)?`<button class="btn o s" data-a="moReset" data-id="${esc(String(t.id))}">Count it in its own month (${mk(own)})</button>`:"<span></span>"}<button class="btn" data-a="close">Cancel</button></div>`);break}
 case"moPickGo":{const v=($("moPick")||{}).value;if(!/^\d{4}-\d{2}$/.test(v||"")){toast("Pick a month first");break}d.m=v}
@@ -2430,7 +2430,7 @@ if(j.setup){showAuth("setup");return}$("authE").textContent=j.error||"Could not 
 document.addEventListener("keydown",e=>{if(e.key=="Enter"&&$("auth").style.display=="flex")authGo();if(DV){const t=byId(DV.id);if(e.key=="Escape")closeDocs();else if(t&&(e.key=="ArrowRight"||e.key=="ArrowLeft")){const n=t.docs.length,k=e.key=="ArrowRight"?1:-1;DV.i=DV.i==null?0:(DV.i+k+n)%n;renderDocs()}}});
 // the server runs the automatic sync in the time zone of the device that last saved the schedule: keep it the same as this one
 async function syncTz(){try{const z=Intl.DateTimeFormat().resolvedOptions().timeZone,j=await (await fetch("/api/sync/settings")).json();if(z&&j.tz!==z)await fetch("/api/sync/settings",{method:"PUT",headers:{"content-type":"application/json"},body:JSON.stringify({tz:z})})}catch(e){}}
-async function afterLogin(){hideAuth();if(await prefsRestore())return;syncTz();try{await load();await Promise.race([loadFX(),sleep(1500)]);renderAll();syncLabel()}catch(e){bootDone();fail();return}initUpdates();watchJobs();if(!window.__poll)window.__poll=setInterval(()=>{if(!dirty&&!saving&&document.visibilityState=="visible")load().then(()=>{renderAll();syncLabel()}).catch(()=>{})},5*60*1000);const p=new URLSearchParams(location.search),hv=location.hash.slice(1);if(p.get("view")&&TITLES[p.get("view")])nav(p.get("view"));else if(TITLES[hv])nav(hv,true);if(p.get("add"))openAdd();if("Notification" in window&&Notification.permission=="granted"){alerts().filter(x=>x.sev=="high").slice(0,2).forEach(x=>notify("Money · "+x.title,x.text))}}
+async function afterLogin(){hideAuth();if(await prefsRestore())return;syncTz();const verP=fetch("/api/version",{cache:"no-store"}).then(r=>r.json()).catch(()=>null);try{await load();await Promise.race([loadFX(),sleep(1500)]);renderAll();syncLabel();updCheck(verP)}catch(e){bootDone();fail();return}initUpdates();watchJobs();if(!window.__poll)window.__poll=setInterval(()=>{if(!dirty&&!saving&&document.visibilityState=="visible")load().then(()=>{renderAll();syncLabel()}).catch(()=>{})},5*60*1000);const p=new URLSearchParams(location.search),hv=location.hash.slice(1);if(p.get("view")&&TITLES[p.get("view")])nav(p.get("view"));else if(TITLES[hv])nav(hv,true);if(p.get("add"))openAdd();if("Notification" in window&&Notification.permission=="granted"){alerts().filter(x=>x.sev=="high").slice(0,2).forEach(x=>notify("Money · "+x.title,x.text))}}
 const fail=()=>document.querySelector("main").insertAdjacentHTML("afterbegin",'<div class="card warn" style="margin-bottom:16px"><b>Cannot reach the server</b><div class="sm">Your data lives on the server. Check that you are on the home network or Tailscale, then reload.</div></div>');
 addEventListener("online",()=>{if(dirty)flush()});
 const bootDone=()=>{const h=document.documentElement;if(!h.classList.contains("boot"))return;h.style.background="";h.classList.add("intro");h.classList.remove("boot");setTimeout(()=>h.classList.remove("intro"),700)}; // the entrance animation plays once, not on every redrawsetTimeout(bootDone,10000); // never leave the splash up if something goes wrong
@@ -2455,13 +2455,13 @@ document.addEventListener("input",e=>{const t=e.target;if(t&&t.classList&&t.clas
 /* ---------- "Money Manager has been updated": shown once per version, with what changed ---------- */
 function updSeen(v){try{localStorage.setItem("moneySeenV",v)}catch(e){}}
 function updClose(){const e=$("updPop");if(e)e.remove()}
-async function updCheck(){let j;try{j=await (await fetch("/api/version",{cache:"no-store"})).json()}catch(e){return}
+async function updCheck(p){let j;try{j=await (p||fetch("/api/version",{cache:"no-store"}).then(r=>r.json()))}catch(e){return}if(!j)return;
 const cur=j&&j.version;if(!cur||$("updPop"))return;let seen="";try{seen=localStorage.getItem("moneySeenV")||""}catch(e){}
 if(seen==cur)return;
 if(!seen&&!(S&&S.tx&&S.tx.length)){updSeen(cur);return} // a brand-new install has nothing to be updated from
-const secs=relParse(j.changelog||"").filter(r=>!seen||vNewer(r.v,seen)).filter(r=>!vNewer(r.v,cur));
+const secs=relPick(j).filter(r=>!seen||vNewer(r.v,seen)).filter(r=>!vNewer(r.v,cur));
 if(!secs.length){updSeen(cur);return}
-const body=secs.map(r=>`<div class="wnv">${secs.length>1?"Version ⁦"+esc(r.v)+"⁩":""}</div>${mdLite(r.body.replace(/^### .*\n/gm,""))}`).join("");
+const body=secs.map(r=>`<div class="wnv">${secs.length>1?"<span>Version</span> ⁦"+esc(r.v)+"⁩":""}</div>${mdLite(r.body.replace(/^### .*\n/gm,""))}`).join("");
 const d=document.createElement("div");d.id="updPop";d.className="wnp";d.setAttribute("role","dialog");d.setAttribute("aria-modal","true");
 d.innerHTML=`<div class="wnc"><div class="wnh"><span class="wnu"><svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg></span><div><h3>Money Manager has been updated</h3><div class="sm"><span>Now on version</span> ⁦${esc(cur)}⁩</div></div></div><div class="wnb">${body}</div><div class="wnf"><button class="btn o" data-a="updLog">Full change log</button><button class="btn" data-a="updOk">Got it</button></div></div>`;
 document.body.appendChild(d);d.dataset.v=cur;d.addEventListener("click",e=>{if(e.target===d){updSeen(cur);updClose()}});
@@ -2482,7 +2482,7 @@ const k=.3,mid=vert?{transform:`translate(${x+w*(1-k)/2}px,${mn.y}px)`,height:(h
 NBP.anim=p.animate([{transform:`translate(${from.x}px,${from.y}px)`,height:h+"px",width:w+"px"},mid,{transform:`translate(${x}px,${y}px)`,height:h+"px",width:w+"px"}],{duration:350,easing:"cubic-bezier(.4,0,.2,1)"});
 NBP.anim.onfinish=()=>{NBP.anim=null}}
 new ResizeObserver(()=>navPill(false)).observe(document.querySelector("nav"));new MutationObserver(()=>navPill(false)).observe(document.documentElement,{attributes:true,attributeFilter:["data-rad","data-nav","data-nsp","class"]});addEventListener("resize",()=>navPill(false));if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>navPill(false));
-suggUI();boot();setTimeout(updCheck,1800);setTimeout(()=>navPill(false),50);
+suggUI();boot();setTimeout(()=>navPill(false),50);
 /* ---------- export: choose exactly what leaves the app (a file on this device, nothing is sent anywhere) ---------- */
 const EXCOLS=[["date","Date",t=>t.d],["desc","Description",t=>t.desc],["from","From",t=>t.from],["to","To",t=>t.to],["amount","Amount (₪)",t=>t.a],["ocur","Original currency",t=>t.orig?t.orig.cur:""],["oamt","Original amount",t=>t.orig?t.orig.amt:""],["cat","Category",t=>t.c||(isXf(t)?"Transfer":"Uncategorized")],["tags","Tags",t=>(t.tags||[]).join(" ")],["note","Note",t=>t.note||""],["docs","Attachments",t=>(t.docs||[]).join("; ")],["src","Source",t=>t.src||""],["id","ID",t=>t.id]];
 const EXWHAT=[["tx","Transactions","One row per transaction, with the columns you pick"],["cat","Totals by category","Each category, month by month, with a total"],["bills","Bills","Recurring and one-off bills the app tracks"],["budgets","Budgets","Monthly limits per category"],["jars","Jars and goals","Targets, balances and monthly amounts"],["accounts","Accounts and balances","Every account with its current balance"],["audit","Activity log","The history of changes made in the app"],["all","Everything (JSON backup)","The full data of the app in one file"]];
@@ -2548,7 +2548,7 @@ function pass(){q=0;busy=true;const w=document.createTreeWalker(document.body,No
 L.forEach(n=>{const f=document.createDocumentFragment();n.nodeValue.split(" · ").forEach((t,i)=>{if(i){const d=document.createElement("span");d.className="dt";d.textContent="·";f.appendChild(d)}if(t)f.appendChild(document.createTextNode(t))});const w=document.createElement("span");w.appendChild(f);n.replaceWith(w)});busy=false}
 const TSKIP=/^(SCRIPT|STYLE|TEXTAREA|INPUT|TITLE)$/;
 // amounts and numbers stay left-to-right inside Hebrew sentences (the \u2066 ... \u2069 isolates)
-function trPass(){if(!HE.on)return;const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:n=>/[A-Za-z]/.test(n.nodeValue)&&n.parentElement&&!TSKIP.test(n.parentElement.tagName)&&(!n.parentElement.closest(".mt,.mer:not(td),[data-nt]")||n.parentElement.closest("#setCats .mrow"))?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT}),L=[];while(w.nextNode())L.push(w.currentNode);
+function trPass(){if(!HE.on)return;const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:n=>/[A-Za-z]/.test(n.nodeValue)&&n.parentElement&&!TSKIP.test(n.parentElement.tagName)&&(!n.parentElement.closest(".mt,.mer:not(td),[data-nt]")||n.parentElement.closest(".mrow"))?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT}),L=[];while(w.nextNode())L.push(w.currentNode);
 L.forEach(n=>{const v=n.nodeValue,o=n.parentElement;if(o.tagName=="OPTION"&&!o.hasAttribute("value"))o.setAttribute("value",v.trim()); // an option without a value attribute uses its text as the value: keep the English one
 let r=HE.T(v);if(r!==v){n.nodeValue=r.replace(/→/g,"←").replace(/›/g,"‹").replace(/[−+]?₪?\d[\d,]*(?:\.\d+)?%?/g,"\u2066$&\u2069")}});
 document.querySelectorAll("input[disabled][value]").forEach(e=>{const v=e.value;if(/[A-Za-z]/.test(v)){const r=HE.T(v);if(r!==v)e.value=r}});
@@ -2666,12 +2666,13 @@ function copyText(t,msg){const done=()=>toast(msg||"Copied",{kind:"ok"});const f
 /* ---------- change log: every version and what changed, newest first ---------- */
 const REL={sections:[],loaded:false};
 const vNewer=(a,b)=>{const x=String(a).split(".").map(Number),y=String(b).split(".").map(Number);for(let i=0;i<3;i++)if((x[i]||0)!==(y[i]||0))return(x[i]||0)>(y[i]||0);return false};
+function relPick(j){const en=relParse((j&&j.changelog)||"");if(!(window.HE&&HE.on)||!j||!j.changelogHe)return en;const he=Object.fromEntries(relParse(j.changelogHe).map(r=>[r.v,r.body]));return en.map(r=>he[r.v]?{...r,body:he[r.v]}:r)} // Hebrew release notes where they exist, English for older versions
 function relParse(t){const out=[];String(t).split(/^(?=## \[)/m).forEach(b=>{const m=b.match(/^## \[?v?(\d+\.\d+\.\d+)\]?(?:\s*-\s*([^\n]*))?/);if(!m)return;out.push({v:m[1],date:(m[2]||"").trim(),body:b.slice(b.indexOf("\n")+1)})});return out}
 function renderRel(){const el=$("setRel");if(!el)return;const cur=UP.cur||(REL.sections[0]&&REL.sections[0].v)||"",L=REL.sections;
 const head=ssh("log","Change log","Everything that changed in each version, newest first."+(cur?" You are on version ⁦"+esc(cur)+"⁩.":""),L.length);
 if(!L.length){el.innerHTML=`<div class="card ss">${head}<div class="ssb"><div class="sm" style="padding:14px 2px">${REL.loaded?"No change log is available.":"Loading…"}</div></div></div>`;return}
 el.innerHTML=`<div class="card ss">${head}</div>`+L.map((r,i)=>{const isCur=r.v==cur,newer=cur&&vNewer(r.v,cur),dt=r.date?new Date(r.date+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}):"";
-return `<details class="card ss relv" ${i<2||newer?"open":""}><summary class="ssh" style="cursor:pointer"><div style="flex:1;min-width:0"><b>Version ⁦${esc(r.v)}⁩${isCur?` <span class="bd pc p-jar">Installed</span>`:newer?` <span class="bd pc p-bill">Newer</span>`:""}</b>${dt?`<div class="sm">${esc(dt)}</div>`:""}</div></summary><div class="ssb p">${mdLite(r.body.replace(/^### .*\n/gm,m=>m))}</div></details>`}).join("")}
-async function loadRel(){if(!REL.loaded)renderRel();try{const j=await (await fetch("/api/version",{cache:"no-store"})).json();REL.sections=relParse(j.changelog||"");REL.loaded=true}catch(e){REL.loaded=true}renderRel()}
+return `<details class="card ss relv" ${i<2||newer?"open":""}><summary class="ssh" style="cursor:pointer"><div style="flex:1;min-width:0"><b><span>Version</span> ⁦${esc(r.v)}⁩${isCur?` <span class="bd pc p-jar">Installed</span>`:newer?` <span class="bd pc p-bill">Newer</span>`:""}</b>${dt?`<div class="sm">${esc(dt)}</div>`:""}</div></summary><div class="ssb p">${mdLite(r.body.replace(/^### .*\n/gm,m=>m))}</div></details>`}).join("")}
+async function loadRel(){if(!REL.loaded)renderRel();try{const j=await (await fetch("/api/version",{cache:"no-store"})).json();REL.sections=relPick(j);REL.loaded=true}catch(e){REL.loaded=true}renderRel()}
 const fillLazy=e=>{const t=e.target;if(t&&t.matches&&t.matches("select[data-lazy]")&&!t.dataset.full){t.dataset.full=1;const v=t.value;t.innerHTML=catNames().map(c=>`<option ${c==v?"selected":""}>${esc(c)}</option>`).join("")}};["pointerdown","focusin"].forEach(n=>document.addEventListener(n,fillLazy,true));
 </script></body></html>
