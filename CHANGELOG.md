@@ -10,6 +10,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 - **Dates always show the year.** Every date in Activity is dd/mm/yyyy. A new Date format setting (Appearance) switches it to mm/dd/yyyy.
 - **Sorting in Activity.** A new Sort box: newest, oldest, largest or smallest amount. It also orders the groups when you group.
 - **Clear resets everything.** The Clear button now also resets the grouping and the sort.
+- **Rule suggestions.** The "create a rule?" suggestion now appears whenever you set a category (also when changing one), but only if other uncategorized items look the same.
 
 ## [0.4.15] - 2026-10-13
 
