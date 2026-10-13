@@ -43,7 +43,7 @@ export async function getState() {
     q("SELECT name,color FROM categories ORDER BY sort"),
     q("SELECT keyword,category,tag FROM rules ORDER BY position,id"),
     q("SELECT keyword,tag FROM tag_rules ORDER BY position,id"),
-    q("SELECT id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,pending,source,inst_n,inst_total,jar_id,jar_amount,jar_auto,jar_skip,(details IS NOT NULL) AS has_det FROM transactions ORDER BY date DESC, id DESC"),
+    q("SELECT id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,pending,source,inst_n,inst_total,jar_id,jar_amount,jar_auto,jar_skip,report_month,(details IS NOT NULL) AS has_det FROM transactions ORDER BY date DESC, id DESC"),
     q("SELECT transaction_id,tag FROM transaction_tags ORDER BY position"),
     q("SELECT id,transaction_id,filename,(path IS NOT NULL) AS has FROM documents ORDER BY id"),
     q("SELECT out_id,in_id,status FROM transfer_links"),
@@ -86,6 +86,7 @@ export async function getState() {
       ...(r.inst_total ? { inst: [r.inst_n, r.inst_total] } : {}),
       ...(r.jar_id ? { jar: { id: r.jar_id, amt: r.jar_amount, ...(r.jar_auto ? { auto: true } : {}) } } : {}),
       ...(r.jar_skip ? { jarNo: r.jar_skip } : {}),
+      ...(r.report_month ? { rm: r.report_month } : {}),
       ...(r.has_det ? { hasDet: true } : {}),
     })),
     budgets: Object.fromEntries(budgets.rows.map((b) => [b.category, b.monthly_limit])),
@@ -168,22 +169,22 @@ export async function putState(S) {
     }
 
     // transactions
-    const have = new Map((await c.query("SELECT id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,jar_id,jar_amount,jar_auto,jar_skip FROM transactions")).rows.map((r) => [r.id, r]));
+    const have = new Map((await c.query("SELECT id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,jar_id,jar_amount,jar_auto,jar_skip,report_month FROM transactions")).rows.map((r) => [r.id, r]));
     const tagRows = await c.query("SELECT transaction_id,tag FROM transaction_tags ORDER BY position");
     const haveTags = {};
     tagRows.rows.forEach((r) => (haveTags[r.transaction_id] ||= []).push(r.tag));
     const keep = new Set();
     for (const t of S.tx || []) {
       keep.add(t.id);
-      const row = [t.id, t.d, t.desc, t.from || "", t.to || "", t.a, t.orig?.cur || null, t.orig?.amt ?? null, t.c || null, t.note || "", !!S.dupOk?.[t.id], t.jar?.id || null, t.jar?.id ? +t.jar.amt || 0 : null, !!(t.jar?.id && t.jar.auto), t.jarNo ? String(t.jarNo).slice(0, 120) : null];
+      const row = [t.id, t.d, t.desc, t.from || "", t.to || "", t.a, t.orig?.cur || null, t.orig?.amt ?? null, t.c || null, t.note || "", !!S.dupOk?.[t.id], t.jar?.id || null, t.jar?.id ? +t.jar.amt || 0 : null, !!(t.jar?.id && t.jar.auto), t.jarNo ? String(t.jarNo).slice(0, 120) : null, /^\d{4}-(0[1-9]|1[0-2])$/.test(t.rm || "") && t.rm !== String(t.d).slice(0, 7) ? t.rm : null];
       const old = have.get(t.id);
-      const same = old && sig([old.id, old.date, old.description, old.from_name, old.to_name, old.amount, old.orig_currency, old.orig_amount, old.category, old.note, old.dup_ok, old.jar_id, old.jar_amount == null ? null : +old.jar_amount, old.jar_auto, old.jar_skip]) === sig(row);
+      const same = old && sig([old.id, old.date, old.description, old.from_name, old.to_name, old.amount, old.orig_currency, old.orig_amount, old.category, old.note, old.dup_ok, old.jar_id, old.jar_amount == null ? null : +old.jar_amount, old.jar_auto, old.jar_skip, old.report_month]) === sig(row);
       if (!same) {
         const isNew = !old;
         await c.query(
-          `INSERT INTO transactions (id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,jar_id,jar_amount,jar_auto,jar_skip,source)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,(SELECT id FROM jars WHERE id=$12),$13,$14,$15,'manual')
-           ON CONFLICT (id) DO UPDATE SET date=$2,description=$3,from_name=$4,to_name=$5,amount=$6,orig_currency=$7,orig_amount=$8,category=$9,note=$10,dup_ok=$11,jar_id=(SELECT id FROM jars WHERE id=$12),jar_amount=$13,jar_auto=$14,jar_skip=$15`, row);
+          `INSERT INTO transactions (id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,jar_id,jar_amount,jar_auto,jar_skip,report_month,source)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,(SELECT id FROM jars WHERE id=$12),$13,$14,$15,$16,'manual')
+           ON CONFLICT (id) DO UPDATE SET date=$2,description=$3,from_name=$4,to_name=$5,amount=$6,orig_currency=$7,orig_amount=$8,category=$9,note=$10,dup_ok=$11,jar_id=(SELECT id FROM jars WHERE id=$12),jar_amount=$13,jar_auto=$14,jar_skip=$15,report_month=$16`, row);
         if (isNew) { // a hand-entered transaction explains open balance gaps on its account
           const acct = t.a < 0 ? t.from : t.to, cur = t.orig?.cur || "ILS", amt = t.orig?.amt != null ? t.orig.amt * Math.sign(t.a) : t.a;
           await explainGaps(c, t.id, acct, cur, amt);
