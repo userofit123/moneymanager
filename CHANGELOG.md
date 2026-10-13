@@ -7,6 +7,11 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [0.4.15] - 2026-10-13
 
 ### App
+- **Suggestions.** "Make a rule?" prompts are now persistent suggestions: a button above + shows a count and opens a list where you can apply or dismiss each one, or clear all. The "I made that change" confirmation stays.
+- **Search in rule pages.** Categories, Tags and the rule pages have a search box (names, text, and what they map to). Categories also has a tidier add-category bar.
+- **Hebrew fixes.** Drop-down icons are on the correct side, category names on the Categories page are translated, and the sidebar item is now "Bills".
+- **Bills.** Old irregular bills that stopped are hidden. The installments list shows only active plans, newest first, one row per plan.
+- **Grouped Activity.** Group totals now match their rows, and all groups open or close consistently.
 - **Rename a category.** Each category in Categories has a pencil to rename it: it changes on every transaction, rule, budget, bill and jar, and merges into an existing category of the same name. Tags already had one (the pencil on each tag); both are now easier to see.
 - **Category on expected bills.** The Category column on an "Expected bill" row in Activity is now a drop-down. It sets the category of that bill and its latest payment. (Transfers and other rows that are not payments still show the category as plain text.)
 - **Net Worth tile.** It no longer says "With pension" until you have a pension. Its tooltip lists the accounts counted, any bank account or wallet that is **not** counted, and any account whose balance has not been read yet (it counts as 0 until a sync reads it); the subtitle names accounts with no balance.
