@@ -3,6 +3,7 @@
 import cron from "node-cron";
 import { q, tx, audit, bumpRev } from "./db.js";
 import { refreshRates, normCur } from "./fx.js";
+import { ilDate } from "./autodetect.js";
 import { ingest } from "./sources/ingest.js";
 import { fetchWise } from "./sources/wise.js";
 import { scrape } from "./sources/scraper.js";
@@ -85,7 +86,7 @@ const instOf = (t) => {
 export const shownAmount = (t) => (t.chargedAmount === 0 && t.originalAmount && (!t.originalCurrency || t.originalCurrency === "ILS") ? t.originalAmount : (t.chargedAmount ?? t.originalAmount));
 // Map one scraped account to the rows the importer takes
 const toRows = (acc) => (acc.txns || []).map((t) => ({
-  date: String(t.date).slice(0, 10), description: t.description, amount: shownAmount(t),
+  date: ilDate(t.date), description: t.description, amount: shownAmount(t),
   currency: normCur(t.chargedCurrency) || "ILS",
   // A bank reference number repeats for recurring items (a monthly salary, a standing order), so it is only part of the id:
   // account + reference + date + amount. legacyId is the id older versions used, so earlier imports are recognised.
@@ -119,7 +120,7 @@ const RUN = {
       if (rows.length) added += (await ingest({ name: ctx.name, currency: b.currency, source: ctx.id }, rows, { mergeManual: true })).added;
       await setBalance(a, b.value);
     }
-    const dates = w.transactions.map((t) => String(t.date || "").slice(0, 10)).filter(Boolean).sort();
+    const dates = w.transactions.map((t) => ilDate(t.date || "")).filter(Boolean).sort();
     return { added, message: w.note, days, seen: w.transactions.length, oldest: dates[0] || null };
   },
   ...Object.fromEntries(Object.entries(BANKS).map(([key, [name, kind]]) => [key, async (creds, opts = {}, ctx = { id: key, name: name }) => {
