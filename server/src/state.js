@@ -54,7 +54,7 @@ export async function getState() {
     q("SELECT id,at,who,action,detail,undo FROM audit_log ORDER BY id DESC LIMIT 2000"),
     q("SELECT id FROM dismissed_alerts"),
     q("SELECT account,sum(amount)::float AS amount FROM reconciliation_adjustments GROUP BY account"),
-    q("SELECT id,name,currency,kind,source,subtitle,manual,in_net_worth,balance,balance_at,custom,custom_kind,in_reports FROM accounts a WHERE manual OR balance_at IS NOT NULL OR EXISTS (SELECT 1 FROM transactions t WHERE t.from_name=a.name OR t.to_name=a.name) ORDER BY sort,id"),
+    q("SELECT id,name,currency,kind,source,subtitle,manual,in_net_worth,balance,balance_at,custom,custom_kind,in_reports,(SELECT right(regexp_replace(t.details->>'account','[^0-9]','','g'),4) FROM transactions t WHERE (t.from_name=a.name OR t.to_name=a.name) AND t.details->>'account' IS NOT NULL ORDER BY t.id DESC LIMIT 1) AS tail FROM accounts a WHERE manual OR balance_at IS NOT NULL OR EXISTS (SELECT 1 FROM transactions t WHERE t.from_name=a.name OR t.to_name=a.name) ORDER BY sort,id"),
     q("SELECT DISTINCT ON (source) source,finished_at,ok,added,message FROM sync_runs WHERE finished_at IS NOT NULL ORDER BY source, id DESC"),
     q("SELECT value FROM app_meta WHERE key='rev'"),
     q("SELECT month,bank,wise,pension,other FROM net_worth_snapshots ORDER BY month"),
@@ -107,7 +107,7 @@ export async function getState() {
       id: a.id, n: a.name, cur: a.currency, kind: a.kind, src: a.source, s: a.subtitle, manual: a.manual,
       inNW: a.in_net_worth, v: a.balance, at: a.balance_at,
       hide: a.kind === "pension" && +a.balance === 0, // an empty pension is not shown anywhere until it has a value
-      custom: !!a.custom, ck: a.custom_kind || "", inR: a.in_reports !== false,
+      tail: a.tail || "", custom: !!a.custom, ck: a.custom_kind || "", inR: a.in_reports !== false,
     })),
     connected, locked, connStatus, companies: Object.values(PROVIDERS).filter((p) => p.kind !== "wallet").map((p) => ({ label: p.label, kind: p.kind })),
     sources: runs.rows.map((r) => ({ n: r.source, ok: r.ok, at: r.finished_at, added: r.added, msg: r.message })),
