@@ -29,7 +29,7 @@ nav::-webkit-scrollbar{display:none}
 nav .logo{transform-origin:50% 60%}nav .logo:hover{animation:lwob 1.6s ease-in-out infinite}.logo.shake{animation:lshake .5s cubic-bezier(.36,.07,.19,.97)!important}
 @keyframes lwob{0%,100%{transform:rotate(0)}15%{transform:rotate(-9deg) scale(1.04)}35%{transform:rotate(7deg) scale(1.04)}55%{transform:rotate(-5deg)}75%{transform:rotate(3deg)}}
 @keyframes lshake{10%,90%{transform:translateX(-2px) rotate(-3deg)}20%,80%{transform:translateX(3px) rotate(4deg)}30%,50%,70%{transform:translateX(-5px) rotate(-7deg)}40%,60%{transform:translateX(5px) rotate(7deg)}}
-html.vt-r::view-transition-old(root),html.vt-r::view-transition-new(root){animation:none;mix-blend-mode:normal}html.vt-r::view-transition-old(root){z-index:1}html.vt-r::view-transition-new(root){z-index:2}
+@property --vt-r{syntax:"<length>";inherits:true;initial-value:0px}html.vt-r::view-transition-old(root),html.vt-r::view-transition-new(root){animation:none;mix-blend-mode:normal}html.vt-r::view-transition-old(root){z-index:1}html.vt-r::view-transition-new(root){z-index:2;-webkit-mask-image:radial-gradient(circle at var(--vt-x) var(--vt-y),#000 calc(var(--vt-r) - var(--vt-f)),transparent var(--vt-r));mask-image:radial-gradient(circle at var(--vt-x) var(--vt-y),#000 calc(var(--vt-r) - var(--vt-f)),transparent var(--vt-r))}
 @media (prefers-reduced-motion:reduce){nav .logo:hover,.logo.shake{animation:none!important}}.logo{width:44px;height:44px;border-radius:15px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:var(--on);display:grid;place-items:center;font-weight:700;font-size:20px;margin-bottom:8px;box-shadow:0 6px 20px -6px var(--acc);flex:none}
 .nb{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--tx2);cursor:pointer;border:0;background:none;font-family:inherit;padding:var(--nvp,2px) 0;width:100%;position:relative;flex:none}
 .nb svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -766,10 +766,11 @@ function isDark(){return st.mode=="dark"||(st.mode=="auto"&&matchMedia("(prefers
 function themeSwap(fn){const go=()=>{const h=document.documentElement;h.classList.add("nt");fn();requestAnimationFrame(()=>requestAnimationFrame(()=>h.classList.remove("nt")))};if(document.startViewTransition&&!matchMedia("(prefers-reduced-motion:reduce)").matches)document.startViewTransition(go);else go()}
 // the new look spreads out in a circle from the element that was clicked
 function themeSwapFrom(el,fn,after){const h=document.documentElement;if(!document.startViewTransition||matchMedia("(prefers-reduced-motion:reduce)").matches){fn();if(after)after();return}
-const b=el.getBoundingClientRect(),x=b.left+b.width/2,y=b.top+b.height/2,R=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y));h.classList.add("vt-r");
+const b=el.getBoundingClientRect(),x=b.left+b.width/2,y=b.top+b.height/2,R=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y));const F=Math.round(Math.min(260,Math.max(140,R*.22))); // width of the soft edge, so old and new blend instead of meeting at a sharp line
+h.style.setProperty("--vt-x",x+"px");h.style.setProperty("--vt-y",y+"px");h.style.setProperty("--vt-f",F+"px");h.style.setProperty("--vt-r","0px");h.classList.add("vt-r");
 const t=document.startViewTransition(()=>{fn()});
-t.ready.then(()=>h.animate({clipPath:[`circle(0px at ${x}px ${y}px)`,`circle(${R}px at ${x}px ${y}px)`]},{duration:800,easing:"cubic-bezier(.3,.7,.2,1)",pseudoElement:"::view-transition-new(root)"})).catch(()=>{});
-t.finished.finally(()=>{h.classList.remove("vt-r");if(after)after()})}
+t.ready.then(()=>h.animate({"--vt-r":["0px",(R+F)+"px"]},{duration:1100,easing:"cubic-bezier(.35,.15,.65,.85)",fill:"forwards",pseudoElement:"::view-transition-new(root)"})).catch(()=>{});
+t.finished.finally(()=>{h.classList.remove("vt-r");["--vt-x","--vt-y","--vt-f","--vt-r"].forEach(k=>h.style.removeProperty(k));if(after)after()})}
 // a palette made from one colour: the same six values every built-in atmosphere has
 function customAtm(hex){const m=/^#?([0-9a-f]{6})$/i.exec(hex||"");const n=parseInt(m?m[1]:"4355b9",16),r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b);let h=0,sat=0;const l=(mx+mn)/2;if(mx!=mn){const d=mx-mn;sat=l>.5?d/(2-mx-mn):d/(mx+mn);h=mx==r?(g-b)/d+(g<b?6:0):mx==g?(b-r)/d+2:(r-g)/d+4;h*=60}
 const S=Math.round(Math.min(90,Math.max(30,sat*100))),H=Math.round(h),c=(hh,ss,ll)=>`hsl(${(hh+360)%360} ${ss}% ${ll}%)`,hex2=x=>{const e=document.createElement("canvas").getContext("2d");e.fillStyle=x;return e.fillStyle};
