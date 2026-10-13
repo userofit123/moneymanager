@@ -408,3 +408,15 @@ test("a bank payment equal to what the card charged that day is marked as a card
   assert.equal(ov[b2], undefined);
   assert.equal((await q("SELECT count(*)::int AS n FROM transactions WHERE category='Salary'")).rows[0].n, 3);
 });
+
+test("a charge the bank still lists as pending explains the balance gap it caused", async () => {
+  await reset();
+  const acc = { name: "Max", currency: "ILS", source: "max" };
+  await q("INSERT INTO accounts (name,currency,kind,source,subtitle,sort) VALUES ('Max','ILS','card','max','',60) ON CONFLICT DO NOTHING");
+  const a = (await q("SELECT * FROM accounts WHERE name='Max'")).rows[0];
+  await tx((c) => recordSnapshot(c, a, 0, new Date("2026-10-12T08:00:00Z")));
+  await tx((c) => recordSnapshot(c, a, -434, new Date("2026-10-13T08:00:00Z")));
+  assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 1);
+  await ingest(acc, [{ date: "2026-10-12", description: "מקס מודיעין", amount: -434, currency: "ILS", pending: true, externalId: "3993:p1:2026-10-12:0" }]);
+  assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 0);
+});
