@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [0.4.14] - 2026-10-13
 
 ### App
+- **Pending pill.** A charge the bank still lists as pending shows an amber **Pending** pill next to its name in Activity, accounts and the transaction window.
 - **Balance changes with no transaction.** A charge the bank still lists as **pending** now explains the balance change it caused (a card balance already includes pending charges), so the alert closes by itself. Before, only completed charges counted, so a pending charge such as a card purchase with a charged amount of 0 left the alert open. An amount within ₪1 now closes it as well.
 
 ## [0.4.13] - 2026-10-13
