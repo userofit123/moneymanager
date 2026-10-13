@@ -14,6 +14,14 @@ export async function activeCurrencies() {
   return [...set];
 }
 
+// Banks and cards report the shekel as "₪", "NIS", "ש\"ח" and so on. Everything inside the app uses ISO codes.
+const SYMS = { "₪": "ILS", "NIS": "ILS", "ש\"ח": "ILS", "שח": "ILS", "ש״ח": "ILS", "$": "USD", "US$": "USD", "€": "EUR", "£": "GBP", "¥": "JPY" };
+export function normCur(c) {
+  if (!c) return c;
+  const t = String(c).trim();
+  return SYMS[t] || SYMS[t.toUpperCase()] || t.toUpperCase();
+}
+
 const API = process.env.FX_API || "https://api.frankfurter.dev/v1";
 
 export async function refreshRates(days = 400) {

@@ -1,7 +1,7 @@
 // One door for every source: dedupe, convert, merge hand-entered rows, then let the engine tidy up.
 import crypto from "node:crypto";
 import { tx, audit, bumpRev } from "../db.js";
-import { rateOn } from "../fx.js";
+import { rateOn, normCur } from "../fx.js";
 import { applyRules, applyTagRules, detectTransfers, explainGaps } from "../engine.js";
 
 const hash = (...p) => crypto.createHash("sha1").update(p.join("|")).digest("hex").slice(0, 20);
@@ -17,7 +17,7 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
     const seen = {};
     await c.query("DELETE FROM transactions WHERE pending AND source=$1 AND (from_name=$2 OR to_name=$2)", [account.source, account.name]);
     for (const r of rows) {
-      const cur = r.currency || account.currency;
+      const cur = normCur(r.currency) || normCur(account.currency);
       let ext = r.externalId;
       if (!ext) { // no id from the bank: fingerprint, with a counter so two identical same-day purchases both stay
         const k = hash(account.name, r.date, r.description, r.amount);

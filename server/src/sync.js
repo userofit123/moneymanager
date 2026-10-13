@@ -2,7 +2,7 @@
 // Two failures in a row lock a source (no more automatic attempts) so an account is never locked by a retry loop.
 import cron from "node-cron";
 import { q, tx, audit, bumpRev } from "./db.js";
-import { refreshRates } from "./fx.js";
+import { refreshRates, normCur } from "./fx.js";
 import { ingest } from "./sources/ingest.js";
 import { fetchWise } from "./sources/wise.js";
 import { scrape } from "./sources/scraper.js";
@@ -86,7 +86,7 @@ export const shownAmount = (t) => (t.chargedAmount === 0 && t.originalAmount && 
 // Map one scraped account to the rows the importer takes
 const toRows = (acc) => (acc.txns || []).map((t) => ({
   date: String(t.date).slice(0, 10), description: t.description, amount: shownAmount(t),
-  currency: t.chargedCurrency || "ILS",
+  currency: normCur(t.chargedCurrency) || "ILS",
   // A bank reference number repeats for recurring items (a monthly salary, a standing order), so it is only part of the id:
   // account + reference + date + amount. legacyId is the id older versions used, so earlier imports are recognised.
   externalId: t.identifier ? `${acc.accountNumber}:${t.identifier}:${String(t.date).slice(0, 10)}:${t.chargedAmount ?? t.originalAmount}` : undefined,

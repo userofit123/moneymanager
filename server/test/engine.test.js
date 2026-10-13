@@ -348,3 +348,13 @@ test("paying from a jar is spending: it does not reopen the month's allowance, w
   const r2 = await putState(S);
   assert.equal(r2.jars[0].bal, 380); // topped up by the 80 that was handed back (380 to 300), not by the 120 payment
 });
+
+test("a bank that reports the shekel as a symbol is stored as ILS and needs no exchange rate", async () => {
+  await reset();
+  const acc = { name: "Max", currency: "ILS", source: "max" };
+  const r = await ingest(acc, [{ date: "2026-10-12", description: "Shufersal", amount: -120, currency: "₪", externalId: "sym1" }]);
+  assert.equal(r.added, 1);
+  const t = (await q("SELECT amount,orig_currency FROM transactions WHERE description='Shufersal'")).rows[0];
+  assert.equal(t.amount, -120);
+  assert.equal(t.orig_currency, null);
+});
