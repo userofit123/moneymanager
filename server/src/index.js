@@ -18,7 +18,7 @@ import { fillJars, readJars } from "./jars.js";
 import { bumpRev, tx } from "./db.js";
 import { applyRules } from "./engine.js";
 import { sendNtfy, sendNtfyOnly, ntfyProblem, ntfyUrl, channelStatus, saveChannel, removeChannel, sendChannel } from "./notify.js";
-import { listConnections, saveCreds, removeCreds, unlock, getCreds, markAssisted, FIELDS, baseOf, validId, nextId, setNickname } from "./connections.js";
+import { listConnections, saveCreds, removeCreds, unlock, getCreds, markAssisted, FIELDS, PROVIDERS, baseOf, validId, nextId, setNickname } from "./connections.js";
 import * as auth from "./auth.js";
 
 const WEB = process.env.WEB_DIR || path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "web");
@@ -224,8 +224,14 @@ app.post("/api/import/wise-csv", express.text({ type: "*/*", limit: "10mb" }), w
 }));
 // A bank or card export as CSV: the fallback for any source
 app.post("/api/import/bank-csv", express.text({ type: "*/*", limit: "10mb" }), wrap(async (req, res) => {
-  const a = (await q("SELECT name,currency,source FROM accounts WHERE name=$1 AND kind IN ('bank','card')", [String(req.query.account || "")])).rows[0];
-  if (!a) return res.status(400).json({ error: "Choose a bank or card account" });
+  const want = String(req.query.account || "");
+  let a = (await q("SELECT name,currency,source FROM accounts WHERE name=$1 AND kind IN ('bank','card')", [want])).rows[0];
+  if (!a) { // nothing connected yet: a company from the list gets its account the first time a file is imported
+    const prov = Object.entries(PROVIDERS).find(([k, p]) => k !== "wise" && p.label === want);
+    if (!prov) return res.status(400).json({ error: "Choose a bank or card account" });
+    await q("INSERT INTO accounts (name,currency,kind,source,subtitle,in_net_worth,sort) VALUES ($1,'ILS',$2,$3,$4,$5,$6) ON CONFLICT (name,currency) DO NOTHING", [want, prov[1].kind, prov[0], prov[1].kind === "card" ? "Credit card" : "Bank account", prov[1].kind !== "card", prov[1].kind === "card" ? 1 : 0]);
+    a = { name: want, currency: "ILS", source: prov[0] };
+  }
   let rows; try { rows = parseBankCsv(req.body, { positiveIsExpense: req.query.positiveIsExpense === "1" }); } catch (e) { return res.status(400).json({ error: e.message }); }
   res.json({ rows: rows.length, ...(await ingest({ name: a.name, currency: a.currency, source: a.source }, rows, { mergeManual: true })) });
 }));
@@ -293,7 +299,7 @@ export async function stop() { await new Promise((ok) => (httpServer ? httpServe
 export async function start() {
   loadKey(); // fails early if the key is unusable
   await migrate();
-  await ensureDefaults();
+  await ensureDefaults({ demoAccounts: false });
   const port = +process.env.PORT || 8080;
   httpServer = app.listen(port, process.env.HOST || undefined, () => console.log("money manager on :" + port)); // HOST=127.0.0.1 keeps it local (the desktop app)
   if (process.env.SCHEDULER !== "0") startScheduler();
