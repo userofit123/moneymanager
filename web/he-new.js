@@ -105,6 +105,7 @@ Object.assign(D,{
 "Shown only":"מוצג רק","The bank":"הבנק","Mo":"חודשים"
 });
 const PL=(n,a,b)=>+n==1?a:n+" "+b;
+Object.assign(D,{"The app thinks money moved between two of your own accounts. Check it, so it is not counted as spending.":"נראה שכסף עבר בין שני החשבונות שלכם. בדקו שזה נכון, כדי שלא ייספר כהוצאה.","Two entries with the same amount, store and day. Open them to delete one or keep both.":"שתי רשומות עם אותו סכום, אותו בית עסק ואותו יום. פתחו אותן כדי למחוק אחת או להשאיר את שתיהן.","The bank balance changed but no transaction explains it. Usually the bank has not listed the transaction yet, and this closes by itself when it appears. Otherwise add it, or dismiss it with a note.":"יתרת הבנק השתנתה ושום תנועה לא מסבירה זאת. בדרך כלל הבנק עוד לא רשם את התנועה, וההתראה נסגרת מעצמה כשהיא מופיעה. אחרת הוסיפו אותה, או סגרו עם הערה."});
 P.unshift(
 /* flow, jars */
 [/^Transfer cost · (.+)$/,a=>"עלות העברה · "+a],
@@ -293,6 +294,17 @@ P.unshift(
 [/^(\d+) payments? · (.+)$/,(n,t)=>(+n==1?"תשלום אחד":n+" תשלומים")+" · "+t],
 [/^(\d+) payments? no longer match a linked category$/,n=>(+n==1?"תשלום אחד כבר לא מתאים":n+" תשלומים כבר לא מתאימים")+" לקטגוריה מקושרת"],
 [/^#(.+) → #(.+) · (\d+) transactions?$/,(a,b,c)=>"#"+a+" ← #"+b+" · "+(+c==1?"תנועה אחת":c+" תנועות")],
+);
+P.unshift(
+[/^(.+): payment expected but not seen$/,a=>a+": התשלום הצפוי לא נראה"],
+[/^Expected around (.+), about (.+) from (.+)\. Nothing like it has been paid since\. If it is only late, do nothing\. If you stopped it, open the bill and cancel it\.$/,(d,a,s)=>"צפוי בערך ב־"+d+", בערך "+a+" מ־"+s+". עדיין לא שולם משהו דומה. אם זה רק מתעכב, אין צורך לעשות דבר. אם הפסקתם אותו, פתחו את החשבון וסמנו אותו כמבוטל."],
+[/^About (.+) from (.+)\. A prediction from your past payments, not a charge yet\.$/,(a,s)=>"בערך "+a+" מ־"+s+". זו הערכה לפי התשלומים הקודמים שלכם, עדיין לא חיוב."],
+[/^(.+) looks like it came out of (.+)\. Attach it to the jar to keep the jar balance right\.$/,(a,j)=>a+" נראה כאילו יצא מ"+j+". שייכו אותו לקופה כדי שהיתרה בקופה תהיה נכונה."],
+[/^At this pace you would spend (.+) this month, over the (.+) budget\.$/,(a,b)=>"בקצב הזה תוציאו "+a+" החודש, מעל תקציב של "+b+"."],
+[/^(.+) still to be charged this month, against (.+) charged last month\.$/,(a,b)=>"עוד "+a+" צפויים להיגבות החודש, לעומת "+b+" שנגבו בחודש שעבר."],
+[/^(.+) · (.+)\. Above your large-amount limit of (.+) \(change it in Alert settings\)\.$/,(a,d,l)=>a+" · "+d+". מעל סף הסכום הגדול שלכם, "+l+" (אפשר לשנות בהגדרות ההתראות)."],
+[/^(.+): balance (went down|went up) by (.+) with no matching transaction$/,(n,w,a)=>n+": היתרה "+(w=="went down"?"ירדה":"עלתה")+" ב־"+a+" בלי תנועה תואמת"],
+[/^(.+)\. Income with no invoice or receipt attached\. Attach one if you need it for your books \(you can turn this alert off in Alert settings\)\.$/,a=>a+". הכנסה בלי חשבונית או קבלה מצורפת. צרפו אחת אם אתם צריכים אותה להנהלת חשבונות (אפשר לכבות את ההתראה הזו בהגדרות ההתראות)."],
 );
 P.splice(0,P.length,...P.filter(p=>typeof p[1]=="function"));
 })();
