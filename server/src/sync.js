@@ -4,6 +4,7 @@ import cron from "node-cron";
 import { q, tx, audit, bumpRev } from "./db.js";
 import { refreshRates, normCur } from "./fx.js";
 import { ilDate } from "./autodetect.js";
+import { logError } from "./errlog.js";
 import { ingest } from "./sources/ingest.js";
 import { fetchWise } from "./sources/wise.js";
 import { scrape } from "./sources/scraper.js";
@@ -215,6 +216,7 @@ async function syncInner(name, opts = {}) {
   } catch (e) {
     const msg = scrub(e.message || e, Object.values(creds)); // never include credentials
     await q("UPDATE sync_runs SET finished_at=now(), ok=false, message=$2 WHERE id=$1", [run.rows[0].id, msg]);
+    await logError({ source: "sync", action: `Sync ${label} (${opts.origin || "manual"})`, error: e, message: msg, scrub: Object.values(creds), context: { connection: name, origin: opts.origin || "manual", days: opts.days || null } });
     const locked = await recordResult(name, false, msg, creds);
     await notifyOnce(`fail:${name}`, `Money · ${label} sync failed`, locked ? `${msg}\nAutomatic attempts are paused. Check the login, then unlock it in Settings.` : msg, "high");
     return { ok: false, error: msg, locked };
@@ -244,6 +246,7 @@ async function testInner(name) {
     return { ok: true, ...out };
   } catch (e) {
     const msg = scrub(e.message || e, Object.values(creds));
+    await logError({ source: "test", action: `Test connection: ${await labelOf(name)}`, error: e, message: msg, scrub: Object.values(creds), context: { connection: name } });
     const locked = await recordResult(name, false, msg, creds);
     return { ok: false, error: msg, locked };
   }
