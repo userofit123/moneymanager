@@ -1178,12 +1178,13 @@ if(!was){const h0=d.offsetHeight;d.open=true;const h1=d.offsetHeight;d.style.ove
 else{const h0=d.offsetHeight;d.open=false;const h1=d.offsetHeight;d.open=true;d.style.overflow="hidden";d.classList.add("closing");d._anim=d.animate({height:[h0+"px",h1+"px"]},{duration:220,easing:"cubic-bezier(.4,0,.2,1)"});d._anim.onfinish=()=>{d.open=false;done()};d._anim.oncancel=done}},true);
 const prettyKey=k=>String(k).replace(/([a-z])([A-Z])/g,"$1 $2").replace(/[_.]+/g," ").replace(/^./,c=>c.toUpperCase());
 function flat(o,pre,out){out=out||[];if(o==null)return out;if(typeof o!="object"){out.push([pre,String(o)]);return out}for(const [k,v] of Object.entries(o)){if(v==null||v==="")continue;const key=pre?pre+"."+k:k;if(typeof v=="object")flat(v,key,out);else out.push([key,String(v)])}return out}
+const ilD=v=>{const s=String(v||"");if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;const d=new Date(s);if(isNaN(d))return s.slice(0,10);return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Jerusalem",year:"numeric",month:"2-digit",day:"2-digit"}).format(d)};
 const dFull=d=>{const x=new Date(String(d).slice(0,10)+"T00:00:00");return isNaN(x)?String(d):x.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"long",year:"numeric"})};
 // the full information about one transaction: what the app knows, then everything the source returned for it
 function txDetailsHtml(t,x){const det=x&&x.details||{},rows=[],R=(k,v,o)=>{if(v==null||v==="")return;const plain=o&&o.html?String(v).replace(/<[^>]+>/g,"").replace(/&gt;/g,">").replace(/&amp;/g,"&"):String(v);rows.push(`<div class="kvr"><span class="k">${k}</span><span class="v ${o&&o.mono?"mono":""}" data-tip="${esc(plain)}">${o&&o.html?v:esc(String(v))}</span></div>`)};
 const sym=c=>SYM[c]||c+" ",xf=isXf(t),i=instOf(t),nested=det.details||{};
 R("Date",dFull(t.d));
-if(det.processedDate&&String(det.processedDate).slice(0,10)!==t.d)R("Charged on",dFull(det.processedDate));
+if(det.processedDate&&ilD(det.processedDate)!==t.d)R("Charged on",dFull(ilD(det.processedDate)));
 const route=t.from&&t.to?esc(t.from)+" → "+esc(t.to):esc(t.from||t.to||"");R("Account",route,{html:true});
 R("Source",t.src=="manual"?"Entered by hand":(SRCL[t.src]||t.src));
 R("Amount",(t.a<0?"−":"")+"₪"+f(t.a)+(t.a<0?" out":" in"));
@@ -1834,7 +1835,7 @@ const toastClear=k=>{const e=document.querySelector(`#toasts [data-sticky="${k}"
 const SRCL={hapoalim:"Bank Hapoalim",max:"Max",isracard:"Isracard",wise:"Wise",manual:"You (added by hand)",demo:"The sample data"};
 // A credit card bill paid from the bank is not spending: the individual purchases are already counted on the card.
 // Counting both would double every card purchase (and show the card company as your biggest merchant).
-const ccRe=name=>{const n=String(name).toLowerCase();if(n=="max")return /(\bmax\b|max it|מקס|leumi ?card|לאומי ?קארד)/i;if(n=="isracard")return /(isracard|ישראכרט)/i;return new RegExp(n.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i")};
+const ccRe=name=>{const n=String(name).toLowerCase();if(n=="max")return /(\bmax\b|max it|מקס|leumi ?card|לאומי ?קארד)/i;if(n=="isracard")return /(isracard|ישראכרט)/i;if(/(\bcal\b|visa ?cal|כאל|ויזה)/i.test(n))return /(visa ?cal|\bcal\b|ויזה|כאל|כרטיסי אשראי לישראל)/i;if(/(amex|american)/i.test(n))return /(american ?express|amex|אמריקן|אמקס)/i;if(/(diners|דיינרס)/i.test(n))return /(diners|דיינרס)/i;return new RegExp(n.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i")};
 let CC=[],BANKN=new Set();
 // ccOverride: 1 = counted as spending anyway, 2 = marked as a card payment by hand
 const isCardPay=t=>{if(t.virtual||t.a>=0)return false;if(S.ccOverride&&S.ccOverride[t.id]==2)return true;if((S.ccOverride&&S.ccOverride[t.id])||!BANKN.has(t.from))return false;const x=t.desc+" "+(t.to||"");return CC.some(c=>c.re.test(x))};
