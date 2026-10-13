@@ -1,7 +1,7 @@
 // Assembles the whole app state from the tables (the shape the UI works with) and writes UI edits back.
 import { q, tx, bumpRev } from "./db.js";
 import { explainGaps } from "./engine.js";
-import { listConnections } from "./connections.js";
+import { listConnections, PROVIDERS } from "./connections.js";
 import { addSuggested } from "./categories.js";
 import { readJars, fillJarsTx, thisMonth } from "./jars.js";
 import { activeCurrencies, configuredCurrencies } from "./fx.js";
@@ -18,16 +18,19 @@ const setting = async (key, dflt) => {
   return r.rowCount ? r.rows[0].value : dflt;
 };
 
-export async function ensureDefaults() {
+export async function ensureDefaults({ demoAccounts = true } = {}) {
   const n = await q("SELECT count(*)::int AS n FROM categories");
   if (n.rows[0].n === 0) await addSuggested(); // fresh install: a full set of categories and starter rules
   const a = await q("SELECT count(*)::int AS n FROM accounts");
   if (a.rows[0].n === 0) {
+    // Accounts appear when something is connected, imported or typed in. Only the hand-entered pension exists from the start.
+    // (demoAccounts is only for the tests, which expect a bank, two cards and a wallet.)
     const rows = [
-      ["Bank Hapoalim", "ILS", "bank", "hapoalim", "Current account", false, 0],
-      ["Max", "ILS", "card", "max", "Credit card", false, 1],
-      ["Isracard", "ILS", "card", "isracard", "Credit card", false, 2],
-      ["Wise", "USD", "wallet", "wise", "USD balance", false, 3],
+      ...(demoAccounts ? [
+        ["Bank Hapoalim", "ILS", "bank", "hapoalim", "Current account", false, 0],
+        ["Max", "ILS", "card", "max", "Credit card", false, 1],
+        ["Isracard", "ILS", "card", "isracard", "Credit card", false, 2],
+        ["Wise", "USD", "wallet", "wise", "USD balance", false, 3]] : []),
       ["Pension", "ILS", "pension", "manual", "Manual · not counted in net worth or reports", true, 4],
     ];
     for (const r of rows)
@@ -51,7 +54,7 @@ export async function getState() {
     q("SELECT id,at,who,action,detail,undo FROM audit_log ORDER BY id DESC LIMIT 2000"),
     q("SELECT id FROM dismissed_alerts"),
     q("SELECT account,sum(amount)::float AS amount FROM reconciliation_adjustments GROUP BY account"),
-    q("SELECT id,name,currency,kind,source,subtitle,manual,in_net_worth,balance,balance_at FROM accounts ORDER BY sort,id"),
+    q("SELECT id,name,currency,kind,source,subtitle,manual,in_net_worth,balance,balance_at FROM accounts a WHERE manual OR balance_at IS NOT NULL OR EXISTS (SELECT 1 FROM transactions t WHERE t.from_name=a.name OR t.to_name=a.name) ORDER BY sort,id"),
     q("SELECT DISTINCT ON (source) source,finished_at,ok,added,message FROM sync_runs WHERE finished_at IS NOT NULL ORDER BY source, id DESC"),
     q("SELECT value FROM app_meta WHERE key='rev'"),
     q("SELECT month,bank,wise,pension FROM net_worth_snapshots ORDER BY month"),
@@ -104,7 +107,7 @@ export async function getState() {
       id: a.id, n: a.name, cur: a.currency, kind: a.kind, src: a.source, s: a.subtitle, manual: a.manual,
       inNW: a.in_net_worth, v: a.balance, at: a.balance_at,
     })),
-    connected, locked, connStatus,
+    connected, locked, connStatus, companies: Object.values(PROVIDERS).filter((p) => p.kind !== "wallet").map((p) => ({ label: p.label, kind: p.kind })),
     sources: runs.rows.map((r) => ({ n: r.source, ok: r.ok, at: r.finished_at, added: r.added, msg: r.message })),
     nwSnaps: snaps.rows,
     gaps: gaps.rows.map((g) => ({ ...g, window_from: g.window_from.toISOString(), window_to: g.window_to.toISOString() })),

@@ -140,18 +140,22 @@ const RUN = {
       const a = await tx(async (c) => {
         const row = await account(c, accName, "ILS", { kind, source: ctx.id, subtitle: split ? `${kind === "card" ? "Card" : "Account"} ending ${accName.slice(-4)}` : undefined });
         if (split && acc.accountNumber != null) { // this login used to be one combined account: move what belongs to this one across
-          for (const col of ["from_name", "to_name"])
-            await c.query(`UPDATE transactions SET ${col}=$3 WHERE source=$1 AND ${col}=$2 AND details->>'account'=$4`, [ctx.id, ctx.name, accName, String(acc.accountNumber)]);
+          const num = String(acc.accountNumber);
+          for (const col of ["from_name", "to_name"]) // rows keep the card number in their details, and older ones in their id ("1234:reference:date:amount")
+            await c.query(`UPDATE transactions SET ${col}=$3 WHERE source=$1 AND ${col}=$2 AND (details->>'account'=$4 OR external_id LIKE $5)`, [ctx.id, ctx.name, accName, num, num.replace(/[\\%_]/g, "\\$&") + ":%"]);
         }
         return row;
       });
       added += (await ingest({ name: accName, currency: "ILS", source: ctx.id }, rows)).added;
       if (typeof acc.balance === "number") await setBalance(a, acc.balance);
     }
-    if (split) await tx(async (c) => { // the old combined account: gone once empty, otherwise kept without a balance (so it is not counted twice)
+    if (split) await tx(async (c) => { // the old combined account goes: whatever could not be matched to a card moves to the busiest one
       const left = (await c.query("SELECT 1 FROM transactions WHERE from_name=$1 OR to_name=$1 LIMIT 1", [ctx.name])).rowCount;
-      if (!left) await c.query("DELETE FROM accounts WHERE source=$1 AND name=$2", [ctx.id, ctx.name]);
-      else await c.query("UPDATE accounts SET balance=0 WHERE source=$1 AND name=$2", [ctx.id, ctx.name]);
+      if (left && taken.size) {
+        const busiest = (await c.query("SELECT n FROM (SELECT name AS n, (SELECT count(*) FROM transactions t WHERE t.from_name=a.name OR t.to_name=a.name) AS k FROM accounts a WHERE a.source=$1 AND a.name = ANY($2)) x ORDER BY k DESC LIMIT 1", [ctx.id, [...taken]])).rows[0]?.n;
+        if (busiest) for (const col of ["from_name", "to_name"]) await c.query(`UPDATE transactions SET ${col}=$2 WHERE ${col}=$1`, [ctx.name, busiest]);
+      }
+      await c.query("DELETE FROM accounts WHERE source=$1 AND name=$2", [ctx.id, ctx.name]);
     });
     await q("DELETE FROM settings WHERE key=$1", [flag]); // the one-off history re-read is done
     return { added, message: readNote(days, seen, oldest, added), days, seen, oldest };

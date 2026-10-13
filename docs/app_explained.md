@@ -3,23 +3,15 @@
 This guide explains what the app does, how it thinks, what is real and what is only a demo, and what to do next. The detailed requirements are in the final specification.
 
 ## 1. What it is
-One private place on your home server that shows all of your money: Bank Hapoalim, Max, Isracard, Wise and your pension. It only reads. It cannot move money or change anything at a bank. It adds its own layer on top: categories, bills, budgets, savings jars, alerts and forecasts.
+One private place that shows all of your money: your Israeli banks and cards, Wise and your pension. It only reads. It cannot move money or change anything at a bank. It adds its own layer on top: categories, bills, budgets, savings jars, alerts and forecasts.
 
 The goal is to do as much as possible by itself. It uses the data it already has to decide what is a bill, what is a transfer between your own accounts, what is a duplicate, and what is a real expense. It asks you only when it is unsure.
 
-## 2. What you have today
-A working demo of the whole interface, built from made-up data. It runs in a browser and can be installed on a phone. Your changes are saved only in that browser.
+## 2. Two ways to run it
+- **Windows app:** one installer. Everything stays on that computer; nothing to configure.
+- **Docker:** for a laptop or home server. Same app, data in Docker volumes.
 
-| File | What it is |
-|---|---|
-| index.html | The app (demo) |
-| manifest.webmanifest, icons | Make it installable as a phone app |
-| sw.js | Makes it open without internet and keeps it up to date |
-| nginx.conf | Tells the web server not to keep old copies |
-| README.md | How to host it on your server |
-| finance_app_spec_final.md | The complete requirements |
-
-The demo shows how everything should look and behave. The real app replaces the made-up data with your server's database and the bank scrapers.
+Either way the interface is the same, it works in English and Hebrew, and your data never leaves your own machine except to talk to your banks. See the README to install it.
 
 ## 3. The screens
 - **Home.** Net worth (bank + Wise), with "With pension" underneath. Income, expenses and net for the month. Accounts, card charges coming up, this month against last month, upcoming bills, budgets, jars, exchange rates and recent activity. Anything that needs attention appears at the top.
