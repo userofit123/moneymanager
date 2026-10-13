@@ -772,7 +772,7 @@ function themeSwapFrom(el,fn,after){const h=document.documentElement;if(!documen
 const b=el.getBoundingClientRect(),x=b.left+b.width/2,y=b.top+b.height/2,R=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y));const F=Math.round(Math.min(260,Math.max(140,R*.22))); // width of the soft edge, so old and new blend instead of meeting at a sharp line
 h.style.setProperty("--vt-x",x+"px");h.style.setProperty("--vt-y",y+"px");h.style.setProperty("--vt-f",F+"px");h.style.setProperty("--vt-r","0px");h.classList.add("vt-r");
 const t=document.startViewTransition(()=>{fn()});
-t.ready.then(()=>h.animate({"--vt-r":["0px",(R+F)+"px"]},{duration:1100,easing:"cubic-bezier(.35,.15,.65,.85)",fill:"forwards",pseudoElement:"::view-transition-new(root)"})).catch(()=>{});
+t.ready.then(()=>h.animate({"--vt-r":["0px",(R+F)+"px"]},{duration:600,easing:"cubic-bezier(.35,.15,.65,.85)",fill:"forwards",pseudoElement:"::view-transition-new(root)"})).catch(()=>{});
 t.finished.finally(()=>{h.classList.remove("vt-r");["--vt-x","--vt-y","--vt-f","--vt-r"].forEach(k=>h.style.removeProperty(k));if(after)after()})}
 // a palette made from one colour: the same six values every built-in atmosphere has
 function customAtm(hex){const m=/^#?([0-9a-f]{6})$/i.exec(hex||"");const n=parseInt(m?m[1]:"4355b9",16),r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b);let h=0,sat=0;const l=(mx+mn)/2;if(mx!=mn){const d=mx-mn;sat=l>.5?d/(2-mx-mn):d/(mx+mn);h=mx==r?(g-b)/d+(g<b?6:0):mx==g?(b-r)/d+2:(r-g)/d+4;h*=60}
