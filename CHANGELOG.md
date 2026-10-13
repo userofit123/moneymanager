@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [0.4.15] - 2026-10-13
 
 ### App
+- **Change log in the app.** Settings → App has a new **Change log** page listing every version and what changed, newest first, with your installed version marked. **See what changed** (after checking for updates) and **What's new** open it. **See what changed** is now a proper button instead of an underlined link with its text set too high.
 - **Bank browser looks like a real Chrome.** The bank browser still told banks it was "HeadlessChrome" in its client hints (sec-ch-ua) even after its user agent was changed, and had no `window.chrome`. Both now match a normal Chrome, which bank bot protection (American Express in particular) checks. Page console errors are added to the list of what was refused in bank errors.
 - **Updating shows progress.** After you press **Restart and update**, the button turns into a disabled "Closing to update…" with a spinner, the other buttons hide, a line says the app is closing and will reopen by itself, and the sidebar notice says "Installing…".
 - **Even spacing on connection cards.** The Sync now and Edit connection buttons now have the same space below them as at the sides.

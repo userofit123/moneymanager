@@ -2,6 +2,7 @@
    that had no translation. Terms used throughout: קופה (jar), יעד (goal), חשבון (bill), תנועה (transaction), סנכרון (sync), לבדיקה (needs review). */
 (function(){const D=HE.D,P=HE.P;
 Object.assign(D,{
+"Change log":"יומן שינויים","Everything that changed in each version, newest first.":"כל מה שהשתנה בכל גרסה, מהחדשה לישנה.","Installed":"מותקנת","Newer":"חדשה","See what changed":"מה השתנה",
 "Closing to update…":"נסגר כדי להתעדכן…",
 "Installing…":"מתקין…",
 "pending":"ממתין","The bank has not finished processing this charge yet. The amount can still change when it settles.":"הבנק עוד לא סיים לעבד את החיוב הזה. הסכום עדיין עשוי להשתנות כשהוא יסתיים.",
