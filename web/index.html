@@ -2467,7 +2467,7 @@ const to={x,y},from=NBP.last;if(NBP.anim){NBP.anim.cancel();NBP.anim=null}
 p.style.transform=`translate(${x}px,${y}px)`;NBP.last=to;
 if(!animate||!from||(from.x===x&&from.y===y)||matchMedia("(prefers-reduced-motion:reduce)").matches)return;
 const d=vert?Math.abs(y-from.y):Math.abs(x-from.x),mn={x:Math.min(x,from.x),y:Math.min(y,from.y)};
-const k=.55,mid=vert?{transform:`translate(${x+w*(1-k)/2}px,${mn.y}px)`,height:(h+d)+"px",width:(w*k)+"px",offset:.5}:{transform:`translate(${mn.x}px,${y+h*(1-k)/2}px)`,width:(w+d)+"px",height:(h*k)+"px",offset:.5}; // thinner while it travels, full size again when it lands
+const k=.3,mid=vert?{transform:`translate(${x+w*(1-k)/2}px,${mn.y}px)`,height:(h+d)+"px",width:(w*k)+"px",offset:.5}:{transform:`translate(${mn.x}px,${y+h*(1-k)/2}px)`,width:(w+d)+"px",height:(h*k)+"px",offset:.5}; // thinner while it travels, full size again when it lands
 NBP.anim=p.animate([{transform:`translate(${from.x}px,${from.y}px)`,height:h+"px",width:w+"px"},mid,{transform:`translate(${x}px,${y}px)`,height:h+"px",width:w+"px"}],{duration:350,easing:"cubic-bezier(.4,0,.2,1)"});
 NBP.anim.onfinish=()=>{NBP.anim=null}}
 new ResizeObserver(()=>navPill(false)).observe(document.querySelector("nav"));new MutationObserver(()=>navPill(false)).observe(document.documentElement,{attributes:true,attributeFilter:["data-rad","data-nav","data-nsp","class"]});addEventListener("resize",()=>navPill(false));if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>navPill(false));
