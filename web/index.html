@@ -239,7 +239,7 @@ html.sl{overflow:hidden;scrollbar-gutter:stable}html.mob.sl{scrollbar-gutter:aut
 .phs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.phs>div{background:var(--s1);border:1px solid var(--ol);border-radius:14px;padding:10px 12px;min-width:0}.phs span{display:block;font-size:11px;color:var(--tx2);font-weight:600;text-transform:uppercase;letter-spacing:.6px}.phs b{font-size:17px;font-variant-numeric:tabular-nums}.phl .ph{cursor:pointer;gap:10px}
 /* ===== phone polish ===== */
 html.mob main{padding-left:16px;padding-right:16px}
-html.mob h2{margin:24px 0 10px}
+html.mob h2{flex-wrap:wrap;margin:24px 0 10px}
 html.mob .card{padding:16px;border-radius:20px}
 html.mob #kpis,html.mob #billK,html.mob #budK,html.mob #fcK{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}html.mob #kpis .card,html.mob #billK .card,html.mob #budK .card,html.mob #fcK .card{padding:14px 15px;border-radius:18px}html.mob #kpis .card.hero,html.mob #billK .card.hero,html.mob #budK .card.hero,html.mob #fcK .card.hero{grid-column:1/-1}html.mob #kpis .val,html.mob #billK .val,html.mob #budK .val,html.mob #fcK .val{font-size:23px;margin:4px 0}html.mob #kpis .lbl,html.mob #billK .lbl,html.mob #budK .lbl,html.mob #fcK .lbl{font-size:12px}html.mob #kpis .sm,html.mob #billK .sm,html.mob #budK .sm,html.mob #fcK .sm{font-size:12px}
 html.mob #kpis>.card:last-child:nth-child(even){grid-column:1/-1}
@@ -808,7 +808,7 @@ let fx={ILS:1},fxSrc="none",fxCur="USD",fxSer={},fxAsOf=null,fxStale=false;
 const accILS=a=>a.v*(fx[a.cur]||1),cashAccts=()=>accts.filter(a=>a.inNW&&(a.kind=="bank"||a.kind=="wallet")); // the same accounts the server counts as cash for jars
 async function loadFX(){try{const r=await fetch("/api/fx",{cache:"no-store"});if(!r.ok)throw 0;const j=await r.json();if(!Object.values(j.series).some(x=>x.length>=2))throw 0;fx=Object.assign({ILS:1},j.fx);fxSer=j.series;fxSrc="live";fxAsOf=j.asOf;fxStale=j.stale}catch(x){fxSrc="none"}renderAll()}
 const SRCDEF=[["Bank Hapoalim","hapoalim"],["Max","max"],["Isracard","isracard"],["Wise","wise"]];
-function derive(){NR=new Set(S.accounts.filter(a=>a.inR===false).map(a=>a.n));Object.entries(S.connStatus||{}).forEach(([k,c])=>{if(c&&c.label){SRCN[k]=c.label;SRCL[k]=c.label}});CC=S.accounts.filter(a=>a.kind=="card"&&S.tx.some(t=>t.from==a.n&&t.a<0)).map(a=>({n:a.n,re:ccRe(a.n)}));BANKN=new Set(S.accounts.filter(a=>a.kind!="card"&&a.kind!="pension").map(a=>a.n));
+function derive(){acReset();NR=new Set(S.accounts.filter(a=>a.inR===false).map(a=>a.n));Object.entries(S.connStatus||{}).forEach(([k,c])=>{if(c&&c.label){SRCN[k]=c.label;SRCL[k]=c.label}});CC=S.accounts.filter(a=>a.kind=="card"&&S.tx.some(t=>t.from==a.n&&t.a<0)).map(a=>({n:a.n,re:ccRe(a.n)}));BANKN=new Set(S.accounts.filter(a=>a.kind!="card"&&a.kind!="pension").map(a=>a.n));
 
 accts=S.accounts.filter(a=>a.kind!="card"&&!a.hide).map(a=>({id:a.id,n:a.n,v:a.v,cur:a.cur,s:a.s,manual:a.manual,inNW:a.inNW,kind:a.kind}));
 SRC=(()=>{const L=Object.keys(S.connStatus||{}).filter(k=>S.connected[k]).map(k=>[S.connStatus[k].label||k,k]);return L.length?L:SRCDEF})().map(([n,k])=>{const c=S.connStatus[k]||{key:"none",label:"No credentials",tone:"gray"},when=c.since?fmtWhen(c.since):"never",
@@ -863,7 +863,7 @@ const ymd=d=>d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate());
 function balRows(){return(S.balUpdates||[]).map(u=>({id:"bu"+u.id,balUpd:true,virtual:true,d:iso(new Date(u.at)),desc:(u.old==null?u.acc+" started at "+fm(u.nu):u.acc+" balance: "+fm(u.old)+" → "+fm(u.nu)),from:u.acc,to:u.acc,a:u.nu-(u.old||0),c:"Balance update",tags:[],docs:[],note:u.note||""}))}
 function upBillRows(){const lim=new Date(NOW.getTime()+31*864e5),fut=S.tx.filter(t=>String(t.d)>TODAY&&t.a<0);return BC.filter(b=>!b.once&&!b.irregular&&b.flag!="canceled"&&b.nx&&b.nx>NOW&&b.nx<=lim&&!fut.some(t=>(t.desc+" "+t.to).toLowerCase().includes(b.match)&&Math.abs((new Date(t.d)-b.nx)/864e5)<=6)).map(b=>({id:"ub"+b.idx,upBill:b.idx,virtual:true,d:ymd(b.nx),desc:b.n,from:b.src||"",to:b.n,a:-b.pred,c:b.cat||"",tags:[],docs:[],note:""}))}
 function costRows(){return S.xf.filter(x=>x.st!="rej").map(x=>{const o=byId(x.o),i=byId(x.i);if(!o||!i)return null;const c=-o.a-i.a;return c>.5?{id:"v"+x.o,virtual:true,d:o.d,desc:"Transfer cost · "+o.from+" → "+i.to,from:o.from,to:"Transfer fees / FX spread",a:-c,c:"Fees & FX costs",tags:[],docs:[],note:"",cost:c}:null}).filter(Boolean)}
-const ALL=()=>S.tx.concat(costRows()),noRep=t=>NR.size>0&&(NR.has(t.from)||NR.has(t.to)),A=()=>S.tx.filter(t=>!XS.has(t.id)&&!isIgn(t)&&!isFuture(t)&&!isCardPay(t)&&!noRep(t)).concat(costRows());
+let AC=null;const ALL=()=>S.tx.concat(costRows()),noRep=t=>NR.size>0&&(NR.has(t.from)||NR.has(t.to)),BTC=new Map(),acReset=()=>{AC=null;BTC.clear()},A=()=>{if(!AC){AC=S.tx.filter(t=>!XS.has(t.id)&&!isIgn(t)&&!isFuture(t)&&!isCardPay(t)&&!noRep(t)).concat(costRows());setTimeout(acReset,0)}return AC};
 const recon=()=>S.gaps.filter(g=>g.status=="open"&&g.remaining!=0).map(g=>({id:g.id,n:g.account,cur:g.currency,diff:g.remaining,amount:g.amount,from:g.window_from,to:g.window_to}));
 function applyRules(){S.tx.forEach(t=>{if(!t.c&&!isXf(t)){const r=S.rules.find(r=>t.desc.toLowerCase().includes(r.k.toLowerCase()));if(r)t.c=r.c}})}
 function spend(){const m={};A().filter(t=>t.a<0&&t.d.startsWith(MK)).forEach(t=>{const c=t.c||"Uncategorized";m[c]=(m[c]||0)+Math.abs(t.a)});return Object.entries(m).sort((a,b)=>b[1]-a[1])}
@@ -914,7 +914,8 @@ Object.entries(g).forEach(([k,L])=>{if(L.length<2||S.ignoredBills.includes(k)||S
 const last=L[L.length-1];S.bills.push({n:last.to,every:c.every,anchor:c.anchor,dom:c.dom,src:last.from,match:k,cat:last.c||"Subscriptions",manual:false,mode:"rule",rec:"recurring"});
 log("Bill detected",last.to+" · "+(c.every==1?"monthly":c.every==2?"every 2 months":"yearly")+" · about "+fm(c.mean),null,"System")}) }
 const byDate=(a,b)=>a.d.localeCompare(b.d);
-function billTx(b){return b.mode=="once"?S.tx.filter(t=>(b.ids||[]).includes(t.id)).sort(byDate):A().filter(t=>t.a<0&&(t.desc+" "+t.to).toLowerCase().includes(b.match)).sort(byDate)}
+function billTx(b){if(b.mode!="once"){const k=b.match;let r=BTC.get(k);if(!r){r=billTx0(b);BTC.set(k,r)}return r}return billTx0(b)}
+function billTx0(b){return b.mode=="once"?S.tx.filter(t=>(b.ids||[]).includes(t.id)).sort(byDate):A().filter(t=>t.a<0&&(t.desc+" "+t.to).toLowerCase().includes(b.match)).sort(byDate)}
 // Three kinds: recurring (a rhythm is known: predicted and tracked), irregular (every payment still counts as a bill) and one-off (one marked payment)
 // A bill's category follows its payments (the most recent one that has a category), not a label stored when the bill was found
 function billsInfo(all){return billsInfo0(all).map(b=>{const L=billTx(S.bills[b.idx]).filter(t=>t.c&&t.c!="Uncategorized"),lc=L.length?L[L.length-1].c:null;return{...b,cat:lc||(b.manual?b.cat:"")||""}})}
@@ -1826,7 +1827,7 @@ const dupIds=()=>{const m={};S.tx.forEach(t=>{const k=[t.d,t.desc,t.a,t.from].jo
 const QI={plus:'<path d="M12 5v14M5 12h14"/>',camera:'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',tag:'<path d="M3 12V4h8l10 10-8 8z"/><path d="M7.5 8h.01"/>',folder:'<path d="M3 6h6l2 2h10v11H3z"/>',doc:'<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7"/>',target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',jar:'<path d="M7 3h10v3H7zM6 6h12v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/>',flag:'<path d="M5 21V4M5 4h12l-2 4 2 4H5"/>',bank:'<path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/>',upload:'<path d="M12 16V4M7 9l5-5 5 5M5 20h14"/>',refresh:'<path d="M20 11a8 8 0 1 0-2 6M20 5v6h-6"/>'};
 function openQuick(){const T=[["plus","Transaction","Income or expense","qaTx"],["camera","Receipt photo","Attach to a new transaction","qaPhoto"],["tag","Category rule","Auto-categorize by store name","ruleNew"],["folder","Category","Create a new category","catNew"],["doc","Bill","Track a recurring charge","billNew"],["target","Budget","Monthly limit for a category","budNew"],["jar","Jar","Savings pot, deadline optional","jarNew"],["flag","Goal","A jar with a deadline","goalNew"],["bank","Pension balance","Update it by hand","pensionSet"],["upload","Import a CSV","Wise or bank export","qaImport"],["refresh","Sync now","Read all connected accounts","syncNow"]];
 openSheet(`<h3>Add or update</h3><div class="qa">${T.map(([i,t,h,a])=>`<button data-a="${a}"><span class="qi"><svg viewBox="0 0 24 24">${QI[i]}</svg></span><span><b>${t}</b><span class="sm">${h}</span></span></button>`).join("")}</div><div class="flex" style="justify-content:flex-end;margin-top:12px"><button class="btn o" data-a="close">Close</button></div>`)}
-const catNames=()=>Object.keys(S.cats).sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));
+let CNK="",CNV=[];const CNC=new Intl.Collator(undefined,{sensitivity:"base"}),catNames=()=>{const k=Object.keys(S.cats),j=k.join("\u0001");if(j!==CNK){CNK=j;CNV=k.slice().sort(CNC.compare)}return CNV};
 /* ---------- attachments viewer ---------- */
 let DV=null; // {id, i}
 const docKind=n=>{const e=String(n).split(".").pop().toLowerCase();return /^(png|jpe?g|gif|webp|bmp|avif|heic)$/.test(e)?"img":e=="pdf"?"pdf":"file"};
@@ -1922,7 +1923,7 @@ const VIEWS={dash:()=>{renderKpis();renderHome()},tx:()=>renderTx(),jars:()=>ren
 let STALE=new Set();
 function renderView(v){if(!STALE.has(v)||!VIEWS[v])return;STALE.delete(v);if(v=="set"||v=="cats"){STALE.delete("set");STALE.delete("cats")}VIEWS[v]()}
 function renderViews(){STALE=new Set(Object.keys(VIEWS));alertsReport();renderView(curView)}
-function renderAll(){JPC=null;setTimeout(applyJobUI,0);setTimeout(syncLabel,0);detect();derive();detectBills();BC=billsInfo(true);S.jars.forEach(j=>{if(j.bill=="*"&&!j.done){const n=Math.round(recBills().reduce((t,b)=>t+b.mo,0)*(j.months||12));if(n>0&&j.need!=n)j.need=n}});applyRules();jarAuto();fillFilters();renderViews();badges();S.jarsReserve=Math.round(jarFree().reserve);save()}
+function renderAll(){acReset();JPC=null;setTimeout(applyJobUI,0);setTimeout(syncLabel,0);detect();derive();detectBills();BC=billsInfo(true);S.jars.forEach(j=>{if(j.bill=="*"&&!j.done){const n=Math.round(recBills().reduce((t,b)=>t+b.mo,0)*(j.months||12));if(n>0&&j.need!=n)j.need=n}});applyRules();jarAuto();fillFilters();renderViews();badges();S.jarsReserve=Math.round(jarFree().reserve);save()}
 // a small context menu next to a button; fixed, so a card that clips its content never cuts it off
 function cmenu(btn,html,cls){document.querySelectorAll("[data-open]").forEach(x=>delete x.dataset.open);btn.dataset.open="1";const m=document.createElement("div");m.className="cmenu "+(cls||"");m.setAttribute("role","menu");m.innerHTML=html;document.body.appendChild(m);
 const r0=btn.getBoundingClientRect(),an=btn.closest("[data-menuanchor]"),r=an?an.getBoundingClientRect():r0,h=m.offsetHeight,w=m.offsetWidth,up=r.bottom+6+h>innerHeight-8&&r.top-6-h>8;m.style.top=(up?r.top-6-h:r.bottom+6)+"px";const rtl=document.documentElement.classList.contains("he");if(btn.dataset.menualign=="start"){const lx=Math.max(8,Math.min(rtl?r.right-w:r.left,innerWidth-w-8));m.style.left=lx+"px"}else{const x=Math.max(8,Math.min(rtl?r.left:innerWidth-r.right,innerWidth-w-8));m.style[rtl?"left":"right"]=x+"px"}m.style.maxHeight=Math.max(120,Math.min(up?r.top-14:innerHeight-r.bottom-14,360))+"px"}
@@ -2422,13 +2423,13 @@ const r=t.closest("#lines,.dnt");if(!r)return;if(to&&r.contains(to)&&(to.dataset
    graphics side without repainting anything. On a change the front end runs ahead and the back end catches up: it is pulled toward the new tab,
    thins a little while stretched, then settles. */
 (()=>{const st=new Map(),RM=matchMedia("(prefers-reduced-motion: reduce)"),waiting=new Set();let raf=0,todo=new Set();
-const keyOf=(sg)=>{if(sg.id)return sg.id;const b=sg.querySelector("button"),k=b?(b.dataset.a||b.dataset.t||"x"):"x";let n=0;for(const o of document.querySelectorAll(".seg")){if(o==sg)break;const ob=o.querySelector("button");if(ob&&(ob.dataset.a||ob.dataset.t||"x")==k)n++}return k+"#"+n};
+const KC=new WeakMap(),keyOf=(sg)=>{if(sg.id)return sg.id;let c=KC.get(sg);if(c)return c;c=keyOf0(sg);KC.set(sg,c);return c},keyOf0=(sg)=>{const b=sg.querySelector("button"),k=b?(b.dataset.a||b.dataset.t||"x"):"x";let n=0;for(const o of document.querySelectorAll(".seg")){if(o==sg)break;const ob=o.querySelector("button");if(ob&&(ob.dataset.a||ob.dataset.t||"x")==k)n++}return k+"#"+n};
 const ease=t=>t<=0?0:t>=1?1:t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
 const tf=(g,R,l,r,sy)=>({a:`translate(${l}px,${g.t}px) scaleY(${sy})`,c:`translate(${r-R}px,${g.t}px) scaleY(${sy})`,m:`translate(${l+R-.5}px,${g.t}px) scale(${Math.max(0,r-l-2*R+1)},${sy})`});
 function setStatic(p,g,R,l,r){const h=g.b-g.t,t=tf(g,R,l,r,1);p.style.setProperty("--h",h+"px");p.style.setProperty("--R",R+"px");for(const k of["a","m","c"]){const e=p.querySelector("."+k);e.style.transform=t[k]}}
 function sync(sg){const bs=[...sg.querySelectorAll(":scope>button")],b=sg.querySelector(":scope>button.on");if(!b)return;if(!sg.offsetWidth){waiting.add(sg);return}waiting.delete(sg);
  let pill=sg.querySelector(":scope>.segi");if(!pill){pill=document.createElement("i");pill.className="segi";pill.innerHTML="<b class=a></b><b class=m></b><b class=c></b>";sg.prepend(pill);sg.classList.add("sl")}
- const k=keyOf(sg),idx=bs.indexOf(b),g={l:b.offsetLeft,r:b.offsetLeft+b.offsetWidth,t:b.offsetTop,b:b.offsetTop+b.offsetHeight},h=g.b-g.t,R=Math.max(1,Math.min(parseFloat(getComputedStyle(b).borderTopLeftRadius)||99,h/2));
+ const k=keyOf(sg),idx=bs.indexOf(b),g={l:b.offsetLeft,r:b.offsetLeft+b.offsetWidth,t:b.offsetTop,b:b.offsetTop+b.offsetHeight},h=g.b-g.t,R=Math.max(1,Math.min(b._r||(b._r=parseFloat(getComputedStyle(b).borderTopLeftRadius)||99),h/2));
  let s=st.get(k);
  const rest=()=>{if(s.anims){s.anims.forEach(a=>a.cancel());s.anims=null}setStatic(pill,g,R,g.l,g.r);s.cur={l:g.l,r:g.r};s.g=g};
  if(!s){s={idx,anims:null,pill};st.set(k,s);setStatic(pill,g,R,g.l,g.r);s.cur={l:g.l,r:g.r};s.g=g;return}
