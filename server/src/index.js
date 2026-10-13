@@ -110,6 +110,15 @@ app.post("/api/auth/2fa/disable", json, wrap(async (req, res) => {
 }));
 
 // ---------- app data ----------
+// Appearance and other per-person view choices, kept in the database so they survive a new browser, a new port or a reinstall.
+app.get("/api/prefs", wrap(async (_req, res) => res.set("Cache-Control", "no-store").json((await q("SELECT value FROM settings WHERE key='ui_prefs'")).rows[0]?.value || {})));
+app.put("/api/prefs", json, wrap(async (req, res) => {
+  const b = req.body && typeof req.body === "object" && !Array.isArray(req.body) ? req.body : {};
+  const out = {};
+  for (const [k, v] of Object.entries(b)) if (/^money[A-Za-z]{2,20}$/.test(k) && typeof v === "string" && v.length < 20000) out[k] = v;
+  await q("INSERT INTO settings (key,value) VALUES ('ui_prefs',$1) ON CONFLICT (key) DO UPDATE SET value=$1", [JSON.stringify(out)]);
+  res.json({ ok: true });
+}));
 app.get("/api/state", wrap(async (_req, res) => { res.set("Cache-Control", "no-store"); res.json(await getState()); }));
 app.put("/api/state", json, wrap(async (req, res) => {
   try { res.json(await putState(req.body)); }
