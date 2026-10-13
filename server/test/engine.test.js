@@ -358,3 +358,15 @@ test("a bank that reports the shekel as a symbol is stored as ILS and needs no e
   assert.equal(t.amount, -120);
   assert.equal(t.orig_currency, null);
 });
+
+test("a charge first listed with 0 is updated, not duplicated, when the bank reports the real amount", async () => {
+  await reset();
+  const acc = { name: "Max", currency: "ILS", source: "max" };
+  const row = (amt) => ({ date: "2026-10-12", description: "Wolt", amount: amt, currency: "ILS", externalId: `1234:ref9:2026-10-12:${amt}`, stableKey: "1234:ref9:2026-10-12" });
+  await ingest(acc, [row(0)]);
+  const r = await ingest(acc, [row(-85)]);
+  assert.equal(r.updated, 1);
+  const rows = (await q("SELECT amount FROM transactions WHERE description='Wolt'")).rows;
+  assert.deepEqual(rows.map((x) => x.amount), [-85]);
+  assert.equal((await ingest(acc, [row(-85)])).added, 0);
+});

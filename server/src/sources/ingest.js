@@ -12,7 +12,7 @@ const hash = (...p) => crypto.createHash("sha1").update(p.join("|")).digest("hex
  */
 export async function ingest(account, rows, { mergeManual = false } = {}) {
   return tx(async (c) => {
-    let added = 0, merged = 0, migrated = 0;
+    let added = 0, merged = 0, migrated = 0, updated = 0;
     const fresh = [];
     const seen = {};
     await c.query("DELETE FROM transactions WHERE pending AND source=$1 AND (from_name=$2 OR to_name=$2)", [account.source, account.name]);
@@ -45,6 +45,17 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
       const rate = await rateOn(cur, r.date);
       if (rate == null) throw new Error(`no exchange rate for ${cur} on ${r.date}; run a rates refresh first`);
       const ils = +(r.amount * rate).toFixed(2);
+      if (r.stableKey && r.amount !== 0) { // a charge first listed with an amount of 0: when the bank fills in the real amount, update that row instead of adding a second one
+        const esc = r.stableKey.replace(/[\\%_]/g, "\\$&");
+        const prov = await c.query("SELECT id FROM transactions WHERE source=$1 AND external_id LIKE $2 AND (from_name=$3 OR to_name=$3) AND amount=0 ORDER BY id LIMIT 1", [account.source, esc + ":%", account.name]);
+        if (prov.rowCount) {
+          await c.query("UPDATE transactions SET amount=$2,orig_currency=$3,orig_amount=$4,rate=$5,external_id=$6,pending=$7,details=$8 WHERE id=$1",
+            [prov.rows[0].id, ils, cur !== "ILS" ? cur : null, cur !== "ILS" ? r.amount : null, rate, ext, !!r.pending, r.details ? JSON.stringify(r.details) : null]);
+          await audit(c, "Amount filled in", `${r.description}: the bank now reports the real charge`);
+          updated++;
+          continue;
+        }
+      }
       const out = r.amount < 0;
       const from = out ? account.name : r.counterparty || r.description || "Bank transfer"; // the description names the payer
       const to = out ? r.counterparty || r.description : account.name;
@@ -75,7 +86,7 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
     await applyRules(c);
     await applyTagRules(c, fresh);
     const pairs = await detectTransfers(c);
-    if (added || merged || pairs) await bumpRev(c);
-    return { added, merged, migrated, transfers: pairs };
+    if (added || merged || updated || pairs) await bumpRev(c);
+    return { added, merged, migrated, updated, transfers: pairs };
   });
 }
