@@ -1,4 +1,5 @@
 import express from "express";
+import { logError, noteRequest, listErrors, clearErrors, systemInfo, recentActions } from "./errlog.js";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -28,7 +29,9 @@ app.disable("x-powered-by");
 app.set("trust proxy", process.env.TRUST_PROXY === "1"); // set when Caddy or another proxy sits in front
 
 const ASSIST_BANKS = Object.keys(FIELDS).filter((k) => k !== "wise");
-const wrap = (fn) => (req, res) => Promise.resolve(fn(req, res)).catch((e) => { console.error(req.method, req.path, e.message); res.status(500).json({ error: "Something went wrong" }); });
+const wrap = (fn) => (req, res) => Promise.resolve(fn(req, res)).catch((e) => { console.error(req.method, req.path, e.message); logError({ source: "server", action: `${req.method} ${req.path}`, error: e, context: { status: 500 } }); res.status(500).json({ error: "Something went wrong" }); });
+process.on("unhandledRejection", (e) => { console.error("unhandled:", e && e.message); logError({ source: "process", action: "Unhandled error in the background", error: e }); });
+process.on("uncaughtException", (e) => { console.error("uncaught:", e && e.message); logError({ source: "process", action: "Uncaught error", error: e }); });
 const json = express.json({ limit: "20mb" });
 
 // ---------- security headers ----------
@@ -77,6 +80,7 @@ app.post("/api/auth/login", json, wrap(async (req, res) => {
 app.use("/api", (req, res, next) => {
   auth.sessionValid(auth.readCookie(req)).then((ok) => {
     if (!ok) return res.status(401).json({ error: "auth" });
+    noteRequest(req.method, req.originalUrl.split("?")[0]);
     if (!["GET", "HEAD"].includes(req.method) && req.get("x-requested-with") !== "money") return res.status(403).json({ error: "bad request" });
     next();
   }).catch(() => res.status(500).json({ error: "Something went wrong" }));
@@ -119,6 +123,14 @@ app.put("/api/prefs", json, wrap(async (req, res) => {
   await q("INSERT INTO settings (key,value) VALUES ('ui_prefs',$1) ON CONFLICT (key) DO UPDATE SET value=$1", [JSON.stringify(out)]);
   res.json({ ok: true });
 }));
+// The error log (Settings → Error log)
+app.get("/api/errors", wrap(async (req, res) => res.set("Cache-Control", "no-store").json({ rows: await listErrors(req.query.limit), system: await systemInfo(versionOf(readChangelog())) })));
+app.post("/api/errors", json, wrap(async (req, res) => { // an error that happened in the page
+  const b = req.body && typeof req.body === "object" ? req.body : {};
+  await logError({ source: "web", action: String(b.action || "").slice(0, 300), message: String(b.message || "").slice(0, 4000), detail: String(b.stack || "").slice(0, 12000), context: { view: String(b.view || "").slice(0, 40), ua: String(b.ua || "").slice(0, 300), screen: String(b.screen || "").slice(0, 40), lang: String(b.lang || "").slice(0, 10), clientActions: Array.isArray(b.actions) ? b.actions.slice(-15).map((x) => String(x).slice(0, 120)) : [], recent: recentActions() } });
+  res.json({ ok: true });
+}));
+app.delete("/api/errors", wrap(async (_req, res) => { await clearErrors(); res.json({ ok: true }); }));
 app.get("/api/state", wrap(async (_req, res) => { res.set("Cache-Control", "no-store"); res.json(await getState()); }));
 app.put("/api/state", json, wrap(async (req, res) => {
   try { res.json(await putState(req.body)); }
