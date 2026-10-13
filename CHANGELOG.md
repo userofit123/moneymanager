@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [0.4.14] - 2026-10-13
 
 ### App
+- **Bank browser looks like a real Chrome.** The bank browser still told banks it was "HeadlessChrome" in its client hints (sec-ch-ua) even after its user agent was changed, and had no `window.chrome`. Both now match a normal Chrome, which bank bot protection (American Express in particular) checks. Page console errors are added to the list of what was refused in bank errors.
 - **Updating shows progress.** After you press **Restart and update**, the button turns into a disabled "Closing to update…" with a spinner, the other buttons hide, a line says the app is closing and will reopen by itself, and the sidebar notice says "Installing…".
 - **Even spacing on connection cards.** The Sync now and Edit connection buttons now have the same space below them as at the sides.
 - **Each kind of pill has its own colour** in Activity: Pending (orange), Expected bill (purple), Bill (blue), Upcoming (teal), Card payment (slate), Transfer (cyan), Possible duplicate (red), Same refund twice (pink), Jar (green), Instalment (indigo), Ignored and Auto (grey), Balance update (gold).

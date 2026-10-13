@@ -77,8 +77,23 @@ async function look(page) {
   let ua = UA;
   if (!process.env.SCRAPER_UA && process.platform !== "linux") { try { ua = (await page.browser().userAgent()).replace("HeadlessChrome", "Chrome"); } catch { /* keep the fixed one */ } }
   await page.setUserAgent(ua);
+  // The browser's client hints (sec-ch-ua) still say "HeadlessChrome" after the user agent string is changed. Banks read them, so give them the same story as the string.
+  try {
+    const major = (/Chrome\/(\d+)/.exec(ua) || [])[1] || "124", full = (/Chrome\/([\d.]+)/.exec(ua) || [])[1] || major + ".0.0.0";
+    const win = /Windows/.test(ua), mac = /Mac OS X/.test(ua);
+    const brands = [{ brand: "Chromium", version: major }, { brand: "Google Chrome", version: major }, { brand: "Not.A/Brand", version: "99" }];
+    const cdp = await page.createCDPSession();
+    await cdp.send("Network.setUserAgentOverride", {
+      userAgent: ua, acceptLanguage: "he-IL,he;q=0.9,en-US;q=0.8,en;q=0.7", platform: win ? "Win32" : mac ? "MacIntel" : "Linux x86_64",
+      userAgentMetadata: { brands, fullVersionList: brands.map((b) => ({ brand: b.brand, version: b.brand === "Not.A/Brand" ? "99.0.0.0" : full })), fullVersion: full, platform: win ? "Windows" : mac ? "macOS" : "Linux", platformVersion: win ? "10.0.0" : mac ? "14.0.0" : "6.5.0", architecture: "x86", model: "", mobile: false, bitness: "64", wow64: false },
+    });
+  } catch { /* the plain user agent above still applies */ }
   await page.setExtraHTTPHeaders({ "Accept-Language": "he-IL,he;q=0.9,en-US;q=0.8,en;q=0.7" });
-  await page.evaluateOnNewDocument(() => { Object.defineProperty(navigator, "webdriver", { get: () => false }); });
+  await page.evaluateOnNewDocument(() => {
+    Object.defineProperty(navigator, "webdriver", { get: () => false });
+    Object.defineProperty(navigator, "languages", { get: () => ["he-IL", "he", "en-US", "en"] });
+    if (!window.chrome) window.chrome = { runtime: {}, app: {}, csi() {}, loadTimes() {} }; // a headless browser has no window.chrome, a real one does
+  });
 }
 
 // The library cannot enter one-time codes for Hapoalim, Max or Isracard. If the page it is stuck on asks for one,
@@ -97,6 +112,8 @@ async function asksForCode(page) {
 const shortUrl = (u) => { try { const x = new URL(u); return x.host + x.pathname.slice(0, 60); } catch { return String(u).slice(0, 60); } };
 function watchNet(p, log) {
   p.on("requestfailed", (r) => { const t = r.failure() && r.failure().errorText; if (t && !/ERR_ABORTED/.test(t)) log.push(`${shortUrl(r.url())} ${t}`); });
+  p.on("console", (m) => { if (m.type() === "error") { const t = String(m.text()).replace(/\s+/g, " ").slice(0, 110); if (!/favicon|Failed to load resource/i.test(t)) log.push("page: " + t); } });
+  p.on("pageerror", (e) => log.push("page error: " + String(e.message).slice(0, 110)));
   p.on("response", (r) => { if (r.status() >= 400 && ["xhr", "fetch", "document"].includes(r.request().resourceType())) log.push(`${shortUrl(r.url())} HTTP ${r.status()}`); });
 }
 const netNote = (log, page) => { const u = [...new Set(log)].slice(-4); let where = ""; try { if (page) where = shortUrl(page.url()); } catch { /* closed */ } return (u.length ? " · refused: " + u.join("; ") : "") + (where ? " · stopped on: " + where : ""); };
