@@ -68,3 +68,11 @@ test("a second login at the same company gets its own accounts and browser profi
   assert.deepEqual(await names(), ["Max", "Max · Partner"]);
   assert.equal((await q("SELECT count(*)::int AS n FROM transactions WHERE from_name='Max · Partner'")).rows[0].n, 1);
 });
+
+test("a card purchase listed with a charged amount of 0 shows what was spent, so the balance change is explained", async () => {
+  const { shownAmount } = await import("../src/sync.js");
+  assert.equal(shownAmount({ chargedAmount: 0, originalAmount: -412, originalCurrency: "ILS" }), -412);
+  assert.equal(shownAmount({ chargedAmount: 0, originalAmount: -50, originalCurrency: "USD" }), 0);
+  assert.equal(shownAmount({ chargedAmount: -12, originalAmount: -12 }), -12);
+  assert.equal(shownAmount({ originalAmount: -7 }), -7);
+});
