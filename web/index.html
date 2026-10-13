@@ -189,7 +189,7 @@ svg text{font-family:inherit;fill:var(--tx2);font-size:11px}svg .gl{stroke:var(-
 .row{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--ol)}.row:first-child{border-top:0}.row .grow{flex:1;min-width:0}
 .seg{display:flex;background:var(--s2);border-radius:99px;padding:3px;margin:8px 0 16px;overflow-x:auto;scrollbar-width:none;max-width:100%}.seg button{flex:1;border:0;background:none;font:inherit;font-size:13px;padding:8px 14px;border-radius:99px;color:var(--tx2);cursor:pointer;white-space:nowrap;min-height:34px}.seg button.on{background:var(--acc);color:var(--on);font-weight:600}
 *{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--tx) 28%,transparent) transparent}
-.seg.sl button{transition:color .2s ease .18s}
+.seg.sl button{transition:color .15s ease .1s}
 .seg{position:relative}.seg.sl button{position:relative;z-index:1}.seg.sl button.on{background:none}.segi{position:absolute;left:0;top:0;width:0;height:0;z-index:0;pointer-events:none}.segi b{position:absolute;left:0;top:0;background:var(--acc);transform-origin:0 50%;will-change:transform,width}
 .pop{position:fixed;left:98px;bottom:16px;width:310px;background:var(--bg);border:1px solid var(--ol);border-radius:20px;padding:18px;z-index:60;box-shadow:0 24px 60px -20px #0008;display:none}.pop.on{display:block;animation:fi .2s}
 .sw{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.sw button{border:2px solid transparent;border-radius:14px;height:54px;cursor:pointer;font:inherit;font-size:11px;color:#fff;font-weight:600;text-shadow:0 1px 3px #0006}.sw button.on{border-color:var(--tx)}
@@ -2596,7 +2596,7 @@ function sync(sg){const bs=[...sg.querySelectorAll(":scope>button")],b=sg.queryS
  s.idx=idx;
  if(RM.matches||!s.cur){rest();return}
  const from={...s.cur};if(s.anim){s.anim.cancel();s.anim=null}
- const dist=Math.abs(g.l-from.l),dur=Math.round(Math.min(520,280+dist*.22)),N=24,sq=Math.min(.14,.05+dist/3000),kf=[];
+ const dist=Math.abs(g.l-from.l),dur=Math.round(Math.min(350,250+dist*.1)) /* ends together with the page fade-in (.35s) */,N=24,sq=Math.min(.14,.05+dist/3000),kf=[];
  const c0=(from.l+from.r)/2,c1=(g.l+g.r)/2,w0=from.r-from.l,w1=g.r-g.l,stretch=Math.min(dist*.2,44);
  put(pill,g,from.l,from.r,from.rd);
  for(let i=0;i<=N;i++){const t=i/N,x=ease(t),sn=Math.sin(Math.PI*t),sy=1-sn*sq,c=c0+(c1-c0)*x,w=w0+(w1-w0)*x+stretch*sn;
