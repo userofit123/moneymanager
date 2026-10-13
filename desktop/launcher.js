@@ -8,7 +8,9 @@ const crypto = require("node:crypto");
 const { spawn } = require("node:child_process");
 const { pathToFileURL } = require("node:url");
 
-const freePort = () => new Promise((ok, no) => { const s = net.createServer(); s.listen(0, "127.0.0.1", () => { const p = s.address().port; s.close(() => ok(p)); }); s.on("error", no); });
+// A fixed port keeps the web address the same on every launch, so the window remembers its own browser storage (appearance, language). If it is taken, any free port.
+const freePort = (want) => new Promise((ok, no) => { const s = net.createServer(); s.listen(want || 0, "127.0.0.1", () => { const p = s.address().port; s.close(() => ok(p)); }); s.on("error", (e) => (want ? freePort().then(ok, no) : no(e))); });
+const freePort0 = () => new Promise((ok, no) => { const s = net.createServer(); s.listen(0, "127.0.0.1", () => { const p = s.address().port; s.close(() => ok(p)); }); s.on("error", no); });
 
 // The installer builder never copies folders named node_modules, so the build ships them as app_modules (see the workflow).
 // The first time the app starts, they are put back under their real name. Renaming is instant and keeps the files where they are.
@@ -55,7 +57,7 @@ async function startBackend({ dataDir, root, nodeBin = process.execPath, appKey 
   scraper.on("exit", (c) => log("scraper stopped", c));
 
   // 3. the app itself, in this process
-  const port = await freePort();
+  const port = await freePort(+process.env.MONEY_PORT || 47821);
   Object.assign(process.env, {
     ...(appKey ? { APP_KEY: appKey } : {}), // the key that encrypts saved logins, when the caller keeps it protected (see main.js)
     DB_DRIVER: "pglite", PGLITE_DIR: dbDir, DATA_DIR: path.join(dataDir, "data"), DOCS_DIR: path.join(dataDir, "data", "documents"),
