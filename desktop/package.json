@@ -1,7 +1,7 @@
 {
   "name": "money-manager-desktop",
   "productName": "Money Manager",
-  "version": "0.4.12",
+  "version": "0.4.13",
   "description": "Money Manager for Windows: the same app, with its own database and bank scraper built in",
   "private": true,
   "main": "main.js",
