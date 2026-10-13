@@ -42,6 +42,7 @@ export async function detectCardPayments(c) {
   return n;
 }
 
+export const normText = (s) => String(s || "").toLowerCase().replace(/[.'"״׳_,\-]/g, "").replace(/\s+/g, " ").trim();
 const SALARY_WORDS = /(משכורת|שכר עבודה|שכר\b|salary|payroll|wages)/i;
 export async function detectSalary(c) {
   const inc = (await c.query(
@@ -50,7 +51,12 @@ export async function detectSalary(c) {
        AND NOT EXISTS (SELECT 1 FROM transfer_links l WHERE (l.out_id=t.id OR l.in_id=t.id) AND l.status<>'rej')
        AND t.date > current_date - interval '420 days'`)).rows;
   const ids = new Set();
-  for (const t of inc) if (!t.category && SALARY_WORDS.test(t.description)) ids.add(t.id);
+  const mine = ((await c.query("SELECT value FROM settings WHERE key='salary_rules'")).rows[0]?.value || []).map(normText).filter((x) => x.length > 1);
+  for (const t of inc) {
+    if (t.category) continue;
+    const hay = normText(t.description + " " + (t.from_name || ""));
+    if (SALARY_WORDS.test(t.description) || mine.some((m) => hay.includes(m))) ids.add(t.id);
+  }
   const byPayer = new Map();
   for (const t of inc) { const k = String(t.from_name || t.description).trim().toLowerCase(); if (k) (byPayer.get(k) || byPayer.set(k, []).get(k)).push(t); }
   for (const L of byPayer.values()) {
