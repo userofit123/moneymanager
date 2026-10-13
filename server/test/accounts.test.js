@@ -48,3 +48,11 @@ test("alert history: an alert keeps one row while it lasts, and is closed when i
   assert.ok(h.rows.every((r) => r.resolved_at));
   assert.equal(h.more, false);
 });
+
+test("a card with one account shows the last 4 digits of its number, taken from what the bank returned", async () => {
+  await reset();
+  await q("INSERT INTO accounts (name,currency,kind,source,subtitle,sort) VALUES ('Max','ILS','card','max','',60) ON CONFLICT DO NOTHING");
+  await q("INSERT INTO transactions (date,description,from_name,to_name,amount,source,external_id,details) VALUES ('2026-10-01','Shop','Max','Shop',-20,'max','m1',$1)", [JSON.stringify({ account: "4580 1234 5678 9012" })]);
+  const s = await getState();
+  assert.equal(s.accounts.find((a) => a.n === "Max").tail, "9012");
+});
