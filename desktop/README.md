@@ -10,11 +10,11 @@ The same app as the Docker version, as one installer. Nothing to set up: install
 
 ## Building it
 
-Needs Windows (or the GitHub workflow in `.github/workflows/windows-desktop.yml`, which runs on a Windows machine at GitHub).
+Needs Windows (or the GitHub workflow in `.github/workflows/release.yml`, which runs on a Windows machine at GitHub).
 
 1. `server`: `npm ci --omit=dev`, then rename its `node_modules` folder to `app_modules` (the installer builder skips folders named `node_modules`; the app renames it back on first start). Same for `scraper`. The workflow does this.
    Originally: `server`: `npm ci --omit=dev`; `scraper`: `npm ci --omit=dev` with `PUPPETEER_CACHE_DIR=desktop/chrome` set (this downloads the browser into the installer).
-2. `desktop`: `npm install`, then `npm run dist` → `desktop/dist/Money Manager Setup x.y.z.exe`.
+2. `desktop`: `npm install`, then `npm run dist` → `desktop/dist/Money-Manager-Setup-x.y.z.exe`.
 3. To ship an update: bump `version` in `desktop/package.json`, push a tag `vX.Y.Z`. The workflow builds and publishes the release; installed apps pick it up.
 
 The installer is not code-signed, so Windows SmartScreen shows "More info → Run anyway" the first time. A code-signing certificate removes that.
