@@ -140,31 +140,37 @@ async function scrape(company, credentials, startDate, profile) {
 }
 async function scrapeOnce(company, credentials, startDate, profile) {
   if (assist) throw new Error("A verification window is open. Finish or cancel it first.");
-  let page = null, browser = null;
+  let page = null, browser = null, snap = null, snapTimer = null;
   const net = [];
+  // The library closes its page when a step fails, so a screenshot taken in the catch below can come back empty. Keep the latest picture of the page while it runs.
+  const grab = async (p) => { try { if (p && !p.isClosed()) snap = { at: Date.now(), url: shortUrl(p.url()), buf: await p.screenshot({ type: "jpeg", quality: 60 }) }; } catch { /* page busy or closing */ } };
   try {
     browser = await launch(company, profile);
     const s = createScraper({
       companyId: COMPANIES[company], startDate: new Date(startDate), combineInstallments: false, showBrowser: false,
       timeout: 120000, defaultTimeout: 90000, navigationRetryCount: 3, skipCloseBrowser: true, verbose: false, browser,
       viewportSize: { ...VIEW },
-      preparePage: async (p) => { page = p; watchNet(p, net); await look(p); const go = p.goto.bind(p); p.goto = async (...a) => { const r = await go(...a); await settle(p); return r; }; },
+      preparePage: async (p) => { page = p; clearInterval(snapTimer); snapTimer = setInterval(() => grab(p), 1500); p.on("framenavigated", () => setTimeout(() => grab(p), 700)); watchNet(p, net); await look(p); const go = p.goto.bind(p); p.goto = async (...a) => { const r = await go(...a); await settle(p); return r; }; },
     });
     const r = await s.scrape(credentials);
     if (!r.success) throw new Error(`${r.errorType || "error"}: ${r.errorMessage || "login failed"}${netNote(net, page)}`);
     return { success: true, accounts: r.accounts };
   } catch (e) {
     if (page && (await asksForCode(page))) {
+      clearInterval(snapTimer);
       if (DEBUG) { try { await page.screenshot({ path: `/debug/${company}.png` }); } catch {} }
       throw new Error("OTP_REQUIRED: the bank asked for a one-time code. Use \"Verify this device\" once so the bank remembers this browser");
     }
     // where it got stuck (a captcha, a notice, a changed page): kept in memory so the app can show it, never written to disk
-    if (page) { try { LASTSHOT.set(profName(company, profile), { at: Date.now(), url: shortUrl(page.url()), buf: await page.screenshot({ type: "jpeg", quality: 60 }) }); } catch {} }
+    clearInterval(snapTimer);
+    await grab(page);
+    if (snap) LASTSHOT.set(profName(company, profile), snap);
     // opt-in diagnostics: the same screenshot saved to /debug
     if (DEBUG && page) { try { await page.screenshot({ path: `/debug/${company}.png` }); console.log(`debug screenshot: /debug/${company}.png (${page.url().split("?")[0]})`); } catch {} }
     if (e && e.message && net.length && !/refused:/.test(e.message)) e.message += netNote(net, page);
     throw e;
   } finally {
+    clearInterval(snapTimer);
     try { if (browser) await browser.close(); } catch {} // closing writes the profile
   }
 }
