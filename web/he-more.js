@@ -25,7 +25,7 @@ Object.assign(D,{
 "About this section":"על האזור הזה",
 "Profile":"פרופיל","Make it yours":"בואו נתאים את זה אליכם","Tell us a little about you. Every field is optional.":"ספרו לנו קצת על עצמכם. כל השדות אופציונליים.",
 "Everything here is optional. It stays in your own data and is never sent anywhere.":"כל מה שכאן אופציונלי. זה נשמר בנתונים שלכם ולא נשלח לשום מקום.",
-"Name":"שם","What should we call you?":"איך לקרוא לכם?","We use it to greet you on the Home page. It is only shown to you.":"אנחנו משתמשים בו כדי לברך אתכם בדף הבית. הוא מוצג רק לכם.",
+"Name":"שם","What should we call you?":"איך לקרוא לכם?","We use it to greet you on the Recap page. It is only shown to you.":"אנחנו משתמשים בו כדי לברך אתכם בדף הסיכום. הוא מוצג רק לכם.",
 "Age":"גיל","e.g. 34":"למשל 34","So you can set goals such as “reach {} by age {}”. We keep it up to date as the years pass.":"כדי שתוכלו להגדיר יעדים כמו ״להגיע ל‑{} עד גיל {}״. אנחנו מעדכנים אותו לאורך השנים.",
 "Gender":"מגדר","In Hebrew, words change for women and men. This lets the app speak to you correctly.":"בעברית המילים משתנות לנשים ולגברים. כך האפליקציה תדבר אליכם נכון.",
 "Prefer not to say":"מעדיפים לא לומר","Female":"אישה","Male":"גבר",
