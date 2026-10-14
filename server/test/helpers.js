@@ -9,7 +9,7 @@ const { ensureDefaults } = await import("../src/state.js");
 
 export async function reset() {
   await migrate();
-  await q(`TRUNCATE jar_movements, planned_items, transactions, transaction_tags, tags, documents, rules, tag_rules, jars, bills, ignored_bills, budgets, settings, dismissed_alerts,
+  await q(`TRUNCATE jar_movements, planned_items, transactions, transaction_tags, tags, documents, rules, tag_rules, jars, bills, ignored_bills, budgets, settings, dismissed_alerts, alert_log, account_updates, error_log, jar_categories,
            transfer_links, reconciliation_adjustments, balance_snapshots, balance_gaps, exchange_rates, net_worth_snapshots, audit_log,
            sync_runs, accounts, categories, auth_user, sessions, login_attempts, credentials, source_state RESTART IDENTITY CASCADE`);
   await ensureDefaults();
