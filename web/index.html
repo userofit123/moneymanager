@@ -2598,16 +2598,14 @@ if(v=="dash"){const g=greeting();h.innerHTML=esc(g.text).replace("{n}","<bdi>"+e
 const he=!!(window.HE&&HE.on);$("date").textContent=new Date().toLocaleDateString(he?"he-IL":"en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
 const PF_GENDER=[["","Prefer not to say"],["f","Female"],["m","Male"]];
 const PF_GOAL=[["","Not sure yet"],["save","Save more"],["debt","Pay off debt"],["spend","Understand my spending"],["retire","Plan for the future"]];
-const PF_HOME=[["","Prefer not to say"],["1","Just me"],["2","Two of us"],["3","A family with kids"]];
 // the form is used twice, in Settings and in the first-run popup: only the prefix of the field ids differs
 function profFields(px){const p=PROF(),o=(L,v)=>L.map(([k,t])=>`<option value="${k}" ${k==(v||"")?"selected":""}>${t}</option>`).join(""),age=profAge();
 return `<div class="fld"><label for="${px}Name">Name</label><input id="${px}Name" value="${esc(p.name||"")}" maxlength="40" autocomplete="off" placeholder="What should we call you?"><div class="sm">We use it to greet you on the Home page. It is only shown to you.</div></div>
 <div class="two"><div class="fld"><label for="${px}Age">Age</label><input id="${px}Age" type="number" inputmode="numeric" min="10" max="110" value="${age||""}" placeholder="e.g. 34"><div class="sm">So you can set goals such as “reach ₪200,000 by age 40”. We keep it up to date as the years pass.</div></div>
 <div class="fld"><label for="${px}Gender">Gender</label><select id="${px}Gender">${o(PF_GENDER,p.gender)}</select><div class="sm">In Hebrew, words change for women and men. This lets the app speak to you correctly.</div></div></div>
-<div class="two"><div class="fld"><label for="${px}Goal">What matters most to you</label><select id="${px}Goal">${o(PF_GOAL,p.goal)}</select><div class="sm">Helps us decide what to point out first. Nothing changes without you.</div></div>
-<div class="fld"><label for="${px}Home">Who shares your money</label><select id="${px}Home">${o(PF_HOME,p.home)}</select><div class="sm">So tips about budgets and bills fit a single person, a couple or a family.</div></div></div>`}
+<div class="fld"><label for="${px}Goal">What matters most to you</label><select id="${px}Goal">${o(PF_GOAL,p.goal)}</select><div class="sm">Helps us decide what to point out first. Nothing changes without you.</div></div>`}
 function profRead(px){const g=id=>$(px+id)?$(px+id).value:"",age=parseInt(g("Age"),10);
-return {name:g("Name").trim().slice(0,40),...(age>=10&&age<=110?{age,ageYear:new Date().getFullYear()}:{}),gender:g("Gender"),goal:g("Goal"),home:g("Home"),asked:1}}
+return {name:g("Name").trim().slice(0,40),...(age>=10&&age<=110?{age,ageYear:new Date().getFullYear()}:{}),gender:g("Gender"),goal:g("Goal"),asked:1}}
 function renderProfile(){const el=$("setProf");if(!el)return;if(el.contains(document.activeElement)&&document.activeElement.matches("input,select"))return;
 el.innerHTML=`<div class="card ss">${ssh("user","Profile","Everything here is optional. It stays in your own data and is never sent anywhere.")}<div class="ssb p">${profFields("pf")}<div class="flex" style="justify-content:flex-end;gap:10px"><button class="btn o" data-a="profClear">Clear profile</button><button class="btn" data-a="profSave">Save</button></div></div></div>`}
 function profSave(px){const old=PROF(),n=profRead(px);S.cfg=S.cfg||{};S.cfg.profile=n;log("Updated profile",n.name?n.name:"no name");renderAll()}

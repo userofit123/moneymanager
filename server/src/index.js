@@ -348,6 +348,16 @@ app.use((req, res, next) => {
   if (req.path === "/" || req.path.endsWith(".html") || req.path === "/sw.js") res.set("Cache-Control", req.path === "/sw.js" ? "no-store" : "no-cache");
   next();
 });
+// The page's own scripts get ?v=<last change> in their address. An older copy kept by the browser or the service worker has a different address,
+// so a new page is never run with old scripts or old translations.
+app.get(["/", "/index.html"], (_req, res, next) => {
+  try {
+    const html = fs.readFileSync(path.join(WEB, "index.html"), "utf8").replace(/(<script src=")([\w.-]+\.js)(")/g, (m, a, f, z) => {
+      try { return `${a}${f}?v=${Math.round(fs.statSync(path.join(WEB, f)).mtimeMs)}${z}`; } catch { return m; }
+    });
+    res.set("Cache-Control", "no-cache").type("html").send(html);
+  } catch { next(); }
+});
 app.use(express.static(WEB, { extensions: ["html"] }));
 
 let httpServer = null;
