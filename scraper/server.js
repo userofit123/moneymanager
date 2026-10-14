@@ -51,6 +51,14 @@ const ASSIST_IDLE_MS = +process.env.ASSIST_IDLE_MS || 10 * 60 * 1000;
 
 const SHOT_DIR = process.env.SHOT_DIR || path.join(process.env.PROFILE_DIR || "/profiles", "_failed-logins"); // the last failed login of each bank is also kept here as a picture (one file per bank, replaced by the next failure)
 const shotFile = (name) => path.join(SHOT_DIR, name.replace(/[^A-Za-z0-9_~-]/g, "_") + ".jpg");
+// Every picture of a failed attempt is kept in its own folder (company_date-time/001_host-path.jpg), the newest 15 attempts of each bank.
+function saveAttempt(name, frames) {
+  const safe = name.replace(/[^A-Za-z0-9_~-]/g, "_"), stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19), dir = path.join(SHOT_DIR, `${safe}_${stamp}`);
+  fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
+  frames.forEach((f, i) => fs.writeFileSync(path.join(dir, `${String(i + 1).padStart(3, "0")}_${new Date(f.at).toISOString().slice(11, 19).replace(/:/g, "-")}_${f.url.replace(/[^A-Za-z0-9.-]+/g, "_").slice(0, 50)}.jpg`), f.buf, { mode: 0o600 }));
+  const old = fs.readdirSync(SHOT_DIR).filter((d) => d.startsWith(safe + "_") && fs.statSync(path.join(SHOT_DIR, d)).isDirectory()).sort().slice(0, -15);
+  old.forEach((d) => fs.rmSync(path.join(SHOT_DIR, d), { recursive: true, force: true }));
+}
 const LASTSHOT = new Map(); // profile -> { at, url, buf }: where the last failed login stopped (memory only, replaced on the next failure)
 // A bank's bot protection needs a moment of page activity before it trusts a data request: let the page finish loading and move the mouse a little, as a person would.
 async function settle(p) {
@@ -143,9 +151,10 @@ async function scrape(company, credentials, startDate, profile) {
 async function scrapeOnce(company, credentials, startDate, profile) {
   if (assist) throw new Error("A verification window is open. Finish or cancel it first.");
   let page = null, browser = null, snap = null, snapTimer = null;
+  const frames = []; // every picture taken during this attempt, written to disk only if it fails
   const net = [];
   // The library closes its page when a step fails, so a screenshot taken in the catch below can come back empty. Keep the latest picture of the page while it runs.
-  const grab = async (p) => { try { if (p && !p.isClosed()) snap = { at: Date.now(), url: shortUrl(p.url()), buf: await p.screenshot({ type: "jpeg", quality: 60 }) }; } catch { /* page busy or closing */ } };
+  const grab = async (p) => { try { if (p && !p.isClosed()) snap = { at: Date.now(), url: shortUrl(p.url()), buf: await p.screenshot({ type: "jpeg", quality: 60 }) }; frames.push(snap); if (frames.length > 400) frames.splice(1, 1); } catch { /* page busy or closing */ } };
   try {
     browser = await launch(company, profile);
     const s = createScraper({
@@ -166,7 +175,7 @@ async function scrapeOnce(company, credentials, startDate, profile) {
     // where it got stuck (a captcha, a notice, a changed page): kept in memory so the app can show it, never written to disk
     clearInterval(snapTimer);
     await grab(page);
-    if (snap) { LASTSHOT.set(profName(company, profile), snap); try { fs.mkdirSync(SHOT_DIR, { recursive: true, mode: 0o700 }); fs.writeFileSync(shotFile(profName(company, profile)), snap.buf, { mode: 0o600 }); } catch { /* the in-memory copy still works */ } }
+    if (snap) { LASTSHOT.set(profName(company, profile), snap); try { fs.mkdirSync(SHOT_DIR, { recursive: true, mode: 0o700 }); fs.writeFileSync(shotFile(profName(company, profile)), snap.buf, { mode: 0o600 }); saveAttempt(profName(company, profile), frames); } catch { /* the in-memory copy still works */ } }
     // opt-in diagnostics: the same screenshot saved to /debug
     if (DEBUG && page) { try { await page.screenshot({ path: `/debug/${company}.png` }); console.log(`debug screenshot: /debug/${company}.png (${page.url().split("?")[0]})`); } catch {} }
     if (e && e.message && net.length && !/refused:/.test(e.message)) e.message += netNote(net, page);
