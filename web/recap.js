@@ -187,6 +187,12 @@ function reveal(box,animate){if(IO){IO.disconnect();IO=null}
  IO=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;const x=e.target;x.classList.add("in");x.querySelectorAll(".cnt").forEach(countUp);IO.unobserve(x)}),{threshold:.18,rootMargin:"0px 0px -6% 0px"});
  items.forEach(x=>IO.observe(x))}
 
+// each connector runs from the middle of its circle to the middle of the next one
+let RO=null;
+function links(el){const rows=[...el.querySelectorAll(".rk.z")];
+ const cy=r=>{const n=r.querySelector(".rkni"),c=r.querySelector(".rkcir");return r.offsetTop+n.offsetTop+c.offsetTop+c.offsetHeight/2};
+ rows.forEach((r,i)=>{const n=rows[i+1];if(!n)return;const d=Math.max(0,cy(n)-cy(r));r.querySelectorAll(".rkcn").forEach(s=>s.style.height=d+"px")})}
+function wireLinks(el){if(RO){RO.disconnect();RO=null}links(el);if("ResizeObserver" in window){RO=new ResizeObserver(()=>links(el));RO.observe(el)}}
 let LASTSIG="",LASTAT=0;
 window.renderRecap=function(){const el=$("recap");if(!el)return;
  let html,m=null;
@@ -200,5 +206,5 @@ window.renderRecap=function(){const el=$("recap");if(!el)return;
  if(html===LASTSIG&&el.firstChild)return;
  const fresh=Date.now()-LASTAT>2500||!el.firstChild;LASTSIG=html;LASTAT=Date.now();
  const y=scrollY;el.innerHTML=html;
- reveal(el,fresh);if(m)wireDays(el,m);if(!fresh)scrollTo(0,y)};
+ reveal(el,fresh);wireLinks(el);if(m)wireDays(el,m);if(!fresh)scrollTo(0,y)};
 })();
