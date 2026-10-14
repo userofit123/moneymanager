@@ -104,48 +104,57 @@ function pathChart(m){const W=600,Hh=110,px=18,top=14,bot=14,xs=[px,px+(W-2*px)*
 /* ---------- the parts of the page ---------- */
 function hero(m){const name=(P().name||"").trim(),mon=mname(MK);
  const hi=name?L("Hi "+esc(name),"היי "+esc(name)):L("Hello","שלום");
- const lead={start:L(`Here is how ${mon} is beginning`,`כך ${mon} מתחיל`),mid:L(`Here is your ${mon} so far`,`הנה ${mon} שלכם עד עכשיו`),end:L(`${mon} is almost over`,`${mon} כמעט נגמר`)}[m.phase];
+ const lead={start:L(`Here is how ${mon} is beginning, step by step`,`כך ${mon} מתחיל, צעד אחרי צעד`),mid:L(`Here is how ${mon} has gone so far, step by step`,`כך ${mon} עבר עליכם עד עכשיו, צעד אחרי צעד`),end:L(`${mon} is almost over. Here is how it went`,`${mon} כמעט נגמר. כך הוא עבר עליכם`)}[m.phase];
  return `<section class="rkh rr"><h2>${hi}</h2><p>${lead}</p>${dayScale(m)}</section>`}
 
-function startPart(m){if(!(isFinite(m.start)&&Math.abs(m.start)>=1))return"";const d=m.cash-m.start;
- const line=Math.abs(d)>=100?chip(d>=0?"up":"down",d>=0?L(`${mi(d)} more in your accounts today`,`${mi(d)} יותר בחשבונות היום`):L(`${mi(-d)} less in your accounts today`,`${mi(-d)} פחות בחשבונות היום`),d>=0?"good":"warn"):"";
- return part("flag","",L(`Where ${mname(MK)} started`,`איפה ${mname(MK)} התחיל`),"",`<span class="rkw">≈</span>${mn(m.start)}`,L("in your accounts at the start of the month","בחשבונות בתחילת החודש")+(line?`<br>${line}`:""))}
+// three amounts side by side: where it was, what was added, where it got to
+const eq=(a,b,c)=>`<div class="rkeq">${[a,"+",b,"=",c].map(x=>typeof x=="string"?`<i>${x}</i>`:`<div><span>${x[0]}</span><b>${mi(x[1])}</b></div>`).join("")}</div>`;
+
+function startPart(m){if(!(isFinite(m.start)&&Math.abs(m.start)>=1))return"";const d=m.cash-m.start,mon=mname(MK);
+ const line=Math.abs(d)>=100?chip(d>=0?"up":"down",d>=0?L(`Today you have ${mi(d)} more than that`,`היום יש לכם ${mi(d)} יותר מזה`):L(`Today you have ${mi(-d)} less than that`,`היום יש לכם ${mi(-d)} פחות מזה`),d>=0?"good":"warn"):"";
+ return part("flag","",L(`${mon} began with`,`${mon} התחיל עם`),"",`<span class="rkw">≈</span>${mn(m.start)}`,L(`That is roughly what was in your accounts on ${dlong(MK+"-01")}.`,`זה בערך מה שהיה בחשבונות ב‑${dlong(MK+"-01")}.`)+(line?`<br>${line}`:""))}
 
 function inPart(m){
- if(!m.sal)return part("in","tp",L("What came in","מה נכנס"),"in",mn(0),L("Nothing has come in yet this month.","עוד לא נכנס כלום החודש."));
- const rest=m.inc-m.sal.a,n=m.incs.length-1;
- let line=L(`Paid in on ${dlong(rdOf(m.sal))} · ${nm(m.sal.desc)}`,`נכנס ב‑${dlong(rdOf(m.sal))} · ${nm(m.sal.desc)}`);
- if(n>0&&rest>=1)line+=`<br>${L(`and ${mi(rest)} more from ${pl(n,"1 other payment","{} other payments","","")}`,`ועוד ${mi(rest)} מ‑${pl(n,"","","תשלום נוסף אחד","{} תשלומים נוספים")}`)}`;
- return part("in","tp",L("What came in","מה נכנס"),"in",mn(m.sal.a),line)}
+ if(!m.sal)return part("in","tp",L("So far, money in","עד עכשיו נכנס"),"in",mn(0),L("Nothing has come in yet this month.","עוד לא נכנס כסף החודש."));
+ const rest=m.inc-m.sal.a,n=m.incs.length-1,ok=isFinite(m.start)&&Math.abs(m.start)>=1;
+ let line=n>0&&rest>=1
+  ?L(`The biggest payment was ${mi(m.sal.a)} from ${nm(m.sal.desc)}, on ${dlong(rdOf(m.sal))}. ${pl(n,"1 other payment","{} other payments","","")} added another ${mi(rest)}.`,`התשלום הגדול היה ${mi(m.sal.a)} מ‑${nm(m.sal.desc)}, ב‑${dlong(rdOf(m.sal))}. ${pl(n,"","","תשלום נוסף אחד","{} תשלומים נוספים")} הוסיפו עוד ${mi(rest)}.`)
+  :L(`You were paid by ${nm(m.sal.desc)} on ${dlong(rdOf(m.sal))}.`,`קיבלתם תשלום מ‑${nm(m.sal.desc)} ב‑${dlong(rdOf(m.sal))}.`);
+ if(ok)line+=`<br>${L(`That took your accounts up to about ${mi(m.start+m.inc)}.`,`זה העלה את החשבונות לכ‑${mi(m.start+m.inc)}.`)}`;
+ return part("in","tp",L("Then, money came in","אחר כך נכנס כסף"),"in",mn(m.inc),line,ok?eq([L("Started with","התחלתם עם"),m.start],[L("Came in","נכנס"),m.inc],[L("Brought it to","הגיע ל‑"),m.start+m.inc]):"")}
 
 function outPart(m){
  let line="",d=m.same-m.ex;
  if(m.same>=100&&m.ex>=100){
-  if(Math.abs(d)<Math.max(100,m.same*.08))line=chip("flat",L("About the same as last month so far","בערך כמו בחודש שעבר עד עכשיו"));
+  if(Math.abs(d)<Math.max(100,m.same*.08))line=chip("flat",L("About the same as at this point last month","בערך כמו בנקודה הזאת בחודש שעבר"));
   else if(d>0)line=chip("down",L(`${mi(d)} less than at this point last month`,`${mi(d)} פחות מאשר בנקודה הזאת בחודש שעבר`),"good");
   else line=chip("up",L(`${mi(-d)} more than at this point last month`,`${mi(-d)} יותר מאשר בנקודה הזאת בחודש שעבר`),"warn")}
  let pulse="";const tr=m.w1-m.w0;
  if(m.w0>=150&&Math.abs(tr)>=Math.max(100,m.w0*.25))pulse=tr<0?chip("down",L("The last 7 days were calmer than the 7 before","7 הימים האחרונים היו רגועים יותר מ‑7 הימים שלפניהם"),"good"):chip("up",L("The last 7 days were busier than the 7 before","7 הימים האחרונים היו עמוסים יותר מ‑7 הימים שלפניהם"),"warn");
  else if(m.below[0])pulse=chip("down",L(`${nm(m.below[0].k)} is well below its usual`,`${nm(m.below[0].k)} נמוך בהרבה מהרגיל`),"good");
  else if(m.above[0])pulse=chip("up",L(`${nm(m.above[0].k)} is already above a usual month`,`${nm(m.above[0].k)} כבר מעל חודש רגיל`),"warn");
- return part("out","tn",L("Spent so far","הוצאות עד עכשיו"),"out",mn(m.ex),line+pulse,dayBars(m))}
+ const lead=L(`Each bar below is one day of spending.`,`כל עמודה למטה היא יום אחד של הוצאות.`);
+ return part("out","tn",L("Since then, you have spent","מאז הוצאתם"),"out",mn(m.ex),lead+line+pulse,dayBars(m))}
 
-function nowPart(m){return part("wallet","",L("In your accounts right now","בחשבונות שלכם עכשיו"),"now",mn(m.cash),L("today, across your bank and wallet accounts","היום, בכל חשבונות הבנק והארנקים"),nowBar(m))}
+function nowPart(m){const set=Math.min(m.cash,m.inJars+m.buffer),free=Math.max(0,m.cash-set);
+ return part("wallet","",L("After all that, your accounts hold","אחרי כל זה, בחשבונות שלכם יש"),"now",mn(m.cash),L(`across your bank and wallet accounts today. ${mi(set)} of it is set aside in jars and ${mi(free)} is free to use.`,`בכל חשבונות הבנק והארנקים היום. ${mi(set)} מזה שמור בקופות ו‑${mi(free)} פנויים לשימוש.`),nowBar(m))}
 
 function aheadPart(m){const tot=m.cardLeft+m.billsTot+m.limitsLeft;if(tot<1)return"";
- let line="";if(m.nextUp)line=L(`Next up: ${nm(m.nextUp.n)} ${mi(m.nextUp.pred)} · ${dday(m.nextUp.nx.toISOString())} ${dshort(m.nextUp.nx.toISOString())}`,`הבא בתור: ${nm(m.nextUp.n)} ${mi(m.nextUp.pred)} · ${dday(m.nextUp.nx.toISOString())} ${dshort(m.nextUp.nx.toISOString())}`);
- return part("ahead","",L("Still ahead this month","עוד לפניכם החודש"),"ahead",mn(tot),line,aheadBar(m))}
+ let line=L("Credit card charges, bills and the rest of your budgets.","חיובי אשראי, חשבונות והחלק שנשאר מהתקציבים.");
+ if(m.nextUp)line+=`<br>${L(`Next up is ${nm(m.nextUp.n)} (${mi(m.nextUp.pred)}) on ${dday(m.nextUp.nx.toISOString())}, ${dshort(m.nextUp.nx.toISOString())}.`,`הבא בתור: ${nm(m.nextUp.n)} (${mi(m.nextUp.pred)}) ב${dday(m.nextUp.nx.toISOString())}, ${dshort(m.nextUp.nx.toISOString())}.`)}`;
+ line+=`<br>${m.cash-tot>=0?L(`Once those are paid, about ${mi(m.cash-tot)} would be left in your accounts.`,`אחרי ששילמתם אותם יישארו בחשבונות בערך ${mi(m.cash-tot)}.`):L(`That is ${mi(tot-m.cash)} more than your accounts hold today.`,`זה ${mi(tot-m.cash)} יותר ממה שיש היום בחשבונות.`)}`;
+ return part("ahead","",L("Still to come this month","עוד צפוי לצאת החודש"),"ahead",mn(tot),line,aheadBar(m))}
 
 function budgetsPart(m){const flag=[...m.over,...m.risk];
- if(!flag.length){if(!m.okB.length)return"";return part("check","tp",L("Budgets","תקציבים"),"budg",`<span class="rkw">${L("All on track","הכול בדרך הנכונה")}</span>`,L(`${pl(m.okB.length,"1 budget is within its limit","{} budgets are within their limits","","")}`,`${pl(m.okB.length,"","","תקציב אחד נמצא","{} תקציבים נמצאים")} במסגרת`))}
- return part("pie",m.over.length?"tn":"tw",L("Budgets","תקציבים"),"budg",`<span class="rkw">${L(`${pl(flag.length,"1 needs","{} need","","")} attention`,`${pl(flag.length,"","","אחד דורש","{} דורשים")} תשומת לב`)}</span>`,"",`<div class="rkrgs">${flag.slice(0,3).map(ring).join("")}</div>`)}
+ if(!flag.length){if(!m.okB.length)return"";return part("check","tp",L("Along the way, your budgets are","בדרך, התקציבים שלכם"),"budg",`<span class="rkw">${L("On track","בדרך הנכונה")}</span>`,L(`${pl(m.okB.length,"Your 1 budget is within its limit.","All {} budgets are within their limits.","","")}`,`${pl(m.okB.length,"","","התקציב שלכם נמצא במסגרת.","כל {} התקציבים נמצאים במסגרת.")}`))}
+ return part("pie",m.over.length?"tn":"tw",L("Along the way, your budgets","בדרך, התקציבים שלכם"),"budg",`<span class="rkw">${L(`${pl(flag.length,"1 needs","{} need","","")} attention`,`${pl(flag.length,"","","אחד דורש","{} דורשים")} תשומת לב`)}</span>`,L("These are the ones to keep an eye on.","אלה שכדאי לשים לב אליהם."),`<div class="rkrgs">${flag.slice(0,3).map(ring).join("")}</div>`)}
 
 function endPart(m){
  const hasStart=isFinite(m.start)&&Math.abs(m.start)>=1,d=m.end-m.start;
- let line=L(`could be in your accounts at the end of ${mname(MK)}, if no more money comes in`,`יכול להיות בחשבונות בסוף ${mname(MK)}, אם לא ייכנס עוד כסף`);
- if(hasStart&&Math.abs(d)>=100)line+=`<br>${d>=0?L(`${mi(d)} more than you started with`,`${mi(d)} יותר ממה שהתחלתם איתו`):L(`${mi(-d)} less than you started with`,`${mi(-d)} פחות ממה שהתחלתם איתו`)}`;
- if(m.phase=="end")line+=`<br>${L(`${mname(m.nmk)} starts with about ${mi(m.nextBills+m.cardsU)} already on its way out`,`${mname(m.nmk)} מתחיל כשכבר ${mi(m.nextBills+m.cardsU)} בדרך החוצה`)}`;
- return part("path",m.end<0?"tn":"",L("Where this is heading","לאן זה הולך"),"end",`<span class="rkw">≈</span>${mn(m.end)}`,line,pathChart(m))}
+ let line=L(`in your accounts, if no more money comes in.`,`בחשבונות, אם לא ייכנס עוד כסף.`);
+ if(hasStart&&Math.abs(d)>=100)line+=`<br>${d>=0?L(`That is ${mi(d)} more than you started with.`,`זה ${mi(d)} יותר ממה שהתחלתם איתו.`):L(`That is ${mi(-d)} less than you started with.`,`זה ${mi(-d)} פחות ממה שהתחלתם איתו.`)}`;
+ if(m.phase=="end")line+=`<br>${L(`${mname(m.nmk)} will begin with about ${mi(m.nextBills+m.cardsU)} already on its way out.`,`${mname(m.nmk)} יתחיל כשכבר כ‑${mi(m.nextBills+m.cardsU)} בדרך החוצה.`)}`;
+ return part("path",m.end<0?"tn":"",L(`By the end of ${mname(MK)}, you could have`,`עד סוף ${mname(MK)} יכולים להיות לכם`),"end",`<span class="rkw">≈</span>${mn(m.end)}`,line,pathChart(m))}
 
 /* ---------- opening the matching page, filtered ---------- */
 window.recapGo=function(k){const last=MK+"-"+p2(DIM);
