@@ -128,7 +128,17 @@ function watchNet(p, log) {
 }
 const netNote = (log, page) => { const u = [...new Set(log)].slice(-4); let where = ""; try { if (page) where = shortUrl(page.url()); } catch { /* closed */ } return (u.length ? " · refused: " + u.join("; ") : "") + (where ? " · stopped on: " + where : ""); };
 
+// An empty reply to the very first request (ValidateIdData) means the bank's bot protection had not let the page through yet. Nothing was checked
+// against the bank, so no login attempt was used: wait a little and try once more in a fresh browser before giving up.
 async function scrape(company, credentials, startDate, profile) {
+  try { return await scrapeOnce(company, credentials, startDate, profile); }
+  catch (e) {
+    if (!/ValidateIdData/.test(String(e && e.message)) || !/parse error|Unexpected end of JSON/i.test(String(e.message))) throw e;
+    await new Promise((r) => setTimeout(r, 20000));
+    return scrapeOnce(company, credentials, startDate, profile);
+  }
+}
+async function scrapeOnce(company, credentials, startDate, profile) {
   if (assist) throw new Error("A verification window is open. Finish or cancel it first.");
   let page = null, browser = null;
   const net = [];
