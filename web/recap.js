@@ -103,7 +103,7 @@ function pathChart(m){const W=600,Hh=110,px=18,top=14,bot=14,xs=[px,px+(W-2*px)*
 
 /* ---------- the parts of the page ---------- */
 function hero(m){const name=(P().name||"").trim(),mon=mname(MK);
- const hi=name?L("Hi "+esc(name),"היי "+esc(name)):L("Hello","שלום");
+ let hi;try{const g=greeting();hi=esc(g.text).replace("{n}","<bdi>"+esc(g.name)+"</bdi>")}catch(e){hi=name?L("Hi "+esc(name),"היי "+esc(name)):L("Hello","שלום")}
  const lead={start:L(`Here is how ${mon} is beginning, step by step`,`כך ${mon} מתחיל, צעד אחרי צעד`),mid:L(`Here is how ${mon} has gone so far, step by step`,`כך ${mon} עבר עליכם עד עכשיו, צעד אחרי צעד`),end:L(`${mon} is almost over. Here is how it went`,`${mon} כמעט נגמר. כך הוא עבר עליכם`)}[m.phase];
  return `<section class="rkh rr"><h2>${hi}</h2><p>${lead}</p>${dayScale(m)}</section>`}
 
@@ -213,13 +213,13 @@ const showIn=(x,animate)=>{if(x.classList.contains("in"))return;x.classList.add(
 function reveal(box,animate){if(IO){IO.disconnect();IO=null}
  const items=[...box.querySelectorAll(".rr:not(.z):not(.zend)")];
  if(!animate||REDUCE()||!("IntersectionObserver" in window)){items.forEach(x=>showIn(x,false));return}
- IO=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;showIn(e.target,true);IO.unobserve(e.target)}),{threshold:.3,rootMargin:"0px 0px -18% 0px"});
+ IO=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;showIn(e.target,true);IO.unobserve(e.target)}),{threshold:.25,rootMargin:"0px 0px -36% 0px"});
  items.forEach(x=>IO.observe(x))}
 
 // the path is drawn as you scroll: its tip stays near the bottom of the screen, and each part fades in when the path reaches it.
 // Parts that scroll away off the top shrink a little.
 const SVGNS="http://www.w3.org/2000/svg";
-function frame(){const s=CUR;if(!s||!s.el.isConnected||!s.el.getClientRects().length)return;const el=s.el,vh=innerHeight,head=scrollY+vh*.86,anim=s.animate&&!REDUCE();
+function frame(){const s=CUR;if(!s||!s.el.isConnected||!s.el.getClientRects().length)return;const el=s.el,vh=innerHeight,head=scrollY+vh*.86,mid=scrollY+vh*.6,anim=s.animate&&!REDUCE();
  const z=el.querySelector(".rkz");
  if(z){const zTop=z.getBoundingClientRect().top+scrollY,rows=[...z.querySelectorAll(".rk.z")],end=z.querySelector(".zend");
   const cy=r=>{const n=r.querySelector(".rkni"),c=r.querySelector(".rkcir");return r.offsetTop+n.offsetTop+c.offsetTop+c.offsetHeight/2};
@@ -231,15 +231,15 @@ function frame(){const s=CUR;if(!s||!s.el.isConnected||!s.el.getClientRects().le
    const x0=r.classList.contains("za")?52:128,x1=i+1<rows.length?(rows[i+1].classList.contains("za")?52:128):90;
    r.classList.toggle("tozend",i+1==rows.length&&b!=null);
    if(b!=null){draw(r.querySelector(".rkcn.cs"),180,b-a,x0,x1,a);draw(r.querySelector(".rkcn.cm"),10,b-a,5,5,a)}
-   if(head>=zTop+a)showIn(r,anim)});
-  if(end&&endY!=null&&head>=zTop+endY)showIn(end,anim);
+   if(mid>=zTop+a)showIn(r,anim)});
+  if(end&&endY!=null&&mid>=zTop+endY)showIn(end,anim);
   // the start of the path comes down from the first part
   const st=el.querySelector(".rkw0>.rk:not(.z)"),ti=st&&st.querySelector(".rki");
   if(rows.length&&ti){let ld=z.querySelector(".rklead");if(!ld){ld=document.createElementNS(SVGNS,"svg");ld.setAttribute("class","rkcn rklead cs");ld.setAttribute("aria-hidden","true");ld.innerHTML='<path/>';z.insertBefore(ld,z.firstChild)}
    const tb=ti.getBoundingClientRect().bottom+scrollY-8,from=tb-zTop,a=pts[0],d=a-from,x1=rows[0].classList.contains("za")?52:128;
    ld.style.top=from+"px";ld.style.height=Math.max(0,d)+"px";ld.setAttribute("viewBox",`0 0 180 ${Math.max(1,d)}`);const pa=ld.querySelector("path");pa.setAttribute("d",`M90 0C90 ${d*.5} ${x1} ${d*.5} ${x1} ${d}`);
    const p=Math.max(0,Math.min(1,(head-tb)/Math.max(1,d)));pa.style.strokeDashoffset=anim?String(1-p):"0"}}
- if(!REDUCE()){const t0=vh*.4,sp=vh*.7;el.querySelectorAll(".rkh.rr,.rkw0>.rk.rr,.rk.z,.zend").forEach(x=>{const r=x.getBoundingClientRect(),c=(r.top+r.bottom)/2,t=Math.max(0,Math.min(1,(t0-c)/sp));x.style.setProperty("--sx",(1-.2*t).toFixed(3))})}}
+ if(!REDUCE()){const t0=vh*.45,sp=vh*.65;el.querySelectorAll(".rkh.rr,.rkw0>.rk.rr,.rk.z,.zend").forEach(x=>{const r=x.getBoundingClientRect(),c=(r.top+r.bottom)/2,t=Math.max(0,Math.min(1,(t0-c)/sp));x.style.setProperty("--sx",(1-.34*t).toFixed(3))})}}
 let TICK=0;const kick=()=>{if(TICK)return;TICK=requestAnimationFrame(()=>{TICK=0;frame()})};
 function wireLinks(el,animate){CUR={el,animate};if(RO){RO.disconnect();RO=null}
  if("ResizeObserver" in window){RO=new ResizeObserver(kick);RO.observe(el)}
