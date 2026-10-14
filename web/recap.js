@@ -73,7 +73,7 @@ function model(){
  const nextBills=BI.filter(b=>!b.once&&!b.irregular&&b.flag!="canceled"&&b.nx&&b.nx.toISOString().slice(0,7)==nmk).reduce((s,b)=>s+b.pred,0);
  const nextUp=BI.filter(b=>!b.once&&!b.irregular&&b.flag!="canceled"&&b.nx&&b.nx>NOW).sort((a,b)=>a.nx-b.nx)[0]||null;
  const phase=day<=5?"start":dim-day<=6?"end":"mid";
- return{day,dim,pm,nmk,cash,inc,ex,cardsU,cardsPrev,cardPaid,cardLeft,same,incs,sal,bills,billsTot,limitsLeft,end,start,over,risk,okB,above,below,w1,w0,days,nextBills,nextUp,phase,inJars:F.inJars,buffer:F.buffer}}
+ return{jarCov,day,dim,pm,nmk,cash,inc,ex,cardsU,cardsPrev,cardPaid,cardLeft,same,incs,sal,bills,billsTot,limitsLeft,end,start,over,risk,okB,above,below,w1,w0,days,nextBills,nextUp,phase,inJars:F.inJars,buffer:F.buffer}}
 
 /* ---------- the small pictures ---------- */
 // the month as a row of days. Hover a day to see what happened, click it to open that day in Activity.
@@ -91,7 +91,7 @@ function dayBars(m){const W=600,Hh=96,gap=4,n=m.dim,bw=(W-gap*(n-1))/n,v0=m.days
 const segBar=it=>{it=it.filter(x=>x[1]>=1);const tot=it.reduce((s,x)=>s+x[1],0)||1;
  return `<div class="rkseg">${it.map((x,i)=>`<i class="${x[2]}" style="flex:${x[1]/tot};--i:${i}"></i>`).join("")}</div><div class="rkleg">${it.map(x=>`<${x[3]?"a":"span"} ${x[3]?`data-a="recapGo" data-k="${x[3]}"`:""}><i class="${x[2]}"></i>${x[0]} <b>${mi(x[1])}</b></${x[3]?"a":"span"}>`).join("")}</div>`};
 const nowBar=m=>{const set=Math.min(m.cash,m.inJars+m.buffer),free=Math.max(0,m.cash-set);return segBar([[L("Set aside in jars","שמור בקופות"),set,"c4","jars"],[L("Free to use","פנוי לשימוש"),free,"c5","now"]])};
-const aheadBar=m=>segBar([[L("Credit cards","כרטיסי אשראי"),m.cardLeft,"c1","now"],[L("Bills","חשבונות"),m.billsTot,"c2","bills"],[L("Budgets","תקציבים"),m.limitsLeft,"c3","budg"]]);
+const aheadBar=m=>segBar([[L("Credit cards","כרטיסי אשראי"),m.cardLeft,"c1","now"],[L("Bills","חשבונות"),m.billsTot,"c2","bills"],[L("Budgets","תקציבים"),m.limitsLeft,"c3","budg"],[L("Paid from jars","מהקופות"),m.jarCov,"c4","jars"]]);
 
 // a ring for a budget: how much of it is used
 function ring(b,i){const r=27,c=2*Math.PI*r,p=Math.min(1,b.s/Math.max(1,b.lim));
@@ -144,9 +144,11 @@ function nowPart(m){const set=Math.min(m.cash,m.inJars+m.buffer),free=Math.max(0
 // the next payments, each with its date
 function upList(m){const it=[];m.days.forEach(D=>D.up.forEach(x=>{if(D.d>=TODAY)it.push([D.d,x[0],x[1],x[2]])}));
  if(!it.length)return"";return `<div class="rkup"><div class="t">${L("Coming up next","הבא בתור")}</div>${it.slice(0,3).map(x=>`<div class="r" ${x[3]!=null?`data-a="billOpen" data-i="${x[3]}" role="button" tabindex="0"`:""}><div class="dt"><b>${+x[0].slice(8)}</b><span>${dshort(x[0]).replace(/[0-9\s]/g,"")}</span></div><div class="n">${nm(x[1])}<small>${dday(x[0])}</small></div><b class="a">${mi(x[2])}</b></div>`).join("")}</div>`}
-function aheadPart(m){const tot=m.cardLeft+m.billsTot+m.limitsLeft;if(tot<1)return"";
- const left=m.cash-tot,rest=left>=0?chip("up",L(`You would have about ${mi(left)} left once you have paid these`,`יישארו לכם בערך ${mi(left)} אחרי ששילמתם אותם`),"good","fc"):chip("down",L(`That is ${mi(-left)} more than you have in your accounts today`,`זה ${mi(-left)} יותר ממה שיש לכם היום בחשבונות`),"warn");
- return part("ahead","",L("You still have to pay","עוד תצטרכו לשלם"),"ahead",mn(tot),L("That is your credit card charges, your bills and the rest of your budgets.","אלה חיובי האשראי, החשבונות והחלק שנשאר מהתקציבים שלכם.")+rest,aheadBar(m)+upList(m))}
+function aheadPart(m){const tot=m.cash-m.end;if(tot<1)return"";const bm={...m,billsTot:Math.max(0,tot-m.cardLeft-m.limitsLeft-m.jarCov)};
+ const left=m.cash-tot,held=m.inJars+m.buffer,free=left-held;
+ const rest=left>=0?chip("up",L(`You would have about ${mi(left)} left once you have paid these`,`יישארו לכם בערך ${mi(left)} אחרי ששילמתם אותם`),"good","fc"):chip("down",L(`That is ${mi(-left)} more than you have in your accounts today`,`זה ${mi(-left)} יותר ממה שיש לכם היום בחשבונות`),"warn","now");
+ const jr=held>=1&&left>=0?(free>=0?chip("flat",L(`${mi(free)} of that would be free after your jars`,`${mi(free)} מזה יהיו פנויים אחרי הקופות`),"","jars"):chip("down",L(`That is ${mi(-free)} less than your jars hold. The jars are not emptied, but the money for all of them will not be there`,`זה ${mi(-free)} פחות ממה שיש בקופות. הקופות לא מתרוקנות, אבל לא יהיה כסף לכולן`),"warn","jars")):"";
+ return part("ahead","",L("You still have to pay","עוד תצטרכו לשלם"),"ahead",mn(tot),L("That is your credit card charges, your bills, the rest of your budgets and what your jars pay for.","אלה חיובי האשראי, החשבונות, מה שנשאר מהתקציבים ומה שהקופות משלמות.")+rest+jr,aheadBar(bm)+upList(m))}
 
 // why a budget needs attention, with a bar showing how much is used (and where it is heading)
 function budRow(b){const lim=Math.max(1,b.lim),u=Math.min(100,b.s/lim*100),pc=Math.min(100,b.pace/lim*100);
@@ -162,6 +164,8 @@ function endPart(m){
  const hasStart=isFinite(m.start)&&Math.abs(m.start)>=1,d=m.end-m.start,mon=mname(MK);
  let line=L(`This is what you would be left with if you pay everything that is still due (bills and credit card charges) and spend the rest of your budgets in full.`,`זה מה שיישאר לכם אם תשלמו את כל מה שעוד צפוי (חשבונות וחיובי אשראי) ותנצלו במלואו את מה שנשאר מהתקציבים.`);
  if(hasStart&&Math.abs(d)>=100)line+=chip(d>=0?"up":"down",d>=0?L(`${mi(d)} more than you started with`,`${mi(d)} יותר ממה שהתחלתם איתו`):L(`${mi(-d)} less than you started with`,`${mi(-d)} פחות ממה שהתחלתם איתו`),d>=0?"good":"warn","fc");
+ {const held=m.inJars+m.buffer,free=m.end-held;
+  if(held>=1&&m.end>0)line+=free>=0?chip("flat",L(`Your jars (${mi(held)}) are part of this, so ${mi(free)} would be free to use`,`הקופות (${mi(held)}) כלולות בסכום, כך ש‑${mi(free)} יהיו פנויים לשימוש`),"","jars"):chip("down",L(`Your jars (${mi(held)}) are part of this. That is ${mi(-free)} more than will be there, so the jars will not all be covered`,`הקופות (${mi(held)}) כלולות בסכום. זה ${mi(-free)} יותר ממה שיהיה, ולכן לא כל הקופות יכוסו`),"warn","jars")}
  if(m.phase=="end")line+=chip("flat",L(`${mname(m.nmk)} will begin with about ${mi(m.nextBills+m.cardsU)} already on its way out`,`${mname(m.nmk)} יתחיל כשכבר כ‑${mi(m.nextBills+m.cardsU)} בדרך החוצה`),"","fc");
  return part("path",m.end<0?"tn":"",L(`Predicted end of ${mon}`,`סיום חזוי של ${mon}`),"end",`<span class="rkw">≈</span>${mn(m.end)}`,line,pathChart(m))}
 
@@ -244,7 +248,7 @@ function frame(){const s=CUR;if(!s||!s.el.isConnected)return;if(!s.el.getClientR
   // the start of the path comes down from the first part
   const st=el.querySelector(".rkw0>.rk:not(.z)"),ti=st&&st.querySelector(".rki");
   if(rows.length&&ti){let ld=z.querySelector(".rklead");if(!ld){ld=document.createElementNS(SVGNS,"svg");ld.setAttribute("class","rkcn rklead cs");ld.setAttribute("aria-hidden","true");ld.innerHTML='<path/>';z.insertBefore(ld,z.firstChild)}
-   const tb=ti.getBoundingClientRect().bottom+scrollY-ti.offsetHeight/2,from=tb-zTop,a=pts[0],d=a-from,x1=rows[0].classList.contains("za")?52:128;
+   const tb=st.getBoundingClientRect().bottom+scrollY+6,from=tb-zTop,a=pts[0],d=a-from,x1=rows[0].classList.contains("za")?52:128;
    ld.style.top=from+"px";ld.style.height=Math.max(0,d)+"px";ld.setAttribute("viewBox",`0 0 180 ${Math.max(1,d)}`);const pa=ld.querySelector("path");pa.setAttribute("d",`M90 0C90 ${d*.5} ${x1} ${d*.5} ${x1} ${d}`);
    const p=Math.max(0,Math.min(1,(head-tb)/Math.max(1,d)));pa.style.strokeDashoffset=anim?String(1-p):"0"}}
  if(!REDUCE()){const t0=vh*.4,sp=vh*.7,k=x=>(1-.3*Math.max(0,Math.min(1,(t0-x)/sp))).toFixed(3);
