@@ -28,7 +28,7 @@ const ICON={
  pie:'<circle cx="12" cy="12" r="9"/><path d="M12 3v9l6.4 4.6"/>',
  check:'<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16.5 9.5"/>',
  path:'<path d="M3 17l6-6 4 4 8-9"/><path d="M15 6h6v6"/>',
- up:'<path d="M6 15l6-6 6 6"/>',down:'<path d="M6 9l6 6 6-6"/>',flat:'<path d="M5 12h14"/>'
+ good:'<path d="M7 10v11H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zM7 10l4-8a2.5 2.5 0 0 1 2.5 2.5V8H19a2 2 0 0 1 2 2.3l-1.2 8A2 2 0 0 1 17.8 20H7"/>',warn:'<path d="M12 3.5l9.5 16.5h-19z"/><path d="M12 10v4.5M12 17.3v.1"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.7v.1"/>',up:'<path d="M6 15l6-6 6 6"/>',down:'<path d="M6 9l6 6 6-6"/>',flat:'<path d="M5 12h14"/>'
 };
 const tile=(ic,tone)=>`<div class="rki ${tone||""}"><svg viewBox="0 0 24 24">${ICON[ic]}</svg></div>`;
 // one part of the page, in the middle of the page: a big icon, a small label (which opens the full page, filtered), a big number, a short line, and a picture
@@ -38,7 +38,7 @@ const part=(ic,tone,label,go,big,line,vis)=>{const lab=go?`<a class="rkl" data-a
  if(ZZ){const a=ZZ%2,c0=hc(ZZ-1),c1=hc(ZZ),gid="rkg"+ZZ,x0=a?52:128,x1=a?128:52;
   return `<section class="rk rr z ${a?"za":"zb"}" style="--c0:${c0};--c1:${c1}"><div class="rkni"><div class="rkcir">${tile(ic,tone)}</div><svg class="rkcn cs" viewBox="0 0 200 100" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c0}"/><stop offset="1" stop-color="${c1}"/></linearGradient></defs><path d="M${x0} 0C${x0} 60 ${x1} 40 ${x1} 100" pathLength="1" stroke="url(#${gid})"/></svg><svg class="rkcn cm" viewBox="0 0 10 100" preserveAspectRatio="none" aria-hidden="true"><path d="M5 0V100" pathLength="1" stroke="${c0}"/></svg></div><div class="rkb"><div class="rkx">${lab}<div class="rkn">${big}</div>${line?`<div class="rkp">${line}</div>`:""}</div>${vis?`<div class="rkvv">${vis}</div>`:""}</div></section>`}
  return `<section class="rk rr ${tone||""}">${tile(ic,tone)}${lab}<div class="rkn">${big}</div>${line?`<div class="rkp">${line}</div>`:""}${vis||""}</section>`};
-const chip=(dir,txt,tone,go)=>`<${go?"a":"div"} class="rkch ${tone||""}" ${go?`data-a="recapGo" data-k="${esc(go)}"`:""}><svg viewBox="0 0 24 24">${ICON[dir]}</svg><span>${txt}</span></${go?"a":"div"}>`;
+const chip=(dir,txt,tone,go)=>`<${go?"a":"div"} class="rkch ${tone||""}" ${go?`data-a="recapGo" data-k="${esc(go)}"`:""}><svg viewBox="0 0 24 24">${ICON[tone=="good"?"good":tone=="warn"?"warn":"info"]}</svg><span>${txt}</span></${go?"a":"div"}>`;
 const lk=(k,txt)=>`<a class="rklk" data-a="recapGo" data-k="${esc(k)}">${txt}</a>`;
 const ck=c=>"cat:"+encodeURIComponent(c);
 
