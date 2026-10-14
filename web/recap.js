@@ -187,7 +187,6 @@ function reveal(box,animate){if(IO){IO.disconnect();IO=null}
  IO=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;const x=e.target;x.classList.add("in");x.querySelectorAll(".cnt").forEach(countUp);IO.unobserve(x)}),{threshold:.18,rootMargin:"0px 0px -6% 0px"});
  items.forEach(x=>IO.observe(x))}
 
-const html0=o=>o.join('').includes('rkw">≈');
 let LASTSIG="",LASTAT=0;
 window.renderRecap=function(){const el=$("recap");if(!el)return;
  let html,m=null;
@@ -196,7 +195,7 @@ window.renderRecap=function(){const el=$("recap");if(!el)return;
   const order=m.phase=="start"?[hero,startPart,inPart,nowPart,aheadPart,outPart,budgetsPart,endPart]:m.phase=="end"?[hero,startPart,inPart,outPart,budgetsPart,aheadPart,nowPart,endPart]:[hero,startPart,inPart,outPart,nowPart,aheadPart,budgetsPart,endPart];
   let zc=0,out=order.map((fn,i)=>{ZZ=i<2?0:zc+1;let h="";try{h=fn(m)}catch(e){}ZZ=0;if(i>=2&&h)zc++;return h});
   const chain=out.slice(2).filter(Boolean).join("");
-  html=`<div class="rkw0" data-nt>${out[0]}${out[1]}${chain?`<div class="rkz">${chain}</div>`:""}${html0(out)?`<p class="rkfn rr"><span class="rkw">≈</span> ${L("means an estimate, not an exact figure","פירושו הערכה, לא מספר מדויק")}</p>`:""}</div>`}
+  html=`<div class="rkw0" data-nt>${out[0]}${out[1]}${chain?`<div class="rkz">${chain}</div>`:""}</div>`}
  // the same page again: leave it alone. A change while you are looking: update it quietly. Coming back to it later: play it again.
  if(html===LASTSIG&&el.firstChild)return;
  const fresh=Date.now()-LASTAT>2500||!el.firstChild;LASTSIG=html;LASTAT=Date.now();
