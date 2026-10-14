@@ -133,6 +133,7 @@ app.post("/api/errors", json, wrap(async (req, res) => { // an error that happen
 }));
 app.delete("/api/errors", wrap(async (_req, res) => { await clearErrors(); res.json({ ok: true }); }));
 app.get("/api/state", wrap(async (_req, res) => { res.set("Cache-Control", "no-store"); res.json(await getState()); }));
+app.get("/api/rev", wrap(async (_req, res) => { res.set("Cache-Control", "no-store"); res.json({ rev: parseInt((await q("SELECT value FROM app_meta WHERE key='rev'")).rows[0].value, 10) }); }));
 app.put("/api/state", json, wrap(async (req, res) => {
   try { res.json(await putState(req.body)); }
   catch (e) { if (e instanceof StaleError) return res.status(409).json({ error: "stale", state: await getState() }); throw e; }

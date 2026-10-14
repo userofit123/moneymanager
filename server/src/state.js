@@ -266,6 +266,6 @@ export async function putState(S) {
     if (fill.applied) await c.query("INSERT INTO audit_log (who,action,detail) VALUES ('System','Jars filled',$1)", [`${fill.applied} jar${fill.applied > 1 ? "s" : ""} received ₪${Math.round(fill.total)} for ${thisMonth()}`]);
     await bumpRev(c);
     const nr = await c.query("SELECT value FROM app_meta WHERE key='rev'");
-    return { rev: parseInt(nr.rows[0].value, 10), auditIds: ids.reverse(), ...(fill.applied ? { jars: await readJars(c), filled: fill.applied } : {}) };
+    return { rev: parseInt(nr.rows[0].value, 10), auditIds: ids.reverse(), jars: await readJars(c), filled: fill.applied };
   });
 }
