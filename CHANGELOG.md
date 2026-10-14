@@ -4,6 +4,14 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.5.2] - 2026-10-14
+
+### App
+- **Category rules now match the items they were made from.** A rule made from a name with numbers or punctuation, such as "SUPER-PHARM #123", did not match any of those items, so the other items in the group stayed uncategorized. Rule text and transaction text are now compared in the same plain form, against the description and the store. This applies to creating a rule from a suggestion, applying it to existing items, categorising new items, and tag rules.
+
+### Windows app
+- Includes the above.
+
 ## [0.5.1] - 2026-10-14
 
 ### App
