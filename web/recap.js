@@ -147,7 +147,7 @@ function upList(m){const it=[];m.days.forEach(D=>D.up.forEach(x=>{if(D.d>=TODAY)
 function aheadPart(m){const tot=m.cash-m.end;if(tot<1)return"";const bm={...m,billsTot:Math.max(0,tot-m.cardLeft-m.limitsLeft-m.jarCov)};
  const left=m.cash-tot,held=m.inJars+m.buffer,free=left-held;
  const rest=left>=0?chip("up",L(`You would have about ${mi(left)} left once you have paid these`,`יישארו לכם בערך ${mi(left)} אחרי ששילמתם אותם`),"good","fc"):chip("down",L(`That is ${mi(-left)} more than you have in your accounts today`,`זה ${mi(-left)} יותר ממה שיש לכם היום בחשבונות`),"warn","now");
- const jr=held>=1&&left>=0?(free>=0?chip("flat",L(`${mi(free)} of that would be free after your jars`,`${mi(free)} מזה יהיו פנויים אחרי הקופות`),"","jars"):chip("down",L(`That is ${mi(-free)} less than your jars hold. The jars are not emptied, but the money for all of them will not be there`,`זה ${mi(-free)} פחות ממה שיש בקופות. הקופות לא מתרוקנות, אבל לא יהיה כסף לכולן`),"warn","jars")+relBtn()):"";
+ const jr=held>=1&&left>=0?(free>=0?chip("flat",L(`${mi(held)} of that is in your jars, so about ${mi(free)} is yours to spend`,`${mi(held)} מזה בקופות, כך שבערך ${mi(free)} נשארים לכם להוצאות`),"","jars"):chip("down",L(`Your jars hold ${mi(held)}, so after these payments they would be about ${mi(-free)} short`,`בקופות יש ${mi(held)}, אז אחרי התשלומים יחסרו להן בערך ${mi(-free)}`),"warn","jars")+relBtn()):"";
  return part("ahead","",L("You still have to pay","עוד תצטרכו לשלם"),"ahead",mn(tot),L("That is your credit card charges, your bills, the rest of your budgets and what your jars pay for.","אלה חיובי האשראי, החשבונות, מה שנשאר מהתקציבים ומה שהקופות משלמות.")+rest+jr,aheadBar(bm)+upList(m))}
 
 // the same release the Jars page offers: when jars and cushion hold more than the accounts can cover after upcoming bills and budgets
@@ -164,10 +164,10 @@ function budgetsPart(m){const flag=[...m.over,...m.risk];
 
 function endPart(m){
  const hasStart=isFinite(m.start)&&Math.abs(m.start)>=1,d=m.end-m.start,mon=mname(MK);
- let line=L(`This is what you would be left with if you pay everything that is still due (bills and credit card charges) and spend the rest of your budgets in full.`,`זה מה שיישאר לכם אם תשלמו את כל מה שעוד צפוי (חשבונות וחיובי אשראי) ותנצלו במלואו את מה שנשאר מהתקציבים.`);
+ let line=L(`This is what should be left if you pay everything that is still due (bills and credit card charges) and use up the rest of your budgets.`,`זה מה שאמור להישאר אם תשלמו את כל מה שעוד צפוי (חשבונות וחיובי אשראי) ותנצלו את מה שנשאר מהתקציבים.`);
  if(hasStart&&Math.abs(d)>=100)line+=chip(d>=0?"up":"down",d>=0?L(`${mi(d)} more than you started with`,`${mi(d)} יותר ממה שהתחלתם איתו`):L(`${mi(-d)} less than you started with`,`${mi(-d)} פחות ממה שהתחלתם איתו`),d>=0?"good":"warn","fc");
  {const held=m.inJars+m.buffer,free=m.end-held;
-  if(held>=1&&m.end>0)line+=free>=0?chip("flat",L(`Your jars (${mi(held)}) are part of this, so ${mi(free)} would be free to use`,`הקופות (${mi(held)}) כלולות בסכום, כך ש‑${mi(free)} יהיו פנויים לשימוש`),"","jars"):chip("down",L(`Your jars (${mi(held)}) are part of this. That is ${mi(-free)} more than will be there, so the jars will not all be covered`,`הקופות (${mi(held)}) כלולות בסכום. זה ${mi(-free)} יותר ממה שיהיה, ולכן לא כל הקופות יכוסו`),"warn","jars")+relBtn()}
+  if(held>=1&&m.end>0)line+=free>=0?chip("flat",L(`${mi(held)} of that is in your jars, so about ${mi(free)} is yours to spend`,`${mi(held)} מזה בקופות, כך שבערך ${mi(free)} נשארים לכם להוצאות`),"","jars"):chip("down",L(`Your jars hold ${mi(held)}, but you will probably end the month with ${mi(m.end)}, so they would be about ${mi(-free)} short`,`בקופות יש ${mi(held)}, אבל סביר שתסיימו את החודש עם ${mi(m.end)}, אז יחסרו להן בערך ${mi(-free)}`),"warn","jars")+relBtn()}
  if(m.phase=="end")line+=chip("flat",L(`${mname(m.nmk)} will begin with about ${mi(m.nextBills+m.cardsU)} already on its way out`,`${mname(m.nmk)} יתחיל כשכבר כ‑${mi(m.nextBills+m.cardsU)} בדרך החוצה`),"","fc");
  return part("path",m.end<0?"tn":"",L(`Predicted end of ${mon}`,`סיום חזוי של ${mon}`),"end",`<span class="rkw">≈</span>${mn(m.end)}`,line,pathChart(m))}
 
