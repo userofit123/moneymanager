@@ -13,7 +13,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 - **Money flow.** "My month ahead" and "My month so far" are now **Money flow · ahead** and **Money flow · so far**.
 - **Update popup opens sooner.** The "What's new" popup no longer waits a second or two; it opens right after the app first draws.
 - **Hebrew is complete.** The remaining English texts (messages, suggestions, sheets, labels, the browser's confirmation dialogs, server errors and Change history lines) are translated, and the update popup and change log show Hebrew release notes.
-- **Bank errors say which step failed.** When a bank sends back an empty reply, the message now says whether it was the login step or the data step, and a login blocked by the bank's bot protection is retried once after a short wait.
+- **Bank errors say which step failed.** When a bank sends back an empty reply, the message now says whether it was the login step or the data step, and a login blocked by the bank's bot protection is retried once after a short wait. The bank browser now presents its real version, no longer carries the automation flag, and retries page loads, which are the changes users of the scraper library report help against American Express and Isracard blocks.
 - **Settings.** Currencies has its own tab, Import no longer has a Sync now button, the export window is wider, downloads show a message, and a connection's status, last sync and accounts sit on one line.
 
 ## [0.4.18] - 2026-10-13
