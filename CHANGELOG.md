@@ -4,6 +4,24 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.5.0] - 2026-10-14
+
+### App
+- **A profile and a personal Home.** Settings → Profile holds your name, age, gender and what matters most to you. All of it is optional and each field says why it is asked. Home greets you by name (a different greeting each time you open the app, by time of day) in place of "Home", and the date under it follows the language. In Hebrew the app speaks to you in the right gender. The first time, a window offers the form once after the "updated" window; closing it never shows it again.
+- **Icons on Home.** Net worth, income, expenses and net have an icon, and every bank, card and account has its own: real marks for Wise, American Express, Visa, Mastercard, PayPal and others, and a letter tile for the Israeli banks and cards.
+- **A ? next to each section name** opens the info panel at that section, on every page and settings tab.
+- **Alerts and info buttons** sit in a stack above the + button, always visible.
+- **Accounts moved under Home** in the sidebar. A new account in a currency you do not follow yet adds that currency to Settings → Currencies.
+- **Cleaner account and card pages.** No repeated name or digits, equal numbers of blocks in each row, clear chart headers ("Purchases by month · last 12 months"), a sync status with a separate last-synced line, and no net-worth row on cards.
+- **Hover line on every line chart.** A vertical line with the values appears anywhere over the chart (accounts, cards, Reports, exchange rates).
+- **Activity.** A group with future payments shows "Out so far" and "Expected". Group toggles are chevrons. Upcoming rows are tinted with a bar on their edge.
+- **Appearance and settings stay after an update.** Your saved preferences come from the server at every start, and the Windows app waits for its usual address after an update instead of opening on a new one (which is what reset them).
+- **Bank logins that fail keep every screenshot** (in the data folder, profiles → _failed-logins), so a failure like American Express "Failed to fetch" can be seen.
+- **Fixes.** Changing a jar's type now saves. A category change offers a rule for similar items. Changes from a sync show without refreshing. New screens never run with old translations. More Hebrew.
+
+### Windows app
+- Includes all of the above.
+
 ## [0.4.21] - 2026-10-14
 
 ### App
