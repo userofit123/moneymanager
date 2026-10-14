@@ -13,6 +13,20 @@ Object.assign(D,{
 "A verification window is open. Finish or cancel it first.":"חלון אימות פתוח. סיימו או בטלו אותו קודם.","A scrape is running":"קריאה מהבנק מתבצעת כרגע","another scrape is running":"קריאה אחרת מהבנק מתבצעת כרגע","no verification window is open":"אין חלון אימות פתוח","unknown company":"חברה לא מוכרת","unknown source":"מקור לא מוכר","not found":"לא נמצא","too large":"גדול מדי",
 "OTP_REQUIRED: the bank asked for a one-time code. Use \"Verify this device\" once so the bank remembers this browser":"הבנק ביקש קוד חד‑פעמי. השתמשו ב״אימות המכשיר״ פעם אחת כדי שהבנק יזכור את הדפדפן הזה",
 /* ---- sync messages ---- */
+/* ---- profile ---- */
+"Profile":"פרופיל","Make it yours":"בואו נתאים את זה אליכם","Tell us a little about you. Every field is optional.":"ספרו לנו קצת על עצמכם. כל השדות אופציונליים.",
+"Everything here is optional. It stays in your own data and is never sent anywhere.":"כל מה שכאן אופציונלי. זה נשמר בנתונים שלכם ולא נשלח לשום מקום.",
+"Name":"שם","What should we call you?":"איך לקרוא לכם?","We use it to greet you on the Home page. It is only shown to you.":"אנחנו משתמשים בו כדי לברך אתכם בדף הבית. הוא מוצג רק לכם.",
+"Age":"גיל","e.g. 34":"למשל 34","So you can set goals such as “reach {} by age {}”. We keep it up to date as the years pass.":"כדי שתוכלו להגדיר יעדים כמו ״להגיע ל‑{} עד גיל {}״. אנחנו מעדכנים אותו לאורך השנים.",
+"Gender":"מגדר","In Hebrew, words change for women and men. This lets the app speak to you correctly.":"בעברית המילים משתנות לנשים ולגברים. כך האפליקציה תדבר אליכם נכון.",
+"Prefer not to say":"מעדיפים לא לומר","Female":"אישה","Male":"גבר",
+"What matters most to you":"מה הכי חשוב לכם","Helps us decide what to point out first. Nothing changes without you.":"עוזר לנו להחליט על מה להצביע קודם. שום דבר לא משתנה בלי אתכם.",
+"Not sure yet":"עוד לא בטוחים","Save more":"לחסוך יותר","Pay off debt":"להחזיר חובות","Understand my spending":"להבין את ההוצאות שלי","Plan for the future":"לתכנן את העתיד",
+"Who shares your money":"מי חולק איתכם את הכסף","So tips about budgets and bills fit a single person, a couple or a family.":"כדי שהטיפים על תקציבים וחשבונות יתאימו ליחיד, לזוג או למשפחה.",
+"Just me":"רק אני","Two of us":"שניים מאיתנו","A family with kids":"משפחה עם ילדים",
+"Not now":"לא עכשיו","Clear profile":"ניקוי הפרופיל","Clear your profile?":"לנקות את הפרופיל?","Updated profile":"הפרופיל עודכן","Cleared profile":"הפרופיל נוקה","no name":"ללא שם",
+"You can add this later in Settings → Profile":"אפשר להוסיף את זה אחר כך בהגדרות ← פרופיל",
+
 "This is what the app's bank browser saw when the last login failed. A captcha, a notice or a blank page here tells us why. Every picture taken during each failed login is saved in the app's data folder, in profiles \u2192 _failed-logins (one folder per attempt, the newest 15 per bank are kept).":"כך נראה דף הבנק בדפדפן של האפליקציה כשההתחברות האחרונה נכשלה. קאפצ׳ה, הודעה או דף ריק יסבירו לנו למה. כל התמונות שצולמו במהלך כל התחברות כושלת נשמרות בתיקיית הנתונים של האפליקציה, בתוך profiles ← _failed-logins (תיקייה לכל ניסיון, נשמרים 15 האחרונים לכל בנק).",
 "No screenshot yet. Press Test connection once and let it fail, then open this again.":"עדיין אין צילום מסך. לחצו על בדיקת חיבור פעם אחת, תנו לה להיכשל, ואז פתחו שוב.","Changed jar type":"סוג הקופה שונה",
 
