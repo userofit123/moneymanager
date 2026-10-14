@@ -199,3 +199,8 @@ window.HELP.en={
     {h:"Pension, import and sync",p:["**Pension balance** updates your pension by hand. **Import a CSV** takes you to Settings → Import and export. **Sync now** reads all connected accounts."]}
   ]}
 };
+
+window.HELP.en["set.prof"]={title:"About Profile",lead:"Your profile is a few details about you. Every one is optional, and none of them leaves your own data.",blocks:[
+  {h:"What the profile is for",p:["The **name** is used for the greeting on Home. The **age** lets you set goals such as a sum by a certain age. The **gender** lets the app speak to you correctly in Hebrew, where words change for women and men.","**What matters most to you** helps decide what to point out first. Nothing changes by itself.","Press **Save** to keep your changes. **Clear profile** removes all of it."],ex:"Name Dana, age 34, gender female: Home says **Good morning, Dana**, and in Hebrew speaks to you in the feminine."},
+  {h:"The first-time window",p:["The first time you open the app after this was added, a window offers the same form. **Not now** closes it for good. You can fill the profile in here at any time."]}
+]};

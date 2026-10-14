@@ -121,6 +121,7 @@ div.ghead{padding:10px 12px;border-radius:10px;margin:12px 0 4px;font-size:14px}
 .card.hero .lbl,.card.hero .sm{color:color-mix(in srgb,var(--onc) 75%,transparent)}
 .card.warn{border-color:color-mix(in srgb,var(--neg) 45%,var(--ol))}
 .bi{flex:none;width:28px;height:28px;border-radius:9px;display:inline-grid;place-items:center;background:color-mix(in srgb,var(--bc,var(--acc)) 13%,transparent);color:color-mix(in srgb,var(--bc,var(--acc)) 68%,var(--tx));font:700 13px/1 var(--font);letter-spacing:0;text-transform:none}.bi svg{width:16px;height:16px;display:block}.bi svg.f{fill:currentColor}.bi svg.s{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.bi.w{font-size:11px;letter-spacing:-.2px}.card.hero .bi{background:color-mix(in srgb,var(--onc) 18%,transparent);color:var(--onc)}html.mob .bi{width:24px;height:24px;border-radius:8px}html.mob .bi svg{width:14px;height:14px}
+.hqw{display:inline-flex;align-items:center;min-width:0}.hq{flex:none;display:inline-grid;place-items:center;width:20px;height:20px;margin-inline-start:6px;padding:0;border:0;border-radius:50%;background:transparent;color:inherit;opacity:.55;cursor:pointer;vertical-align:middle;transition:opacity .15s,background .15s,color .15s}.hq svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.hq:hover,.hq:focus-visible{opacity:1;color:var(--acc);background:color-mix(in srgb,var(--acc) 12%,transparent);outline:0}.card.hero .hq:hover{color:var(--onc);background:color-mix(in srgb,var(--onc) 18%,transparent)}.seg+.hq,.tabs+.hq{margin-inline-start:8px}.hs.hflash{animation:hflash 1.8s ease-out}@keyframes hflash{0%,30%{background:color-mix(in srgb,var(--acc) 14%,transparent);box-shadow:0 0 0 8px color-mix(in srgb,var(--acc) 14%,transparent);border-radius:10px}100%{background:transparent;box-shadow:0 0 0 8px transparent}}
 .lbl{font-size:13px;color:var(--tx2);display:flex;align-items:center;gap:8px;font-weight:500}
 .val{font-size:32px;font-weight:600;margin:8px 0 2px;letter-spacing:-1px}.val small{font-size:.55em;font-weight:500;opacity:.6;margin-inline-end:2px}
 .sm{font-size:12.5px;color:var(--tx2)}
@@ -1642,6 +1643,41 @@ function helpRender(){const el=$("helpB");if(!el)return;const he=!!(window.HE&&H
 if(!P){$("helpT").textContent=TITLES[curView]||"About this page";el.innerHTML=`<div class="hlead">There is no guide for this page yet.</div>`;return}
 $("helpT").textContent=P.title||TITLES[curView];
 el.innerHTML=(P.lead?`<div class="hlead">${hMd(P.lead)}</div>`:"")+((P.blocks||[]).length>3?`<div class="hjump">${P.blocks.map((b,i)=>`<button data-a="helpJump" data-i="${i}">${esc(b.h)}</button>`).join("")}</div>`:"")+(P.blocks||[]).map((b,i)=>`<section class="hs" id="hs${i}"><h4>${esc(b.h)}</h4>${(b.p||[]).map(t=>`<p>${hMd(t)}</p>`).join("")}${b.demo&&HDEMO[b.demo]?`<div class="hdemo" aria-hidden="true">${HDEMO[b.demo]()}</div>`:""}${b.ex?`<div class="hex"><b>${he?"דוגמה":"Example"}</b>${hMd(b.ex)}</div>`:""}${b.tip?`<div class="htip"><b>${he?"טיפ":"Tip"}</b>${hMd(b.tip)}</div>`:""}</section>`).join("");el.scrollTop=0}
+
+/* ---------- a small ? next to each section's name: it opens the info panel at that section ---------- */
+// [help page, area on the page, element holding the name, start of its English text, title of the info block to open, how: "in" puts the ? inside the name, "after" next to the element]
+const HELPDOTS=[
+["dash","#kpis",".lbl","Net worth","The four big numbers"],["dash","#sec-accts","h2","Accounts","Accounts and credit cards"],["dash","#sec-cards","h2","Credit cards","Accounts and credit cards"],
+["dash","#sec-flow","h2","Money flow","Money flow · ahead"],["dash","#sec-donut","h2","Spending by category","Spending and budgets"],["dash","#sec-budg","h2","Budgets","Spending and budgets"],
+["dash","#sec-bills","h2","Upcoming bills","Bills, recent and jars"],["dash","#sec-recent","h2","Recent activity","Bills, recent and jars"],["dash","#sec-jars","h2","Jars","Bills, recent and jars"],["dash","#sec-fx","h2","Exchange rates","Exchange rates"],
+["tx","#txTabs","","","Two tabs","after"],["tx","#txRev","h2","Transfers between your accounts","Needs review"],["tx","#txRev","h2","Possible duplicates","Needs review"],["tx","#txRev","h2","Balance changes with no transaction","Needs review"],
+["acc","#acc","h2","Bank accounts","Account cards"],["acc","#acc","h2","Credit cards","Account cards"],["acc","#acc","h2","Wallets","Account cards"],["acc","#acc","h2","Other accounts","Add your own account"],
+["jars","#jars",".lbl","Safe to put in jars","Safe to put in jars"],["jars","#jars",".lbl","Put into jars this month","Put into jars this month"],["jars","#jars","h2","Jars","Your jars, in priority order"],["jars","#jars","h2","Goals","New jar and goals"],["jars","#jars","h2","Completed","Completed jars"],
+["bills","#billK",".lbl","Monthly total","The three numbers on top"],["bills","#bills","h2","Bills and subscriptions","What Bills is for"],
+["budg","#budK",".lbl","Budgeted this month","The three numbers on top"],["budg","#budS","h2","Suggested budgets","Suggested budgets"],["budg","#budg","h2","By category","One budget card"],["budg","#budU","h2","Spending with no budget","Spending with no budget"],
+["rep","#cmpCard",".lbl","This month vs last month","This month vs last month"],["rep","#rep",".lbl","Spending by category","Spending by category"],["rep","#rep",".lbl","Income vs expenses","Income vs expenses"],["rep","#rep",".lbl","Category trend","Category trend"],["rep","#rep",".lbl","Top merchants","Top merchants and tags"],["rep","#rep",".lbl","Spending by tag","Top merchants and tags"],
+["fc","#fcK",".lbl","Now","Four balance cards"],["fc","#fcCtl","","","The three choices on top","after"],["fc","#fc","h2","Projected balance","The chart"],["fc","#fc","h2","What drives the forecast","What drives the forecast"],["fc","#fc","h2","Jar forecast","Jar forecast"],
+["alerts","#alTabs","","","Two tabs","after"],
+["cats","#setCats",".ssh b","Categories","Categories"],["cats","#setRules",".ssh b","Category rules","Category rules"],["cats","#setTags",".ssh b","Tags","Tags"],["cats","#setTagrules",".ssh b","Tag rules","Tag rules"],
+["set.conn","#setConn",".ssh b","Connections","Add a connection"],["set.sync","#setSyncCfg",".ssh b","Automatic sync","How often"],["set.sync","#setSync",".ssh b","Sync log","Sync log"],
+["set.data","#setData",".ssh b","Import","Import"],["set.data","#setData",".ssh b","Your data","Export"],["set.alr","#setAlr",".ssh b","Which alerts to show","Which alerts to show"],["set.alr","#setAlr",".ssh b","When an alert shows","When an alert shows"],
+["set.notify","#setNotify",".ssh b","On this device","On this device"],["set.notify","#setNotify",".ssh b","ntfy","ntfy"],["set.notify","#setNotify",".ssh b","Telegram","Telegram"],["set.notify","#setNotify",".ssh b","Webhook","Webhook"],
+["set.sec","#setSec",".ssh b","Password","Password"],["set.sec","#setSec",".ssh b","Two-factor sign-in","Two-factor sign-in"],["set.sec","#setSec",".ssh b","Sessions","Sessions"],
+["set.app","#updCard",".ssh b","Version and updates","Version and updates"],["set.app","#setApp",".ssh b","Install on this device","Install this app"],["set.log","#setLog",".ssh b","Change history","What this tab is for"],["set.prof","#setProf",".ssh b","Profile","What the profile is for"]];
+const HQ='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2.9-1.2 1.8M12 17v.01"/></svg>';
+function helpDots(){const he=!!(window.HE&&HE.on),key=helpKey(),norm=t=>String(t).replace(/\s+/g," ").trim().toLowerCase();
+HELPDOTS.forEach(([k,root,sel,txt,block,how])=>{if(k!=key)return;const r=document.querySelector(root);if(!r||!r.offsetParent)return;
+const cand=how=="after"?[r]:[...r.querySelectorAll(sel)];const tx=norm(txt),th=he?norm(HE.T(txt)):"";
+const el=cand.find(e=>{if(how=="after")return true;const t=norm(e.textContent);return t.startsWith(tx)||(th&&t.startsWith(th))});
+if(!el||(how=="after"?el.nextElementSibling&&el.nextElementSibling.classList.contains("hq"):el.querySelector(".hq")))return;
+const b=document.createElement("button");b.type="button";b.className="hq";b.dataset.a="helpAt";b.dataset.k=k;b.dataset.b=block;b.dataset.tip="About this section";b.setAttribute("aria-label","About this section");b.innerHTML=HQ;
+if(how=="after"){el.insertAdjacentElement("afterend",b);return}
+if(el.tagName=="H2"){const t=el.firstChild;if(t&&(t.nodeType==3||t.nodeType==1)){const w=document.createElement("span");w.className="hqw";t.replaceWith(w);w.append(t,b);return}}
+const at=[...el.children].find(c=>c.matches("a,.h2r,.chip,button,.hl,.cnt,.seg,.flex")&&!c.classList.contains("bi")&&!c.classList.contains("tinfo"));at?el.insertBefore(b,at):el.appendChild(b)})}
+// open the panel (if it is closed) and bring the section the ? belongs to into view
+function helpAt(k,block){const go=()=>{const he=!!(window.HE&&HE.on),en=((window.HELP||{}).en||{})[k],i=en?(en.blocks||[]).findIndex(x=>x.h==block):-1;if(i<0)return;const e=$("hs"+i);if(!e)return;e.scrollIntoView({behavior:"smooth",block:"start"});e.classList.remove("hflash");void e.offsetWidth;e.classList.add("hflash")};
+if(!HELPOPEN||$("help").getAttribute("aria-hidden")=="true"){helpSet(true);setTimeout(go,120)}else go()}
+{let q=0;new MutationObserver(()=>{if(q)return;q=requestAnimationFrame(()=>{q=0;try{helpDots()}catch(e){}})}).observe(document.body,{childList:true,subtree:true})}
 function helpSet(on){HELPOPEN=on;document.documentElement.classList.toggle("help-on",on);$("help").setAttribute("aria-hidden",on?"false":"true");$("helpBtn").setAttribute("aria-expanded",on?"true":"false");try{localStorage.setItem("moneyHelp",on?"1":"0")}catch(e){}if(on)helpRender()}
 /* ---------- version and updates ---------- */
 // The Windows app updates itself (the desktop shell reports its state through window.desktop). The Docker version only checks whether a newer
@@ -2460,6 +2496,7 @@ case"accBalSave":api("/api/accounts/"+d.id+"/balance",{method:"POST",headers:{"c
 case"accDel":if(confirm("Remove this account? This cannot be undone."))api("/api/accounts/"+d.id,{method:"DELETE"}).then(()=>accAfter("Account removed",null)).catch(e=>toast(e.message));break;
 case"accAddTx":openAdd({acc:d.n,cur:d.cur,amt:0,plain:true});break;
 case"helpToggle":helpSet(!HELPOPEN);break;case"helpClose":helpSet(false);break;
+case"helpAt":helpAt(d.k,d.b);break;
 case"helpJump":{const e=$("hs"+d.i);if(e)e.scrollIntoView({behavior:"smooth",block:"start"});break}
 case"alTab":alTab=d.t;renderAlerts();break;
 case"alHistMore":loadAlertHistory(true);break;

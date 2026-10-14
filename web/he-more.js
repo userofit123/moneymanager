@@ -14,6 +14,7 @@ Object.assign(D,{
 "OTP_REQUIRED: the bank asked for a one-time code. Use \"Verify this device\" once so the bank remembers this browser":"הבנק ביקש קוד חד‑פעמי. השתמשו ב״אימות המכשיר״ פעם אחת כדי שהבנק יזכור את הדפדפן הזה",
 /* ---- sync messages ---- */
 /* ---- profile ---- */
+"About this section":"על האזור הזה",
 "Profile":"פרופיל","Make it yours":"בואו נתאים את זה אליכם","Tell us a little about you. Every field is optional.":"ספרו לנו קצת על עצמכם. כל השדות אופציונליים.",
 "Everything here is optional. It stays in your own data and is never sent anywhere.":"כל מה שכאן אופציונלי. זה נשמר בנתונים שלכם ולא נשלח לשום מקום.",
 "Name":"שם","What should we call you?":"איך לקרוא לכם?","We use it to greet you on the Home page. It is only shown to you.":"אנחנו משתמשים בו כדי לברך אתכם בדף הבית. הוא מוצג רק לכם.",
