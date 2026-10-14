@@ -777,9 +777,14 @@ const PREF_KEYS=["moneySugg","moneyTheme","moneyLang","moneyBoot","moneyFc","mon
 const prefsAll=()=>{const o={};PREF_KEYS.forEach(k=>{try{const v=localStorage.getItem(k);if(v!=null)o[k]=v}catch(e){}});return o};
 const prefsPush=()=>{if(!PREFS_ON)return;fetch("/api/prefs",{method:"PUT",keepalive:true,headers:{"content-type":"application/json"},body:JSON.stringify(prefsAll())}).catch(()=>{})};
 try{const _si=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){_si.call(this,k,v);if(this===localStorage&&PREF_KEYS.includes(k))prefsPush()}}catch(e){}
-async function prefsRestore(){try{if(localStorage.getItem("moneyPrefsSeen")){PREFS_ON=true;return false}
-const r=await fetch("/api/prefs",{cache:"no-store"});if(!r.ok)return false;const sv=await r.json();localStorage.setItem("moneyPrefsSeen","1");PREFS_ON=true;
-if(sv&&Object.keys(sv).length){let n=0;PREF_KEYS.forEach(k=>{if(typeof sv[k]=="string"){try{localStorage.setItem(k,sv[k]);n++}catch(e){}}});if(n){location.reload();return true}}
+// The server keeps the newest copy of the appearance and other preferences. Each window address (and each device) has its own browser storage, so on every start
+// whatever differs is replaced with the server's copy: a change made in one place shows everywhere, and an update that opens the app at a new address keeps your settings.
+async function prefsRestore(){try{const r=await fetch("/api/prefs",{cache:"no-store"});if(!r.ok)return false;const sv=await r.json();
+let diff=0;if(sv&&Object.keys(sv).length){const was=PREFS_ON;PREFS_ON=false;PREF_KEYS.forEach(k=>{if(typeof sv[k]=="string"&&localStorage.getItem(k)!==sv[k]){try{localStorage.setItem(k,sv[k]);diff++}catch(e){}}});PREFS_ON=was}
+let loop=false;try{loop=sessionStorage.getItem("moneyPrefsRl")==="1";sessionStorage.setItem("moneyPrefsRl","1")}catch(e){}
+try{localStorage.setItem("moneyPrefsSeen","1")}catch(e){}
+PREFS_ON=true;
+if(diff&&!loop){location.reload();return true}
 prefsPush()}catch(e){}return false}
 const $=id=>document.getElementById(id),f=n=>Math.abs(n).toLocaleString("en-IL",{maximumFractionDigits:0}),fm=n=>(n<0?"−":"")+"₪"+f(n),esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 /* every drop-down opens the app's own animated menu instead of the browser's; the select underneath keeps the value and fires change as usual */
