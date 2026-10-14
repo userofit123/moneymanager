@@ -527,5 +527,18 @@ P.unshift(
 [/^Take ₪(.+) back from the jars, starting with the lowest priority\? Their saved amounts go down; nothing else changes\.$/,n=>"להחזיר ₪"+n+" מהקופות, החל מהעדיפות הנמוכה ביותר? הסכומים השמורים בהן יורדים; שום דבר אחר לא משתנה."],
 [/^No other transactions look like “(.+)” yet, but a rule would tag future ones with (.+)\.$/,(k,t)=>"עוד אין תנועות אחרות שנראות כמו “"+k+"”, אבל כלל יתייג בעתיד את התנועות האלה ב-"+t+"."],
 );
+// jar types: Savings, Bills, Pay-off
+Object.assign(D,{
+"Savings":"חיסכון","Bills":"תשלומים קבועים","Pay-off":"החזר הלוואה","Put money aside for something":"לשים כסף בצד למשהו","Keep money aside to pay bills":"לשמור כסף בצד לתשלום חשבונות","Pay back a loan, step by step":"להחזיר הלוואה, צעד אחר צעד",
+"Goal (optional) (₪)":"יעד (לא חובה) (₪)","This money is not in my accounts here":"הכסף הזה לא נמצא בחשבונות שלי כאן",
+"Tick it if the amount you already saved is kept somewhere the app cannot see. It then does not reduce your free money.":"סמנו אם הסכום שכבר חסכתם נמצא במקום שהאפליקציה לא רואה. אז הוא לא מקטין את הכסף החופשי שלכם.",
+"Total I owe (₪)":"סך החוב שלי (₪)","Already paid back (₪)":"כבר הוחזר (₪)","I pay back per month (₪)":"אני מחזיר בחודש (₪)","Paid back":"הוחזר","Total owed":"סך החוב","Paid off":"שולם במלואו",
+"Enter the total you owe":"הזינו את סך החוב","Enter how much you pay back each month":"הזינו כמה אתם מחזירים בכל חודש","Enter a goal, or how much to put aside each month":"הזינו יעד, או כמה לשים בצד כל חודש",
+"Nothing is set aside in this jar for that payment":"אין בקופה הזאת כסף בצד לתשלום הזה","Enter the total you owe.":"הזינו את סך החוב.","It is already paid off.":"החוב כבר שולם.","Enter how much you pay back each month.":"הזינו כמה אתם מחזירים בכל חודש.","Enter a goal, or how much to put aside each month.":"הזינו יעד, או כמה לשים בצד כל חודש.",
+});
+P.unshift(
+[/^₪(.+) a month pays off the remaining ₪(.+) in (\d+) months? \((.+)\)\. What you already paid back is not taken from your free money\.$/,(c,l,k,m)=>"₪"+c+" בחודש מסיימים את ה-₪"+l+" שנותרו תוך "+(k==1?"חודש":k+" חודשים")+" ("+T(m)+"). מה שכבר החזרתם לא נלקח מהכסף החופשי שלכם."],
+[/^Paid back · (.+)$/,x=>"הוחזר · "+x],
+);
 P.splice(0,P.length,...P.filter(p=>typeof p[1]=="function"));
 })();
