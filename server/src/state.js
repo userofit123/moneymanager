@@ -83,7 +83,7 @@ export async function getState() {
       docs: (docMap[r.id] || []).map((d) => d.filename), docIds: (docMap[r.id] || []).map((d) => d.id), docHas: (docMap[r.id] || []).map((d) => d.has),
       note: r.note, ...(r.pending ? { pending: true } : {}), src: r.source,
       ...(r.dup_ok ? { dupOk: true } : {}),
-      ...(r.inst_total ? { inst: [r.inst_n, r.inst_total] } : {}),
+      ...(r.inst_total && r.inst_n >= 1 ? { inst: [r.inst_n, r.inst_total] } : {}),
       ...(r.jar_id ? { jar: { id: r.jar_id, amt: r.jar_amount, ...(r.jar_auto ? { auto: true } : {}) } } : {}),
       ...(r.jar_skip ? { jarNo: r.jar_skip } : {}),
       ...(r.report_month ? { rm: r.report_month } : {}),
