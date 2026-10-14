@@ -137,24 +137,31 @@ function outPart(m){
  return part("out","tn",L("Since then, you have spent","מאז הוצאתם"),"out",mn(m.ex),lead+line+pulse,dayBars(m))}
 
 function nowPart(m){const set=Math.min(m.cash,m.inJars+m.buffer),free=Math.max(0,m.cash-set);
- return part("wallet","",L("After all that, your accounts hold","אחרי כל זה, בחשבונות שלכם יש"),"now",mn(m.cash),L(`across your bank and wallet accounts today. ${mi(set)} of it is set aside in jars and ${mi(free)} is free to use.`,`בכל חשבונות הבנק והארנקים היום. ${mi(set)} מזה שמור בקופות ו‑${mi(free)} פנויים לשימוש.`),nowBar(m))}
+ return part("wallet","",L("After all that, your accounts hold","אחרי כל זה, בחשבונות שלכם יש"),"now",mn(m.cash),L("across your bank and wallet accounts today.","בכל חשבונות הבנק והארנקים היום."),nowBar(m))}
 
+// the next payments, each with its date
+function upList(m){const it=[];m.days.forEach(D=>D.up.forEach(x=>{if(D.d>=TODAY)it.push([D.d,x[0],x[1]])}));
+ if(!it.length)return"";return `<div class="rkup"><div class="t">${L("Coming up next","הבא בתור")}</div>${it.slice(0,3).map(x=>`<div class="r"><div class="dt"><b>${+x[0].slice(8)}</b><span>${dshort(x[0]).replace(/[0-9\s]/g,"")}</span></div><div class="n">${nm(x[1])}<small>${dday(x[0])}</small></div><b class="a">${mi(x[2])}</b></div>`).join("")}</div>`}
 function aheadPart(m){const tot=m.cardLeft+m.billsTot+m.limitsLeft;if(tot<1)return"";
- let line=L("Credit card charges, bills and the rest of your budgets.","חיובי אשראי, חשבונות והחלק שנשאר מהתקציבים.");
- if(m.nextUp)line+=`<br>${L(`Next up is ${nm(m.nextUp.n)} (${mi(m.nextUp.pred)}) on ${dday(m.nextUp.nx.toISOString())}, ${dshort(m.nextUp.nx.toISOString())}.`,`הבא בתור: ${nm(m.nextUp.n)} (${mi(m.nextUp.pred)}) ב${dday(m.nextUp.nx.toISOString())}, ${dshort(m.nextUp.nx.toISOString())}.`)}`;
- line+=`<br>${m.cash-tot>=0?L(`Once those are paid, about ${mi(m.cash-tot)} would be left in your accounts.`,`אחרי ששילמתם אותם יישארו בחשבונות בערך ${mi(m.cash-tot)}.`):L(`That is ${mi(tot-m.cash)} more than your accounts hold today.`,`זה ${mi(tot-m.cash)} יותר ממה שיש היום בחשבונות.`)}`;
- return part("ahead","",L("Still to come this month","עוד צפוי לצאת החודש"),"ahead",mn(tot),line,aheadBar(m))}
+ const left=m.cash-tot,rest=left>=0?chip("up",L(`About ${mi(left)} would be left in your accounts once these are paid`,`בערך ${mi(left)} יישארו בחשבונות אחרי ששילמתם אותם`),"good"):chip("down",L(`That is ${mi(-left)} more than your accounts hold today`,`זה ${mi(-left)} יותר ממה שיש היום בחשבונות`),"warn");
+ return part("ahead","",L("Still to come this month","עוד צפוי לצאת החודש"),"ahead",mn(tot),L("Credit card charges, bills and the rest of your budgets.","חיובי אשראי, חשבונות והחלק שנשאר מהתקציבים.")+rest,aheadBar(m)+upList(m))}
 
+// why a budget needs attention, with a bar showing how much is used (and where it is heading)
+function budRow(b){const lim=Math.max(1,b.lim),u=Math.min(100,b.s/lim*100),pc=Math.min(100,b.pace/lim*100);
+ const why=b.st=="over"?L(`Over its limit by ${mi(b.s-b.lim)}: ${mi(b.s)} spent of ${mi(b.lim)}.`,`חרג מהמסגרת ב‑${mi(b.s-b.lim)}: הוצאתם ${mi(b.s)} מתוך ${mi(b.lim)}.`)
+  :b.st=="warn"?L(`${Math.round(b.pc)}% used: ${mi(b.s)} of ${mi(b.lim)}, with ${mi(Math.max(0,b.lim-b.s))} left.`,`נוצלו ${Math.round(b.pc)}%: ${mi(b.s)} מתוך ${mi(b.lim)}, נשארו ${mi(Math.max(0,b.lim-b.s))}.`)
+  :L(`At this pace it will reach about ${mi(b.pace)}, which is ${mi(b.pace-b.lim)} over its ${mi(b.lim)} limit.`,`בקצב הזה יגיע לכ‑${mi(b.pace)}, כלומר ${mi(b.pace-b.lim)} מעל המסגרת של ${mi(b.lim)}.`);
+ return `<div class="rkbr ${b.st=="over"?"o":"w"}"><div class="h"><b>${nm(b.k)}</b><span>${b.st=="over"?L("Over","חריגה"):b.st=="warn"?L("Almost full","כמעט מלא"):L("Heading over","בדרך לחריגה")}</span></div><div class="bar"><i style="width:${u.toFixed(1)}%"></i>${b.st=="pace"?`<em style="inset-inline-start:${pc.toFixed(1)}%"></em>`:""}</div><p>${why}</p></div>`}
 function budgetsPart(m){const flag=[...m.over,...m.risk];
  if(!flag.length){if(!m.okB.length)return"";return part("check","tp",L("Along the way, your budgets are","בדרך, התקציבים שלכם"),"budg",`<span class="rkw">${L("On track","בדרך הנכונה")}</span>`,L(`${pl(m.okB.length,"Your 1 budget is within its limit.","All {} budgets are within their limits.","","")}`,`${pl(m.okB.length,"","","התקציב שלכם נמצא במסגרת.","כל {} התקציבים נמצאים במסגרת.")}`))}
- return part("pie",m.over.length?"tn":"tw",L("Along the way, your budgets","בדרך, התקציבים שלכם"),"budg",`<span class="rkw">${L(`${pl(flag.length,"1 needs","{} need","","")} attention`,`${pl(flag.length,"","","אחד דורש","{} דורשים")} תשומת לב`)}</span>`,L("These are the ones to keep an eye on.","אלה שכדאי לשים לב אליהם."),`<div class="rkrgs">${flag.slice(0,3).map(ring).join("")}</div>`)}
+ return part("pie",m.over.length?"tn":"tw",L("Along the way, your budgets","בדרך, התקציבים שלכם"),"budg",`<span class="rkw">${L(`${pl(flag.length,"1 needs","{} need","","")} attention`,`${pl(flag.length,"","","אחד דורש","{} דורשים")} תשומת לב`)}</span>`,L("Here is why:","הנה הסיבה:"),`<div class="rkbl">${flag.slice(0,4).map(budRow).join("")}</div>`)}
 
 function endPart(m){
- const hasStart=isFinite(m.start)&&Math.abs(m.start)>=1,d=m.end-m.start;
- let line=L(`in your accounts, if no more money comes in.`,`בחשבונות, אם לא ייכנס עוד כסף.`);
- if(hasStart&&Math.abs(d)>=100)line+=`<br>${d>=0?L(`That is ${mi(d)} more than you started with.`,`זה ${mi(d)} יותר ממה שהתחלתם איתו.`):L(`That is ${mi(-d)} less than you started with.`,`זה ${mi(-d)} פחות ממה שהתחלתם איתו.`)}`;
- if(m.phase=="end")line+=`<br>${L(`${mname(m.nmk)} will begin with about ${mi(m.nextBills+m.cardsU)} already on its way out.`,`${mname(m.nmk)} יתחיל כשכבר כ‑${mi(m.nextBills+m.cardsU)} בדרך החוצה.`)}`;
- return part("path",m.end<0?"tn":"",L(`By the end of ${mname(MK)}, you could have`,`עד סוף ${mname(MK)} יכולים להיות לכם`),"end",`<span class="rkw">≈</span>${mn(m.end)}`,line,pathChart(m))}
+ const hasStart=isFinite(m.start)&&Math.abs(m.start)>=1,d=m.end-m.start,mon=mname(MK);
+ let line=L(`This is what would be left in your accounts if you pay everything that is still due (bills and credit card charges) and spend the rest of your budgets in full.`,`זה מה שיישאר בחשבונות אם תשלמו את כל מה שעוד צפוי (חשבונות וחיובי אשראי) ותנצלו במלואו את מה שנשאר מהתקציבים.`);
+ if(hasStart&&Math.abs(d)>=100)line+=chip(d>=0?"up":"down",d>=0?L(`${mi(d)} more than you started with`,`${mi(d)} יותר ממה שהתחלתם איתו`):L(`${mi(-d)} less than you started with`,`${mi(-d)} פחות ממה שהתחלתם איתו`),d>=0?"good":"warn");
+ if(m.phase=="end")line+=chip("flat",L(`${mname(m.nmk)} will begin with about ${mi(m.nextBills+m.cardsU)} already on its way out`,`${mname(m.nmk)} יתחיל כשכבר כ‑${mi(m.nextBills+m.cardsU)} בדרך החוצה`));
+ return part("path",m.end<0?"tn":"",L(`Predicted end of ${mon}`,`סיום חזוי של ${mon}`),"end",`<span class="rkw">≈</span>${mn(m.end)}`,line,pathChart(m))}
 
 /* ---------- opening the matching page, filtered ---------- */
 window.recapGo=function(k){const last=MK+"-"+p2(DIM);
@@ -193,14 +200,17 @@ function countUp(el){const to=+el.dataset.v||0;if(!to||REDUCE())return;const t0=
 function reveal(box,animate){if(IO){IO.disconnect();IO=null}
  const items=[...box.querySelectorAll(".rr")];
  if(!animate||REDUCE()||!("IntersectionObserver" in window)){items.forEach(x=>x.classList.add("in","st"));return}
- IO=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;const x=e.target;x.classList.add("in");x.querySelectorAll(".cnt").forEach(countUp);IO.unobserve(x)}),{threshold:.18,rootMargin:"0px 0px -6% 0px"});
+ IO=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;const x=e.target;x.classList.add("in");x.querySelectorAll(".cnt").forEach(countUp);IO.unobserve(x)}),{threshold:.3,rootMargin:"0px 0px -22% 0px"});
  items.forEach(x=>IO.observe(x))}
 
 // each connector runs from the middle of its circle to the middle of the next one
 let RO=null;
-function links(el){const rows=[...el.querySelectorAll(".rk.z")];
+function links(el){const rows=[...el.querySelectorAll(".rk.z")],end=el.querySelector(".zend");
  const cy=r=>{const n=r.querySelector(".rkni"),c=r.querySelector(".rkcir");return r.offsetTop+n.offsetTop+c.offsetTop+c.offsetHeight/2};
- rows.forEach((r,i)=>{const n=rows[i+1];if(!n)return;const d=Math.max(0,cy(n)-cy(r));r.querySelectorAll(".rkcn").forEach(s=>s.style.height=d+"px")})}
+ rows.forEach((r,i)=>{const n=rows[i+1],last=!n&&end&&end.querySelector(".rki");if(!n&&!last)return;
+  const to=n?cy(n):end.offsetTop+end.querySelector(".rki").offsetTop,d=Math.max(0,to-cy(r));
+  r.querySelectorAll(".rkcn").forEach(s=>{s.style.height=d+"px";if(last){const x0=r.classList.contains("za")?52:148,p=s.querySelector("path");if(p&&s.classList.contains("cs"))p.setAttribute("d",`M${x0} 0C${x0} 60 100 40 100 100`)}});
+  r.classList.toggle("tozend",!!last)})}
 function wireLinks(el){if(RO){RO.disconnect();RO=null}links(el);if("ResizeObserver" in window){RO=new ResizeObserver(()=>links(el));RO.observe(el)}}
 let LASTSIG="",LASTAT=0;
 window.renderRecap=function(){const el=$("recap");if(!el)return;
@@ -208,8 +218,8 @@ window.renderRecap=function(){const el=$("recap");if(!el)return;
  if(!S.tx.length){html=`<div class="rkw0" data-nt><section class="rkh rr"><h2>${L("Nothing to recap yet","עוד אין מה לסכם")}</h2><p>${L("Once your accounts are connected or you add a few transactions, this page will tell you how your month is going.","אחרי שתחברו חשבונות או תוסיפו כמה תנועות, הדף הזה יספר לכם איך החודש מתקדם.")}</p></section></div>`}
  else{m=model();
   const order=m.phase=="start"?[hero,startPart,inPart,nowPart,aheadPart,outPart,budgetsPart,endPart]:m.phase=="end"?[hero,startPart,inPart,outPart,budgetsPart,aheadPart,nowPart,endPart]:[hero,startPart,inPart,outPart,nowPart,aheadPart,budgetsPart,endPart];
-  let zc=0,out=order.map((fn,i)=>{ZZ=i<2?0:zc+1;let h="";try{h=fn(m)}catch(e){}ZZ=0;if(i>=2&&h)zc++;return h});
-  const chain=out.slice(2).filter(Boolean).join("");
+  let zc=0,out=order.map((fn,i)=>{ZZ=i<2||i==order.length-1?0:zc+1;let h="";try{h=fn(m)}catch(e){}const zi=ZZ;ZZ=0;if(zi&&h)zc++;return h});
+  const endH=out[out.length-1].replace('class="rk rr','class="rk rr zend'),chain=out.slice(2,-1).filter(Boolean).join("")+endH;
   html=`<div class="rkw0" data-nt>${out[0]}${out[1]}${chain?`<div class="rkz">${chain}</div>`:""}</div>`}
  // the same page again: leave it alone. A change while you are looking: update it quietly. Coming back to it later: play it again.
  if(html===LASTSIG&&el.firstChild)return;
