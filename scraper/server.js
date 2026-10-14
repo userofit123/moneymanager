@@ -52,10 +52,11 @@ const ASSIST_IDLE_MS = +process.env.ASSIST_IDLE_MS || 10 * 60 * 1000;
 const SHOT_DIR = process.env.SHOT_DIR || path.join(process.env.PROFILE_DIR || "/profiles", "_failed-logins"); // the last failed login of each bank is also kept here as a picture (one file per bank, replaced by the next failure)
 const shotFile = (name) => path.join(SHOT_DIR, name.replace(/[^A-Za-z0-9_~-]/g, "_") + ".jpg");
 // Every picture of a failed attempt is kept in its own folder (company_date-time/001_host-path.jpg), the newest 15 attempts of each bank.
-function saveAttempt(name, frames) {
+function saveAttempt(name, frames, netLog) {
   const safe = name.replace(/[^A-Za-z0-9_~-]/g, "_"), stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19), dir = path.join(SHOT_DIR, `${safe}_${stamp}`);
   fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
   frames.forEach((f, i) => fs.writeFileSync(path.join(dir, `${String(i + 1).padStart(3, "0")}_${new Date(f.at).toISOString().slice(11, 19).replace(/:/g, "-")}_${f.url.replace(/[^A-Za-z0-9.-]+/g, "_").slice(0, 50)}.jpg`), f.buf, { mode: 0o600 }));
+  if (netLog && netLog.length) fs.writeFileSync(path.join(dir, "network.txt"), [...new Set(netLog)].join("\n"), { mode: 0o600 }); // every request and error the page produced
   const old = fs.readdirSync(SHOT_DIR).filter((d) => d.startsWith(safe + "_") && fs.statSync(path.join(SHOT_DIR, d)).isDirectory()).sort().slice(0, -15);
   old.forEach((d) => fs.rmSync(path.join(SHOT_DIR, d), { recursive: true, force: true }));
 }
@@ -130,13 +131,20 @@ async function asksForCode(page) {
 
 // What the browser could not load, for the error message: the bare "Failed to fetch" says nothing about which request was refused. Only the host and path are kept (no query, which can hold tokens).
 const shortUrl = (u) => { try { const x = new URL(u); return x.host + x.pathname.slice(0, 60); } catch { return String(u).slice(0, 60); } };
+// The bank's own data requests (Isracard and American Express send everything through ProxyRequestHandler.ashx?reqName=...) are followed from start to end:
+// a "Failed to fetch" is a request that never got an answer, and this says which one and why. Those lines are kept apart (log.key) and shown first.
+const apiName = (u) => { try { const x = new URL(u); return /ProxyRequestHandler|\/services\//i.test(x.pathname) ? (x.searchParams.get("reqName") || x.pathname.split("/").pop()) : null; } catch { return null; } };
 function watchNet(p, log) {
-  p.on("requestfailed", (r) => { const t = r.failure() && r.failure().errorText; if (t && !/ERR_ABORTED/.test(t)) log.push(`${shortUrl(r.url())} ${t}`); });
-  p.on("console", (m) => { if (m.type() === "error") { const t = String(m.text()).replace(/\s+/g, " ").slice(0, 110); if (!/favicon|Failed to load resource/i.test(t)) log.push("page: " + t); } });
+  log.key = log.key || [];
+  const key = (t) => { log.key.push(t); log.push(t); };
+  p.on("request", (r) => { const n = apiName(r.url()); if (n) key(`sent ${n}`); });
+  p.on("requestfailed", (r) => { const t = r.failure() && r.failure().errorText, n = apiName(r.url()); if (n) key(`${n} failed: ${t || "no answer"}`); else if (t && !/ERR_ABORTED/.test(t)) log.push(`${shortUrl(r.url())} ${t}`); });
+  p.on("console", (m) => { if (m.type() === "error") { const t = String(m.text()).replace(/\s+/g, " ").slice(0, 160); if (/Content Security Policy|CORS|Refused to|blocked/i.test(t)) key("page: " + t); else if (!/favicon|Failed to load resource/i.test(t)) log.push("page: " + t.slice(0, 110)); } });
   p.on("pageerror", (e) => log.push("page error: " + String(e.message).slice(0, 110)));
-  p.on("response", (r) => { if (r.status() >= 400 && ["xhr", "fetch", "document"].includes(r.request().resourceType())) log.push(`${shortUrl(r.url())} HTTP ${r.status()}`); });
+  p.on("framenavigated", (f) => { try { if (f === p.mainFrame()) key(`page went to ${shortUrl(f.url())}`); } catch { /* closed */ } });
+  p.on("response", (r) => { const n = apiName(r.url()); if (n) key(`${n} answered HTTP ${r.status()}`); else if (r.status() >= 400 && ["xhr", "fetch", "document"].includes(r.request().resourceType())) log.push(`${shortUrl(r.url())} HTTP ${r.status()}`); });
 }
-const netNote = (log, page) => { const u = [...new Set(log)].slice(-4); let where = ""; try { if (page) where = shortUrl(page.url()); } catch { /* closed */ } return (u.length ? " · refused: " + u.join("; ") : "") + (where ? " · stopped on: " + where : ""); };
+const netNote = (log, page) => { const k = [...new Set(log.key || [])].slice(-8), u = [...new Set(log.filter((x) => !(log.key || []).includes(x)))].slice(-3); let where = ""; try { if (page) where = shortUrl(page.url()); } catch { /* closed */ } const all = [...k, ...u]; return (all.length ? " · " + all.join("; ") : "") + (where ? " · stopped on: " + where : ""); };
 
 // An empty reply to the very first request (ValidateIdData) means the bank's bot protection had not let the page through yet. Nothing was checked
 // against the bank, so no login attempt was used: wait a little and try once more in a fresh browser before giving up.
@@ -175,10 +183,10 @@ async function scrapeOnce(company, credentials, startDate, profile) {
     // where it got stuck (a captcha, a notice, a changed page): kept in memory so the app can show it, never written to disk
     clearInterval(snapTimer);
     await grab(page);
-    if (snap) { LASTSHOT.set(profName(company, profile), snap); try { fs.mkdirSync(SHOT_DIR, { recursive: true, mode: 0o700 }); fs.writeFileSync(shotFile(profName(company, profile)), snap.buf, { mode: 0o600 }); saveAttempt(profName(company, profile), frames); } catch { /* the in-memory copy still works */ } }
+    if (snap) { LASTSHOT.set(profName(company, profile), snap); try { fs.mkdirSync(SHOT_DIR, { recursive: true, mode: 0o700 }); fs.writeFileSync(shotFile(profName(company, profile)), snap.buf, { mode: 0o600 }); saveAttempt(profName(company, profile), frames, net); } catch { /* the in-memory copy still works */ } }
     // opt-in diagnostics: the same screenshot saved to /debug
     if (DEBUG && page) { try { await page.screenshot({ path: `/debug/${company}.png` }); console.log(`debug screenshot: /debug/${company}.png (${page.url().split("?")[0]})`); } catch {} }
-    if (e && e.message && net.length && !/refused:/.test(e.message)) e.message += netNote(net, page);
+    if (e && e.message && net.length && !/ · stopped on:/.test(e.message)) e.message += netNote(net, page);
     throw e;
   } finally {
     clearInterval(snapTimer);
