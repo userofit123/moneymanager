@@ -583,6 +583,76 @@ html.he .tsx>summary.tsec::before{transform:rotate(135deg)}html.he .tsx[open]>su
 html.he .trstats>div,html.he .jstats>div,html.he .phs>div{text-align:right}
 html.he td.am{direction:ltr;unicode-bidi:isolate;text-align:left}
 html.he.mob .ftools #q{padding-left:14px;padding-right:42px;background-position:right 14px center}
+/* ===== MOBILE v2: Material-style phone layout. Everything is under html.mob, so desktop is untouched ===== */
+html.mob{scroll-padding-top:72px}
+html.mob body{-webkit-tap-highlight-color:transparent}
+/* top app bar */
+html.mob main{padding:0 16px calc(148px + var(--sb))}
+html.mob main>header{position:sticky;top:0;z-index:30;margin:0 -16px 8px;padding:calc(10px + var(--st)) 16px 10px;gap:8px;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4)}
+html.mob main>header h1{font-size:24px;line-height:1.15;letter-spacing:-.4px;font-weight:700}
+html.mob main>header .sub{font-size:12px;margin-top:1px;opacity:.85}
+html.mob .hbtns{gap:6px}
+html.mob .hbtns .ib{width:42px;height:42px;border:0;background:var(--s2)}
+html.mob .hbtns .ib svg{width:21px;height:21px}
+html.mob .hbtns .badge{top:-1px;right:-1px}
+/* bottom navigation: 4 destinations + More, pill indicator, FAB floats above */
+html.mob nav{padding:8px 8px calc(8px + var(--sb));border-top:0;box-shadow:0 -1px 0 var(--ol),0 -10px 30px -18px #0006;background:color-mix(in srgb,var(--bg) 90%,var(--s1))}
+html.mob nav .nb[data-v=alerts],html.mob nav .navplus{display:none!important}
+html.mob .nb{min-height:56px;gap:4px;font-size:11.5px;font-weight:500;letter-spacing:.1px;color:var(--tx2);-webkit-tap-highlight-color:transparent}
+html.mob .nb .ic{width:60px;height:32px;border-radius:16px;transition:background .25s,transform .15s}
+html.mob .nb .ic svg{width:22px;height:22px}
+html.mob .nb:active .ic{transform:scale(.94)}
+html.mob .nb.on{font-weight:700;color:var(--tx)}
+html.mob .nb.on .ic{background:var(--accc);color:var(--onc)}
+html.mob .badge{top:0;right:calc(50% - 28px)}
+html.mob .fab{display:grid;right:16px;bottom:calc(84px + var(--sb));width:56px;height:56px;border-radius:18px;z-index:45;font-size:30px;font-weight:300;box-shadow:0 10px 24px -8px var(--acc),0 2px 6px #0003;-webkit-tap-highlight-color:transparent}
+html.mob .fab:active{transform:scale(.94)}
+html.mob .pop{bottom:calc(88px + var(--sb))}
+/* section rhythm */
+html.mob h2{margin:24px 0 10px;font-size:12px;letter-spacing:.9px;min-height:28px}
+html.mob h2 .hl{padding:8px 0 8px 10px;font-size:13px;letter-spacing:0;text-transform:none;font-weight:600}
+html.mob .card{border-radius:20px;padding:16px}
+html.mob .grid{gap:12px}
+html.mob .sm{line-height:1.4}
+/* KPI tiles: sparkline sits under the text, never over it */
+html.mob #kpis .card:not(.hero) .spark,html.mob #billK .card:not(.hero) .spark,html.mob #budK .card:not(.hero) .spark,html.mob #fcK .card:not(.hero) .spark{position:static;display:block;width:100%;height:30px;margin-top:8px}
+html.mob #kpis .card .sm{padding-inline-end:0}
+html.mob .card .val{font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+/* segmented controls and tab strips: full-width, scrollable, comfortable */
+html.mob .seg{margin:0 0 14px;padding:4px;scroll-snap-type:x proximity}
+html.mob .seg button{min-height:38px;padding:0 16px;font-size:14px;scroll-snap-align:center}
+html.mob .h2r{gap:8px}
+html.mob .setnav{margin-inline:-16px;padding:8px 16px;border-radius:0;border-width:0 0 1px;background:transparent;gap:6px;position:sticky;top:calc(58px + var(--st));z-index:20;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:color-mix(in srgb,var(--bg) 80%,transparent)}
+html.mob .setnav button{flex:none;white-space:nowrap;min-height:40px;padding:0 14px;border-radius:99px;background:var(--s2);color:var(--tx)}
+html.mob .setnav button.on{background:var(--accc);color:var(--onc);font-weight:600}
+/* Activity filters: search row, then one swipeable row of chips */
+html.mob .ftools{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin:0 -16px 12px;padding:0 16px}
+html.mob .ftools>.f1{width:100%;max-width:100%;min-width:0}html.mob .ftools>.f2{width:calc(100% + 32px);max-width:calc(100% + 32px);min-width:0}
+html.mob .ftools .f1{display:flex!important;flex-wrap:nowrap!important;gap:8px;align-items:center}
+html.mob .ftools .f1>input{flex:1 1 0;width:auto;min-width:0!important}
+html.mob .ftools .f1 .btn{order:0;width:auto;grid-column:auto;flex:none;min-height:44px;padding:0 14px}
+html.mob .ftools .f1 .btn[data-a=exOpen]{font-size:0;width:44px;padding:0;background:var(--s1) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4v11M7 11l5 5 5-5M5 20h14'/%3E%3C/svg%3E") no-repeat center/20px}
+html.mob .ftools .f2{display:flex!important;flex-wrap:nowrap!important;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:2px 16px 4px;scroll-padding-inline:16px}
+html.mob .ftools .f2::-webkit-scrollbar{display:none}
+html.mob .ftools .f2>*{flex:0 0 auto;width:auto!important;min-width:0!important}html.mob .ftools #q{padding-inline-start:38px;font-size:15px;text-overflow:ellipsis}
+html.mob .ftools .f2 .fsel{position:relative;grid-column:auto}
+html.mob .ftools .f2 .fsel select{width:auto;min-height:40px;border-radius:99px;padding:0 30px 0 38px;font-size:14px;background-color:var(--s1)}
+html.mob .ftools .f2 .fsel>svg{inset-inline-start:13px;width:17px;height:17px}
+html.mob .ftools .f2 .fsel:has(.rng){grid-column:auto}
+html.mob .ftools .rng{display:flex;gap:6px}
+html.mob .ftools .rng input,html.mob .ftools .rng select{min-height:40px;border-radius:99px;font-size:14px;width:auto}
+/* lists and rows */
+html.mob .txi,html.mob .row{min-height:56px}
+html.mob .btn{border-radius:99px}
+html.mob .btn.s{min-height:40px;padding:0 16px}
+html.mob .chip,html.mob .tag{min-height:30px}
+/* sheets: Material bottom sheet */
+html.mob .sheet{border-radius:28px 28px 0 0;box-shadow:0 -20px 60px -20px #0009}
+html.mob .scrim{backdrop-filter:blur(2px)}
+html.mob .toast{border-radius:16px}
+html.mob .al{flex-wrap:wrap;row-gap:10px}html.mob .al>div:nth-child(2){flex:1 1 calc(100% - 30px)!important}html.mob .al>.flex,html.mob .al>.btn{margin-inline-start:22px}
+html.mob .txs-l{flex:0 0 auto}html.mob .txs{margin-top:0}html.mob .txs-g{grid-template-columns:repeat(2,minmax(0,1fr));background:var(--s1);border:1px solid var(--ol);border-radius:16px;padding:12px 14px;gap:12px}html.mob .txs-g>div{border-inline-start:0;padding:0}
+@media (max-width:360px){html.mob main{padding-inline:12px}html.mob main>header{margin-inline:-12px;padding-inline:12px}html.mob .nb .ic{width:52px}html.mob .nb{font-size:11px}}
 </style>
 <script>
 (function(){var m=function(){var w=Math.min(innerWidth,document.documentElement.clientWidth||innerWidth),touch=matchMedia("(pointer:coarse)").matches;document.documentElement.classList.toggle("mob",w<=860||(touch&&w<=1100))};m();addEventListener("resize",m);addEventListener("orientationchange",m)})();
