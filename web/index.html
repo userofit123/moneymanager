@@ -983,7 +983,11 @@ function upBillRows(){const lim=new Date(NOW.getTime()+31*864e5),fut=S.tx.filter
 function costRows(){return S.xf.filter(x=>x.st!="rej").map(x=>{const o=byId(x.o),i=byId(x.i);if(!o||!i)return null;const c=-o.a-i.a;return c>.5?{id:"v"+x.o,virtual:true,d:o.d,desc:"Transfer cost · "+o.from+" → "+i.to,from:o.from,to:"Transfer fees / FX spread",a:-c,c:"Fees & FX costs",tags:[],docs:[],note:"",cost:c}:null}).filter(Boolean)}
 let AC=null;const ALL=()=>S.tx.concat(costRows()),noRep=t=>NR.size>0&&(NR.has(t.from)||NR.has(t.to)),BTC=new Map(),acReset=()=>{AC=null;BTC.clear()},A=()=>{if(!AC){AC=S.tx.filter(t=>!XS.has(t.id)&&!isIgn(t)&&!isFuture(t)&&!isCardPay(t)&&!noRep(t)).concat(costRows());setTimeout(acReset,0)}return AC};
 const recon=()=>S.gaps.filter(g=>g.status=="open"&&g.remaining!=0).map(g=>({id:g.id,n:g.account,cur:g.currency,diff:g.remaining,amount:g.amount,from:g.window_from,to:g.window_to}));
-function applyRules(){S.tx.forEach(t=>{if(!t.c&&!isXf(t)){const r=S.rules.find(r=>t.desc.toLowerCase().includes(r.k.toLowerCase()));if(r)t.c=r.c}})}
+// Rule text and transaction text are compared in the same plain form (lower case, numbers and punctuation turned into spaces), against the description and the store.
+// Without that, a rule made from "SUPER-PHARM #123" ("super pharm") never matched the text it came from.
+function rn(s){return String(s==null?"":s).toLowerCase().replace(/[0-9*#_\/\\\-.,:;()'"\u05f3\u05f4]+/g," ").replace(/\s+/g," ").trim()}
+function ruleHit(t,k){const q=rn(k);return q.length>0&&rn(t.desc+" "+(t.to||"")+" "+(t.from||"")).includes(q)}
+function applyRules(){S.tx.forEach(t=>{if(!t.c&&!isXf(t)){const r=S.rules.find(r=>ruleHit(t,r.k));if(r)t.c=r.c}})}
 function spend(){const m={};A().filter(t=>t.a<0&&rdOf(t).startsWith(MK)).forEach(t=>{const c=t.c||"Uncategorized";m[c]=(m[c]||0)+Math.abs(t.a)});return Object.entries(m).sort((a,b)=>b[1]-a[1])}
 const monthSum=(k,sg)=>A().filter(t=>(sg>0?t.a>0:t.a<0)&&rdOf(t).startsWith(k)).reduce((s,t)=>s+Math.abs(t.a),0);
 const heldOf=j=>Math.max(0,(+j.bal||0)-(+j.out||0)),jarClamp=j=>{j.out=Math.min(+j.out||0,Math.max(0,+j.bal||0))}, // heldOf: the part of a jar that sits in your accounts (the rest is saved elsewhere, or already paid back)
@@ -1186,7 +1190,7 @@ function chipsT(t){let s="";if(t.balUpd)s+=`<span class="bd pc p-bal" data-tip="
 /* ---------- tag editor: chips, a list of existing tags that filters as you type, several tags at once ---------- */
 let NR_TAGS=[],TA=null;
 // similar transactions that do not have the tags yet
-const tagSim=(kw,except,tags)=>kw.length<2?[]:S.tx.filter(x=>x.id!=except&&!x.virtual&&(x.desc+" "+x.to).toLowerCase().includes(kw)&&tags.some(g=>!(x.tags||[]).includes(g)));
+const tagSim=(kw,except,tags)=>kw.length<2?[]:S.tx.filter(x=>x.id!=except&&!x.virtual&&ruleHit(x,kw)&&tags.some(g=>!(x.tags||[]).includes(g)));
 function taUpdate(){if(!TA||!$("taK"))return;const kw=($("taK").value||"").trim().toLowerCase(),L=tagSim(kw,TA.id,TA.tags);$("taN").textContent=L.length?`Also tag the ${L.length} similar transaction${L.length==1?"":"s"} I already have`:"No other transactions match yet. The rule will tag future ones.";$("taA").disabled=!L.length;$("taS").textContent=L.length?L.slice(0,3).map(x=>x.desc).join(", ")+(L.length>3?", …":""):""}
 document.addEventListener("input",e=>{if(e.target.id=="taK")taUpdate()});
 // after a tag is added to one transaction: offer to tag the others like it, as a rule
@@ -1204,13 +1208,13 @@ if(k=="newrule"){list.forEach(g=>{if(!NR_TAGS.includes(g))NR_TAGS.push(g)});box.
 if(k=="tx"){const t=byId(id);if(!t)return;const add=list.filter(g=>!t.tags.includes(g));if(!add.length)return;add.forEach(g=>t.tags.push(g));log("Added tag",t.desc+": "+add.join(", "));renderAll();openTx(id);tagOffer(t,add);setTimeout(()=>{const i=document.querySelector('#sheet .tbox .tin');i&&i.focus()},30);return}
 const r=S.tagRules[+id];if(!r)return;const tg=ruleTags(r),add=list.filter(g=>!tg.includes(g));if(!add.length)return;r.t=[...tg,...add].join(",");log("Changed tag rule",'"'+r.k+'" tags: '+r.t);renderAll();tagRuleAsk(+id)}
 // after a tag rule is added or changed: offer to tag the transactions that are already in the app
-function tagRuleMatches(r){const kw=r.k.toLowerCase(),tags=ruleTags(r);return S.tx.filter(t=>!t.virtual&&t.desc.toLowerCase().includes(kw)&&tags.some(g=>!t.tags.includes(g)))}
+function tagRuleMatches(r){const kw=r.k.toLowerCase(),tags=ruleTags(r);return S.tx.filter(t=>!t.virtual&&ruleHit(t,kw)&&tags.some(g=>!t.tags.includes(g)))}
 function tagRuleAsk(i,isNew){const r=S.tagRules[i];if(!r)return;const L=tagRuleMatches(r),tags=ruleTags(r),tg=tags.map(g=>`<b>#${esc(g)}</b>`).join(" ");
 if(!L.length){toast(isNew?`Rule added. New transactions that contain “${r.k}” get ${tags.map(g=>"#"+g).join(" ")}.`:"Rule updated. No other transactions need the tag.");return}
 openSheet(`<h3>Tag your earlier transactions too?</h3><div class="sm" style="margin-bottom:12px;line-height:1.5">${isNew?"The rule is saved. ":""}From now on, new transactions that contain “${esc(r.k)}” get ${tg}. <b>${L.length}</b> transaction${L.length==1?"":"s"} you already have match${L.length==1?"es":""}.</div><div class="trex">${L.slice(0,4).map(t=>`<div><span>${esc(dstr(t.d))}</span><b>${esc(t.desc)}</b><span class="num">${fm(Math.abs(t.a))}</span></div>`).join("")}${L.length>4?`<div class="sm">and ${L.length-4} more</div>`:""}</div>
 <div class="flex" style="justify-content:flex-end;gap:10px;margin-top:14px"><button class="btn o" data-a="close">Only new ones</button><button class="btn" data-a="trApply" data-i="${i}">Tag ${L.length} existing</button></div>`)}
 // every transaction that already matches a rule gets the rule's tags (the category is only set on uncategorized ones, as before)
-function applyRuleToExisting(r){const tags=ruleTags(r);if(!tags.length)return 0;const kw=r.k.toLowerCase();let n=0;S.tx.forEach(t=>{if(t.virtual||!t.desc.toLowerCase().includes(kw))return;let ch=false;tags.forEach(g=>{if(!t.tags.includes(g)){t.tags.push(g);ch=true}});if(ch)n++});return n}
+function applyRuleToExisting(r){const tags=ruleTags(r);if(!tags.length)return 0;const kw=r.k.toLowerCase();let n=0;S.tx.forEach(t=>{if(t.virtual||!ruleHit(t,kw))return;let ch=false;tags.forEach(g=>{if(!t.tags.includes(g)){t.tags.push(g);ch=true}});if(ch)n++});return n}
 (()=>{const hi=(sug,d)=>{const b=[...sug.querySelectorAll(".tpick")];if(!b.length)return;let i=+sug.dataset.hi+d;i=Math.max(0,Math.min(b.length-1,i));sug.dataset.hi=i;b.forEach((x,j)=>x.classList.toggle("hi",j==i));b[i].scrollIntoView({block:"nearest"})};
 document.addEventListener("focusin",e=>{if(e.target.classList&&e.target.classList.contains("tin"))tagSug(e.target)});
 document.addEventListener("input",e=>{if(e.target.classList&&e.target.classList.contains("tin"))tagSug(e.target)});
@@ -1383,7 +1387,7 @@ openSheet(`<h3>${ctx&&!ctx.plain?"Explain missing money":"Add transaction"}</h3>
 const upd=()=>{const [n,c]=$("nAcc").value.split("|"),ac=S.accounts.find(x=>x.n==n&&x.cur==c);$("nCur").textContent="("+(SYM[c]||c)+")";$("nBalW").style.display=ac&&ac.custom?"flex":"none"};$("nAcc").addEventListener("change",upd);upd()}
 async function uploadDocs(txId,files){const out=[];for(const fl of files){const r=await fetch(`/api/transactions/${txId}/documents`,{method:"POST",headers:{"x-filename":encodeURIComponent(fl.name),"content-type":fl.type||"application/octet-stream"},body:fl});if(!r.ok)throw new Error("upload failed");out.push(await r.json())}return out}
 // the tags the tag rules give a transaction with this description
-const tagsFor=desc=>{const l=String(desc).toLowerCase(),o=[];(S.tagRules||[]).forEach(r=>{if(r.k&&l.includes(r.k.toLowerCase()))ruleTags(r).forEach(g=>{if(!o.includes(g))o.push(g)})});return o};
+const tagsFor=desc=>{const l=rn(desc),o=[];(S.tagRules||[]).forEach(r=>{if(r.k&&rn(r.k)&&l.includes(rn(r.k)))ruleTags(r).forEach(g=>{if(!o.includes(g))o.push(g)})});return o};
 async function addSave(){const d=$("nDesc").value.trim(),a=+$("nAmt").value;if(!d||!a)return;const sg=+$("nType").value,[acc,cur]=$("nAcc").value.split("|"),date=$("nDate").value||TODAY,fl=$("nFile").files[0];
 let rate=1;if(cur!="ILS"){try{rate=(await (await fetch(`/api/fx/rate?cur=${cur}&date=${date}`)).json()).rate||fx[cur]}catch(e){rate=fx[cur]}}
 const amt=+(sg*Math.abs(a)*rate).toFixed(2),id=Math.max(0,...S.tx.map(t=>t.id))+1;
@@ -2067,7 +2071,7 @@ $("dvLbl").textContent=sel==null?"Files":"All files · "+t.docs.length;
 $("dvList").innerHTML=t.docs.map((n,i)=>`<button class="dvitem ${i===sel?"on":""}" data-a="docPick" data-i="${i}"><span class="dvic">${docIcon(n)}</span><span class="dvn">${esc(n)}</span><span class="sm">${i===sel?"showing":"preview"}</span></button>`).join("");{const pv=document.querySelector("#dvPrev .pdfv");if(pv)pdfShow(pv)}}
 /* ---------- offer a rule right after categorizing an uncategorized item ---------- */
 function guessKw(t){const store=t.a<0&&t.to&&!BANKN.has(t.to)&&!CC.some(c=>c.n==t.to)?t.to:t.desc;let x=String(store).toLowerCase().replace(/[0-9*#_\/\\\-.,:;()]+/g," ").replace(/\s+/g," ").trim();const w=x.split(" ").filter(Boolean);let kw=w.slice(0,2).join(" ");if(kw.length<3&&w[0])kw=w[0];return kw}
-const simList=(kw,except,cat)=>kw.length<2?[]:S.tx.filter(x=>x.id!=except&&x.c!=(cat||"\u0000")&&!isXf(x)&&!x.virtual&&(x.desc+" "+x.to).toLowerCase().includes(kw));
+const simList=(kw,except,cat)=>kw.length<2?[]:S.tx.filter(x=>x.id!=except&&x.c!=(cat||"\u0000")&&!isXf(x)&&!x.virtual&&ruleHit(x,kw));
 function cpOffer(t){const txt=normD(t.desc);if(txt.length<2||(S.cardRules||[]).map(normD).includes(txt))return;
 const n=S.tx.filter(x=>x.id!=t.id&&x.a<0&&!x.virtual&&BANKN.has(x.from)&&!(S.ccOverride&&S.ccOverride[x.id])&&normD(x.desc)==txt&&!isCardPay(x)).length;
 addSugg({key:"card|"+txt,title:"Always count these as card payments?",text:n?`${n} other payment${n==1?"":"s"} to “${t.desc}” look the same. A rule counts them all, and future ones, as card payments.`:`No other payments look like “${t.desc}” yet, but a rule would recognise future ones.`,actions:[{label:n?`Yes, all ${n+1}`:"Create rule",a:"cpRuleAdd",id:t.id}]})}
@@ -2358,7 +2362,7 @@ openSheet(`<h3>Change bill type</h3><div class="sm" style="margin-bottom:12px">$
 <div class="fld"><label>Type</label><select id="btT"><option value="1" ${cur=="1"?"selected":""}>Recurring · every month</option><option value="2" ${cur=="2"?"selected":""}>Recurring · every 2 months</option><option value="12" ${cur=="12"?"selected":""}>Recurring · every year</option><option value="irregular" ${cur=="irregular"?"selected":""}>Irregular</option></select></div>
 <div class="flex" style="justify-content:flex-end;gap:10px"><button class="btn o" data-a="close">Cancel</button><button class="btn" data-a="billTypeSave" data-i="${d.i}">Save</button></div>`);break}
 case"billTypeSave":{const b=S.bills[+d.i];if(!b)break;const v=$("btT").value;if(v=="irregular"){b.rec="irregular";delete b.every;delete b.anchor;delete b.dom}else{const last=billTx(b).slice(-1)[0],ld=last?new Date(last.d):NOW;b.rec="recurring";b.every=+v;b.anchor=ld.getMonth()+1;b.dom=Math.min(28,ld.getDate()||1)}log("Changed bill type",b.n+" → "+(v=="irregular"?"irregular":"every "+v+" month"+(v==1?"":"s")));closeSheet();renderAll();break}
-case"ruleApply":{const[i,old]=String(d.id).split("|"),r=S.rules[+i];if(!r)break;let n=0;S.tx.forEach(t=>{if(!t.virtual&&t.c==old&&t.desc.toLowerCase().includes(r.k.toLowerCase())){t.c=r.c;n++}});log("Updated past transactions",n+" · \""+r.k+"\" → "+r.c);renderAll();toast(n+" transactions moved to "+r.c);break}
+case"ruleApply":{const[i,old]=String(d.id).split("|"),r=S.rules[+i];if(!r)break;let n=0;S.tx.forEach(t=>{if(!t.virtual&&t.c==old&&ruleHit(t,r.k)){t.c=r.c;n++}});log("Updated past transactions",n+" · \""+r.k+"\" → "+r.c);renderAll();toast(n+" transactions moved to "+r.c);break}
 case"availWhy":openAvail();break;
 case"bufSet":S.jarsBuffer=+d.v;renderAll();break;
 case"cpMark":{S.ccOverride[d.id]=2;const t0=byId(+d.id);log("Marked as a card payment",t0?.desc||"");closeSheet();renderAll();if(t0)cpOffer(t0);break}
@@ -2819,7 +2823,7 @@ if(window.ResizeObserver)new ResizeObserver(chk).observe(box);addEventListener("
 box.addEventListener("change",e=>{const t=e.target;if(!t.dataset||t.dataset.c!="trk"||!t.dataset.i)return;const r=S.tagRules[+t.dataset.i];if(!r)return;const v=t.value.trim();if(!v){t.value=r.k;return}if(v==r.k)return;log("Changed tag rule",'"'+r.k+'" → "'+v+'"');r.k=v;renderAll();tagRuleAsk(+t.dataset.i)})})();
 (()=>{const box=document.getElementById("setRules");if(!box)return;
 box.addEventListener("change",e=>{const t=e.target,c=t.dataset&&t.dataset.c;if(!c||!c.startsWith("rule")||c=="rulek"&&false)return;if(!["rulek","rulec","rulet"].includes(c))return;const r=S.rules[+t.dataset.i];if(!r)return;
-if(c=="rulec"){const old=r.c;if(old==t.value)return;r.c=t.value;log("Changed rule",'"'+r.k+'" → '+t.value+" (was "+old+")");const n=S.tx.filter(x=>!x.virtual&&x.c==old&&x.desc.toLowerCase().includes(r.k.toLowerCase())).length;renderAll();
+if(c=="rulec"){const old=r.c;if(old==t.value)return;r.c=t.value;log("Changed rule",'"'+r.k+'" → '+t.value+" (was "+old+")");const n=S.tx.filter(x=>!x.virtual&&x.c==old&&ruleHit(x,r.k)).length;renderAll();
 toast(n?`New transactions with "${r.k}" now go to ${t.value}.`:`New transactions with "${r.k}" now go to ${t.value}.`,{title:"Rule updated",kind:"ok",ms:14000,actions:n?[{label:`Move ${n} past transaction${n==1?"":"s"} too`,a:"ruleApply",id:t.dataset.i+"|"+old},{label:"Leave them",a:"toastNo"}]:[]})}
 else if(c=="rulek"){const v=t.value.trim();if(!v){t.value=r.k;return}if(v==r.k)return;log("Changed rule",'"'+r.k+'" → "'+v+'"');r.k=v;renderAll()}
 else{const v=t.value.trim();if(v==(r.t||""))return;r.t=v;log("Changed rule tag",'"'+r.k+'" tag: '+(v||"none"));renderAll()}})})();
