@@ -19,6 +19,8 @@ Object.assign(D,{
 "Connected: the last sync read this account without a problem.\nOut of date: it has not synced for more than 2 days.\nNeeds a code or Locked: open Settings → Connections to fix it.":"מחובר: הסנכרון האחרון קרא את החשבון בלי בעיה.\nלא מעודכן: לא סונכרן יותר מיומיים.\nנדרש קוד או נעול: פתחו הגדרות ← חיבורים כדי לתקן.",
 "Whether this balance is added to your net worth on Home and in Reports.":"האם היתרה הזאת נוספת לשווי הנקי בדף הבית ובדוחות.","Whether its income and spending appear in reports, budgets and the forecast.":"האם ההכנסות וההוצאות שלו מופיעות בדוחות, בתקציבים ובתחזית.",
 "This currency is not in your currencies yet. It is added to Settings → Currencies when you save, so its exchange rate can be used.":"המטבע הזה עדיין לא ברשימת המטבעות שלכם. הוא יתווסף להגדרות ← מטבעות כשתשמרו, כדי שאפשר יהיה להשתמש בשער החליפין שלו.",
+/* ---- recap ---- */
+"Recap":"סיכום","Open":"פתיחה",
 /* ---- profile ---- */
 "About this section":"על האזור הזה",
 "Profile":"פרופיל","Make it yours":"בואו נתאים את זה אליכם","Tell us a little about you. Every field is optional.":"ספרו לנו קצת על עצמכם. כל השדות אופציונליים.",
