@@ -409,6 +409,7 @@ html[data-nsp="tight"]{--nvg:0px;--nvp:0px}html[data-nsp="roomy"]{--nvg:12px;--n
 .stg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px}.stl{background:var(--s2);border-radius:14px;padding:11px 14px;min-width:0}.stl span{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--tx2);margin-bottom:3px}.stl b{font-size:19px;font-weight:650;white-space:nowrap}.stl i{display:block;font-style:normal;font-size:12px;color:var(--tx2);margin-top:2px}html.mob .stg{grid-template-columns:repeat(2,minmax(0,1fr))}
 .card.acc .lbl{display:flex;align-items:center;gap:8px}.grid.ga{grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
 /* the page guide: a panel beside the page that explains it */
+.fabx{position:fixed;right:22px;bottom:90px;z-index:40;display:flex;flex-direction:column;gap:10px;align-items:center;width:58px}.fabx .ib{box-shadow:0 8px 20px -10px #0006,0 1px 2px #0002}html.he .fabx{right:auto;left:22px}@media (min-width:1180px){html.help-on .fab,html.help-on .fabx{right:442px}html.he.help-on .fab,html.he.help-on .fabx{right:auto;left:442px}}html.mob .fabx{right:16px;bottom:calc(150px + var(--sb));width:56px;z-index:45}html.mob .fabx .ib{width:42px;height:42px;border:1px solid var(--ol);background:var(--s1)}html.mob.he .fabx{right:auto;left:16px;bottom:calc(84px + var(--sb))}
 .hbtns{display:flex;align-items:center;gap:10px}
 .help{position:fixed;inset-block:0;inset-inline-end:0;width:min(420px,100vw);z-index:240;background:var(--bg);border-inline-start:1px solid var(--ol);display:flex;flex-direction:column;transform:translateX(100%);visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s;box-shadow:-18px 0 40px -28px rgba(0,0,0,.4)}
 html.he .help,html[dir=rtl] .help{transform:translateX(-100%);box-shadow:18px 0 40px -28px rgba(0,0,0,.4)}
@@ -694,10 +695,11 @@ html.mob .txs-l{flex:0 0 auto}html.mob .txs{margin-top:0}html.mob .txs-g{grid-te
 <div class="aps"><h4>Date format</h4><div class="seg apseg" id="segDf"><button data-a="datef" data-v="dmy">dd/mm/yyyy</button><button data-a="datef" data-v="mdy">mm/dd/yyyy</button></div></div>
 <div class="aps"><h4>Language</h4><div class="seg apseg" id="segLang"><button data-a="lang" data-l="en">English</button><button data-a="lang" data-l="he">עברית</button></div></div></div></div>
 <div class="scrim" id="scrim" data-a="close"></div><div class="sheet" id="sheet"></div>
+<div class="fabx"><button class="ib" id="helpBtn" data-a="helpToggle" aria-label="About this page" aria-expanded="false" aria-controls="help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5h.01"/></svg></button><button class="ib" data-a="nav" data-v="alerts" aria-label="Alerts"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0"/></svg><span class="badge" id="bBell"></span></button></div>
 <button class="fab" data-a="quick" aria-label="Add or update">+</button>
 <main>
 <header><div><h1 id="title">Home</h1><div class="sub" id="date"></div></div>
-<div class="hbtns"><button class="ib" id="helpBtn" data-a="helpToggle" aria-label="About this page" aria-expanded="false" aria-controls="help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5h.01"/></svg></button><button class="ib" data-a="nav" data-v="alerts" aria-label="Alerts"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0"/></svg><span class="badge" id="bBell"></span></button></div></header>
+</header>
 
 <section class="view on" id="dash">
 <div id="attn"></div>
