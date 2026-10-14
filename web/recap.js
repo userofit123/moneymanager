@@ -211,10 +211,7 @@ function countUp(el){const to=+el.dataset.v||0;if(!to||REDUCE())return;const t0=
 const showIn=(x,animate)=>{if(x.classList.contains("in"))return;x.classList.add("in");if(!animate){x.classList.add("st");return}setTimeout(()=>x.querySelectorAll(".cnt").forEach(countUp),450)};
 // the title and the first part fade in as they come into view
 function reveal(box,animate){if(IO){IO.disconnect();IO=null}
- const items=[...box.querySelectorAll(".rr:not(.z):not(.zend)")];
- if(!animate||REDUCE()||!("IntersectionObserver" in window)){items.forEach(x=>showIn(x,false));return}
- IO=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;showIn(e.target,true);IO.unobserve(e.target)}),{threshold:.25,rootMargin:"0px 0px -36% 0px"});
- items.forEach(x=>IO.observe(x))}
+ if(!animate||REDUCE())box.querySelectorAll(".rr").forEach(x=>showIn(x,false))}
 
 // the path is drawn as you scroll: its tip stays near the bottom of the screen, and each part fades in when the path reaches it.
 // Parts that scroll away off the top shrink a little.
@@ -230,16 +227,19 @@ function frame(){const s=CUR;if(!s||!s.el.isConnected||!s.el.getClientRects().le
   rows.forEach((r,i)=>{const a=pts[i],b=i+1<rows.length?pts[i+1]:endY;
    const x0=r.classList.contains("za")?52:128,x1=i+1<rows.length?(rows[i+1].classList.contains("za")?52:128):90;
    r.classList.toggle("tozend",i+1==rows.length&&b!=null);
-   if(b!=null){draw(r.querySelector(".rkcn.cs"),180,b-a,x0,x1,a);draw(r.querySelector(".rkcn.cm"),10,b-a,5,5,a)}
-   if(mid>=zTop+a)showIn(r,anim)});
-  if(end&&endY!=null&&mid>=zTop+endY)showIn(end,anim);
+   if(b!=null){draw(r.querySelector(".rkcn.cs"),180,b-a,x0,x1,a);draw(r.querySelector(".rkcn.cm"),10,b-a,5,5,a)}});
   // the start of the path comes down from the first part
   const st=el.querySelector(".rkw0>.rk:not(.z)"),ti=st&&st.querySelector(".rki");
   if(rows.length&&ti){let ld=z.querySelector(".rklead");if(!ld){ld=document.createElementNS(SVGNS,"svg");ld.setAttribute("class","rkcn rklead cs");ld.setAttribute("aria-hidden","true");ld.innerHTML='<path/>';z.insertBefore(ld,z.firstChild)}
    const tb=ti.getBoundingClientRect().bottom+scrollY-8,from=tb-zTop,a=pts[0],d=a-from,x1=rows[0].classList.contains("za")?52:128;
    ld.style.top=from+"px";ld.style.height=Math.max(0,d)+"px";ld.setAttribute("viewBox",`0 0 180 ${Math.max(1,d)}`);const pa=ld.querySelector("path");pa.setAttribute("d",`M90 0C90 ${d*.5} ${x1} ${d*.5} ${x1} ${d}`);
    const p=Math.max(0,Math.min(1,(head-tb)/Math.max(1,d)));pa.style.strokeDashoffset=anim?String(1-p):"0"}}
- if(!REDUCE()){const t0=vh*.45,sp=vh*.65;el.querySelectorAll(".rkh.rr,.rkw0>.rk.rr,.rk.z,.zend").forEach(x=>{const r=x.getBoundingClientRect(),c=(r.top+r.bottom)/2,t=Math.max(0,Math.min(1,(t0-c)/sp));x.style.setProperty("--sx",(1-.34*t).toFixed(3))})}}
+ // every part fades in and rises into place as it travels up the screen, fully in a little before the middle; and shrinks a little as it leaves at the top
+ const els=[...el.querySelectorAll(".rr")],rc=els.map(x=>{const r=x.getBoundingClientRect(),z=x.classList.contains("z"),prev=+x.dataset.fi||0;return (r.top+r.bottom)/2-(z?0:(1-prev)*FY)});
+ els.forEach((x,i)=>{const c=rc[i],p=anim?Math.max(0,Math.min(1,(vh*.96-c)/(vh*.42))):1;
+  x.style.setProperty("--fi",p.toFixed(3));x.dataset.fi=p;if(p>=.9)showIn(x,anim);
+  const t=REDUCE()?0:Math.max(0,Math.min(1,(vh*.45-c)/(vh*.65)));x.style.setProperty("--sx",(1-.34*t).toFixed(3))})}
+const FY=26;
 let TICK=0;const kick=()=>{if(TICK)return;TICK=requestAnimationFrame(()=>{TICK=0;frame()})};
 function wireLinks(el,animate){CUR={el,animate};if(RO){RO.disconnect();RO=null}
  if("ResizeObserver" in window){RO=new ResizeObserver(kick);RO.observe(el)}
