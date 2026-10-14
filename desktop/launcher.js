@@ -9,7 +9,12 @@ const { spawn } = require("node:child_process");
 const { pathToFileURL } = require("node:url");
 
 // A fixed port keeps the web address the same on every launch, so the window remembers its own browser storage (appearance, language). If it is taken, any free port.
-const freePort = (want) => new Promise((ok, no) => { const s = net.createServer(); s.listen(want || 0, "127.0.0.1", () => { const p = s.address().port; s.close(() => ok(p)); }); s.on("error", (e) => (want ? freePort().then(ok, no) : no(e))); });
+// While the previous version is still shutting down after an update it holds the port for a few seconds: wait for it instead of taking another one, which would be a new address with empty browser storage.
+const tryPort = (want) => new Promise((ok, no) => { const s = net.createServer(); s.once("error", no); s.listen(want, "127.0.0.1", () => { const p = s.address().port; s.close(() => ok(p)); }); });
+const freePort = async (want) => {
+  if (want) for (let i = 0; i < 20; i++) { try { return await tryPort(want); } catch { await new Promise((r) => setTimeout(r, 500)); } }
+  return tryPort(0);
+};
 const freePort0 = () => new Promise((ok, no) => { const s = net.createServer(); s.listen(0, "127.0.0.1", () => { const p = s.address().port; s.close(() => ok(p)); }); s.on("error", no); });
 
 // The installer builder never copies folders named node_modules, so the build ships them as app_modules (see the workflow).
