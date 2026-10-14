@@ -33,10 +33,13 @@ const ICON={
 const tile=(ic,tone)=>`<div class="rki ${tone||""}"><svg viewBox="0 0 24 24">${ICON[ic]}</svg></div>`;
 // one part of the page, in the middle of the page: a big icon, a small label (which opens the full page, filtered), a big number, a short line, and a picture
 let ZZ=0;
-const hue=i=>(i*43)%300,hc=i=>`hsl(${hue(i)} 82% 56%)`;
+// the colours come from the chosen appearance (its chart palette, a little of the accent mixed in), so the page sits in the same atmosphere
+const PCI={flag:0,in:4,out:1,wallet:3,ahead:2,pie:5,check:4,path:0};let PREV=0;
+const pc=i=>`color-mix(in srgb,var(--c${i}) 86%,var(--acc))`;
+
 const part=(ic,tone,label,go,big,line,vis)=>{const lab=go?`<a class="rkl" data-a="recapGo" data-k="${go}">${label}<i>${H()?"←":"→"}</i></a>`:`<span class="rkl">${label}</span>`;
- if(ZZ){const a=ZZ%2,c0=hc(ZZ-1),c1=hc(ZZ),gid="rkg"+ZZ,x0=a?52:128,x1=a?128:52;
-  return `<section class="rk rr z ${a?"za":"zb"}" style="--c0:${c0};--c1:${c1}"><div class="rkni"><div class="rkcir">${tile(ic,tone)}</div><svg class="rkcn cs" viewBox="0 0 200 100" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c0}"/><stop offset="1" stop-color="${c1}"/></linearGradient></defs><path d="M${x0} 0C${x0} 60 ${x1} 40 ${x1} 100" pathLength="1" stroke="url(#${gid})"/></svg><svg class="rkcn cm" viewBox="0 0 10 100" preserveAspectRatio="none" aria-hidden="true"><path d="M5 0V100" pathLength="1" stroke="${c0}"/></svg></div><div class="rkb"><div class="rkx">${lab}<div class="rkn">${big}</div>${line?`<div class="rkp">${line}</div>`:""}</div>${vis?`<div class="rkvv">${vis}</div>`:""}</div></section>`}
+ if(ZZ){const a=ZZ%2,i1=PCI[ic]??0,c0=pc(PREV),c1=pc(i1),gid="rkg"+ZZ,x0=a?52:128,x1=a?128:52;PREV=i1;
+  return `<section class="rk rr z ${a?"za":"zb"}" style="--pa:${c0};--pb:${c1}"><div class="rkni"><div class="rkcir">${tile(ic,tone)}</div><svg class="rkcn cs" viewBox="0 0 200 100" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--pa)"/><stop offset="1" style="stop-color:var(--pb)"/></linearGradient></defs><path d="M${x0} 0C${x0} 60 ${x1} 40 ${x1} 100" pathLength="1" stroke="url(#${gid})"/></svg><svg class="rkcn cm" viewBox="0 0 10 100" preserveAspectRatio="none" aria-hidden="true"><path d="M5 0V100" pathLength="1" style="stroke:var(--pa)"/></svg></div><div class="rkb"><div class="rkx">${lab}<div class="rkn">${big}</div>${line?`<div class="rkp">${line}</div>`:""}</div>${vis?`<div class="rkvv">${vis}</div>`:""}</div></section>`}
  return `<section class="rk rr ${tone||""}">${tile(ic,tone)}${lab}<div class="rkn">${big}</div>${line?`<div class="rkp">${line}</div>`:""}${vis||""}</section>`};
 const chip=(dir,txt,tone,go)=>`<${go?"a":"div"} class="rkch ${tone||""}" ${go?`data-a="recapGo" data-k="${esc(go)}"`:""}><svg viewBox="0 0 24 24">${ICON[tone=="good"?"good":tone=="warn"?"warn":"info"]}</svg><span>${txt}</span></${go?"a":"div"}>`;
 const lk=(k,txt)=>`<a class="rklk" data-a="recapGo" data-k="${esc(k)}">${txt}</a>`;
@@ -267,7 +270,7 @@ window.renderRecap=function(){const el=$("recap");if(!el)return;
  if(!S.tx.length){html=`<div class="rkw0" data-nt><section class="rkh rr"><h2>${L("Nothing to recap yet","עוד אין מה לסכם")}</h2><p>${L("Once your accounts are connected or you add a few transactions, this page will tell you how your month is going.","אחרי שתחברו חשבונות או תוסיפו כמה תנועות, הדף הזה יספר לכם איך החודש מתקדם.")}</p></section></div>`}
  else{m=model();
   const order=m.phase=="start"?[hero,startPart,inPart,nowPart,aheadPart,outPart,budgetsPart,endPart]:m.phase=="end"?[hero,startPart,inPart,outPart,budgetsPart,aheadPart,nowPart,endPart]:[hero,startPart,inPart,outPart,nowPart,aheadPart,budgetsPart,endPart];
-  let zc=0,out=order.map((fn,i)=>{ZZ=i<2||i==order.length-1?0:zc+1;let h="";try{h=fn(m)}catch(e){}const zi=ZZ;ZZ=0;if(zi&&h)zc++;return h});
+  PREV=0;let zc=0,out=order.map((fn,i)=>{ZZ=i<2||i==order.length-1?0:zc+1;let h="";try{h=fn(m)}catch(e){}const zi=ZZ;ZZ=0;if(zi&&h)zc++;return h});
   const endH=out[out.length-1].replace('class="rk rr','class="rk rr zend'),chain=out.slice(2,-1).filter(Boolean).join("")+endH;
   html=`<div class="rkw0" data-nt>${out[0]}${out[1]}${chain?`<div class="rkz">${chain}</div>`:""}</div>`}
  // the same page again: leave it alone. A change while you are looking: update it quietly. Coming back to it later: play it again.
