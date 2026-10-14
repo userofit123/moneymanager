@@ -38,7 +38,9 @@ const part=(ic,tone,label,go,big,line,vis)=>{const lab=go?`<a class="rkl" data-a
  if(ZZ){const a=ZZ%2,c0=hc(ZZ-1),c1=hc(ZZ),gid="rkg"+ZZ,x0=a?52:128,x1=a?128:52;
   return `<section class="rk rr z ${a?"za":"zb"}" style="--c0:${c0};--c1:${c1}"><div class="rkni"><div class="rkcir">${tile(ic,tone)}</div><svg class="rkcn cs" viewBox="0 0 200 100" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c0}"/><stop offset="1" stop-color="${c1}"/></linearGradient></defs><path d="M${x0} 0C${x0} 60 ${x1} 40 ${x1} 100" pathLength="1" stroke="url(#${gid})"/></svg><svg class="rkcn cm" viewBox="0 0 10 100" preserveAspectRatio="none" aria-hidden="true"><path d="M5 0V100" pathLength="1" stroke="${c0}"/></svg></div><div class="rkb"><div class="rkx">${lab}<div class="rkn">${big}</div>${line?`<div class="rkp">${line}</div>`:""}</div>${vis?`<div class="rkvv">${vis}</div>`:""}</div></section>`}
  return `<section class="rk rr ${tone||""}">${tile(ic,tone)}${lab}<div class="rkn">${big}</div>${line?`<div class="rkp">${line}</div>`:""}${vis||""}</section>`};
-const chip=(dir,txt,tone)=>`<div class="rkch ${tone||""}"><svg viewBox="0 0 24 24">${ICON[dir]}</svg><span>${txt}</span></div>`;
+const chip=(dir,txt,tone,go)=>`<${go?"a":"div"} class="rkch ${tone||""}" ${go?`data-a="recapGo" data-k="${esc(go)}"`:""}><svg viewBox="0 0 24 24">${ICON[dir]}</svg><span>${txt}</span></${go?"a":"div"}>`;
+const lk=(k,txt)=>`<a class="rklk" data-a="recapGo" data-k="${esc(k)}">${txt}</a>`;
+const ck=c=>"cat:"+encodeURIComponent(c);
 
 /* ---------- the numbers ---------- */
 function model(){
@@ -67,7 +69,7 @@ function model(){
  // what happened on each day of the month (and what is planned for the days to come)
  const days=Array.from({length:dim},(_,i)=>({d:MK+"-"+p2(i+1),spent:0,inc:0,ex:[],inn:[],up:[]}));
  A().forEach(t=>{const r=rdOf(t);if(!r.startsWith(MK))return;const i=+r.slice(8)-1;if(i<0||i>=dim)return;const D=days[i];if(t.a<0){D.spent-=t.a;D.ex.push([t.desc,-t.a])}else if(!t.pending){D.inc+=t.a;D.inn.push([t.desc,t.a])}});
- BI.filter(b=>!b.once&&!b.irregular&&b.flag!="canceled"&&b.nx&&b.nx.toISOString().slice(0,7)==MK&&b.nx.toISOString().slice(0,10)>=TODAY).forEach(b=>{const i=b.nx.getDate()-1;if(days[i])days[i].up.push([b.n,b.pred])});
+ BI.filter(b=>!b.once&&!b.irregular&&b.flag!="canceled"&&b.nx&&b.nx.toISOString().slice(0,7)==MK&&b.nx.toISOString().slice(0,10)>=TODAY).forEach(b=>{const i=b.nx.getDate()-1;if(days[i])days[i].up.push([b.n,b.pred,b.idx])});
  const nextBills=BI.filter(b=>!b.once&&!b.irregular&&b.flag!="canceled"&&b.nx&&b.nx.toISOString().slice(0,7)==nmk).reduce((s,b)=>s+b.pred,0);
  const nextUp=BI.filter(b=>!b.once&&!b.irregular&&b.flag!="canceled"&&b.nx&&b.nx>NOW).sort((a,b)=>a.nx-b.nx)[0]||null;
  const phase=day<=5?"start":dim-day<=6?"end":"mid";
@@ -87,9 +89,9 @@ function dayBars(m){const W=600,Hh=96,gap=4,n=m.dim,bw=(W-gap*(n-1))/n,v0=m.days
 
 // amounts as one bar with a legend
 const segBar=it=>{it=it.filter(x=>x[1]>=1);const tot=it.reduce((s,x)=>s+x[1],0)||1;
- return `<div class="rkseg">${it.map((x,i)=>`<i class="${x[2]}" style="flex:${x[1]/tot};--i:${i}"></i>`).join("")}</div><div class="rkleg">${it.map(x=>`<span><i class="${x[2]}"></i>${x[0]} <b>${mi(x[1])}</b></span>`).join("")}</div>`};
-const nowBar=m=>{const set=Math.min(m.cash,m.inJars+m.buffer),free=Math.max(0,m.cash-set);return segBar([[L("Set aside in jars","שמור בקופות"),set,"c4"],[L("Free to use","פנוי לשימוש"),free,"c5"]])};
-const aheadBar=m=>segBar([[L("Credit cards","כרטיסי אשראי"),m.cardLeft,"c1"],[L("Bills","חשבונות"),m.billsTot,"c2"],[L("Budgets","תקציבים"),m.limitsLeft,"c3"]]);
+ return `<div class="rkseg">${it.map((x,i)=>`<i class="${x[2]}" style="flex:${x[1]/tot};--i:${i}"></i>`).join("")}</div><div class="rkleg">${it.map(x=>`<${x[3]?"a":"span"} ${x[3]?`data-a="recapGo" data-k="${x[3]}"`:""}><i class="${x[2]}"></i>${x[0]} <b>${mi(x[1])}</b></${x[3]?"a":"span"}>`).join("")}</div>`};
+const nowBar=m=>{const set=Math.min(m.cash,m.inJars+m.buffer),free=Math.max(0,m.cash-set);return segBar([[L("Set aside in jars","שמור בקופות"),set,"c4","jars"],[L("Free to use","פנוי לשימוש"),free,"c5","now"]])};
+const aheadBar=m=>segBar([[L("Credit cards","כרטיסי אשראי"),m.cardLeft,"c1","now"],[L("Bills","חשבונות"),m.billsTot,"c2","bills"],[L("Budgets","תקציבים"),m.limitsLeft,"c3","budg"]]);
 
 // a ring for a budget: how much of it is used
 function ring(b,i){const r=27,c=2*Math.PI*r,p=Math.min(1,b.s/Math.max(1,b.lim));
@@ -108,31 +110,31 @@ function hero(m){const name=(P().name||"").trim(),mon=mname(MK);
  return `<section class="rkh rr"><h2>${hi}</h2><p>${lead}</p>${dayScale(m)}</section>`}
 
 // three amounts side by side: where it was, what was added, where it got to
-const eq=(a,b,c)=>`<div class="rkeq">${[a,"+",b,"=",c].map(x=>typeof x=="string"?`<i>${x}</i>`:`<div><span>${x[0]}</span><b>${mi(x[1])}</b></div>`).join("")}</div>`;
+const eq=(a,b,c)=>`<div class="rkeq">${[a,"+",b,"=",c].map(x=>typeof x=="string"?`<i>${x}</i>`:`<${x[2]?"a":"div"} ${x[2]?`data-a="recapGo" data-k="${x[2]}"`:""}><span>${x[0]}</span><b>${mi(x[1])}</b></${x[2]?"a":"div"}>`).join("")}</div>`;
 
 function startPart(m){if(!(isFinite(m.start)&&Math.abs(m.start)>=1))return"";const d=m.cash-m.start,mon=mname(MK);
- const line=Math.abs(d)>=100?chip(d>=0?"up":"down",d>=0?L(`Today you have ${mi(d)} more than that`,`היום יש לכם ${mi(d)} יותר מזה`):L(`Today you have ${mi(-d)} less than that`,`היום יש לכם ${mi(-d)} פחות מזה`),d>=0?"good":"warn"):"";
+ const line=Math.abs(d)>=100?chip(d>=0?"up":"down",d>=0?L(`Today you have ${mi(d)} more than that`,`היום יש לכם ${mi(d)} יותר מזה`):L(`Today you have ${mi(-d)} less than that`,`היום יש לכם ${mi(-d)} פחות מזה`),d>=0?"good":"warn","now"):"";
  return part("flag","",L(`You began ${mon} with`,`התחלתם את ${mon} עם`),"",`<span class="rkw">≈</span>${mn(m.start)}`,L(`That is roughly what was in your accounts on ${dlong(MK+"-01")}.`,`זה בערך מה שהיה בחשבונות ב‑${dlong(MK+"-01")}.`)+(line?`<br>${line}`:""))}
 
 function inPart(m){
  if(!m.sal)return part("in","tp",L("So far, you received","עד עכשיו קיבלתם"),"in",mn(0),L("Nothing has come in yet this month.","עוד לא נכנס כסף החודש."));
  const rest=m.inc-m.sal.a,n=m.incs.length-1,ok=isFinite(m.start)&&Math.abs(m.start)>=1;
  let line=n>0&&rest>=1
-  ?L(`The biggest payment was ${mi(m.sal.a)} from ${nm(m.sal.desc)}, on ${dlong(rdOf(m.sal))}. ${pl(n,"1 other payment","{} other payments","","")} added another ${mi(rest)}.`,`התשלום הגדול היה ${mi(m.sal.a)} מ‑${nm(m.sal.desc)}, ב‑${dlong(rdOf(m.sal))}. ${pl(n,"","","תשלום נוסף אחד","{} תשלומים נוספים")} הוסיפו עוד ${mi(rest)}.`)
-  :L(`You were paid by ${nm(m.sal.desc)} on ${dlong(rdOf(m.sal))}.`,`קיבלתם תשלום מ‑${nm(m.sal.desc)} ב‑${dlong(rdOf(m.sal))}.`);
+  ?L(`The biggest payment was ${mi(m.sal.a)} from ${lk("tx:"+m.sal.id,nm(m.sal.desc))}, on ${dlong(rdOf(m.sal))}. ${pl(n,"1 other payment","{} other payments","","")} added another ${mi(rest)}.`,`התשלום הגדול היה ${mi(m.sal.a)} מ‑${lk("tx:"+m.sal.id,nm(m.sal.desc))}, ב‑${dlong(rdOf(m.sal))}. ${pl(n,"","","תשלום נוסף אחד","{} תשלומים נוספים")} הוסיפו עוד ${mi(rest)}.`)
+  :L(`You were paid by ${lk("tx:"+m.sal.id,nm(m.sal.desc))} on ${dlong(rdOf(m.sal))}.`,`קיבלתם תשלום מ‑${lk("tx:"+m.sal.id,nm(m.sal.desc))} ב‑${dlong(rdOf(m.sal))}.`);
  if(ok)line+=`<br>${L(`That took your accounts up to about ${mi(m.start+m.inc)}.`,`זה העלה את החשבונות לכ‑${mi(m.start+m.inc)}.`)}`;
- return part("in","tp",L("Then, you received","אחר כך קיבלתם"),"in",mn(m.inc),line,ok?eq([L("Started with","התחלתם עם"),m.start],[L("Came in","נכנס"),m.inc],[L("Brought it to","הגיע ל‑"),m.start+m.inc]):"")}
+ return part("in","tp",L("Then, you received","אחר כך קיבלתם"),"in",mn(m.inc),line,ok?eq([L("Started with","התחלתם עם"),m.start,"now"],[L("Came in","נכנס"),m.inc,"in"],[L("Brought it to","הגיע ל‑"),m.start+m.inc,"now"]):"")}
 
 function outPart(m){
  let line="",d=m.same-m.ex;
  if(m.same>=100&&m.ex>=100){
-  if(Math.abs(d)<Math.max(100,m.same*.08))line=chip("flat",L("You have spent about the same as you had by this day last month","הוצאתם בערך כמו שהוצאתם עד היום הזה בחודש שעבר"));
-  else if(d>0)line=chip("down",L(`You have spent ${mi(d)} less than you had by this day last month`,`הוצאתם ${mi(d)} פחות מאשר עד היום הזה בחודש שעבר`),"good");
-  else line=chip("up",L(`You have spent ${mi(-d)} more than you had by this day last month`,`הוצאתם ${mi(-d)} יותר מאשר עד היום הזה בחודש שעבר`),"warn")}
+  if(Math.abs(d)<Math.max(100,m.same*.08))line=chip("flat",L("You have spent about the same as you had by this day last month","הוצאתם בערך כמו שהוצאתם עד היום הזה בחודש שעבר"),"","out");
+  else if(d>0)line=chip("down",L(`You have spent ${mi(d)} less than you had by this day last month`,`הוצאתם ${mi(d)} פחות מאשר עד היום הזה בחודש שעבר`),"good","out");
+  else line=chip("up",L(`You have spent ${mi(-d)} more than you had by this day last month`,`הוצאתם ${mi(-d)} יותר מאשר עד היום הזה בחודש שעבר`),"warn","out")}
  let pulse="";const tr=m.w1-m.w0;
- if(m.w0>=150&&Math.abs(tr)>=Math.max(100,m.w0*.25))pulse=tr<0?chip("down",L("The last 7 days were calmer than the 7 before","7 הימים האחרונים היו רגועים יותר מ‑7 הימים שלפניהם"),"good"):chip("up",L("The last 7 days were busier than the 7 before","7 הימים האחרונים היו עמוסים יותר מ‑7 הימים שלפניהם"),"warn");
- else if(m.below[0])pulse=chip("down",L(`${nm(m.below[0].k)} is well below its usual`,`${nm(m.below[0].k)} נמוך בהרבה מהרגיל`),"good");
- else if(m.above[0])pulse=chip("up",L(`${nm(m.above[0].k)} is already above a usual month`,`${nm(m.above[0].k)} כבר מעל חודש רגיל`),"warn");
+ if(m.w0>=150&&Math.abs(tr)>=Math.max(100,m.w0*.25))pulse=tr<0?chip("down",L("The last 7 days were calmer than the 7 before","7 הימים האחרונים היו רגועים יותר מ‑7 הימים שלפניהם"),"good","d7"):chip("up",L("The last 7 days were busier than the 7 before","7 הימים האחרונים היו עמוסים יותר מ‑7 הימים שלפניהם"),"warn","d7");
+ else if(m.below[0])pulse=chip("down",L(`${nm(m.below[0].k)} is well below its usual`,`${nm(m.below[0].k)} נמוך בהרבה מהרגיל`),"good",ck(m.below[0].k));
+ else if(m.above[0])pulse=chip("up",L(`${nm(m.above[0].k)} is already above a usual month`,`${nm(m.above[0].k)} כבר מעל חודש רגיל`),"warn",ck(m.above[0].k));
  const lead=L(`Each bar below is one day. Hover over a bar to see what you spent, and click it to open that day.`,`כל עמודה למטה היא יום אחד. עברו עם העכבר על עמודה כדי לראות מה הוצאתם, ולחצו כדי לפתוח את היום.`);
  return part("out","tn",L("Since then, you have spent","מאז הוצאתם"),"out",mn(m.ex),lead+line+pulse,dayBars(m))}
 
@@ -140,10 +142,10 @@ function nowPart(m){const set=Math.min(m.cash,m.inJars+m.buffer),free=Math.max(0
  return part("wallet","",L("After all that, you have","אחרי כל זה יש לכם"),"now",mn(m.cash),L("in your bank and wallet accounts today.","בחשבונות הבנק והארנקים היום."),nowBar(m))}
 
 // the next payments, each with its date
-function upList(m){const it=[];m.days.forEach(D=>D.up.forEach(x=>{if(D.d>=TODAY)it.push([D.d,x[0],x[1]])}));
- if(!it.length)return"";return `<div class="rkup"><div class="t">${L("Coming up next","הבא בתור")}</div>${it.slice(0,3).map(x=>`<div class="r"><div class="dt"><b>${+x[0].slice(8)}</b><span>${dshort(x[0]).replace(/[0-9\s]/g,"")}</span></div><div class="n">${nm(x[1])}<small>${dday(x[0])}</small></div><b class="a">${mi(x[2])}</b></div>`).join("")}</div>`}
+function upList(m){const it=[];m.days.forEach(D=>D.up.forEach(x=>{if(D.d>=TODAY)it.push([D.d,x[0],x[1],x[2]])}));
+ if(!it.length)return"";return `<div class="rkup"><div class="t">${L("Coming up next","הבא בתור")}</div>${it.slice(0,3).map(x=>`<div class="r" ${x[3]!=null?`data-a="billOpen" data-i="${x[3]}" role="button" tabindex="0"`:""}><div class="dt"><b>${+x[0].slice(8)}</b><span>${dshort(x[0]).replace(/[0-9\s]/g,"")}</span></div><div class="n">${nm(x[1])}<small>${dday(x[0])}</small></div><b class="a">${mi(x[2])}</b></div>`).join("")}</div>`}
 function aheadPart(m){const tot=m.cardLeft+m.billsTot+m.limitsLeft;if(tot<1)return"";
- const left=m.cash-tot,rest=left>=0?chip("up",L(`You would have about ${mi(left)} left once you have paid these`,`יישארו לכם בערך ${mi(left)} אחרי ששילמתם אותם`),"good"):chip("down",L(`That is ${mi(-left)} more than you have in your accounts today`,`זה ${mi(-left)} יותר ממה שיש לכם היום בחשבונות`),"warn");
+ const left=m.cash-tot,rest=left>=0?chip("up",L(`You would have about ${mi(left)} left once you have paid these`,`יישארו לכם בערך ${mi(left)} אחרי ששילמתם אותם`),"good","fc"):chip("down",L(`That is ${mi(-left)} more than you have in your accounts today`,`זה ${mi(-left)} יותר ממה שיש לכם היום בחשבונות`),"warn");
  return part("ahead","",L("You still have to pay","עוד תצטרכו לשלם"),"ahead",mn(tot),L("That is your credit card charges, your bills and the rest of your budgets.","אלה חיובי האשראי, החשבונות והחלק שנשאר מהתקציבים שלכם.")+rest,aheadBar(m)+upList(m))}
 
 // why a budget needs attention, with a bar showing how much is used (and where it is heading)
@@ -151,7 +153,7 @@ function budRow(b){const lim=Math.max(1,b.lim),u=Math.min(100,b.s/lim*100),pc=Ma
  const why=b.st=="over"?L(`Over its limit by ${mi(b.s-b.lim)}: ${mi(b.s)} spent of ${mi(b.lim)}.`,`חרג מהמסגרת ב‑${mi(b.s-b.lim)}: הוצאתם ${mi(b.s)} מתוך ${mi(b.lim)}.`)
   :b.st=="warn"?L(`${Math.round(b.pc)}% used: ${mi(b.s)} of ${mi(b.lim)}, with ${mi(Math.max(0,b.lim-b.s))} left.`,`נוצלו ${Math.round(b.pc)}%: ${mi(b.s)} מתוך ${mi(b.lim)}, נשארו ${mi(Math.max(0,b.lim-b.s))}.`)
   :L(`At this pace it will reach about ${mi(b.pace)}, which is ${mi(b.pace-b.lim)} over its ${mi(b.lim)} limit.`,`בקצב הזה יגיע לכ‑${mi(b.pace)}, כלומר ${mi(b.pace-b.lim)} מעל המסגרת של ${mi(b.lim)}.`);
- return `<div class="rkbr ${b.st=="over"?"o":"w"}"><div class="h"><b>${nm(b.k)}</b><span>${b.st=="over"?L("Over","חריגה"):b.st=="warn"?L("Almost full","כמעט מלא"):L("Heading over","בדרך לחריגה")}</span></div><div class="bar"><i style="width:${u.toFixed(1)}%"></i>${b.st=="pace"?`<em style="inset-inline-start:${pc.toFixed(1)}%"></em>`:""}</div><p>${why}</p></div>`}
+ return `<a class="rkbr ${b.st=="over"?"o":"w"}" data-a="recapGo" data-k="${esc(ck(b.k))}"><div class="h"><b>${nm(b.k)}</b><span>${b.st=="over"?L("Over","חריגה"):b.st=="warn"?L("Almost full","כמעט מלא"):L("Heading over","בדרך לחריגה")}</span></div><div class="bar"><i style="width:${u.toFixed(1)}%"></i>${b.st=="pace"?`<em style="inset-inline-start:${pc.toFixed(1)}%"></em>`:""}</div><p>${why}</p></a>`}
 function budgetsPart(m){const flag=[...m.over,...m.risk];
  if(!flag.length){if(!m.okB.length)return"";return part("check","tp",L("Your budgets are","התקציבים שלכם"),"budg",`<span class="rkw">${L("On track","בדרך הנכונה")}</span>`,L(`${pl(m.okB.length,"Your 1 budget is within its limit.","All {} budgets are within their limits.","","")}`,`${pl(m.okB.length,"","","התקציב שלכם נמצא במסגרת.","כל {} התקציבים נמצאים במסגרת.")}`))}
  return part("pie",m.over.length?"tn":"tw",L("Your budgets","התקציבים שלכם"),"budg",`<span class="rkw">${L(`${pl(flag.length,"1 needs","{} need","","")} attention`,`${pl(flag.length,"","","אחד דורש","{} דורשים")} תשומת לב`)}</span>`,L("Here is why:","הנה הסיבה:"),`<div class="rkbl">${flag.slice(0,4).map(budRow).join("")}</div>`)}
@@ -159,8 +161,8 @@ function budgetsPart(m){const flag=[...m.over,...m.risk];
 function endPart(m){
  const hasStart=isFinite(m.start)&&Math.abs(m.start)>=1,d=m.end-m.start,mon=mname(MK);
  let line=L(`This is what you would be left with if you pay everything that is still due (bills and credit card charges) and spend the rest of your budgets in full.`,`זה מה שיישאר לכם אם תשלמו את כל מה שעוד צפוי (חשבונות וחיובי אשראי) ותנצלו במלואו את מה שנשאר מהתקציבים.`);
- if(hasStart&&Math.abs(d)>=100)line+=chip(d>=0?"up":"down",d>=0?L(`${mi(d)} more than you started with`,`${mi(d)} יותר ממה שהתחלתם איתו`):L(`${mi(-d)} less than you started with`,`${mi(-d)} פחות ממה שהתחלתם איתו`),d>=0?"good":"warn");
- if(m.phase=="end")line+=chip("flat",L(`${mname(m.nmk)} will begin with about ${mi(m.nextBills+m.cardsU)} already on its way out`,`${mname(m.nmk)} יתחיל כשכבר כ‑${mi(m.nextBills+m.cardsU)} בדרך החוצה`));
+ if(hasStart&&Math.abs(d)>=100)line+=chip(d>=0?"up":"down",d>=0?L(`${mi(d)} more than you started with`,`${mi(d)} יותר ממה שהתחלתם איתו`):L(`${mi(-d)} less than you started with`,`${mi(-d)} פחות ממה שהתחלתם איתו`),d>=0?"good":"warn","fc");
+ if(m.phase=="end")line+=chip("flat",L(`${mname(m.nmk)} will begin with about ${mi(m.nextBills+m.cardsU)} already on its way out`,`${mname(m.nmk)} יתחיל כשכבר כ‑${mi(m.nextBills+m.cardsU)} בדרך החוצה`),"","fc");
  return part("path",m.end<0?"tn":"",L(`Predicted end of ${mon}`,`סיום חזוי של ${mon}`),"end",`<span class="rkw">≈</span>${mn(m.end)}`,line,pathChart(m))}
 
 /* ---------- opening the matching page, filtered ---------- */
@@ -170,7 +172,11 @@ window.recapGo=function(k){const last=MK+"-"+p2(DIM);
  else if(k=="ahead")goActivity({from:TODAY,to:last});
  else if(k=="now")nav("acc");
  else if(k=="budg")nav("budg");
- else if(k=="end")nav("fc");
+ else if(k=="end"||k=="fc")nav("fc");
+ else if(k=="jars")nav("jars");else if(k=="bills")nav("bills");
+ else if(k=="d7"){const d=new Date(TODAY+"T12:00:00");d.setDate(d.getDate()-6);goActivity({from:d.toISOString().slice(0,10),to:TODAY,ty:"expense"})}
+ else if(k.startsWith("cat:"))goActivity({cat:decodeURIComponent(k.slice(4)),from:MK+"-01",to:last,ty:"expense"})
+ else if(k.startsWith("tx:"))openTx(+k.slice(3))
  else if(/^\d{4}-\d{2}-\d{2}$/.test(k))goActivity({from:k,to:k})};
 
 /* ---------- the tooltip of a day ---------- */
@@ -219,11 +225,13 @@ function reveal(box,animate){if(IO){IO.disconnect();IO=null}
 // the path is drawn as you scroll: its tip stays near the bottom of the screen, and each part fades in when the path reaches it.
 // Parts that scroll away off the top shrink a little.
 const SVGNS="http://www.w3.org/2000/svg";
-function frame(){const s=CUR;if(!s||!s.el.isConnected||!s.el.getClientRects().length)return;const el=s.el,vh=innerHeight,head=scrollY+vh*.86,anim=s.animate&&!REDUCE();
+function frame(){const s=CUR;if(!s||!s.el.isConnected)return;if(!s.el.getClientRects().length){s.away=true;return}
+ if(s.away){s.away=false;s.animate=true;s.el.querySelectorAll(".rr").forEach(x=>x.classList.remove("in","st"));reveal(s.el,true)}
+ const el=s.el,vh=innerHeight,head=scrollY+vh*.86,anim=s.animate&&!REDUCE();
  const z=el.querySelector(".rkz");
  if(z){const zTop=z.getBoundingClientRect().top+scrollY,rows=[...z.querySelectorAll(".rk.z")],end=z.querySelector(".zend");
   const cy=r=>{const n=r.querySelector(".rkni"),c=r.querySelector(".rkcir");return r.offsetTop+n.offsetTop+c.offsetTop+c.offsetHeight/2};
-  const pts=rows.map(cy),endY=end&&end.querySelector(".rki")?end.offsetTop+end.querySelector(".rki").offsetTop:null;
+  const pts=rows.map(cy),endY=end&&end.querySelector(".rki")?end.offsetTop+end.querySelector(".rki").offsetTop+end.querySelector(".rki").offsetHeight/2:null;
   const draw=(svg,w,d,x0,x1,from)=>{if(!svg)return;const hh=Math.max(1,d),p=Math.max(0,Math.min(1,(head-(zTop+from))/hh));
    svg.setAttribute("viewBox",`0 0 ${w} ${hh}`);svg.style.height=d+"px";const pa=svg.querySelector("path");
    pa.setAttribute("d",x0==x1?`M${x0} 0V${hh}`:`M${x0} 0C${x0} ${hh*.5} ${x1} ${hh*.5} ${x1} ${hh}`);pa.style.strokeDashoffset=anim?String(1-p):"0"};
@@ -236,10 +244,12 @@ function frame(){const s=CUR;if(!s||!s.el.isConnected||!s.el.getClientRects().le
   // the start of the path comes down from the first part
   const st=el.querySelector(".rkw0>.rk:not(.z)"),ti=st&&st.querySelector(".rki");
   if(rows.length&&ti){let ld=z.querySelector(".rklead");if(!ld){ld=document.createElementNS(SVGNS,"svg");ld.setAttribute("class","rkcn rklead cs");ld.setAttribute("aria-hidden","true");ld.innerHTML='<path/>';z.insertBefore(ld,z.firstChild)}
-   const tb=ti.getBoundingClientRect().bottom+scrollY-8,from=tb-zTop,a=pts[0],d=a-from,x1=rows[0].classList.contains("za")?52:128;
+   const tb=ti.getBoundingClientRect().bottom+scrollY-ti.offsetHeight/2,from=tb-zTop,a=pts[0],d=a-from,x1=rows[0].classList.contains("za")?52:128;
    ld.style.top=from+"px";ld.style.height=Math.max(0,d)+"px";ld.setAttribute("viewBox",`0 0 180 ${Math.max(1,d)}`);const pa=ld.querySelector("path");pa.setAttribute("d",`M90 0C90 ${d*.5} ${x1} ${d*.5} ${x1} ${d}`);
    const p=Math.max(0,Math.min(1,(head-tb)/Math.max(1,d)));pa.style.strokeDashoffset=anim?String(1-p):"0"}}
- if(!REDUCE()){const t0=vh*.4,sp=vh*.7;el.querySelectorAll(".rkh.rr,.rkw0>.rk.rr,.rk.z,.zend").forEach(x=>{const r=x.getBoundingClientRect(),c=(r.top+r.bottom)/2,t=Math.max(0,Math.min(1,(t0-c)/sp));x.style.setProperty("--sx",(1-.2*t).toFixed(3))})}}
+ if(!REDUCE()){const t0=vh*.4,sp=vh*.7,k=x=>(1-.3*Math.max(0,Math.min(1,(t0-x)/sp))).toFixed(3);
+  el.querySelectorAll(".rkh.rr,.rkw0>.rk.rr,.rk.z,.zend").forEach(x=>{const r=x.getBoundingClientRect();x.style.setProperty("--sx",k((r.top+r.bottom)/2));
+   const c=x.querySelector(".rkcir");if(c){const q=c.getBoundingClientRect();x.style.setProperty("--sc",k((q.top+q.bottom)/2))}})}}
 let TICK=0;const kick=()=>{if(TICK)return;TICK=requestAnimationFrame(()=>{TICK=0;frame()})};
 function wireLinks(el,animate){CUR={el,animate};if(RO){RO.disconnect();RO=null}
  if("ResizeObserver" in window){RO=new ResizeObserver(kick);RO.observe(el)}
