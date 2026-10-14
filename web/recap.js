@@ -32,7 +32,10 @@ const ICON={
 };
 const tile=(ic,tone)=>`<div class="rki ${tone||""}"><svg viewBox="0 0 24 24">${ICON[ic]}</svg></div>`;
 // one part of the page, in the middle of the page: a big icon, a small label (which opens the full page, filtered), a big number, a short line, and a picture
-const part=(ic,tone,label,go,big,line,vis)=>`<section class="rk rr ${tone||""}">${tile(ic,tone)}${go?`<a class="rkl" data-a="recapGo" data-k="${go}">${label}<i>${H()?"←":"→"}</i></a>`:`<span class="rkl">${label}</span>`}<div class="rkn">${big}</div>${line?`<div class="rkp">${line}</div>`:""}${vis||""}</section>`;
+let ZZ=0;
+const part=(ic,tone,label,go,big,line,vis)=>{const lab=go?`<a class="rkl" data-a="recapGo" data-k="${go}">${label}<i>${H()?"←":"→"}</i></a>`:`<span class="rkl">${label}</span>`;
+ if(ZZ)return `<section class="rk rr z ${ZZ%2?"za":"zb"} ${tone||""}"><div class="rkni">${tile(ic,tone)}</div><div class="rkx">${lab}<div class="rkn">${big}</div>${line?`<div class="rkp">${line}</div>`:""}</div>${vis?`<div class="rkvv">${vis}</div>`:""}</section>`;
+ return `<section class="rk rr ${tone||""}">${tile(ic,tone)}${lab}<div class="rkn">${big}</div>${line?`<div class="rkp">${line}</div>`:""}${vis||""}</section>`};
 const chip=(dir,txt,tone)=>`<div class="rkch ${tone||""}"><svg viewBox="0 0 24 24">${ICON[dir]}</svg><span>${txt}</span></div>`;
 
 /* ---------- the numbers ---------- */
@@ -182,13 +185,16 @@ function reveal(box,animate){if(IO){IO.disconnect();IO=null}
  IO=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;const x=e.target;x.classList.add("in");x.querySelectorAll(".cnt").forEach(countUp);IO.unobserve(x)}),{threshold:.18,rootMargin:"0px 0px -6% 0px"});
  items.forEach(x=>IO.observe(x))}
 
+const html0=o=>o.join('').includes('rkw">≈');
 let LASTSIG="",LASTAT=0;
 window.renderRecap=function(){const el=$("recap");if(!el)return;
  let html,m=null;
  if(!S.tx.length){html=`<div class="rkw0" data-nt><section class="rkh rr"><h2>${L("Nothing to recap yet","עוד אין מה לסכם")}</h2><p>${L("Once your accounts are connected or you add a few transactions, this page will tell you how your month is going.","אחרי שתחברו חשבונות או תוסיפו כמה תנועות, הדף הזה יספר לכם איך החודש מתקדם.")}</p></section></div>`}
  else{m=model();
   const order=m.phase=="start"?[hero,startPart,inPart,nowPart,aheadPart,outPart,budgetsPart,endPart]:m.phase=="end"?[hero,startPart,inPart,outPart,budgetsPart,aheadPart,nowPart,endPart]:[hero,startPart,inPart,outPart,nowPart,aheadPart,budgetsPart,endPart];
-  html=`<div class="rkw0" data-nt>${order.map(fn=>{try{return fn(m)}catch(e){return""}}).join("")}</div>`}
+  let zc=0,out=order.map((fn,i)=>{ZZ=i<2?0:zc+1;let h="";try{h=fn(m)}catch(e){}ZZ=0;if(i>=2&&h)zc++;return h});
+  const chain=out.slice(2).filter(Boolean).join("");
+  html=`<div class="rkw0" data-nt>${out[0]}${out[1]}${chain?`<div class="rkz">${chain}</div>`:""}${html0(out)?`<p class="rkfn rr"><span class="rkw">≈</span> ${L("means an estimate, not an exact figure","פירושו הערכה, לא מספר מדויק")}</p>`:""}</div>`}
  // the same page again: leave it alone. A change while you are looking: update it quietly. Coming back to it later: play it again.
  if(html===LASTSIG&&el.firstChild)return;
  const fresh=Date.now()-LASTAT>2500||!el.firstChild;LASTSIG=html;LASTAT=Date.now();
