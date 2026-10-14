@@ -4,6 +4,16 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.5.1] - 2026-10-14
+
+### App
+- **The rule suggestion is finally visible.** After you change an item's category, a prompt appears with **Create rule…** and **Not now**. Before, the suggestion was saved in a lightbulb button that was never shown. The lightbulb now shows, with a count, in the button stack above the + button.
+- **Suggestions look different from other notifications:** a lightbulb icon and an amber color. Success, error and alert messages keep their own colors and icons.
+- **Failed bank logins say more.** The error now follows the bank's own requests from start to end and shows them first, and each failed attempt also saves a **network.txt** next to its screenshots (profiles, then _failed-logins).
+
+### Windows app
+- Includes all of the above.
+
 ## [0.5.0] - 2026-10-14
 
 ### App
