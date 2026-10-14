@@ -49,6 +49,8 @@ const UA = process.env.SCRAPER_UA || "Mozilla/5.0 (X11; Linux x86_64) AppleWebKi
 const VIEW = { width: 1024, height: 768 };
 const ASSIST_IDLE_MS = +process.env.ASSIST_IDLE_MS || 10 * 60 * 1000;
 
+const SHOT_DIR = process.env.SHOT_DIR || path.join(process.env.PROFILE_DIR || "/profiles", "_failed-logins"); // the last failed login of each bank is also kept here as a picture (one file per bank, replaced by the next failure)
+const shotFile = (name) => path.join(SHOT_DIR, name.replace(/[^A-Za-z0-9_~-]/g, "_") + ".jpg");
 const LASTSHOT = new Map(); // profile -> { at, url, buf }: where the last failed login stopped (memory only, replaced on the next failure)
 // A bank's bot protection needs a moment of page activity before it trusts a data request: let the page finish loading and move the mouse a little, as a person would.
 async function settle(p) {
@@ -164,7 +166,7 @@ async function scrapeOnce(company, credentials, startDate, profile) {
     // where it got stuck (a captcha, a notice, a changed page): kept in memory so the app can show it, never written to disk
     clearInterval(snapTimer);
     await grab(page);
-    if (snap) LASTSHOT.set(profName(company, profile), snap);
+    if (snap) { LASTSHOT.set(profName(company, profile), snap); try { fs.mkdirSync(SHOT_DIR, { recursive: true, mode: 0o700 }); fs.writeFileSync(shotFile(profName(company, profile)), snap.buf, { mode: 0o600 }); } catch { /* the in-memory copy still works */ } }
     // opt-in diagnostics: the same screenshot saved to /debug
     if (DEBUG && page) { try { await page.screenshot({ path: `/debug/${company}.png` }); console.log(`debug screenshot: /debug/${company}.png (${page.url().split("?")[0]})`); } catch {} }
     if (e && e.message && net.length && !/refused:/.test(e.message)) e.message += netNote(net, page);
@@ -220,8 +222,9 @@ http.createServer(async (req, res) => {
       }
       if (req.method === "GET" && act === "lastshot") {
         const q = new URL(req.url, "http://x").searchParams, c = q.get("company") || "", sh = LASTSHOT.get(profName(c, q.get("profile") || ""));
-        if (!sh) return send(404, { error: "no failed login to show" });
-        return send(200, sh.buf, "image/jpeg");
+        let buf = sh && sh.buf; if (!buf) { try { buf = fs.readFileSync(shotFile(profName(c, q.get("profile") || ""))); } catch { /* none saved */ } }
+        if (!buf) return send(404, { error: "no failed login to show" });
+        return send(200, buf, "image/jpeg");
       }
       if (req.method === "GET" && act === "screen") {
         if (!assist) return send(409, { error: "no verification window is open" });
