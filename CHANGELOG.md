@@ -4,6 +4,18 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.4.21] - 2026-10-14
+
+### App
+- **Changing a jar's type now saves.** Changing only the type of a jar (for example Savings to Pay-off) was not saved and Money flow was not redrawn, so the old type came back. It now saves at once, updates Money flow, and a jar switched to Pay-off no longer counts its balance as put aside. After every save the jars shown are the ones stored in the database.
+- **Rule suggestion on every category change.** Changing the category of any item (not only an uncategorized one) offers to create a rule. Creating it moves all similar items to that category.
+- **Live data.** Changes made by a sync show within seconds, with no refresh: the app checks for new data every few seconds and when you return to the window.
+- **More Hebrew.** Sync, test connection, import, gap and alert messages from the server, and the rest of the Home and Forecast texts are translated.
+- **Failed bank logins keep their screenshots.** Every picture taken during a failed login is saved in the data folder (profiles, then _failed-logins), one folder per attempt, so a failure like American Express "Failed to fetch" can be seen.
+
+### Windows app
+- Includes all of the above.
+
 ## [0.4.20] - 2026-10-14
 
 ### App
