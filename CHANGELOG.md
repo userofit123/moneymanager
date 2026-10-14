@@ -4,14 +4,22 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.4.19] - 2026-10-14
+
+### App
+- **Jars come in three types.** **Savings** (money for something: a goal and a date are optional, with an amount per month), **Bills** (money kept for your bills) and the new **Pay-off** (a loan you pay back: the total you owe, what you already paid back, and what you pay each month). A pay-off jar counts up: when you pay the loan the jar does not go down, it shows how much is paid back.
+- **Money that is not in your accounts no longer reduces your free money.** What you already paid back on a loan, and savings you mark **This money is not in my accounts here**, show in the jar but are not taken off your free money or shown as put aside in Money flow.
+- **Backup and restore (Settings).** The app saves a backup of your data every day, keeps the last N days you choose, and can make one on demand. A backup holds your activity, accounts, categories, tags, rules, budgets and jars, never bank logins. You can protect backups with a password you choose, or leave them open. **Restore** replaces the data with the backup and leaves your connections alone; a copy of the current data is saved first. On a new device, use **Find a backup file…** to pick the file from the old one. On Windows you can change the folder and open it.
+- **Money flow.** "My month ahead" and "My month so far" are now **Money flow · ahead** and **Money flow · so far**.
+- **Update popup opens sooner.** The "What's new" popup no longer waits a second or two; it opens right after the app first draws.
+- **Hebrew is complete.** The remaining English texts (messages, suggestions, sheets, labels, the browser's confirmation dialogs, server errors and Change history lines) are translated, and the update popup and change log show Hebrew release notes.
+- **Settings.** Currencies has its own tab, Import no longer has a Sync now button, the export window is wider, downloads show a message, and a connection's status, last sync and accounts sit on one line.
+
 ## [0.4.18] - 2026-10-13
 
 ### App
 - **My month ahead / My month so far (Home).** "Where my money goes" is now a plan for the rest of the month. A **Planned / Actual** switch changes it: Planned takes off the full budget (or usual month) of each item and ends at Free to use; Actual takes off what you really spent and ends at Available now. Both start from "Before spending" (your balance plus what you have already spent this month). The summary blocks, labels and bars follow the switch, the title changes with it, and the numbers always add up. Spending outside budgets shows as "Unplanned spending", so the total matches Expenses.
 - **Clearer bars.** Budget (or spent) above each bar, a "What's left" block joined flat to the bottom of each bar, then the name. The removed part is a see-through version of the bar colour. The row labels are left-aligned in a narrower column so the bars use the width.
-- **Backup and restore (Settings).** The app saves a backup of your data every day, keeps the last N days you choose, and can make one on demand. A backup holds your activity, accounts, categories, tags, rules, budgets and jars, never bank logins. You can protect backups with a password you choose, or leave them open. **Restore** replaces the data with the backup and leaves your connections alone; a copy of the current data is saved first. On a new device, use **Find a backup file…** to pick the file from the old one. On Windows you can change the folder and open it.
-- **Update popup opens sooner.** The "What's new" popup no longer waits a second or two; it opens right after the app first draws.
-- **Hebrew is complete.** Remaining English texts (messages, suggestions, sheets, labels, the browser's confirmation dialogs, server errors and Change history lines) are now translated, and the update popup and change log show Hebrew release notes.
 - **Count an entry in another month.** Open an entry → Actions → **Count in another month** (previous, next or any month) for reports, budgets and totals, for example a salary paid on the 30th that belongs to next month. The entry's real date, amount and details never change. It gets a pill in Activity and a notice inside the entry, and you can put it back with one click.
 - **Dates and sorting in Activity.** Dates always show the year (dd/mm/yyyy, or mm/dd/yyyy in Appearance → Date format). New Sort box (newest, oldest, largest, smallest, also for groups). Clear resets the grouping and sort.
 - **"Money Manager has been updated" popup** after an update, once per version, with what changed.

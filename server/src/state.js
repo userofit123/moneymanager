@@ -148,7 +148,7 @@ export async function putState(S) {
     for (const j of S.jars || []) {
       const ex = await c.query("SELECT 1 FROM jars WHERE id=$1", [j.id]);
       if (ex.rowCount) {
-        await c.query("UPDATE jars SET name=$2,priority=$3,target=$4,cap=$5,due=$6,bill_match=$7,auto_cap=$8,description=$9,bill_months=$10,done_at=$11 WHERE id=$1", [j.id, j.n, j.p, j.need, j.cap ?? null, j.due || null, j.bill || null, !!j.auto, String(j.desc || "").slice(0, 400), j.months || null, j.done || null]);
+        await c.query("UPDATE jars SET name=$2,priority=$3,target=$4,cap=$5,due=$6,bill_match=$7,auto_cap=$8,description=$9,bill_months=$10,done_at=$11,kind=$12,outside=$13 WHERE id=$1", [j.id, j.n, j.p, j.need, j.cap ?? null, j.due || null, j.bill || null, !!j.auto, String(j.desc || "").slice(0, 400), j.months || null, j.done || null, j.kind === "payoff" ? "payoff" : "", Math.max(0, +j.out || 0)]);
         if (j.balEdit) {
           // money taken out of a jar by hand (released, paid out, corrected) is recorded, so "received this month" stays true
           const old = +((await c.query("SELECT balance FROM jars WHERE id=$1", [j.id])).rows[0]?.balance ?? j.bal), delta = +(j.bal - old).toFixed(2);
@@ -157,7 +157,7 @@ export async function putState(S) {
           if (delta > 0.005 && j.balUndo) await c.query("INSERT INTO jar_movements (jar_id,amount,note,month,paid) VALUES ($1,$2,$3,$4,$5)", [j.id, delta, String(j.balNote || "Undone").slice(0, 120), thisMonth(), !!j.balPaid]);
           if (delta < -0.005) await c.query("INSERT INTO jar_movements (jar_id,amount,note,month,paid) VALUES ($1,$2,$3,$4,$5)", [j.id, delta, String(j.balNote || "Taken out").slice(0, 120), thisMonth(), !!j.balPaid]);
         }
-      } else await c.query("INSERT INTO jars (id,name,priority,target,cap,balance,due,bill_match,auto_cap,description,bill_months,done_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)", [j.id, j.n, j.p, j.need, j.cap ?? null, j.bal, j.due || null, j.bill || null, !!j.auto, String(j.desc || "").slice(0, 400), j.months || null, j.done || null]);
+      } else await c.query("INSERT INTO jars (id,name,priority,target,cap,balance,due,bill_match,auto_cap,description,bill_months,done_at,kind,outside) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)", [j.id, j.n, j.p, j.need, j.cap ?? null, j.bal, j.due || null, j.bill || null, !!j.auto, String(j.desc || "").slice(0, 400), j.months || null, j.done || null, j.kind === "payoff" ? "payoff" : "", Math.max(0, +j.out || 0)]);
     }
     // categories a jar pays for: one jar per category, only for categories that exist
     await c.query("DELETE FROM jar_categories");
