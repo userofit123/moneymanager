@@ -807,18 +807,23 @@ html.mob .txs-l{flex:0 0 auto}html.mob .txs{margin-top:0}html.mob .txs-g{grid-te
 const _fetch=window.fetch.bind(window);window.fetch=async(u,o={})=>{o={...o,credentials:"same-origin"};if(o.method&&o.method!="GET")o.headers=Object.assign({},o.headers,{"x-requested-with":"money"});const r=await _fetch(u,o);if(r.status==401&&String(u).startsWith("/api/")&&!String(u).startsWith("/api/auth/")){need2fa=false;showAuth("login")}return r};
 /* appearance, language and other view choices are also kept on the server, so a new window address or a reinstall does not lose them */
 const PREF_KEYS=["moneySugg","moneyTheme","moneyLang","moneyBoot","moneyFc","moneyFlow","moneyGroup","moneyDf","moneyHelp","moneyRanges","moneyTrend"];let PREFS_ON=false;
-const prefsAll=()=>{const o={};PREF_KEYS.forEach(k=>{try{const v=localStorage.getItem(k);if(v!=null)o[k]=v}catch(e){}});return o};
+const prefsAll=()=>{const o={};PREF_KEYS.concat("moneyPrefsAt").forEach(k=>{try{const v=localStorage.getItem(k);if(v!=null)o[k]=v}catch(e){}});return o};
 const prefsPush=()=>{if(!PREFS_ON)return;fetch("/api/prefs",{method:"PUT",keepalive:true,headers:{"content-type":"application/json"},body:JSON.stringify(prefsAll())}).catch(()=>{})};
-try{const _si=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){_si.call(this,k,v);if(this===localStorage&&PREF_KEYS.includes(k))prefsPush()}}catch(e){}
-// The server keeps the newest copy of the appearance and other preferences. Each window address (and each device) has its own browser storage, so on every start
-// whatever differs is replaced with the server's copy: a change made in one place shows everywhere, and an update that opens the app at a new address keeps your settings.
-async function prefsRestore(){try{const r=await fetch("/api/prefs",{cache:"no-store"});if(!r.ok)return false;const sv=await r.json();
-let diff=0;if(sv&&Object.keys(sv).length){const was=PREFS_ON;PREFS_ON=false;PREF_KEYS.forEach(k=>{if(typeof sv[k]=="string"&&localStorage.getItem(k)!==sv[k]){try{localStorage.setItem(k,sv[k]);diff++}catch(e){}}});PREFS_ON=was}
+// every change made by the user is stamped with the time it was made, so the newest copy (here or on the server) is the one that wins
+try{const _si=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){_si.call(this,k,v);if(this===localStorage&&PREF_KEYS.includes(k)&&PREFS_ON){_si.call(this,"moneyPrefsAt",String(Date.now()));prefsPush()}}}catch(e){}
+// The server keeps a copy of the appearance and other preferences. Each window address (and each device) has its own browser storage, so at every start the newer
+// of the two copies wins: a change made in one place shows everywhere, an update that opens the app at a new address keeps your settings, and an older copy never overwrites a newer one.
+async function prefsRestore(){try{const r=await fetch("/api/prefs",{cache:"no-store"});if(!r.ok)return false;const sv=await r.json()||{};
+const svAt=+sv.moneyPrefsAt||0,lcAt=+(localStorage.getItem("moneyPrefsAt")||0),hasSv=PREF_KEYS.some(k=>typeof sv[k]=="string"),used=!!localStorage.getItem("moneyPrefsSeen");
+// the server wins when it is newer, or when this window has never been used with saved preferences; otherwise what is here wins
+const useServer=hasSv&&(svAt>lcAt||(svAt==0&&lcAt==0&&!used));let diff=0;
+if(useServer){const was=PREFS_ON;PREFS_ON=false;PREF_KEYS.forEach(k=>{if(typeof sv[k]=="string"&&localStorage.getItem(k)!==sv[k]){try{localStorage.setItem(k,sv[k]);diff++}catch(e){}}});if(svAt)try{localStorage.setItem("moneyPrefsAt",String(svAt))}catch(e){}PREFS_ON=was}
+else if(!lcAt)try{localStorage.setItem("moneyPrefsAt",String(Date.now()))}catch(e){}
 let loop=false;try{loop=sessionStorage.getItem("moneyPrefsRl")==="1";sessionStorage.setItem("moneyPrefsRl","1")}catch(e){}
 try{localStorage.setItem("moneyPrefsSeen","1")}catch(e){}
 PREFS_ON=true;
 if(diff&&!loop){location.reload();return true}
-prefsPush()}catch(e){}return false}
+if(!useServer||diff===0&&svAt!==+(localStorage.getItem("moneyPrefsAt")||0))prefsPush()}catch(e){}return false}
 const $=id=>document.getElementById(id),f=n=>Math.abs(n).toLocaleString("en-IL",{maximumFractionDigits:0}),fm=n=>(n<0?"−":"")+"₪"+f(n),esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 /* every drop-down opens the app's own animated menu instead of the browser's; the select underneath keeps the value and fires change as usual */
 (()=>{let M=null,cur=null,idx=-1;const vd=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,"value"),CK='<svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>';
