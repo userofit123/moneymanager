@@ -540,5 +540,6 @@ P.unshift(
 [/^₪(.+) a month pays off the remaining ₪(.+) in (\d+) months? \((.+)\)\. What you already paid back is not taken from your free money\.$/,(c,l,k,m)=>"₪"+c+" בחודש מסיימים את ה-₪"+l+" שנותרו תוך "+(k==1?"חודש":k+" חודשים")+" ("+T(m)+"). מה שכבר החזרתם לא נלקח מהכסף החופשי שלכם."],
 [/^Paid back · (.+)$/,x=>"הוחזר · "+x],
 );
+Object.assign(D,{"see sources":"ראו מקורות"});
 P.splice(0,P.length,...P.filter(p=>typeof p[1]=="function"));
 })();
