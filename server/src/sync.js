@@ -79,14 +79,16 @@ export const instFromText = (s = "") => {
   return m && +m[2] >= 2 && +m[2] <= 60 && +m[1] >= 1 && +m[1] <= +m[2] ? { n: +m[1], total: +m[2] } : null;
 };
 const instOf = (t) => {
-  const i = t.installments && t.installments.total >= 2 ? { n: t.installments.number, total: t.installments.total } : instFromText(t.memo) || instFromText(t.description);
+  const n = Number(t.installments && t.installments.number), tot = Number(t.installments && t.installments.total);
+  // the bank sometimes sends the total without the number ("null/3"): then read it from the text, or leave the instalment out
+  const i = tot >= 2 && n >= 1 && n <= tot ? { n, total: tot } : instFromText(t.memo) || instFromText(t.description);
   return i ? { instN: i.n, instTotal: i.total } : {};
 };
 // A card purchase is often listed with a charged amount of 0 until the bank has processed it. The amount you spent is the original one, so show that
 // (in shekels only: a foreign amount cannot be converted until the bank has charged it).
 export const shownAmount = (t) => (t.chargedAmount === 0 && t.originalAmount && (!t.originalCurrency || t.originalCurrency === "ILS") ? t.originalAmount : (t.chargedAmount ?? t.originalAmount));
 // Map one scraped account to the rows the importer takes
-const toRows = (acc) => (acc.txns || []).map((t) => ({
+export const toRows = (acc) => (acc.txns || []).map((t) => ({
   date: ilDate(t.date), description: t.description, amount: shownAmount(t),
   currency: normCur(t.chargedCurrency) || "ILS",
   // A bank reference number repeats for recurring items (a monthly salary, a standing order), so it is only part of the id:
