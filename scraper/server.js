@@ -75,13 +75,14 @@ const profName = (company, profile) => (/^[a-z][A-Za-z0-9]*(~\d{1,3})?$/.test(pr
 async function launch(company, profile) {
   const dir = path.join(PROFILE_DIR, profName(company, profile));
   fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
-  return puppeteer.launch({ headless: true, userDataDir: dir, args: ARGS, executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined });
+  return puppeteer.launch({ headless: true, userDataDir: dir, args: ARGS, ignoreDefaultArgs: ["--enable-automation"], executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined });
 }
 async function look(page) {
   // The fixed user agent says "Linux". That matches the Docker browser, but on Windows or macOS it contradicts the real browser (platform, fonts, client hints),
   // which bank bot protection notices: sign-in works and the later data request is refused ("Failed to fetch"). Off Linux, use the browser's own, honest string.
   let ua = UA;
-  if (!process.env.SCRAPER_UA && process.platform !== "linux") { try { ua = (await page.browser().userAgent()).replace("HeadlessChrome", "Chrome"); } catch { /* keep the fixed one */ } }
+  // the browser's own version, so the string, the client hints and the real engine agree (a fixed old version next to a newer engine is something bot protection reads)
+  if (!process.env.SCRAPER_UA) { try { ua = (await page.browser().userAgent()).replace("HeadlessChrome", "Chrome"); } catch { /* keep the fixed one */ } }
   await page.setUserAgent(ua);
   // The browser's client hints (sec-ch-ua) still say "HeadlessChrome" after the user agent string is changed. Banks read them, so give them the same story as the string.
   try {
@@ -101,7 +102,6 @@ async function look(page) {
   await page.setExtraHTTPHeaders({ "Accept-Language": "he-IL,he;q=0.9,en-US;q=0.8,en;q=0.7" });
   await page.evaluateOnNewDocument(() => {
     Object.defineProperty(navigator, "webdriver", { get: () => false });
-    Object.defineProperty(navigator, "languages", { get: () => ["he-IL", "he", "en-US", "en"] });
     if (!window.chrome) window.chrome = { runtime: {}, app: {}, csi() {}, loadTimes() {} }; // a headless browser has no window.chrome, a real one does
   });
 }
@@ -146,7 +146,7 @@ async function scrapeOnce(company, credentials, startDate, profile) {
     browser = await launch(company, profile);
     const s = createScraper({
       companyId: COMPANIES[company], startDate: new Date(startDate), combineInstallments: false, showBrowser: false,
-      timeout: 120000, defaultTimeout: 90000, skipCloseBrowser: true, verbose: false, browser,
+      timeout: 120000, defaultTimeout: 90000, navigationRetryCount: 3, skipCloseBrowser: true, verbose: false, browser,
       viewportSize: { ...VIEW },
       preparePage: async (p) => { page = p; watchNet(p, net); await look(p); const go = p.goto.bind(p); p.goto = async (...a) => { const r = await go(...a); await settle(p); return r; }; },
     });
