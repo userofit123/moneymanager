@@ -16,6 +16,12 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
     let added = 0, merged = 0, migrated = 0, updated = 0;
     const fresh = [];
     const seen = {};
+    // A card balance already includes a charge the bank lists as pending. Pending rows are replaced by the bank's current list on every import, so when one of them
+    // comes back settled it is a new row: remember those whose money an earlier balance reading already counted, so the settled row is not counted a second time.
+    const counted = (await c.query(
+      `SELECT COALESCE(orig_amount,amount)::float AS a, date::text AS d FROM transactions WHERE pending AND source=$1 AND (from_name=$2 OR to_name=$2)
+         AND created_at < COALESCE((SELECT max(s.taken_at) FROM balance_snapshots s JOIN accounts ac ON ac.id=s.account_id WHERE ac.name=$2 AND ac.currency=$3), '-infinity'::timestamptz)`,
+      [account.source, account.name, normCur(account.currency)])).rows;
     await c.query("DELETE FROM transactions WHERE pending AND source=$1 AND (from_name=$2 OR to_name=$2)", [account.source, account.name]);
     for (const r of rows) {
       const cur = normCur(r.currency) || normCur(account.currency);
@@ -86,7 +92,11 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
         [r.date, r.description, from, to, ils, foreign ? cur : null, foreign ? r.amount : null, rate, account.source, ext, !!r.pending, r.bankCategory || null, r.instN || null, r.instTotal || null, r.details ? JSON.stringify(r.details) : null]);
       added++;
       fresh.push(ins.rows[0].id);
-      if (r.amount && !r.pending) await explainGaps(c, ins.rows[0].id, account.name, cur, r.amount);
+      const was = !r.pending && r.amount ? counted.findIndex((x) => Math.abs(x.a - r.amount) <= 0.01 && Math.abs(Date.parse(x.d) - Date.parse(r.date)) <= 10 * 864e5) : -1;
+      if (was >= 0) { // settled version of a pending charge the balance already included: nothing new reached the balance
+        counted.splice(was, 1);
+        await c.query("UPDATE transactions SET gap_explained=$2 WHERE id=$1", [ins.rows[0].id, r.amount]);
+      } else if (r.amount && !r.pending) await explainGaps(c, ins.rows[0].id, account.name, cur, r.amount);
     }
     await applyRules(c);
     await applyTagRules(c, fresh);
