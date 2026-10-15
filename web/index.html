@@ -1285,7 +1285,7 @@ $("cmp").innerHTML=`<div class="flex" style="align-items:stretch;gap:28px;flex-w
 <div class="sm">Same point last month: ₪${f(same)} ${same?`<span class="bd ${d>0?"up":"dn"}">${d>0?"▲":"▼"} ${p}%</span>`:""}</div></div>
 <div class="cmpb prev"><div class="lbl"><i class="cd"></i>${MNAME(pm)}<span class="tpill">full month</span></div><div class="val"><small>₪</small>${f(lastTot)}</div>
 <div class="sm">${lastTot?Math.round(thisTot/lastTot*100):0}% of last month's total spent so far</div></div></div>
-<div style="flex:1;min-width:min(260px,100%)"><div class="cmplg"><span class="tpill"><i class="cd"></i><span>${MNAME(MK)}</span><span>so far</span></span><span class="tpill g"><i class="cd"></i><span>${MNAME(pm)}</span><span>same days</span></span></div>${rows.map(r=>`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px"><b><span class="catl" data-a="goCat" data-cat="${esc(r.k)}">${esc(r.k)}</span></b><span class="sm num">₪${f(r.a)} <span style="opacity:.6">vs ₪${f(r.b)}</span></span></div>
+<div style="flex:1;min-width:min(260px,100%)"><div class="cmplg"><span class="tpill"><i class="cd"></i><span>${MNAME(MK)} so far</span></span><span class="tpill g"><i class="cd"></i><span>${MNAME(pm)} same days</span></span></div>${rows.map(r=>`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px"><b><span class="catl" data-a="goCat" data-cat="${esc(r.k)}">${esc(r.k)}</span></b><span class="sm num">₪${f(r.a)} <span style="opacity:.6">vs ₪${f(r.b)}</span></span></div>
 <div class="bar" style="margin:6px 0 3px;height:7px"><i style="width:${r.a/mx*100}%"></i></div><div class="bar" style="margin:0;height:7px"><i style="width:${r.b/mx*100}%;background:color-mix(in srgb,var(--tx) 30%,transparent)"></i></div></div>`).join("")}</div></div>`}
 addEventListener("resize",()=>{clearTimeout(window.__lt);window.__lt=setTimeout(()=>{if(typeof curView!="undefined"&&curView=="rep"){if(LH0&&Math.abs(($("lines").clientWidth||0)-LW)>40)lineChart(LH0);const w=document.querySelector("#bars .bcw");if(LB&&w&&(Math.abs(w.clientWidth-LBW)>40||Math.abs(w.clientHeight-LBH)>40))barChart(LB)}},150)});
 function renderFx(){const keys=Object.keys(fxSer).filter(k=>(fxSer[k]||[]).length>1);if(keys.length&&!keys.includes(fxCur))fxCur=keys[0];const ser=fxSer[fxCur]||[];if(ser.length<2){$("fxc").innerHTML='<div class="sm">Exchange rates have not loaded yet. The server fetches them from the European Central Bank.</div>';return}const v=ser.map(x=>x[1]),last=v[v.length-1],ch=(last/v[0]-1)*100,mn=Math.min(...v),mx=Math.max(...v),av=v.reduce((a,b)=>a+b)/v.length;
@@ -1890,7 +1890,8 @@ tp.innerHTML=`<b>${fullL[i]}</b><span>${o.fmt(vals[i])}</span>${prev?`<small>bef
 const hide=()=>{gx.style.display=gd.style.display=tp.style.display="none"};svg.addEventListener("pointermove",show);svg.addEventListener("pointerdown",show);svg.addEventListener("pointerleave",hide);
 if(o.go)svg.addEventListener("click",e=>{if(document.documentElement.classList.contains("mob"))return;const r=svg.getBoundingClientRect();if(e.clientX-r.left<Pl-6)return;goActivity(o.go(Math.max(0,Math.min(n-1,Math.floor((e.clientX-r.left-Pl)/band)))))})}
 // open Activity on a period (and optionally a category, tag or type)
-function goActivity(o){RNG.tx={p:"custom",from:o.from||"",to:o.to||""};saveRng();nav("tx");txTab="all";tagFill();$("fCat").value=o.cat||"";$("fTag").value=o.tag||"";$("fSrc").value="";$("fTy").value=o.ty||"";$("q").value="";FOCUS=null;renderTx()}
+function resetTx(from,to){RNG.tx=from||to?{p:"custom",from:from||"",to:to||""}:{p:"all",from:"",to:""};saveRng();txTab="all";tagFill();["q","fSrc","fCat","fTag","fTy"].forEach(i=>$(i).value="");$("fSort").value="new";FOCUS=null;GMODE="month";try{$("fGroup").value="month";localStorage.setItem("moneyGroup","month")}catch(x){}}
+function goActivity(o){resetTx(o.from,o.to);nav("tx");$("fCat").value=o.cat||"";$("fTag").value=o.tag||"";$("fTy").value=o.ty||"";renderTx()}
 function renderNW(){const box=$("nwc");if(!box)return;const opts=trOptions(),flat=opts.flatMap(g=>g[1].map(x=>x[0]));if(!flat.includes(TR.m))TR.m="nw";
 const isNW=TR.m=="nw",wp=S.nwPension,NN=NW.months.length;let n;
 if(TR.r){n=TR.r}else{const e=isNW?NW.keys[NW.first]:A().reduce((m,t)=>t.d<m?t.d:m,MK+"-31").slice(0,7);n=1;while(n<60&&addM(MK,-n)>=e)n++;n=Math.max(n,36)}
@@ -2138,7 +2139,7 @@ function putMon(el,id){const k=String(RN[id])+(id=="lines"?RN.lt:"");if(el.datas
 function putRange(el,id){const k=JSON.stringify(RNG[id]);if(el.dataset.k!=k){el.innerHTML=rangeHtml(id);el.dataset.k=k}}
 const totalsOf=L=>{let inc=0,out=0;L.forEach(t=>{if(t.balUpd||isXf(t)||isIgn(t)||isFuture(t)||isCardPay(t))return;if(t.a>0)inc+=t.a;else out-=t.a});return{inc,out,net:inc-out}};
 const GROUPS=[["none","No grouping"],["day","Group by day"],["week","Group by week"],["month","Group by month"],["cat","Group by category"],["type","Group by type"],["acct","Group by account"],["merchant","Group by merchant"],["tag","Group by tag"]];
-let GCOL=new Set(),GMODE="none",GJUST=null;try{GMODE=localStorage.getItem("moneyGroup")||"none"}catch(e){}
+let GCOL=new Set(),GMODE="month",GJUST=null;try{if(localStorage.getItem("moneyGroupV")!=="2"){localStorage.setItem("moneyGroupV","2");localStorage.setItem("moneyGroup","month")}GMODE=localStorage.getItem("moneyGroup")||"month"}catch(e){}
 const wkStart=d=>{const x=new Date(d+"T12:00:00");x.setDate(x.getDate()-x.getDay());return iso(x)};
 function groupOf(t,m){switch(m){
 case"day":return[t.d,dstr(t.d)+" · "+new Date(t.d+"T12:00:00").toLocaleDateString("en-GB",{weekday:"long"}),1];
@@ -2429,8 +2430,8 @@ case"grpTog":{const k=d.g;if(GCOL.has(k)){GCOL.delete(k);GJUST=k;renderTx()}else
 document.querySelectorAll(`[data-grp="${CSS.escape(k)}"]`).forEach(r=>r.classList.add("gx"));document.querySelectorAll(".ghead").forEach(h=>{if(h.dataset.g==k)h.classList.add("closed")});setTimeout(()=>{GCOL.add(k);renderTx()},170)}break}
 case"focusClear":FOCUS=null;renderTx();break;
 case"alOpen":{const al=alerts().find(x=>x.id==d.id);if(!al)break;if(al.attach){nav("tx");renderTx();openTx(al.attach);break}FOCUS=null;if(al.ids&&al.ids.length){FOCUS={label:al.title,ids:new Set(al.ids)};txTab="all"}else if(al.tab)txTab=al.tab;nav(al.go);if(al.go=="tx")renderTx();break}
-case"clearF":FOCUS=null;RNG.tx={p:"all",from:"",to:""};saveRng();$("q").value="";$("fSrc").value="";$("fCat").value="";$("fTag").value="";$("fTy").value="";$("fSort").value="new";GMODE="none";$("fGroup").value="none";try{localStorage.setItem("moneyGroup","none")}catch(x){}renderTx();break;
-case"goSrc":nav("tx");txTab="all";$("fSrc").value=d.src;$("fCat").value="";$("fTag").value="";$("fTy").value="";renderTx();break;
+case"clearF":FOCUS=null;RNG.tx={p:"all",from:"",to:""};saveRng();$("q").value="";$("fSrc").value="";$("fCat").value="";$("fTag").value="";$("fTy").value="";$("fSort").value="new";GMODE="month";$("fGroup").value="month";try{localStorage.setItem("moneyGroup","month")}catch(x){}renderTx();break;
+case"goSrc":resetTx();nav("tx");$("fSrc").value=d.src;renderTx();break;
 case"updOpen":nav("set");setTab="app";renderSet();break;
 case"updCheck":if(window.desktop){UP.status="checking";updUI();window.desktop.check().then(s=>{upFromDesk(s);updUI()})}else upWeb(true);break;
 case"updDownload":if(window.desktop)window.desktop.download().then(s=>{upFromDesk(s);updUI()});break;
@@ -2445,9 +2446,9 @@ openSheet(`<h3>New tag rule</h3><div class="sm" style="margin-bottom:12px;line-h
 case"taSave":{const kw=($("taK").value||"").trim().toLowerCase();if(kw.length<2){toast("Type the text to match first",{kind:"err"});break}const L=tagSim(kw,TA.id,TA.tags),all=$("taA").checked;let ex=S.tagRules.find(r=>r.k.toLowerCase()==kw);if(ex)ex.t=[...new Set([...ruleTags(ex),...TA.tags])].join(",");else{ex={k:kw,t:TA.tags.join(",")};S.tagRules.push(ex)}
 let n=0;if(all)L.forEach(x=>{TA.tags.forEach(g=>{if(!x.tags.includes(g)){x.tags.push(g);}});n++});log("Added tag rule",`"${kw}" → ${ex.t}${n?` · ${n} transaction${n==1?"":"s"} tagged`:""}`);closeSheet();renderAll();toast(n?`Rule created. ${n} transaction${n==1?"":"s"} tagged.`:"Rule created. It tags new transactions.");break}
 case"goPeriod":if(document.documentElement.classList.contains("mob"))break;goActivity({from:d.from,to:d.to,cat:d.cat,ty:d.ty});break;
-case"goCat":nav("tx");txTab="all";$("fCat").value=d.cat;$("fSrc").value="";$("fTag").value="";$("fTy").value="";renderTx();break;
-case"goMerch":nav("tx");txTab="all";tagFill();$("q").value=d.n;$("fCat").value="";$("fSrc").value="";$("fTag").value="";$("fTy").value="";renderTx();break;
-case"goTag":nav("tx");txTab="all";tagFill();$("fTag").value=d.tag;$("fCat").value="";$("fSrc").value="";$("fTy").value="";$("q").value="";renderTx();break;
+case"goCat":resetTx();nav("tx");$("fCat").value=d.cat;renderTx();break;
+case"goMerch":resetTx();nav("tx");$("q").value=d.n;renderTx();break;
+case"goTag":resetTx();nav("tx");$("fTag").value=d.tag;renderTx();break;
 case"goSearch":nav("tx");txTab="all";$("q").value=d.q;$("fCat").value="";$("fSrc").value="";$("fTag").value="";$("fTy").value="";renderTx();break;
 case"fxc":fxCur=d.cur;renderFx();break;
 case"xfOk":{const x=S.xf.find(x=>x.o==d.o);x.st="ok";log("Transfer confirmed",byId(x.o).from+" → "+byId(x.i).to);renderAll();break}
