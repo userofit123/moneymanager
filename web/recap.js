@@ -101,7 +101,7 @@ const segBar=it=>{it=it.filter(x=>x[1]>=1);const tot=it.reduce((s,x)=>s+x[1],0)|
 document.addEventListener("mouseover",e=>{const t=e.target.closest&&e.target.closest(".rkhl [data-h]");if(t)set(t.closest(".rkhl"),t.dataset.h)});
 document.addEventListener("mouseout",e=>{const t=e.target.closest&&e.target.closest(".rkhl [data-h]");if(!t)return;const to=e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest(".rkhl [data-h]");const r=t.closest(".rkhl");if(to&&r.contains(to))return;set(r,null)})})();
 const nowBar=m=>{const set=Math.min(m.cash,m.inJars+m.buffer),free=Math.max(0,m.cash-set);return segBar([[L("Set aside in jars","שמור בקופות"),set,"c3","jars"],[L("Free to use","פנוי לשימוש"),free,"c1","now"]])};
-const aheadBar=m=>segBar([[L("Credit cards","כרטיסי אשראי"),m.cardLeft,"c1","now"],[L("Bills","חשבונות"),m.billsTot,"c2","bills"],[L("Budgets","תקציבים"),m.limitsLeft,"c3","budg"],[L("Paid from jars","מהקופות"),m.jarCov,"c4","jars"]]);
+const aheadBar=m=>segBar([[L("Credit cards","כרטיסי אשראי"),m.cardLeft,"c1","now"],[L("Bills","תשלומים קבועים"),m.billsTot,"c2","bills"],[L("Budgets","תקציבים"),m.limitsLeft,"c3","budg"],[L("Paid from jars","מהקופות"),m.jarCov,"c4","jars"]]);
 
 // a ring for a budget: how much of it is used
 function ring(b,i){const r=27,c=2*Math.PI*r,p=Math.min(1,b.s/Math.max(1,b.lim));
@@ -138,9 +138,9 @@ function inPart(m){
 function outPart(m){
  let line="",d=m.same-m.ex;
  if(m.same>=100&&m.ex>=100){
-  if(Math.abs(d)<Math.max(100,m.same*.08))line=chip("flat",L("You have spent about the same as you did by this day last month","הוצאתם בערך כמו שהוצאתם עד היום הזה בחודש שעבר"),"","out");
-  else if(d>0)line=chip("down",L(`You have spent ${mi(d)} less than you did by this day last month`,`הוצאתם ${mi(d)} פחות מאשר עד היום הזה בחודש שעבר`),"good","out");
-  else line=chip("up",L(`You have spent ${mi(-d)} more than you did by this day last month`,`הוצאתם ${mi(-d)} יותר מאשר עד היום הזה בחודש שעבר`),"warn","out")}
+  if(Math.abs(d)<Math.max(100,m.same*.08))line=chip("flat",L("You have spent about the same as you did by this day last month","הוצאתם בערך אותו סכום כמו עד אותו יום בחודש שעבר"),"","out");
+  else if(d>0)line=chip("down",L(`You have spent ${mi(d)} less than you did by this day last month`,`הוצאתם ${mi(d)} פחות מאשר עד אותו יום בחודש שעבר`),"good","out");
+  else line=chip("up",L(`You have spent ${mi(-d)} more than you did by this day last month`,`הוצאתם ${mi(-d)} יותר מאשר עד אותו יום בחודש שעבר`),"warn","out")}
  let pulse="";const tr=m.w1-m.w0;
  if(m.w0>=150&&Math.abs(tr)>=Math.max(100,m.w0*.25))pulse=tr<0?chip("down",L("The last 7 days were calmer than the 7 before","7 הימים האחרונים היו רגועים יותר מ‑7 הימים שלפניהם"),"good","d7"):chip("up",L("The last 7 days were busier than the 7 before","7 הימים האחרונים היו עמוסים יותר מ‑7 הימים שלפניהם"),"warn","d7");
  else if(m.below[0])pulse=chip("down",L(`${nm(m.below[0].k)} is well below its usual`,`${nm(m.below[0].k)} נמוך בהרבה מהרגיל`),"good",ck(m.below[0].k));
@@ -158,7 +158,7 @@ function aheadPart(m){const tot=m.cash-m.end;if(tot<1)return"";const bm={...m,bi
  const left=m.cash-tot,held=m.inJars+m.buffer,free=left-held;
  const rest=left>=0?chip("up",L(`You will have about ${mi(left)} left after you pay these`,`יישארו לכם בערך ${mi(left)} אחרי שתשלמו את כל אלה`),"good","fc"):chip("down",L(`That is ${mi(-left)} more than you have in your accounts today`,`זה ${mi(-left)} יותר ממה שיש לכם היום בחשבונות`),"warn","now");
  const jr=held>=1&&left>=0?(free>=0?chip("flat",L(`${mi(held)} of that is in your jars, so about ${mi(free)} is yours to spend`,`${mi(held)} מזה בקופות, כך שבערך ${mi(free)} נשארים לכם להוצאות`),"","jars"):chip("down",L(`Your jars hold ${mi(held)}, so after these payments they will be about ${mi(-free)} short`,`בקופות יש ${mi(held)}, אז אחרי התשלומים יחסרו להן בערך ${mi(-free)}`),"warn","jars")+relBtn()):"";
- return part("ahead","",L("You still have to pay","עוד תצטרכו לשלם"),"ahead",mn(tot),L("That is your credit card charges, your bills, the rest of your budgets and what your jars pay for.","אלה חיובי האשראי, החשבונות, מה שנשאר מהתקציבים ומה שהקופות משלמות.")+rest+jr,aheadBar(bm)+upList(m))}
+ return part("ahead","",L("You still have to pay","עוד תצטרכו לשלם"),"ahead",mn(tot),L("That is your credit card charges, your bills, the rest of your budgets and what your jars pay for.","אלה חיובי האשראי, התשלומים הקבועים, מה שנשאר מהתקציבים ומה שהקופות משלמות.")+rest+jr,aheadBar(bm)+upList(m))}
 
 // the same release the Jars page offers: when jars and cushion hold more than the accounts can cover after upcoming bills and budgets
 const relBtn=()=>{const o=jarFree().over;return o>0?`<div class="rkfix"><button class="btn" data-a="jarRelease">${L(`Take ${mi(Math.min(o,jarFree().inJars))} back from the jars`,`החזירו ${mi(Math.min(o,jarFree().inJars))} מהקופות`)}</button></div>`:""};
@@ -174,12 +174,12 @@ function budgetsPart(m){const flag=[...m.over,...m.risk];
 
 function endPart(m){
  const hasStart=isFinite(m.start)&&Math.abs(m.start)>=1,d=m.end-m.start,mon=mname(MK);
- let line=L(`This is what should be left if you pay everything that is still due (bills and credit card charges) and use up the rest of your budgets.`,`זה מה שאמור להישאר אם תשלמו את כל מה שעוד צפוי (חשבונות וחיובי אשראי) ותנצלו את מה שנשאר מהתקציבים.`);
+ let line=L(`This is what should be left if you pay everything that is still due (bills and credit card charges) and use up the rest of your budgets.`,`זה מה שאמור להישאר אם תשלמו את כל מה שעוד צפוי (תשלומים קבועים וחיובי אשראי) ותנצלו את מה שנשאר מהתקציבים.`);
  if(hasStart&&Math.abs(d)>=100)line+=chip(d>=0?"up":"down",d>=0?L(`${mi(d)} more than you started with`,`${mi(d)} יותר ממה שהתחלתם איתו`):L(`${mi(-d)} less than you started with`,`${mi(-d)} פחות ממה שהתחלתם איתו`),d>=0?"good":"warn","fc");
  {const held=m.inJars+m.buffer,free=m.end-held;
   if(held>=1&&m.end>0)line+=free>=0?chip("flat",L(`${mi(held)} of that is in your jars, so about ${mi(free)} is yours to spend`,`${mi(held)} מזה בקופות, כך שבערך ${mi(free)} נשארים לכם להוצאות`),"","jars"):chip("down",L(`Your jars hold ${mi(held)}, but you will probably end the month with ${mi(m.end)}, so they would be about ${mi(-free)} short`,`בקופות יש ${mi(held)}, אבל סביר שתסיימו את החודש עם ${mi(m.end)}, אז יחסרו להן בערך ${mi(-free)}`),"warn","jars")+relBtn()}
  if(m.phase=="end")line+=chip("flat",L(`${mname(m.nmk)} will begin with about ${mi(m.nextBills+m.cardsU)} already on its way out`,`${mname(m.nmk)} יתחיל כשכבר כ‑${mi(m.nextBills+m.cardsU)} בדרך החוצה`),"","fc");
- return part("path",m.end<0?"tn":"",L(`Predicted end of ${mon}`,`סיום חזוי של ${mon}`),"end",`<span class="rkw">≈</span>${mn(m.end)}`,line,pathChart(m))}
+ return part("path",m.end<0?"tn":"",L(`Predicted end of ${mon}`,`צפי לסוף ${mon}`),"end",`<span class="rkw">≈</span>${mn(m.end)}`,line,pathChart(m))}
 
 /* ---------- opening the matching page, filtered ---------- */
 window.recapGo=function(k){const last=MK+"-"+p2(DIM);
