@@ -255,9 +255,9 @@ function measure(s){const el=s.el,z=el.querySelector(".rkz"),G={zTop:0,rows:[],s
   svg.setAttribute("viewBox",`0 0 ${w} ${hh}`);svg.style.top=top+"px";svg.style.height=d+"px";pa.setAttribute("d",x0==x1?`M${x0} 0V${hh}`:`M${x0} 0C${x0} ${hh*.5} ${x1} ${hh*.5} ${x1} ${hh}`);return{pa,hh,o:-1}};
  rows.forEach((r,i)=>{const a=pts[i],R0=rad(r),last=i+1==rows.length,b=!last?pts[i+1]:endY,Rn=!last?rad(rows[i+1]):endR,x0=mx(r.classList.contains("za")?52:128),x1=!last?mx(rows[i+1].classList.contains("za")?52:128):90;
   r.classList.toggle("tozend",last&&b!=null);const ni=r.querySelector(".rkni"),c0=r.querySelector(".rkcir"),top=c0.offsetTop+c0.offsetHeight,len=b!=null?b-a-R0-Rn:0;
-  const R={r,a,R0,body:r.querySelector(".rkb"),circ:c0,mid:r.offsetTop+r.offsetHeight/2,kb:-1,kc:-1,cons:[],hit:r.classList.contains("hit")};
+  const bd=r.querySelector(".rkb"),R={r,a,R0,bt:r.offsetTop+bd.offsetTop,body:bd,circ:c0,mid:r.offsetTop+r.offsetHeight/2,kb:-1,kc:-1,cons:[],hit:r.classList.contains("hit")};
   if(b!=null){R.cons=[geo(r.querySelector(".rkcn.cs"),180,top,len,x0,x1),geo(r.querySelector(".rkcn.cm"),10,top,len,5,5)].filter(Boolean);R.cons.forEach(o=>o.from=G.zTop+a+R0)}G.rows.push(R)});
- if(end&&endY!=null)G.end={el:end,y:endY};
+ if(end&&endY!=null)G.end={el:end,y:endY,t:end.offsetTop};
  // the start of the path comes down from the first part to the first circle
  const st=el.querySelector(".rkw0>.rk:not(.z)");
  if(rows.length&&st&&st.querySelector(".rki")){let ld=z.querySelector(".rklead");if(!ld){ld=document.createElementNS(SVGNS,"svg");ld.setAttribute("class","rkcn rklead cs");ld.setAttribute("aria-hidden","true");ld.innerHTML='<path pathLength="1"/>';z.insertBefore(ld,z.firstChild)}
@@ -275,11 +275,11 @@ function frame(){const s=CUR;if(!s||!s.el.isConnected)return;if(!s.el.getClientR
  G.rows.forEach(R=>{const top=G.zTop+R.a;
   R.cons.forEach(o=>dash(o,o.from));
   if(!R.hit&&(!anim||head>=top-R.R0)){R.hit=true;R.r.classList.add("hit")}
-  if(!R.r.classList.contains("in")&&y+vh*.72>=top)showIn(R.r,anim);
+  if(!R.r.classList.contains("in")&&y+vh*.8>=G.zTop+R.bt)showIn(R.r,anim); // by the top of the part, so tall and short parts start appearing at the same point of the scroll
   if(move){const kb=kOf(G.zTop+R.mid),kc=kOf(top);
    if(kb!==R.kb){R.kb=kb;R.body.style.scale=kb}
    if(kc!==R.kc){R.kc=kc;R.circ.style.scale=kc;const w=5*kc;R.cons.forEach(o=>o.pa.style.strokeWidth=w)}}});
- if(G.end&&!G.end.el.classList.contains("in")&&y+vh*.72>=G.zTop+G.end.y)showIn(G.end.el,anim);
+ if(G.end&&!G.end.el.classList.contains("in")&&y+vh*.8>=G.zTop+G.end.t)showIn(G.end.el,anim);
  if(move)G.shr.forEach(it=>{const k=kOf(it.cy);if(k!==it.k){it.k=k;it.x.style.scale=k}})}
 let TICK=0;const kick=()=>{if(TICK)return;TICK=requestAnimationFrame(()=>{TICK=0;frame()})};
 const relayout=()=>{if(CUR)CUR.dirty=true;kick()};
