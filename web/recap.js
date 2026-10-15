@@ -270,7 +270,7 @@ function frame(){const s=CUR;if(!s||!s.el.isConnected)return;if(!s.el.getClientR
  const G=s.geo,y=scrollY,vh=innerHeight,head=y+vh*.86,anim=s.animate&&!REDUCE(),move=!REDUCE(),t0=vh*.4,sp=vh*.7;
  const kOf=c=>q3(1-.3*cl01((t0-(c-y))/sp)); // 1 in the middle of the screen, a little smaller once a part is on its way out at the top
  // the path is drawn as far as the bottom of the screen
- const dash=(o,top)=>{const v=anim?q3(1-cl01((head-top)/o.hh)):0;if(v===o.o)return;o.o=v;o.pa.style.strokeDashoffset=v};
+ const dash=(o,top)=>{let v=anim?q3(1-cl01((head-top)/o.hh)):0;if(o.m!==undefined&&v>o.m)v=o.m;o.m=v;if(v===o.o)return;o.o=v;o.pa.style.strokeDashoffset=v};
  if(G.lead)dash(G.lead,G.lead.from);
  G.rows.forEach(R=>{const top=G.zTop+R.a;
   R.cons.forEach(o=>dash(o,o.from));
