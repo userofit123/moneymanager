@@ -300,6 +300,7 @@ P.unshift(
 [/^(.+): payment expected but not seen$/,a=>a+": התשלום הצפוי לא נראה"],
 [/^Expected around (.+), about (.+) from (.+)\. Nothing like it has been paid since\. If it is only late, do nothing\. If you stopped it, open the bill and cancel it\.$/,(d,a,s)=>"צפוי בערך ב־"+d+", בערך "+a+" מ־"+s+". עדיין לא שולם משהו דומה. אם זה רק מתעכב, אין צורך לעשות דבר. אם הפסקתם אותו, פתחו את החשבון וסמנו אותו כמבוטל."],
 [/^About (.+) from (.+)\. A prediction from your past payments, not a charge yet\.$/,(a,s)=>"בערך "+a+" מ־"+s+". זו הערכה לפי התשלומים הקודמים שלכם, עדיין לא חיוב."],
+[/^Last payment (.+)$/,a=>"תשלום אחרון "+a],
 [/^(.+) looks like it came out of (.+), because similar payments were attached to it\. Attach it to the jar to keep the jar balance right\.$/,(a,j)=>a+" נראה כאילו יצא מ"+j+", כי תשלומים דומים שויכו אליה. שייכו אותו לקופה כדי שהיתרה בקופה תהיה נכונה."],
 [/^(.+) looks like it came out of (.+)\. Attach it to the jar to keep the jar balance right\.$/,(a,j)=>a+" נראה כאילו יצא מ"+j+". שייכו אותו לקופה כדי שהיתרה בקופה תהיה נכונה."],
 [/^At this pace you would spend (.+) this month, over the (.+) budget\.$/,(a,b)=>"בקצב הזה תוציאו "+a+" החודש, מעל תקציב של "+b+"."],
