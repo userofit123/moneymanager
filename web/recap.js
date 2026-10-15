@@ -226,9 +226,10 @@ function wireBars(el,m){const w=el.querySelector(".rkbw");if(!w)return;const svg
 let IO=null,CUR=null,RO=null,BOUND=false;
 function countUp(el){const to=+el.dataset.v||0;if(!to||REDUCE())return;const t0=performance.now(),D=1100;el.textContent="0";
  (function step(now){const k=Math.min(1,(now-t0)/D),e=1-Math.pow(1-k,3);el.textContent=f(Math.round(to*e));if(k<1&&document.body.contains(el))requestAnimationFrame(step);else el.textContent=f(to)})(t0)}
-const showIn=(x,animate)=>{if(x.classList.contains("in"))return;x.classList.add("in");if(!animate){x.classList.add("st");return}setTimeout(()=>x.querySelectorAll(".cnt").forEach(countUp),450)};
+const showIn=(x,animate)=>{if(x.classList.contains("in"))return;x.classList.add("in");if(!animate){x.classList.add("st");return}x.querySelectorAll(".cnt").forEach(countUp)};
 // the title and the first part fade in as they come into view
 function reveal(box,animate){if(IO){IO.disconnect();IO=null}
+ if(animate&&!REDUCE())box.querySelectorAll(".cnt").forEach(n=>{if(+n.dataset.v)n.textContent="0"});
  const items=[...box.querySelectorAll(".rr:not(.z):not(.zend)")];
  if(!animate||REDUCE()||!("IntersectionObserver" in window)){items.forEach(x=>showIn(x,false));return}
  IO=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;showIn(e.target,true);IO.unobserve(e.target)}),{threshold:.3,rootMargin:"0px 0px -18% 0px"});
@@ -237,36 +238,50 @@ function reveal(box,animate){if(IO){IO.disconnect();IO=null}
 // the path is drawn as you scroll: its tip stays near the bottom of the screen, and each part fades in when the path reaches it.
 // Parts that scroll away off the top shrink a little.
 const SVGNS="http://www.w3.org/2000/svg";
+const cl01=x=>x<0?0:x>1?1:x,q3=x=>Math.round(x*1000)/1000;
+// Layout is measured once (and again when the page is resized or changes); a scroll frame is then only arithmetic and a few direct style writes,
+// so the browser has almost nothing to recalculate while you scroll.
+function measure(s){const el=s.el,z=el.querySelector(".rkz"),G={zTop:0,rows:[],shr:[],lead:null,end:null};s.geo=G;s.dirty=false;
+ // parts that shrink as they leave: the title and first part, the last part
+ el.querySelectorAll(".rkh.rr,.rkw0>.rk.rr,.zend").forEach(x=>{const r=x.getBoundingClientRect(),moved=x.classList.contains("in")?0:38;G.shr.push({x,cy:(r.top+r.bottom)/2+scrollY-moved,k:-1})});
+ if(!z)return;
+ G.zTop=z.getBoundingClientRect().top+scrollY;const rows=[...z.querySelectorAll(".rk.z")],end=z.querySelector(".zend"),eT=end&&end.querySelector(".rki");
+ const cy=r=>{const n=r.querySelector(".rkni"),c=r.querySelector(".rkcir");return r.offsetTop+n.offsetTop+c.offsetTop+c.offsetHeight/2};
+ const pts=rows.map(cy),endY=eT?end.offsetTop+eT.offsetTop+eT.offsetHeight/2:null;
+ const geo=(svg,w,d,x0,x1)=>{if(!svg)return null;const hh=Math.max(1,d),pa=svg.querySelector("path");
+  svg.setAttribute("viewBox",`0 0 ${w} ${hh}`);svg.style.height=d+"px";pa.setAttribute("d",x0==x1?`M${x0} 0V${hh}`:`M${x0} 0C${x0} ${hh*.5} ${x1} ${hh*.5} ${x1} ${hh}`);return{pa,hh,o:-1}};
+ rows.forEach((r,i)=>{const a=pts[i],b=i+1<rows.length?pts[i+1]:endY,last=i+1==rows.length&&b!=null,x0=r.classList.contains("za")?52:128,x1=i+1<rows.length?(rows[i+1].classList.contains("za")?52:128):90;
+  r.classList.toggle("tozend",last);const R={r,a,body:r.querySelector(".rkb"),circ:r.querySelector(".rkcir"),mid:r.offsetTop+r.offsetHeight/2,kb:-1,kc:-1,cons:[],sw:-1,done:false};
+  if(b!=null){R.cons=[geo(r.querySelector(".rkcn.cs"),180,b-a,x0,x1),geo(r.querySelector(".rkcn.cm"),10,b-a,5,5)].filter(Boolean)}G.rows.push(R)});
+ if(end&&endY!=null)G.end={el:end,y:endY};
+ // the start of the path comes down from the first part
+ const st=el.querySelector(".rkw0>.rk:not(.z)");
+ if(rows.length&&st&&st.querySelector(".rki")){let ld=z.querySelector(".rklead");if(!ld){ld=document.createElementNS(SVGNS,"svg");ld.setAttribute("class","rkcn rklead cs");ld.setAttribute("aria-hidden","true");ld.innerHTML='<path pathLength="1"/>';z.insertBefore(ld,z.firstChild)}
+  const tb=st.getBoundingClientRect().bottom+scrollY+6,from=tb-G.zTop,a=pts[0],d=a-from,x1=rows[0].classList.contains("za")?52:128;
+  ld.style.top=from+"px";ld.style.height=Math.max(0,d)+"px";ld.setAttribute("viewBox",`0 0 180 ${Math.max(1,d)}`);const pa=ld.querySelector("path");pa.setAttribute("d",`M90 0C90 ${d*.5} ${x1} ${d*.5} ${x1} ${d}`);
+  G.lead={pa,from:tb,hh:Math.max(1,d),o:-1}}}
 function frame(){const s=CUR;if(!s||!s.el.isConnected)return;if(!s.el.getClientRects().length){s.away=true;return}
- if(s.away){s.away=false;s.animate=true;s.el.querySelectorAll(".rr").forEach(x=>x.classList.remove("in","st"));reveal(s.el,true)}
- const el=s.el,vh=innerHeight,head=scrollY+vh*.86,anim=s.animate&&!REDUCE();
- const z=el.querySelector(".rkz");
- if(z){const zTop=z.getBoundingClientRect().top+scrollY,rows=[...z.querySelectorAll(".rk.z")],end=z.querySelector(".zend");
-  const cy=r=>{const n=r.querySelector(".rkni"),c=r.querySelector(".rkcir");return r.offsetTop+n.offsetTop+c.offsetTop+c.offsetHeight/2};
-  const pts=rows.map(cy),endY=end&&end.querySelector(".rki")?end.offsetTop+end.querySelector(".rki").offsetTop+end.querySelector(".rki").offsetHeight/2:null;
-  const draw=(svg,w,d,x0,x1,from)=>{if(!svg)return;const hh=Math.max(1,d),p=Math.max(0,Math.min(1,(head-(zTop+from))/hh));
-   svg.setAttribute("viewBox",`0 0 ${w} ${hh}`);svg.style.height=d+"px";const pa=svg.querySelector("path");
-   pa.setAttribute("d",x0==x1?`M${x0} 0V${hh}`:`M${x0} 0C${x0} ${hh*.5} ${x1} ${hh*.5} ${x1} ${hh}`);pa.style.strokeDashoffset=anim?String(1-p):"0"};
-  rows.forEach((r,i)=>{const a=pts[i],b=i+1<rows.length?pts[i+1]:endY;
-   const x0=r.classList.contains("za")?52:128,x1=i+1<rows.length?(rows[i+1].classList.contains("za")?52:128):90;
-   r.classList.toggle("tozend",i+1==rows.length&&b!=null);
-   if(b!=null){draw(r.querySelector(".rkcn.cs"),180,b-a,x0,x1,a);draw(r.querySelector(".rkcn.cm"),10,b-a,5,5,a)}
-   if(head>=zTop+a)showIn(r,anim)});
-  if(end&&endY!=null&&head>=zTop+endY)showIn(end,anim);
-  // the start of the path comes down from the first part
-  const st=el.querySelector(".rkw0>.rk:not(.z)"),ti=st&&st.querySelector(".rki");
-  if(rows.length&&ti){let ld=z.querySelector(".rklead");if(!ld){ld=document.createElementNS(SVGNS,"svg");ld.setAttribute("class","rkcn rklead cs");ld.setAttribute("aria-hidden","true");ld.innerHTML='<path/>';z.insertBefore(ld,z.firstChild)}
-   const tb=st.getBoundingClientRect().bottom+scrollY+6,from=tb-zTop,a=pts[0],d=a-from,x1=rows[0].classList.contains("za")?52:128;
-   ld.style.top=from+"px";ld.style.height=Math.max(0,d)+"px";ld.setAttribute("viewBox",`0 0 180 ${Math.max(1,d)}`);const pa=ld.querySelector("path");pa.setAttribute("d",`M90 0C90 ${d*.5} ${x1} ${d*.5} ${x1} ${d}`);
-   const p=Math.max(0,Math.min(1,(head-tb)/Math.max(1,d)));pa.style.strokeDashoffset=anim?String(1-p):"0"}}
- if(!REDUCE()){const t0=vh*.4,sp=vh*.7,k=x=>(1-.3*Math.max(0,Math.min(1,(t0-x)/sp))).toFixed(3);
-  el.querySelectorAll(".rkh.rr,.rkw0>.rk.rr,.rk.z,.zend").forEach(x=>{const r=x.getBoundingClientRect();x.style.setProperty("--sx",k((r.top+r.bottom)/2));
-   const c=x.querySelector(".rkcir");if(c){const q=c.getBoundingClientRect();x.style.setProperty("--sc",k((q.top+q.bottom)/2))}})}}
+ if(s.away){s.away=false;s.animate=true;s.dirty=true;s.el.querySelectorAll(".rr").forEach(x=>x.classList.remove("in","st"));reveal(s.el,true)}
+ if(s.dirty||!s.geo)measure(s);
+ const G=s.geo,y=scrollY,vh=innerHeight,head=y+vh*.86,anim=s.animate&&!REDUCE(),move=!REDUCE(),t0=vh*.4,sp=vh*.7;
+ const kOf=c=>q3(1-.3*cl01((t0-(c-y))/sp)); // 1 in the middle of the screen, a little smaller once a part is on its way out at the top
+ // the path is drawn as far as the bottom of the screen
+ const dash=(o,top)=>{const v=anim?q3(1-cl01((head-top)/o.hh)):0;if(v===o.o)return;o.o=v;o.pa.style.strokeDashoffset=v};
+ if(G.lead)dash(G.lead,G.lead.from);
+ G.rows.forEach(R=>{const top=G.zTop+R.a;
+  R.cons.forEach(o=>dash(o,top));
+  if(!R.r.classList.contains("in")&&y+vh*.72>=top)showIn(R.r,anim);
+  if(move){const kb=kOf(G.zTop+R.mid),kc=kOf(top);
+   if(kb!==R.kb){R.kb=kb;R.body.style.scale=kb}
+   if(kc!==R.kc){R.kc=kc;R.circ.style.scale=kc;const w=5*kc;R.cons.forEach(o=>o.pa.style.strokeWidth=w)}}});
+ if(G.end&&!G.end.el.classList.contains("in")&&y+vh*.72>=G.zTop+G.end.y)showIn(G.end.el,anim);
+ if(move)G.shr.forEach(it=>{const k=kOf(it.cy);if(k!==it.k){it.k=k;it.x.style.scale=k}})}
 let TICK=0;const kick=()=>{if(TICK)return;TICK=requestAnimationFrame(()=>{TICK=0;frame()})};
-function wireLinks(el,animate){CUR={el,animate};if(RO){RO.disconnect();RO=null}
- if("ResizeObserver" in window){RO=new ResizeObserver(kick);RO.observe(el)}
- if(!BOUND){BOUND=true;addEventListener("scroll",kick,{passive:true});addEventListener("resize",kick)}
- frame();setTimeout(kick,300);setTimeout(kick,1200)}
+const relayout=()=>{if(CUR)CUR.dirty=true;kick()};
+function wireLinks(el,animate){CUR={el,animate,dirty:true};if(RO){RO.disconnect();RO=null}
+ if("ResizeObserver" in window){RO=new ResizeObserver(relayout);RO.observe(el)}
+ if(!BOUND){BOUND=true;addEventListener("scroll",kick,{passive:true});addEventListener("resize",relayout);try{document.fonts&&document.fonts.ready.then(relayout)}catch(e){}}
+ frame();setTimeout(relayout,300);setTimeout(relayout,1200)}
 let LASTSIG="",LASTAT=0;
 window.renderRecap=function(){const el=$("recap");if(!el)return;
  let html,m=null;
