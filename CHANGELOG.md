@@ -4,6 +4,22 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.7.0] - 2026-10-15
+
+### App
+- **Activity has a new layout.** A connected filter bar (time frame, source, category, tag, type, and Clear filters) with a summary under it: "Totals for N transactions", what is not counted, and In, Out and Net separated by dots. Search, Group by and Sort sit right above the table. The In and Out numbers are plain, and Net is red only when it is negative.
+- **Export is a tab, not a popup.** It sits next to All activity and Needs review, uses the full page width with a live preview and a summary that stays in view, and you can now name the file. It starts from your current filters.
+- **Groups open and close smoothly.** A group slides shut by its own height without touching its rows, the table header sticks to the top (with the whole row's shadow), and the group you are viewing sticks right under it. Groups that are all upcoming show Expected in, Expected out and Net. A group with upcoming items has an info icon on Out so far that shows what is still to come, the total out and the net.
+- **New setting: first day of the week** (Sunday or Monday), in Appearance. It decides what This week and Last week mean and how Group by week works.
+- **Popups fade out the way they opened,** towards the button that opened them.
+- **Even spacing on every page.** Jars, Bills and Forecast had gaps that did not follow the spacing setting; all pages now match at Tight, Normal, Loose and Wide. Tabs that sit on the page background use the surface colour.
+- **Home tooltips and wording.** Free to use, Available now and the budget bars are explained more clearly, an over-budget bar shows an alert callout, and a Wise account shows its currency (for example Wise (ILS), Wise (USD)). All the new text is translated to Hebrew.
+- **Bills:** an irregular bill that starts to look regular (monthly, every 2 months or yearly) gets a suggestion to make it regular.
+- **Releases and tests no longer run on every change** on GitHub, only when the changelog gets a new version.
+
+### Windows app
+- Includes all of the above.
+
 ## [0.6.1] - 2026-10-15
 
 ### App
