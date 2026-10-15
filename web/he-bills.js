@@ -48,6 +48,7 @@ add("Car insurance is a bill whatever its category. A yearly bill needs two year
 add("to see the payments it is based on.","כדי לראות על אילו תשלומים הוא מבוסס.");
 const iso=x=>"\u2066"+x+"\u2069";
 P.unshift(
+[/^(.+) · (Regular bill|Irregular bill|One-off bill)$/,(n,t,T)=>n+" · "+T(t)],
 [/^(?:You told the app that every payment to "(.+?)" is a bill\. )?Every payment to "(.+?)" counts as a bill, even though the timing varies\. You have made (\d+) payments? so far, about (\d+) in the last (\d+) months\.$/,(a,b,c,d,e)=>(a?"ביקשתם מהאפליקציה להתייחס לכל תשלום ל״"+a+"״ כחשבון. ":"")+"כל תשלום ל״"+b+"״ נחשב לחשבון, גם כשהמועד משתנה. עד כה שילמתם "+(c=="1"?"תשלום אחד":c+" תשלומים")+", בערך "+d+" ב‑"+e+" החודשים האחרונים."],
 [/^Last charge was (.+) on (.+)$/,(a,b)=>"החיוב האחרון היה "+a+" ב‑"+iso(b)],
 [/^last payment was (.+) on (.+)$/,(a,b)=>"התשלום האחרון היה "+a+" ב‑"+iso(b)],
