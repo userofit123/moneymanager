@@ -574,5 +574,8 @@ Object.assign(D,{
 P.unshift([/^\+(\d+) more$/,n=>"+"+n+" נוספים"],[/^Paid by the jar (.+)$/,j=>"שולם מהקופה "+j],[/^Balance not read yet: (.+)$/,a=>"היתרה עוד לא נקראה: "+a],
 [/^You've spent (\d+)% (more|less) than you did by this day last month\.$/,(n,d)=>"הוצאתם "+n+"% "+(d=="more"?"יותר":"פחות")+" מבאותו יום בחודש שעבר."],
 [/^You've spent the same as you did by this day last month\.$/,()=>"הוצאתם בדיוק כמו באותו יום בחודש שעבר."]);
+Object.assign(D,{"Period and type":"תקופה וסוג","More filters":"עוד מסננים","Preview of the first rows":"תצוגה מקדימה של השורות הראשונות","File":"קובץ","Not counted in the totals":"לא נספר בסכומים","Balance updates":"עדכוני יתרה","Nothing to show.":"אין מה להציג.",
+"Transfers, card bill payments, upcoming items and balance updates are listed in the table but are not counted as income or spending.":"העברות, תשלומי חשבון כרטיס, פריטים עתידיים ועדכוני יתרה מופיעים בטבלה אבל לא נספרים כהכנסה או כהוצאה."});
+P.unshift([/^(\d+) active$/,n=>n+" פעילים"],[/^(.+?) not counted$/,l=>{const o=[];for(const x of l.split(", ")){let m;if(m=x.match(/^(\d+) transfers?$/))o.push(+m[1]==1?"העברה אחת":m[1]+" העברות");else if(m=x.match(/^(\d+) card payments?$/))o.push(+m[1]==1?"תשלום כרטיס אחד":m[1]+" תשלומי כרטיס");else if(m=x.match(/^(\d+) upcoming$/))o.push(+m[1]==1?"פריט עתידי אחד":m[1]+" פריטים עתידיים");else if(m=x.match(/^(\d+) balance updates?$/))o.push(+m[1]==1?"עדכון יתרה אחד":m[1]+" עדכוני יתרה");else return null}return o.join(", ")+" לא נספרים"}]);
 P.splice(0,P.length,...P.filter(p=>typeof p[1]=="function"));
 })();
