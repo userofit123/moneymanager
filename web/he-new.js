@@ -579,5 +579,6 @@ Object.assign(D,{"Period and type":"תקופה וסוג","More filters":"עוד 
 P.unshift([/^(\d+) active$/,n=>n+" פעילים"],[/^(.+?) not counted$/,l=>{const o=[];for(const x of l.split(", ")){let m;if(m=x.match(/^(\d+) transfers?$/))o.push(+m[1]==1?"העברה אחת":m[1]+" העברות");else if(m=x.match(/^(\d+) card payments?$/))o.push(+m[1]==1?"תשלום כרטיס אחד":m[1]+" תשלומי כרטיס");else if(m=x.match(/^(\d+) upcoming$/))o.push(+m[1]==1?"פריט עתידי אחד":m[1]+" פריטים עתידיים");else if(m=x.match(/^(\d+) balance updates?$/))o.push(+m[1]==1?"עדכון יתרה אחד":m[1]+" עדכוני יתרה");else return null}return o.join(", ")+" לא נספרים"}]);
 Object.assign(D,{"Search these results…":"חיפוש בתוצאות האלה…","File name":"שם הקובץ","File type":"סוג קובץ"});
 Object.assign(D,{"Clear filters":"ניקוי מסננים","Choose what to export. It starts from your current filters.":"בחרו מה לייצא. ההתחלה לפי המסננים הנוכחיים שלכם."});
+Object.assign(D,{"Nothing matches these filters":"שום דבר לא תואם למסננים האלה","Everything shown is counted":"כל מה שמוצג נספר בסכומים"});
 P.splice(0,P.length,...P.filter(p=>typeof p[1]=="function"));
 })();
