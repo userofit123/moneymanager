@@ -241,9 +241,10 @@ const SVGNS="http://www.w3.org/2000/svg";
 const cl01=x=>x<0?0:x>1?1:x,q3=x=>Math.round(x*1000)/1000;
 // Layout is measured once (and again when the page is resized or changes); a scroll frame is then only arithmetic and a few direct style writes,
 // so the browser has almost nothing to recalculate while you scroll.
+const plain=(x,f)=>{const t=x.style.transform,sc=x.style.scale,tr=x.style.transition;x.style.transition="none";x.style.transform="none";x.style.scale="1";const v=f();x.style.transform=t;x.style.scale=sc;x.style.transition=tr;return v};
 function measure(s){const el=s.el,z=el.querySelector(".rkz"),G={zTop:0,rows:[],shr:[],lead:null,end:null};s.geo=G;s.dirty=false;
  // parts that shrink as they leave: the title and first part, the last part
- el.querySelectorAll(".rkh.rr,.rkw0>.rk.rr,.zend").forEach(x=>{const r=x.getBoundingClientRect(),moved=x.classList.contains("in")?0:38;G.shr.push({x,cy:(r.top+r.bottom)/2+scrollY-moved,k:-1})});
+ el.querySelectorAll(".rkh.rr,.rkw0>.rk.rr,.zend").forEach(x=>{const r=plain(x,()=>x.getBoundingClientRect());G.shr.push({x,cy:(r.top+r.bottom)/2+scrollY,k:-1})});
  if(!z)return;
  G.zTop=z.getBoundingClientRect().top+scrollY;const rows=[...z.querySelectorAll(".rk.z")],end=z.querySelector(".zend"),eT=end&&end.querySelector(".rki");
  const cy=r=>{const n=r.querySelector(".rkni"),c=r.querySelector(".rkcir");return r.offsetTop+n.offsetTop+c.offsetTop+c.offsetHeight/2};
@@ -257,7 +258,7 @@ function measure(s){const el=s.el,z=el.querySelector(".rkz"),G={zTop:0,rows:[],s
  // the start of the path comes down from the first part
  const st=el.querySelector(".rkw0>.rk:not(.z)");
  if(rows.length&&st&&st.querySelector(".rki")){let ld=z.querySelector(".rklead");if(!ld){ld=document.createElementNS(SVGNS,"svg");ld.setAttribute("class","rkcn rklead cs");ld.setAttribute("aria-hidden","true");ld.innerHTML='<path pathLength="1"/>';z.insertBefore(ld,z.firstChild)}
-  const tb=st.getBoundingClientRect().bottom+scrollY+6,from=tb-G.zTop,a=pts[0],d=a-from,x1=rows[0].classList.contains("za")?52:128;
+  const tb=plain(st,()=>st.getBoundingClientRect().bottom)+scrollY+6,from=tb-G.zTop,a=pts[0],d=a-from,x1=rows[0].classList.contains("za")?52:128;
   ld.style.top=from+"px";ld.style.height=Math.max(0,d)+"px";ld.setAttribute("viewBox",`0 0 180 ${Math.max(1,d)}`);const pa=ld.querySelector("path");pa.setAttribute("d",`M90 0C90 ${d*.5} ${x1} ${d*.5} ${x1} ${d}`);
   G.lead={pa,from:tb,hh:Math.max(1,d),o:-1}}}
 function frame(){const s=CUR;if(!s||!s.el.isConnected)return;if(!s.el.getClientRects().length){s.away=true;return}
