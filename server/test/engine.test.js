@@ -1,7 +1,7 @@
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 import { reset, pool, q } from "./helpers.js";
-import { pairTransfers, computeGap, recordSnapshot, explainGaps, suggestConversion } from "../src/engine.js";
+import { pairTransfers, computeGap, recordSnapshot, explainGaps, suggestConversion, healGaps } from "../src/engine.js";
 import { ingest } from "../src/sources/ingest.js";
 import { parseWiseCsv } from "../src/sources/csv.js";
 import { getState, putState, StaleError } from "../src/state.js";
@@ -419,4 +419,24 @@ test("a charge the bank still lists as pending explains the balance gap it cause
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 1);
   await ingest(acc, [{ date: "2026-10-12", description: "Home store", amount: -412, currency: "ILS", pending: true, externalId: "9001:p1:2026-10-12:0" }]);
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 0);
+});
+
+test("a charge listed as pending and later as settled under another id comes back as one settled transaction and does not open a balance gap", async () => {
+  const card = (await q("SELECT * FROM accounts WHERE kind='card' ORDER BY id LIMIT 1")).rows[0];
+  const acc = { name: card.name, currency: "ILS", source: "max" };
+  await tx((c) => recordSnapshot(c, card, 0, new Date("2026-10-12T08:00:00Z")));
+  await ingest(acc, [{ date: "2026-10-12", description: "Fuel station", amount: -412, currency: "ILS", externalId: "c:77:2026-10-12:-412", pending: true }]);
+  await q("UPDATE transactions SET created_at='2026-10-12T08:30:00Z' WHERE from_name=$1", [card.name]); // imported between the two balance readings
+  const before = (await q("SELECT count(*)::int AS n FROM transactions WHERE from_name=$1", [card.name])).rows[0].n;
+  await tx((c) => recordSnapshot(c, card, -412, new Date("2026-10-12T09:00:00Z"))); // the card balance already includes the pending charge
+  await tx((c) => healGaps(c, card.name, "ILS"));
+  // later the same charge arrives as settled, with another id and date
+  const r = await ingest(acc, [{ date: "2026-10-13", description: "Fuel station", amount: -412, currency: "ILS", externalId: "c:78:2026-10-13:-412" }]);
+  assert.equal(r.added, 1);
+  const rows = (await q("SELECT pending FROM transactions WHERE from_name=$1", [card.name])).rows;
+  assert.equal(rows.length, before);
+  assert.equal(rows.filter((x) => x.pending).length, 0);
+  await q("UPDATE transactions SET created_at='2026-10-13T08:30:00Z' WHERE from_name=$1 AND NOT pending", [card.name]);
+  const gap = await tx((c) => recordSnapshot(c, card, -412, new Date("2026-10-13T09:00:00Z")));
+  assert.equal(gap, null);
 });
