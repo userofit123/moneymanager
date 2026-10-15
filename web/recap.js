@@ -20,28 +20,31 @@ const dfull=d=>dobj(d).toLocaleDateString(loc(),{weekday:"long",day:"numeric",mo
 const mname=k=>new Date(+k.slice(0,4),+k.slice(5,7)-1,1).toLocaleDateString(loc(),{month:"long"});
 const pl=(n,en1,enN,he1,heN)=>H()?(n==1?he1:heN.replace("{}",n)):(n==1?en1:enN.replace("{}",n));
 const ICON={
- flag:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
- in:'<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',
- out:'<path d="M12 20V9M7 13l5-5 5 5M5 4h14"/>',
- wallet:'<path d="M3 7h15a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l2.5-3H16M16 13.5h2.5"/>',
- ahead:'<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14.5h3"/>',
- pie:'<circle cx="12" cy="12" r="9"/><path d="M12 3v9l6.4 4.6"/>',
- check:'<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16.5 9.5"/>',
- path:'<path d="M3 17l6-6 4 4 8-9"/><path d="M15 6h6v6"/>',
- good:'<path d="M7 10v11H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zM7 10l4-8a2.5 2.5 0 0 1 2.5 2.5V8H19a2 2 0 0 1 2 2.3l-1.2 8A2 2 0 0 1 17.8 20H7"/>',warn:'<path d="M12 3.5l9.5 16.5h-19z"/><path d="M12 10v4.5M12 17.3v.1"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.7v.1"/>',up:'<path d="M6 15l6-6 6 6"/>',down:'<path d="M6 9l6 6 6-6"/>',flat:'<path d="M5 12h14"/>'
+flag:'<path d="M4 22V15"/><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>',
+ in:'<path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17"/><path d="m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9"/><path d="m2 16 6 6"/><circle cx="16" cy="9" r="2.9"/><circle cx="6" cy="5" r="3"/>',
+ out:'<path d="M16 10a4 4 0 0 1-8 0"/><path d="M3.1 6h17.8"/><path d="M3.4 5.5a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.7a2 2 0 0 0-.4-1.2l-2-2.7A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z"/>',
+ wallet:'<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+ ahead:'<path d="M16 14v2.2l1.6 1"/><path d="M16 2v4"/><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/><path d="M3 10h5"/><path d="M8 2v4"/><circle cx="16" cy="16" r="6"/>',
+ pie:'<path d="M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.998.398-.998.95v8a1 1 0 0 0 1 1z"/><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>',
+ check:'<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+ path:'<path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/>',
+ good:'<path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>',
+ warn:'<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+ info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+ up:'<path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/>',down:'<path d="M16 17h6v-6"/><path d="m22 17-8.5-8.5-5 5L2 7"/>',flat:'<path d="M5 12h14"/>'
 };
 const tile=(ic,tone)=>`<div class="rki ${tone||""}"><svg viewBox="0 0 24 24">${ICON[ic]}</svg></div>`;
 // one part of the page, in the middle of the page: a big icon, a small label (which opens the full page, filtered), a big number, a short line, and a picture
 let ZZ=0;
 // the colours come from the chosen appearance (its chart palette, a little of the accent mixed in), so the page sits in the same atmosphere
 const PCI={flag:0,in:4,out:1,wallet:3,ahead:2,pie:5,check:4,path:0};let PREV=0;
-const pc=i=>`color-mix(in srgb,var(--c${i}) 86%,var(--acc))`;
+const pc=z=>z%2?"var(--acc2)":"var(--acc)";
 
 const part=(ic,tone,label,go,big,line,vis)=>{const lab=go?`<a class="rkl" data-a="recapGo" data-k="${go}">${label}<i>${H()?"←":"→"}</i></a>`:`<span class="rkl">${label}</span>`;
- if(ZZ){const a=ZZ%2,i1=PCI[ic]??0,c0=pc(PREV),c1=pc(i1),gid="rkg"+ZZ,x0=a?52:128,x1=a?128:52;PREV=i1;
+ if(ZZ){const a=ZZ%2,c0=pc(ZZ-1),c1=pc(ZZ),gid="rkg"+ZZ,x0=a?52:128,x1=a?128:52;
   return `<section class="rk rr z ${a?"za":"zb"}" style="--pa:${c0};--pb:${c1}"><div class="rkni"><div class="rkcir">${tile(ic,tone)}</div><svg class="rkcn cs" viewBox="0 0 200 100" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--pa)"/><stop offset="1" style="stop-color:var(--pb)"/></linearGradient></defs><path d="M${x0} 0C${x0} 60 ${x1} 40 ${x1} 100" pathLength="1" stroke="url(#${gid})"/></svg><svg class="rkcn cm" viewBox="0 0 10 100" preserveAspectRatio="none" aria-hidden="true"><path d="M5 0V100" pathLength="1" style="stroke:var(--pa)"/></svg></div><div class="rkb"><div class="rkx">${lab}<div class="rkn">${big}</div>${line?`<div class="rkp">${line}</div>`:""}</div>${vis?`<div class="rkvv">${vis}</div>`:""}</div></section>`}
  return `<section class="rk rr ${tone||""}">${tile(ic,tone)}${lab}<div class="rkn">${big}</div>${line?`<div class="rkp">${line}</div>`:""}${vis||""}</section>`};
-const chip=(dir,txt,tone,go)=>`<${go?"a":"div"} class="rkch ${tone||""}" ${go?`data-a="recapGo" data-k="${esc(go)}"`:""}><svg viewBox="0 0 24 24">${ICON[tone=="good"?"good":tone=="warn"?"warn":"info"]}</svg><span>${txt}</span></${go?"a":"div"}>`;
+const chip=(dir,txt,tone,go)=>`<${go?"a":"div"} class="rkch ${tone||""}" ${go?`data-a="recapGo" data-k="${esc(go)}"`:""}><i class="cp"><svg viewBox="0 0 24 24">${ICON[tone=="good"?"good":tone=="warn"?"warn":"info"]}</svg></i><span>${txt}</span></${go?"a":"div"}>`;
 const lk=(k,txt)=>`<a class="rklk" data-a="recapGo" data-k="${esc(k)}">${txt}</a>`;
 const ck=c=>"cat:"+encodeURIComponent(c);
 
@@ -93,7 +96,7 @@ function dayBars(m){const W=600,Hh=96,gap=4,n=m.dim,bw=(W-gap*(n-1))/n,v0=m.days
 // amounts as one bar with a legend
 const segBar=it=>{it=it.filter(x=>x[1]>=1);const tot=it.reduce((s,x)=>s+x[1],0)||1;
  return `<div class="rkseg">${it.map((x,i)=>`<i class="${x[2]}" style="flex:${x[1]/tot};--i:${i}"></i>`).join("")}</div><div class="rkleg">${it.map(x=>`<${x[3]?"a":"span"} ${x[3]?`data-a="recapGo" data-k="${x[3]}"`:""}><i class="${x[2]}"></i>${x[0]} <b>${mi(x[1])}</b></${x[3]?"a":"span"}>`).join("")}</div>`};
-const nowBar=m=>{const set=Math.min(m.cash,m.inJars+m.buffer),free=Math.max(0,m.cash-set);return segBar([[L("Set aside in jars","שמור בקופות"),set,"c4","jars"],[L("Free to use","פנוי לשימוש"),free,"c5","now"]])};
+const nowBar=m=>{const set=Math.min(m.cash,m.inJars+m.buffer),free=Math.max(0,m.cash-set);return segBar([[L("Set aside in jars","שמור בקופות"),set,"c3","jars"],[L("Free to use","פנוי לשימוש"),free,"c1","now"]])};
 const aheadBar=m=>segBar([[L("Credit cards","כרטיסי אשראי"),m.cardLeft,"c1","now"],[L("Bills","חשבונות"),m.billsTot,"c2","bills"],[L("Budgets","תקציבים"),m.limitsLeft,"c3","budg"],[L("Paid from jars","מהקופות"),m.jarCov,"c4","jars"]]);
 
 // a ring for a budget: how much of it is used
