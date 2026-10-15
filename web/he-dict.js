@@ -1431,12 +1431,12 @@ Object.assign(D,{
 Object.assign(D,{
 "Balance": "יתרה",
 "Due": "לתשלום",
-"Left in budget": "נשאר בתקציב",
+"Left in budget": "נשאר מהתקציב",
 "Left · usual month": "נשאר · חודש רגיל",
 "Free": "פנוי",
 "Set aside or due": "מוקצה או לתשלום",
-"Left in budget, not spent yet": "נשאר בתקציב, עוד לא הוצא",
-"Left in budgets": "נשאר בתקציבים",
+"Left in budget, not spent yet": "נשאר מהתקציב, עוד לא הוצא",
+"Left in budgets": "נשאר מהתקציבים",
 });
 Object.assign(D,{
 "Left to spend · est.": "נשאר להוצאה · הערכה",
@@ -1465,7 +1465,7 @@ Object.assign(D,{
 "Every payment to this store counts as a bill, but the timing varies. Good for things that come at different times.": "כל תשלום לחנות הזו נחשב חשבון, אבל העיתוי משתנה. מתאים למשהו שמגיע בזמנים שונים.",
 "Everything in the app as one file (JSON), the same as the backup.": "כל מה שיש באפליקציה בקובץ אחד (JSON), כמו הגיבוי.",
 "Exchange rates have not loaded yet. The server fetches them from the European Central Bank.": "שערי החליפין עדיין לא נטענו. השרת מביא אותם מהבנק המרכזי האירופי.",
-"Free money is what no bill, budget or jar needs. Bills still to pay come off first. What is left in your budgets is held back too, because you can still spend it.": "כסף פנוי הוא כסף שאף חשבון, תקציב או קופה לא צריכים. קודם מוחסרים חשבונות שעוד לא שולמו. גם מה שנשאר בתקציבים נשמר בצד, כי אפשר עוד להוציא אותו.",
+"Free money is what no bill, budget or jar needs. Bills still to pay come off first. What is left in your budgets is held back too, because you can still spend it.": "כסף פנוי הוא כסף שאף חשבון, תקציב או קופה לא צריכים. קודם מוחסרים חשבונות שעוד לא שולמו. גם מה שנשאר מהתקציבים נשמר בצד, כי אפשר עוד להוציא אותו.",
 "Free money that no bill, budget or jar needs.": "כסף פנוי שאף חשבון, תקציב או קופה לא צריכים.",
 "Free to put in jars": "פנוי להפקדה בקופות",
 "Funded this month": "ממומן החודש",
