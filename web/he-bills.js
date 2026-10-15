@@ -56,7 +56,7 @@ P.unshift(
 [/^Next charge on (.+)$/,a=>"החיוב הבא ב‑"+iso(a)],
 [/^Canceled on (.+)$/,a=>"בוטל ב‑"+iso(a)],
 [/^paid on (.+)$/,a=>"שולם ב‑"+iso(a)]);
-add("The same business or person charges you on a regular schedule. Shows the last charge and the next expected one.","אותו עסק או אדם מחייבים אתכם בלוח זמנים קבוע. מוצגים החיוב האחרון והחיוב הבא הצפוי.");
+add("The same business or person charges you on a regular schedule. Shows the last charge and the next expected one.","אותו עסק או אדם שמחייבים אתכם בלוח זמנים קבוע. מוצגים החיוב האחרון והחיוב הבא הצפוי.");
 add("Every payment to this business or person counts as a bill, but the timing varies. Shows past payments only, with no next date.","כל תשלום לעסק או לאדם הזה נחשב לחשבון, אבל מועד התשלום משתנה. מוצגים תשלומי עבר בלבד, בלי מועד הבא.");
 add("Every payment to this business or person counts as a bill, but the timing varies. Good for things that come at different times.","כל תשלום לעסק או לאדם הזה נחשב לחשבון, אבל מועד התשלום משתנה. מתאים לדברים שמגיעים בזמנים שונים.");
 add("Payments to this business or person are already bills","תשלומים לעסק או לאדם הזה כבר נחשבים לחשבונות");
