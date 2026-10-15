@@ -1370,6 +1370,8 @@ P.push(
 [/^Received (₪[\d,]+) this month(?: of its (₪[\d,]+))?\.$/,(a,b)=>"התקבלו "+a+" החודש"+(b?" מתוך "+b:"")+"."],
 [/^Received (₪[\d,]+) of (₪[\d,]+) this month\. (₪[\d,]+) more is due; it takes it as soon as money is available\.$/,(a,b,c)=>"התקבלו "+a+" מתוך "+b+" החודש. עוד "+c+" מגיעים לה; היא תקבל אותם ברגע שיהיה כסף פנוי."],
 [/^Last charge (.+) on (.+)$/,(a,d)=>"חיוב אחרון "+a+" ב‑"+d],
+[/^By (.+) (\d+) \(the same day of last month\) you had spent (₪[\d,.]+)\. This month is (?:(\d+)% (lower|higher) than that|the same)\.$/,(m,a,b,c,d,e)=>"עד "+b+" ב"+T(a)+" (אותו יום בחודש שעבר) הוצאת "+c+". החודש "+(d?(e=="lower"?"נמוך":"גבוה")+" ב-"+d+"% מזה":"זהה")+"."],
+[/^By (.+) (\d+) \(the same day of last month\) you had spent (₪[\d,.]+), which is (\d+)% of the (₪[\d,.]+) you spent in all of (.+)\.$/,(m,a,b,c,d,e,f)=>"עד "+b+" ב"+T(a)+" (אותו יום בחודש שעבר) הוצאת "+c+", שזה "+d+"% מ-"+e+" שהוצאת בכל "+T(f)+"."],
 [/^By (.+) (\d+) \(the same day of last month\) you had spent (₪[\d,.]+)\.$/,(m,a,b,c)=>"עד "+b+" ב"+T(a)+" (אותו יום בחודש שעבר) הוצאת "+c+"."],
 [/^So this month is (\d+)% (lower|higher)\.$/,(m,a,b)=>"כלומר החודש "+(b=="lower"?"נמוך":"גבוה")+" ב-"+a+"%"],
 [/^So this month is the same\.$/,()=>"כלומר החודש זהה"],
