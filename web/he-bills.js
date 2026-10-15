@@ -35,13 +35,13 @@ add("{} left to pay","{} נשארו לתשלום");
 add("Canceled on {d}","בוטל ב‑{d}");
 add("No charges have been seen","עדיין לא נראו חיובים");
 add("It is not counted in totals, predictions or alerts.","הוא לא נספר בסכומים, בתחזיות או בהתראות.");
-add("You have no bills yet. A bill appears here when a store charges you again and again. You can also open a payment in Activity and press","עדיין אין לכם חשבונות. חשבון יופיע כאן כשחנות מחייבת אתכם שוב ושוב. אפשר גם לפתוח תשלום בפעילות וללחוץ על");
+add("You have no bills yet. A bill appears here when a business or person charges you again and again. You can also open a payment in Activity and press","עדיין אין לכם חשבונות. חשבון יופיע כאן כשעסק או אדם מחייבים אתכם שוב ושוב. אפשר גם לפתוח תשלום בפעילות וללחוץ על");
 add("You have made {} payments so far, about {} in the last {} months.","שילמתם {} תשלומים עד כה, בערך {} ב‑{} החודשים האחרונים.");
 add("You have made 1 payment so far, about {} in the last {} months.","שילמתם תשלום אחד עד כה, בערך {} ב‑{} החודשים האחרונים.");
 add("Payments so far","תשלומים עד כה");
 add("uses the name if left empty","אם לא ימולא, ייעשה שימוש בשם");
-add(": the same store charges a similar amount every month, every 2 months or every year. The app finds these automatically. Example: Netflix.",": אותה חנות מחייבת סכום דומה כל חודש, כל חודשיים או כל שנה. האפליקציה מוצאת אותם אוטומטית. למשל: נטפליקס.");
-add(": you decide that every payment to a store is a bill, even when the timing varies. Example: a water bill that someone else sometimes pays.",": אתם קובעים שכל תשלום לחנות מסוימת הוא חשבון, גם כשהמועד משתנה. למשל: חשבון מים ששילם לפעמים מישהו אחר.");
+add(": the same business or person charges a similar amount every month, every 2 months or every year. The app finds these automatically. Example: Netflix.",": אותו עסק או אדם מחייבים סכום דומה כל חודש, כל חודשיים או כל שנה. האפליקציה מוצאת אותם אוטומטית. למשל: נטפליקס.");
+add(": you decide that every payment to a business or person is a bill, even when the timing varies. Example: a water bill that someone else sometimes pays.",": אתם קובעים שכל תשלום לעסק או לאדם מסוים הוא חשבון, גם כשהמועד משתנה. למשל: חשבון מים ששילם לפעמים מישהו אחר.");
 add(". Bills have a",". בפעילות יש לחשבונות תגית בשם");
 add("tag in Activity.","");
 add("Car insurance is a bill whatever its category. A yearly bill needs two years of history, or you can add it yourself. Press the","ביטוח רכב הוא חשבון בכל קטגוריה. חשבון שנתי דורש היסטוריה של שנתיים, או שאפשר להוסיף אותו בעצמכם. לחצו על");
@@ -55,6 +55,10 @@ P.unshift(
 [/^Next charge on (.+)$/,a=>"החיוב הבא ב‑"+iso(a)],
 [/^Canceled on (.+)$/,a=>"בוטל ב‑"+iso(a)],
 [/^paid on (.+)$/,a=>"שולם ב‑"+iso(a)]);
+add("The same business or person charges you on a regular schedule. The next payment is predicted and tracked.","אותו עסק או אדם מחייבים אתכם בלוח זמנים קבוע. התשלום הבא נחזה ונמצא במעקב.");
+add("Every payment to this business or person counts as a bill, but the timing varies.","כל תשלום לעסק או לאדם הזה נחשב לחשבון, אבל מועד התשלום משתנה.");
+add("Every payment to this business or person counts as a bill, but the timing varies. Good for things that come at different times.","כל תשלום לעסק או לאדם הזה נחשב לחשבון, אבל מועד התשלום משתנה. מתאים לדברים שמגיעים בזמנים שונים.");
+add("Payments to this business or person are already bills","תשלומים לעסק או לאדם הזה כבר נחשבים לחשבונות");
 add("Regular","קבועים");
 add("Regular bill","חשבון קבוע");
 add("Regular · every month","קבוע · כל חודש");
