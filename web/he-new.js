@@ -554,5 +554,25 @@ Object.assign(D,{"The bank accepted the login but sent back no data. Usually the
 Object.assign(D,{"Left in budget":"נשאר בתקציב","Left to pay":"נשאר לשלם","Left of usual":"נשאר מהרגיל","Left in budget is what remains of this budget for the month. It is not your total money left. What is unused at the end of the month can go into jars.":"״נשאר בתקציב״ הוא מה שנשאר מהתקציב הזה החודש. זה לא כל הכסף שנשאר לכם. מה שלא נוצל בסוף החודש יכול לעבור לקופות.","Left to pay is what remains of this month's bills. It is not your total money left. What is unused at the end of the month can go into jars.":"״נשאר לשלם״ הוא מה שנשאר מהחשבונות של החודש. זה לא כל הכסף שנשאר לכם. מה שלא נוצל בסוף החודש יכול לעבור לקופות.","Left of usual is what remains of your usual spending here. It is not your total money left. What is unused at the end of the month can go into jars.":"״נשאר מהרגיל״ הוא מה שנשאר מההוצאה הרגילה שלכם כאן. זה לא כל הכסף שנשאר לכם. מה שלא נוצל בסוף החודש יכול לעבור לקופות.","Make it regular":"הפכו לקבוע","Keep irregular":"להשאיר לא קבוע","Bill became regular":"החשבון הפך לקבוע"});
 P.unshift([/^These payments now look regular: (.+)\.$/,w=>"התשלומים האלה נראים עכשיו קבועים: "+T(w.charAt(0).toUpperCase()+w.slice(1))+"."]);
 Object.assign(D,{"Spending in categories that have no budget and no usual monthly amount yet, so nothing was planned for them. It is already out of your balance.":"הוצאות בקטגוריות שאין להן תקציב או סכום חודשי רגיל עדיין, ולכן לא תוכנן עבורן כלום. הסכום כבר יצא מהיתרה שלכם."});
+Object.assign(D,{
+"not counted in net worth":"לא נספר בשווי הנקי","balance not read yet":"היתרה עוד לא נקראה","Balance not read yet":"היתרה עוד לא נקראה","Not counted in net worth":"לא נספר בשווי הנקי",
+"The balances of your bank accounts, wallets and the accounts you track yourself, as the bank last reported them.":"יתרות חשבונות הבנק, הארנקים והחשבונות שאתם עוקבים אחריהם בעצמכם, כפי שהבנק דיווח לאחרונה.",
+"Credit cards are not included.":"כרטיסי אשראי לא נכללים.","An account with no balance yet counts as 0 until a sync reads it.":"חשבון בלי יתרה עדיין נספר כ־0 עד שסנכרון יקרא אותה.",
+"Your balance today plus what you have already spent this month.":"היתרה שלכם היום ועוד מה שכבר הוצאתם החודש.",
+"Each bar after this takes off what you really spent.":"כל עמודה אחריה מורידה את מה שבאמת הוצאתם.",
+"Each bar after this takes off the budget (or usual month) of that item.":"כל עמודה אחריה מורידה את התקציב (או החודש הרגיל) של אותו סעיף.",
+"Each step takes off what you really spent.":"כל שלב מוריד את מה שבאמת הוצאתם.",
+"Each step takes off the full budget (or usual month) of that item.":"כל שלב מוריד את התקציב המלא (או החודש הרגיל) של אותו סעיף.",
+"Money in your accounts that is not put aside or planned for anything, so it is free to spend or save.":"כסף בחשבונות שלא הוקצה ולא מתוכנן לשום דבר, ולכן אפשר להוציא או לחסוך אותו.",
+"Money you marked as not for spending. It stays in your accounts.":"כסף שסימנתם כלא להוצאה. הוא נשאר בחשבונות שלכם.",
+"What you have already spent this month, by budget and category.":"מה שכבר הוצאתם החודש, לפי תקציב וקטגוריה.",
+"The full budget (or usual month) of each item, and the bills of this month.":"התקציב המלא (או החודש הרגיל) של כל סעיף, והחשבונות של החודש.",
+"An item already over its budget counts what you spent.":"סעיף שכבר חרג מהתקציב נספר לפי מה שהוצאתם.",
+"What a jar already pays is not counted again.":"מה שקופה כבר משלמת לא נספר שוב.",
+"Spending in categories that have no budget and no usual monthly amount yet, so nothing was planned for them.":"הוצאות בקטגוריות שאין להן תקציב או סכום חודשי רגיל עדיין, ולכן לא תוכנן עבורן כלום.",
+"It is already out of your balance.":"הסכום כבר יצא מהיתרה שלכם."});
+P.unshift([/^\+(\d+) more$/,n=>"+"+n+" נוספים"],[/^Paid by the jar (.+)$/,j=>"שולם מהקופה "+j],[/^Balance not read yet: (.+)$/,a=>"היתרה עוד לא נקראה: "+a],
+[/^You've spent (\d+)% (more|less) than you did by this day last month\.$/,(n,d)=>"הוצאתם "+n+"% "+(d=="more"?"יותר":"פחות")+" מבאותו יום בחודש שעבר."],
+[/^You've spent the same as you did by this day last month\.$/,()=>"הוצאתם בדיוק כמו באותו יום בחודש שעבר."]);
 P.splice(0,P.length,...P.filter(p=>typeof p[1]=="function"));
 })();
