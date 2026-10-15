@@ -95,7 +95,11 @@ function dayBars(m){const W=600,Hh=96,gap=4,n=m.dim,bw=(W-gap*(n-1))/n,v0=m.days
 
 // amounts as one bar with a legend
 const segBar=it=>{it=it.filter(x=>x[1]>=1);const tot=it.reduce((s,x)=>s+x[1],0)||1;
- return `<div class="rkseg">${it.map((x,i)=>`<i class="${x[2]}" style="flex:${x[1]/tot};--i:${i}"></i>`).join("")}</div><div class="rkleg">${it.map(x=>`<${x[3]?"a":"span"} ${x[3]?`data-a="recapGo" data-k="${x[3]}"`:""}><i class="${x[2]}"></i>${x[0]} <b>${mi(x[1])}</b></${x[3]?"a":"span"}>`).join("")}</div>`};
+ return `<div class="rkhl"><div class="rkseg">${it.map((x,i)=>`<i class="${x[2]}" data-h="${i}" style="flex:${x[1]/tot};--i:${i}"></i>`).join("")}</div><div class="rkleg">${it.map((x,i)=>`<${x[3]?"a":"span"} data-h="${i}" ${x[3]?`data-a="recapGo" data-k="${x[3]}"`:""}><i class="${x[2]}"></i>${x[0]} <b>${mi(x[1])}</b></${x[3]?"a":"span"}>`).join("")}</div></div>`};
+// hovering a bar segment or its name lights up both, like the category graphs in Reports
+(()=>{const set=(r,h)=>{r.classList.toggle("hv",h!=null);r.querySelectorAll("[data-h]").forEach(x=>x.classList.toggle("on",h!=null&&x.dataset.h===h))};
+document.addEventListener("mouseover",e=>{const t=e.target.closest&&e.target.closest(".rkhl [data-h]");if(t)set(t.closest(".rkhl"),t.dataset.h)});
+document.addEventListener("mouseout",e=>{const t=e.target.closest&&e.target.closest(".rkhl [data-h]");if(!t)return;const to=e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest(".rkhl [data-h]");const r=t.closest(".rkhl");if(to&&r.contains(to))return;set(r,null)})})();
 const nowBar=m=>{const set=Math.min(m.cash,m.inJars+m.buffer),free=Math.max(0,m.cash-set);return segBar([[L("Set aside in jars","שמור בקופות"),set,"c3","jars"],[L("Free to use","פנוי לשימוש"),free,"c1","now"]])};
 const aheadBar=m=>segBar([[L("Credit cards","כרטיסי אשראי"),m.cardLeft,"c1","now"],[L("Bills","חשבונות"),m.billsTot,"c2","bills"],[L("Budgets","תקציבים"),m.limitsLeft,"c3","budg"],[L("Paid from jars","מהקופות"),m.jarCov,"c4","jars"]]);
 
