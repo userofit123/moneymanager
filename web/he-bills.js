@@ -57,8 +57,8 @@ P.unshift(
 [/^Canceled on (.+)$/,a=>"בוטל ב‑"+iso(a)],
 [/^paid on (.+)$/,a=>"שולם ב‑"+iso(a)]);
 add("The same business or person charges you on a regular schedule. Shows the last charge and the next expected one.","אותו עסק או אדם שמחייבים אתכם בלוח זמנים קבוע. מוצגים החיוב האחרון והחיוב הבא הצפוי.");
-add("Every payment to this business or person counts as a bill, but the timing varies. Shows past payments only, with no next date.","תשלומים לאותו עסק או אדם שמגיעים בזמנים שונים. כל תשלום כזה נכלל כאן, ומוצגים רק תשלומי עבר, בלי מועד הבא.");
-add("Every payment to this business or person counts as a bill, but the timing varies. Good for things that come at different times.","תשלומים לאותו עסק או אדם שמגיעים בזמנים שונים. כל תשלום כזה נכלל ברשימה.");
+add("Every payment to this business or person counts as a bill, but the timing varies. Shows past payments only, with no next date.","אותו עסק או אדם שמחייבים אתכם בלוח זמנים לא קבוע. מוצגים תשלומי עבר בלבד, בלי מועד הבא.");
+add("Every payment to this business or person counts as a bill, but the timing varies. Good for things that come at different times.","אותו עסק או אדם שמחייבים אתכם בלוח זמנים לא קבוע.");
 add("Payments to this business or person are already bills","תשלומים לעסק או לאדם הזה כבר נחשבים לחשבונות");
 add("Most bills are found automatically. Add one here if it has not been charged yet, or if its timing varies.","רוב התשלומים הקבועים נמצאים אוטומטית. אפשר להוסיף כאן תשלום שעוד לא חויב, או שהמועד שלו משתנה.");
 add("How often sets the type: monthly, every 2 months or yearly makes it a regular bill. No fixed schedule makes it an irregular bill.","התדירות קובעת את הסוג: חודשי, כל חודשיים או שנתי – תשלום במועד קבוע. ללא לוח זמנים קבוע – תשלום במועד משתנה.");
@@ -78,7 +78,7 @@ add("why is this a bill? ⓘ","למה זה מופיע כאן? ⓘ");
 add("Mark as a bill","הוספה לתשלומים הקבועים");
 add("Mark as a bill…","הוספה לתשלומים הקבועים…");
 add("Irregular · every payment counts as a bill ·","במועד משתנה · כל תשלום נכלל ברשימה ·");
-add("Every payment to this business or person counts as a bill, but there is no fixed rhythm. Good for things that come at different times.","תשלומים לאותו עסק או אדם שמגיעים בזמנים שונים. כל תשלום כזה נכלל ברשימה.");
+add("Every payment to this business or person counts as a bill, but there is no fixed rhythm. Good for things that come at different times.","אותו עסק או אדם שמחייבים אתכם בלוח זמנים לא קבוע.");
 add("No fixed schedule (irregular bill)","ללא לוח זמנים קבוע (במועד משתנה)");
 /* In Hebrew the page is called "תשלומים קבועים", so a bill is "תשלום קבוע", not "חשבון" (that word stays for bank accounts and credit card statements). */
 const FIX=v=>typeof v!="string"?v:v.replace(/(^|[^א-ת])([והלכמבש]{0,3})(חשבונות|חשבון)(?![א-ת])(?!\s+(?:מים|חשמל|גז|ארנונה|טלפון|אינטרנט))(\s+(?:לא\s+)?(?:קבוע|קבועים|סדיר|סדירים|חד))?/g,(m,pre,pf,w,nx)=>{const def=pf.endsWith("ה"),base=def?pf.slice(0,-1):pf,pl=w=="חשבונות",plain=!!nx;
