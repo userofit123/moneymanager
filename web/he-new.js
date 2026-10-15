@@ -581,5 +581,6 @@ Object.assign(D,{"Search these results…":"חיפוש בתוצאות האלה�
 Object.assign(D,{"Clear filters":"ניקוי מסננים","Choose what to export. It starts from your current filters.":"בחרו מה לייצא. ההתחלה לפי המסננים הנוכחיים שלכם."});
 Object.assign(D,{"Nothing matches these filters":"שום דבר לא תואם למסננים האלה","Everything shown is counted":"כל מה שמוצג נספר בסכומים"});
 Object.assign(D,{"First day of the week":"היום הראשון בשבוע","Sunday":"יום ראשון","Monday":"יום שני"});
+Object.assign(D,{"Row":"שורה","Rows":"שורות"});
 P.splice(0,P.length,...P.filter(p=>typeof p[1]=="function"));
 })();
