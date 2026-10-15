@@ -1633,7 +1633,7 @@ const ATYPES=[["jars","Payments that look like they came from a jar"],["bills","
 function alerts(){const c=S.cfg,out=[],add=(id,type,sev,title,text,go,x)=>{if(c[type]&&!S.dismissed[id])out.push({id,type,sev,title,text,go,...(x||{})})};
 billsInfo().forEach(b=>{if(b.status=="overdue")add("ov-"+b.n+b.pd.toISOString().slice(0,10),"bills","high",b.n+": payment expected but not seen","Expected around "+dstr(b.pd)+", about "+fm(b.pred)+" from "+b.src+". Nothing like it has been paid since. If it is only late, do nothing. If you stopped it, open the bill and cancel it.","bills");else if(b.days<=c.billDays)add("due-"+b.n+b.nx.toISOString().slice(0,10),"bills","med",b.n+" is due "+(b.days<=0?"today":"in "+b.days+" day"+(b.days>1?"s":"")),"About "+fm(b.pred)+" from "+b.src+". A prediction from your past payments, not a charge yet.","bills");
 if(b.fresh&&!b.vari&&Math.abs(b.amt-b.was)>b.was*.001)add("pr-"+b.n+b.amt,"price","low",b.n+(b.amt>b.was?" costs more now":" costs less now"),fm(b.was)+" → "+fm(b.amt)+" ("+(b.amt>b.was?"+":"")+((b.amt/b.was-1)*100).toFixed(0)+"%)","bills")});
-{const lim=new Date(NOW-45*864e5).toISOString().slice(0,10);S.tx.forEach(t=>{if(t.d<lim||t.virtual)return;const j=jarSuggest(t);if(j)add("jar-"+t.id+"-"+j.id,"jars","med","Paid from a jar?",`${t.desc} · ${fm(Math.abs(t.a))} looks like it came out of ${j.n}. Attach it to the jar to keep the jar balance right.`,"tx",{attach:t.id})})}
+{const lim=new Date(NOW-45*864e5).toISOString().slice(0,10);S.tx.forEach(t=>{if(t.d<lim||t.virtual)return;const j=jarSuggest(t);if(j)add("jar-"+t.id+"-"+j.id,"jars","med","Paid from a jar?",`${t.desc} · ${fm(Math.abs(t.a))} looks like it came out of ${j.n}, because similar payments were attached to it. Attach it to the jar to keep the jar balance right.`,"tx",{attach:t.id})})}
 budgetInfo().forEach(b=>{if(b.st=="over")add("bo-"+b.k+MK,"budget","high",b.k+" is over budget","Spent "+fm(b.s)+" of "+fm(b.lim),"budg");else if(b.st=="warn")add("bw-"+b.k+MK,"budget","med",b.k+" is at "+Math.round(b.pc)+"% of its budget","Only "+fm(b.left)+" left for "+Math.max(1,DIM-DAYN)+" days","budg");else if(b.st=="pace")add("bp-"+b.k+MK,"budget","low",b.k+" is on track to go over","At this pace you would spend "+fm(b.pace)+" this month, over the "+fm(b.lim)+" budget.","budg")});
 {const CJa=catJars(),seen=new Set();Object.values(CJa).forEach(({j})=>{if(seen.has(j.id))return;seen.add(j.id);const mine=Object.keys(CJa).filter(k=>CJa[k].j.id==j.id);if(j.bal<1&&S.tx.some(t=>t.jarNo&&t.jarNo===t.c&&CJa[t.c]&&CJa[t.c].j.id==j.id&&t.d.startsWith(MK)))add("je-"+j.id+MK,"jars","med",j.n+" has run out","Spending in "+mine.join(", ")+" now comes from your own money, not from the jar.","jars")})}
 cardsD.forEach(([n,u,l])=>{if(l>0&&u>l*(1+c.cardPct/100))add("cd-"+n+MK,"card","med",n+" charge is "+Math.round((u/l-1)*100)+"% higher than last month",fm(u)+" still to be charged this month, against "+fm(l)+" charged last month.","dash")});
@@ -2308,9 +2308,20 @@ addEventListener("scroll",e=>{if(e.target.closest&&e.target.closest(".cmenu"))re
 /* ---------- jars and the payments made from them ---------- */
 const JSTOP=new Set(["pay","back","the","for","and","fund","money","savings","save","new","jar","fill","from","with"]);
 // which jar does this payment look like it came out of? a name or description word in the payment, or an amount equal to a full jar
-function jarSuggest(t){if(t.a>=0||t.jar||t.virtual||isXf(t)||isIgn(t)||(t.c&&catJars()[t.c]))return null;const hay=(t.desc+" "+(t.to||"")+" "+(t.note||"")).toLowerCase(),amt=Math.abs(t.a);let best=null,bs=0;
-jarsS().forEach(j=>{let sc=0;const words=(j.n+" "+(j.desc||"")).toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(w=>w.length>=3&&!JSTOP.has(w));if(words.some(w=>hay.includes(w)))sc+=2;
-if(j.need>0&&j.bal>=j.need*.98&&Math.abs(amt-j.need)<=Math.max(1,j.need*.05))sc+=3;else if(j.bal>0&&Math.abs(amt-j.bal)<=Math.max(1,j.bal*.03))sc+=2;if(sc>bs){bs=sc;best=j}});return bs>=2?best:null}
+// A payment probably belongs to a jar when payments like it were already put in that jar: the same store, or the same category
+// when most of that category's payments went to the jar. Names and amounts are not used, they change.
+let JSG=null;
+function jarIndex(){const att=S.tx.reduce((n,t)=>n+(t.jar&&t.a<0?1:0),0),key=S.tx.length+"|"+att+"|"+S.jars.length;if(JSG&&JSG.key==key)return JSG;
+ const store=new Map(),cat=new Map(),catAll=new Map();
+ S.tx.forEach(t=>{if(t.a>=0||t.virtual||isXf(t))return;if(t.c)catAll.set(t.c,(catAll.get(t.c)||0)+1);if(!t.jar)return;const j=t.jar.id,s=rn(t.to||t.desc);
+  if(s){const m=store.get(s)||new Map();m.set(j,(m.get(j)||0)+1);store.set(s,m)}
+  if(t.c){const m=cat.get(t.c)||new Map();m.set(j,(m.get(j)||0)+1);cat.set(t.c,m)}});
+ return JSG={key,store,cat,catAll}}
+function jarSuggest(t){if(t.a>=0||t.jar||t.virtual||isXf(t)||isIgn(t)||(t.c&&catJars()[t.c]))return null;
+ const X=jarIndex(),open=new Set(jarsS().map(j=>j.id)),sc=new Map(),add=(id,v)=>{if(open.has(id))sc.set(id,(sc.get(id)||0)+v)};
+ const s=rn(t.to||t.desc);if(s){const m=X.store.get(s);if(m)m.forEach((n,id)=>add(id,3+Math.min(n,3)))}
+ if(t.c){const m=X.cat.get(t.c),all=X.catAll.get(t.c)||0;if(m)m.forEach((n,id)=>{if(n>=2&&n/all>=.4)add(id,2)})}
+ let best=null,bs=0;sc.forEach((v,id)=>{if(v>bs){bs=v;best=id}});return bs>=2?jarsS().find(j=>j.id==best)||null:null}
 function jarInf(t){if(t.a>=0||t.virtual||isXf(t))return"";const aj=t.jar&&S.jars.find(j=>j.id==t.jar.id);
 if(aj)return `<div class="inf"><div class="it"><b>Paid from a jar</b>${fm(t.jar.amt)} of this came out of <b>${esc(aj.n)}</b>${aj.done?" (done)":""}.</div><div class="ia"><button class="btn o s" data-a="jarAttach" data-id="${t.id}">Change</button><button class="btn o s" data-a="jarDetach" data-id="${t.id}">Detach</button></div></div>`;
 if(!jarsS().length)return"";const sg=jarSuggest(t);return `<div class="inf"><div class="it"><b>Paid from a jar?</b>${sg?`It looks like this came out of <b>${esc(sg.n)}</b>. Attach it to take the money out of the jar.`:"Was this paid from a jar? Attach it. The jar goes down and the payment shows in its history."}</div><div class="ia"><button class="btn ${sg?"":"o "}s" data-a="jarAttach" data-id="${t.id}" ${sg?`data-jar="${sg.id}"`:""}>Attach to a jar…</button></div></div>`}
