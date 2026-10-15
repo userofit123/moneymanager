@@ -88,7 +88,7 @@ function dayScale(m){let t="";for(let d=1;d<=m.dim;d++)t+=`<i class="${d<m.day?"
 
 // one bar for each day so far
 function dayBars(m){const W=600,Hh=96,gap=4,n=m.dim,bw=(W-gap*(n-1))/n,v0=m.days.slice(0,m.day).map(d=>d.spent),sd=[...v0].sort((a,b)=>b-a),mx=Math.max(1,sd[0]>sd[1]*2.2?sd[1]*1.3:sd[0]||1);let s="";
- for(let i=0;i<n;i++){const x=i*(bw+gap);
+ for(let i=0;i<n;i++){const x=H()?W-bw-i*(bw+gap):i*(bw+gap);
   if(i<m.day){const v=v0[i]||0,h=Math.min(Hh,Math.max(v>0?5:2,v/mx*(Hh-6)));s+=`<rect x="${x}" y="${Hh-h}" width="${bw}" height="${h}" rx="${Math.min(4,bw/2)}" class="${i==m.day-1?"t":"b"} gr" style="--i:${i}"/>`}
   else s+=`<rect x="${x}" y="${Hh-2}" width="${bw}" height="2" rx="1" class="f"/>`}
  return `<div class="rkbw"><svg class="rkv bars" viewBox="0 0 ${W} ${Hh}" preserveAspectRatio="none" role="img" aria-label="${L("Spending for each day of the month","ההוצאות בכל יום בחודש")}">${s}</svg><div class="rktip" hidden></div></div>`}
@@ -241,6 +241,7 @@ const SVGNS="http://www.w3.org/2000/svg";
 const cl01=x=>x<0?0:x>1?1:x,q3=x=>Math.round(x*1000)/1000;
 // Layout is measured once (and again when the page is resized or changes); a scroll frame is then only arithmetic and a few direct style writes,
 // so the browser has almost nothing to recalculate while you scroll.
+const mx=v=>H()?180-v:v; // the connector pictures are drawn left to right: mirror them in Hebrew
 const plain=(x,f)=>{const t=x.style.transform,sc=x.style.scale,tr=x.style.transition;x.style.transition="none";x.style.transform="none";x.style.scale="1";const v=f();x.style.transform=t;x.style.scale=sc;x.style.transition=tr;return v};
 function measure(s){const el=s.el,z=el.querySelector(".rkz"),G={zTop:0,rows:[],shr:[],lead:null,end:null};s.geo=G;s.dirty=false;
  // parts that shrink as they leave: the title and first part, the last part
@@ -252,7 +253,7 @@ function measure(s){const el=s.el,z=el.querySelector(".rkz"),G={zTop:0,rows:[],s
  // a connector runs from the lower edge of one circle to the upper edge of the next, so nothing is ever drawn behind a circle
  const geo=(svg,w,top,d,x0,x1)=>{if(!svg)return null;const hh=Math.max(1,d),pa=svg.querySelector("path");
   svg.setAttribute("viewBox",`0 0 ${w} ${hh}`);svg.style.top=top+"px";svg.style.height=d+"px";pa.setAttribute("d",x0==x1?`M${x0} 0V${hh}`:`M${x0} 0C${x0} ${hh*.5} ${x1} ${hh*.5} ${x1} ${hh}`);return{pa,hh,o:-1}};
- rows.forEach((r,i)=>{const a=pts[i],R0=rad(r),last=i+1==rows.length,b=!last?pts[i+1]:endY,Rn=!last?rad(rows[i+1]):endR,x0=r.classList.contains("za")?52:128,x1=!last?(rows[i+1].classList.contains("za")?52:128):90;
+ rows.forEach((r,i)=>{const a=pts[i],R0=rad(r),last=i+1==rows.length,b=!last?pts[i+1]:endY,Rn=!last?rad(rows[i+1]):endR,x0=mx(r.classList.contains("za")?52:128),x1=!last?mx(rows[i+1].classList.contains("za")?52:128):90;
   r.classList.toggle("tozend",last&&b!=null);const ni=r.querySelector(".rkni"),c0=r.querySelector(".rkcir"),top=c0.offsetTop+c0.offsetHeight,len=b!=null?b-a-R0-Rn:0;
   const R={r,a,R0,body:r.querySelector(".rkb"),circ:c0,mid:r.offsetTop+r.offsetHeight/2,kb:-1,kc:-1,cons:[],hit:r.classList.contains("hit")};
   if(b!=null){R.cons=[geo(r.querySelector(".rkcn.cs"),180,top,len,x0,x1),geo(r.querySelector(".rkcn.cm"),10,top,len,5,5)].filter(Boolean);R.cons.forEach(o=>o.from=G.zTop+a+R0)}G.rows.push(R)});
@@ -260,7 +261,7 @@ function measure(s){const el=s.el,z=el.querySelector(".rkz"),G={zTop:0,rows:[],s
  // the start of the path comes down from the first part to the first circle
  const st=el.querySelector(".rkw0>.rk:not(.z)");
  if(rows.length&&st&&st.querySelector(".rki")){let ld=z.querySelector(".rklead");if(!ld){ld=document.createElementNS(SVGNS,"svg");ld.setAttribute("class","rkcn rklead cs");ld.setAttribute("aria-hidden","true");ld.innerHTML='<path pathLength="1"/>';z.insertBefore(ld,z.firstChild)}
-  const tb=plain(st,()=>st.getBoundingClientRect().bottom)+scrollY+6,from=tb-G.zTop,a=pts[0]-rad(rows[0]),d=a-from,x1=rows[0].classList.contains("za")?52:128;
+  const tb=plain(st,()=>st.getBoundingClientRect().bottom)+scrollY+6,from=tb-G.zTop,a=pts[0]-rad(rows[0]),d=a-from,x1=mx(rows[0].classList.contains("za")?52:128);
   ld.style.top=from+"px";ld.style.height=Math.max(0,d)+"px";ld.setAttribute("viewBox",`0 0 180 ${Math.max(1,d)}`);const pa=ld.querySelector("path");pa.setAttribute("d",`M90 0C90 ${d*.5} ${x1} ${d*.5} ${x1} ${d}`);
   G.lead={pa,from:tb,hh:Math.max(1,d),o:-1}}}
 function frame(){const s=CUR;if(!s||!s.el.isConnected)return;if(!s.el.getClientRects().length){s.away=true;return}
