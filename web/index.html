@@ -126,6 +126,7 @@ div.ghead{padding:10px 12px;border-radius:10px;margin:12px 0 4px;font-size:14px}
 .rr{opacity:0;transform:translateY(38px);transition:opacity 1s cubic-bezier(.2,.7,.2,1),transform 1s cubic-bezier(.2,.7,.2,1)}.rr.in{opacity:1;transform:none}.rr.st{transition:none}
 /* the circles are always solid (the path never shows through them): only their text fades, and the circle pops into place */
 .rk.z.rr,.rk.z.rr.in{opacity:1;transform:none;transition:none}
+.rk.z .rkcir{opacity:0;transition:opacity .45s ease}.rk.z.hit .rkcir,.rk.z.in .rkcir{opacity:1}.rk.z.st .rkcir{transition:none}
 .rk.z .rkb{opacity:0;transform:translateY(38px);transition:opacity 1s cubic-bezier(.2,.7,.2,1),transform 1s cubic-bezier(.2,.7,.2,1)}.rk.z.in .rkb{opacity:1;transform:none}.rk.z.st .rkb{transition:none}
 
 .rkh{text-align:center}.rkh h2{display:block;text-align:center;margin:0;font-size:clamp(44px,8.4vw,96px);font-weight:700;letter-spacing:-2.6px;line-height:1.04;text-transform:none;background:linear-gradient(120deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent;padding-bottom:6px}.rkh p{margin:16px 0 0;font-size:clamp(21px,3.4vw,30px);color:var(--tx2);font-weight:500}
@@ -162,7 +163,7 @@ div.ghead{padding:10px 12px;border-radius:10px;margin:12px 0 4px;font-size:14px}
 .rkcir{flex:none;width:104px;height:104px;border-radius:50%;padding:0;background:linear-gradient(150deg,color-mix(in srgb,var(--pb) 78%,#fff),var(--pb));display:grid;place-items:center;box-shadow:0 0 0 7px color-mix(in srgb,var(--pb) 15%,transparent),0 14px 24px -16px color-mix(in srgb,var(--pb) 55%,transparent);position:relative;z-index:1}
 .rkcir::before{content:none}
 .rkcir .rki,.rkcir .rki.tp,.rkcir .rki.tn,.rkcir .rki.tw{position:relative;width:auto;height:auto;margin:0;background:none;box-shadow:none;color:var(--on)}.rkcir .rki svg{width:44px;height:44px;stroke-width:1.9}
-.rkcn{position:absolute;inset-inline:0;top:52px;height:0;width:100%;overflow:visible}.rkcn path{fill:none;stroke-width:6px;stroke-linecap:round;opacity:.9}.rkcn.cm{display:none}
+.rkcn{position:absolute;inset-inline:0;top:104px;height:0;width:100%;overflow:visible}.rkcn path{fill:none;stroke-width:6px;stroke-linecap:round;opacity:.9}.rkcn.cm{display:none}
 .rk.z:last-child .rkcn{display:none}
 .rk.z .rkb{grid-row:1;min-width:0}.rk.za .rkb{grid-column:3;padding-inline-start:36px}.rk.zb .rkb{grid-column:1;padding-inline-end:36px;text-align:end}
 .rk.zb .rkx{align-items:flex-end}.rk.z .rkx{display:flex;flex-direction:column;align-items:flex-start}.rk.z .rkch{margin:8px 0 0}
