@@ -4,6 +4,19 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.6.0] - 2026-10-15
+
+### App
+- **A new first page: Recap.** It tells your month as a story: what you began the month with, what came in, what you have spent, what is in your accounts now, what you still have to pay, how your budgets are doing and where the month is predicted to end. Each step is a circle on a path that draws itself as you scroll, with its own numbers, pills and small pictures. The title greets you by name (the greeting that used to be on Home), and a row of days shows where you are in the month.
+- **Everything on Recap is a link to its source.** Hover a day or a bar to see what happened that day, and click it to open the day in Activity. The coming-up bills open the bill, budgets and categories open Activity for that category, and the totals open Accounts, Jars, Bills, Budgets or Forecast.
+- **Jars are part of the picture.** Recap says how much of your money is in jars and how much is free, and warns when the jars would not all be covered. When your jars hold more than your accounts can cover, a button takes the difference back from the jars, starting with the lowest priority.
+- **Home is just "Home" again.** The greeting moved to Recap.
+- **Your appearance no longer resets after an update.** Appearance settings are saved with a time stamp on this device and on the server, and the newest copy always wins.
+- Works in English and Hebrew (right to left), on phones too.
+
+### Windows app
+- Includes all of the above.
+
 ## [0.5.2] - 2026-10-14
 
 ### App
