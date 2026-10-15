@@ -1369,6 +1369,7 @@ P.push(
 [/^Received (₪[\d,]+) this month(?: of its (₪[\d,]+))?\.$/,(a,b)=>"התקבלו "+a+" החודש"+(b?" מתוך "+b:"")+"."],
 [/^Received (₪[\d,]+) of (₪[\d,]+) this month\. (₪[\d,]+) more is due; it takes it as soon as money is available\.$/,(a,b,c)=>"התקבלו "+a+" מתוך "+b+" החודש. עוד "+c+" מגיעים לה; היא תקבל אותם ברגע שיהיה כסף פנוי."],
 [/^Last charge (.+) on (.+)$/,(a,d)=>"חיוב אחרון "+a+" ב‑"+d],
+[/^(.+) same days$/,(m,T)=>T(m)+" אותם ימים"],
 [/^(.+) so far$/,(m,T)=>T(m)+" עד כה"],
 [/^(\d+)% of last month's total spent so far$/,(p)=>p+"% מסך ההוצאות של חודש שעבר עד כה"],
 [/^(\d+) payments?, about (\d+) in the last 12 months · last (.+) on (.+)$/,(n,c,a,d)=>n+" תשלומים, בערך "+c+" ב‑12 החודשים האחרונים · אחרון "+a+" ב‑"+d],
