@@ -26,7 +26,8 @@ export const wantOf = (j, received = 0, now = new Date()) => {
 export function allocate(free, jars, received = {}) {
   let rem = Math.max(0, +free || 0);
   return [...jars].sort((a, b) => a.priority - b.priority).map((j) => {
-    const give = Math.max(0, Math.min(rem, wantOf(j, received[j.id] || 0)));
+    let give = Math.max(0, Math.min(rem, wantOf(j, received[j.id] || 0)));
+    give = give < 0.01 ? 0 : +give.toFixed(2); // a fraction of an agora left over from adding up balances is not money: it must not count as a fill
     rem -= give;
     return { id: j.id, give, balance: j.target > 0 ? Math.min(j.target, j.balance + give) : j.balance + give };
   });

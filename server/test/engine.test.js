@@ -189,6 +189,8 @@ test("jars: waterfall in priority order, each only up to what it is still entitl
   assert.deepEqual(allocate(1200, jars).map((x) => x.give), [1000, 200, 0]); // not enough: higher priority first
   assert.deepEqual(allocate(0, jars).map((x) => x.give), [0, 0, 0]);
   assert.deepEqual(allocate(-50, jars).map((x) => x.give), [0, 0, 0]);
+  assert.deepEqual(allocate(0.0000001, jars).map((x) => x.give), [0, 0, 0]); // a rounding leftover is not money to give
+  assert.deepEqual(allocate(0.004, jars).map((x) => x.give), [0, 0, 0]);
   assert.equal(wantOf({ target: 1000, cap: 800, balance: 700 }, 0), 300); // only what it still needs
   assert.equal(wantOf({ target: 9000, cap: 500, balance: 0 }, 200), 300); // 200 already received this month: 300 left of its 500
   assert.equal(wantOf({ target: 9000, cap: 500, balance: 0 }, 500), 0);  // got its month already
