@@ -583,5 +583,9 @@ Object.assign(D,{"Nothing matches these filters":"שום דבר לא תואם ל
 Object.assign(D,{"First day of the week":"היום הראשון בשבוע","Sunday":"יום ראשון","Monday":"יום שני"});
 Object.assign(D,{"Row":"שורה","Rows":"שורות"});
 Object.assign(D,{"Expected in":"צפוי להיכנס","Expected out":"צפוי לצאת"});
+Object.assign(D,{"What these totals cover":"מה הסכומים האלה כוללים","Transactions counted":"תנועות שנספרו","Transfers left out":"העברות שלא נספרו","Card payments left out":"תשלומי כרטיס שלא נספרו","Upcoming left out":"פריטים עתידיים שלא נספרו","Balance updates left out":"עדכוני יתרה שלא נספרו",
+"In, Out and Net add up everything that matches your filters, not only the rows shown below. Transfers between your own accounts, card bill payments, upcoming items and balance updates are listed in the table but are not counted as income or spending.":"הכנסות, הוצאות והנטו מסכמים את כל מה שמתאים למסננים, לא רק את השורות שמוצגות למטה. העברות בין החשבונות שלכם, תשלומי חשבון כרטיס, פריטים עתידיים ועדכוני יתרה מופיעים בטבלה אבל לא נספרים כהכנסה או כהוצאה.",
+"Still to come in this group":"עוד צפוי בקבוצה הזו","Out so far":"יצא עד עכשיו","Still to come out":"עוד צפוי לצאת","Total out when paid":"סך היציאות אחרי התשלום","Still to come in":"עוד צפוי להיכנס","Net when all is done":"נטו אחרי שהכול יקרה","Upcoming items in this group that have not happened yet. The numbers shown in the header only count what has already happened.":"פריטים עתידיים בקבוצה הזו שעוד לא קרו. המספרים בכותרת סופרים רק מה שכבר קרה."});
+P.unshift([/^Totals for (\d+) transactions?(?: · (.+))?$/,(n,r)=>"סיכום של "+n+" תנועות"+(r?" · "+T(r):"")]);
 P.splice(0,P.length,...P.filter(p=>typeof p[1]=="function"));
 })();
