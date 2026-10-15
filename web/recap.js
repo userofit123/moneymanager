@@ -248,21 +248,23 @@ function measure(s){const el=s.el,z=el.querySelector(".rkz"),G={zTop:0,rows:[],s
  if(!z)return;
  G.zTop=z.getBoundingClientRect().top+scrollY;const rows=[...z.querySelectorAll(".rk.z")],end=z.querySelector(".zend"),eT=end&&end.querySelector(".rki");
  const cy=r=>{const n=r.querySelector(".rkni"),c=r.querySelector(".rkcir");return r.offsetTop+n.offsetTop+c.offsetTop+c.offsetHeight/2};
- const pts=rows.map(cy),endY=eT?end.offsetTop+eT.offsetTop+eT.offsetHeight/2:null;
- const geo=(svg,w,d,x0,x1)=>{if(!svg)return null;const hh=Math.max(1,d),pa=svg.querySelector("path");
-  svg.setAttribute("viewBox",`0 0 ${w} ${hh}`);svg.style.height=d+"px";pa.setAttribute("d",x0==x1?`M${x0} 0V${hh}`:`M${x0} 0C${x0} ${hh*.5} ${x1} ${hh*.5} ${x1} ${hh}`);return{pa,hh,o:-1}};
- rows.forEach((r,i)=>{const a=pts[i],b=i+1<rows.length?pts[i+1]:endY,last=i+1==rows.length&&b!=null,x0=r.classList.contains("za")?52:128,x1=i+1<rows.length?(rows[i+1].classList.contains("za")?52:128):90;
-  r.classList.toggle("tozend",last);const R={r,a,body:r.querySelector(".rkb"),circ:r.querySelector(".rkcir"),mid:r.offsetTop+r.offsetHeight/2,kb:-1,kc:-1,cons:[],sw:-1,done:false};
-  if(b!=null){R.cons=[geo(r.querySelector(".rkcn.cs"),180,b-a,x0,x1),geo(r.querySelector(".rkcn.cm"),10,b-a,5,5)].filter(Boolean)}G.rows.push(R)});
+ const pts=rows.map(cy),endY=eT?end.offsetTop+eT.offsetTop+eT.offsetHeight/2:null,rad=r=>r.querySelector(".rkcir").offsetHeight/2,endR=eT?eT.offsetHeight/2:0;
+ // a connector runs from the lower edge of one circle to the upper edge of the next, so nothing is ever drawn behind a circle
+ const geo=(svg,w,top,d,x0,x1)=>{if(!svg)return null;const hh=Math.max(1,d),pa=svg.querySelector("path");
+  svg.setAttribute("viewBox",`0 0 ${w} ${hh}`);svg.style.top=top+"px";svg.style.height=d+"px";pa.setAttribute("d",x0==x1?`M${x0} 0V${hh}`:`M${x0} 0C${x0} ${hh*.5} ${x1} ${hh*.5} ${x1} ${hh}`);return{pa,hh,o:-1}};
+ rows.forEach((r,i)=>{const a=pts[i],R0=rad(r),last=i+1==rows.length,b=!last?pts[i+1]:endY,Rn=!last?rad(rows[i+1]):endR,x0=r.classList.contains("za")?52:128,x1=!last?(rows[i+1].classList.contains("za")?52:128):90;
+  r.classList.toggle("tozend",last&&b!=null);const ni=r.querySelector(".rkni"),c0=r.querySelector(".rkcir"),top=c0.offsetTop+c0.offsetHeight,len=b!=null?b-a-R0-Rn:0;
+  const R={r,a,R0,body:r.querySelector(".rkb"),circ:c0,mid:r.offsetTop+r.offsetHeight/2,kb:-1,kc:-1,cons:[],hit:r.classList.contains("hit")};
+  if(b!=null){R.cons=[geo(r.querySelector(".rkcn.cs"),180,top,len,x0,x1),geo(r.querySelector(".rkcn.cm"),10,top,len,5,5)].filter(Boolean);R.cons.forEach(o=>o.from=G.zTop+a+R0)}G.rows.push(R)});
  if(end&&endY!=null)G.end={el:end,y:endY};
- // the start of the path comes down from the first part
+ // the start of the path comes down from the first part to the first circle
  const st=el.querySelector(".rkw0>.rk:not(.z)");
  if(rows.length&&st&&st.querySelector(".rki")){let ld=z.querySelector(".rklead");if(!ld){ld=document.createElementNS(SVGNS,"svg");ld.setAttribute("class","rkcn rklead cs");ld.setAttribute("aria-hidden","true");ld.innerHTML='<path pathLength="1"/>';z.insertBefore(ld,z.firstChild)}
-  const tb=plain(st,()=>st.getBoundingClientRect().bottom)+scrollY+6,from=tb-G.zTop,a=pts[0],d=a-from,x1=rows[0].classList.contains("za")?52:128;
+  const tb=plain(st,()=>st.getBoundingClientRect().bottom)+scrollY+6,from=tb-G.zTop,a=pts[0]-rad(rows[0]),d=a-from,x1=rows[0].classList.contains("za")?52:128;
   ld.style.top=from+"px";ld.style.height=Math.max(0,d)+"px";ld.setAttribute("viewBox",`0 0 180 ${Math.max(1,d)}`);const pa=ld.querySelector("path");pa.setAttribute("d",`M90 0C90 ${d*.5} ${x1} ${d*.5} ${x1} ${d}`);
   G.lead={pa,from:tb,hh:Math.max(1,d),o:-1}}}
 function frame(){const s=CUR;if(!s||!s.el.isConnected)return;if(!s.el.getClientRects().length){s.away=true;return}
- if(s.away){s.away=false;s.animate=true;s.dirty=true;s.el.querySelectorAll(".rr").forEach(x=>x.classList.remove("in","st"));reveal(s.el,true)}
+ if(s.away){s.away=false;s.animate=true;s.dirty=true;s.el.querySelectorAll(".rr").forEach(x=>x.classList.remove("in","st","hit"));reveal(s.el,true)}
  if(s.dirty||!s.geo)measure(s);
  const G=s.geo,y=scrollY,vh=innerHeight,head=y+vh*.86,anim=s.animate&&!REDUCE(),move=!REDUCE(),t0=vh*.4,sp=vh*.7;
  const kOf=c=>q3(1-.3*cl01((t0-(c-y))/sp)); // 1 in the middle of the screen, a little smaller once a part is on its way out at the top
@@ -270,7 +272,8 @@ function frame(){const s=CUR;if(!s||!s.el.isConnected)return;if(!s.el.getClientR
  const dash=(o,top)=>{const v=anim?q3(1-cl01((head-top)/o.hh)):0;if(v===o.o)return;o.o=v;o.pa.style.strokeDashoffset=v};
  if(G.lead)dash(G.lead,G.lead.from);
  G.rows.forEach(R=>{const top=G.zTop+R.a;
-  R.cons.forEach(o=>dash(o,top));
+  R.cons.forEach(o=>dash(o,o.from));
+  if(!R.hit&&(!anim||head>=top-R.R0)){R.hit=true;R.r.classList.add("hit")}
   if(!R.r.classList.contains("in")&&y+vh*.72>=top)showIn(R.r,anim);
   if(move){const kb=kOf(G.zTop+R.mid),kc=kOf(top);
    if(kb!==R.kb){R.kb=kb;R.body.style.scale=kb}
