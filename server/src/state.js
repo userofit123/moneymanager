@@ -43,7 +43,7 @@ export async function getState() {
     q("SELECT name,color FROM categories ORDER BY sort"),
     q("SELECT keyword,category,tag FROM rules ORDER BY position,id"),
     q("SELECT keyword,tag FROM tag_rules ORDER BY position,id"),
-    q("SELECT id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,pending,source,inst_n,inst_total,jar_id,jar_amount,jar_auto,jar_skip,report_month,(details IS NOT NULL) AS has_det FROM transactions ORDER BY date DESC, id DESC"),
+    q("SELECT id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,pending,source,inst_n,inst_total,jar_id,jar_amount,jar_auto,jar_skip,report_month,(details IS NOT NULL) AS has_det,(source='wise' AND (details->>'type'='CARD_PAYMENT' OR details->'details'->>'type'='CARD')) AS wcard FROM transactions ORDER BY date DESC, id DESC"),
     q("SELECT transaction_id,tag FROM transaction_tags ORDER BY position"),
     q("SELECT id,transaction_id,filename,(path IS NOT NULL) AS has FROM documents ORDER BY id"),
     q("SELECT out_id,in_id,status FROM transfer_links"),
@@ -88,6 +88,7 @@ export async function getState() {
       ...(r.jar_skip ? { jarNo: r.jar_skip } : {}),
       ...(r.report_month ? { rm: r.report_month } : {}),
       ...(r.has_det ? { hasDet: true } : {}),
+      ...(r.wcard ? { wc: true } : {}), // a payment made with the Wise card
     })),
     budgets: Object.fromEntries(budgets.rows.map((b) => [b.category, b.monthly_limit])),
     bills: bills.rows.map((b) => b.data),

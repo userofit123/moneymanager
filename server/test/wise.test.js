@@ -54,3 +54,19 @@ test("statements available -> used, activities not called", async () => {
   globalThis.fetch = real;
   assert.equal(act, 0); assert.equal(w.transactions[0].externalId, "R1");
 });
+
+test("card payments made with Wise are flagged in the state, so the app can show a Wise card by itself", async () => {
+  const { reset, q } = await import("./helpers.js");
+  const { getState } = await import("../src/state.js");
+  await reset();
+  await q("INSERT INTO accounts (name,currency,kind,source) VALUES ('Wise','USD','wallet','wise') ON CONFLICT DO NOTHING");
+  const ins = (d, det, ext) => q("INSERT INTO transactions (date,description,from_name,to_name,amount,source,external_id,details) VALUES ($1,'Shop','Wise','Shop',-10,'wise',$2,$3)", [d, ext, JSON.stringify(det)]);
+  await ins("2026-10-01", { type: "CARD_PAYMENT", via: "activities" }, "act:c1");
+  await ins("2026-10-02", { via: "statement", details: { type: "CARD" } }, "st:c2");
+  await ins("2026-10-03", { type: "TRANSFER", via: "activities" }, "act:t3");
+  const S = await getState();
+  const at = (d) => S.tx.find((t) => t.desc === "Shop" && t.d === d);
+  assert.equal(at("2026-10-01").wc, true);
+  assert.equal(at("2026-10-02").wc, true);
+  assert.equal(at("2026-10-03").wc, undefined);
+});

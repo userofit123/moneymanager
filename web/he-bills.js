@@ -63,6 +63,11 @@ add("Payments to this business or person are already bills","תשלומים לע
 add("Most bills are found automatically. Add one here if it has not been charged yet, or if its timing varies.","רוב התשלומים הקבועים נמצאים אוטומטית. אפשר להוסיף כאן תשלום שעוד לא חויב, או שהמועד שלו משתנה.");
 add("How often sets the type: monthly, every 2 months or yearly makes it a regular bill. No fixed schedule makes it an irregular bill.","התדירות קובעת את הסוג: חודשי, כל חודשיים או שנתי – תשלום במועד קבוע. ללא לוח זמנים קבוע – תשלום במועד משתנה.");
 add('Any transaction whose description contains the text in "Match transactions containing" counts as part of this bill.','כל תנועה שהתיאור שלה מכיל את הטקסט שבשדה ״התאמה לתנועות שמכילות״ נספרת כחלק מהתשלום הזה.');
+add("Cards · this month vs last month","כרטיסים · החודש מול חודש שעבר");
+add("Wise card · paid right away","כרטיס Wise · משולם מיד");
+add("Wise card · Paid right away","כרטיס Wise · משולם מיד");
+add("What you have paid with your Wise card this month so far, compared with last month. It leaves your Wise balance right away, so nothing is charged later.","מה ששילמתם בכרטיס Wise החודש עד עכשיו, בהשוואה לחודש שעבר. הכסף יורד מיתרת ה‑Wise מיד, ולכן לא יחויב שום סכום אחר כך.");
+add("Cards","כרטיסים");add("Wise card","כרטיס Wise");add("Wise Card","כרטיס Wise");add("paid right away","משולם מיד");add("Paid Right Away","משולם מיד");add("Paid right away","משולם מיד");
 add("Regular","במועד קבוע");
 add("Regular bill","תשלום במועד קבוע");
 add("Regular · every month","במועד קבוע · כל חודש");
