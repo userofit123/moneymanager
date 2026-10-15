@@ -318,7 +318,7 @@ Object.assign(D,{
 "{} this month":"{} החודש","ECB reference rates via Frankfurter, updated {}{}{}.":"שערי ייחוס של הבנק המרכזי האירופי דרך Frankfurter, עודכנו {}{}{}.",
 "{}/{}/{}. Above your large-amount limit of {} (change it in Alert settings).":"{}/{}/{}. מעל מגבלת הסכום הגדול שלך, {} (אפשר לשנות אותה בהגדרות ההתראות).",
 "Typically {} a month":"בדרך כלל {} בחודש",
-"spending, by category, up to the same day":"הוצאות, לפי קטגוריה, עד אותו יום","Spending, By Category, Up To The Same Day":"הוצאות, לפי קטגוריה, עד אותו יום",
+"How much you spent in each category so far this month, compared with the same days of last month":"כמה הוצאת בכל קטגוריה מתחילת החודש, בהשוואה לאותם ימים בחודש שעבר","spending, by category, up to the same day":"הוצאות, לפי קטגוריה, עד אותו יום","Spending, By Category, Up To The Same Day":"הוצאות, לפי קטגוריה, עד אותו יום",
 "● Steady":"● יציב","▲ Going up":"▲ עולה","▼ Going down":"▼ יורד",
 "Last 3 months: follows recent changes quickly. Months before your first transaction are never counted.":"3 החודשים האחרונים: עוקב אחרי שינויים אחרונים במהירות. חודשים לפני התנועה הראשונה שלך לא נספרים לעולם.",
 "Last 6 months: a steady middle ground. Months before your first transaction are never counted.":"6 החודשים האחרונים: דרך אמצע יציבה. חודשים לפני התנועה הראשונה שלך לא נספרים לעולם.",
