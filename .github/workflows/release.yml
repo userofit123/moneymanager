@@ -1,12 +1,12 @@
 # Releases and builds, automatic.
-#  - Every push and pull request runs the tests.
+#  - A push to main runs the tests only when CHANGELOG.md changed (a release); other pushes do not start anything.
 #  - Merging to main with a NEW top version in CHANGELOG.md tags it, builds the Windows installer, publishes the Docker images (ghcr.io) and publishes a GitHub release.
 #    Installed apps (and the Docker version's "Check for updates") see that release.
 #  - Publishing a release by hand on GitHub also builds the installer and attaches it.
 #  - "Run workflow" builds an installer without publishing anything (to try it).
 name: Release
 on:
-  push: { branches: [main] }
+  push: { branches: [main], paths: [CHANGELOG.md] }
   pull_request:
   release: { types: [published] }
   workflow_dispatch:
