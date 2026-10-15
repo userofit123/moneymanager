@@ -216,7 +216,7 @@ const MONTHS=s=>String(s).replace(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sept|Sep|O
 const DAYA={Sun:"יום א׳",Mon:"יום ב׳",Tue:"יום ג׳",Wed:"יום ד׳",Thu:"יום ה׳",Fri:"יום ו׳",Sat:"שבת"};
 const tail=(t)=>String(t).split(/(?<=[.!?])\s+/).map(HE.T).join(" ");
 P.unshift(
-[/^Part of the bill "(.*)"\. Found automatically: this store charged you (\d+) times on a regular schedule \((.+)\) for a similar amount \(about (.+)\)\.(?: Payments seen: (.+))?$/,(n,c,r,a,ps,T)=>"חלק מהחשבון ״"+n+"״. זוהה אוטומטית: העסק הזה חייב אתכם "+c+" פעמים בקצב קבוע ("+T(r)+") בסכום דומה (בערך "+a+")."+(ps?" תשלומים שנראו: "+ps:"")],
+[/^Part of the bill "(.*)"\. Found automatically: this (?:store|business or person) charged you (\d+) times on a regular schedule \((.+)\) for a similar amount \(about (.+)\)\.(?: Payments seen: (.+))?$/,(n,c,r,a,ps,T)=>"חלק מהחשבון ״"+n+"״. זוהה אוטומטית: העסק או האדם חייבו אתכם "+c+" פעמים בקצב קבוע ("+T(r)+") בסכום דומה (בערך "+a+")."+(ps?" תשלומים שנראו: "+ps:"")],
 [/^Part of the bill "(.*)"\. You told the app that every payment to this store is a bill\.$/,(n)=>"חלק מהחשבון ״"+n+"״. אמרתם לאפליקציה שכל תשלום לעסק הזה הוא חשבון."],
 [/^(.+) · Left to spend(?: · est\.)?$/,(c,T)=>T(c)+" · נשאר להוצאה"],
 [/^Paid from the jar (.+)$/,(j)=>"שולם מהקופה "+j],
