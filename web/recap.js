@@ -261,7 +261,7 @@ function measure(s){const el=s.el,z=el.querySelector(".rkz"),G={zTop:0,rows:[],s
  // the start of the path comes down from the first part to the first circle
  const st=el.querySelector(".rkw0>.rk:not(.z)");
  if(rows.length&&st&&st.querySelector(".rki")){let ld=z.querySelector(".rklead");if(!ld){ld=document.createElementNS(SVGNS,"svg");ld.setAttribute("class","rkcn rklead cs");ld.setAttribute("aria-hidden","true");ld.innerHTML='<path pathLength="1"/>';z.insertBefore(ld,z.firstChild)}
-  const tb=plain(st,()=>st.getBoundingClientRect().bottom)+scrollY+6,from=tb-G.zTop,a=pts[0]-rad(rows[0]),d=a-from,x1=mx(rows[0].classList.contains("za")?52:128);
+  const tb=plain(st,()=>st.getBoundingClientRect().bottom)+scrollY-26,from=tb-G.zTop,a=pts[0]-rad(rows[0]),d=a-from,x1=mx(rows[0].classList.contains("za")?52:128);
   ld.style.top=from+"px";ld.style.height=Math.max(0,d)+"px";ld.setAttribute("viewBox",`0 0 180 ${Math.max(1,d)}`);const pa=ld.querySelector("path");pa.setAttribute("d",`M90 0C90 ${d*.5} ${x1} ${d*.5} ${x1} ${d}`);
   G.lead={pa,from:tb,hh:Math.max(1,d),o:-1}}}
 function frame(){const s=CUR;if(!s||!s.el.isConnected)return;if(!s.el.getClientRects().length){s.away=true;return}
