@@ -1374,6 +1374,7 @@ P.push(
 [/^You've spent the same as you did by this day last month\. By (.+) (\d+) you had spent (₪[\d,.]+)\.$/,(m,c,d,e)=>"הוצאת אותו דבר כמו עד היום הזה בחודש שעבר. עד "+d+" ב"+T(c)+" הוצאת "+e+"."],
 [/^You had spent nothing by this day last month \((.+) (\d+)\)\.$/,(m,c,d)=>"עד היום הזה בחודש שעבר ("+d+" ב"+T(c)+") עוד לא הוצאת כלום."],
 [/^By (.+) (\d+) you had spent (₪[\d,.]+)\. That is (\d+)% of the (₪[\d,.]+) you spent in all of (.+)\.$/,(m,a,b,c,d,e,f)=>"עד "+b+" ב"+T(a)+" הוצאת "+c+". זה "+d+"% מ-"+e+" שהוצאת בכל "+T(f)+"."],
+[/^([^\n]+)\nNot enough history to compare this length\.$/,(m,a,T2)=>T(a)+"\n"+T("Not enough history to compare this length.")],
 [/^By (.+) (\d+) you had spent (₪[\d,.]+)\.$/,(m,a,b,c)=>"עד "+b+" ב"+T(a)+" הוצאת "+c+"."],
 [/^By (.+) (\d+) \(the same day of last month\) you had spent (₪[\d,.]+)\.$/,(m,a,b,c)=>"עד "+b+" ב"+T(a)+" (אותו יום בחודש שעבר) הוצאת "+c+"."],
 [/^So this month is (\d+)% (lower|higher)\.$/,(m,a,b)=>"כלומר החודש "+(b=="lower"?"נמוך":"גבוה")+" ב-"+a+"%"],
