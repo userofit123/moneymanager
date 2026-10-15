@@ -60,6 +60,9 @@ add("The same business or person charges you on a regular schedule. Shows the la
 add("Every payment to this business or person counts as a bill, but the timing varies. Shows past payments only, with no next date.","כל תשלום לעסק או לאדם הזה נחשב לחשבון, אבל מועד התשלום משתנה. מוצגים תשלומי עבר בלבד, בלי מועד הבא.");
 add("Every payment to this business or person counts as a bill, but the timing varies. Good for things that come at different times.","כל תשלום לעסק או לאדם הזה נחשב לחשבון, אבל מועד התשלום משתנה. מתאים לדברים שמגיעים בזמנים שונים.");
 add("Payments to this business or person are already bills","תשלומים לעסק או לאדם הזה כבר נחשבים לחשבונות");
+add("Most bills are found automatically. Add one here if it has not been charged yet, or if its timing varies.","רוב התשלומים הקבועים נמצאים אוטומטית. אפשר להוסיף כאן תשלום שעוד לא חויב, או שהמועד שלו משתנה.");
+add("How often sets the type: monthly, every 2 months or yearly makes it a regular bill. No fixed schedule makes it an irregular bill.","התדירות קובעת את הסוג: חודשי, כל חודשיים או שנתי הופכים אותו לתשלום קבוע. ללא לוח זמנים קבוע הופך אותו לתשלום לא קבוע.");
+add('Any transaction whose description contains the text in "Match transactions containing" counts as part of this bill.','כל תנועה שהתיאור שלה מכיל את הטקסט שבשדה ״התאמה לתנועות שמכילות״ נספרת כחלק מהתשלום הקבוע הזה.');
 add("Regular","קבועים");
 add("Regular bill","חשבון קבוע");
 add("Regular · every month","קבוע · כל חודש");
