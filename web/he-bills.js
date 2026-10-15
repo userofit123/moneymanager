@@ -2,7 +2,8 @@
 (function(){const D=HE.D,P=HE.P;
 const add=(k,v)=>{D[k]=v;if(k.includes("{d}"))D[k.replace(/\{d\}/g,"{}/{}/{}")]=v.replace(/\{d\}/g,"{}/{}/{}")};
 add("Regular bills, plus the monthly average of irregular bills (last {} months)","חשבונות קבועים, ועוד הממוצע החודשי של חשבונות לא קבועים ({} החודשים האחרונים)");
-add("Regular bills","חשבונות קבועים");
+add("Regular bills, plus the monthly average of irregular bills (last {} months), which adds up to {} a year","חשבונות קבועים, ועוד הממוצע החודשי של חשבונות לא קבועים ({} החודשים האחרונים), שמצטברים ל‑{} בשנה");
+add("Regular bills, which add up to {} a year","חשבונות קבועים, שמצטברים ל‑{} בשנה");
 add("{} bills are due. Amounts are predicted.","{} חשבונות לתשלום. הסכומים חזויים.");
 add("1 bill is due. The amount is predicted.","חשבון אחד לתשלום. הסכום חזוי.");
 add("{} bills have changed price. The amount is the effect over a year.","המחיר של {} חשבונות השתנה. הסכום הוא ההשפעה על פני שנה.");
