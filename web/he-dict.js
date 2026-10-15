@@ -95,6 +95,7 @@ Object.assign(D,{
 "Last {} days (from {d})": "{} הימים האחרונים (החל מ-{d})",
 "{} transactions, back to {d}": "{} תנועות, אחורה עד {d}",
 "Same point last month: {}": "באותה נקודה בחודש שעבר: {}",
+"Last month by this day: {}": "בחודש שעבר עד היום הזה: {}",
 "{} of last month's total spent so far": "{} מסך ההוצאות של חודש שעבר עד כה",
 "Income {m}": "הכנסות {m}",
 "Nothing here yet": "עדיין אין כאן כלום",
@@ -1371,6 +1372,7 @@ P.push(
 [/^Last charge (.+) on (.+)$/,(a,d)=>"חיוב אחרון "+a+" ב‑"+d],
 [/^(.+) same days$/,(m,T)=>T(m)+" אותם ימים"],
 [/^(.+) so far$/,(m,T)=>T(m)+" עד כה"],
+[/^(\d+)% of what you spent in all of last month$/,(p)=>p+"% ממה שהוצאת בכל החודש שעבר"],
 [/^(\d+)% of last month's total spent so far$/,(p)=>p+"% מסך ההוצאות של חודש שעבר עד כה"],
 [/^(\d+) payments?, about (\d+) in the last 12 months · last (.+) on (.+)$/,(n,c,a,d)=>n+" תשלומים, בערך "+c+" ב‑12 החודשים האחרונים · אחרון "+a+" ב‑"+d],
 [/^Found automatically: (.*)$/,(r,T)=>"זוהה אוטומטית: "+T(r)]
