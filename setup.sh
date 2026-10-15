@@ -11,7 +11,7 @@ cat <<MSG
 Created .env with random secrets.
 
 Next:
-  docker compose up -d --build
+  docker compose up -d
   open http://localhost:8787   (first visit: choose your password)
   Settings -> Connections: enter your Wise token and bank logins
 

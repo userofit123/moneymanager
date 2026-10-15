@@ -1,6 +1,6 @@
 # Releases and builds, automatic.
 #  - Every push and pull request runs the tests.
-#  - Merging to main with a NEW top version in CHANGELOG.md tags it, builds the Windows installer and publishes a GitHub release.
+#  - Merging to main with a NEW top version in CHANGELOG.md tags it, builds the Windows installer, publishes the Docker images (ghcr.io) and publishes a GitHub release.
 #    Installed apps (and the Docker version's "Check for updates") see that release.
 #  - Publishing a release by hand on GitHub also builds the installer and attaches it.
 #  - "Run workflow" builds an installer without publishing anything (to try it).
@@ -13,7 +13,7 @@ on:
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
-permissions: { contents: write }
+permissions: { contents: write, packages: write }
 
 jobs:
   test:
@@ -61,6 +61,44 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"; echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "publish=$publish" >> "$GITHUB_OUTPUT"; echo "build=$build" >> "$GITHUB_OUTPUT"
           echo "version $version, tag $tag, publish $publish, build $build"
+
+  # The Docker version: the app and scraper images are published for every real release, so Docker Desktop, Portainer, Dockhand or Watchtower can update from them.
+  docker:
+    needs: [test, version]
+    if: needs.version.outputs.publish == 'true' || github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions: { contents: read, packages: write }
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with: { registry: ghcr.io, username: "${{ github.actor }}", password: "${{ secrets.GITHUB_TOKEN }}" }
+      - name: App image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: server/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/moneymanager:${{ needs.version.outputs.version }}
+            ghcr.io/${{ github.repository_owner }}/moneymanager:latest
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          cache-from: type=gha,scope=app
+          cache-to: type=gha,mode=max,scope=app
+      - name: Scraper image
+        uses: docker/build-push-action@v6
+        with:
+          context: scraper
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/moneymanager-scraper:${{ needs.version.outputs.version }}
+            ghcr.io/${{ github.repository_owner }}/moneymanager-scraper:latest
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          cache-from: type=gha,scope=scraper
+          cache-to: type=gha,mode=max,scope=scraper
 
   windows:
     needs: [test, version]

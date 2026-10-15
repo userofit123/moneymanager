@@ -4,6 +4,16 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.6.1] - 2026-10-15
+
+### App
+- **Docker: update like any other Docker app.** The app and scraper images are now published with every release (`ghcr.io/userofit123/moneymanager` and `ghcr.io/userofit123/moneymanager-scraper`, for amd64 and arm64) and `docker-compose.yml` uses them. Docker Desktop, Portainer and Dockhand show the update and can pull it with a button (or automatically, with Watchtower or Portainer's re-pull option); no terminal and no `git pull`. In a terminal it is `docker compose pull && docker compose up -d`. To build from the source in the folder, use `docker-compose.build.yml` (see the README). Update notices in the app now say this.
+- **A card charge that was pending and then settled no longer creates a "balance went up with no matching transaction" alert.** A card balance already includes a pending charge, and when it came back settled the app counted it a second time.
+- **"Paid from a jar?" is based on history.** A payment is suggested for a jar only when payments like it (the same store, or mostly the same category) were already attached to that jar. Names and amounts are no longer used, so coincidences do not alert.
+
+### Windows app
+- Includes the above.
+
 ## [0.6.0] - 2026-10-15
 
 ### App

@@ -41,9 +41,9 @@ Needs Docker (Docker Desktop on Windows and Mac).
 git clone https://github.com/userofit123/moneymanager.git
 cd moneymanager
 ./setup.sh                      # creates .env with random secrets, once
-docker compose up -d --build
+docker compose up -d            # pulls the app and scraper images from GitHub and starts everything
 ```
-Open **http://localhost:8787** and choose a password. It restarts by itself after a reboot, and your data lives in Docker volumes, so rebuilding keeps it (`docker compose down -v` deletes it).
+Open **http://localhost:8787** and choose a password. It restarts by itself after a reboot, and your data lives in Docker volumes, so updating keeps it (`docker compose down -v` deletes it).
 
 **Just want to look around?** Start it with made-up data instead (empty database only, never use for real data):
 ```sh
@@ -78,11 +78,12 @@ Only the accounts you connect or import appear in the app. Nothing is pre-filled
 
 ## Updating
 - **Windows app:** it checks this repository's releases by itself, shows *Update available* in the sidebar and downloads it quietly. Your data stays. Turn that off, or check by hand, in Settings → App and data → *Version and updates* (which also shows the changelog).
-- **Docker:** the app shows the same notice with the commands to run:
-```sh
-git pull
-docker compose up -d --build
-```
+- **Docker:** the app shows the same notice. The images are published with every release (`ghcr.io/userofit123/moneymanager` and `ghcr.io/userofit123/moneymanager-scraper`, for amd64 and arm64), so you can update without a terminal like any other Docker app:
+  - **Docker Desktop:** Images → the image shows *Update available* → pull, then restart the containers.
+  - **Portainer:** Stacks → your stack → *Pull and redeploy* (or turn on the stack's webhook / *Re-pull image* option to update automatically). Add `POSTGRES_PASSWORD` and `SCRAPER_KEY` as the stack's environment variables (the values from `.env`).
+  - **Dockhand, Watchtower and similar:** point them at the stack or containers; they compare the image tag (`latest`) and update when it changes.
+  - **Terminal:** `docker compose pull && docker compose up -d`.
+  - To pin a version, set `MM_VERSION=0.6.1` in `.env`. To build from the source in this folder instead: `docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build`.
 
 ## Screenshots
 Light and dark, desktop and phone. Made from the demo data (`docs/screenshots`, regenerate with `scripts/screenshots.mjs`).
