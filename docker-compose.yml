@@ -1,5 +1,8 @@
 # Money Manager. Works on a laptop and on the home server:
-#   ./setup.sh && docker compose up -d --build        then open http://localhost:8787
+#   ./setup.sh && docker compose up -d        then open http://localhost:8787
+# The images are pulled from GitHub (ghcr.io), so updating is: pull the new images and recreate the containers, in the terminal
+# (docker compose pull && docker compose up -d) or with the Update / Pull and redeploy button of Docker Desktop, Portainer or Dockhand.
+# To build them from this folder's source instead:  docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
 # Sample data instead of an empty app:  docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d --build
 # Behind Caddy on the shared "proxy" network: add  -f docker-compose.proxy.yml
 #
@@ -22,9 +25,7 @@ services:
       retries: 10
 
   app:
-    build:
-      context: .
-      dockerfile: server/Dockerfile
+    image: ghcr.io/userofit123/moneymanager:${MM_VERSION:-latest}   # published with every release; Docker Desktop, Portainer, Dockhand or Watchtower can update it
     restart: unless-stopped
     depends_on:
       db: { condition: service_healthy }
@@ -46,7 +47,7 @@ services:
     networks: [backend, scraper_net, egress]
 
   scraper:
-    build: ./scraper
+    image: ghcr.io/userofit123/moneymanager-scraper:${MM_VERSION:-latest}
     restart: unless-stopped
     environment:
       SCRAPER_KEY: ${SCRAPER_KEY}

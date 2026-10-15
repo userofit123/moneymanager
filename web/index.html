@@ -1831,7 +1831,7 @@ if(typeof curView!="undefined"&&curView=="set"&&setTab=="app"&&$("updCard"))$("u
 function updCardHtml(){const s=UP.status,v=UP.latest?"\u2066"+esc(UP.latest)+"\u2069":"",d=UP.desk;let st="",btn="";
 if(s=="uptodate")st=UP.none?"You have the latest version. No newer release has been published yet.":"You have the latest version.";
 else if(s=="checking")st="Checking for updates…";
-else if(s=="available")st=d?`Version ${v} is available.`:`Version ${v} is available.<div class="sm" style="margin-top:6px">To update your server, run these two commands in the project folder. Your data is kept.</div><div style="margin-top:6px"><code>git pull</code> <code>docker compose up -d --build</code></div>`;
+else if(s=="available")st=d?`Version ${v} is available.`:`Version ${v} is available.<div class="sm" style="margin-top:6px">To update your server, pull the new image: press <b>Update</b> or <b>Pull and redeploy</b> in Docker Desktop, Portainer or Dockhand. In a terminal: <code>docker compose pull</code> <code>docker compose up -d</code>. Your data is kept.</div>`;
 else if(s=="downloading")st=`Downloading version ${v}… ${UP.percent}%<div class="bar" style="margin:8px 0 0"><i style="width:${UP.percent}%"></i></div>`;
 else if(s=="installing")st=`<i class="spinner"></i> Closing the app to install version ${v}. It opens again by itself in a moment.`;
 else if(s=="ready")st=`Version ${v} is ready. Restart the app to finish updating. Your data stays as it is.`;

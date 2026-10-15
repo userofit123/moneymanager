@@ -1,0 +1,9 @@
+# Build the images from this folder's source code instead of pulling the published ones (for changes you make yourself):
+#   docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
+services:
+  app:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+  scraper:
+    build: ./scraper
