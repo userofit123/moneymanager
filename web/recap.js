@@ -4,7 +4,7 @@
    Texts are written in English and in Hebrew side by side. */
 (function(){
 const H=()=>!!(window.HE&&HE.on);
-const L=(en,he)=>H()?he:en;
+const L=(en,he)=>H()?(window.HE&&HE.gen?HE.gen(he):he):en;
 const P=()=>(S.cfg&&S.cfg.profile)||{};
 const REDUCE=()=>{try{return matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){return false}};
 // a big number that counts up when it comes into view
@@ -124,7 +124,7 @@ const eq=(a,b,c)=>`<div class="rkeq">${[a,"+",b,"=",c].map(x=>typeof x=="string"
 
 function startPart(m){if(!(isFinite(m.start)&&Math.abs(m.start)>=1))return"";const d=m.cash-m.start,mon=mname(MK);
  const line=Math.abs(d)>=100?chip(d>=0?"up":"down",d>=0?L(`Today you have ${mi(d)} more than that`,`היום יש לכם ${mi(d)} יותר מזה`):L(`Today you have ${mi(-d)} less than that`,`היום יש לכם ${mi(-d)} פחות מזה`),d>=0?"good":"warn","now"):"";
- return part("flag","",L(`You began ${mon} with`,`התחלתם את ${mon} עם`),"",`<span class="rkw">≈</span>${mn(m.start)}`,L(`That is roughly what was in your accounts on ${dlong(MK+"-01")}.`,`זה בערך מה שהיה בחשבונות ב‑${dlong(MK+"-01")}.`)+(line?`<br>${line}`:""))}
+ return part("flag","",L(`You began ${mon} with`,`התחלתם את ${mon} עם`),"",`<span class="rkw">≈</span>${mn(m.start)}`,L(`That is roughly what was in your accounts on ${dlong(MK+"-01")}.`,`זה בערך מה שהיה בחשבונות שלכם ב‑${dlong(MK+"-01")}.`)+(line?`<br>${line}`:""))}
 
 function inPart(m){
  if(!m.sal)return part("in","tp",L("So far, you received","עד עכשיו קיבלתם"),"in",mn(0),L("Nothing has come in yet this month.","עוד לא נכנס כסף החודש."));
@@ -145,7 +145,7 @@ function outPart(m){
  if(m.w0>=150&&Math.abs(tr)>=Math.max(100,m.w0*.25))pulse=tr<0?chip("down",L("The last 7 days were calmer than the 7 before","7 הימים האחרונים היו רגועים יותר מ‑7 הימים שלפניהם"),"good","d7"):chip("up",L("The last 7 days were busier than the 7 before","7 הימים האחרונים היו עמוסים יותר מ‑7 הימים שלפניהם"),"warn","d7");
  else if(m.below[0])pulse=chip("down",L(`${nm(m.below[0].k)} is well below its usual`,`${nm(m.below[0].k)} נמוך בהרבה מהרגיל`),"good",ck(m.below[0].k));
  else if(m.above[0])pulse=chip("up",L(`${nm(m.above[0].k)} is already above a usual month`,`${nm(m.above[0].k)} כבר מעל חודש רגיל`),"warn",ck(m.above[0].k));
- const lead=L(`Each bar below is one day. Hover over a bar to see what you spent, and click it to open that day.`,`כל עמודה למטה היא יום אחד. עברו עם העכבר על עמודה כדי לראות מה הוצאתם, ולחצו כדי לפתוח את היום.`);
+ const lead=L(`Each bar below is one day. Hover over a bar to see what you spent, and click it to open that day.`,`כל עמודה למטה היא יום אחד. עברו עם העכבר על עמודה כדי לראות מה הוצאתם, ולחצו כדי לפתוח את אותו היום.`);
  return part("out","tn",L("Since then, you have spent","מאז הוצאתם"),"out",mn(m.ex),lead+line+pulse,dayBars(m))}
 
 function nowPart(m){const set=Math.min(m.cash,m.inJars+m.buffer),free=Math.max(0,m.cash-set);
@@ -175,7 +175,7 @@ function budgetsPart(m){const flag=[...m.over,...m.risk];
 function endPart(m){
  const hasStart=isFinite(m.start)&&Math.abs(m.start)>=1,d=m.end-m.start,mon=mname(MK);
  let line=L(`This is what should be left if you pay everything that is still due (bills and credit card charges) and use up the rest of your budgets.`,`זה מה שאמור להישאר אם תשלמו את כל מה שעוד צפוי (תשלומים קבועים וחיובי אשראי) ותנצלו את מה שנשאר מהתקציבים.`);
- if(hasStart&&Math.abs(d)>=100)line+=chip(d>=0?"up":"down",d>=0?L(`${mi(d)} more than you started with`,`${mi(d)} יותר ממה שהתחלתם איתו`):L(`${mi(-d)} less than you started with`,`${mi(-d)} פחות ממה שהתחלתם איתו`),d>=0?"good":"warn","fc");
+ if(hasStart&&Math.abs(d)>=100)line+=chip(d>=0?"up":"down",d>=0?L(`${mi(d)} more than you started with`,`${mi(d)} יותר ממה שהתחלתם איתו את החודש`):L(`${mi(-d)} less than you started with`,`${mi(-d)} פחות ממה שהתחלתם איתו את החודש`),d>=0?"good":"warn","fc");
  {const held=m.inJars+m.buffer,free=m.end-held;
   if(held>=1&&m.end>0)line+=free>=0?chip("flat",L(`${mi(held)} of that is in your jars, so about ${mi(free)} is yours to spend`,`${mi(held)} מזה בקופות, כך שבערך ${mi(free)} נשארים לכם להוצאות`),"","jars"):chip("down",L(`Your jars hold ${mi(held)}, but you will probably end the month with ${mi(m.end)}, so they would be about ${mi(-free)} short`,`בקופות יש ${mi(held)}, אבל סביר שתסיימו את החודש עם ${mi(m.end)}, אז יחסרו להן בערך ${mi(-free)}`),"warn","jars")+relBtn()}
  if(m.phase=="end")line+=chip("flat",L(`${mname(m.nmk)} will begin with about ${mi(m.nextBills+m.cardsU)} already on its way out`,`${mname(m.nmk)} יתחיל כשכבר כ‑${mi(m.nextBills+m.cardsU)} בדרך החוצה`),"","fc");
