@@ -30,7 +30,7 @@ Object.assign(D,{
 "Same point last month: {}":"עד אותו יום בחודש שעבר: {}","Same point last month {}":"עד אותו יום בחודש שעבר {}",
 "Connect an account":"חיבור חשבון","Get started: connect a bank or Wise in Settings → Connections, import a file in Settings → App and data, or add a transaction with the + button. This page fills in as your data arrives.":"בואו נתחיל: חברו בנק או Wise דרך הגדרות ← חיבורים, ייבאו קובץ דרך הגדרות ← אפליקציה ונתונים, או הוסיפו תנועה בכפתור +. הדף הזה יתמלא ברגע שיגיעו נתונים.",
 "Add a transaction":"הוספת תנועה","Add transaction":"הוספת תנועה","Income":"הכנסות","Expenses":"הוצאות","Net":"נטו","Total":"סה״כ","In":"נכנס","Out":"יוצא",
-"So far":"עד עכשיו","so far":"עד עכשיו","So Far":"עד עכשיו","Cushion":"כרית ביטחון","Net · October":"נטו · אוקטובר",
+"So far":"עד כה","so far":"עד כה","So Far":"עד כה","Cushion":"כרית ביטחון","Net · October":"נטו · אוקטובר",
 "Income minus expenses, transfers excluded":"הכנסות פחות הוצאות, בלי העברות בין חשבונות",
 /* ---- activity ---- */
 "Search store, note or tag…":"חיפוש לפי עסק, הערה או תגית…","All time":"כל התקופה","No grouping":"בלי קיבוץ","Custom range…":"טווח מותאם אישית…","Upcoming":"צפוי","upcoming":"צפוי",
@@ -72,7 +72,7 @@ Object.assign(D,{
 "for {} months reaches ₪{} by {m} {}. The amount updates each month.":"ב‑{} חודשים מגיעים ל‑₪{} עד {m} {}. הסכום מתעדכן בכל חודש.",
 "Worked out for you":"מחושב עבורכם","Months to keep covered":"כמה חודשים לכסות","Choose a bill…":"בחירת חשבון…",
 /* ---- bills and budgets ---- */
-"Bills":"חשבונות","Bill":"חשבון","Bills and subscriptions":"חשבונות ומנויים","+ Add bill":"+ הוספת חשבון","Add a bill":"הוספת חשבון","Monthly total":"סך הכול לחודש","Due in the next {} days":"לתשלום ב‑{} הימים הקרובים",
+"Bills":"חשבונות","Bill":"תשלום קבוע","Bills and subscriptions":"חשבונות ומנויים","+ Add bill":"+ הוספת חשבון","Add a bill":"הוספת חשבון","Monthly total":"סך הכול לחודש","Due in the next {} days":"לתשלום ב‑{} הימים הקרובים",
 "Price changes":"שינויי מחיר","Recurring":"קבועים","Irregular":"לא קבועים","Recurring bill":"חשבון קבוע","One-off bill":"חשבון חד‑פעמי","Irregular bill":"חשבון לא קבוע","One-off":"חד‑פעמיים","irregular":"לא קבוע",
 "Found automatically":"זוהה אוטומטית","Added by you":"נוסף על ידכם","Why is this a bill?":"למה זה חשבון?","To cancel":"לביטול","Canceled":"בוטל","Mark to cancel":"סימון לביטול","Mark as canceled":"סימון כבוטל","Keep this bill":"להשאיר את החשבון","Restore":"שחזור",
 "Typical payment":"תשלום רגיל","typical payment":"תשלום רגיל","same as last charge":"כמו החיוב האחרון","average of last 3":"ממוצע של שלושת האחרונים","Due now":"לתשלום עכשיו","Next {d}":"הבא ב‑{d}",
@@ -168,7 +168,7 @@ Object.assign(D,{
 "Version {} is available.":"גרסה {} זמינה.","Downloading version {}… {}%":"מוריד את גרסה {}… {}%","Version {} is ready. Restart the app to finish updating. Your data stays as it is.":"גרסה {} מוכנה. הפעילו מחדש את האפליקציה כדי לסיים את העדכון. הנתונים שלכם נשארים כמו שהם.",
 "Could not check for updates right now.":"לא הצלחנו לבדוק עדכונים כרגע.",
 /* ---- reports and forecast ---- */
-"Reports":"דוחות","Forecast":"תחזית","Spending by category":"הוצאות לפי קטגוריה","Income vs expenses":"הכנסות מול הוצאות","Income Vs Expenses":"הכנסות מול הוצאות","Category trend":"מגמה לפי קטגוריה","Top merchants":"העסקים המובילים","Spending by tag":"הוצאות לפי תגית","Net worth":"שווי נקי","Net Worth":"שווי נקי",
+"Reports":"דוחות","Forecast":"תחזית","Spending by category":"הוצאות לפי קטגוריה","Income vs expenses":"הכנסות מול הוצאות","Income Vs Expenses":"הכנסות מול הוצאות","Category trend":"מגמה לפי קטגוריה","Top merchants":"בתי העסק המובילים","Spending by tag":"הוצאות לפי תגית","Net worth":"שווי נקי","Net Worth":"שווי נקי",
 "What to show":"מה להציג","About this chart":"על התרשים","Include pension":"כולל פנסיה","Bars":"עמודות","Line":"קו","Area":"שטח","Click to open in Activity":"לחיצה תפתח את זה בפעילות",
 "Compare with the previous {} months":"השוואה ל‑{} החודשים הקודמים","Compare with the previous {} years":"השוואה ל‑{} השנים הקודמות","Compare with the previous 3 years":"השוואה ל‑3 השנים הקודמות","Compare to previous period":"השוואה לתקופה הקודמת","No comparison":"בלי השוואה","vs the period before":"מול התקופה הקודמת","vs the same dates last year":"מול אותם תאריכים בשנה שעברה",
 "Last {} months":"{} החודשים האחרונים","All history":"כל ההיסטוריה","Last 3 months":"3 החודשים האחרונים","Last 6 months":"6 החודשים האחרונים","Last 12 months":"12 החודשים האחרונים","Last 24 months":"24 החודשים האחרונים",
