@@ -66,4 +66,12 @@ add("Regular · every month","קבוע · כל חודש");
 add("Regular · every 2 months","קבוע · כל חודשיים");
 add("Regular · every year","קבוע · כל שנה");
 add("Regular, irregular and one-off bills the app tracks","חשבונות קבועים, לא קבועים וחד‑פעמיים שהאפליקציה עוקבת אחריהם");
+add("No fixed schedule (irregular bill)","ללא לוח זמנים קבוע (תשלום לא קבוע)");
+/* In Hebrew the page is called "תשלומים קבועים", so a bill is "תשלום קבוע", not "חשבון" (that word stays for bank accounts and credit card statements). */
+const FIX=v=>typeof v!="string"?v:v.replace(/(^|[^א-ת])([והלכמבש]{0,3})(חשבונות|חשבון)(?![א-ת])(?!\s+(?:מים|חשמל|גז|ארנונה|טלפון|אינטרנט))(\s+(?:לא\s+)?(?:קבוע|קבועים|סדיר|סדירים|חד))?/g,(m,pre,pf,w,nx)=>{const def=pf.endsWith("ה"),base=def?pf.slice(0,-1):pf,pl=w=="חשבונות",plain=!!nx;
+ const noun=pl?"תשלומים":"תשלום",adj=plain?"":(pl?" קבועים":" קבוע");
+ return pre+base+(def?"ה":"")+noun+(def&&!plain?" ה"+adj.trim():adj)+(nx||"")});
+const SKIP=/from the bank|credit card|card bill|bank|statement|account/i;
+for(const k of Object.keys(D)){if(/\bbills?\b/i.test(k)&&!SKIP.test(k))D[k]=FIX(D[k])}
+for(const p of P){if(typeof p[1]=="function"&&/bills?\b/i.test(p[0].source)&&!SKIP.test(p[0].source)){const f=p[1];p[1]=(...a)=>{const o=f(...a);return typeof o=="string"?FIX(o):o}}}
 })();
