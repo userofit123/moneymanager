@@ -54,4 +54,10 @@ P.unshift(
 [/^Next charge on (.+)$/,a=>"החיוב הבא ב‑"+iso(a)],
 [/^Canceled on (.+)$/,a=>"בוטל ב‑"+iso(a)],
 [/^paid on (.+)$/,a=>"שולם ב‑"+iso(a)]);
+add("Regular","קבועים");
+add("Regular bill","חשבון קבוע");
+add("Regular · every month","קבוע · כל חודש");
+add("Regular · every 2 months","קבוע · כל חודשיים");
+add("Regular · every year","קבוע · כל שנה");
+add("Regular, irregular and one-off bills the app tracks","חשבונות קבועים, לא קבועים וחד‑פעמיים שהאפליקציה עוקבת אחריהם");
 })();
