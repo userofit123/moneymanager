@@ -136,7 +136,7 @@ export async function healGaps(c, accountName, currency) {
        WHERE (from_name=$1 OR to_name=$1) AND COALESCE(gap_explained,0)=0 AND COALESCE(orig_currency,'ILS')=$2
          AND sign(COALESCE(orig_amount, amount))=sign($3::numeric)
          AND date >= ($4::timestamptz - interval '7 days')::date AND date <= ($5::timestamptz + interval '7 days')::date
-       ORDER BY date DESC, id DESC LIMIT 14`, [accountName, currency, g.remaining, g.window_from, g.window_to])).rows;
+       ORDER BY date DESC, id DESC LIMIT 40`, [accountName, currency, g.remaining, g.window_from, g.window_to])).rows;
     const pick = chargesFor(rows, g.remaining);
     if (!pick.length) continue;
     for (const t of pick) await explainGaps(c, t.id, accountName, currency, t.amt);
@@ -147,21 +147,25 @@ export async function healGaps(c, accountName, currency) {
   return n;
 }
 
-// The fewest charges (one, two, three...) that add up to the gap, give or take a shekel. One purchase is the usual case, but a card balance
-// that dropped between two readings may hold several, all still pending.
+// Which charges add up to the gap, give or take a shekel. One purchase is the usual case, but a card balance that dropped between two
+// readings can hold any number of them, still pending. So: one charge, else every candidate charge together, else the smallest group
+// that fits (a search with a work limit, so a long list can never make a sync slow).
 export function chargesFor(rows, gap) {
+  const near = (v) => Math.abs(v - gap) <= 1;
+  const one = [...rows].sort((x, y) => Math.abs(x.amt - gap) - Math.abs(y.amt - gap)).find((r) => near(r.amt));
+  if (one) return [one];
+  if (rows.length > 1 && near(rows.reduce((t, r) => t + r.amt, 0))) return rows;
+  let budget = 200000;
   const best = (k, from, left, picked) => {
+    if (budget-- <= 0) return null;
     if (k === 0) return Math.abs(left) <= 1 ? picked : null;
-    for (let i = from; i < rows.length; i++) {
+    for (let i = from; i <= rows.length - k; i++) {
       const r = best(k - 1, i + 1, +(left - rows[i].amt).toFixed(2), [...picked, rows[i]]);
       if (r) return r;
     }
     return null;
   };
-  // single charges keep their old order: the closest amount first
-  const one = [...rows].sort((x, y) => Math.abs(x.amt - gap) - Math.abs(y.amt - gap)).find((r) => Math.abs(r.amt - gap) <= 1);
-  if (one) return [one];
-  for (let k = 2; k <= Math.min(5, rows.length); k++) { const r = best(k, 0, gap, []); if (r) return r; }
+  for (let k = 2; k < rows.length; k++) { const r = best(k, 0, gap, []); if (r) return r; }
   return [];
 }
 
