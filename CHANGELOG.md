@@ -4,6 +4,17 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.8.0] - 2026-10-16
+
+### App
+- **Make your own atmosphere.** Pick "Custom" in Appearance to choose the accent, gradient colour, background, text, tint, positive and negative colours and the 7 chart colours, separately for light and dark. Start from any preset or from one base colour. A new "Gradient strength" slider sets how strong the background gradient is.
+- **Save your looks.** The new Saved tab in Appearance keeps any number of named looks (up to 25). Set one to be used in light mode and one in dark mode, and it applies when the mode changes. Saved looks are kept in the database with your other preferences, so they follow you across devices.
+- **A tidier Appearance panel.** It now has Colour, Style and Layout tabs. Picking from a drop-down no longer closes the panel.
+- **Language, date format, first day of the week and the app icon moved to Settings → Preferences**, because they are app settings, not looks.
+
+### Windows app
+- Includes all of the above.
+
 ## [0.7.2] - 2026-10-16
 
 ### App
