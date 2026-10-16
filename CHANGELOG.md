@@ -4,6 +4,18 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.7.1] - 2026-10-16
+
+### App
+- **A balance gap made of several pending charges closes by itself.** If your card balance drops by the total of two, three or any number of charges the bank still lists as pending, the "balance went down with no matching transaction" alert (and its item in Needs review) now clears at the next sync. Before, only a single charge could explain it.
+- **Pending charges get a plain alert.** "Max: 2 pending charges (₪311)" tells you the charges are already in your balance and listed in Activity, and goes away when they settle. You can open it and dismiss it, and turn it off in Alert settings.
+- **Bills follow the days they are really charged.** A bill the app found on its own now takes its day of the month from its last few charges, so a bill charged on the 16th is no longer predicted for the 15th.
+- **An expected bill stays in Activity until its charge appears.** When a bill's day has come but the bank has not listed the charge yet, it shows as "not seen yet" instead of disappearing.
+- **A balance gap that matches an expected bill says so.** For example "Isracard: ₪24 left, probably Spotify", with a note that the bank has not listed it yet and nothing is needed from you.
+
+### Windows app
+- Includes all of the above.
+
 ## [0.7.0] - 2026-10-15
 
 ### App
