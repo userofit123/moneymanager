@@ -442,3 +442,22 @@ test("a charge listed as pending and later as settled under another id comes bac
   const gap = await tx((c) => recordSnapshot(c, card, -412, new Date("2026-10-13T09:00:00Z")));
   assert.equal(gap, null);
 });
+
+test("two charges the bank still lists as pending together explain the balance gap they caused", async () => {
+  await reset();
+  const acc = { name: "Max", currency: "ILS", source: "max" };
+  await q("INSERT INTO accounts (name,currency,kind,source,subtitle,sort) VALUES ('Max','ILS','card','max','',60) ON CONFLICT DO NOTHING");
+  const a = (await q("SELECT * FROM accounts WHERE name='Max'")).rows[0];
+  await tx((c) => recordSnapshot(c, a, 0, new Date("2026-10-15T08:00:00Z")));
+  await tx((c) => recordSnapshot(c, a, -236, new Date("2026-10-16T08:00:00Z"))); // the card balance already includes both purchases
+  assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 1);
+  await ingest(acc, [
+    { date: "2026-10-15", description: "Shop A", amount: -100, currency: "ILS", pending: true, externalId: "9001:pa:2026-10-15:0" },
+    { date: "2026-10-15", description: "Shop B", amount: -136, currency: "ILS", pending: true, externalId: "9001:pb:2026-10-15:0" },
+  ]);
+  assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 0);
+  // charges that do not add up to the gap leave it open
+  await tx((c) => recordSnapshot(c, a, -500, new Date("2026-10-17T08:00:00Z")));
+  await ingest(acc, [{ date: "2026-10-16", description: "Shop C", amount: -30, currency: "ILS", pending: true, externalId: "9001:pc:2026-10-16:0" }]);
+  assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 1);
+});

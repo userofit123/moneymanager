@@ -7,7 +7,7 @@ import { readJars, fillJarsTx, thisMonth } from "./jars.js";
 import { activeCurrencies, configuredCurrencies } from "./fx.js";
 
 export const DEFAULT_CFG = {
-  jars: 1, bills: 1, price: 1, budget: 1, card: 1, large: 1, xfer: 1, recon: 1, sync: 1, uncat: 1, forecast: 1, docs: 1,
+  jars: 1, bills: 1, price: 1, budget: 1, card: 1, large: 1, xfer: 1, recon: 1, pending: 1, sync: 1, uncat: 1, forecast: 1, docs: 1,
   cardPct: 10, largeAmt: 5000, billDays: 3, budgetPct: 80, gapDays: 3,
 };
 export const DEFAULT_CATS = ["Groceries", "Rent & housing", "Eating out", "Subscriptions", "Transport", "Fees & FX costs", "Income", "Uncategorized"];
