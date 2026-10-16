@@ -4,6 +4,15 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.7.2] - 2026-10-16
+
+### App
+- **A balance gap that pending charges already explain no longer asks you to review it.** When the charges still pending on a card add up to the drop in its balance, the gap closes right away (no waiting for another sync), and until then it is hidden from Needs review and from the review alerts. The pending charges still show in the "pending charges" alert, which you can open and dismiss.
+- **A balance gap that matches an expected bill is only an alert.** For example "Isracard: ₪24 left, probably Spotify" no longer sits in Needs review. It closes by itself when the bank lists the charge.
+
+### Windows app
+- Includes all of the above.
+
 ## [0.7.1] - 2026-10-16
 
 ### App
