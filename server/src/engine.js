@@ -131,19 +131,38 @@ export async function healGaps(c, accountName, currency) {
      WHERE a.name=$1 AND a.currency=$2 AND g.status='open'`, [accountName, currency])).rows;
   let n = 0;
   for (const g of gaps) { // a charge the bank still lists as pending counts too: a card balance already includes it
-    const t = (await c.query(
+    const rows = (await c.query(
       `SELECT id, COALESCE(orig_amount, amount)::float AS amt FROM transactions
        WHERE (from_name=$1 OR to_name=$1) AND COALESCE(gap_explained,0)=0 AND COALESCE(orig_currency,'ILS')=$2
-         AND abs(COALESCE(orig_amount, amount) - $3::numeric) <= 1
+         AND sign(COALESCE(orig_amount, amount))=sign($3::numeric)
          AND date >= ($4::timestamptz - interval '7 days')::date AND date <= ($5::timestamptz + interval '7 days')::date
-       ORDER BY abs(COALESCE(orig_amount, amount) - $3::numeric), id LIMIT 1`, [accountName, currency, g.remaining, g.window_from, g.window_to])).rows[0];
-    if (!t) continue;
-    await explainGaps(c, t.id, accountName, currency, t.amt);
+       ORDER BY date DESC, id DESC LIMIT 14`, [accountName, currency, g.remaining, g.window_from, g.window_to])).rows;
+    const pick = chargesFor(rows, g.remaining);
+    if (!pick.length) continue;
+    for (const t of pick) await explainGaps(c, t.id, accountName, currency, t.amt);
     // a rounding difference of up to a shekel must not leave the gap open
     await c.query("UPDATE balance_gaps SET remaining=0, status='cleared' WHERE id=$1 AND status='open' AND abs(remaining) <= 1", [g.id]);
     n++;
   }
   return n;
+}
+
+// The fewest charges (one, two, three...) that add up to the gap, give or take a shekel. One purchase is the usual case, but a card balance
+// that dropped between two readings may hold several, all still pending.
+export function chargesFor(rows, gap) {
+  const best = (k, from, left, picked) => {
+    if (k === 0) return Math.abs(left) <= 1 ? picked : null;
+    for (let i = from; i < rows.length; i++) {
+      const r = best(k - 1, i + 1, +(left - rows[i].amt).toFixed(2), [...picked, rows[i]]);
+      if (r) return r;
+    }
+    return null;
+  };
+  // single charges keep their old order: the closest amount first
+  const one = [...rows].sort((x, y) => Math.abs(x.amt - gap) - Math.abs(y.amt - gap)).find((r) => Math.abs(r.amt - gap) <= 1);
+  if (one) return [one];
+  for (let k = 2; k <= Math.min(5, rows.length); k++) { const r = best(k, 0, gap, []); if (r) return r; }
+  return [];
 }
 
 // A drop in one currency with a rise in another inside the same window looks like a conversion.
