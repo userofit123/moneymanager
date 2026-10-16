@@ -16,7 +16,11 @@ if (log.includes(`## [${next}]`)) throw new Error(`${next} is already in the cha
 const date = new Date().toISOString().slice(0, 10);
 const section = `## [${next}] - ${date}\n\n### App\n- \n\n### Windows app\n- \n\n`;
 fs.writeFileSync("CHANGELOG.md", log.replace(/^## \[/m, section + "## ["));
+// Hebrew twin (shown when the app language is Hebrew) - write it too, so no version is left English-only
+const heSec = `## [${next}] - ${date}\n\n### אפליקציה\n- \n\n### אפליקציית Windows\n- \n\n`;
+const he = fs.readFileSync("web/changelog-he.md", "utf8");
+fs.writeFileSync("web/changelog-he.md", /^## \[/m.test(he) ? he.replace(/^## \[/m, heSec + "## [") : he + "\n" + heSec);
 for (const f of ["desktop/package.json", "server/package.json"]) {
   const j = JSON.parse(fs.readFileSync(f, "utf8")); j.version = next; fs.writeFileSync(f, JSON.stringify(j, null, 2) + "\n");
 }
-console.log(`Version ${next} started. Fill in its section in CHANGELOG.md (delete empty bullets), then merge to main.`);
+console.log(`Version ${next} started. Fill in its section in CHANGELOG.md AND web/changelog-he.md (Hebrew; delete empty bullets), then merge to main.`);
