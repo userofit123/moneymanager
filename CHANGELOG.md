@@ -4,6 +4,22 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.10.0] - 2026-10-16
+
+### App
+- **Activity: a calendar for custom ranges.** Picking "Custom range…" opens a calendar for two dates, with the dates also typeable, quick presets, and the dates shown as text in the filter. The time frame menu no longer wraps.
+- **Activity: clearer totals line.** It says "Filter results" or "All activity", and what is left out of In, Out and Net. Its tooltip explains each item, and In, Out and Net have their own tooltips.
+- **A new entry window.** Details are always shown on one side. Name, category and tags, Note, Documents, Actions, How it's counted and Change history are closed sections on the other side. Attach a document and Copy details sit in the footer, and actions that change something now ask first.
+- **Clearer tooltips on every entry pill**, in plain language, including a hover that shows an entry's note. Names are cleaned of leftover HTML tags.
+- **Needs review:** names, dates and amounts are bold in every explanation.
+- **Export page:** a tidier layout, cards that follow your appearance settings, a redesigned More filters, Reset and Download on the right, and a sticky preview.
+- **Appearance:** Colour, Style and Layout tabs, custom atmospheres with every colour, and saved looks you can assign to light and dark. Language, date format, first weekday and app icon moved to Settings → Preferences.
+- **Hebrew:** group headers, the minus sign on the left of amounts, calendar and icon directions, and the new text were checked and translated.
+- **Sources popup** shows each connection's progress while syncing, and the sync bar follows the app theme.
+
+### Windows app
+- Includes all of the above.
+
 ## [0.9.0] - 2026-10-16
 
 ### App
