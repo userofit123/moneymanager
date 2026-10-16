@@ -1140,7 +1140,14 @@ let AC=null;const ALL=()=>S.tx.concat(costRows()),noRep=t=>NR.size>0&&(NR.has(t.
 const nmOf=x=>String(x||"").replace(/\s*··.*$/,"").trim();
 // the expected bill (not yet seen) that a drop in an account's balance most likely is
 function gapBill(r){if(!(r.diff<0))return null;const need=-r.diff,t0=new Date(r.from).getTime()-2*864e5,t1=new Date(r.to).getTime()+2*864e5;return BC.find(b=>!b.once&&!b.irregular&&b.flag!="canceled"&&b.pd&&b.status!="paid"&&nmOf(b.src)==nmOf(r.n)&&Math.abs(b.pred-need)<=Math.max(1,b.pred*.03)&&b.pd>=t0&&b.pd<=t1)||null}
-const recon=()=>S.gaps.filter(g=>g.status=="open"&&g.remaining!=0).map(g=>({id:g.id,n:g.account,cur:g.currency,diff:g.remaining,amount:g.amount,from:g.window_from,to:g.window_to}));
+// Do these amounts (a card's pending charges) add up to the gap? One charge, all of them together, or a group of them, give or take a shekel.
+function amountsFit(L,need){const near=v=>Math.abs(v-need)<=1;if(L.some(near))return true;if(L.length>1&&near(L.reduce((x,v)=>x+v,0)))return true;let budget=200000;const go=(k,from,left)=>{if(budget--<=0)return false;if(k==0)return Math.abs(left)<=1;for(let i=from;i<=L.length-k;i++)if(go(k-1,i+1,left-L[i]))return true;return false};for(let k=2;k<L.length;k++)if(go(k,0,need))return true;return false}
+// a gap that the pending charges in the app already explain: a card balance includes a pending charge, so there is nothing to review
+function pendCover(r){const need=Math.abs(r.diff);if(!need)return false;const t0=new Date(r.from).getTime()-7*864e5,t1=new Date(r.to).getTime()+7*864e5,sg=Math.sign(r.diff);
+const L=S.tx.filter(t=>t.pending&&!t.virtual&&Math.sign(t.a)==sg&&nmOf(t.a<0?t.from:t.to)==nmOf(r.n)).filter(t=>{const d=new Date(t.d).getTime();return d>=t0&&d<=t1}).map(t=>Math.abs(r.cur=="ILS"?t.a:t.orig&&t.orig.cur==r.cur?t.orig.amt:0)).filter(x=>x>0);return amountsFit(L.slice(0,40),need)}
+const recon=()=>S.gaps.filter(g=>g.status=="open"&&g.remaining!=0).map(g=>({id:g.id,n:g.account,cur:g.currency,diff:g.remaining,amount:g.amount,from:g.window_from,to:g.window_to})).filter(r=>!pendCover(r));
+// the gaps that really need a look: not explained by a pending charge, and not an expected bill the bank has not listed yet (that one is only an alert)
+const reviewGaps=()=>recon().filter(r=>!gapBill(r));
 // Rule text and transaction text are compared in the same plain form (lower case, numbers and punctuation turned into spaces), against the description and the store.
 // Without that, a rule made from "SUPER-PHARM #123" ("super pharm") never matched the text it came from.
 function rn(s){return String(s==null?"":s).toLowerCase().replace(/[0-9*#_\/\\\-.,:;()'"\u05f3\u05f4]+/g," ").replace(/\s+/g," ").trim()}
@@ -1341,7 +1348,7 @@ $("fxc").innerHTML=`<div class="fxh">${keys.length>1?`<div class="seg" style="ma
 <div class="fxs">${tile("Low",mn.toFixed(3))}${tile("Average",av.toFixed(3))}${tile("High",mx.toFixed(3))}<div class="fxt fxnow"><span>Today vs the range</span><b class="num">${last.toFixed(3)}</b><div class="fxbar"><i style="inset-inline-start:${pos.toFixed(1)}%"></i></div></div></div>
 <div class="fxf"><span>${fxStale?"Stale · rates last updated "+fxAsOf+".":"ECB reference rates via Frankfurter, updated "+fxAsOf+"."}</span><span>Used to convert your Wise balance.</span></div>`}
 let txTab="all";
-function reviewCount(){return S.xf.filter(x=>x.st=="auto").length+DUPS.size+recon().filter(r=>r.diff!=0).length}
+function reviewCount(){return S.xf.filter(x=>x.st=="auto").length+DUPS.size+reviewGaps().filter(r=>r.diff!=0).length}
 // Payments in instalments ("payment 8 of 10"): from the bank's own numbers, or read from the description when the bank only writes it there
 const instOf=t=>{if(t.inst&&t.inst[1]>1&&t.inst[0]>=1&&t.inst[0]<=t.inst[1])return{n:t.inst[0],total:t.inst[1]};const m=String(t.desc||"").match(/תשלום\s*(\d{1,2})\s*(?:\/|מתוך)\s*(\d{1,2})/)||String(t.desc||"").match(/payment\s*(\d{1,2})\s*(?:\/|of)\s*(\d{1,2})/i)||String(t.desc||"").match(/(\d{1,2})\s*מתוך\s*(\d{1,2})/);return m&&+m[2]>=2&&+m[2]<=60&&+m[1]>=1&&+m[1]<=+m[2]?{n:+m[1],total:+m[2]}:null};
 const monYr=(d,k)=>{const x=new Date(d);x.setMonth(x.getMonth()+k);return x.toLocaleDateString("en-GB",{month:"short",year:"numeric"})};
@@ -1439,7 +1446,7 @@ h+=xs.length?xs.map(x=>{const o=byId(x.o),i=byId(x.i),c=-o.a-i.a,pc=c/-o.a*100;r
 h+=`<h2>Possible duplicates</h2>`;
 h+=dups.length?dups.map(t=>`<div class="xfc"><b>${esc(t.desc)} · ${fm(t.a)}</b><div class="sm" style="margin:4px 0 10px">${esc(t.from)} · ${dstr(t.d)} · the same amount, store and day appears twice</div><div class="flex" style="gap:8px"><button class="btn r s" data-a="dupDel" data-id="${t.id}">Delete this copy</button><button class="btn o s" data-a="dupKeep" data-id="${t.id}">Keep both</button></div></div>`).join(""):`<div class="card sm">No duplicates found.</div>`;
 h+=`<h2>Balance changes with no transaction</h2><div class="sm" style="margin:-4px 2px 12px">Each sync compares the bank\u2019s balance with its transactions. If the balance changed by more than the transactions explain, the difference shows here.</div>`;
-const gp=recon();
+const gp=reviewGaps();
 h+=gp.length?gp.map(r=>{const cs=SYM[r.cur]||r.cur+" ",w=x=>new Date(x).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}),out=r.diff<0,amt=cs+f(Math.abs(r.diff));return `<div class="card warn" style="margin-bottom:12px"><div class="flex" style="justify-content:space-between"><div class="lbl">${esc(r.n)} · ${esc(r.cur)}</div><span class="bd ${out?"up":"dn"}">${out?"Balance went down":"Balance went up"}</span></div>
 <div style="margin:8px 0;font-size:16px;font-weight:600">${amt} ${out?"left":"arrived in"} this account and no transaction explains it</div>
 ${(()=>{const gb=gapBill(r);return gb?`<div class="sinfo" style="margin:8px 0">This looks like ${esc(gb.n)} (about ${fm(gb.pred)}), expected around ${dstr(gb.pd)}. The bank has not listed it yet, so nothing is needed from you. It closes by itself when the transaction appears.</div>`:""})()}<div class="sm" style="line-height:1.55">Your ${esc(r.n)} balance ${out?"dropped":"rose"} by ${amt}${r.amount!=r.diff?` (${cs}${f(r.amount)} originally, part of it already explained)`:""} between ${w(r.from)} and ${w(r.to)}, the times of two syncs. The balance itself is right. What is missing is the transaction, so your ${out?"spending":"income"} in reports is too low until you add it.<br>Usual causes: a purchase the bank lists with no amount yet (it fills in at a later sync, and this clears by itself), a payment the bank has not posted yet, a fee, or older history that was never imported (try Import history in Settings → Connections).</div>

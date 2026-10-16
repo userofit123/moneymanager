@@ -474,3 +474,17 @@ test("a balance gap made of many pending charges (more than five) closes by itse
   await ingest(acc, amts.map((m, i) => ({ date: "2026-10-15", description: "Shop " + i, amount: m, currency: "ILS", pending: true, externalId: `3993:p${i}:2026-10-15:0` })));
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 0);
 });
+
+test("pending charges that were imported before the balance reading explain the gap at once, without waiting for another sync", async () => {
+  await reset();
+  const acc = { name: "Max", currency: "ILS", source: "max" };
+  await q("INSERT INTO accounts (name,currency,kind,source,subtitle,sort) VALUES ('Max','ILS','card','max','',60) ON CONFLICT DO NOTHING");
+  const a = (await q("SELECT * FROM accounts WHERE name='Max'")).rows[0];
+  await tx((c) => recordSnapshot(c, a, 0, new Date("2026-10-15T08:00:00Z")));
+  await ingest(acc, [
+    { date: "2026-10-15", description: "Shop A", amount: -100, currency: "ILS", pending: true, externalId: "3993:qa:2026-10-15:0" },
+    { date: "2026-10-15", description: "Shop B", amount: -148, currency: "ILS", pending: true, externalId: "3993:qb:2026-10-15:0" },
+  ]);
+  await tx((c) => recordSnapshot(c, a, -248, new Date("2026-10-16T08:00:00Z"))); // the balance is read after the transactions
+  assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 0);
+});
