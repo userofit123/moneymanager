@@ -1603,7 +1603,7 @@ openSheet(`<div class="txp"><div class="txgrid2"><div class="txmain"><div class=
 <div class="kvc" id="txDet">${txDetailsHtml(t,t.hasDet&&!TXD[id]?"load":TXD[id]||null)}</div>
 </div><aside class="txside">
 ${real&&!xf?SX2("org","Name, category and tags",orgH)+SX2("note","Note",noteH,t.note?"added":""):(real?SX2("note","Note",noteH):"")}
-${relH?SX2("rel","Related",`<div class="rels">${relH}</div>`,nRel,amb?"Something here needs a look":""):""}
+${relH?SX2("rel","How it’s counted",`<div class="rels">${relH}</div>`,nRel,amb?"Something here needs a look":""):""}
 ${tiles?SX2("act","Actions",`<div class="tiles">${tiles}</div>`,nTiles):""}
 ${real&&t.docs.length?SX2("doc","Documents",`<div class="docrow">${t.docs.map((d,i)=>`<button class="chip dchip" data-a="openDocs" data-id="${t.id}" data-i="${i}">${tIc("clip")}${esc(d)}</button>`).join("")}</div>`,t.docs.length):""}
 ${h.length?SX2("hist","Change history",`<div class="hlist">${h.map(a=>`<div class="hrow"><div class="hh"><b>${esc(a.action)}</b><span class="hw">${new Date(a.t).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</span></div><div class="hdt">${esc(nohtml(a.detail||""))}</div></div>`).join("")}</div>`,h.length):""}
