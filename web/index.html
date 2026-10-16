@@ -925,7 +925,7 @@ html.mob .txs{margin-top:0}
 {const _c=window.confirm.bind(window),_p=window.prompt.bind(window),_a=window.alert.bind(window),tt=m=>{m=String(m);try{return window.HE&&HE.on?HE.T(m):m}catch(e){return m}};window.confirm=m=>_c(tt(m));window.prompt=(m,d)=>_p(tt(m),d);window.alert=m=>_a(tt(m))} // the browser's own dialogs are not on the page, so they are translated here
 const _fetch=window.fetch.bind(window);window.fetch=async(u,o={})=>{o={...o,credentials:"same-origin"};if(o.method&&o.method!="GET")o.headers=Object.assign({},o.headers,{"x-requested-with":"money"});const r=await _fetch(u,o);if(r.status==401&&String(u).startsWith("/api/")&&!String(u).startsWith("/api/auth/")){need2fa=false;showAuth("login")}return r};
 /* appearance, language and other view choices are also kept on the server, so a new window address or a reinstall does not lose them */
-const PREF_KEYS=["moneySugg","moneyTheme","moneyLang","moneyBoot","moneyFc","moneyFlow","moneyGroup","moneyDf","moneyWs","moneyHelp","moneyRanges","moneyTrend"];let PREFS_ON=false;
+const PREF_KEYS=["moneySugg","moneyTheme","moneyThemes","moneyThemeAs","moneyLang","moneyBoot","moneyFc","moneyFlow","moneyGroup","moneyDf","moneyWs","moneyHelp","moneyRanges","moneyTrend"];let PREFS_ON=false;
 const prefsAll=()=>{const o={};PREF_KEYS.concat("moneyPrefsAt").forEach(k=>{try{const v=localStorage.getItem(k);if(v!=null)o[k]=v}catch(e){}});return o};
 const prefsPush=()=>{if(!PREFS_ON)return;fetch("/api/prefs",{method:"PUT",keepalive:true,headers:{"content-type":"application/json"},body:JSON.stringify(prefsAll())}).catch(()=>{})};
 // every change made by the user is stamped with the time it was made, so the newest copy (here or on the server) is the one that wins
@@ -2521,7 +2521,7 @@ case"weekf":WS=d.v=="mon"?"mon":"sun";try{localStorage.setItem("moneyWs",WS)}cat
 case"lang":try{localStorage.setItem("moneyLang",d.l)}catch(e){}location.reload();break;
 case"opt":st[d.k]=d.v;themeSwap(applyTheme);break;
 case"tpOpen":window._apt="sav";apTabs();setTimeout(()=>{const n=$("tpName");if(n)n.focus()},0);break;
-case"tpSave":{const n=$("tpName"),nm=(n.value||"").trim();if(!nm){n.focus();break}THM.push({id:Date.now().toString(36),name:nm,v:tpSnap()});n.value="";tpPersist();tpRender();break}
+case"tpSave":{const n=$("tpName"),nm=(n.value||"").trim();if(!nm){n.focus();break}if(THM.length>=25){toast("You can keep up to 25 looks. Delete one first.",{kind:"err"});break}THM.push({id:Date.now().toString(36),name:nm,v:tpSnap()});n.value="";tpPersist();tpRender();break}
 case"tpApply":{const x=THM.find(y=>y.id==d.id);if(x){Object.assign(st,JSON.parse(JSON.stringify(x.v)));tpGo()}break}
 case"tpUpd":{const x=THM.find(y=>y.id==d.id);if(x){x.v=tpSnap();tpPersist();tpRender();toast("Saved “"+x.name+"” with the current look")}break}
 case"tpAssign":{THA[d.sc]=THA[d.sc]==d.id?null:d.id;tpPersist();tpRender();const x=THM.find(y=>y.id==THA[d.sc]);if(x&&(d.sc=="D")==isDark()){Object.assign(st,JSON.parse(JSON.stringify(x.v)));tpGo()}break}
