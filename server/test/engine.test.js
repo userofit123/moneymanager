@@ -461,3 +461,16 @@ test("two charges the bank still lists as pending together explain the balance g
   await ingest(acc, [{ date: "2026-10-16", description: "Shop C", amount: -30, currency: "ILS", pending: true, externalId: "9001:pc:2026-10-16:0" }]);
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 1);
 });
+
+test("a balance gap made of many pending charges (more than five) closes by itself", async () => {
+  await reset();
+  const acc = { name: "Max", currency: "ILS", source: "max" };
+  await q("INSERT INTO accounts (name,currency,kind,source,subtitle,sort) VALUES ('Max','ILS','card','max','',60) ON CONFLICT DO NOTHING");
+  const a = (await q("SELECT * FROM accounts WHERE name='Max'")).rows[0];
+  await tx((c) => recordSnapshot(c, a, 0, new Date("2026-10-15T08:00:00Z")));
+  const amts = [-12.5, -48, -7, -230.9, -15, -64.3, -9.9, -120, -33.3]; // nine purchases in a day
+  await tx((c) => recordSnapshot(c, a, +amts.reduce((x, y) => x + y, 0).toFixed(2), new Date("2026-10-16T08:00:00Z")));
+  assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 1);
+  await ingest(acc, amts.map((m, i) => ({ date: "2026-10-15", description: "Shop " + i, amount: m, currency: "ILS", pending: true, externalId: `9001:p${i}:2026-10-15:0` })));
+  assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 0);
+});
