@@ -1,6 +1,7 @@
 // Background alerts to the user's own ntfy server. Nothing leaves the home network unless the URL says so.
 import { q } from "./db.js";
 import { encrypt, decrypt } from "./secrets.js";
+import webpush from "web-push";
 
 export async function ntfyUrl() {
   const r = await q("SELECT value FROM settings WHERE key='ntfy'");
@@ -59,9 +60,40 @@ export async function sendChannel(kind, title, body) {
   } catch { /* an unreachable service never breaks a sync */ }
   return false;
 }
+// ---------- push to the phone / browser (PWA) ----------
+// Standard Web Push: the phone\u2019s own push service (Google for Android) delivers it, even when the app is closed. Needs the app opened over https (or localhost).
+const PUSH_KEYS = "push_vapid", PUSH_SUBS = "push_subs";
+const getSet = async (k, d) => (await q("SELECT value FROM settings WHERE key=$1", [k])).rows[0]?.value ?? d;
+const putSet = (k, v) => q("INSERT INTO settings (key,value) VALUES ($1,$2::jsonb) ON CONFLICT (key) DO UPDATE SET value=$2::jsonb", [k, JSON.stringify(v)]);
+async function vapid() {
+  let k = await getSet(PUSH_KEYS, null);
+  if (!k) { const g = webpush.generateVAPIDKeys(); k = { pub: g.publicKey, priv: encrypt(g.privateKey) }; await putSet(PUSH_KEYS, k); }
+  return { pub: k.pub, priv: decrypt(k.priv) };
+}
+export const pushKey = async () => (await vapid()).pub;
+export async function pushSubscribe(sub, label) {
+  if (!sub?.endpoint || !sub?.keys?.p256dh || !sub?.keys?.auth || !/^https:\/\//.test(sub.endpoint)) throw new Error("Not a valid push subscription.");
+  const list = (await getSet(PUSH_SUBS, [])).filter((s) => s.endpoint !== sub.endpoint);
+  list.push({ endpoint: sub.endpoint, keys: sub.keys, label: String(label || "").slice(0, 60), at: new Date().toISOString() });
+  await putSet(PUSH_SUBS, list.slice(-10));
+}
+export async function pushUnsubscribe(endpoint) { await putSet(PUSH_SUBS, (await getSet(PUSH_SUBS, [])).filter((s) => s.endpoint !== endpoint)); }
+export async function pushStatus(endpoint) { const l = await getSet(PUSH_SUBS, []); return { devices: l.length, here: !!endpoint && l.some((s) => s.endpoint === endpoint) }; }
+export async function sendPush(title, body) {
+  const list = await getSet(PUSH_SUBS, []);
+  if (!list.length) return false;
+  const k = await vapid(); let ok = false; const dead = new Set();
+  await Promise.all(list.map(async (s) => {
+    try { await webpush.sendNotification({ endpoint: s.endpoint, keys: s.keys }, JSON.stringify({ title, body }), { vapidDetails: { subject: "mailto:money@localhost.invalid", publicKey: k.pub, privateKey: k.priv }, TTL: 86400, timeout: 8000 }); ok = true; }
+    catch (e) { if (e.statusCode === 404 || e.statusCode === 410) dead.add(s.endpoint); }
+  }));
+  if (dead.size) await putSet(PUSH_SUBS, list.filter((s) => !dead.has(s.endpoint)));
+  return ok;
+}
+
 // every alert goes to ntfy and to each channel that is set up
 export async function sendNtfy(title, body, priority = "default") {
-  const res = await Promise.all([sendNtfyOnly(title, body, priority), sendChannel("telegram", title, body), sendChannel("webhook", title, body)]);
+  const res = await Promise.all([sendNtfyOnly(title, body, priority), sendChannel("telegram", title, body), sendChannel("webhook", title, body), sendPush(title, body)]);
   return res.some(Boolean);
 }
 
