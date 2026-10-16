@@ -4,6 +4,18 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.9.0] - 2026-10-16
+
+### App
+- **Rename entries.** Open an entry and give it a display name (for example "Salary" instead of "זיכוי"). Only what you see changes: the bank's text, your rules, bills and reports still use the original, which the entry shows as "Original name".
+- **Name rules.** In Categories → Name rules, or with "Rule…" in an entry, name every entry that matches. A rule can look in the description, memo, from, to, note or anything, and match "contains" or "is exactly". A name you give one entry by hand beats a rule.
+- **Display names everywhere.** Activity, Home, Recap, alerts, dialogs, payment history, jar history and the attachments viewer show the display name.
+- **Bill jars can cover all bills, all regular bills or all irregular bills.** Irregular bills count as their last 12 months divided by 12.
+- **American Express sign-in.** Dropping a leftover sign-in now keeps the cookies the bank's bot protection uses to recognise this browser, and failed-login messages are longer and show what the browser did, without the stack trace.
+
+### Windows app
+- Includes all of the above.
+
 ## [0.8.1] - 2026-10-16
 
 ### App
