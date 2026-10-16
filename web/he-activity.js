@@ -1,0 +1,55 @@
+/* Hebrew additions for the Activity page: the totals line, the date range calendar, the entry window and the rewritten tooltips.
+   Loaded after he-gender.js, same format: exact text in HE.D, text with names or counts in HE.P. */
+(function(){const D=HE.D,P=HE.P,T=s=>HE.T(s);
+const mo=s=>String(s).replace(/[A-Za-z]+/,x=>HE.mo(x));
+Object.assign(D,{
+/* ---- totals line ---- */
+"Filter results":"תוצאות הסינון","No transactions match your filters":"אין תנועות שמתאימות לסינון","What the totals include":"מה נכלל בסיכומים",
+"Counted in In, Out and Net":"נספרו ב״נכנס״, ״יוצא״ ו״נטו״","Left out by you":"הוצאו מהספירה על ידכם",
+"Money that came in: income and refunds.":"כסף שנכנס: הכנסות והחזרים.","Money that went out: spending and bill payments.":"כסף שיצא: הוצאות ותשלומי חשבונות.",
+"In minus Out. A negative number means more went out than came in.":"נכנס פחות יוצא. מספר שלילי אומר שיצא יותר ממה שנכנס.",
+"The totals follow your filters and cover every match, not only the rows loaded below.":"הסיכומים מתעדכנים לפי הסינון וכוללים את כל התנועות שמתאימות, לא רק את השורות שמוצגות למטה.",
+"The totals cover all your activity, not only the rows loaded below.":"הסיכומים כוללים את כל הפעילות שלכם, לא רק את השורות שמוצגות למטה.",
+"Transfers: money you moved between your own accounts. It is not income or spending.":"העברות בין חשבונות: כסף שהעברתם בין החשבונות שלכם. זו לא הכנסה ולא הוצאה.",
+"Card payments: paying your credit card bill from the bank. The purchases are already counted on the card, so counting the payment too would count the same money twice.":"חיובי כרטיס: תשלום חשבון כרטיס האשראי מהבנק. הקניות כבר נספרות בכרטיס, ולכן ספירת התשלום תספור את אותו כסף פעמיים.",
+"Upcoming: payments or income expected on a later date. They count once they happen.":"צפוי: תשלומים או הכנסות שצפויים בתאריך מאוחר יותר. הם נספרים כשהם קורים.",
+"Balance updates: a balance you changed by hand. It is a note, not income or spending.":"עדכוני יתרה: יתרה ששיניתם ידנית. זו הערה, לא הכנסה או הוצאה.",
+"Left out by you: transactions you chose to count out.":"הוצאו מהספירה על ידכם: תנועות שבחרתם לא לספור.",
+/* ---- date range calendar ---- */
+"Choose dates":"בחירת תאריכים","Earlier months":"חודשים קודמים","Later months":"חודשים הבאים","Apply":"החלה",
+"Su":"א׳","Mo":"ב׳","Tu":"ג׳","We":"ד׳","Th":"ה׳","Fr":"ו׳","Sa":"ש׳",
+/* ---- entry window ---- */
+"About this entry":"על התנועה","What you can do":"מה אפשר לעשות","Good to know":"טוב לדעת","Needs a look":"דורש תשומת לב","All details from the source":"כל הפרטים מהמקור","Changes you made to this entry":"שינויים שעשיתם בתנועה",
+"Display name":"שם תצוגה","Rule…":"כלל…","Repeats":"חוזר","The app will expect it again":"האפליקציה תצפה לו שוב","Mark as a card payment":"סימון כתשלום כרטיס","Paying a card bill, not spending":"תשלום חשבון כרטיס, לא הוצאה",
+"Show it in an earlier or later month in reports":"להציג אותה בחודש מוקדם או מאוחר יותר בדוחות","Leave it out of totals":"להוציא מהסיכומים","Do not count it as income or spending":"לא לספור כהכנסה או כהוצאה",
+/* ---- tooltips ---- */
+"You changed this account’s balance by hand. It is a note in your history, not income or spending.":"שיניתם את יתרת החשבון ידנית. זו הערה בהיסטוריה, לא הכנסה או הוצאה.",
+"The bank has not finished this charge yet. The amount can still change when it settles.":"הבנק עוד לא סיים את החיוב הזה. הסכום עדיין עשוי להשתנות כשהוא יסתיים.",
+"You left this out of all totals. It is still listed here. Open the entry to count it again.":"הוצאתם את זה מכל הסיכומים. זה עדיין מופיע ברשימה. פתחו את התנועה כדי לספור אותה שוב.",
+"The same refund appears on your card and in your bank a few days apart, so it may be counted twice. Open the entry to count it once.":"אותו החזר מופיע בכרטיס ובבנק במרחק כמה ימים, ולכן ייתכן שהוא נספר פעמיים. פתחו את התנועה כדי לספור אותו פעם אחת.",
+"Money you moved between your own accounts. It is not income or spending.":"כסף שהעברתם בין החשבונות שלכם. זו לא הכנסה ולא הוצאה.",
+"Another transaction has the same date, name, amount and account. Open the entry to keep both or delete one.":"לתנועה אחרת יש אותו תאריך, שם, סכום וחשבון. פתחו את התנועה כדי להשאיר את שתיהן או למחוק אחת.",
+"Created by the app from a transfer, for example its fee. You cannot edit it.":"נוצרה על ידי האפליקציה מהעברה, למשל העמלה שלה. אי אפשר לערוך אותה.",
+"This transaction has a note. Open it to read it.":"לתנועה הזו יש הערה. פתחו אותה כדי לקרוא.",
+"This is an expected bill, not a payment yet. The category you choose also applies to this bill’s next payments.":"זה תשלום צפוי, עדיין לא תשלום בפועל. הקטגוריה שתבחרו חלה גם על התשלומים הבאים של החשבון הזה.",
+"Expected items in this group that have not happened yet. The totals in this header count only what has already happened.":"פריטים צפויים בקבוצה הזו שעדיין לא קרו. הסיכומים בכותרת סופרים רק את מה שכבר קרה.",
+"Opens the add form with the amount and date filled in, so you can name it and pick a category.":"פותח את טופס ההוספה עם הסכום והתאריך כבר מלאים, כדי שתתנו שם ותבחרו קטגוריה.",
+"Leaves this difference out of your reports and saves your note. Use it when the difference does not matter.":"משאיר את ההפרש הזה מחוץ לדוחות ושומר את ההערה שלכם. מתאים כשההפרש לא חשוב.",
+"Things the app is not sure about: transfers it guessed, possible duplicates, and balance changes with no matching transaction.":"דברים שהאפליקציה לא בטוחה בהם: העברות שהיא ניחשה, כפילויות אפשריות ושינויי יתרה בלי תנועה מתאימה.",
+"Download your transactions as a file.":"הורדת התנועות שלכם כקובץ.","You marked this payment as a bill. It counts once.":"סימנתם את התשלום הזה כחשבון. הוא נספר פעם אחת.",
+"The bank listed this ahead of time, for example a card purchase that will be charged on that date, an instalment or a standing order. It is not in the totals until that day.":"הבנק רשם את זה מראש, למשל קנייה בכרטיס שתחויב בתאריך הזה, תשלום או הוראת קבע. זה לא נכלל בסיכומים עד אותו יום.",
+"The app expects this bill based on your past payments.":"האפליקציה מצפה לחשבון הזה לפי התשלומים הקודמים שלכם.","It is not a transaction yet and is not in the totals.":"זו עדיין לא תנועה והיא לא נכללת בסיכומים.","Click to open the bill.":"לחצו כדי לפתוח את החשבון.",
+"The app expects this bill based on your past payments. It is not a transaction yet and is not in the totals. Click to open the bill.":"האפליקציה מצפה לחשבון הזה לפי התשלומים הקודמים שלכם. זו עדיין לא תנועה והיא לא נכללת בסיכומים. לחצו כדי לפתוח את החשבון.",
+/* ---- name rules ---- */
+"Name rules":"כללי שמות","Name rule":"כלל שם","Look in":"לחפש ב","Match":"התאמה","Contains":"מכיל","Is exactly":"זהה בדיוק","contains":"מכיל","is exactly":"זהה בדיוק","Call it":"לקרוא לזה","Anything":"הכול","Memo":"הערת בנק","Text":"טקסט","Add rule":"הוספת כלל","Text to match…":"טקסט להתאמה…","Call it…":"לקרוא לזה…","Name rule added":"כלל שם נוסף"
+});
+const part=s=>{let m;if(m=/^(\d+) transfers?$/.exec(s))return +m[1]==1?"העברה אחת":m[1]+" העברות";if(m=/^(\d+) card payments?$/.exec(s))return +m[1]==1?"חיוב כרטיס אחד":m[1]+" חיובי כרטיס";if(m=/^(\d+) upcoming$/.exec(s))return +m[1]==1?"צפוי אחד":m[1]+" צפויים";if(m=/^(\d+) balance updates?$/.exec(s))return +m[1]==1?"עדכון יתרה אחד":m[1]+" עדכוני יתרה";if(m=/^(\d+) left out by you$/.exec(s))return m[1]+" הוצאו מהספירה על ידכם";return s};
+P.unshift([/^Not in the totals: (.+)$/,r=>"לא נכלל בסיכומים: "+r.split(", ").map(part).join(", ")]);
+P.unshift([/^Payment (\d+) of (\d+)\. (\d+) more payments? to go\.$/,(a,b,c)=>"תשלום "+a+" מתוך "+b+". "+(+c==1?"נשאר תשלום אחד":"נשארו "+c+" תשלומים")+"."]);
+P.unshift([/^Payment (\d+) of (\d+)\. This is the last one\.$/,(a,b)=>"תשלום "+a+" מתוך "+b+". זה האחרון."]);
+P.unshift([/^The jar “(.+)” paid for this\. Open the entry to change or detach it\.$/,n=>"הקופה “"+n+"” שילמה על זה. פתחו את התנועה כדי לשנות או לנתק אותה."]);
+P.unshift([/^Paid on (.+?) but counted in (.+?) in reports\. Open the entry to change the month\.$/,(d,m)=>"שולם ב־"+d+" אבל נספר ב"+mo(m)+" בדוחות. פתחו את התנועה כדי לשנות את החודש."]);
+P.unshift([/^Paying your (.+) credit card bill from the bank\. It is not counted as spending, because each purchase is already counted on the card\. Open the entry to count it as spending anyway\.$/,n=>"תשלום חשבון כרטיס ה־"+n+" מהבנק. הוא לא נספר כהוצאה, כי כל קנייה כבר נספרת בכרטיס. פתחו את התנועה כדי לספור אותו כהוצאה בכל זאת."]);
+P.unshift([/^(?:You told the app that every payment to "(.+?)" is a bill\. )?Every payment to "(.+?)" counts as a bill, even though the timing varies\. So far you have made (\d+) payments?, (\d+) of them in the last 12 months\.$/,(m0,m,n,k)=>(m0?"אמרתם לאפליקציה שכל תשלום ל־\""+m0+"\" הוא חשבון. ":"")+"כל תשלום ל־\""+m+"\" נספר כחשבון, גם כשהתזמון משתנה. עד כה שילמתם "+n+" פעמים, "+k+" מהם ב־12 החודשים האחרונים."]);
+P.unshift([/^Part of the bill "(.+?)"\. The app found it by itself: you were charged (\d+) times?, (.+?), for a similar amount \(about (₪[\d,]+)\)\.( You marked it as canceled\.)?$/,(n,c,cad,a,x)=>"חלק מהחשבון \""+n+"\". האפליקציה מצאה אותו בעצמה: חויבתם "+c+" פעמים, "+T(cad)+", בסכום דומה (בערך "+a+")."+(x?" סימנתם אותו כמבוטל.":"")]);
+})();
