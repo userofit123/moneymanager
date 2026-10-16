@@ -99,6 +99,9 @@ export async function recordSnapshot(c, account, actual, at = new Date()) {
     "INSERT INTO balance_gaps (account_id,amount,remaining,window_from,window_to) VALUES ($1,$2,$2,$3,$4) RETURNING id",
     [account.id, gap, prev.taken_at, at]);
   await audit(c, "Balance gap", `${account.name} ${account.currency}: ${gap < 0 ? "money out" : "money in"} ${Math.abs(gap)} with no transaction (between snapshots)`);
+  // the transactions may already be in the app (a charge still pending is already in a card balance): then the gap is explained now,
+  // not at the next sync
+  await healGaps(c, account.name, account.currency);
   return r.rows[0].id;
 }
 
