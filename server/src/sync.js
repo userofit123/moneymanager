@@ -266,7 +266,7 @@ export const syncAll = (origin = "manual") => withJob("all", "sync", () => syncA
 async function syncAllInner(origin) {
   await refreshRates(7).catch((e) => console.error("rates:", e.message));
   const out = {}, ids = await allIds();
-  ids.forEach((s) => setItem(s, { state: "waiting" }));
+  for (const s of ids) if (await getCreds(s)) setItem(s, { state: "waiting" }); // only connected sources count, so the total does not change while it runs
   for (const s of ids) out[s] = await syncInner(s, { origin });
   await fillJars().catch((e) => console.error("jars:", e.message));
   const open = (await q("SELECT count(*)::int AS n FROM balance_gaps WHERE status='open'")).rows[0].n;
