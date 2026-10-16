@@ -74,7 +74,7 @@ function model(){
  const w1=exp.filter(t=>{const d=dn(t);return d>=0&&d<7}).reduce((s,t)=>s-t.a,0),w0=exp.filter(t=>{const d=dn(t);return d>=7&&d<14}).reduce((s,t)=>s-t.a,0);
  // what happened on each day of the month (and what is planned for the days to come)
  const days=Array.from({length:dim},(_,i)=>({d:MK+"-"+p2(i+1),spent:0,inc:0,ex:[],inn:[],up:[]}));
- A().forEach(t=>{const r=rdOf(t);if(!r.startsWith(MK))return;const i=+r.slice(8)-1;if(i<0||i>=dim)return;const D=days[i];if(t.a<0){D.spent-=t.a;D.ex.push([t.desc,-t.a])}else if(!t.pending){D.inc+=t.a;D.inn.push([t.desc,t.a])}});
+ A().forEach(t=>{const r=rdOf(t);if(!r.startsWith(MK))return;const i=+r.slice(8)-1;if(i<0||i>=dim)return;const D=days[i];if(t.a<0){D.spent-=t.a;D.ex.push([dn(t),-t.a])}else if(!t.pending){D.inc+=t.a;D.inn.push([dn(t),t.a])}});
  BI.filter(b=>!b.once&&!b.irregular&&b.flag!="canceled"&&b.nx&&b.nx.toISOString().slice(0,7)==MK&&b.nx.toISOString().slice(0,10)>=TODAY).forEach(b=>{const i=b.nx.getDate()-1;if(days[i])days[i].up.push([b.n,b.pred,b.idx])});
  const nextBills=BI.filter(b=>!b.once&&!b.irregular&&b.flag!="canceled"&&b.nx&&b.nx.toISOString().slice(0,7)==nmk).reduce((s,b)=>s+b.pred,0);
  const nextUp=BI.filter(b=>!b.once&&!b.irregular&&b.flag!="canceled"&&b.nx&&b.nx>NOW).sort((a,b)=>a.nx-b.nx)[0]||null;
@@ -130,8 +130,8 @@ function inPart(m){
  if(!m.sal)return part("in","tp",L("So far, you received","עד עכשיו קיבלתם"),"in",mn(0),L("Nothing has come in yet this month.","עוד לא נכנס כסף החודש."));
  const rest=m.inc-m.sal.a,n=m.incs.length-1,ok=isFinite(m.start)&&Math.abs(m.start)>=1;
  let line=n>0&&rest>=1
-  ?L(`The biggest payment was ${mi(m.sal.a)} from ${lk("tx:"+m.sal.id,nm(m.sal.desc))}, on ${dlong(rdOf(m.sal))}. ${pl(n,"1 other payment","{} other payments","","")} added another ${mi(rest)}.`,`התשלום הגדול היה ${mi(m.sal.a)} מ‑${lk("tx:"+m.sal.id,nm(m.sal.desc))}, ב‑${dlong(rdOf(m.sal))}. ${pl(n,"","","תשלום נוסף אחד","{} תשלומים נוספים")} הוסיפו עוד ${mi(rest)}.`)
-  :L(`You were paid by ${lk("tx:"+m.sal.id,nm(m.sal.desc))} on ${dlong(rdOf(m.sal))}.`,`קיבלתם תשלום מ‑${lk("tx:"+m.sal.id,nm(m.sal.desc))} ב‑${dlong(rdOf(m.sal))}.`);
+  ?L(`The biggest payment was ${mi(m.sal.a)} from ${lk("tx:"+m.sal.id,nm(dn(m.sal)))}, on ${dlong(rdOf(m.sal))}. ${pl(n,"1 other payment","{} other payments","","")} added another ${mi(rest)}.`,`התשלום הגדול היה ${mi(m.sal.a)} מ‑${lk("tx:"+m.sal.id,nm(dn(m.sal)))}, ב‑${dlong(rdOf(m.sal))}. ${pl(n,"","","תשלום נוסף אחד","{} תשלומים נוספים")} הוסיפו עוד ${mi(rest)}.`)
+  :L(`You were paid by ${lk("tx:"+m.sal.id,nm(dn(m.sal)))} on ${dlong(rdOf(m.sal))}.`,`קיבלתם תשלום מ‑${lk("tx:"+m.sal.id,nm(dn(m.sal)))} ב‑${dlong(rdOf(m.sal))}.`);
  if(ok)line+=`<br>${L(`That took your accounts up to about ${mi(m.start+m.inc)}.`,`זה העלה את החשבונות לכ‑${mi(m.start+m.inc)}.`)}`;
  return part("in","tp",L("Then, you received","אחר כך קיבלתם"),"in",mn(m.inc),line,ok?eq([L("Started with","התחלתם עם"),m.start,"now"],[L("Came in","נכנס"),m.inc,"in"],[L("Brought it to","הגיע ל‑"),m.start+m.inc,"now"]):"")}
 
