@@ -69,7 +69,8 @@ async function settle(p) {
 let busy = false;       // a scrape is running
 let assist = null;      // { company, browser, page, timer }
 
-const scrub = (msg, creds) => Object.values(creds || {}).reduce((m, v) => (v && String(v).length >= 3 ? m.split(String(v)).join("***") : m), String(msg)).slice(0, 200);
+// The message shown to the user: the library's stack trace is cut off (it filled the 200 characters the message used to be limited to, so the network notes after it were lost).
+const scrub = (msg, creds) => Object.values(creds || {}).reduce((m, v) => (v && String(v).length >= 3 ? m.split(String(v)).join("***") : m), String(msg).split(/\n\s+at /)[0].replace(/\s*\n\s*/g, " ")).slice(0, 700);
 
 const ARGS = [
   "--no-sandbox", "--disable-dev-shm-usage", "--disable-blink-features=AutomationControlled", `--window-size=${VIEW.width},${VIEW.height}`, "--lang=he-IL,he,en-US",
@@ -148,7 +149,7 @@ const netNote = (log, page) => { const k = [...new Set(log.key || [])].slice(-8)
 
 // A profile that is still signed in to American Express (an earlier login, or "Verify this device") makes the bank send the login page straight on to the signed-in site.
 // The library then posts its first request (ValidateIdData) from a page that has moved to another address, and it fails as "Failed to fetch".
-// So when the login page does not stay on the login page, the sign-in is dropped (first only the cookies that end with the browser, then, if needed, all of the bank's cookies) and the login page is loaded again.
+// So when the login page does not stay on the login page, the sign-in is dropped (first only the cookies that end with the browser, then, if needed, the cookies of the signed-in site) and the login page is loaded again.
 const CARD_SITES = new Set(["amex"]);
 async function freshLogin(p, company, go, args, res, net) {
   if (!CARD_SITES.has(company) || !/\/login/i.test(String(args[0]))) return res;
@@ -156,12 +157,13 @@ async function freshLogin(p, company, go, args, res, net) {
   if (onLogin()) return res;
   const host = EXTRA_DOMAINS[company] || [];
   const cdp = await p.createCDPSession();
+  // Only the sign-in is dropped: the cookies that end with the browser, then the cookies of the signed-in site (web.*). The cookies that make the bank's bot protection trust this browser stay.
   for (const all of [false, true]) {
     try {
       const { cookies } = await cdp.send("Network.getAllCookies");
-      const mine = cookies.filter((c) => host.some((h) => String(c.domain).replace(/^\./, "").endsWith(h)) && (all || c.session));
+      const mine = cookies.filter((c) => host.some((h) => String(c.domain).replace(/^\./, "").endsWith(h)) && (c.session || (all && /^web\./i.test(String(c.domain).replace(/^\./, "")))));
       for (const c of mine) await cdp.send("Network.deleteCookies", { name: c.name, domain: c.domain, path: c.path });
-      net.push(`login page went to ${shortUrl(p.url())}: dropped ${mine.length} ${all ? "" : "session "}cookies and tried again`);
+      net.push(`login page went to ${shortUrl(p.url())}: dropped ${mine.length} ${all ? "sign-in " : "session "}cookies (${mine.map((c) => c.name).slice(0, 12).join(", ")}) and tried again`);
       res = await go(...args); await settle(p);
       if (onLogin()) break;
     } catch (e) { net.push("could not reset the sign-in: " + String(e.message).slice(0, 80)); break; }
