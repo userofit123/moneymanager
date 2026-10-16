@@ -849,7 +849,7 @@ html.mob .txs{margin-top:0}
 .exgrid{grid-template-columns:repeat(auto-fill,minmax(172px,1fr))}.exgrp>.two{margin-bottom:0}
 html.he .exsamp td,html.he .exsamp th{direction:ltr;unicode-bidi:isolate;text-align:right}
 /* the export page stays two columns (with a sticky preview) on any window wider than 760px, also when the app is in its compact mode */
-.exside{position:sticky;top:16px}html.mob .exside{top:84px}@media(max-width:760px){.exlay{grid-template-columns:minmax(0,1fr)}.exside{position:static}}
+html body .exlay>aside.exside.card{position:sticky;top:16px}html.mob body .exlay>aside.exside.card{top:84px}@media(max-width:760px){.exlay{grid-template-columns:minmax(0,1fr)}html body .exlay>aside.exside.card{position:static}}
 </style>
 <script>
 (function(){var m=function(){var w=Math.min(innerWidth,document.documentElement.clientWidth||innerWidth),touch=matchMedia("(pointer:coarse)").matches;document.documentElement.classList.toggle("mob",w<=860||(touch&&w<=1100))};m();addEventListener("resize",m);addEventListener("orientationchange",m)})();
