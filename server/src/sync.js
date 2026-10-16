@@ -180,15 +180,17 @@ const allIds = async () => [...SOURCE_NAMES, ...(await q("SELECT source FROM cre
 let job = null;
 export const activeJob = () => {
   if (job?.expires && Date.now() > job.expires) job = null; // a verification window nobody closed
-  return job ? { source: job.source, kind: job.kind, since: job.since } : null;
+  return job ? { source: job.source, kind: job.kind, since: job.since, items: job.items || {} } : null;
 };
 const KIND = { test: "A test", sync: "A sync", assist: "A device verification" };
 const busyResult = () => ({ ok: false, busy: true, job: activeJob(), error: `${KIND[job.kind]} is already running (${job.source === "all" ? "all sources" : LABELS[baseOf(job.source)] || job.source}). Wait for it to finish.` });
 export function acquireJob(source, kind, ttlMs = 0) {
   if (activeJob()) return busyResult();
-  job = { source, kind, since: Date.now(), expires: ttlMs ? Date.now() + ttlMs : null };
+  job = { source, kind, since: Date.now(), expires: ttlMs ? Date.now() + ttlMs : null, items: {} };
   return null;
 }
+// what each connection of the running job is doing: waiting, syncing, done or failed (shown live in the app)
+const setItem = (name, patch) => { if (job) job.items[name] = { ...(job.items[name] || {}), ...patch }; };
 export const extendJob = (ttlMs) => { if (job?.expires) job.expires = Date.now() + ttlMs; };
 export const releaseJob = (kind) => { if (job && (!kind || job.kind === kind)) job = null; };
 async function withJob(source, kind, fn) {
@@ -203,9 +205,10 @@ export const syncSource = (name, opts = {}) => {
 };
 async function syncInner(name, opts = {}) {
   const creds = await getCreds(name);
-  if (!creds) return { ok: false, skipped: true, error: "not connected" };
+  if (!creds) { setItem(name, { state: "skipped" }); return { ok: false, skipped: true, error: "not connected" }; }
   const label = await labelOf(name);
-  if (await isLocked(name)) return { ok: false, locked: true, error: `${label} is locked after failed attempts. Check the credentials, then unlock it in Settings.` };
+  if (await isLocked(name)) { setItem(name, { state: "failed", msg: "locked after failed attempts" }); return { ok: false, locked: true, error: `${label} is locked after failed attempts. Check the credentials, then unlock it in Settings.` }; }
+  setItem(name, { state: "syncing", at: Date.now() });
   const run = await q("INSERT INTO sync_runs (source,origin) VALUES ($1,$2) RETURNING id", [name, opts.origin || "manual"]);
   try {
     const res = await RUN[baseOf(name)](creds, opts, { id: name, name: label });
@@ -214,6 +217,7 @@ async function syncInner(name, opts = {}) {
     await clearNotified(`fail:${name}`);
     if (res.added) await audit(null, "Sync", `${label} synced · ${res.added} new transactions`);
     await q("UPDATE app_meta SET value=(value::int+1)::text WHERE key='rev'");
+    setItem(name, { state: "done", added: res.added || 0 });
     return { ok: true, ...res };
   } catch (e) {
     const msg = scrub(e.message || e, Object.values(creds)); // never include credentials
@@ -221,6 +225,7 @@ async function syncInner(name, opts = {}) {
     await logError({ source: "sync", action: `Sync ${label} (${opts.origin || "manual"})`, error: e, message: msg, scrub: Object.values(creds), context: { connection: name, origin: opts.origin || "manual", days: opts.days || null } });
     const locked = await recordResult(name, false, msg, creds);
     await notifyOnce(`fail:${name}`, `Money · ${label} sync failed`, locked ? `${msg}\nAutomatic attempts are paused. Check the login, then unlock it in Settings.` : msg, "high");
+    setItem(name, { state: "failed", msg: String(msg).slice(0, 160) });
     return { ok: false, error: msg, locked };
   }
 }
@@ -234,6 +239,7 @@ async function testInner(name) {
   const creds = await getCreds(name);
   if (!creds) return { ok: false, error: "not connected" };
   if (await isLocked(name)) return { ok: false, locked: true, error: "Locked after failed attempts. Unlock it first." };
+  setItem(name, { state: "syncing", at: Date.now() });
   try {
     let out;
     if (baseOf(name) === "wise") {
@@ -245,11 +251,13 @@ async function testInner(name) {
     }
     await recordResult(name, true);
     await markTested(name);
+    setItem(name, { state: "done" });
     return { ok: true, ...out };
   } catch (e) {
     const msg = scrub(e.message || e, Object.values(creds));
     await logError({ source: "test", action: `Test connection: ${await labelOf(name)}`, error: e, message: msg, scrub: Object.values(creds), context: { connection: name } });
     const locked = await recordResult(name, false, msg, creds);
+    setItem(name, { state: "failed", msg: String(msg).slice(0, 160) });
     return { ok: false, error: msg, locked };
   }
 }
@@ -257,8 +265,9 @@ async function testInner(name) {
 export const syncAll = (origin = "manual") => withJob("all", "sync", () => syncAllInner(origin));
 async function syncAllInner(origin) {
   await refreshRates(7).catch((e) => console.error("rates:", e.message));
-  const out = {};
-  for (const s of await allIds()) out[s] = await syncInner(s, { origin });
+  const out = {}, ids = await allIds();
+  ids.forEach((s) => setItem(s, { state: "waiting" }));
+  for (const s of ids) out[s] = await syncInner(s, { origin });
   await fillJars().catch((e) => console.error("jars:", e.message));
   const open = (await q("SELECT count(*)::int AS n FROM balance_gaps WHERE status='open'")).rows[0].n;
   if (open) await notifyOnce(`gaps:${open}`, "Money · missing money", `${open} balance gap${open > 1 ? "s" : ""} to explain in Activity → Needs review`);
