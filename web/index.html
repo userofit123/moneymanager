@@ -816,6 +816,16 @@ html.mob .toast{border-radius:16px}
 html.mob .al{flex-wrap:wrap;row-gap:10px}html.mob .al>div:nth-child(2){flex:1 1 calc(100% - 30px)!important}html.mob .al>.flex,html.mob .al>.btn{margin-inline-start:22px}
 html.mob .txs{margin-top:0}
 @media (max-width:360px){html.mob main{padding-inline:12px}html.mob main>header{margin-inline:-12px;padding-inline:12px}html.mob .nb .ic{width:52px}html.mob .nb{font-size:11px}}
+
+/* entry window: details always shown, the bank's fields in the same style, side sections */
+.txside{border-inline-start:0;padding-inline-start:0}.txside>.txs2:first-child{margin-top:0}
+.txs2{border:1px solid var(--ol);border-radius:16px;background:var(--s1);overflow:hidden;margin-top:10px}.txs2>summary{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;list-style:none;user-select:none;font-weight:700;font-size:14px;transition:background .15s}.txs2>summary::-webkit-details-marker{display:none}.txs2>summary:hover{background:var(--s2)}.txs2>summary .sct{flex:1}
+.txs2>summary em{font-style:normal;font-weight:600;font-size:12px;background:var(--s2);color:var(--tx2);padding:1px 9px;border-radius:99px}.txs2>summary:hover em{background:var(--bg)}.txs2>summary .tfl{width:8px;height:8px;border-radius:50%;background:var(--c2);flex:none}
+.txs2>summary::after{content:"";width:7px;height:7px;border-right:2px solid var(--tx2);border-bottom:2px solid var(--tx2);transform:rotate(45deg);margin-top:-3px;transition:transform .18s,margin .18s;flex:none}.txs2[open]>summary::after{transform:rotate(-135deg);margin-top:3px}details.closing.txs2>summary::after{transform:rotate(45deg);margin-top:-3px}.txs2[open]>summary{border-bottom:1px solid var(--ol)}.txs2>.sbd{padding:14px 16px}
+.txs2 .fld{margin-bottom:12px}.txs2 .fld:last-child{margin-bottom:0}.txs2 .rel{background:var(--s2)}.txs2 .tiles{grid-template-columns:1fr}.txs2 .docrow{margin:0}
+.kvd{margin:0 -16px -4px;padding:0;border-top:1px solid var(--ol)}.kvd>summary{display:flex;align-items:center;gap:10px;padding:13px 16px;background:var(--s2);color:var(--tx);font-size:13px;font-weight:700;cursor:pointer;list-style:none;border-radius:0 0 15px 15px}.kvd>summary::before{display:none}.kvd>summary span{flex:1}.kvd>summary em{font-style:normal;font-weight:600;font-size:12px;background:var(--bg);color:var(--tx2);padding:1px 9px;border-radius:99px}
+.kvd>summary::after{content:"";width:7px;height:7px;border-right:2px solid var(--tx2);border-bottom:2px solid var(--tx2);transform:rotate(45deg);margin-top:-3px;transition:transform .18s,margin .18s;flex:none}.kvd[open]>summary::after{transform:rotate(-135deg);margin-top:3px}details.closing.kvd>summary::after{transform:rotate(45deg);margin-top:-3px}.kvd[open]>summary{border-radius:0}.kvd .kvr{padding:9px 16px;font-size:14px}.kvd .kvr .k{flex-basis:112px;font-size:12.5px}.kvd .kvr .v{font-family:inherit;font-size:14px}.kvd>.kvr:first-of-type{border-top:0}
+.kvc,.kvc .kvr{font-weight:400}.kvc .kvr .v{font-weight:500}
 </style>
 <script>
 (function(){var m=function(){var w=Math.min(innerWidth,document.documentElement.clientWidth||innerWidth),touch=matchMedia("(pointer:coarse)").matches;document.documentElement.classList.toggle("mob",w<=860||(touch&&w<=1100))};m();addEventListener("resize",m);addEventListener("orientationchange",m)})();
@@ -1511,7 +1521,7 @@ const TIC={bill:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/>',jar:'<pa
 const tIc=k=>`<svg viewBox="0 0 24 24">${TIC[k]}</svg>`;
 const TXD={},TXSTATE={};let TXO=0;/* every <details> in the app slides open and closed */
 document.addEventListener("click",e=>{const sm=e.target.closest&&e.target.closest("details>summary");if(!sm||e.defaultPrevented)return;const d=sm.parentElement;if(d.tagName!="DETAILS"||sm.parentElement.dataset.noanim!=null)return;e.preventDefault();
-const was=d.open;if(d.classList.contains("tsx"))TXSTATE[d.dataset.s]=!was;
+const was=d.open;if(d.classList.contains("tsx")||d.classList.contains("txs2"))TXSTATE[d.dataset.s]=!was;
 if(d._anim){d._anim.cancel();d._anim=null;d.style.height="";d.style.overflow=""}
 const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;if(reduce||!d.animate){d.open=!was;return}
 const done=()=>{d._anim=null;d.style.height="";d.style.overflow="";d.classList.remove("closing","opening")};
@@ -1547,7 +1557,7 @@ R("Reference",det.identifier||det.referenceNumber||det.id||(x&&x.externalId&&!/^
 if(det.account)R("Account number",det.account,{mono:true});
 R("Entry number","#"+t.id,{mono:true});
 const all=flat(det,"").filter(([k])=>!/^(account)$/.test(k)),
-raw=all.length?`<details class="kvd"><summary>All ${all.length} fields from the ${t.src=="wise"?"Wise":"bank"}</summary><div class="kvr hd"><span class="k">Field</span><span class="v">Value</span></div>${all.map(([k,v])=>`<div class="kvr"><span class="k">${esc(prettyKey(k))}</span><span class="v mono" data-tip="${esc(v.length>600?v.slice(0,600)+"…":v)}">${esc(v)}</span></div>`).join("")}</details>`:"";
+raw=all.length?`<details class="kvd"><summary><span>All fields from the ${t.src=="wise"?"Wise":"bank"}</span><em>${all.length}</em></summary>${all.map(([k,v])=>`<div class="kvr"><span class="k">${esc(prettyKey(k))}</span><span class="v" data-tip="${esc(v.length>600?v.slice(0,600)+"…":v)}">${esc(v)}</span></div>`).join("")}</details>`:"";
 const note=x==="load"?`<div class="kvn"><i class="spinner"></i> Loading everything the bank returned…</div>`:(!x||(t.src!="manual"&&!x.details))?`<div class="kvn">${t.src=="manual"?"Entered by hand, so there is nothing more from a bank.":"This one was imported before the app started keeping all of the bank\u2019s details. The extra details appear the next time this date is read again (for example with Import history)."}</div>`:"";
 return `<div class="kv">${rows.join("")}</div>${raw}${note}`}
 function loadTxDetails(id){const t=byId(id);if(!t)return;if(!t.hasDet){TXD[id]=TXD[id]||{details:null};return}if(TXD[id])return;fetch("/api/transactions/"+id+"/details",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{TXD[id]=j||{details:null};if(TXO==id&&$("txDet"))$("txDet").innerHTML=txDetailsHtml(t,TXD[id])}).catch(()=>{TXD[id]={details:null};if(TXO==id&&$("txDet"))$("txDet").innerHTML=txDetailsHtml(t,TXD[id])})}
@@ -1576,19 +1586,20 @@ canMark&&!t.jar&&jarsS().length?tile("jarAttach","jar","Attach to a jar",sg?"Loo
 canMark?tile("cpMark","card","Mark as a card payment","Paying a card bill, not spending","data-id=\""+t.id+"\""):"",
 real&&!xf&&!cp&&!ign?tile("moOpen","cal","Count in another month",rmOf(t)?"Counted in "+MNAME(rmOf(t))+" "+rmOf(t).slice(0,4):"Show it in an earlier or later month in reports","data-id=\""+t.id+"\""):"",
 real&&!xf&&!cp&&!ign&&!tw?tile("ignOn","off","Leave it out of totals","Do not count it as income or spending","data-id=\""+t.id+"\""):""].filter(Boolean).join("");
+const SX2=(key,title,html,suf,flag)=>`<details class="txs2" data-s="${key}" ${TXSTATE[key]?"open":""}><summary><span class="sct">${title}</span>${flag?`<i class="tfl" data-tip="${flag}"></i>`:""}${suf?`<em>${suf}</em>`:""}</summary><div class="sbd">${html}</div></details>`;
 const SX=(key,title,html,def,suf,flag)=>{const o=TXSTATE[key]!==undefined?TXSTATE[key]:def;return `<details class="tsx" data-s="${key}" ${o?"open":""}><summary class="tsec"><span>${title}</span>${suf?`<em>${suf}</em>`:""}${flag?`<i class="tfl" data-tip="${flag}"></i>`:""}</summary><div class="tsb">${html}</div></details>`};
 const cat0=!t.c||t.c=="Uncategorized",orgH=real&&!xf?`<div class="fld"><label>Display name</label><div style="display:flex;gap:6px"><input data-c="txname" data-id="${t.id}" value="${esc((S.cfg.renames||{})[t.id]||"")}" placeholder="${esc(dn(t))}" maxlength="80" style="flex:1;min-width:0"><button class="btn o s" data-a="nameRuleFrom" data-id="${t.id}">Rule…</button></div></div><div class="two"><div class="fld"><label>Category</label><select data-c="txcat" data-id="${t.id}"><option value="">Uncategorized</option>${catNames().filter(k=>k!="Uncategorized").map(k=>`<option ${k==t.c?"selected":""}>${esc(k)}</option>`).join("")}</select></div><div class="fld"><label>Tags</label>${tagEd("tx",t.id,t.tags)}</div></div>`:"",
 noteH=real?`<div class="fld"><label>Note</label><textarea data-c="note" data-id="${t.id}" rows="2" placeholder="Add a note">${esc(t.note||"")}</textarea></div>`:`<div class="sm">Added automatically from a transfer. It cannot be edited.</div>`,
 nRel=relH?(relH.match(/class="rel/g)||[]).length:0,amb=/class="rel amber/.test(relH),nTiles=tiles?(tiles.match(/class="atile/g)||[]).length:0;
 openSheet(`<div class="txp"><div class="txgrid2"><div class="txmain"><div class="txh2">${avT(t)}<div class="tt"><h3>${esc(dn(t))}</h3><div class="sm">${dstr(t.d)}${t.from&&t.to?" · "+esc(t.from)+" → "+esc(t.to):(t.from||t.to?" · "+esc(t.from||t.to):"")}</div></div><div class="txam"><b class="num ${t.a>0&&!xf?"pos":""}">${amtT(t)}</b>${t.orig?`<div class="sm">${SYM[t.orig.cur]||""}${f(t.orig.amt)} ${t.orig.cur}</div>`:""}</div></div>
 <div class="txchips"><span class="tb ${kind[1]}">${kind[0]}</span>${real&&!xf&&t.c?`<span class="chip catl" data-a="goCat" data-cat="${esc(t.c)}"><span class="dot" style="background:${cc(t.c)}"></span>${esc(t.c)}</span>`:""}${chipsT(t)}${(t.tags||[]).map(g=>`<span class="tag catl" data-a="goTag" data-tag="${esc(g)}">${esc(g)}</span>`).join("")}</div>
-${SX("det","Transaction details",`<div class="kvc" id="txDet">${txDetailsHtml(t,t.hasDet&&!TXD[id]?"load":TXD[id]||null)}</div>`,true)}
+<div class="kvc" id="txDet">${txDetailsHtml(t,t.hasDet&&!TXD[id]?"load":TXD[id]||null)}</div>
 </div><aside class="txside">
-${real&&!xf?SX("org","Organise",orgH+noteH,true,cat0?"":esc(t.c)):(real?SX("org","Note",noteH,false):"")}
-${relH?SX("rel","Related",`<div class="rels">${relH}</div>`,amb,nRel,amb?"Something here needs a look":""):""}
-${tiles?SX("act","Actions",`<div class="tiles">${tiles}</div>`,false,nTiles):""}
-${real?SX("doc","Documents",`<div class="docrow">${t.docs.map((d,i)=>`<button class="chip dchip" data-a="openDocs" data-id="${t.id}" data-i="${i}">${tIc("clip")}${esc(d)}</button>`).join("")}<label class="btn o s upl">+ Attach a receipt<input type="file" data-c="txfile" data-id="${t.id}" accept="image/*,application/pdf" multiple hidden></label></div>`,false,t.docs.length||""):""}
-${h.length?SX("hist","History",`<table class="htab"><thead><tr><th>When</th><th>Change</th><th>Details</th></tr></thead><tbody>${h.map(a=>`<tr><td class="hw">${new Date(a.t).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</td><td class="ha">${esc(a.action)}</td><td class="hd2" data-tip="${esc(a.detail||"")}">${esc(a.detail||"")}</td></tr>`).join("")}</tbody></table>`,false,h.length):""}
+${real&&!xf?SX2("org","Organise",orgH+noteH,cat0?"":esc(t.c)):(real?SX2("org","Note",noteH):"")}
+${relH?SX2("rel","Related",`<div class="rels">${relH}</div>`,nRel,amb?"Something here needs a look":""):""}
+${tiles?SX2("act","Actions",`<div class="tiles">${tiles}</div>`,nTiles):""}
+${real?SX2("doc","Documents",`<div class="docrow">${t.docs.map((d,i)=>`<button class="chip dchip" data-a="openDocs" data-id="${t.id}" data-i="${i}">${tIc("clip")}${esc(d)}</button>`).join("")}<label class="btn o s upl">+ Attach a receipt<input type="file" data-c="txfile" data-id="${t.id}" accept="image/*,application/pdf" multiple hidden></label></div>`,t.docs.length||""):""}
+${h.length?SX2("hist","History",`<table class="htab"><thead><tr><th>When</th><th>Change</th><th>Details</th></tr></thead><tbody>${h.map(a=>`<tr><td class="hw">${new Date(a.t).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</td><td class="ha">${esc(a.action)}</td><td class="hd2" data-tip="${esc(a.detail||"")}">${esc(a.detail||"")}</td></tr>`).join("")}</tbody></table>`,h.length):""}
 </aside></div>
 <div class="txfoot"><button class="btn o" data-a="txCopy" data-id="${t.id}">Copy details</button><button class="btn" data-a="close">Done</button></div></div>`);$("sheet").classList.add("txw");loadTxDetails(id)}
 
