@@ -146,6 +146,30 @@ function watchNet(p, log) {
 }
 const netNote = (log, page) => { const k = [...new Set(log.key || [])].slice(-8), u = [...new Set(log.filter((x) => !(log.key || []).includes(x)))].slice(-3); let where = ""; try { if (page) where = shortUrl(page.url()); } catch { /* closed */ } const all = [...k, ...u]; return (all.length ? " · " + all.join("; ") : "") + (where ? " · stopped on: " + where : ""); };
 
+// A profile that is still signed in to American Express or Isracard (an earlier login, or "Verify this device") makes the bank send the login page straight on to the signed-in site.
+// The library then posts its first request (ValidateIdData) from a page that has moved to another address, and it fails as "Failed to fetch".
+// So when the login page does not stay on the login page, the sign-in is dropped (first only the cookies that end with the browser, then, if needed, all of the bank's cookies) and the login page is loaded again.
+const CARD_SITES = new Set(["amex", "isracard"]);
+async function freshLogin(p, company, go, args, res, net) {
+  if (!CARD_SITES.has(company) || !/\/login/i.test(String(args[0]))) return res;
+  const onLogin = () => { try { return /\/login/i.test(p.url()); } catch { return true; } };
+  if (onLogin()) return res;
+  const host = EXTRA_DOMAINS[company] || [];
+  const cdp = await p.createCDPSession();
+  for (const all of [false, true]) {
+    try {
+      const { cookies } = await cdp.send("Network.getAllCookies");
+      const mine = cookies.filter((c) => host.some((h) => String(c.domain).replace(/^\./, "").endsWith(h)) && (all || c.session));
+      for (const c of mine) await cdp.send("Network.deleteCookies", { name: c.name, domain: c.domain, path: c.path });
+      net.push(`login page went to ${shortUrl(p.url())}: dropped ${mine.length} ${all ? "" : "session "}cookies and tried again`);
+      res = await go(...args); await settle(p);
+      if (onLogin()) break;
+    } catch (e) { net.push("could not reset the sign-in: " + String(e.message).slice(0, 80)); break; }
+  }
+  try { await cdp.detach(); } catch { /* closed */ }
+  return res;
+}
+
 // An empty reply to the very first request (ValidateIdData) means the bank's bot protection had not let the page through yet. Nothing was checked
 // against the bank, so no login attempt was used: wait a little and try once more in a fresh browser before giving up.
 async function scrape(company, credentials, startDate, profile) {
@@ -169,7 +193,7 @@ async function scrapeOnce(company, credentials, startDate, profile) {
       companyId: COMPANIES[company], startDate: new Date(startDate), combineInstallments: false, showBrowser: false,
       timeout: 120000, defaultTimeout: 90000, navigationRetryCount: 3, skipCloseBrowser: true, verbose: false, browser,
       viewportSize: { ...VIEW },
-      preparePage: async (p) => { page = p; clearInterval(snapTimer); snapTimer = setInterval(() => grab(p), 1500); p.on("framenavigated", () => setTimeout(() => grab(p), 700)); watchNet(p, net); await look(p); const go = p.goto.bind(p); p.goto = async (...a) => { const r = await go(...a); await settle(p); return r; }; },
+      preparePage: async (p) => { page = p; clearInterval(snapTimer); snapTimer = setInterval(() => grab(p), 1500); p.on("framenavigated", () => setTimeout(() => grab(p), 700)); watchNet(p, net); await look(p); const go = p.goto.bind(p); p.goto = async (...a) => { let r = await go(...a); await settle(p); r = await freshLogin(p, company, go, a, r, net); return r; }; },
     });
     const r = await s.scrape(credentials);
     if (!r.success) throw new Error(`${r.errorType || "error"}: ${r.errorMessage || "login failed"}${netNote(net, page)}`);
