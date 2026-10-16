@@ -589,5 +589,9 @@ Object.assign(D,{"What these totals cover":"מה הסכומים האלה כול�
 P.unshift([/^Totals for (\d+) transactions?(?: · (.+))?$/,(n,r)=>"סיכום של "+n+" תנועות"+(r?" · "+T(r):"")]);
 Object.assign(D,{"Charges the bank still lists as pending":"חיובים שהבנק עדיין מציג כממתינים","Pending charges are not settled by the bank yet. They are already counted in the balance and listed in Activity as pending. This goes away by itself when they settle.":"חיובים ממתינים עדיין לא נסגרו בבנק. הם כבר נספרים ביתרה ורשומים בפעילות כממתינים. ההתראה הזו נעלמת מעצמה כשהם נסגרים."});
 P.unshift([/^(.+): (\d+) pending charges? \((.+)\)$/,(n,c,a)=>n+": "+(+c==1?"חיוב ממתין אחד":c+" חיובים ממתינים")+" ("+a+")"]);
+Object.assign(D,{"not seen yet":"עוד לא נראה","The bank has not listed this charge yet. It stays here until the charge appears. A prediction from your past payments, not a transaction yet. It is not counted in your totals. Click to open the bill.":"הבנק עוד לא רשם את החיוב הזה. הוא נשאר כאן עד שהחיוב יופיע. זו תחזית לפי התשלומים הקודמים שלכם, עדיין לא תנועה. היא לא נספרת בסכומים. לחצו כדי לפתוח את החשבון."});
+P.unshift([/^(.+): (.+) left, probably (.+)$/,(a,m,n)=>a+": "+m+" יצאו, כנראה "+n],
+[/^(.+) \(about (.+)\) was expected around (.+) and the bank has not listed it yet\. This closes by itself when the transaction appears\. If it does not, open it in Needs review\.$/,(n,m,d)=>n+" (בערך "+m+") היה צפוי בסביבות "+d+" והבנק עוד לא רשם אותו. ההתראה נסגרת מעצמה כשהתנועה מופיעה. אם זה לא קורה, פתחו אותה ב״לבדיקה״."],
+[/^This looks like (.+) \(about (.+)\), expected around (.+)\. The bank has not listed it yet, so nothing is needed from you\. It closes by itself when the transaction appears\.$/,(n,m,d)=>"זה נראה כמו "+n+" (בערך "+m+"), צפוי בסביבות "+d+". הבנק עוד לא רשם אותו, ולכן אין צורך שתעשו משהו. זה נסגר מעצמו כשהתנועה מופיעה."]);
 P.splice(0,P.length,...P.filter(p=>typeof p[1]=="function"));
 })();
