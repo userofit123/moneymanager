@@ -4,6 +4,14 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.8.1] - 2026-10-16
+
+### App
+- **American Express: a leftover sign-in no longer breaks the connection test or sync.** If the saved browser is still signed in (for example after "Verify this device"), the bank sends the login page on to the signed-in site and the first request failed with "Failed to fetch". The app now drops that sign-in (first the cookies that end with the browser, then, only if needed, all of the bank's cookies) and loads the login page again. Other banks are not affected.
+
+### Windows app
+- Includes all of the above.
+
 ## [0.8.0] - 2026-10-16
 
 ### App
