@@ -146,10 +146,10 @@ function watchNet(p, log) {
 }
 const netNote = (log, page) => { const k = [...new Set(log.key || [])].slice(-8), u = [...new Set(log.filter((x) => !(log.key || []).includes(x)))].slice(-3); let where = ""; try { if (page) where = shortUrl(page.url()); } catch { /* closed */ } const all = [...k, ...u]; return (all.length ? " · " + all.join("; ") : "") + (where ? " · stopped on: " + where : ""); };
 
-// A profile that is still signed in to American Express or Isracard (an earlier login, or "Verify this device") makes the bank send the login page straight on to the signed-in site.
+// A profile that is still signed in to American Express (an earlier login, or "Verify this device") makes the bank send the login page straight on to the signed-in site.
 // The library then posts its first request (ValidateIdData) from a page that has moved to another address, and it fails as "Failed to fetch".
 // So when the login page does not stay on the login page, the sign-in is dropped (first only the cookies that end with the browser, then, if needed, all of the bank's cookies) and the login page is loaded again.
-const CARD_SITES = new Set(["amex", "isracard"]);
+const CARD_SITES = new Set(["amex"]);
 async function freshLogin(p, company, go, args, res, net) {
   if (!CARD_SITES.has(company) || !/\/login/i.test(String(args[0]))) return res;
   const onLogin = () => { try { return /\/login/i.test(p.url()); } catch { return true; } };
