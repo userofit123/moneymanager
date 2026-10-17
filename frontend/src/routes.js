@@ -4,7 +4,7 @@
 export const BASE = "/app";
 export const pages = [
   { name: "recap", path: "/recap", old: "/recap", nav: true, icon: "M4 18h16M7 18a5 5 0 0 1 10 0M12 4v3M5.6 8.6l1.8 1.8M18.4 8.6l-1.8 1.8" },
-  { name: "home", path: "/home", old: "/", nav: true, main: true, icon: "M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" },
+  { name: "home", path: "/home", nav: true, main: true, icon: "M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z", component: () => import("./views/Home.vue") },
   { name: "accounts", path: "/accounts", old: "/accounts", nav: true, icon: "M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 10h18M16 15h2" },
   { name: "activity", path: "/activity", nav: true, main: true, icon: "M4 6h16M4 12h16M4 18h10", component: () => import("./views/Activity.vue") },
   { name: "jars", path: "/jars", old: "/jars", nav: true, main: true, icon: "M7 3h10v3H7zM6 6h12v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z" },
