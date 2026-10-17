@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [Unreleased]
 
 ### App
+- **Behind the scenes (new app, next step):** the new version at `/app/` now has the same menu as the current app (side menu on a computer, bottom bar on a phone) and real page addresses like `/app/activity`. Its Activity page now has the Needs review list (transfers, possible duplicates, balance changes), the transaction window with all its details, the "Tag more like this?" offer, and finds card bill payments exactly like the current app. Pages that have not moved yet show a link to the same page in the current app. Nothing in the current app changes.
 - **The new version of the app now looks like the current one.** It uses the same colors (light and dark), fonts, cards, buttons and lists, and has the building blocks the new screens need: tabs, labels, text boxes, drop-downs, on/off switches, pop-up windows that slide up on phones, short explanations on hover, money amounts, progress bars and "nothing here yet" messages. Hebrew works right to left in all of them.
 - **Pages now have real addresses.** Going to Jars shows `/jars` instead of `#jars` (and `/settings`, `/activity` and so on). You can open or share any of them directly, and the back button works. Old `#jars` links still open the right page.
 - **The number on a menu item stays visible when you point at it.** It is no longer covered by the highlight.

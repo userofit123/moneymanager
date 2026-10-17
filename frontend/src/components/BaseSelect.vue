@@ -25,6 +25,7 @@ label { font-size: 12px; color: var(--tx2); font-weight: 600; }
 .box { position: relative; display: flex; align-items: center; }
 select { appearance: none; inline-size: 100%; font-size: var(--fs); padding-block: 10px; padding-inline: 14px 40px; border-radius: 14px; border: 1px solid var(--ol); background: var(--s1); color: var(--tx); min-height: 42px; cursor: pointer; }
 select:focus { outline: 2px solid var(--acc); outline-offset: 1px; }
-.arrow { position: absolute; inset-inline-end: 14px; color: var(--tx2); pointer-events: none; }
+.arrow { position: absolute; inset-inline-end: 14px; inset-block-start: 50%; translate: 0 -50%; color: var(--tx2); pointer-events: none; }
+:global(html.he .box .arrow) { inset: 50% auto auto 14px; }
 .msg { font-size: var(--fs-sm); color: var(--tx2); }
 </style>
