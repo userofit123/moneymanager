@@ -161,7 +161,7 @@ function aheadPart(m){const tot=m.cash-m.end;if(tot<1)return"";const bm={...m,bi
  return part("ahead","",L("You still have to pay","עוד תצטרכו לשלם"),"ahead",mn(tot),L("That is your credit card charges, your bills, the rest of your budgets and what your jars pay for.","אלה חיובי האשראי, התשלומים הקבועים, מה שנשאר מהתקציבים ומה שהקופות משלמות.")+rest+jr,aheadBar(bm)+upList(m))}
 
 // the same release the Jars page offers: when jars and cushion hold more than the accounts can cover after upcoming bills and budgets
-const relBtn=()=>{const o=jarFree().over;return o>0?`<div class="rkfix"><button class="btn" data-a="jarRelease">${L(`Take ${mi(Math.min(o,jarFree().inJars))} back from the jars`,`החזירו ${mi(Math.min(o,jarFree().inJars))} מהקופות`)}</button></div>`:""};
+const relBtn=()=>{const o=jarFree().over;return o>0?`<div class="rkfix"><p>${L("Your jars and cushion need more than your accounts will hold after these payments. This lowers what is saved in your jars, starting with the least important, until it fits. Nothing moves in your bank.","הקופות והכרית צריכות יותר ממה שיהיה בחשבונות אחרי התשלומים האלה. הכפתור מוריד את הסכום שנשמר בקופות, מהפחות חשובה ועד שזה מסתדר. שום דבר לא זז בבנק.")}</p><button class="btn" data-a="jarRelease">${L(`Take ${mi(Math.min(o,jarFree().inJars))} back from the jars`,`החזירו ${mi(Math.min(o,jarFree().inJars))} מהקופות`)}</button></div>`:""};
 // why a budget needs attention, with a bar showing how much is used (and where it is heading)
 function budRow(b){const lim=Math.max(1,b.lim),u=Math.min(100,b.s/lim*100),pc=Math.min(100,b.pace/lim*100);
  const why=b.st=="over"?L(`Over its limit by ${mi(b.s-b.lim)}: ${mi(b.s)} spent of ${mi(b.lim)}.`,`חרג מהמסגרת ב‑${mi(b.s-b.lim)}: הוצאתם ${mi(b.s)} מתוך ${mi(b.lim)}.`)
