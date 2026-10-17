@@ -6,7 +6,15 @@ const day = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d.
 export function sampleState() {
   return {
     rev: "sample",
-    accounts: [{ n: "Main bank", kind: "bank" }, { n: "Savings", kind: "bank" }, { n: "Visa card", kind: "card" }],
+    accounts: [{ n: "Main bank", kind: "bank", v: 18400, cur: "ILS", inNW: true, at: day(0) }, { n: "Savings", kind: "bank", v: 9000, cur: "ILS", inNW: true, at: day(0) }, { n: "Visa card", kind: "card", v: 0, cur: "ILS" }],
+    jarsBuffer: 5000,
+    jars: [
+      { id: "j1", n: "Trip to Greece", p: 1, bal: 6200, need: 12000, cap: 1000, got: 1000, due: day(-300), desc: "Flights and hotel for the summer." },
+      { id: "j2", n: "Car insurance", p: 2, bal: 1400, need: 3600, cap: 300, got: 0 },
+      { id: "j3", n: "Rainy day", p: 3, bal: 2500, need: 0, cap: 500, got: 250, cats: [{ c: "Home", since: day(60) }] },
+      { id: "j4", n: "New laptop", p: 4, bal: 4000, need: 4000, cap: 0, got: 0 },
+      { id: "j5", n: "Old sofa", p: 0, bal: 0, need: 2500, cap: 0, done: day(90) },
+    ],
     cats: { Food: 1, Transport: 1, Home: 1, Fun: 1, Income: 1 },
     tagRules: [], xf: [{ o: "s5", i: "s6", st: "ok" }], txIgnore: {}, ccOverride: {},
     tx: [

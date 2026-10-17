@@ -148,6 +148,8 @@ export function homeModel(S, now = new Date(), fx = {}) {
     groups, cards, recent, upcoming, budgets: budgetsSorted, jars, spend, rate,
     flow: { cash: cashNow, inJars, buffer, saved: inJars + buffer, free, over, R, jarsHeld: jarsS.filter((j) => heldOf(j) > 0).sort((a, b) => heldOf(b) - heldOf(a)).map((j) => ({ n: j.n, v: heldOf(j) })), spend, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a) })) },
     has, any,
+    // For the Jars page: bill names by their match text, and six months of income and spending (this one last).
+    billNames: Object.fromEntries(BC.map((b) => [b.match, b.n])), hist,
   };
 }
 

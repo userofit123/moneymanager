@@ -7,7 +7,7 @@ export const pages = [
   { name: "home", path: "/home", nav: true, main: true, icon: "M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z", component: () => import("./views/Home.vue") },
   { name: "accounts", path: "/accounts", old: "/accounts", nav: true, icon: "M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 10h18M16 15h2" },
   { name: "activity", path: "/activity", nav: true, main: true, icon: "M4 6h16M4 12h16M4 18h10", component: () => import("./views/Activity.vue") },
-  { name: "jars", path: "/jars", old: "/jars", nav: true, main: true, icon: "M7 3h10v3H7zM6 6h12v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z" },
+  { name: "jars", path: "/jars", nav: true, main: true, icon: "M7 3h10v3H7zM6 6h12v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z", component: () => import("./views/Jars.vue") },
   { name: "bills", path: "/bills", old: "/bills", nav: true, main: true, icon: "M6 3h12v18H6zM8 8h8M8 12h8M8 16h5" },
   { name: "budgets", path: "/budgets", old: "/budgets", nav: true, icon: "M12 3a9 9 0 1 0 9 9h-9z M14 3.2A9 9 0 0 1 20.8 10H14z" },
   { name: "reports", path: "/reports", old: "/reports", nav: true, icon: "M4 20V10M10 20V4M16 20v-7M22 20H2" },
