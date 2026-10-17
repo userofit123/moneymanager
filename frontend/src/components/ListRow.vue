@@ -29,5 +29,5 @@ defineEmits(["click"]);
 .sub { color: var(--muted); font-size: .875rem; }
 .end { font-weight: 600; white-space: nowrap; }
 .chev { color: var(--muted); flex: none; }
-:global(html.he) .chev { transform: scaleX(-1); }
+:global(html.he .chev) { transform: scaleX(-1); }
 </style>
