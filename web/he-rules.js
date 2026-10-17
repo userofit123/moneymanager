@@ -374,6 +374,7 @@ P.unshift(
 [/^(Irregular|One-off)(?: · (.*?))?(?: · (paid .+|no payment found))?$/,(k,src,tail)=>(k=="Irregular"?"לא קבוע":"חד‑פעמי")+(src?" · "+src:"")+(tail?" · "+(tail=="no payment found"?"לא נמצא תשלום":"שולם ב־"+tail.slice(5)):"")],
 [/^Payment (\d+) of (\d+) ·$/,(a,b)=>"תשלום "+a+" מתוך "+b+" ·"],
 [/^Across (\d+) categories$/,n=>"על פני "+n+" קטגוריות"],
+[/^Where the month is now: today is day (\d+) of (\d+)\. If the colour reaches past this line, you are spending faster than the month is passing\.$/,(a,b)=>"איפה אנחנו בחודש: היום הוא יום "+a+" מתוך "+b+". אם הצבע עובר את הקו הזה, אתם מוציאים מהר יותר ממה שהחודש מתקדם."],
 [/^(\d+)% of budget · (\d+)% of the month gone$/,(a,b)=>a+"% מהתקציב · "+b+"% מהחודש עבר"],
 [/^About (.+) per day for the rest of the month$/,a=>"בערך "+a+" ליום עד סוף החודש"],
 [/^(.+) left · (.+) per day$/,(a,b)=>"נשארו "+a+" · "+b+" ליום"],

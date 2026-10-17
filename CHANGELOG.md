@@ -9,6 +9,11 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ### App
 - **Pages now have real addresses.** Going to Jars shows `/jars` instead of `#jars` (and `/settings`, `/activity` and so on). You can open or share any of them directly, and the back button works. Old `#jars` links still open the right page.
 - **The number on a menu item stays visible when you point at it.** It is no longer covered by the highlight.
+- **The line on each budget bar is easier to see and use.** It now sticks out above and below the bar, and the small cut-off info icon is gone. Point at the line (or tap it on a phone) to see what it means: where the month is now. In Hebrew the line is now on the correct side too. The mouse pointer over it is always the normal arrow, never a question mark.
+- **Recap explains the "Take back from the jars" button.** A short note now says why it shows up and what it does: it only lowers what is saved in your jars, nothing moves in your bank.
+- **Settings is easier to find your way around.** The sections are now in five clear groups: You and the app, Banks and cards, Your data, Alerts, and About. On phones the group names show between the buttons.
+- **The Categories page is now called "Categories and tags".** Its tabs are ordered with your categories and tags first, then the automatic rules. "Other rules" is now "Card and salary rules".
+- **App icon fixed.** The browser tab, the home-screen icon and the installed app now always show the coin icon. Before, the tab could show a ₪ sign instead. Old copies are refreshed automatically.
 - **Live updates.** A change now shows in every open window and device within a second, with no refresh. A new bank sync or a changed category appears everywhere on its own.
 - **Smoother animations:** the Recap page and other animated numbers no longer slow the whole app down while they count up, so scrolling and movement feel smooth.
 - **Sidebar highlight:** when you switch pages, the highlight now stretches and glides smoothly to the new item. It no longer jumps to the side when it starts, or keeps moving after it lands.

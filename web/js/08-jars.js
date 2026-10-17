@@ -444,9 +444,11 @@ document.addEventListener("mouseout",e=>{if(tipPin)return;const t=e.target.close
 document.addEventListener("mousedown",tipOff);document.addEventListener("keydown",tipOff);addEventListener("scroll",tipOff,{passive:true,capture:true});
 document.addEventListener("touchstart",e=>{const t=e.target.closest("[data-tip]");if(!t)return;tipOff();tipTimer=setTimeout(()=>{tipShow(t);tipHide=setTimeout(tipOff,4500)},450)},{passive:true});
 document.addEventListener("touchend",()=>{clearTimeout(tipTimer)},{passive:true});
+// the budget pace line has no (i): a tap on it (or on the space around it) opens its tooltip
+document.addEventListener("click",e=>{const u=e.target.closest&&e.target.closest("u[data-tip]");if(!u)return;tipOff();tipShow(u,e);tipEl=u;tipHide=setTimeout(tipOff,4500)});
 // Every explanatory tooltip gets a small (i) next to its label. Touching or clicking it opens the tooltip at once (there is no hover on a phone);
 // hovering it, or the section it sits in, opens it too. The tooltip stays until you tap somewhere else.
-const TI_NO="button:not(.jst),a,input,select,textarea,option,td,tr,th,i,svg,.jpm,.mh,.dchip,.v";
+const TI_NO="button:not(.jst),a,input,select,textarea,option,td,tr,th,i,u,svg,.jpm,.mh,.dchip,.v";
 function tipIcons(){document.querySelectorAll("[data-tip]:not([data-ti])").forEach(el=>{el.dataset.ti="1";if(el.closest("svg")||el.matches(TI_NO)||el.querySelector(":scope > .tinfo"))return;
 const host=el.querySelector(":scope > .lbl")||(el.firstElementChild&&el.firstElementChild.matches("span,b,div")&&el.children.length>1?el.firstElementChild:null)||el;
 host.insertAdjacentHTML("beforeend",'<i class="tinfo" role="button" tabindex="0" aria-label="More info"></i>')})}
