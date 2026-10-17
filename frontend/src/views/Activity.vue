@@ -5,6 +5,7 @@ import { ref, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
 import BaseCard from "../components/BaseCard.vue";
+import PageHeader from "../components/PageHeader.vue";
 import BaseTabs from "../components/BaseTabs.vue";
 import BaseSelect from "../components/BaseSelect.vue";
 import BaseButton from "../components/BaseButton.vue";
@@ -186,7 +187,7 @@ onMounted(() => data.start());
 
 <template>
   <div class="activity">
-    <h1>{{ t("activity.title") }}</h1>
+    <PageHeader :title="t('activity.title')" />
     <BaseTabs v-model="tab" :options="tabs" :label="t('activity.title')" />
 
     <template v-if="tab === 'all'">
@@ -394,7 +395,7 @@ onMounted(() => data.start());
 
 <style scoped>
 .activity { display: flex; flex-direction: column; gap: var(--sp4); }
-h1 { margin: 0; }
+.activity > header { margin-bottom: 6px; }
 .tools, .filters { display: grid; gap: var(--sp3); grid-template-columns: 2fr 1fr 1fr; align-items: end; }
 .filters { grid-template-columns: repeat(4, 1fr) auto; }
 .search { display: flex; align-items: center; gap: 8px; border: 1px solid var(--ol); border-radius: 14px; background: var(--s1); padding-inline: 12px; min-height: 42px; }

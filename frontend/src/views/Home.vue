@@ -9,6 +9,7 @@ import { pages } from "../routes.js";
 import { hrefOf, onLink } from "../router.js";
 import { formatMoney, currencySymbol } from "../format.js";
 import BaseCard from "../components/BaseCard.vue";
+import PageHeader from "../components/PageHeader.vue";
 import BaseTabs from "../components/BaseTabs.vue";
 import BaseTooltip from "../components/BaseTooltip.vue";
 import BaseButton from "../components/BaseButton.vue";
@@ -118,8 +119,7 @@ const nm = (x) => displayName(S.value, x);
 
 <template>
   <div class="home">
-    <h1>{{ t("nav.home") }}</h1>
-    <div class="date muted">{{ new Date().toLocaleDateString(loc, { weekday: "long", day: "numeric", month: "long" }) }}</div>
+    <PageHeader :title="t('nav.home')" />
 
     <p v-if="data.error.value && !S" class="muted">{{ t("home.loadError") }}</p>
     <p v-else-if="!S" class="muted">{{ t("home.loading") }}</p>
@@ -300,11 +300,9 @@ const nm = (x) => displayName(S.value, x);
 
 <style scoped>
 .home { display: flex; flex-direction: column; gap: 0; overflow-x: clip; }
-.date { margin: 2px 0 var(--sp5); }
-h2 { display: flex; justify-content: space-between; align-items: center; gap: var(--sp3); font-size: 15px; font-weight: 600; margin: var(--sp6) 0 var(--sp3); }
 .g2 h2 { margin-top: 0; }
-.g2 { margin-top: var(--sp6); }
-.hl, .hl2 { color: var(--acc); font-size: var(--fs-sm); font-weight: 600; text-decoration: none; cursor: pointer; }
+.g2 { margin-top: 28px; }
+.hl2 { color: var(--acc); font-weight: 600; text-decoration: none; cursor: pointer; text-transform: none; letter-spacing: 0; }
 .mo { font-weight: 400; color: var(--tx2); }
 .grid { display: grid; gap: 16px; }
 .g4 { grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); }
