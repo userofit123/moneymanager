@@ -134,6 +134,24 @@ app.post("/api/errors", json, wrap(async (req, res) => { // an error that happen
 app.delete("/api/errors", wrap(async (_req, res) => { await clearErrors(); res.json({ ok: true }); }));
 app.get("/api/state", wrap(async (_req, res) => { res.set("Cache-Control", "no-store"); res.json(await getState()); }));
 app.get("/api/rev", wrap(async (_req, res) => { res.set("Cache-Control", "no-store"); res.json({ rev: parseInt((await q("SELECT value FROM app_meta WHERE key='rev'")).rows[0].value, 10) }); }));
+// Live updates: the page keeps this connection open and is told the moment the data changes.
+const liveClients = new Set();
+let liveRev = null, liveTimer = null;
+async function liveTick() {
+  try {
+    const rev = parseInt((await q("SELECT value FROM app_meta WHERE key='rev'")).rows[0].value, 10);
+    if (liveRev !== null && rev !== liveRev) for (const r of liveClients) r.write(`event: rev\ndata: ${rev}\n\n`);
+    liveRev = rev;
+  } catch { /* try again on the next tick */ }
+}
+app.get("/api/events", (req, res) => {
+  res.set({ "Content-Type": "text/event-stream", "Cache-Control": "no-store", Connection: "keep-alive", "X-Accel-Buffering": "no" });
+  res.flushHeaders?.();
+  res.write("retry: 3000\n\n");
+  liveClients.add(res);
+  if (!liveTimer) { liveTimer = setInterval(() => { liveTick(); for (const r of liveClients) r.write(": ping\n\n"); }, 1500); liveTimer.unref?.(); }
+  req.on("close", () => { liveClients.delete(res); if (!liveClients.size) { clearInterval(liveTimer); liveTimer = null; liveRev = null; } });
+});
 app.put("/api/state", json, wrap(async (req, res) => {
   try { res.json(await putState(req.body)); }
   catch (e) { if (e instanceof StaleError) return res.status(409).json({ error: "stale", state: await getState() }); throw e; }
@@ -357,7 +375,7 @@ app.use((req, res, next) => {
 // so a new page is never run with old scripts or old translations.
 app.get(["/", "/index.html"], (_req, res, next) => {
   try {
-    const html = fs.readFileSync(path.join(WEB, "index.html"), "utf8").replace(/(<script src=")([\w.-]+\.js)(")/g, (m, a, f, z) => {
+    const html = fs.readFileSync(path.join(WEB, "index.html"), "utf8").replace(/(<script src="|<link rel="stylesheet" href=")([\w./-]+\.(?:js|css))(")/g, (m, a, f, z) => {
       try { return `${a}${f}?v=${Math.round(fs.statSync(path.join(WEB, f)).mtimeMs)}${z}`; } catch { return m; }
     });
     res.set("Cache-Control", "no-cache").type("html").send(html);
