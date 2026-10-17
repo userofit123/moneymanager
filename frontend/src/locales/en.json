@@ -1,0 +1,18 @@
+{
+  "app": {
+    "title": "Money",
+    "intro": "This is the new version of the app, being built step by step. The current app still works as before.",
+    "backToApp": "Go back to the app",
+    "otherLanguage": "עברית"
+  },
+  "common": {
+    "close": "Close"
+  },
+  "demo": {
+    "cardTitle": "Your money at a glance",
+    "rowTitle": "Everyday account",
+    "rowSub": "Money you can use right now",
+    "rowHelpTitle": "What is this?",
+    "rowHelp": "This is a sample row. Real screens will show your own accounts here."
+  }
+}

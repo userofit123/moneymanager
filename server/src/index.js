@@ -1,6 +1,7 @@
 import express from "express";
 import { logError, noteRequest, listErrors, clearErrors, systemInfo, recentActions } from "./errlog.js";
 import fs from "node:fs";
+import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { migrate, q, audit, pool } from "./db.js";
@@ -382,6 +383,30 @@ const sendIndex = (_req, res, next) => {
   } catch { next(); }
 };
 app.get(["/", "/index.html"], sendIndex);
+// The new Vue app lives under /app/ (built by Vite into web/app). In dev, VITE_DEV_URL points at the Vite dev server and /app/ is forwarded to it, including hot reload.
+let devUpgrade = null;
+if (process.env.VITE_DEV_URL) {
+  const target = new URL(process.env.VITE_DEV_URL);
+  const forward = (req, res) => {
+    const p = http.request({ host: target.hostname, port: target.port, path: req.originalUrl, method: req.method, headers: { ...req.headers, host: target.host } }, (r) => { res.writeHead(r.statusCode, r.headers); r.pipe(res); });
+    p.on("error", () => res.status(502).type("text").send("The Vite dev server is not running yet."));
+    req.pipe(p);
+  };
+  app.use("/app", forward);
+  devUpgrade = (req, socket, head) => {
+    if (!req.url.startsWith("/app/")) return socket.destroy();
+    const p = http.request({ host: target.hostname, port: target.port, path: req.url, method: req.method, headers: { ...req.headers, host: target.host } });
+    p.on("upgrade", (r, s, h) => {
+      socket.write(`HTTP/1.1 101 Switching Protocols\r\n${Object.entries(r.headers).map(([k, v]) => `${k}: ${v}`).join("\r\n")}\r\n\r\n`);
+      if (h.length) socket.write(h);
+      s.pipe(socket).pipe(s);
+    });
+    p.on("error", () => socket.destroy());
+    p.end(head);
+  };
+} else {
+  app.get(/^\/app\/(?!assets\/).*$/, (req, res, next) => (path.extname(req.path) ? next() : res.set("Cache-Control", "no-cache").sendFile(path.join(WEB, "app", "index.html"), (e) => e && next())));
+}
 app.use(express.static(WEB, { extensions: ["html"] }));
 // Page addresses like /jars open the app, which then shows that page. Old #jars links still work.
 app.get(/^\/(recap|dash|tx|activity|acc|accounts|jars|bills|budg|budgets|rep|reports|fc|forecast|alerts|cats|categories|set|settings)\/?$/, sendIndex);
@@ -395,6 +420,7 @@ export async function start() {
   await ensureDefaults({ demoAccounts: false });
   const port = +process.env.PORT || 8080;
   httpServer = app.listen(port, process.env.HOST || undefined, () => console.log("money manager on :" + port)); // HOST=127.0.0.1 keeps it local (the desktop app)
+  if (devUpgrade) httpServer.on("upgrade", devUpgrade);
   if (process.env.SCHEDULER !== "0") { startScheduler(); bk.startBackups(); }
   refreshRates().catch((e) => console.error("rates:", e.message)).then(async () => {
     if (process.env.AUTO_DEMO_SEED !== "1") return;

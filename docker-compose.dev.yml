@@ -3,9 +3,14 @@
 # web/ changes: refresh the page (the offline cache can need a second refresh).
 # server/src or server/migrations changes: docker compose -f docker-compose.yml -f docker-compose.dev.yml restart app
 # server/package.json changes (new dependencies): run the up -d --build command again.
+# frontend/ (the new Vue app) changes: hot reload, nothing to do. https://money.local/app/ updates by itself as you save.
+#   The 'vite' container runs the Vite dev server; the app forwards /app/ to it (VITE_DEV_URL).
 # Back to the published image: docker compose up -d --force-recreate app
 services:
   app:
+    environment:
+      VITE_DEV_URL: http://vite:5173
+    networks: [backend, scraper_net, egress, vite_net]
     image: moneymanager-dev
     build:
       context: .
@@ -15,3 +20,15 @@ services:
       - ./server/src:/app/server/src:ro
       - ./server/migrations:/app/server/migrations:ro
       - ./CHANGELOG.md:/app/CHANGELOG.md:ro
+  vite:
+    image: node:22-alpine
+    working_dir: /src/frontend
+    command: sh -c "npm ci && npm run dev"
+    volumes:
+      - ./frontend:/src/frontend
+      - vite_node_modules:/src/frontend/node_modules
+    networks: [vite_net]
+networks:
+  vite_net: {}    # not internal: the Vite container needs the internet once, to install its packages
+volumes:
+  vite_node_modules:

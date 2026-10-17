@@ -1,0 +1,23 @@
+@font-face{font-family:Inter;src:url(/fonts/inter-latin.woff2) format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:Inter;src:url(/fonts/inter-ils-400.woff2) format("woff2");font-weight:100 450;font-style:normal;font-display:swap;unicode-range:U+20AA}
+@font-face{font-family:Inter;src:url(/fonts/inter-ils-500.woff2) format("woff2");font-weight:451 550;font-style:normal;font-display:swap;unicode-range:U+20AA}
+@font-face{font-family:Inter;src:url(/fonts/inter-ils-600.woff2) format("woff2");font-weight:551 650;font-style:normal;font-display:swap;unicode-range:U+20AA}
+@font-face{font-family:Inter;src:url(/fonts/inter-ils-700.woff2) format("woff2");font-weight:651 750;font-style:normal;font-display:swap;unicode-range:U+20AA}
+@font-face{font-family:Inter;src:url(/fonts/inter-ils-800.woff2) format("woff2");font-weight:751 900;font-style:normal;font-display:swap;unicode-range:U+20AA}
+/* Look of the new app: the same calm, Material-like style as the current app. Use these values, never colors typed in by hand. */
+:root {
+  color-scheme: light dark;
+  --bg: #f7f8fc; --surface: #ffffff; --fg: #1d2033; --muted: #5d6280; --line: #e2e5f0;
+  --accent: #4355b9; --accent-fg: #ffffff; --accent-soft: #e6e9fb;
+  --radius: 16px; --gap: 16px; --shadow: 0 1px 3px rgba(20, 24, 60, .12);
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #14161f; --surface: #1e212d; --fg: #e8eaf5; --muted: #a3a8c3; --line: #2e3244; --accent: #9aa8ff; --accent-fg: #14161f; --accent-soft: #2a2f4d; --shadow: 0 1px 3px rgba(0, 0, 0, .5); }
+}
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: Inter, "Segoe UI", Roboto, system-ui, sans-serif; -webkit-font-smoothing: antialiased; line-height: 1.5; }
+button { font: inherit; }
+* { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--fg) 28%, transparent) transparent; }
+/* Hebrew, same as the current app: <html> stays left to right so the scrollbar stays on the right; only the content is right to left. */
+html.he body { direction: rtl; }
+html.he svg { direction: ltr; }
+html.he .num { direction: ltr; unicode-bidi: isolate; }

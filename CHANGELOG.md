@@ -18,6 +18,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 - **Smoother animations:** the Recap page and other animated numbers no longer slow the whole app down while they count up, so scrolling and movement feel smooth.
 - **Sidebar highlight:** when you switch pages, the highlight now stretches and glides smoothly to the new item. It no longer jumps to the side when it starts, or keeps moving after it lands.
 - **Behind the scenes:** the app page was split into smaller files, and the Hebrew texts were merged into two files. The app looks and works the same.
+- **Behind the scenes (new app, step 1):** a new version of the app is being built next to the current one, at `/app/`. For now it is only a starting page with a sample card, with English and Hebrew and right-to-left built in (the page direction now follows the language at once, both ways). Nothing in the current app changes.
 
 ### Windows app
 - Includes everything above.

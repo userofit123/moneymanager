@@ -1,0 +1,12 @@
+node_modules
+**/node_modules
+.git
+.env
+.claude
+data
+secrets
+desktop
+docs
+web/app
+frontend/dist
+*.log
