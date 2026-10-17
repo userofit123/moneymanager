@@ -1,0 +1,17 @@
+# Live development: the app runs the code in this folder instead of the published image.
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+# web/ changes: refresh the page (the offline cache can need a second refresh).
+# server/src or server/migrations changes: docker compose -f docker-compose.yml -f docker-compose.dev.yml restart app
+# server/package.json changes (new dependencies): run the up -d --build command again.
+# Back to the published image: docker compose up -d --force-recreate app
+services:
+  app:
+    image: moneymanager-dev
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    volumes:
+      - ./web:/app/web:ro
+      - ./server/src:/app/server/src:ro
+      - ./server/migrations:/app/server/migrations:ro
+      - ./CHANGELOG.md:/app/CHANGELOG.md:ro
