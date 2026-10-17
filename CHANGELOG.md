@@ -4,6 +4,15 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [Unreleased]
+
+### App
+- **Live updates.** A change now shows in every open window and device within a second, with no refresh. A new bank sync or a changed category appears everywhere on its own.
+- **Behind the scenes:** the app page was split into smaller files, and the Hebrew texts were merged into two files. The app looks and works the same.
+
+### Windows app
+- Includes everything above.
+
 ## [0.11.0] - 2026-10-16
 
 ### App
