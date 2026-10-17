@@ -24,3 +24,10 @@ button, input, select, textarea { font: inherit; }
 html.he body { direction: rtl; }
 html.he svg { direction: ltr; }
 html.he .num { direction: ltr; unicode-bidi: isolate; }
+/* Account and number icons (web/css/app.css .bi), drawn by brands.js. */
+.bi { flex: none; width: 28px; height: 28px; border-radius: 9px; display: inline-grid; place-items: center; background: color-mix(in srgb, var(--bc, var(--acc)) 13%, transparent); color: color-mix(in srgb, var(--bc, var(--acc)) 68%, var(--tx)); font: 700 13px/1 var(--font); letter-spacing: 0; text-transform: none; }
+.bi svg { width: 16px; height: 16px; display: block; }
+.bi svg.f { fill: currentColor; }
+.bi svg.s { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.bi.w { font-size: 11px; letter-spacing: -.2px; }
+.card.hero .bi { background: color-mix(in srgb, var(--onc) 18%, transparent); color: var(--onc); }

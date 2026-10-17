@@ -10,6 +10,7 @@ import { hrefOf, onLink } from "../router.js";
 import { formatMoney, currencySymbol } from "../format.js";
 import BaseCard from "../components/BaseCard.vue";
 import PageHeader from "../components/PageHeader.vue";
+import { brandIcon, glyphIcon } from "../brands.js";
 import BaseTabs from "../components/BaseTabs.vue";
 import BaseTooltip from "../components/BaseTooltip.vue";
 import BaseButton from "../components/BaseButton.vue";
@@ -137,7 +138,7 @@ const nm = (x) => displayName(S.value, x);
         <div class="grid g4 kpis">
           <div v-for="c in kpis" :key="c.key" class="kt" :class="{ hero: c.hero }"><BaseTooltip :text="c.tip">
             <BaseCard :hero="c.hero" class="kpi">
-              <div class="lbl"><span class="gl" :style="{ background: c.hero ? 'color-mix(in srgb, var(--onc) 18%, transparent)' : 'color-mix(in srgb, ' + (c.col || 'var(--acc)') + ' 16%, transparent)', color: c.hero ? 'var(--onc)' : c.col || 'var(--acc)' }" aria-hidden="true">{{ { worth: "₪", income: "↓", expense: "↑", net: "=" }[c.key] }}</span><span>{{ c.label }}</span></div>
+              <div class="lbl"><span class="gi" v-html="glyphIcon(c.key, { worth: 'var(--acc)', income: 'var(--pos)', expense: 'var(--neg)', net: 'var(--acc)' }[c.key])" /><span>{{ c.label }}</span></div>
               <div class="val num" dir="ltr"><small>₪</small>{{ c.key === "net" && c.v < 0 ? "−" : "" }}{{ n0(c.v) }}</div>
               <div class="sm">{{ c.sub }}</div>
               <svg v-if="c.spark" class="spark" viewBox="0 0 200 46" preserveAspectRatio="none" aria-hidden="true">
@@ -152,7 +153,7 @@ const nm = (x) => displayName(S.value, x);
           <h2>{{ t("home.accounts") }}<a class="hl" :href="link('accounts')" @click="onLink">{{ t("home.all") }}</a></h2>
           <div class="grid g3">
             <BaseCard v-for="g in M.groups" :key="g.n" class="acc" :style="g.manual ? 'opacity:.85' : ''">
-              <div class="lbl"><span class="av" aria-hidden="true">{{ g.n[0] }}</span><span>{{ g.n }}</span><span v-if="accSub(g).chips" class="chip">{{ accSub(g).chips }}</span></div>
+              <div class="lbl"><span class="gi" v-html="brandIcon(g.n, g.L[0].src, g.L[0].kind, g.L[0].ck)" /><span>{{ g.n }}</span><span v-if="accSub(g).chips" class="chip">{{ accSub(g).chips }}</span></div>
               <div class="val num" dir="ltr"><small>₪</small>{{ n0(g.total) }}</div>
               <div class="sm">
                 <template v-if="accSub(g).lines">
@@ -170,7 +171,7 @@ const nm = (x) => displayName(S.value, x);
           <div class="grid g3">
             <div v-for="c in M.cards" :key="c.n" class="kt"><BaseTooltip :text="c.wise ? t('home.wiseCardTip') : t('home.cardTip')">
               <BaseCard>
-                <div class="lbl"><span class="av" aria-hidden="true">{{ c.n[0] }}</span><span>{{ c.n }} · {{ c.wise ? t("home.paidNow") : t("home.upcomingCharge") }}</span></div>
+                <div class="lbl"><span class="gi" v-html="brandIcon(c.n, c.acc?.src, c.acc?.kind || 'card', c.acc?.ck)" /><span>{{ c.n }} · {{ c.wise ? t("home.paidNow") : t("home.upcomingCharge") }}</span></div>
                 <div class="val num" dir="ltr"><small>₪</small>{{ n0(c.now) }}</div>
                 <div class="sm">{{ t("home.lastMonthAmount", { amount: fm(c.last) }) }} <span v-if="c.last" class="bd" :class="c.now - c.last > 0 ? 'up' : 'dn'" dir="ltr">{{ c.now - c.last > 0 ? "▲" : "▼" }} {{ Math.round(Math.abs(c.now - c.last) / c.last * 100) }}%</span></div>
                 <div class="pbar"><i :style="{ inlineSize: Math.min(100, c.now / Math.max(c.now, c.last, 1) * 100) + '%', background: c.now - c.last > 0 ? 'var(--neg)' : 'var(--pos)' }" /></div>
@@ -314,7 +315,7 @@ const nm = (x) => displayName(S.value, x);
 .kt :deep(.card) { height: 100%; }
 .lbl { font-size: 13px; color: var(--tx2); display: flex; align-items: center; gap: 8px; font-weight: 500; }
 :deep(.hero) .lbl, :deep(.hero) .sm { color: color-mix(in srgb, var(--onc) 75%, transparent); }
-.gl { width: 26px; height: 26px; border-radius: 9px; display: inline-grid; place-items: center; font-size: 13px; font-weight: 700; flex: none; }
+.gi { display: contents; }
 .val { font-size: 32px; font-weight: 600; margin: 8px 0 2px; letter-spacing: -1px; text-align: start; }
 html.he .val { text-align: end; }
 .val small { font-size: .55em; font-weight: 500; opacity: .6; margin-inline-end: 2px; }
