@@ -373,15 +373,18 @@ app.use((req, res, next) => {
 });
 // The page's own scripts get ?v=<last change> in their address. An older copy kept by the browser or the service worker has a different address,
 // so a new page is never run with old scripts or old translations.
-app.get(["/", "/index.html"], (_req, res, next) => {
+const sendIndex = (_req, res, next) => {
   try {
     const html = fs.readFileSync(path.join(WEB, "index.html"), "utf8").replace(/(<script src="|<link rel="stylesheet" href=")([\w./-]+\.(?:js|css))(")/g, (m, a, f, z) => {
       try { return `${a}${f}?v=${Math.round(fs.statSync(path.join(WEB, f)).mtimeMs)}${z}`; } catch { return m; }
     });
     res.set("Cache-Control", "no-cache").type("html").send(html);
   } catch { next(); }
-});
+};
+app.get(["/", "/index.html"], sendIndex);
 app.use(express.static(WEB, { extensions: ["html"] }));
+// Page addresses like /jars open the app, which then shows that page. Old #jars links still work.
+app.get(/^\/(recap|dash|tx|activity|acc|accounts|jars|bills|budg|budgets|rep|reports|fc|forecast|alerts|cats|categories|set|settings)\/?$/, sendIndex);
 
 let httpServer = null;
 // closes the web server and the database cleanly (the desktop app calls this when it quits)

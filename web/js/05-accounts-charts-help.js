@@ -24,7 +24,7 @@ ln.setAttribute("x1",x);ln.setAttribute("x2",x);ln.style.display="";let ty=null;
 tp.innerHTML=c.tip(i);tp.style.display="flex";const w=tp.offsetWidth,h=tp.offsetHeight,px=x/k;if(c.multi){tp.style.left=Math.max(0,Math.min(r.width-w,px+w+16>r.width?px-w-14:px+14))+"px";tp.style.top="4px"}else{tp.style.left=Math.max(0,Math.min(r.width-w,px-w/2))+"px";tp.style.top=Math.max(0,((ty==null?c.y0+20:ty)/k)-h-12)+"px"}};
 const hide=()=>{ln.style.display="none";dots.forEach(d=>d.style.display="none");tp.style.display="none"};
 svg.addEventListener("pointermove",show);svg.addEventListener("pointerdown",show);svg.addEventListener("pointerleave",hide)})}
-{let q=0;new MutationObserver(()=>{if(q)return;q=requestAnimationFrame(()=>{q=0;try{hoverInit(document)}catch(e){}})}).observe(document.body,{childList:true,subtree:true})}
+{let q=0;new MutationObserver(ms=>{if(mmQuiet(ms)||q)return;q=requestAnimationFrame(()=>{q=0;try{hoverInit(document)}catch(e){}})}).observe(document.body,{childList:true,subtree:true})}
 function accSvg(vals,labels,color,full){const cw=($("acc")&&$("acc").clientWidth)||Math.min(innerWidth-110,1100),W=Math.max(300,Math.round(cw-48)),H=W<520?190:230,Pl=W<520?38:46,Pr=10,Pt=14,Pb=26,mx=Math.max(1,...vals),mn=Math.min(0,...vals),x=i=>Pl+i*(W-Pl-Pr)/Math.max(1,vals.length-1),y=v=>H-Pb-(v-mn)/(mx-mn||1)*(H-Pb-Pt);let g="";
 for(let k=0;k<=3;k++){const v=mn+(mx-mn)*k/3,yy=y(v);g+=`<line class="gl" x1="${Pl}" x2="${W-Pr}" y1="${yy}" y2="${yy}" stroke-dasharray="3 5"/><text x="${Pl-6}" y="${yy+4}" text-anchor="end">${Math.abs(v)>=1000?(v/1000).toFixed(Math.abs(v)>=10000?0:1)+"k":Math.round(v)}</text>`}
 const pts=vals.map((v,i)=>x(i)+","+y(v)).join(" ");
@@ -147,7 +147,7 @@ const at=[...el.children].find(c=>c.matches("a,.h2r,.chip,button,.hl,.cnt,.seg,.
 // open the panel (if it is closed) and bring the section the ? belongs to into view
 function helpAt(k,block){const go=()=>{const he=!!(window.HE&&HE.on),en=((window.HELP||{}).en||{})[k],i=en?(en.blocks||[]).findIndex(x=>x.h==block):-1;if(i<0)return;const e=$("hs"+i);if(!e)return;e.scrollIntoView({behavior:"smooth",block:"start"});e.classList.remove("hflash");void e.offsetWidth;e.classList.add("hflash")};
 if(!HELPOPEN||$("help").getAttribute("aria-hidden")=="true"){helpSet(true);setTimeout(go,120)}else go()}
-{let q=0;new MutationObserver(()=>{if(q)return;q=requestAnimationFrame(()=>{q=0;try{helpDots()}catch(e){}})}).observe(document.body,{childList:true,subtree:true})}
+{let q=0;new MutationObserver(ms=>{if(mmQuiet(ms)||q)return;q=requestAnimationFrame(()=>{q=0;try{helpDots()}catch(e){}})}).observe(document.body,{childList:true,subtree:true})}
 function helpSet(on){HELPOPEN=on;document.documentElement.classList.toggle("help-on",on);$("help").setAttribute("aria-hidden",on?"false":"true");$("helpBtn").setAttribute("aria-expanded",on?"true":"false");try{localStorage.setItem("moneyHelp",on?"1":"0")}catch(e){}if(on)helpRender()}
 /* ---------- version and updates ---------- */
 // The Windows app updates itself (the desktop shell reports its state through window.desktop). The Docker version only checks whether a newer

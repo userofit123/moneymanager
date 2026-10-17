@@ -228,8 +228,8 @@ function wireBars(el,m){const w=el.querySelector(".rkbw");if(!w)return;const svg
 
 /* ---------- fading in and animating as it comes into view ---------- */
 let IO=null,CUR=null,RO=null,BOUND=false;
-function countUp(el){const to=+el.dataset.v||0;if(!to||REDUCE())return;const t0=performance.now(),D=1100;el.textContent="0";
- (function step(now){const k=Math.min(1,(now-t0)/D),e=1-Math.pow(1-k,3);el.textContent=f(Math.round(to*e));if(k<1&&document.body.contains(el))requestAnimationFrame(step);else el.textContent=f(to)})(t0)}
+function countUp(el){const to=+el.dataset.v||0;if(!to||REDUCE())return;const t0=performance.now(),D=1100;el.setAttribute("data-cu","1");el.textContent="0";
+ (function step(now){const k=Math.min(1,(now-t0)/D),e=1-Math.pow(1-k,3);el.textContent=f(Math.round(to*e));if(k<1&&document.body.contains(el))requestAnimationFrame(step);else{el.removeAttribute("data-cu");el.textContent=f(to)}})(t0)}
 const showIn=(x,animate)=>{if(x.classList.contains("in"))return;x.classList.add("in");if(!animate){x.classList.add("st");return}x.querySelectorAll(".cnt").forEach(countUp)};
 // the title and the first part fade in as they come into view
 function reveal(box,animate){if(IO){IO.disconnect();IO=null}

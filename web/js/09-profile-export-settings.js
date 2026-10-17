@@ -67,19 +67,26 @@ document.body.appendChild(d);d.dataset.v=cur;d.addEventListener("click",e=>{if(e
 document.addEventListener("keydown",function k(e){if(e.key=="Escape"&&$("updPop")){updSeen(cur);updClose();setTimeout(profileAsk,350)}if(!$("updPop"))document.removeEventListener("keydown",k)});
 const b=d.querySelector('[data-a=updOk]');if(b)b.focus()}
 /* ---------- the sidebar highlight glides from one item to the next, like the tab bars ---------- */
-const NBP={el:null,last:null,anim:null};
-function navPill(animate){const nv=document.querySelector("nav");if(!nv)return;const b=nv.querySelector(".nb.on[data-v]"),ic=b&&b.querySelector(".ic");let p=NBP.el;
-if(!b||!ic||!b.offsetWidth){if(p)p.style.display="none";nv.classList.remove("pl");return}
-if(!p||!p.isConnected){p=NBP.el=document.createElement("i");p.className="nbi";nv.prepend(p)}
-const w=ic.offsetWidth,h=ic.offsetHeight,x=b.offsetLeft+ic.offsetLeft,y=b.offsetTop+ic.offsetTop,vert=!document.documentElement.classList.contains("mob");
-p.style.display="";p.style.width=w+"px";p.style.height=h+"px";p.style.borderRadius=getComputedStyle(ic).borderTopLeftRadius;nv.classList.add("pl");
-const to={x,y},from=NBP.last;if(NBP.anim){NBP.anim.cancel();NBP.anim=null}
-p.style.transform=`translate(${x}px,${y}px)`;NBP.last=to;
-if(!animate||!from||(from.x===x&&from.y===y)||matchMedia("(prefers-reduced-motion:reduce)").matches)return;
-const d=vert?Math.abs(y-from.y):Math.abs(x-from.x),mn={x:Math.min(x,from.x),y:Math.min(y,from.y)};
-const k=.3,mid=vert?{transform:`translate(${x+w*(1-k)/2}px,${mn.y}px)`,height:(h+d)+"px",width:(w*k)+"px",offset:.5}:{transform:`translate(${mn.x}px,${y+h*(1-k)/2}px)`,width:(w+d)+"px",height:(h*k)+"px",offset:.5}; // thinner while it travels, full size again when it lands
-NBP.anim=p.animate([{transform:`translate(${from.x}px,${from.y}px)`,height:h+"px",width:w+"px"},mid,{transform:`translate(${x}px,${y}px)`,height:h+"px",width:w+"px"}],{duration:350,easing:"cubic-bezier(.4,0,.2,1)"});
-NBP.anim.onfinish=()=>{NBP.anim=null}}
+const NBP={el:null,cur:null,anim:null,at:null,D:300};
+/* The highlight is one rounded box. A click stretches it towards the new item (the edge facing the item leaves first, the other edge follows, and it gets thinner while it travels), then it settles on the item.
+   The whole move is worked out once and handed to the browser as one "transform" animation, so it runs smoothly even while the new page is being drawn, and position and size can never get out of step. */
+function navPill(animate){const nv=document.querySelector("nav");if(!nv)return;let p=NBP.el;
+const b=nv.querySelector(".nb.on[data-v]"),ic=b&&b.querySelector(".ic");
+if(!b||!ic||!b.offsetWidth){if(p)p.style.display="none";nv.classList.remove("pl");NBP.cur=null;if(NBP.anim){NBP.anim.cancel();NBP.anim=null}return}
+if(!p||!p.isConnected){p=NBP.el=document.createElement("i");p.className="nbi";p.style.transformOrigin="0 0";nv.prepend(p)}
+const to={x:b.offsetLeft+ic.offsetLeft,y:b.offsetTop+ic.offsetTop,w:ic.offsetWidth,h:ic.offsetHeight};
+let from=NBP.cur;if(NBP.anim){if(NBP.at)from=NBP.at(Math.min(1,(NBP.anim.currentTime||0)/NBP.D));NBP.anim.cancel();NBP.anim=null}
+p.style.display="";p.style.width=to.w+"px";p.style.height=to.h+"px";p.style.borderRadius=getComputedStyle(ic).borderTopLeftRadius;nv.classList.add("pl");
+const set=r=>`translate(${r.x}px,${r.y}px) scale(${r.w/to.w},${r.h/to.h})`;
+p.style.transform=set(to);NBP.cur=to;
+if(!animate||!from||(from.x===to.x&&from.y===to.y&&from.w===to.w&&from.h===to.h)||matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+const vert=!document.documentElement.classList.contains("mob"),clamp=u=>Math.max(0,Math.min(1,u)),ease=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
+const a0=vert?from.y:from.x,a1=vert?to.y:to.x,l0=vert?from.h:from.w,l1=vert?to.h:to.w,c0=vert?from.x:from.y,c1=vert?to.x:to.y,m=vert?to.w:to.h,b0=a0+l0,b1=a1+l1,fwd=(a1+b1)>=(a0+b0);
+NBP.at=u=>{const lead=1-Math.pow(1-clamp(u/.65),3),trail=ease(clamp((u-.25)/.75)),A=a0+(a1-a0)*(fwd?trail:lead),B=b0+(b1-b0)*(fwd?lead:trail),
+ nr=1-.55*Math.sin(Math.PI*u),c=c0+(c1-c0)*ease(u),len=Math.max(1,B-A),th=m*nr,cc=c+(m-th)/2;
+ return vert?{x:cc,y:A,w:th,h:len}:{x:A,y:cc,w:len,h:th}};
+const N=24,frames=[];for(let i=0;i<=N;i++){const u=i/N,r=i==N?to:NBP.at(u);frames.push({transform:set(r),offset:u})}
+NBP.anim=p.animate(frames,{duration:NBP.D,easing:"linear"});NBP.anim.onfinish=()=>{NBP.anim=null}}
 new ResizeObserver(()=>navPill(false)).observe(document.querySelector("nav"));new MutationObserver(()=>navPill(false)).observe(document.documentElement,{attributes:true,attributeFilter:["data-rad","data-nav","data-nsp","class"]});addEventListener("resize",()=>navPill(false));if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>navPill(false));
 suggUI();boot();setTimeout(()=>navPill(false),50);
 /* ---------- export: choose exactly what leaves the app (a file on this device, nothing is sent anywhere) ---------- */
@@ -173,7 +180,7 @@ L.forEach(n=>{if(n.parentElement.closest("b"))return;const v=n.nodeValue,f=docum
 if(lead){const lm=/^(\s*[^:.\n]{3,30}:)(?=\s)/.exec(v);if(lm&&/(causes|נפוצות)/.test(lm[1])){const b=document.createElement("b");b.textContent=lm[1];f.appendChild(b);start=lm[1].length;last=start;any=true}}
 re.lastIndex=start;while((m=re.exec(v))){if(m.index>=last){if(m.index>last)f.appendChild(document.createTextNode(v.slice(last,m.index)));const b=document.createElement("b");b.textContent=m[0];f.appendChild(b);last=m.index+m[0].length;any=true}if(m[0].length==0)re.lastIndex++}
 if(any){if(last<v.length)f.appendChild(document.createTextNode(v.slice(last)));n.replaceWith(f)}})})}
-new MutationObserver(()=>{if(!busy&&!q)q=requestAnimationFrame(()=>{pass();trPass();caps();titleCase();emph()})}).observe(document.body,{childList:true,subtree:true,characterData:true});pass();trPass();caps();titleCase();emph()})();
+new MutationObserver(ms=>{if(mmQuiet(ms))return;if(!busy&&!q)q=requestAnimationFrame(()=>{pass();trPass();caps();titleCase();emph()})}).observe(document.body,{childList:true,subtree:true,characterData:true});pass();trPass();caps();titleCase();emph()})();
 
 (()=>{const sh=document.getElementById("sheet");let y0=null,dy=0,ok=false;
 sh.addEventListener("touchstart",e=>{if(!document.documentElement.classList.contains("mob"))return;y0=e.touches[0].clientY;dy=0;ok=sh.scrollTop<=0||!!e.target.closest(".grab");sh.style.transition="none"},{passive:true});
@@ -190,12 +197,12 @@ sc.addEventListener("touchmove",e=>e.preventDefault(),{passive:false})})();
 (()=>{const sc=document.getElementById("scrim"),dv=document.getElementById("docv"),as=document.getElementById("assist");
 const open=()=>sc.classList.contains("on")||!!DV||as.style.display=="block";
 try{history.scrollRestoration="manual"}catch(e){}
-history.replaceState({v:location.hash.slice(1)||"dash"},"");
+history.replaceState({v:location.hash.slice(1)||viewFromPath()||"dash"},"");
 const sync=()=>{const o=open(),st=history.state||{};if(o&&!st.o)history.pushState({o:1,v:curView},"",location.href);else if(!o&&st.o)history.back()};
 const mo=new MutationObserver(sync);mo.observe(sc,{attributes:true,attributeFilter:["class"]});mo.observe(as,{attributes:true,attributeFilter:["style"]});mo.observe(dv,{attributes:true,attributeFilter:["style","class"]});
 addEventListener("popstate",e=>{const st=e.state||{};
 if(open()){if(as.style.display=="block")assistClose();else if(DV)closeDocs();else closeSheet();if(open())history.pushState({o:1,v:curView},"",location.href);return}
-const v=st.v||location.hash.slice(1)||"dash";if(TITLES[v]&&v!=curView)nav(v,true)})})();
+const v=st.v||location.hash.slice(1)||viewFromPath()||"dash";if(TITLES[v]&&v!=curView)nav(v,true)})})();
 
 (()=>{const box=document.getElementById("nwc");if(!box)return;
 box.addEventListener("change",e=>{const t=e.target;if(t.dataset.t=="trM"){TR.m=t.value;saveTR();renderNW()}else if(t.dataset.t=="trC"){TR.c=t.checked;saveTR();renderNW()}else if(t.dataset.t=="trP"){S.nwPension=t.checked;save();renderNW()}});
