@@ -2,6 +2,7 @@
 // so every screen shows the same numbers and all of them update together when something changes.
 import { ref, shallowRef } from "vue";
 import { connectLive } from "../live.js";
+import { sampleOn, sampleState } from "./sample.js";
 
 const getJson = async (url) => {
   const r = await fetch(url, { cache: "no-store" });
@@ -43,4 +44,7 @@ export function createDataStore({ fetchJson = getJson, connect = connectLive } =
   return { state, loading, error, load, start, end };
 }
 
-export const data = createDataStore();
+// ?sample=1 on the test site shows made-up data instead (see sample.js).
+export const data = sampleOn()
+  ? createDataStore({ fetchJson: async (url) => (url === "/api/rev" ? { rev: "sample" } : sampleState()), connect: () => () => {} })
+  : createDataStore();
