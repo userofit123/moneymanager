@@ -84,6 +84,7 @@ Only the accounts you connect or import appear in the app. Nothing is pre-filled
   - **Dockhand, Watchtower and similar:** point them at the stack or containers; they compare the image tag (`latest`) and update when it changes.
   - **Terminal:** `docker compose pull && docker compose up -d`.
   - To pin a version, set `MM_VERSION=0.6.1` in `.env`. To build from the source in this folder instead: `docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build`.
+  - To work on the code: `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build` runs the app from this folder. Edits in `web/` show on a page refresh; edits in `server/src` need `docker compose -f docker-compose.yml -f docker-compose.dev.yml restart app`.
 
 ## Screenshots
 Light and dark, desktop and phone. Made from the demo data (`docs/screenshots`, regenerate with `scripts/screenshots.mjs`).
