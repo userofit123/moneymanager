@@ -6,13 +6,37 @@
     "otherLanguage": "עברית"
   },
   "common": {
-    "close": "Close"
+    "close": "Close",
+    "whatIsThis": "What is this?"
   },
   "demo": {
     "cardTitle": "Your money at a glance",
     "rowTitle": "Everyday account",
     "rowSub": "Money you can use right now",
     "rowHelpTitle": "What is this?",
-    "rowHelp": "This is a sample row. Real screens will show your own accounts here."
+    "rowHelp": "This is a sample row. Real screens will show your own accounts here.",
+    "thisMonth": "This month",
+    "lastMonth": "Last month",
+    "period": "Which month to show",
+    "leftToSpend": "Left to spend",
+    "leftToSpendHelp": "Money you can still spend this month after your bills and savings.",
+    "budgetUsed": "How much of your monthly plan you used",
+    "rowSpent": "Supermarket",
+    "rowSpentSub": "Paid by card today",
+    "formTitle": "Add something",
+    "amount": "Amount",
+    "amountHint": "How much it costs each month",
+    "kind": "Group",
+    "food": "Food",
+    "home": "Home",
+    "remind": "Remind me",
+    "remindHint": "We'll tell you a day before it's due",
+    "chip": "Card",
+    "good": "On track",
+    "bad": "Over the plan",
+    "needsLook": "{n} things need a look",
+    "emptyTitle": "Nothing here yet",
+    "emptyText": "When you connect your bank, your payments will show up here.",
+    "emptyAction": "Connect a bank"
   }
 }

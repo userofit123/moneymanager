@@ -18,16 +18,16 @@ defineEmits(["click"]);
 </template>
 
 <style scoped>
-.row { display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; padding: 12px 4px; border: 0; background: none; color: inherit; text-align: start; border-block-end: 1px solid var(--line); }
+.row { display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; padding: 12px 4px; border: 0; background: none; color: inherit; text-align: start; border-block-end: 1px solid var(--ol); }
 .row:last-child { border-block-end: 0; }
 .clickable { cursor: pointer; border-radius: 12px; padding-inline: 8px; }
-.clickable:hover { background: var(--accent-soft); }
-.clickable:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
-.icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); flex: none; }
+.clickable:hover { background: var(--s2); }
+.clickable:focus-visible { outline: 2px solid var(--acc); outline-offset: -3px; }
+.icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: var(--r-sm); background: var(--accc); color: var(--onc); flex: none; }
 .text { display: flex; flex-direction: column; flex: 1; min-width: 0; }
 .title { font-weight: 600; }
-.sub { color: var(--muted); font-size: .875rem; }
-.end { font-weight: 600; white-space: nowrap; }
-.chev { color: var(--muted); flex: none; }
+.sub { color: var(--tx2); font-size: var(--fs-sm); }
+.end { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.chev { color: var(--tx2); flex: none; }
 :global(html.he .chev) { transform: scaleX(-1); }
 </style>

@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [Unreleased]
 
 ### App
+- **The new version of the app now looks like the current one.** It uses the same colors (light and dark), fonts, cards, buttons and lists, and has the building blocks the new screens need: tabs, labels, text boxes, drop-downs, on/off switches, pop-up windows that slide up on phones, short explanations on hover, money amounts, progress bars and "nothing here yet" messages. Hebrew works right to left in all of them.
 - **Pages now have real addresses.** Going to Jars shows `/jars` instead of `#jars` (and `/settings`, `/activity` and so on). You can open or share any of them directly, and the back button works. Old `#jars` links still open the right page.
 - **The number on a menu item stays visible when you point at it.** It is no longer covered by the highlight.
 - **The line on each budget bar is easier to see and use.** It now sticks out above and below the bar, and the small cut-off info icon is gone. Point at the line (or tap it on a phone) to see what it means: where the month is now. In Hebrew the line is now on the correct side too. The mouse pointer over it is always the normal arrow, never a question mark.

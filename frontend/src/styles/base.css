@@ -4,19 +4,15 @@
 @font-face{font-family:Inter;src:url(/fonts/inter-ils-600.woff2) format("woff2");font-weight:551 650;font-style:normal;font-display:swap;unicode-range:U+20AA}
 @font-face{font-family:Inter;src:url(/fonts/inter-ils-700.woff2) format("woff2");font-weight:651 750;font-style:normal;font-display:swap;unicode-range:U+20AA}
 @font-face{font-family:Inter;src:url(/fonts/inter-ils-800.woff2) format("woff2");font-weight:751 900;font-style:normal;font-display:swap;unicode-range:U+20AA}
-/* Look of the new app: the same calm, Material-like style as the current app. Use these values, never colors typed in by hand. */
-:root {
-  color-scheme: light dark;
-  --bg: #f7f8fc; --surface: #ffffff; --fg: #1d2033; --muted: #5d6280; --line: #e2e5f0;
-  --accent: #4355b9; --accent-fg: #ffffff; --accent-soft: #e6e9fb;
-  --radius: 16px; --gap: 16px; --shadow: 0 1px 3px rgba(20, 24, 60, .12);
-}
-@media (prefers-color-scheme: dark) {
-  :root { --bg: #14161f; --surface: #1e212d; --fg: #e8eaf5; --muted: #a3a8c3; --line: #2e3244; --accent: #9aa8ff; --accent-fg: #14161f; --accent-soft: #2a2f4d; --shadow: 0 1px 3px rgba(0, 0, 0, .5); }
-}
-body { margin: 0; background: var(--bg); color: var(--fg); font-family: Inter, "Segoe UI", Roboto, system-ui, sans-serif; -webkit-font-smoothing: antialiased; line-height: 1.5; }
-button { font: inherit; }
-* { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--fg) 28%, transparent) transparent; }
+body { margin: 0; min-height: 100vh; background: radial-gradient(70% 58% at 8% -8%, color-mix(in srgb, var(--acc) 20%, transparent), transparent), radial-gradient(58% 58% at 100% 0, color-mix(in srgb, var(--acc2) 16%, transparent), transparent), var(--bg); background-attachment: fixed; color: var(--tx); font-family: var(--font); font-size: var(--fs); -webkit-font-smoothing: antialiased; line-height: 1.5; }
+h1 { font-size: var(--fs-h1); font-weight: 600; letter-spacing: -.6px; margin: 0; }
+.num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+.pos { color: var(--pos); } .neg { color: var(--neg); } .muted { color: var(--tx2); }
+/* Anything with a tooltip uses the normal or pointer cursor, never the question mark. */
+[title], [data-tip], abbr { cursor: inherit; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
+button, input, select, textarea { font: inherit; }
+* { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--tx) 28%, transparent) transparent; }
 /* Hebrew, same as the current app: <html> stays left to right so the scrollbar stays on the right; only the content is right to left. */
 html.he body { direction: rtl; }
 html.he svg { direction: ltr; }
