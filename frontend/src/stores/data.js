@@ -43,7 +43,7 @@ export function createDataStore({ fetchJson = getJson, connect = connectLive, se
   const resettle = () => { if (hooks.settle && state.value) change(() => [], { quiet: true }); };
   // Only loads again when the server's version changed, and never over a change that is not saved yet.
   async function refreshIfChanged() {
-    if (dirty || saving.value) return;
+    if (dirty || saving.value || (typeof document !== "undefined" && document.visibilityState === "hidden")) return;
     try {
       const { rev } = await fetchJson("/api/rev");
       if (dirty || saving.value) return;
@@ -60,6 +60,13 @@ export function createDataStore({ fetchJson = getJson, connect = connectLive, se
   async function start() {
     if (stop) return;
     stop = connect(refreshIfChanged);
+    // back online: send what is waiting, or look for news; coming back to the window: look for news (the current app's chk)
+    if (typeof window !== "undefined") {
+      addEventListener("online", () => { offline.value = false; if (dirty) flush(); else refreshIfChanged(); });
+      addEventListener("offline", () => { offline.value = true; });
+      addEventListener("focus", refreshIfChanged);
+      document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refreshIfChanged(); });
+    }
     loadFx();
     await load();
   }

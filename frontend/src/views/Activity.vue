@@ -27,6 +27,7 @@ import BaseDialog from "../components/BaseDialog.vue";
 import BaseButton from "../components/BaseButton.vue";
 import RangeCal from "./RangeCal.vue";
 import ExportPanel from "../components/ExportPanel.vue";
+import EmText from "../components/EmText.vue";
 import { RANGES, kinds, totals, leftOut, filterRows, sortRows, groupRows, GROUPS, hasFilters, displayName, allTags, reviewTransfers, duplicateIds, reviewGaps, gapBill } from "./activity.js";
 
 const { t, locale } = useI18n();
@@ -262,9 +263,9 @@ onMounted(() => data.start());
       <h2 style="margin-top:6px">{{ t("activity.r.xfTitle") }}</h2>
       <div v-for="r in revXf" :key="r.x.o" class="xfc">
         <div class="flex" style="justify-content:space-between;gap:10px"><b>{{ r.o.from }} → {{ r.i.to }}</b><span class="sm">{{ dstr(r.o.d) }}</span></div>
-        <div class="sm" style="margin:6px 0">{{ t("activity.r.xfLine2", { sent: fm(-r.o.a), out: r.o.from, arrived: r.i.orig ? (SYM[r.i.orig.cur] || "") + f0(r.i.orig.amt) + " (≈ " + fm(r.i.a) + ")" : fm(r.i.a), in: r.i.to }) }}</div>
+        <div class="sm" style="margin:6px 0"><EmText :text="t('activity.r.xfLine2', { sent: fm(-r.o.a), out: r.o.from, arrived: r.i.orig ? (SYM[r.i.orig.cur] || '') + f0(r.i.orig.amt) + ' (≈ ' + fm(r.i.a) + ')' : fm(r.i.a), in: r.i.to })" :em="[r.o.from, r.i.to]" /></div>
         <div style="margin:8px 0"><span class="bd" :class="r.cost > 0.5 ? 'am2' : 'dn'">{{ r.cost > 0.5 ? t("activity.r.cost2", { amt: fm(r.cost), pc: ((r.cost / -r.o.a) * 100).toFixed(1) }) : t("activity.r.noCost") }}</span></div>
-        <div class="sm" style="margin-bottom:10px">{{ r.cost > 0.5 ? t("activity.r.costText") : t("activity.r.noCostText") }}</div>
+        <div class="sm" style="margin-bottom:10px"><EmText :text="r.cost > 0.5 ? t('activity.r.costText') : t('activity.r.noCostText')" :em="['Fees & FX costs']" /></div>
         <div class="flex" style="gap:8px"><button type="button" class="btn s" @click="run(A.xfOk, r.x.o)">{{ t("activity.r.confirm") }}</button><button type="button" class="btn o s" @click="run(A.xfNo, r.x.o)">{{ t("activity.r.notXf") }}</button></div>
       </div>
       <div v-if="!revXf.length" class="card sm">{{ t("activity.r.xfNone") }}</div>
@@ -272,7 +273,7 @@ onMounted(() => data.start());
       <h2>{{ t("activity.r.dupTitle") }}</h2>
       <div v-for="x in revDups" :key="x.id" class="xfc">
         <b>{{ name(x) }} · <span dir="ltr">{{ fm(x.a) }}</span></b>
-        <div class="sm" style="margin:4px 0 10px">{{ x.from }} · {{ dstr(x.d) }} · {{ t("activity.r.dupWhy") }}</div>
+        <div class="sm" style="margin:4px 0 10px"><EmText :text="x.from + ' · ' + dstr(x.d) + ' · ' + t('activity.r.dupWhy')" :em="[x.from]" /></div>
         <div class="flex" style="gap:8px"><button type="button" class="btn r s" @click="run(A.dupDel, x.id)">{{ t("activity.r.dupDel") }}</button><button type="button" class="btn o s" @click="run(A.dupKeep, x.id)">{{ t("activity.r.dupKeep") }}</button></div>
       </div>
       <div v-if="!revDups.length" class="card sm">{{ t("activity.r.dupNone") }}</div>
@@ -282,8 +283,8 @@ onMounted(() => data.start());
       <div v-for="r in revGaps" :key="r.id" class="card warn" style="margin-bottom:12px">
         <div class="flex" style="justify-content:space-between"><div class="lbl">{{ r.n }} · {{ r.cur }}</div><span class="bd" :class="r.diff < 0 ? 'up' : 'dn'">{{ r.diff < 0 ? t("activity.r.down") : t("activity.r.up") }}</span></div>
         <div style="margin:8px 0;font-size:16px;font-weight:600">{{ r.diff < 0 ? t("activity.r.gapOut", { amt: gapAmt(r) }) : t("activity.r.gapIn", { amt: gapAmt(r) }) }}</div>
-        <div v-if="gapB(r)" class="sinfo" style="margin:8px 0">{{ t("txw.a.gapBill", { bill: gapB(r).n, amt: fm(gapB(r).pred), date: dstr(gapB(r).pd) }) }}</div>
-        <div class="sm" style="line-height:1.55">{{ t(r.diff < 0 ? "txw.a.gapOut" : "txw.a.gapIn", { name: r.n, amt: gapAmt(r), part: gapOrig(r), from: gapWhen(r.from), to: gapWhen(r.to) }) }}<br>{{ t("txw.a.gapCauses") }}</div>
+        <div v-if="gapB(r)" class="sinfo" style="margin:8px 0"><EmText :text="t('txw.a.gapBill', { bill: gapB(r).n, amt: fm(gapB(r).pred), date: dstr(gapB(r).pd) })" :em="[gapB(r).n]" /></div>
+        <div class="sm" style="line-height:1.55"><EmText :text="t(r.diff < 0 ? 'txw.a.gapOut' : 'txw.a.gapIn', { name: r.n, amt: gapAmt(r), part: gapOrig(r), from: gapWhen(r.from), to: gapWhen(r.to) })" :em="[r.n]" /><br><EmText :text="t('txw.a.gapCauses')" lead /></div>
         <div class="flex" style="gap:8px;margin-top:12px;flex-wrap:wrap">
           <button type="button" class="btn s" :data-tip="t('txw.a.gapAddTip')" @click="gapAdd(r)">{{ t("activity.r.gapAdd") }}</button>
           <button v-if="r.diff < 0" type="button" class="btn o s" :data-tip="t('activity.r.gapRecTip')" @click="gapCall(r.id, 'record', t('txw.a.recorded'))">{{ t("activity.r.gapRec") }}</button>
