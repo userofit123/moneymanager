@@ -5,11 +5,13 @@
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { assistWaiting } from "../../core/boot.js";
+import { escLayer } from "../../core/layers.js";
 import { AS, shot, assistPost, assistStop, assistOpen, loadConn, fieldName } from "./conn.js";
 
 const { t } = useI18n();
 const tk = (k, a) => t("settings.conn.assist." + k, a || {});
 const text = ref("");
+escLayer(() => !!AS.value, () => assistStop(true));
 function click(e) { const r = e.target.getBoundingClientRect(); assistPost("click", { x: ((e.clientX - r.left) * AS.value.w) / r.width, y: ((e.clientY - r.top) * AS.value.h) / r.height }); }
 function wheel(e) { assistPost("scroll", { dy: e.deltaY }); }
 function send() { if (text.value) { assistPost("type", { text: text.value }); text.value = ""; } }

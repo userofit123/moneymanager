@@ -139,6 +139,8 @@
     "noteEx": "e.g. Statement of 1 October",
     "delQ": "Remove this account? This cannot be undone.",
     "added": "Account added",
+    "addedWhere": "You can find it on the Accounts page.",
+    "addedOpen": "Open it",
     "saved": "Saved",
     "balDone": "Balance updated",
     "removed": "Account removed",

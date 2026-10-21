@@ -1,7 +1,7 @@
 <script setup>
 // After signing in: the "has been updated" window with what is new since the last visit (updCheck), then, once, "Make it yours"
 // asking for the profile (profileAsk). Same markup as the current app (.wnp, styles/legacy.css).
-import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
 import { whatsNew, markSeen } from "../../core/updates.js";
@@ -10,6 +10,7 @@ import { go } from "../../router.js";
 import { openSettingsTab } from "../../views/settings/tab.js";
 import { profRead } from "../../views/settings/profile.js";
 import { sheetsOpen } from "../../core/sheets.js";
+import { escLayer } from "../../core/layers.js";
 import ProfileFields from "../ProfileFields.vue";
 
 const { t } = useI18n();
@@ -34,14 +35,12 @@ function save() {
   ask.value = false;
   data.change((S) => { S.cfg = S.cfg || {}; S.cfg.profile = n; return [["Updated profile", n.name ? n.name : "no name"]]; });
 }
-const esc = (e) => { if (e.key !== "Escape") return; if (news.value) closeNews(); else if (ask.value) skip(); };
+escLayer(() => !!(news.value || ask.value), () => { if (news.value) closeNews(); else if (ask.value) skip(); });
 onMounted(async () => {
-  document.addEventListener("keydown", esc);
   news.value = await whatsNew(!!data.state.value?.tx?.length);
   if (news.value) nextTick(() => okBtn.value?.focus());
   else setTimeout(profileAsk, 500);
 });
-onBeforeUnmount(() => document.removeEventListener("keydown", esc));
 </script>
 
 <template>

@@ -11,6 +11,7 @@ import { tx } from "../../core/heText.js";
 import { job, startJob, endJob, runJob } from "../../core/jobs.js";
 import { sheetOpened, sheetClosed } from "../../core/sheets.js";
 import { srcName } from "../../core/sources.js";
+import { ask } from "../../core/ask.js";
 
 // texts of this section: ck("toast.saved") is settings.conn.toast.saved
 const ck = (k, a) => i18n.global.t("settings.conn." + k, a || {});
@@ -96,7 +97,7 @@ export function connSave(src) {
 }
 export const connTest = (src) => runJob(src, "test", () => connCall(src, "/test", "POST", null));
 export const connUnlock = (src) => connCall(src, "/unlock", "POST", null, ck("toast.unlocked"));
-export function connDel(src) { if (confirm(ck("toast.confirmRemove"))) connCall(src, "", "DELETE", null, ck("toast.removed")); }
+export function connDel(src) { ask(ck("toast.confirmRemove"), "", () => connCall(src, "", "DELETE", null, ck("toast.removed")), { danger: true }); }
 export async function connSync(src) {
   try {
     const r = await runJob(src, "sync", () => data.api(`/api/sync/${src}`, { method: "POST" }));

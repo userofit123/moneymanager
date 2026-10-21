@@ -8,6 +8,7 @@ import SetHead from "./SetHead.vue";
 import ProfileFields from "../../components/ProfileFields.vue";
 import { changeState, toastErr } from "./shared.js";
 import { profAge, profRead } from "./profile.js";
+import { ask } from "../../core/ask.js";
 
 const { t } = useI18n();
 const tk = (k) => t("settings.prof." + k);
@@ -30,8 +31,8 @@ async function save() {
   try { await changeState((s) => { s.cfg = s.cfg || {}; s.cfg.profile = n; return [["Updated profile", n.name ? n.name : "no name"]]; }); } catch (e) { toastErr(e); }
   fill();
 }
-async function clear() {
-  if (!confirm(tk("clearAsk"))) return;
+const clear = () => ask(tk("clearAsk"), "", clearGo, { danger: true });
+async function clearGo() {
   try { await changeState((s) => { s.cfg = s.cfg || {}; s.cfg.profile = { asked: 1 }; return [["Cleared profile", ""]]; }); } catch (e) { toastErr(e); }
   fill();
 }

@@ -18,6 +18,7 @@ import TagEditor from "../components/TagEditor.vue";
 import SetHead from "./settings/SetHead.vue";
 import { catTab, searches, newRuleTags } from "./categories/state.js";
 import * as C from "../lib/categories.js";
+import { ask as askYes } from "../core/ask.js";
 
 const { t, locale } = useI18n();
 const S = computed(() => data.state.value);
@@ -79,12 +80,10 @@ function renGo() {
   const c = C.renameCheck(S.value, k, renName.value);
   if (c.err) return err(c.err == "empty" ? t("cats.typeName") : t("cats.c.reserved"));
   if (c.same) { ren.value = null; return; }
-  if (c.ex && !confirm(t("cats.c.mergeQ", { ex: catLabel(c.ex), k: catLabel(k) }))) return;
-  save((n) => C.renameCategory(n, k, c.tg));
-  ren.value = null;
-  ok(t("cats.c.renamed", { n: catLabel(c.tg) }));
+  const doIt = () => { save((n) => C.renameCategory(n, k, c.tg)); ren.value = null; ok(t("cats.c.renamed", { n: catLabel(c.tg) })); };
+  if (c.ex) askYes(t("cats.c.mergeQ", { ex: catLabel(c.ex), k: catLabel(k) }), "", doIt); else doIt();
 }
-function catDel(k) { if (confirm(t("cats.c.delQ", { k: catLabel(k) }))) save((n) => C.deleteCategory(n, k)); }
+function catDel(k) { askYes(t("cats.c.delQ", { k: catLabel(k) }), "", () => save((n) => C.deleteCategory(n, k)), { danger: true }); }
 async function catSuggest() {
   try {
     const r = await data.api("/api/categories/suggested", { method: "POST" });
@@ -105,7 +104,7 @@ function tagRenameGo(g) {
   ren.value = null;
   ok(t("cats.g.renamed", { n }));
 }
-function tagDel(g) { const n = C.tagUses(S.value, g); if (confirm(t("cats.g.delQ", { g, n }, n))) save((x) => C.deleteTag(x, g)); }
+function tagDel(g) { const n = C.tagUses(S.value, g); askYes(t("cats.g.delQ", { g, n }, n), "", () => save((x) => C.deleteTag(x, g)), { danger: true }); }
 
 // ---- Category rules ----
 const rk = ref(""), rc = ref("");

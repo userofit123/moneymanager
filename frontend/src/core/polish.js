@@ -1,6 +1,6 @@
 // The small finishing touches the current app puts on every text of the page (web/js/09-profile-export-settings.js pass/trPass/caps/titleCase):
 // - " · " between parts is drawn as a lighter dot with room around it (<span class="dt">·</span>);
-// - the first letter of a badge, chip or label is a capital, and card labels are in Title Case (English only);
+// - the first letter of a badge, chip or label is a capital, and card labels are in Title Case (English letters only);
 // - in Hebrew, amounts stay left to right inside a sentence (⁦₪1,250⁩).
 // Vue owns the text it draws, so this only changes text in ways Vue can live with: a text node's own value, or the children of an element
 // whose only child is text (Vue sets such an element's whole text again when it changes, and this runs again).
@@ -18,7 +18,7 @@ function dots(el) {
   el.replaceChildren(w);
 }
 function caps(el) {
-  let n = el.firstChild; while (n && n.nodeType == 3 && !n.nodeValue.trim()) n = n.nextSibling;
+  let n = el.firstChild; while (n && (n.nodeType == 8 || (n.nodeType == 3 && !n.nodeValue.trim()))) n = n.nextSibling; // past Vue's empty placeholders (<!--v-if-->)
   if (n && n.nodeType == 3) { const v = n.nodeValue, m = v.match(/^(\s*)([a-z])/); if (m) n.nodeValue = m[1] + m[2].toUpperCase() + v.slice(m[0].length); }
 }
 function titleCase(el) {
@@ -34,8 +34,9 @@ function money(root) {
 function pass(root = document.body) {
   if (!root || root.nodeType !== 1) return;
   [root, ...root.querySelectorAll("*")].forEach((el) => { if (el.childNodes.length === 1) dots(el); });
-  if (!isHe()) { root.querySelectorAll(CAPS).forEach(caps); if (root.matches?.(CAPS)) caps(root); root.querySelectorAll(".lbl").forEach(titleCase); }
-  else money(root);
+  // like the current app, also in Hebrew (they only touch English letters, such as an account named in English)
+  root.querySelectorAll(CAPS).forEach(caps); if (root.matches?.(CAPS)) caps(root); root.querySelectorAll(".lbl").forEach(titleCase);
+  if (isHe()) money(root);
 }
 let started = false;
 export function startPolish() {

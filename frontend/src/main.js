@@ -9,6 +9,7 @@ import "./styles/base.css";
 import { startTooltips } from "./core/tooltip.js";
 import { startDropdowns } from "./core/dropdown.js";
 import { startPolish } from "./core/polish.js";
+import { startSegSlide } from "./core/segSlide.js";
 import { withErrors } from "./core/errors.js";
 
 startMobile();
@@ -16,3 +17,4 @@ withErrors(createApp(App)).use(i18n).mount("#app"); // page errors go to Setting
 startTooltips(i18n.global.t("shell.moreInfo"));
 startDropdowns();
 startPolish();
+startSegSlide();

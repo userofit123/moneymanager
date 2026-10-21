@@ -7,6 +7,7 @@ import { ref, shallowRef } from "vue";
 import { connectLive } from "../live.js";
 import { request, getJson, sendJson } from "../core/http.js";
 import { sampleOn, sampleState } from "./sample.js";
+import { makePatch, applyPatch } from "../core/undoPatch.js";
 
 const putState = async (S) => {
   const r = await request("/api/state", sendJson("PUT", S));
@@ -80,6 +81,9 @@ export function createDataStore({ fetchJson = getJson, connect = connectLive, se
     const next = structuredClone(cur);
     const lines = edit(next);
     if (lines === false) return [];
+    // what the change replaced, so its history line can be undone (unless the line already says how)
+    const mine0 = (lines || []).findIndex(([action, , undo, who]) => !undo && (who || "You") !== "System" && action !== "Undid a change");
+    if (mine0 >= 0) { const p = makePatch(cur, next); if (p) lines[mine0] = [lines[mine0][0], lines[mine0][1], p, lines[mine0][3]]; }
     // after every change the app's upkeep runs on the result, like renderAll() in the current app
     const upkeep = hooks.settle ? hooks.settle(next) || [] : [];
     const at = new Date().toISOString();
@@ -150,7 +154,8 @@ export function createDataStore({ fetchJson = getJson, connect = connectLive, se
       const e = (S.audit || []).find((x) => (entry.id != null ? x.id === entry.id : x.t === entry.t && x.action === entry.action && x.detail === entry.detail));
       const u = e && e.undo;
       if (!u) return false;
-      if (u.type == "tx") { const t = S.tx.find((x) => x.id == u.id); if (t) t[u.f] = u.old; }
+      if (u.type == "patch") applyPatch(S, u);
+      else if (u.type == "tx") { const t = S.tx.find((x) => x.id == u.id); if (t) t[u.f] = u.old; }
       else if (u.type == "budget") { if (u.old == null) delete S.budgets[u.k]; else S.budgets[u.k] = u.old; }
       else if (u.type == "merchant") { S.hiddenMerchants = (S.hiddenMerchants || []).filter((x) => x != u.name); }
       else if (u.type == "jar") {

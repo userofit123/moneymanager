@@ -9,6 +9,7 @@ import { ref, computed, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
 import { allTags, tagSuggest } from "../lib/categories.js";
+import { escLayer } from "../core/layers.js";
 
 const props = defineProps({ tags: { type: Array, default: () => [] }, all: { type: Array, default: null }, commitOnBlur: { type: Boolean, default: true } });
 const emit = defineEmits(["add", "remove", "go"]);
@@ -23,6 +24,7 @@ function commit(v) { const L = list(v); if (L.length) emit("add", L); }
 function take() { const L = list(text.value); text.value = ""; return L; }
 defineExpose({ take, focus: () => inp.value?.focus() });
 
+escLayer(() => open.value && picks.value.length > 0, () => { open.value = false; });
 const show = () => { open.value = true; hi.value = -1; };
 function move(d) {
   const n = picks.value.length; if (!n) return;
@@ -34,7 +36,6 @@ function key(e) {
   else if (e.key == "ArrowUp") { e.preventDefault(); move(-1); }
   else if (e.key == "Enter" || e.key == ",") { e.preventDefault(); e.stopPropagation(); const v = hi.value >= 0 && picks.value[hi.value] != null ? picks.value[hi.value] : text.value; text.value = ""; hi.value = -1; commit(v); }
   else if (e.key == "Backspace" && !text.value) { if (props.tags.length) emit("remove", props.tags.length - 1); }
-  else if (e.key == "Escape") open.value = false;
 }
 function pick(g) { text.value = ""; hi.value = -1; commit(g); }
 function blur() {

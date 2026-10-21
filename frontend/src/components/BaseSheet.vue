@@ -5,12 +5,12 @@
 // cls adds the old size classes: "xw" (wider) or "txw" (the wide entry window).
 import { ref, watch, nextTick, onBeforeUnmount } from "vue";
 import { sheetOpened, sheetClosed, lastTap } from "../core/sheets.js";
+import { layerOpen, layerClose } from "../core/layers.js";
 
 const props = defineProps({ open: { type: Boolean, default: true }, cls: { type: String, default: "" }, label: { type: String, default: "" } });
 const emit = defineEmits(["update:open", "close"]);
 const el = ref(null);
 const close = () => { emit("update:open", false); emit("close"); };
-const esc = (e) => { if (e.key === "Escape" && props.open) { e.stopPropagation(); close(); } };
 
 function placeOrigin() {
   const sh = el.value; if (!sh || document.documentElement.classList.contains("mob")) return;
@@ -18,10 +18,10 @@ function placeOrigin() {
   sh.style.transformOrigin = Math.round(near ? lastTap.x - (innerWidth - w) / 2 : w / 2) + "px " + Math.round(near ? lastTap.y - (innerHeight - h) / 2 : h / 2) + "px";
 }
 watch(() => props.open, (o, was) => {
-  if (o) { sheetOpened(close); document.addEventListener("keydown", esc, true); nextTick(() => { placeOrigin(); if (el.value) el.value.scrollTop = 0; }); }
-  else if (was) { sheetClosed(close); document.removeEventListener("keydown", esc, true); }
+  if (o) { sheetOpened(close); layerOpen(close); nextTick(() => { placeOrigin(); if (el.value) el.value.scrollTop = 0; }); }
+  else if (was) { sheetClosed(close); layerClose(close); }
 }, { immediate: true });
-onBeforeUnmount(() => { if (props.open) { sheetClosed(close); document.removeEventListener("keydown", esc, true); } });
+onBeforeUnmount(() => { if (props.open) { sheetClosed(close); layerClose(close); } });
 
 // swipe down to close, on a phone (the current app's touch handlers on #sheet)
 let y0 = null, dy = 0, ok = false;
@@ -40,7 +40,7 @@ const leave = (n) => { n.classList.remove("on"); };
 <template>
   <Teleport to="body">
     <Transition leave-active-class="out" :duration="{ enter: 1, leave: 240 }" :css="!reduce()" @before-leave="leave">
-      <div v-if="open" class="scrim on" @click="close" />
+      <div v-if="open" class="scrim on" @click="close" @touchmove.prevent />
     </Transition>
     <Transition leave-active-class="out" :duration="{ enter: 1, leave: 240 }" :css="!reduce()" @before-leave="leave">
       <div v-if="open" ref="el" class="sheet on" :class="cls" role="dialog" aria-modal="true" :aria-label="label || undefined" @touchstart.passive="ts" @touchmove="tm" @touchend="te" @touchcancel="tc">

@@ -4,6 +4,7 @@ import { now } from "../core/clock.js";
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { rangeOf } from "../lib/activity.js";
+import { escLayer } from "../core/layers.js";
 
 const props = defineProps({ from: String, to: String, anchor: Object, df: { type: String, default: "dmy" }, ws: { type: String, default: "sun" } });
 const emit = defineEmits(["apply", "cancel"]);
@@ -60,8 +61,9 @@ function pick(k) {
 function quick(p) { const [a, b] = rangeOf(p, now.value, props.ws); from.value = a; to.value = b.endsWith("-31") ? iso(new Date(+b.slice(0, 4), +b.slice(5, 7), 0)) : b; view.value = from.value.slice(0, 7); syncText(); }
 function apply() { if (!canApply.value) return; let a = from.value, b = to.value || from.value; if (b < a) [a, b] = [b, a]; emit("apply", { from: a, to: b }); }
 const el = ref(null), pos = ref({});
+escLayer(() => true, () => emit("cancel"));
 const off = (e) => { if (el.value && !el.value.contains(e.target)) emit("cancel"); };
-const key = (e) => { if (e.key === "Escape") { e.stopPropagation(); emit("cancel"); } else if (e.key === "Enter" && e.target.closest?.(".rcal input")) { e.preventDefault(); apply(); } };
+const key = (e) => { if (e.key === "Enter" && e.target.closest?.(".rcal input")) { e.preventDefault(); apply(); } };
 const shown = ref(false);
 onMounted(async () => {
   await nextTick();

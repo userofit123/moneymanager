@@ -4,6 +4,7 @@
 // [data-menuanchor] group when there is one), marks the button with data-open, and closes on a click elsewhere (or Esc).
 // Buttons with aria-haspopup open and close menus themselves, so a click on one is left to the page.
 import { ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
+import { escLayer } from "../core/layers.js";
 const props = defineProps({ at: { type: Object, default: null }, cls: { type: String, default: "" } });
 const emit = defineEmits(["close"]);
 const el = ref(null);
@@ -22,9 +23,9 @@ watch(() => props.at, (b, old) => {
 }, { flush: "post" });
 
 const onClick = (e) => { if (props.at && !(el.value && el.value.contains(e.target)) && !e.target.closest?.("[aria-haspopup]")) emit("close"); };
-const onKey = (e) => { if (props.at && e.key === "Escape") emit("close"); };
-onMounted(() => { document.addEventListener("click", onClick); document.addEventListener("keydown", onKey); });
-onBeforeUnmount(() => { document.removeEventListener("click", onClick); document.removeEventListener("keydown", onKey); if (props.at) delete props.at.dataset.open; });
+escLayer(() => !!props.at, () => emit("close"));
+onMounted(() => { document.addEventListener("click", onClick); });
+onBeforeUnmount(() => { document.removeEventListener("click", onClick); if (props.at) delete props.at.dataset.open; });
 </script>
 
 <template>

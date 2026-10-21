@@ -11,6 +11,7 @@ import { tx } from "../../core/heText.js";
 import { notify } from "../../core/pwa.js";
 import BaseSheet from "../../components/BaseSheet.vue";
 import SetHead from "./SetHead.vue";
+import { ask } from "../../core/ask.js";
 
 const { t } = useI18n();
 const tk = (k, a) => t("settings.notify." + k, a || {});
@@ -79,7 +80,8 @@ async function nchSave(k) {
   catch (e) { toast(tx(e.message), { kind: "err" }); }
 }
 async function nchTest(k) { try { const r = await data.api("/api/notify/channels/" + k + "/test", { method: "POST" }); toast(r.ok ? tt("testSent") : tt("notSentCheck"), { kind: r.ok ? "ok" : "err" }); } catch { toast(tt("noServer"), { kind: "err" }); } }
-async function nchDel(k) { if (!confirm(tt("stopAsk"))) return; try { await data.api("/api/notify/channels/" + k, { method: "DELETE" }); toast(tt("removed")); await loadNch(); } catch (e) { toast(tx(e.message), { kind: "err" }); } }
+const nchDel = (k) => ask(tt("stopAsk"), "", () => nchDelGo(k), { danger: true });
+async function nchDelGo(k) { try { await data.api("/api/notify/channels/" + k, { method: "DELETE" }); toast(tt("removed")); await loadNch(); } catch (e) { toast(tx(e.message), { kind: "err" }); } }
 </script>
 
 <template>

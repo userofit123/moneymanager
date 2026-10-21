@@ -6,6 +6,7 @@ import { useI18n } from "vue-i18n";
 import { theme, ATM, ST0, CP, CUST, AKEYS, looks, lookFor, saveLooks, isDark, atmOf, cpOf, custVal, lookPal, setTheme, themeSwap, PKEYS } from "../core/theme.js";
 import { toast } from "../core/toast.js";
 import { appearanceOpen } from "../core/shell.js";
+import { escLayer } from "../core/layers.js";
 
 const { t } = useI18n();
 const tab = ref("col");
@@ -17,6 +18,7 @@ const dark = computed(() => k.value === "D");
 const out = ref(false);
 watch(appearanceOpen, (o) => { if (!o) { out.value = true; setTimeout(() => (out.value = false), 200); } });
 const close = () => { appearanceOpen.value = false; };
+escLayer(appearanceOpen, close);
 const el = ref(null);
 const outside = (e) => { if (appearanceOpen.value && el.value && !el.value.contains(e.target) && !e.target.closest?.("#themeBtn,.ddm,[data-theme-open]")) close(); };
 onMounted(() => document.addEventListener("click", outside, true));

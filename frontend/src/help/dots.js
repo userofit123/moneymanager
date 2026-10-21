@@ -4,7 +4,7 @@ export default [
   ["dash", "#kpis", ".lbl", "Net worth", "The four big numbers", "", "שווי נקי"],
   ["dash", "#sec-accts", "h2", "Accounts", "Accounts and credit cards", "", "חשבונות בנק"],
   ["dash", "#sec-cards", "h2", "Credit cards", "Accounts and credit cards", "", "כרטיסי אשראי"],
-  ["dash", "#sec-flow", "h2", "Money flow", "Money flow · ahead", "", "Money flow"],
+  ["dash", "#sec-flow", "h2", "Money flow", "Money flow · ahead", "", "תזרים כספים"],
   ["dash", "#sec-donut", "h2", "Spending by category", "Spending and budgets", "", "הוצאות לפי קטגוריה"],
   ["dash", "#sec-budg", "h2", "Budgets", "Spending and budgets", "", "תקציבים"],
   ["dash", "#sec-bills", "h2", "Upcoming bills", "Bills, recent and jars", "", "תשלומים קבועים קרובים"],

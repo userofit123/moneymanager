@@ -54,7 +54,9 @@ test("the ? places are the same as the current app's, with the Hebrew name of ea
   const o = old.run("HELPDOTS");
   assert.equal(DOTS.length, o.length);
   DOTS.forEach((d, i) => assert.deepEqual(d.slice(0, 6).map((x) => x || ""), [...o[i]].concat(["", ""]).slice(0, 6).map((x) => x || ""), "row " + i));
-  DOTS.forEach((d) => { if (d[3]) assert.equal(d[6], old.run("HE.on=true;HE.T(__s)", { __s: d[3] }), d[3]); });
+  // the old dictionary has no "Money flow" on its own (the old app finds that title before it is put into Hebrew), so its Hebrew name is given here
+  const OWN = { "Money flow": "תזרים כספים" };
+  DOTS.forEach((d) => { if (d[3]) assert.equal(d[6], OWN[d[3]] || old.run("HE.on=true;HE.T(__s)", { __s: d[3] }), d[3]); });
 });
 
 test("every page the current app has a guide for opens that guide", () => {

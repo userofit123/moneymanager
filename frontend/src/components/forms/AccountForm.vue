@@ -9,7 +9,7 @@ import { data } from "../../stores/data.js";
 import { toast } from "../../core/toast.js";
 import { tx } from "../../core/heText.js";
 import { getJson, sendJson } from "../../core/http.js";
-import { go } from "../../router.js";
+import { go, current } from "../../router.js";
 import { openSettingsTab } from "../../views/settings/tab.js";
 import { CK, curOpts, accSel } from "../../lib/accounts.js";
 import { loadConn, connStartHere } from "../../views/settings/conn.js";
@@ -60,7 +60,11 @@ async function save() {
     await data.api(id ? "/api/accounts/" + id : "/api/accounts", sendJson(id ? "PUT" : "POST", body));
     await data.load();
     accSel.value = body.name.trim() || accSel.value;
-    close(); toast(t(id ? "acc.f.saved" : "acc.f.added"));
+    close();
+    // added from somewhere else (Home's quick add): say where it is, with a button that opens it
+    const name = body.name.trim();
+    if (!id && current.value.name !== "accounts") toast(t("acc.f.addedWhere"), { title: t("acc.f.added"), actions: [{ label: t("acc.f.addedOpen"), run: () => go("/accounts?n=" + encodeURIComponent(name)) }], ms: 6500 });
+    else toast(t(id ? "acc.f.saved" : "acc.f.added"));
   } catch (e) { toast(tx(e.message), { kind: "err" }); return; }
   if (added) {
     try { await data.api("/api/fx/refresh", { method: "POST" }); await data.loadFx(); toast(t("acc.f.curOk", { cur })); }

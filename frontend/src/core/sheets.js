@@ -14,13 +14,23 @@ if (typeof window !== "undefined") {
     if (stack.length > 1) { history.pushState({ o: 1 }, "", location.href); pushed = true; }
   });
 }
+// While a window is open the page behind it does not scroll (html.sl); on a phone it is held where it was and put back after.
+let y = 0;
+function lock(on) {
+  const H = document.documentElement;
+  if (on === H.classList.contains("sl")) return;
+  if (on) { y = scrollY; H.classList.add("sl"); if (H.classList.contains("mob")) document.body.style.top = "-" + y + "px"; }
+  else { H.classList.remove("sl"); document.body.style.top = ""; if (H.classList.contains("mob")) scrollTo(0, y); }
+}
 export function sheetOpened(close) {
   stack.push(close);
+  if (typeof document !== "undefined") lock(true);
   if (!pushed && typeof history !== "undefined") { history.pushState({ o: 1 }, "", location.href); pushed = location.href; }
 }
 export function sheetClosed(close) {
   const i = stack.lastIndexOf(close);
   if (i >= 0) stack.splice(i, 1);
+  if (!stack.length && typeof document !== "undefined") lock(false);
   // going back removes the entry the window added, unless a button in it opened another page (then that page stays)
   if (!stack.length && pushed) { const same = pushed === true || pushed === location.href; pushed = false; if (same) history.back(); }
 }

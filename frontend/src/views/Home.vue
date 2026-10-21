@@ -25,6 +25,7 @@ import AvailWhy from "./AvailWhy.vue";
 import { vTip, TP } from "../core/tooltip.js";
 import { dcell, dstr, titleCase } from "../dates.js";
 import { categoryName } from "../catnames.js";
+import { tx } from "../core/heText.js";
 
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);
@@ -33,6 +34,7 @@ const n0 = (v) => Math.round(Math.abs(v)).toLocaleString("en-IL");
 const link = (name) => hrefOf(pages.find((p) => p.name === name));
 const to = (name) => go(hrefOf(pages.find((p) => p.name === name)));
 const an = (n) => categoryName(n, locale.value); // a bank, card or wallet name
+const subOf = (s) => String(s).split(" · ").map(tx).join(" · "); // an account's subtitle from the server ("Cash · entered by you"), like Accounts
 const cur = (c) => (locale.value === "he" ? { USD: "דולר", ILS: "שקל" }[c] || c : c);
 const pair = (c) => (locale.value === "he" && c === "USD" ? "דולר ← שקל" : c + " → ILS");
 const lblOf = (a) => (a.lbl || a.n).replace(a.n, an(a.n));
@@ -114,7 +116,7 @@ const sparkPath = (a) => {
 // Accounts: one card per bank or wallet, listing each currency when there is more than one.
 const money2 = (x) => currencySymbol(x.cur) + Number(x.v).toLocaleString("en-US", { minimumFractionDigits: 2 });
 const accSub = (g) => {
-  if (!g.multi) return { lines: null, text: an(g.L[0].s || ""), chips: g.manual ? t("home.manual") : "" };
+  if (!g.multi) return { lines: null, text: subOf(g.L[0].s || ""), chips: g.manual ? t("home.manual") : "" };
   const L = [...g.L]; if (g.wallet && !L.some((x) => x.cur == "ILS")) L.push({ cur: "ILS", v: 0, none: 1 });
   return { lines: L, chips: L.filter((x) => !x.none || g.wallet).map((x) => cur(x.cur)).join(" + "), stale: L.some((x) => x.cur != "ILS") && (!fx.value.live || fx.value.stale) };
 };

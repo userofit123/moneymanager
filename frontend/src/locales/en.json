@@ -65,7 +65,7 @@
     "lo": {
       "transfers": "{n} transfer | {n} transfers",
       "cardPays": "{n} card payment | {n} card payments",
-      "upcoming": "{n} upcoming",
+      "upcoming": "{n} upcoming | {n} upcoming",
       "balance": "{n} balance update | {n} balance updates",
       "ignored": "{n} left out by you"
     },
@@ -676,6 +676,15 @@
       "del": "Delete jar"
     },
     "hist": {
+      "all": "See all {n}",
+      "show": "Show",
+      "noneHere": "Nothing of this kind yet.",
+      "k": {
+        "all": "All",
+        "in": "Put in",
+        "out": "Taken out",
+        "pay": "Payments"
+      },
       "title": "History · {name}",
       "earlier": "Earlier",
       "start": "Starting balance and changes you made",

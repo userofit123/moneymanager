@@ -4,7 +4,9 @@ import { computed, ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue"
 import { useI18n } from "vue-i18n";
 import { current } from "../router.js";
 import { helpOpen, helpSet, guideOf, guideHtml, watchDots } from "./help.js";
+import { escLayer } from "../core/layers.js";
 import { settingsTab } from "../views/settings/tab.js";
+escLayer(helpOpen, () => helpSet(false));
 
 const { t, locale } = useI18n();
 const tk = (k) => t(k);

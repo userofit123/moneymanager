@@ -1,11 +1,12 @@
 // Every drop-down opens the app's own animated menu instead of the browser's (the .ddm menu of web/js/01-prefs-theme.js).
 // The <select> underneath keeps its value and fires input and change as usual, so v-model works unchanged.
 // A select with data-native keeps the browser's own list; data-ddanchor on a parent sets what the menu lines up with.
+import { layerOpen, layerClose } from "./layers.js";
 let M = null, cur = null, idx = -1, started = false;
 const CK = '<svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>';
 const SEL = "select:not([multiple]):not([data-native])";
 const esc = (s) => String(s).replace(/[&<]/g, (c) => (c == "&" ? "&amp;" : "&lt;"));
-const close = () => { if (!M) return; const m = M; M = null; if (cur) cur.classList.remove("ddo"); cur = null; m.classList.remove("in"); setTimeout(() => m.remove(), 170); };
+const close = () => { if (!M) return; layerClose(close); const m = M; M = null; if (cur) cur.classList.remove("ddo"); cur = null; m.classList.remove("in"); setTimeout(() => m.remove(), 170); };
 const items = () => (M ? [...M.querySelectorAll(".ddo2:not(.dis)")] : []);
 function pick(o) {
   if (!cur || !o) return;
@@ -21,7 +22,7 @@ function open(sel) {
   const m = document.createElement("div"); m.className = "ddm"; m.setAttribute("role", "listbox");
   const add = (o) => `<div class="ddo2 ${o.value === sel.value && !o.disabled ? "sel" : ""} ${o.disabled ? "dis" : ""}" role="option" data-v="${String(o.value).replace(/"/g, "&quot;")}"><span>${esc(o.textContent || "") || "&nbsp;"}</span>${CK}</div>`;
   m.innerHTML = [...sel.children].map((c) => (c.tagName == "OPTGROUP" ? `<div class="ddg">${(c.label || "").replace(/[&<]/g, "")}</div>` + [...c.children].map(add).join("") : add(c))).join("");
-  document.body.appendChild(m); M = m;
+  document.body.appendChild(m); M = m; layerOpen(close);
   const an = sel.closest("[data-ddanchor]") || sel, r = an.getBoundingClientRect(), w = Math.max(r.width, an !== sel ? 200 : 170), vw = innerWidth, vh = innerHeight;
   m.style.minWidth = Math.min(w, vw - 16) + "px"; m.style.width = "max-content"; m.style.maxWidth = vw - 16 + "px";
   const full = m.scrollHeight, below = vh - r.bottom - 12, above = r.top - 12, up = below < Math.min(full, 220) && above > below, h = Math.min(full + 2, Math.max(120, up ? above : below), 340);
@@ -49,7 +50,6 @@ export function startDropdowns() {
   document.addEventListener("keydown", (e) => {
     const t = e.target;
     if (M) {
-      if (e.key == "Escape") { e.preventDefault(); e.stopImmediatePropagation(); close(); return; }
       if (e.key == "ArrowDown") { e.preventDefault(); hi(idx + 1); } else if (e.key == "ArrowUp") { e.preventDefault(); hi(idx - 1); } else if (e.key == "Enter" || e.key == " ") { e.preventDefault(); pick(items()[idx]); } else if (e.key == "Tab") close();
       return;
     }

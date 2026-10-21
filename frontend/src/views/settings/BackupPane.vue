@@ -10,6 +10,7 @@ import { tx } from "../../core/heText.js";
 import BaseSheet from "../../components/BaseSheet.vue";
 import SetHead from "./SetHead.vue";
 import SetRow from "./SetRow.vue";
+import { ask as askYes } from "../../core/ask.js";
 
 const { t, locale } = useI18n();
 const tk = (k, a) => t("settings.backup." + k, a || {});
@@ -23,8 +24,9 @@ async function load() { try { BK.value = await getJson("/api/backup"); } catch {
 onMounted(load);
 async function put(body) { try { BK.value = await data.api("/api/backup/settings", sendJson("PUT", body)); toast(tk("toast.saved")); } catch (x) { err(x); } }
 async function run() { toast(tk("toast.running"), { kind: "info" }); try { BK.value = await data.api("/api/backup/run", { method: "POST" }); toast(tk("toast.done")); } catch (x) { err(x); } }
-async function del(name) { if (!confirm(tk("toast.delConfirm"))) return; try { BK.value = await data.api("/api/backup/file/" + encodeURIComponent(name), { method: "DELETE" }); } catch (x) { err(x); } }
-const pwOff = () => { if (confirm(tk("toast.pwOffConfirm"))) put({ password: null }); };
+const del = (name) => askYes(tk("toast.delConfirm"), "", () => delGo(name), { danger: true });
+async function delGo(name) { try { BK.value = await data.api("/api/backup/file/" + encodeURIComponent(name), { method: "DELETE" }); } catch (x) { err(x); } }
+const pwOff = () => askYes(tk("toast.pwOffConfirm"), "", () => put({ password: null }), { danger: true });
 const openDir = () => window.desktop.openFolder(BK.value.dir);
 async function choose() { const r = await window.desktop.chooseFolder(BK.value.dir); if (r) put({ dir: r }); }
 

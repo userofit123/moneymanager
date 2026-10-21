@@ -18,6 +18,7 @@ import { dstr } from "../dates.js";
 import BaseCard from "../components/BaseCard.vue";
 import BaseButton from "../components/BaseButton.vue";
 import BaseSheet from "../components/BaseSheet.vue";
+import BaseTabs from "../components/BaseTabs.vue";
 import MoneyInput from "../components/MoneyInput.vue";
 import PageHeader from "../components/PageHeader.vue";
 import PopMenu from "../components/PopMenu.vue";
@@ -60,9 +61,16 @@ const hist = computed(() => (menu.value && menu.value.kind == "hist" ? jarHistor
 const histName = computed(() => (menu.value ? (S.value.jars || []).find((j) => j.id == menu.value.id)?.n || "" : ""));
 // names and notes come from the data (names are shown through the old dictionary too, like the current app does with every text);
 // notes (the app's and the server's English, "Auto-fill 2026-10"): shown in Hebrew through the old dictionary
-const noteText = (h) => (h.earlier ? t(h.note == "start" ? "jars.hist.start" : "jars.hist.untracked") : h.pay ? t(h.payoff ? "jars.hist.paidBack" : "jars.hist.paid", { name: h.name }) : tx(h.note));
+const noteText = (h) => (h.earlier ? t(h.note == "start" ? "jars.hist.start" : "jars.hist.untracked") : h.pay ? t(h.payoff ? "jars.hist.paidBack" : "jars.hist.paid", { name: "\u2068" + h.name + "\u2069" }) : tx(h.note));
 const amtText = (h) => (h.pay && h.payoff ? "" : h.amt < 0 ? "−" : "+") + "₪" + f0(h.amt);
-const histOpen = (h) => { menu.value = null; openTx(h.id); };
+const histOpen = (h) => { menu.value = null; allOf.value = null; openTx(h.id); };
+// The menu shows the latest lines; "See all" opens the whole history in a window, where it can be narrowed down.
+const HIST_N = 8;
+const allOf = ref(null), allKind = ref("all");
+const openAll = () => { allOf.value = menu.value.id; allKind.value = "all"; menu.value = null; };
+const allName = computed(() => (S.value.jars || []).find((j) => j.id == allOf.value)?.n || "");
+const allHist = computed(() => (allOf.value == null ? [] : jarHistory(S.value, allOf.value, (x) => displayName(S.value, x))).filter((h) => allKind.value == "all" || (allKind.value == "pay" ? h.pay : !h.pay && (allKind.value == "in" ? h.amt > 0 : h.amt < 0))));
+const allKinds = computed(() => ["all", "in", "out", "pay"].map((value) => ({ value, label: t("jars.hist.k." + value) })));
 
 // New jar, new goal and edit: the shared window (components/forms/JarFormHost.vue).
 const openNew = () => openForm("jar", { start: { kind: "goal" } });
@@ -232,10 +240,20 @@ const doneLine = (d) => [t("jars.doneOn", { date: dstr(d.done) }), d.need > 0 ? 
       </template>
       <template v-else-if="menu">
         <div class="hh">{{ t("jars.hist.title", { name: tx(histName) }) }}</div>
-        <div v-for="(h, i) in hist" :key="i" class="hr" :class="{ hs: h.pay }" :data-a="h.pay ? 'openTx' : undefined" @click="h.pay && histOpen(h)"><span class="hd">{{ h.earlier ? t("jars.hist.earlier") : dstr(h.d) }}</span><span class="hn">{{ noteText(h) }}</span><b class="num" :class="h.pay ? (h.payoff ? '' : 'neg') : h.amt < 0 ? 'neg' : 'pos'">{{ amtText(h) }}</b></div>
+        <div v-for="(h, i) in hist.slice(0, HIST_N)" :key="i" class="hr" :class="{ hs: h.pay }" :data-a="h.pay ? 'openTx' : undefined" @click="h.pay && histOpen(h)"><span class="hd">{{ h.earlier ? t("jars.hist.earlier") : dstr(h.d) }}</span><span class="hn">{{ noteText(h) }}</span><b class="num" :class="h.pay ? (h.payoff ? '' : 'neg') : h.amt < 0 ? 'neg' : 'pos'">{{ amtText(h) }}</b></div>
         <div v-if="!hist.length" class="he2">{{ t("jars.hist.none") }}</div>
+        <button v-else-if="hist.length > HIST_N" type="button" class="hall" data-a="jarHistAll" @click="openAll">{{ t("jars.hist.all", { n: hist.length }) }}</button>
       </template>
     </PopMenu>
+
+    <BaseSheet :open="allOf != null" :label="t('jars.hist.title', { name: tx(allName) })" @close="allOf = null">
+      <h3>{{ t("jars.hist.title", { name: tx(allName) }) }}</h3>
+      <BaseTabs v-model="allKind" :options="allKinds" :label="t('jars.hist.show')" />
+      <div class="hist hsheet">
+        <div v-for="(h, i) in allHist" :key="i" class="hr" :class="{ hs: h.pay }" :data-a="h.pay ? 'openTx' : undefined" @click="h.pay && histOpen(h)"><span class="hd">{{ h.earlier ? t("jars.hist.earlier") : dstr(h.d) }}</span><span class="hn">{{ noteText(h) }}</span><b class="num" :class="h.pay ? (h.payoff ? '' : 'neg') : h.amt < 0 ? 'neg' : 'pos'">{{ amtText(h) }}</b></div>
+        <div v-if="!allHist.length" class="he2">{{ t("jars.hist.noneHere") }}</div>
+      </div>
+    </BaseSheet>
 
     <BaseSheet :open="!!doneAsk" @close="doneAsk = null">
       <h3>{{ t("jars.done.title", { name: tx(doneAsk?.n || "") }) }}</h3>
@@ -258,3 +276,13 @@ const doneLine = (d) => [t("jars.doneOn", { date: dstr(d.done) }), d.need > 0 ? 
     <AvailWhy v-if="home" v-model:open="why" :M="home" />
   </template>
 </template>
+
+<style>
+/* "See all" at the end of a jar's history menu, and the whole history in a window */
+.hist .hall { display: block; width: 100%; padding: 9px 10px; border: 0; border-top: 1px solid var(--ol); background: none; color: var(--acc); font: inherit; font-size: 13px; font-weight: 600; text-align: start; cursor: pointer; border-radius: 0; }
+.hist .hall:hover { background: var(--s2); }
+.hsheet { display: block; margin-top: 12px; }
+/* a payment line (.hs) also matched the help guide's section style (.hs, margin under it) in the current app, which spread the lines apart */
+.hist .hr.hs { margin: 0; }
+.hsheet .hr:first-child { border-top: 0; }
+</style>

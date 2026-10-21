@@ -41,7 +41,7 @@ const setCat = (x, v) => data.change((n) => setField(n, x.id, "c", v).lines || f
         <td class="mer" style="cursor:pointer" @click="emit('open', x)"><div class="mc"><span class="av" :style="av(x)">{{ (name(x) || "?")[0] }}</span><span class="mt" :title="name(x)">{{ name(x) }}</span><span v-for="c in txChips(S, x, { K, dup, BC })" :key="c.cls" class="bd pc" :class="c.cls" :data-tip="c.tip"><svg v-if="c.icon" class="pi" viewBox="0 0 24 24" v-html="CHIP_ICON[c.icon]" />{{ c.label }}</span></div></td>
         <td class="sm ft" :title="x.from + ' → ' + x.to">{{ x.from }} → {{ x.to }}</td>
         <td><select v-if="canCat(x)" :value="x.c && x.c !== 'Uncategorized' ? x.c : ''" :aria-label="t('activity.category')" @change="setCat(x, $event.target.value)"><option value="">{{ t("activity.uncategorized") }}</option><option v-for="c in cats" :key="c" :value="c">{{ catLabel(c) }}</option></select><span v-else class="sm">{{ x.c ? catLabel(x.c) : "—" }}</span></td>
-        <td><span v-for="g in x.tags || []" :key="g" class="tag catl" @click="goActivity({ tag: g })">{{ tx(g) }}</span></td>
+        <td><span v-for="g in x.tags || []" :key="g" class="tag catl" @click="goActivity({ tag: g })">{{ g }}</span></td>
         <td class="am" :class="{ pos: pos(x) }" dir="ltr"><span v-if="x.balUpd" class="sm" style="font-weight:500">{{ amtText(x) }}</span><template v-else>{{ amtText(x) }}</template><div v-if="x.orig" class="sm" style="font-weight:400">{{ SYM[x.orig.cur] }}{{ f0(x.orig.amt) }} {{ x.orig.cur }}</div></td>
         <td><button v-if="x.docs && x.docs.length" type="button" class="chip dchip" :aria-label="t('activity.count', { n: x.docs.length }, x.docs.length)" @click="emit('open', x)">📎 {{ x.docs.length }}</button></td>
       </tr>

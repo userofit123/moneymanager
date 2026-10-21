@@ -5,6 +5,7 @@ import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue"
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
 import { docView, closeDocs } from "../../core/docs.js";
+import { escLayer } from "../../core/layers.js";
 import { displayName } from "../../lib/activity.js";
 
 const { t } = useI18n();
@@ -17,6 +18,7 @@ const file = computed(() => {
   const n = x.docs[i], id = x.docIds && x.docIds[i], has = x.docHas ? x.docHas[i] : true;
   return { n, url: id && has ? "/api/documents/" + id : "", kind: kindOf(n) };
 });
+escLayer(() => !!docView.value, closeDocs);
 const pick = (i) => { docView.value = { ...docView.value, i }; };
 // the fade in and out (.on)
 const shown = ref(false), mounted = ref(false);
@@ -52,8 +54,7 @@ watch(file, async (f) => {
 });
 const key = (e) => {
   if (!docView.value) return;
-  if (e.key == "Escape") { e.stopImmediatePropagation(); closeDocs(); }
-  else if (tx.value && (e.key == "ArrowRight" || e.key == "ArrowLeft")) { const n = tx.value.docs.length, k = e.key == "ArrowRight" ? 1 : -1; pick(sel.value == null ? 0 : (sel.value + k + n) % n); }
+  if (tx.value && (e.key == "ArrowRight" || e.key == "ArrowLeft")) { const n = tx.value.docs.length, k = e.key == "ArrowRight" ? 1 : -1; pick(sel.value == null ? 0 : (sel.value + k + n) % n); }
 };
 onMounted(() => document.addEventListener("keydown", key, true));
 onBeforeUnmount(() => document.removeEventListener("keydown", key, true));
