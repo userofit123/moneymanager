@@ -2,6 +2,7 @@
 // (web/js/02-state-data.js jarFree/jarCalc, 04-transactions.js jarState/renderJars, 06-trend-forecast-sync.js jarProject).
 // Nothing here changes the data.
 import { homeModel, addM, rdOf } from "./home.js";
+import { dstr } from "../dates.js";
 
 const sum = (a) => a.reduce((t, x) => t + x, 0);
 
@@ -47,14 +48,33 @@ export function forecastSurplus(S, H, now, fcOpt = {}) {
   return (k) => at(Math.min(k, 12));
 }
 
+// Whole months from now until a date (at least 1).
+export const monthsToOf = (now) => (d) => Math.max(1, Math.ceil((new Date(d) - now) / (864e5 * 30.44)));
+// A jar's monthly amount: a jar with "auto" and a deadline works out its own. off: months from now (for the forecast).
+export const capOfAt = (now) => { const monthsTo = monthsToOf(now); return (j, got, off = 0) => (j.cap == null ? null : j.auto && j.due && j.need > 0 ? Math.max(0, Math.ceil((j.need - (j.bal - (got || 0))) / Math.max(1, monthsTo(j.due) - off))) : j.cap); };
+// What each open jar will hold month by month (jarProject in the current app, shared by the Jars and Forecast pages): the free money today
+// plus the money expected to be left each month, shared out in priority order. series: what it will hold, planned: what its monthly amount
+// alone would give, eta: the month (from now) it is full.
+export function jarProject(S, H, now, fcOpt = {}, M = 60) {
+  const capOf = capOfAt(now), sur = forecastSurplus(S, H, now, fcOpt); let pool = H.flow.free;
+  const J = (S.jars || []).filter((j) => !j.done).sort((a, c) => a.p - c.p).map((j) => ({ ...j, b: +j.bal || 0, eta: null, series: [+j.bal || 0], plan: +j.bal || 0, planned: [+j.bal || 0] }));
+  for (let k = 1; k <= M; k++) {
+    pool = Math.max(0, pool + sur(k));
+    J.forEach((j) => {
+      const open = !(j.need > 0), full = j.cap == null && !open && j.bill;
+      if (!full && (open || j.b < j.need)) { const c = capOf({ ...j, bal: j.b }, 0, k - 1), want = c == null ? (open ? 0 : j.need - j.b) : Math.min(c, open ? 1e12 : j.need - j.b), g = Math.max(0, Math.min(pool, want)); pool -= g; j.b += g; if (!open && j.b >= j.need - 0.5 && j.eta == null) j.eta = k; }
+      j.series.push(j.b); const cp = j.cap == null ? 0 : capOf({ ...j, bal: j.plan }, 0, k - 1); j.plan = open ? j.plan + (cp || 0) : Math.min(j.need, j.plan + (cp || 0)); j.planned.push(j.plan);
+    });
+  }
+  return { J, M, pool0: H.flow.free, sur: Array.from({ length: 12 }, (_, i) => sur(i + 1)) };
+}
+
 // now: today's date; fx: { USD: 3.7, ... }.
 // fcOpt: the Forecast page's choices { n: months to base it on, m: "smart" | "avg" | "trend" }, saved by the current app as "moneyFc".
 export function jarsModel(S, now = new Date(), fx = {}, fcOpt = {}) {
   S = S || {};
   const H = homeModel(S, now, fx), F = H.flow, MK = H.MK;
-  const monthsTo = (d) => Math.max(1, Math.ceil((new Date(d) - now) / (864e5 * 30.44)));
-  // A jar with "auto" and a deadline works out its own monthly amount. off: months from now (for the forecast).
-  const capOf = (j, got, off = 0) => (j.cap == null ? null : j.auto && j.due && j.need > 0 ? Math.max(0, Math.ceil((j.need - (j.bal - (got || 0))) / Math.max(1, monthsTo(j.due) - off))) : j.cap);
+  const monthsTo = monthsToOf(now), capOf = capOfAt(now);
   const active = (S.jars || []).filter((j) => !j.done).sort((a, b) => a.p - b.p);
 
   // Jars fill in priority order from the free money: each takes what it still needs this month.
@@ -69,14 +89,13 @@ export function jarsModel(S, now = new Date(), fx = {}, fcOpt = {}) {
   // When each jar will be full: what is free today plus the money expected to be left each month, shared out in priority order.
   // The expected monthly surplus is the average of the complete months so far (income minus spending).
   // The money left each month is the Forecast page's guess (web/js/06-trend-forecast-sync.js fcCalc), so both pages agree.
-  const sur = forecastSurplus(S, H, now, fcOpt);
-  const eta = {};
-  { let pool = F.free; const J = out.map((j) => ({ ...j, b: j.bal }));
-    for (let k = 1; k <= 60; k++) { pool = Math.max(0, pool + sur(k)); J.forEach((j) => { const full = j.cap == null && !j.open && j.bill; if (full || (!j.open && j.b >= j.need)) return; const c = capOf({ ...j, bal: j.b }, 0, k - 1), want = c == null ? (j.open ? 0 : j.need - j.b) : Math.min(c, j.open ? 1e12 : j.need - j.b), g = Math.max(0, Math.min(pool, want)); pool -= g; j.b += g; if (!j.open && j.b >= j.need - 0.5 && eta[j.id] == null) eta[j.id] = k; }); } }
+  const eta = {}; jarProject(S, H, now, fcOpt).J.forEach((j) => { if (j.eta != null) eta[j.id] = j.eta; });
 
   const jars = out.map((j, ix) => {
     const type = j.bill ? "bill" : j.open ? "month" : "goal", pc = j.open ? 0 : Math.round((j.bal / j.need) * 100);
-    return { ...j, ix, type, pc, state: jarState(j, eta[j.id], MK, monthsTo), billName: j.bill ? H.billNames[j.bill] || "" : "" };
+    // for the "Pays for" tooltip (jarCatTip): what was paid from this jar by itself this month
+    const autoPaid = sum((S.tx || []).filter((t) => t.jar && t.jar.id == j.id && t.jar.auto && String(t.d).startsWith(MK)).map((t) => +t.jar.amt || 0));
+    return { ...j, ix, type, pc, autoPaid, state: jarState(j, eta[j.id], MK, monthsTo), billName: j.bill ? H.billNames[j.bill] || "" : "" };
   });
 
   // Goals: jars with an amount to reach that are not bill jars.
@@ -101,7 +120,7 @@ export function jarsModel(S, now = new Date(), fx = {}, fcOpt = {}) {
   const avail = { bills: sum(rb.map((r) => r.amt)), limits: sum(ro.map((r) => r.amt)), billRows: rb, otherRows: ro.map((r) => ({ ...r, bl: sum((r.bills || []).map((x) => x.amt)) })),
     covered: active.filter((j) => j.bill).map((j) => ({ jar: j.n, bills: isAll(j.bill) ? bl.all(j.bill) : bl.rec.filter((b) => b.match == j.bill) })).filter((x) => x.bills.length) };
   return { F: { cash: F.cash, inJars: F.inJars, buffer: F.buffer, reserve: F.R.total, free: F.free, over: F.over }, month, jars, goals, done, has: { any: active.length > 0 },
-    avail, bills: bl, MK, today: H.today, monthsTo };
+    avail, bills: bl, MK, today: H.today, monthsTo, spend: Object.fromEntries(H.spend) };
 }
 
 // What a jar is doing this month (the pill in its header), and when it will be full.
@@ -123,7 +142,7 @@ export function jarState(j, k, MK, monthsTo) {
 }
 
 // ---- Changes to the jars. Each one changes S (a copy) the same way the current app does (web/js/08-jars.js)
-// and gives back the history lines to log as [action, detail]. fm formats money for those lines.
+// and gives back the history lines to log as [action, detail, undo?]. fm formats money for those lines.
 const r2 = (v) => +(+v).toFixed(2);
 const jarsOpen = (S) => (S.jars || []).filter((j) => !j.done).sort((a, b) => a.p - b.p);
 const heldOf = (j) => Math.max(0, (+j.bal || 0) - (+j.out || 0));
@@ -150,7 +169,7 @@ function jset(j, fld, v, ctx) {
   const show = (x) => (fld == "n" || fld == "desc" ? x || "none" : fld == "months" ? String(x || "none") : fld == "bill" ? (isAll(x) ? ALLN[x].toLowerCase() : x ? (BC.find((b) => b.match == x) || {}).n || x : "none") : fld == "due" ? (x ? ctx.dstr(x) : "none") : fld == "auto" ? (x ? "calculated from the deadline" : "fixed") : fld == "cap" && x == null ? "refill to target" : fm(x));
   j[fld] = v;
   if (fld == "bal") { j.balEdit = true; if (v < old) jarOut(j, r2(old - v), "Edited by you"); jarClamp(j); }
-  return ["Changed jar " + FLD[fld], j.n + ": " + show(old) + " → " + show(v)];
+  return ["Changed jar " + FLD[fld], j.n + ": " + show(old) + " → " + show(v), { type: "jar", id: j.id, f: fld, old }];
 }
 
 // "Take back from the jars": the extra comes out of the lowest-priority jars first.
@@ -158,6 +177,28 @@ export function releaseJars(S, over, ctx) {
   const logs = []; let need = over;
   [...jarsOpen(S)].reverse().forEach((j) => { if (need <= 0 || !(heldOf(j) > 0)) return; const t = Math.min(heldOf(j), Math.ceil(need)); j.balNote = "Released back to free money"; const l = jset(j, "bal", r2(j.bal - t), ctx); if (l) logs.push(l); need -= t; });
   return logs;
+}
+// "Raise to ₪X a month" on a goal that is behind: a fixed monthly amount of what is needed, rounded up to tens (goalFix).
+export function goalFix(S, id, ctx) {
+  const j = (S.jars || []).find((x) => x.id == id); if (!j || !j.due) return false;
+  const req = (j.need - j.bal) / ctx.monthsTo(j.due);
+  return [jset(j, "auto", false, ctx), jset(j, "cap", Math.ceil(req / 10) * 10, ctx)].filter(Boolean);
+}
+// Priority: ▲/▼ swap a jar with its neighbour (jarUp/jarDown); the picker moves it to a place and numbers them again (jarMoveTo).
+export function moveJar(S, id, up) {
+  const L = jarsOpen(S), i = L.findIndex((j) => j.id == id), k = up ? i - 1 : i + 1; if (i < 0 || k < 0 || k >= L.length) return false;
+  const p = L[i].p; L[i].p = L[k].p; L[k].p = p;
+  return [["Reordered jars", L[i].n + " moved " + (up ? "up" : "down")]];
+}
+export function moveJarTo(S, id, pos) {
+  const L = jarsOpen(S), i = L.findIndex((j) => j.id == id); if (i < 0 || pos < 1 || pos > L.length || pos - 1 == i) return false;
+  const [j] = L.splice(i, 1); L.splice(pos - 1, 0, j); L.forEach((x, k) => { x.p = k + 1; });
+  return [["Reordered jars", j.n + " is now priority " + pos]];
+}
+export function reopenJar(S, id) {
+  const j = (S.jars || []).find((x) => x.id == id); if (!j) return false;
+  j.done = ""; j.p = Math.max(0, ...S.jars.filter((x) => !x.done).map((x) => x.p)) + 1;
+  return [["Reopened jar", j.n]];
 }
 // Mark as done: what is left goes back to free money, and the jar leaves the priority list.
 export function markDone(S, id, today, ctx) {
@@ -178,7 +219,7 @@ export function jarHistory(S, id, name) {
   return [
     ...(Math.abs(gap) > 0.5 && j.ledger != null ? [{ k: "0000-00-00", earlier: true, note: gap > 0 ? "start" : "untracked", amt: gap }] : []),
     ...(j.moves || []).filter((m) => !(m.amt < 0 && /^Paid/.test(m.note || ""))).map((m) => ({ k: String(m.at).slice(0, 10), d: m.at, note: m.note || "", amt: m.amt })),
-    ...(S.tx || []).filter((t) => t.jar && t.jar.id == j.id).map((t) => ({ k: t.d, d: t.d, pay: true, payoff: pay, name: name(t), amt: pay ? +t.jar.amt : -t.jar.amt })),
+    ...(S.tx || []).filter((t) => t.jar && t.jar.id == j.id).map((t) => ({ k: t.d, d: t.d, id: t.id, pay: true, payoff: pay, name: name(t), amt: pay ? +t.jar.amt : -t.jar.amt })),
   ].sort((x, y) => y.k.localeCompare(x.k));
 }
 
@@ -187,8 +228,8 @@ export function catJarsOf(S) { const o = {}; jarsOpen(S).forEach((j) => (j.cats 
 
 // The form for a new jar or for editing one. f: what was typed. Gives back an error key, or the history lines.
 // kind: "goal" (savings), "bill" or "payoff".
-// What the jar actions need from the jars model to write their history lines (dates in the history are English, like the current app).
-export const jarCtx = (M, fm) => ({ fm, dstr: (d) => new Date(String(d).slice(0, 10) + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }), BC: M.bills.BC, bills: M.bills, today: M.today, MK: M.MK });
+// What the jar actions need from the jars model to write their history lines (dates as chosen in Settings, like the current app's dstr).
+export const jarCtx = (M, fm) => ({ fm, dstr, BC: M.bills.BC, bills: M.bills, today: M.today, MK: M.MK, monthsTo: M.monthsTo });
 export function saveJar(S, id, f, ctx) {
   const { today, MK, bills } = ctx, n = String(f.n || "").trim();
   if (!n) return { err: "name", field: "n" };
@@ -200,7 +241,7 @@ export function saveJar(S, id, f, ctx) {
   const dsc = String(f.desc || "").trim(), cats = f.cats || [];
   const kSince = f.since ? MK + "-01" : today, oldCats = id ? ((S.jars || []).find((x) => x.id == id) || {}).cats || [] : [], newCats = cats.map((k) => oldCats.find((x) => x.c == k) || { c: k, since: kSince });
   (S.jars || []).forEach((o) => { if (o.id != id && o.cats && o.cats.length && cats.length) o.cats = o.cats.filter((x) => !cats.includes(x.c)); });
-  const kind = f.kind == "payoff" ? "payoff" : "", tick = !!f.O, logs = [], sig = (a) => JSON.stringify([...a].sort());
+  const kind = f.kind == "payoff" ? "payoff" : "", tick = f.kind == "goal" && !!f.O, logs = [], sig = (a) => JSON.stringify([...a].sort());
   if (id) {
     const j = S.jars.find((x) => x.id == id); if (!j) return { logs };
     const oldKind = j.kind || ""; j.out = kind == "payoff" ? (oldKind == "payoff" ? Math.max(0, sv - heldOf(j)) : sv) : tick ? ((+j.out || 0) > 0 ? Math.min(+j.out, sv) : sv) : 0; j.kind = kind;

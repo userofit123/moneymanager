@@ -5,19 +5,19 @@ import { ref, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import BaseDialog from "../components/BaseDialog.vue";
 import BaseButton from "../components/BaseButton.vue";
+import MoneyInput from "../components/MoneyInput.vue";
 import { ALLN, catJarsOf } from "./jars.js";
+import { fm } from "../format.js";
 
 const props = defineProps({ open: Boolean, S: Object, M: Object, id: Number, start: Object });
 const emit = defineEmits(["update:open", "save"]);
 const { t, locale } = useI18n();
 const tk = (k, ...a) => t(k, ...a);
-const n0 = (v) => Math.round(Math.abs(v)).toLocaleString("en-IL");
-const fm = (v) => (v < 0 ? "−" : "") + "₪" + n0(v);
 const loc = computed(() => (locale.value === "he" ? "he-IL" : "en-GB"));
 
 const f = ref({});
 const q = ref(""), catsOpen = ref(false);
-watch(() => props.open, (o) => { if (!o) return; f.value = { kind: "goal", n: "", desc: "", cats: [], T: "", S: 0, D: "", C: "", B: "", Mo: 12, O: false, since: false, ...structuredClone(props.start || {}) }; q.value = ""; catsOpen.value = f.value.cats.length > 0; });
+watch(() => props.open, (o) => { if (!o) return; f.value = { kind: "goal", n: "", desc: "", cats: [], T: "", S: 0, D: "", C: "", B: "", Mo: 12, O: false, since: false, ...structuredClone(props.start || {}) }; q.value = ""; catsOpen.value = f.value.cats.length > 0; }, { immediate: true }); // the shared window opens already open (FormHost)
 
 const TYPES = ["goal", "bill", "payoff"];
 const num = (v) => +v || 0;
@@ -66,27 +66,27 @@ const cc = (c) => (c == "Income" || props.S?.cats?.[c] === 99 ? "var(--pos)" : `
 
       <template v-if="f.kind == 'goal'">
         <div class="two">
-          <div class="fld"><label for="njT">{{ t("jars.form.goalAmt") }}</label><input id="njT" v-model="f.T" type="number" inputmode="numeric" min="1" :placeholder="t('jars.form.goalEx')"></div>
-          <div class="fld"><label for="njS">{{ id ? t("jars.form.savedSoFar") : t("jars.form.already") }}</label><input id="njS" v-model="f.S" type="number" inputmode="numeric" min="0"></div>
+          <div class="fld"><label for="njT">{{ t("jars.form.goalAmt") }}</label><MoneyInput id="njT" v-model="f.T" :placeholder="t('jars.form.goalEx')" /></div>
+          <div class="fld"><label for="njS">{{ id ? t("jars.form.savedSoFar") : t("jars.form.already") }}</label><MoneyInput id="njS" v-model="f.S" /></div>
         </div>
         <label class="chk" style="display:flex;gap:8px;align-items:flex-start;margin:-4px 0 12px;font-size:13px"><input v-model="f.O" type="checkbox" style="margin-top:3px"><span>{{ t("jars.form.notHere") }}<br><span class="sm">{{ t("jars.form.notHereSub") }}</span></span></label>
         <div class="two">
           <div class="fld"><label for="njD">{{ t("jars.form.byWhen") }}</label><input id="njD" v-model="f.D" type="date"></div>
-          <div class="fld"><label for="njC">{{ t("jars.form.perMonthL") }}</label><input id="njC" v-model="f.C" type="number" inputmode="numeric" min="0" :placeholder="t('jars.form.workedOut')"></div>
+          <div class="fld"><label for="njC">{{ t("jars.form.perMonthL") }}</label><MoneyInput id="njC" v-model="f.C" :placeholder="t('jars.form.workedOut')" /></div>
         </div>
       </template>
       <template v-else-if="f.kind == 'payoff'">
         <div class="two">
-          <div class="fld"><label for="njT">{{ t("jars.form.owe") }}</label><input id="njT" v-model="f.T" type="number" inputmode="numeric" min="1" :placeholder="t('jars.form.oweEx')"></div>
-          <div class="fld"><label for="njS">{{ t("jars.form.paidBack") }}</label><input id="njS" v-model="f.S" type="number" inputmode="numeric" min="0"></div>
+          <div class="fld"><label for="njT">{{ t("jars.form.owe") }}</label><MoneyInput id="njT" v-model="f.T" :placeholder="t('jars.form.oweEx')" /></div>
+          <div class="fld"><label for="njS">{{ t("jars.form.paidBack") }}</label><MoneyInput id="njS" v-model="f.S" /></div>
         </div>
-        <div class="two"><div class="fld"><label for="njC">{{ t("jars.form.payPer") }}</label><input id="njC" v-model="f.C" type="number" inputmode="numeric" min="1" :placeholder="t('jars.form.payEx')"></div><div /></div>
+        <div class="two"><div class="fld"><label for="njC">{{ t("jars.form.payPer") }}</label><MoneyInput id="njC" v-model="f.C" :placeholder="t('jars.form.payEx')" /></div><div /></div>
       </template>
       <template v-else>
         <div class="fld"><label for="njB">{{ t("jars.form.bill") }}</label><select id="njB" v-model="f.B"><option value="">{{ t("jars.form.chooseBill") }}</option><option v-for="o in billOpts" :key="o.v" :value="o.v">{{ o.l }}</option></select></div>
         <div class="two">
           <div class="fld"><label for="njMo">{{ t("jars.form.months") }}</label><input id="njMo" v-model="f.Mo" type="number" inputmode="numeric" min="1"></div>
-          <div class="fld"><label for="njS">{{ id ? t("jars.form.savedSoFar") : t("jars.form.already") }}</label><input id="njS" v-model="f.S" type="number" inputmode="numeric" min="0"></div>
+          <div class="fld"><label for="njS">{{ id ? t("jars.form.savedSoFar") : t("jars.form.already") }}</label><MoneyInput id="njS" v-model="f.S" /></div>
         </div>
       </template>
       <div class="jhint">{{ hint }}</div>

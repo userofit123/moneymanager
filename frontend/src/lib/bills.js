@@ -153,6 +153,10 @@ export const addBill = (S, form, now = new Date()) => {
   S.bills.push({ n, amt: am, mode: "rule", ...(ev ? { every: ev, rec: "recurring", anchor: now.getMonth() + 1, dom: Math.min(28, +form.dom || 1) } : { rec: "irregular" }), src: form.src, match, cat: "Subscriptions", lastPaid: today, manual: true });
   return [["Added bill", n + " · " + fm(am) + (ev ? "" : " · irregular")]];
 };
+// A bill is found again by what it is, not by its place in the list (a sync can add bills in between): one-off bills by their
+// payments, the others by the words they match.
+export const billKey = (b) => (b.mode == "once" ? "once|" + (b.ids || []).join(",") + "|" + b.n : "rule|" + b.match);
+export const billIndex = (S, key) => (S.bills || []).findIndex((b) => billKey(b) === key);
 export const flagBill = (S, i) => { const b = S.bills[i]; if (!b) return false; b.flag = b.flag ? "" : "cancel"; return [[b.flag ? "Marked to cancel" : "Kept bill", b.n]]; };
 export const cancelBill = (S, i, today) => { const b = S.bills[i]; if (!b) return false; b.flag = "canceled"; b.canceledAt = today; return [["Marked bill as canceled", b.n]]; };
 export const restoreBill = (S, i) => { const b = S.bills[i]; if (!b) return false; b.flag = ""; delete b.canceledAt; return [["Restored bill", b.n]]; };

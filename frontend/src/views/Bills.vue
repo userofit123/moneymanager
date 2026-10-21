@@ -2,22 +2,21 @@
 // Bills: the same business or person charging you again and again. A copy of the current app's Bills page
 // (web/js/04-transactions.js renderBills, web/js/08-jars.js bill actions): the three numbers on top, regular, irregular,
 // instalment and one-off bills, canceled bills, the ⋯ menu, "Add a bill", "Change bill type" and the payment history.
-// The numbers come from lib/bills.js. Changes are saved like the old page: change a copy, PUT /api/state, load the fresh copy.
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
+// The numbers come from lib/bills.js. Changes go through the data store; a bill is found by what it is (billKey), not its place in the list.
+import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
 import { openTx, openPop } from "../core/txwin.js";
 import { now } from "../core/clock.js";
+import { tx } from "../core/heText.js"; // names from the data are shown through the old dictionary, like the current app
 import { openForm } from "../core/forms.js";
 import { dstr } from "../dates.js";
-import { toast } from "../core/toast.js";
-import { go } from "../router.js";
 import PageHeader from "../components/PageHeader.vue";
 import BaseSheet from "../components/BaseSheet.vue";
+import PopMenu from "../components/PopMenu.vue";
 import { displayName } from "./activity.js";
-import { placeMenu } from "./jars-ui.js";
 import { vRich } from "../lib/richtip.js";
-import { billsModel, billState, flagBill, cancelBill, restoreBill, deleteBill, setBillType, sugYes, sugNo, typeOf, cadText, freqText, evTipText, f0, fm } from "../lib/bills.js";
+import { billsModel, billState, flagBill, cancelBill, restoreBill, deleteBill, setBillType, sugYes, sugNo, typeOf, billKey, billIndex, cadText, freqText, evTipText, f0, fm } from "../lib/bills.js";
 
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);
@@ -67,28 +66,17 @@ const lastLine = (b) => (b.n_tx ? t("bills.lastCharge", { amount: fm(b.amt), dat
 
 const evTip = (b) => evTipText(b, t, dstr);
 
-// ---- saving (like Jars: change a copy, send the whole state, then load the fresh copy) ----
-const say = (m, kind = "ok") => toast(m, { kind }); // the toasts at the bottom of the page (core/toast.js)
-// Saving goes through the data store (stores/data.js). Bills the app finds are saved by the upkeep after every load (core/settle.js).
-function change(edit) {
-  data.change((next) => { const r = edit(next); if (r === false) return false; return r.map(([a, d, who]) => [a, d, null, who]); });
+// ---- saving: through the data store (stores/data.js). Bills the app finds are saved by the upkeep after every load (core/settle.js). ----
+// edit(copy, i) gets the bill's place in the copy being changed (looked up by its key, so a sync in between cannot shift it).
+function change(key, edit) {
+  data.change((next) => { const i = billIndex(next, key); if (i < 0) return false; const r = edit(next, i); if (r === false) return false; return r.map(([a, d, who]) => [a, d, null, who]); });
 }
 // The payments of bill number i, worked out on the same state the change is made on.
 const txOf = (next, i) => { const st = billState(next, now.value); return st.billTx(next.bills[i]); };
 
 // ---- the ⋯ menu ----
-const menu = ref(null); // { i, btn }
-const menuEl = ref(null);
-const toggleMenu = (i, ev) => {
-  if (menu.value && menu.value.i == i) { menu.value = null; return; }
-  menu.value = { i, btn: ev.currentTarget };
-  nextTick(() => menuEl.value && placeMenu(menuEl.value, menu.value.btn));
-};
-const closeMenus = (e) => { if (menu.value && !e.target.closest("[data-a=billMenu]")) menu.value = null; };
-const onKey = (e) => { if (e.key === "Escape") menu.value = null; };
-const onScroll = (e) => { if (menu.value && !(e.target.closest && e.target.closest(".cmenu"))) menu.value = null; };
-onMounted(() => { document.addEventListener("click", closeMenus); document.addEventListener("keydown", onKey); addEventListener("scroll", onScroll, { passive: true, capture: true }); });
-onBeforeUnmount(() => { document.removeEventListener("click", closeMenus); document.removeEventListener("keydown", onKey); removeEventListener("scroll", onScroll, { capture: true }); });
+const menu = ref(null); // { i, key, btn }
+const toggleMenu = (b, ev) => { menu.value = menu.value && menu.value.i == b.idx ? null : { i: b.idx, key: billKey(b), btn: ev.currentTarget }; };
 const MI = { h: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', t: '<path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/>', f: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>', c: '<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>', k: '<path d="M5 12l5 5L20 7"/>', x: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>' };
 const menuItems = computed(() => {
   if (!menu.value || !M.value) return [];
@@ -99,12 +87,12 @@ const menuItems = computed(() => {
   return it;
 });
 function pick(a) {
-  const i = menu.value.i; menu.value = null;
+  const { i, key } = menu.value; menu.value = null;
   if (a == "billHist") openHist(i);
   else if (a == "billType") openType(i);
-  else if (a == "billFlag") change((n) => flagBill(n, i));
-  else if (a == "billCanceled") change((n) => cancelBill(n, i, billState(n, now.value).TODAY));
-  else if (a == "billDel") change((n) => deleteBill(n, i));
+  else if (a == "billFlag") change(key, flagBill);
+  else if (a == "billCanceled") change(key, (n, j) => cancelBill(n, j, billState(n, now.value).TODAY));
+  else if (a == "billDel") change(key, deleteBill);
 }
 
 // ---- opening a bill: its last payment's entry window, or its payment history (billOpen, billHist) ----
@@ -115,7 +103,7 @@ function openHist(i) {
 function openBill(bi) {
   const st = billState(S.value, now.value), b = st.bills[bi.idx]; if (!b) return;
   const L = st.billTx(b), last = L[L.length - 1];
-  if (last) openTx(last.id); else openHist(bi.idx);
+  if (last) openTx(last.id); else openPop("hist", { title: b.n, rows: L, sub: t("bills.h.bill"), q: b.match });
 }
 
 // ---- Add a bill: the shared window (components/forms/BillForm.vue) ----
@@ -126,14 +114,14 @@ const typeFor = ref(null); // { i, name, v }
 function openType(i) {
   const b = S.value && billState(S.value, now.value).bills[i]; if (!b) return;
   const info = M.value.all.find((x) => x.idx == i) || {};
-  typeFor.value = { i, name: b.n, v: typeOf(b, info) };
+  typeFor.value = { key: billKey(b), name: b.n, v: typeOf(b, info) };
 }
-function saveType() { const { i, v } = typeFor.value; typeFor.value = null; change((n) => setBillType(n, i, v, txOf(n, i))); }
+function saveType() { const { key, v } = typeFor.value; typeFor.value = null; change(key, (n, i) => setBillType(n, i, v, txOf(n, i))); }
 
-const makeRegular = (b) => change((n) => sugYes(n, b.idx, b.sug, txOf(n, b.idx)));
-const keepIrregular = (b) => change((n) => sugNo(n, b.idx, txOf(n, b.idx)));
-const restore = (b) => change((n) => restoreBill(n, b.idx));
-const remove = (b) => change((n) => deleteBill(n, b.idx));
+const makeRegular = (b) => change(billKey(b), (n, i) => sugYes(n, i, b.sug, txOf(n, i)));
+const keepIrregular = (b) => change(billKey(b), (n, i) => sugNo(n, i, txOf(n, i)));
+const restore = (b) => change(billKey(b), restoreBill);
+const remove = (b) => change(billKey(b), deleteBill);
 </script>
 
 <template>
@@ -158,25 +146,25 @@ const remove = (b) => change((n) => deleteBill(n, b.idx));
             <template v-if="g.k == 'rec'">
               <div v-for="b in g.L" :key="b.idx" class="brow" data-a="billOpen" :data-i="b.idx" @click="openBill(b)">
                 <span class="av" :style="avStyle(b)">{{ (b.n || "?")[0] }}</span>
-                <div class="bm"><div class="bt"><b>{{ b.n }}</b><template v-if="b.flag">{{ " " }}<span class="bd am2">{{ t("bills.markedCancel") }}</span></template></div>
-                  <div class="bsub">{{ cad(b.every) }} <span class="dsep">·</span> {{ srcOf(b.src).name }} <span v-if="srcOf(b.src).tail" class="sm" dir="ltr" style="font-weight:500;opacity:.8;unicode-bidi:isolate">·· {{ srcOf(b.src).tail }}</span> <span v-rich="evTip(b)" class="bq">{{ b.manual ? t("bills.byYou") : t("bills.auto") }}</span></div>
+                <div class="bm"><div class="bt"><b>{{ tx(b.n) }}</b><template v-if="b.flag">{{ " " }}<span class="bd am2">{{ t("bills.markedCancel") }}</span></template></div>
+                  <div class="bsub">{{ cad(b.every) }} <span class="dsep">·</span> {{ tx(srcOf(b.src).name) }} <span v-if="srcOf(b.src).tail" class="sm" dir="ltr" style="font-weight:500;opacity:.8;unicode-bidi:isolate">·· {{ srcOf(b.src).tail }}</span> <span v-rich="evTip(b)" class="bq">{{ b.manual ? t("bills.byYou") : t("bills.auto") }}</span></div>
                   <div class="bsub bs2">{{ lastLine(b) }}<template v-if="b.vari">{{ " " }}<span class="dsep">·</span>{{ " " + t("bills.varies", { lo: fm(b.lo), hi: fm(b.hi) }) }}</template></div>
                   <span v-if="priceChange(b)" class="bd" :class="priceChange(b) > 0 ? 'up' : 'dn'" style="margin-top:6px">{{ priceChange(b) > 0 ? t("bills.more", { amount: fm(priceChange(b)) }) : t("bills.less", { amount: fm(-priceChange(b)) }) }}</span></div>
                 <div class="ba"><b class="num">{{ b.vari ? "≈ " : "" }}{{ fm(b.pred) }}</b>
                   <div class="sm"><span v-if="b.status == 'overdue'" class="neg">{{ t("bills.overdue", { date: dstr(b.pd) }) }}</span><span v-else-if="b.status == 'pending'" class="am">{{ t("bills.dueNow") }}</span><b v-else-if="b.days <= 7">{{ dueText(b) }}</b><template v-else>{{ dueText(b) }}</template></div>
                   <div class="sm bfaint">{{ b.vari ? t("bills.avg3") : t("bills.sameLast") }}</div></div>
-                <button class="ib jmore bmore" data-a="billMenu" :data-i="b.idx" :data-open="menu?.i == b.idx ? 1 : undefined" :aria-label="t('bills.options')" aria-haspopup="menu" @click.stop="toggleMenu(b.idx, $event)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" /></svg></button>
+                <button class="ib jmore bmore" data-a="billMenu" :data-i="b.idx" :aria-label="t('bills.options')" aria-haspopup="menu" @click.stop="toggleMenu(b, $event)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" /></svg></button>
               </div>
             </template>
             <!-- irregular -->
             <template v-else-if="g.k == 'irr'">
               <div v-for="b in g.L" :key="b.idx" class="brow" data-a="billOpen" :data-i="b.idx" @click="openBill(b)">
                 <span class="av" :style="avStyle(b)">{{ (b.n || "?")[0] }}</span>
-                <div class="bm"><div class="bt"><b>{{ b.n }}</b><template v-if="b.flag">{{ " " }}<span class="bd am2">{{ t("bills.markedCancel") }}</span></template></div>
-                  <div class="bsub">{{ t("bills.irregular") }} <span class="dsep">·</span> {{ srcOf(b.src || "").name }} <span v-if="srcOf(b.src || '').tail" class="sm" dir="ltr" style="font-weight:500;opacity:.8;unicode-bidi:isolate">·· {{ srcOf(b.src || "").tail }}</span> <span v-rich="evTip(b)" class="bq">{{ t("bills.whyQ") }}</span></div>
+                <div class="bm"><div class="bt"><b>{{ tx(b.n) }}</b><template v-if="b.flag">{{ " " }}<span class="bd am2">{{ t("bills.markedCancel") }}</span></template></div>
+                  <div class="bsub">{{ t("bills.irregular") }} <span class="dsep">·</span> {{ tx(srcOf(b.src || "").name) }} <span v-if="srcOf(b.src || '').tail" class="sm" dir="ltr" style="font-weight:500;opacity:.8;unicode-bidi:isolate">·· {{ srcOf(b.src || "").tail }}</span> <span v-rich="evTip(b)" class="bq">{{ t("bills.whyQ") }}</span></div>
                   <div class="bsub bs2"><template v-if="b.n_tx">{{ t("bills.irrSo", { n: b.n_tx, c: b.cnt12 }, b.n_tx) }} <span class="dsep">·</span> {{ t("bills.lastPay", { amount: fm(b.amt), date: dstr(b.lp) }) }}</template><template v-else>{{ t("bills.noPay") }}</template><template v-if="b.hi > b.lo">{{ " " }}<span class="dsep">·</span>{{ " " + t("bills.ranges", { lo: fm(b.lo), hi: fm(b.hi) }) }}</template></div></div>
                 <div class="ba"><b class="num">≈ {{ fm(b.pred) }}</b><div class="sm">{{ t("bills.typical") }}</div><div v-if="b.n_tx" class="sm" style="font-weight:600">{{ t("bills.lastPayment", { amount: fm(b.amt) }) }}</div><div class="sm bfaint">{{ t("bills.perMonthAvg", { amount: fm(b.mo) }) }}</div></div>
-                <button class="ib jmore bmore" data-a="billMenu" :data-i="b.idx" :data-open="menu?.i == b.idx ? 1 : undefined" :aria-label="t('bills.options')" aria-haspopup="menu" @click.stop="toggleMenu(b.idx, $event)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" /></svg></button>
+                <button class="ib jmore bmore" data-a="billMenu" :data-i="b.idx" :aria-label="t('bills.options')" aria-haspopup="menu" @click.stop="toggleMenu(b, $event)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" /></svg></button>
                 <div v-if="b.sug" class="bsug"><span>{{ t("bills.sug", { freq: freq(b.sug) }) }}</span><button class="btn s" data-a="billSugYes" :data-i="b.idx" @click.stop="makeRegular(b)">{{ t("bills.makeReg") }}</button><button class="btn o s" data-a="billSugNo" :data-i="b.idx" @click.stop="keepIrregular(b)">{{ t("bills.keepIrr") }}</button></div>
               </div>
             </template>
@@ -192,9 +180,9 @@ const remove = (b) => change((n) => deleteBill(n, b.idx));
             <template v-else>
               <div v-for="b in g.L" :key="b.idx" class="brow" data-a="billOpen" :data-i="b.idx" @click="openBill(b)">
                 <span class="av" :style="avStyle(b)">{{ (b.n || "?")[0] }}</span>
-                <div class="bm"><div class="bt"><b>{{ b.n }}</b></div><div class="bsub">{{ t("bills.oneOff") }} <span class="dsep">·</span> {{ srcOf(b.src || "").name }} <span v-if="srcOf(b.src || '').tail" class="sm" dir="ltr" style="font-weight:500;opacity:.8;unicode-bidi:isolate">·· {{ srcOf(b.src || "").tail }}</span> <span class="dsep">·</span> {{ b.lp ? t("bills.paidOn", { date: dstr(b.lp) }) : t("bills.noPayFound") }}</div></div>
+                <div class="bm"><div class="bt"><b>{{ tx(b.n) }}</b></div><div class="bsub">{{ t("bills.oneOff") }} <span class="dsep">·</span> {{ tx(srcOf(b.src || "").name) }} <span v-if="srcOf(b.src || '').tail" class="sm" dir="ltr" style="font-weight:500;opacity:.8;unicode-bidi:isolate">·· {{ srcOf(b.src || "").tail }}</span> <span class="dsep">·</span> {{ b.lp ? t("bills.paidOn", { date: dstr(b.lp) }) : t("bills.noPayFound") }}</div></div>
                 <div class="ba"><b class="num">{{ fm(b.amt) }}</b></div>
-                <button class="ib jmore bmore" data-a="billMenu" :data-i="b.idx" :data-open="menu?.i == b.idx ? 1 : undefined" :aria-label="t('bills.options')" aria-haspopup="menu" @click.stop="toggleMenu(b.idx, $event)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" /></svg></button>
+                <button class="ib jmore bmore" data-a="billMenu" :data-i="b.idx" :aria-label="t('bills.options')" aria-haspopup="menu" @click.stop="toggleMenu(b, $event)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" /></svg></button>
               </div>
             </template>
           </div>
@@ -217,11 +205,9 @@ const remove = (b) => change((n) => deleteBill(n, b.idx));
   </section>
 
   <template v-if="S">
-    <Teleport to="body">
-      <div v-if="menu" ref="menuEl" class="cmenu" role="menu">
-        <button v-for="[a, ic, label, z] in menuItems" :key="a" role="menuitem" :class="z ? 'dz' : undefined" :data-a="a" :data-i="menu.i" @click="pick(a)"><svg viewBox="0 0 24 24" v-html="MI[ic]" />{{ tk("bills." + label) }}</button>
-      </div>
-    </Teleport>
+    <PopMenu :at="menu?.btn" @close="menu = null">
+      <button v-for="[a, ic, label, z] in menuItems" :key="a" role="menuitem" :class="z ? 'dz' : undefined" :data-a="a" :data-i="menu.i" @click="pick(a)"><svg viewBox="0 0 24 24" v-html="MI[ic]" />{{ tk("bills." + label) }}</button>
+    </PopMenu>
 
 
     <BaseSheet :open="!!typeFor" @close="typeFor = null">

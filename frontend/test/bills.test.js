@@ -12,7 +12,8 @@ import { billState, billsModel, withDetected, addBill, flagBill, cancelBill, res
 process.on("unhandledRejection", () => {});
 // The page is drawn on the server with the real Vue file (Vite), so no browser is needed.
 const vite = await createServer({ root: new URL("..", import.meta.url).pathname, server: { middlewareMode: true, hmr: false, ws: false }, appType: "custom", logLevel: "silent" });
-after(() => vite.close());
+// the page loads the Hebrew dictionary (core/heText.js) when the language turns Hebrew: let it finish before the server closes
+after(async () => { await vite.ssrLoadModule("/src/core/he-legacy.js"); await new Promise((r) => setTimeout(r, 200)); await vite.close(); });
 globalThis.document = { documentElement: { lang: "", classList: { toggle() {} } } };
 let mods = null;
 const NOW = new Date(2026, 9, 17, 12), old = oldApp(NOW); // 17 Oct 2026
@@ -136,13 +137,16 @@ const skeleton = (html) => [...html.matchAll(/<([a-z0-9]+)([^>]*)>/g)].map(([, t
   const g = (n) => (new RegExp(`(?:^|\\s)${n}="([^"]*)"`).exec(at) || [])[1];
   return [tag, (g("class") || "").split(/\s+/).filter((c) => c && c !== "on").sort().join("."), g("data-a") || "", g("data-i") ?? g("data-id") ?? "", g("id") || ""].join("|");
 });
+// The " · " dots in the templates are drawn as <span class="dt">·</span> inside a plain <span> around the text (vite-dots.js); the old app
+// adds them on the page, not in its HTML strings, so both are left out of the comparison.
+const noDots = (L) => L.filter((x, i) => x !== "span|dt|||" && !(x === "span||||" && L[i + 1] === "span|dt|||"));
 const tips = (html) => [...html.matchAll(/data-tip="([^"]*)"/g)].map((m) => unesc(m[1]));
 const oldPage = (S) => { const o = oldHtml(S); return `<section class="view on" id="bills"><div class="grid g3" id="billK">${o.billK}</div><div class="billbar"><button class="btn o s" data-a="billNew">+ Add bill</button></div><div id="billL">${o.billL}</div><div id="billCw">${o.billCw || ""}</div></section>`; };
 
 for (const [name, S] of STATES) {
   test(`the English page has the same blocks, words and tips as the current app: ${name}`, async () => {
     const a = oldPage(S), b = await page(S, "en");
-    assert.deepEqual(skeleton(b), skeleton(a));
+    assert.deepEqual(noDots(skeleton(b)), noDots(skeleton(a)));
     assert.equal(text(b), text(a));
     assert.deepEqual(tips(b), tips(a));
   });

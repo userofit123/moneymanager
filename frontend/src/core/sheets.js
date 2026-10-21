@@ -16,11 +16,12 @@ if (typeof window !== "undefined") {
 }
 export function sheetOpened(close) {
   stack.push(close);
-  if (!pushed && typeof history !== "undefined") { history.pushState({ o: 1 }, "", location.href); pushed = true; }
+  if (!pushed && typeof history !== "undefined") { history.pushState({ o: 1 }, "", location.href); pushed = location.href; }
 }
 export function sheetClosed(close) {
   const i = stack.lastIndexOf(close);
   if (i >= 0) stack.splice(i, 1);
-  if (!stack.length && pushed) { pushed = false; history.back(); }
+  // going back removes the entry the window added, unless a button in it opened another page (then that page stays)
+  if (!stack.length && pushed) { const same = pushed === true || pushed === location.href; pushed = false; if (same) history.back(); }
 }
 export const sheetsOpen = () => stack.length;
