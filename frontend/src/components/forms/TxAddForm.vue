@@ -8,7 +8,7 @@ import { now, dayOf } from "../../core/clock.js";
 import { getJson } from "../../core/http.js";
 import { toast } from "../../core/toast.js";
 import { catNames, catLabel } from "../../core/cats.js";
-import { rn, ruleTags } from "../../views/activity.js";
+import { rn, ruleTags } from "../../lib/activity.js";
 import { fm } from "../../lib/bills.js";
 import { currencySymbol } from "../../format.js";
 import { useFormSheet } from "../../core/useFormSheet.js";

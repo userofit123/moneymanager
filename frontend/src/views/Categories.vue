@@ -11,7 +11,7 @@ import { goActivity } from "../core/shell.js";
 import { catNames, catColor, catLabel } from "../core/cats.js";
 import { fm } from "../format.js";
 import { dstr } from "../dates.js";
-import { displayName } from "./activity.js";
+import { displayName } from "../lib/activity.js";
 import PageHeader from "../components/PageHeader.vue";
 import BaseSheet from "../components/BaseSheet.vue";
 import TagEditor from "../components/TagEditor.vue";

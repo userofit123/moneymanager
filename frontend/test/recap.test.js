@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { oldApp } from "./old-app.js";
 import { buildDemo } from "../../server/src/seed.js";
-import { homeModel } from "../src/views/home.js";
+import { homeModel } from "../src/lib/home.js";
 import { recapModel, recapParts, dayBarHeights } from "../src/lib/recap.js";
 
 process.on("unhandledRejection", () => {});
@@ -29,7 +29,7 @@ const pick = (m) => ({
 });
 const PART = { hero: "hero", startPart: "start", inPart: "in", outPart: "out", nowPart: "now", aheadPart: "ahead", budgetsPart: "budgets", endPart: "end" };
 
-// The last case needs R.jarCov (the list of what jars pay, reserveCalc) from views/home.js: a category a jar pays in full is missing from R.rows.
+// The last case needs R.jarCov (the list of what jars pay, reserveCalc) from lib/home.js: a category a jar pays in full is missing from R.rows.
 const JARCOV = (S) => { S.budgets = {}; S.jars[0].cats = [{ c: "Groceries", since: "2026-10-01" }]; S.jars[0].bal = 5000; };
 for (const [label, day, mod, opt] of [["start of the month", 3], ["middle of the month", 17], ["end of the month", 28], ["middle, no budgets, a jar paying for groceries in full", 17, JARCOV]]) test("Recap matches the current app: " + label, opt || {}, () => {
   const NOW = new Date(2026, 9, day, 12), old = oldApp(NOW), S = demoState(NOW); if (mod) mod(S);

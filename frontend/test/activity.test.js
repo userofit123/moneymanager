@@ -1,7 +1,7 @@
 // The Activity list follows the current app: what counts in In, Out and Net, filters, sorting and grouping.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { kinds, totals, leftOut, filterRows, sortRows, groupRows, normTag, allTags } from "../src/views/activity.js";
+import { kinds, totals, leftOut, filterRows, sortRows, groupRows, normTag, allTags } from "../src/lib/activity.js";
 
 const S = {
   xf: [{ o: "x1", i: "x2", st: "ok" }], txIgnore: { ig: 1 }, ccOverride: { cp: 2 }, cats: { Food: 1 },
@@ -53,7 +53,7 @@ test("Activity has no question-mark cursor", async () => {
   assert.doesNotMatch(readFileSync(new URL("../src/views/Activity.vue", import.meta.url), "utf8"), /cursor:\s*help/);
 });
 
-import { isCardPay, cardInfo, reviewTransfers, duplicateIds, tagOffer, applyTagRule, guessKw, detailRows, amountsFit } from "../src/views/activity.js";
+import { isCardPay, cardInfo, reviewTransfers, duplicateIds, tagOffer, applyTagRule, guessKw, detailRows, amountsFit } from "../src/lib/activity.js";
 
 test("card payments are found like the current app: by card name, by the user's cards, by rule, or by hand", () => {
   const S2 = { accounts: [{ n: "Bank", kind: "bank" }, { n: "Max", kind: "card" }], cardRules: ["my card co"], ccOverride: { m1: 1, m2: 2 },

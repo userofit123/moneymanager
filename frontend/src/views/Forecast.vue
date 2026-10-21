@@ -16,7 +16,7 @@ import PageHeader from "../components/PageHeader.vue";
 import BaseCard from "../components/BaseCard.vue";
 import { vRich } from "../lib/richtip.js";
 import { categoryName } from "../catnames.js";
-import { forecastModel, periodTotal, direction, chartOf } from "./forecast.js";
+import { forecastModel, periodTotal, direction, chartOf } from "../lib/forecast.js";
 
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);

@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 import BaseDialog from "../components/BaseDialog.vue";
 import BaseButton from "../components/BaseButton.vue";
 import MoneyInput from "../components/MoneyInput.vue";
-import { ALLN, catJarsOf } from "./jars.js";
+import { ALLN, catJarsOf } from "../lib/jars.js";
 import { fm } from "../format.js";
 
 const props = defineProps({ open: Boolean, S: Object, M: Object, id: Number, start: Object });

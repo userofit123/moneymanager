@@ -1,10 +1,10 @@
 // Budgets: a monthly limit for a category. Shared budget logic, a port of the current app
 // (web/js/03-bills-home.js budgetInfo, web/js/04-transactions.js renderBudg / budgetIdeas / budBills / budForm, web/js/08-jars.js budget actions).
 // Nothing here touches the screen. Suggestions are only worked out; nothing is created until the user accepts.
-import { rdOf } from "../views/activity.js";
+import { rdOf } from "./activity.js";
 import { billState, fm } from "./bills.js";
-import { addM } from "../views/home.js";
-import { catJarsOf } from "../views/jars.js";
+import { addM } from "./home.js";
+import { catJarsOf } from "./jars.js";
 
 const sum = (a) => a.reduce((t, x) => t + x, 0);
 const CNC = new Intl.Collator(undefined, { sensitivity: "base" });

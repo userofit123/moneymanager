@@ -14,7 +14,7 @@ import { dstr } from "../dates.js";
 import PageHeader from "../components/PageHeader.vue";
 import BaseSheet from "../components/BaseSheet.vue";
 import PopMenu from "../components/PopMenu.vue";
-import { displayName } from "./activity.js";
+import { displayName } from "../lib/activity.js";
 import { vRich } from "../lib/richtip.js";
 import { billsModel, billState, flagBill, cancelBill, restoreBill, deleteBill, setBillType, sugYes, sugNo, typeOf, billKey, billIndex, cadText, freqText, evTipText, f0, fm } from "../lib/bills.js";
 

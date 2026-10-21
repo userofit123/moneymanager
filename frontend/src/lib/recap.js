@@ -1,6 +1,6 @@
-// The Recap page's numbers: how the month is going, worked out from the Home numbers (views/home.js homeModel) exactly like
+// The Recap page's numbers: how the month is going, worked out from the Home numbers (lib/home.js homeModel) exactly like
 // the current app's Recap (web/recap.js model()), and which parts show in which order. Nothing here changes the data.
-import { addM, rdOf, nameOf } from "../views/home.js";
+import { addM, rdOf, nameOf } from "./home.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
 const sum = (a) => a.reduce((s, x) => s + x, 0);

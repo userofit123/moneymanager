@@ -5,7 +5,7 @@ import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
 import { jars } from "../../core/derived.js";
-import { saveJar, jarCtx } from "../../views/jars.js";
+import { saveJar, jarCtx } from "../../lib/jars.js";
 import { fm } from "../../lib/bills.js";
 import { toast } from "../../core/toast.js";
 import { useFormSheet } from "../../core/useFormSheet.js";

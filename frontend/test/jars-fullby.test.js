@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { oldApp } from "./old-app.js";
-import { jarsModel } from "../src/views/jars.js";
+import { jarsModel } from "../src/lib/jars.js";
 
 process.on("unhandledRejection", () => {});
 const old = oldApp(new Date(2026, 9, 17, 12)); // 17 Oct 2026

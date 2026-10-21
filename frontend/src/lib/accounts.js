@@ -2,8 +2,8 @@
 // (web/js/05-accounts-charts-help.js: accState, accTail, accGroupList, accTotals, accMonthly, accTxFill, balRows).
 // Nothing here changes the data. S: the whole data, today: "YYYY-MM-DD", fx: { USD: 3.7 }.
 import { shallowRef } from "vue";
-import { kinds } from "../views/activity.js";
-import { withTransfers, addM } from "../views/home.js";
+import { kinds } from "./activity.js";
+import { withTransfers, addM } from "./home.js";
 import { balRows, costRows } from "./txrows.js";
 import { CURS } from "../views/settings/currencies.js";
 

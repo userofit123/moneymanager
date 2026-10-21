@@ -14,10 +14,12 @@ export function readPref(k, fallback = null) { try { const v = ls()?.getItem(k);
 export function readJson(k, fallback) { try { const v = JSON.parse(readPref(k, "null")); return v == null ? fallback : v; } catch { return fallback; } }
 const rawSet = (k, v) => { try { ls()?.setItem(k, v); } catch { /* private mode: not remembered */ } };
 
+// moves on every saved choice, so numbers that depend on a choice (like the Forecast's on the Jars page) are worked out again
+export const prefTick = ref(0);
 export function writePref(k, v) {
   const s = typeof v === "string" ? v : JSON.stringify(v);
   if (readPref(k) === s) return;
-  rawSet(k, s);
+  rawSet(k, s); prefTick.value++;
   if (PREF_KEYS.includes(k) && pushOn) { rawSet(AT, String(Date.now())); pushPrefs(); }
 }
 export const writeJson = (k, v) => writePref(k, JSON.stringify(v));

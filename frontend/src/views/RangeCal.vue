@@ -3,7 +3,7 @@
 import { now } from "../core/clock.js";
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
-import { rangeOf } from "./activity.js";
+import { rangeOf } from "../lib/activity.js";
 
 const props = defineProps({ from: String, to: String, anchor: Object, df: { type: String, default: "dmy" }, ws: { type: String, default: "sun" } });
 const emit = defineEmits(["apply", "cancel"]);

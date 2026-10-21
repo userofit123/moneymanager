@@ -50,7 +50,7 @@ test("components use the shared color names, not colors typed in by hand", () =>
 
 test("all building blocks the screens need exist", () => {
   const have = readdirSync(new URL("../src/components", import.meta.url));
-  for (const n of ["BaseButton", "BaseCard", "BaseDialog", "ListRow", "BaseTabs", "BaseChip", "BaseBadge", "BaseInput", "BaseSelect", "BaseToggle", "BaseTooltip", "HelpIcon", "EmptyState", "MoneyAmount", "ProgressBar"]) assert.ok(have.includes(n + ".vue"), n);
+  for (const n of ["BaseButton", "BaseCard", "BaseDialog", "BaseSheet", "BaseTabs", "MoneyInput", "TagEditor", "ToastHost", "AskPop", "FormHost", "ExportPanel", "EmText", "PopMenu"]) assert.ok(have.includes(n + ".vue"), n);
 });
 
 test("Hebrew style rules only change their own part, never the whole page", () => {

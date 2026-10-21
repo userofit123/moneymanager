@@ -15,9 +15,9 @@ import { readPref, writePref } from "../core/prefs.js";
 import { i18n } from "../i18n.js";
 import { go } from "../router.js";
 import { f0, fm } from "../format.js";
-import { nameOf, rdOf } from "./home.js";
+import { nameOf, rdOf } from "../lib/home.js";
 import { billTx0 } from "../lib/bills.js";
-import { jarCtx, releaseJars } from "./jars.js";
+import { jarCtx, releaseJars } from "../lib/jars.js";
 import { recapModel, recapParts, dayBarHeights, hasStart } from "../lib/recap.js";
 import BaseDialog from "../components/BaseDialog.vue";
 

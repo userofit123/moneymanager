@@ -12,9 +12,10 @@ const MONEY = /[−+-]?\s?[₪$€£¥]\s?\d[\d,]*(?:\.\d+)?%?/g;
 function dots(el) {
   const n = el.firstChild;
   if (!n || n !== el.lastChild || n.nodeType !== 3 || !n.nodeValue.includes(" · ") || SKIP.test(el.tagName) || el.closest("svg,[contenteditable]")) return;
-  const f = document.createDocumentFragment();
-  n.nodeValue.split(" · ").forEach((t, i) => { if (i) { const d = document.createElement("span"); d.className = "dt"; d.textContent = "·"; f.appendChild(d); } if (t) f.appendChild(document.createTextNode(t)); });
-  el.replaceChildren(f);
+  // the parts go in one <span>, like the current app, so a box that lays out its children in a row keeps the line together
+  const w = document.createElement("span");
+  n.nodeValue.split(" · ").forEach((t, i) => { if (i) { const d = document.createElement("span"); d.className = "dt"; d.textContent = "·"; w.appendChild(d); } if (t) w.appendChild(document.createTextNode(t)); });
+  el.replaceChildren(w);
 }
 function caps(el) {
   let n = el.firstChild; while (n && n.nodeType == 3 && !n.nodeValue.trim()) n = n.nextSibling;

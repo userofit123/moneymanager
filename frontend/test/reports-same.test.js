@@ -3,8 +3,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { oldApp } from "./old-app.js";
 import { buildDemo } from "../../server/src/seed.js";
-import { homeModel } from "../src/views/home.js";
-import { block, merchants, sumBy, byAmount, totalOf, seriesN, trOptions, trSeries, nwSeries, monthCompare, cmpRange } from "../src/views/reports.js";
+import { homeModel } from "../src/lib/home.js";
+import { block, merchants, sumBy, byAmount, totalOf, seriesN, trOptions, trSeries, nwSeries, monthCompare, cmpRange } from "../src/lib/reports.js";
 
 process.on("unhandledRejection", () => {});
 const NOW = new Date(2026, 9, 17, 12), old = oldApp(NOW);

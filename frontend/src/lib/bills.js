@@ -2,7 +2,7 @@
 // (web/js/03-bills-home.js billsInfo, web/js/04-transactions.js renderBills, web/js/08-jars.js bill actions).
 // Nothing here touches the screen. Bills the app finds by itself are only worked out; they are saved
 // the first time a change is made (withDetected), like the current app saves them when it draws a page.
-import { kinds, instOf } from "../views/activity.js";
+import { kinds, instOf } from "./activity.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
 const sum = (a) => a.reduce((t, x) => t + x, 0);

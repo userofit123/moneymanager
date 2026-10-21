@@ -1,5 +1,5 @@
 // The words of one alert (title, text), from the language files. The same sentences as alerts() in web/js/04-transactions.js.
-// x: an alert from alertsModel (views/alerts.js). c: { t, catName, an, dstr, monthYear } for the language to write in.
+// x: an alert from alertsModel (lib/alerts.js). c: { t, catName, an, dstr, monthYear } for the language to write in.
 export function alertTexts(x, c) {
   const { t, catName, an, dstr, monthYear } = c, tk = t;
   const p = { ...x.p }; if (p.k) p.k = catName(p.k); if (p.n && x.key === "card") p.n = an(p.n);

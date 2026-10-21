@@ -28,7 +28,7 @@ import BaseButton from "../components/BaseButton.vue";
 import RangeCal from "./RangeCal.vue";
 import ExportPanel from "../components/ExportPanel.vue";
 import EmText from "../components/EmText.vue";
-import { RANGES, kinds, totals, leftOut, filterRows, sortRows, groupRows, GROUPS, hasFilters, displayName, allTags, reviewTransfers, duplicateIds, reviewGaps, gapBill } from "./activity.js";
+import { RANGES, kinds, totals, leftOut, filterRows, sortRows, groupRows, GROUPS, hasFilters, displayName, allTags, reviewTransfers, duplicateIds, reviewGaps, gapBill } from "../lib/activity.js";
 
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a); // for keys built from a value, like "activity.sort." + "new"

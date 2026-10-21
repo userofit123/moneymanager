@@ -5,7 +5,7 @@ import { i18n } from "../i18n.js";
 import { fm, f0 } from "../format.js";
 import { dcell, dstr } from "../dates.js";
 import { TP } from "../core/tooltip.js";
-import { rmOf, instOf, cardOf } from "../views/activity.js";
+import { rmOf, instOf, cardOf } from "./activity.js";
 import { billOf, refundTwin } from "./txactions.js";
 
 const t = (...a) => i18n.global.t(...a);

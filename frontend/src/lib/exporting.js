@@ -1,6 +1,6 @@
 // The export: what goes in the file and how it is written (exDef/exTx/exData/exCsv in web/js/09-profile-export-settings.js).
 // The file's column names and words are English, like the current app (a file leaves the app and is read by other programs).
-import { kinds, rdOf, rangeOf } from "../views/activity.js";
+import { kinds, rdOf, rangeOf } from "./activity.js";
 import { costRows } from "./txrows.js";
 
 const nohtml = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&").trim();

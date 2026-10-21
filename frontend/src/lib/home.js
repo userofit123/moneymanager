@@ -17,8 +17,8 @@ export const heldOf = (j) => Math.max(0, (+j.bal || 0) - (+j.out || 0));
 const RSKIP = (S, k) => ["Income", "Uncategorized", "Fees & FX costs"].includes(k) || S.cats?.[k] === 99;
 
 // How often does this store charge you (cadenceOf): the shared one in lib/bills.js.
-export { cadenceOf } from "../lib/bills.js";
-import { cadenceOf } from "../lib/bills.js";
+export { cadenceOf } from "./bills.js";
+import { cadenceOf } from "./bills.js";
 
 // The current app looks for transfers between your own accounts every time the data loads (detect() in web/js/02-state-data.js), and the totals leave them out.
 // Same here, in memory only: a possible transfer waits for review ("auto") and is not counted as spending or income.
@@ -169,8 +169,8 @@ export function homeModel(S, now = new Date(), fx = {}) {
 }
 
 // One bill's state (billsInfo0): the shared one in lib/bills.js.
-export { billInfo } from "../lib/bills.js";
-import { billInfo } from "../lib/bills.js";
+export { billInfo } from "./bills.js";
+import { billInfo } from "./bills.js";
 
 // The money flow (waterfall): from what you had before spending, step by step down to what is free.
 // mode "left" (Planned): each item takes off its full budget or usual month. "actual": what you really spent.

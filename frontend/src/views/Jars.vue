@@ -1,7 +1,7 @@
 <script setup>
 // Jars: money put aside for something. A copy of the current app's Jars page (web/js/04-transactions.js renderJars, jarCard, jarState):
 // what is safe to put in jars, what went in this month, the amount kept untouched, each jar, goals and completed jars.
-// The jar changes (views/jars.js) write the same history lines and undo entries as web/js/08-jars.js; "How is this worked out?" is the
+// The jar changes (lib/jars.js) write the same history lines and undo entries as web/js/08-jars.js; "How is this worked out?" is the
 // shared AvailWhy window, the ⋯ and history menus the shared PopMenu, a payment in a jar's history opens its entry window.
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
@@ -22,8 +22,8 @@ import MoneyInput from "../components/MoneyInput.vue";
 import PageHeader from "../components/PageHeader.vue";
 import PopMenu from "../components/PopMenu.vue";
 import AvailWhy from "./AvailWhy.vue";
-import { jarCtx, releaseJars, markDone, deleteJar, jarHistory, jarFormOf, goalFix, moveJar, moveJarTo, reopenJar } from "./jars.js";
-import { displayName } from "./activity.js";
+import { jarCtx, releaseJars, markDone, deleteJar, jarHistory, jarFormOf, goalFix, moveJar, moveJarTo, reopenJar } from "../lib/jars.js";
+import { displayName } from "../lib/activity.js";
 
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);

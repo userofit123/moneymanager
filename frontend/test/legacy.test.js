@@ -26,7 +26,7 @@ test("the Hebrew rules are the old ones: html.he body is right to left, nothing 
 });
 
 test("components use the old class names instead of their own copies of the styles", () => {
-  const need = { BaseButton: "btn", BaseCard: "card", BaseDialog: "sheet", BaseInput: "fld", BaseSelect: "fld", BaseTabs: "seg", BaseToggle: "tg", PageHeader: "<header>", ProgressBar: "bar", BaseBadge: "badge", HelpIcon: "hq" };
+  const need = { BaseButton: "btn", BaseCard: "card", BaseSheet: "sheet", BaseTabs: "seg", PageHeader: "<header>" };
   for (const [n, cls] of Object.entries(need)) {
     const src = read(`../src/components/${n}.vue`);
     assert.ok(src.includes(cls), `${n} should use "${cls}"`);

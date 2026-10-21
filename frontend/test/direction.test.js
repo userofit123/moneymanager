@@ -32,7 +32,15 @@ test("styles use logical properties (start/end), never fixed left/right", () => 
   const bad = [];
   // legacy.css is a verbatim copy of web/css/app.css (which has its own Hebrew rules), so it is compared with the old file instead (see legacy.test.js)
   for (const f of walk(dir).filter((x) => !x.endsWith("legacy.css"))) {
-    readFileSync(f, "utf8").split("\n").forEach((line, i) => {
+    // in a .vue file only the CSS counts: its <style> block and static style="…" (a tooltip placed at a measured x, or a "left" amount in a sentence, is not CSS)
+    const src = readFileSync(f, "utf8"), css = f.endsWith(".css");
+    let inStyle = false;
+    src.split("\n").forEach((line, i) => {
+      if (/<style\b/.test(line)) inStyle = true;
+      const text = css || inStyle ? line : (line.match(/(?<![:\w-])style="[^"]*"/g) || []).join(" ");
+      if (/<\/style>/.test(line)) inStyle = false;
+      if (!text) return;
+      line = text;
       if (/(margin|padding|border)-(left|right)|text-align:\s*(left|right)|float:\s*(left|right)|(^|[\s;{])(left|right)\s*:/.test(line)) bad.push(`${f.slice(dir.length)}:${i + 1}: ${line.trim()}`);
     });
   }

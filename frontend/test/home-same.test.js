@@ -3,8 +3,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { oldApp } from "./old-app.js";
 import { buildDemo } from "../../server/src/seed.js";
-import { homeModel, flowSteps } from "../src/views/home.js";
-import { alertsModel, fm } from "../src/views/alerts.js";
+import { homeModel, flowSteps } from "../src/lib/home.js";
+import { alertsModel, fm } from "../src/lib/alerts.js";
 
 process.on("unhandledRejection", () => {});
 const NOW = new Date(2026, 9, 17, 12), old = oldApp(NOW);

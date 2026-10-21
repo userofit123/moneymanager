@@ -1,7 +1,7 @@
 // The Jars page's numbers follow the current app: what is free, the monthly fill, each jar's state, goals and completed jars.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { jarsModel } from "../src/views/jars.js";
+import { jarsModel } from "../src/lib/jars.js";
 
 const NOW = new Date(2026, 9, 17, 12); // 17 Oct 2026
 const base = () => ({

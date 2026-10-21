@@ -6,7 +6,7 @@ import { toast } from "./toast.js";
 import { addSuggestion, setSuggestionRunner } from "./suggest.js";
 import { openPop } from "./txwin.js";
 import * as A from "../lib/txactions.js";
-import { guessKw, tagSimilar, ruleTags, cardInfo, transferIds, displayName, normD } from "../views/activity.js";
+import { guessKw, tagSimilar, ruleTags, cardInfo, transferIds, displayName, normD } from "../lib/activity.js";
 
 const t = (...a) => i18n.global.t(...a);
 const S = () => data.state.value;

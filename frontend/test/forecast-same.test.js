@@ -7,7 +7,7 @@ import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { oldApp } from "./old-app.js";
 import { buildDemo } from "../../server/src/seed.js";
-import { forecastModel, periodTotal, direction, chartOf } from "../src/views/forecast.js";
+import { forecastModel, periodTotal, direction, chartOf } from "../src/lib/forecast.js";
 
 process.on("unhandledRejection", () => {});
 process.on("unhandledRejection", () => {});

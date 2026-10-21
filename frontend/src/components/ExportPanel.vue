@@ -7,7 +7,7 @@ import { data } from "../stores/data.js";
 import { now, dayOf } from "../core/clock.js";
 import { toast } from "../core/toast.js";
 import { catNames, catColor, catLabel } from "../core/cats.js";
-import { RANGES } from "../views/activity.js";
+import { RANGES } from "../lib/activity.js";
 import { EXWHAT, COLKEYS, exDef, exFromActivity, exData, exBuild, exExt, exFile } from "../lib/exporting.js";
 import { fm } from "../format.js";
 

@@ -20,7 +20,7 @@ import { openSettingsTab } from "./settings/tab.js";
 import { SI } from "./settings/icons.js";
 import { dstr } from "../dates.js";
 import { f0, fm } from "../format.js";
-import { withTransfers } from "./home.js";
+import { withTransfers } from "../lib/home.js";
 import { TONEC, typeKey, accILS, accByName, accName, accTail, accState, accGroupList, accTotals, accMonthly, cardMonthly, accRows, tileCols, accSel } from "../lib/accounts.js";
 import PageHeader from "../components/PageHeader.vue";
 import BaseDialog from "../components/BaseDialog.vue";

@@ -11,7 +11,6 @@ import { alertList } from "./core/derived.js";
 import { quickOpen } from "./core/shell.js";
 import "./core/notices.js";
 import "./core/upkeep.js";
-import NotMovedYet from "./views/NotMovedYet.vue";
 import HelpPanel from "./help/HelpPanel.vue";
 import { helpOpen, helpSet } from "./help/help.js";
 import ToastHost from "./components/ToastHost.vue";
@@ -67,7 +66,6 @@ addEventListener("offline", () => (online.value = false));
     <main>
       <div v-if="app.phase === 'down'" class="card warn" style="margin-bottom:16px"><b>{{ t("auth.downT") }}</b><div class="sm">{{ t("auth.down") }}</div></div>
       <component :is="view" v-if="view && app.phase === 'ready'" />
-      <NotMovedYet v-else-if="app.phase === 'ready'" :key="current.name" :page="current" />
     </main>
     <HelpPanel />
     <MoreSheet />

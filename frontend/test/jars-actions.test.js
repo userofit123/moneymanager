@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { oldApp } from "./old-app.js";
-import { jarsModel, jarCtx, goalFix, moveJar, moveJarTo, reopenJar, releaseJars } from "../src/views/jars.js";
+import { jarsModel, jarCtx, goalFix, moveJar, moveJarTo, reopenJar, releaseJars } from "../src/lib/jars.js";
 import { fm } from "../src/format.js";
 
 const NOW = new Date(2026, 9, 17, 12); // 17 Oct 2026

@@ -5,7 +5,7 @@
 import { fm } from "../format.js";
 import { dstr } from "../dates.js";
 import { jarPay, jarUnpay } from "../core/settle.js";
-import { normD, isCardPay, cardInfo, rn, ruleHit, ruleTags, tagSimilar, nameHit, transferIds, isIgnored } from "../views/activity.js";
+import { normD, isCardPay, cardInfo, rn, ruleHit, ruleTags, tagSimilar, nameHit, transferIds, isIgnored } from "./activity.js";
 
 const byId = (S, id) => (S.tx || []).find((x) => x.id == id);
 const MNAME = (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString("en-GB", { month: "long" });

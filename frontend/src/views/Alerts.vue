@@ -1,7 +1,7 @@
 <script setup>
 // Alerts: what needs attention now, and the history of every alert. A copy of the current app's Alerts page
 // (web/js/04-transactions.js renderAlerts / renderAlertHistory, web/js/08-jars.js alOpen / alDismiss). The alerts themselves
-// come from views/alerts.js (the same rules as the Home box); their words from lib/alerttext.js and the language files.
+// come from lib/alerts.js (the same rules as the Home box); their words from lib/alerttext.js and the language files.
 // Dismiss is saved like the old page: change a copy, PUT /api/state, load the fresh copy.
 import { openSettingsTab } from "./settings/tab.js";
 import { ref, computed, watch, onMounted } from "vue";
@@ -13,7 +13,7 @@ import { request, sendJson } from "../core/http.js";
 import { i18n } from "../i18n.js";
 import PageHeader from "../components/PageHeader.vue";
 import { openAlert } from "../core/shell.js";
-import { alertsModel } from "./alerts.js";
+import { alertsModel } from "../lib/alerts.js";
 import { alertTexts, reverseTable, reverseText } from "../lib/alerttext.js";
 import { dstr } from "../dates.js";
 import { categoryName } from "../catnames.js";

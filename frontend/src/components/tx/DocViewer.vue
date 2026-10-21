@@ -5,7 +5,7 @@ import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue"
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
 import { docView, closeDocs } from "../../core/docs.js";
-import { displayName } from "../../views/activity.js";
+import { displayName } from "../../lib/activity.js";
 
 const { t } = useI18n();
 const tx = computed(() => (docView.value ? (data.state.value?.tx || []).find((x) => x.id == docView.value.id) || null : null));

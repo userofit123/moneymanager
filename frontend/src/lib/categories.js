@@ -2,7 +2,7 @@
 // nameRule*, ccRule*, salRule*; web/js/04-transactions.js tagCommit / tagRemove / tagRuleMatches; web/js/06 allTags / normTag).
 // Each change works on a copy of the data (S) and returns the change-history lines [action, detail] in the old app's English,
 // or false when nothing changes. Numbers the page shows afterwards (how many moved) go into `out`.
-import { ruleHit, ruleTags, normD, transferIds } from "../views/activity.js";
+import { ruleHit, ruleTags, normD, transferIds } from "./activity.js";
 
 export { ruleTags };
 const CNC = new Intl.Collator(undefined, { sensitivity: "base" });
@@ -21,9 +21,9 @@ export function catTiles(S) {
   return Object.keys(S.cats || {}).sort(CNC.compare).sort((a, b) => (a == "Uncategorized") - (b == "Uncategorized") || (n[b] || 0) - (n[a] || 0)).map((k) => ({ k, n: n[k] || 0, letter: (Array.from(k)[0] || "?").toUpperCase() }));
 }
 // Tags used anywhere with their counts, the most used first (tags only in tag rules count 0).
-// Every tag in use (with how often) and "#food" → the tag already in use: the shared ones in views/activity.js.
-export { allTags, normTag } from "../views/activity.js";
-import { allTags } from "../views/activity.js";
+// Every tag in use (with how often) and "#food" → the tag already in use: the shared ones in lib/activity.js.
+export { allTags, normTag } from "./activity.js";
+import { allTags } from "./activity.js";
 // The tag tiles, and which tags a tag rule adds.
 export function tagTiles(S) {
   const by = new Set((S.tagRules || []).flatMap(ruleTags));

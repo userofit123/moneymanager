@@ -4,10 +4,10 @@
 //   2. find new repeating bills (detectBills)                       5. pay from jars that are linked to a category, or give the money back (jarAuto)
 //   3. keep the target of "all bills" jars up to date               6. keep the amount held back for this month (jarsReserve)
 // settle(S) changes S in place and returns the change-history lines it wrote (all by "System", so no toast).
-import { withTransfers, homeModel } from "../views/home.js";
-import { kinds, ruleHit } from "../views/activity.js";
+import { withTransfers, homeModel } from "../lib/home.js";
+import { kinds, ruleHit } from "../lib/activity.js";
 import { countedTx, detectNew, fm } from "../lib/bills.js";
-import { billLists, isAll, catJarsOf } from "../views/jars.js";
+import { billLists, isAll, catJarsOf } from "../lib/jars.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
 export const dayOf = (d) => d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate());

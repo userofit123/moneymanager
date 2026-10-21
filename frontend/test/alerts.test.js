@@ -1,5 +1,5 @@
 // The Alerts page gives the same alerts, words and markup as the current app, on the same data.
-// The old code (web/js alerts()) and the new code (views/alerts.js, lib/alerttext.js, views/Alerts.vue) both run on each state below and are compared.
+// The old code (web/js alerts()) and the new code (lib/alerts.js, lib/alerttext.js, views/Alerts.vue) both run on each state below and are compared.
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "vite";
@@ -7,8 +7,8 @@ import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { oldApp } from "./old-app.js";
 import { buildDemo } from "../../server/src/seed.js";
-import { homeModel } from "../src/views/home.js";
-import { alertsModel } from "../src/views/alerts.js";
+import { homeModel } from "../src/lib/home.js";
+import { alertsModel } from "../src/lib/alerts.js";
 import { budgetsModel } from "../src/lib/budgets.js";
 import { alertTexts, reverseTable, reverseText } from "../src/lib/alerttext.js";
 import en from "../src/locales/en.json" with { type: "json" };
@@ -69,7 +69,7 @@ for (const [name, S] of STATES) {
   test(`the alerts, their order and their English words match the current app: ${name}`, async () => {
     // one known improvement: the old text for exactly one transaction said "1 transaction need a category"
     const o = oldAlerts(S).map((x) => ({ ...x, title: x.title.replace("1 transaction need a", "1 transaction needs a") })), c = await ctxOf("en"), n = newAlerts(S).map((x) => { const [title, text] = alertTexts(x, c); return { id: x.id, sev: x.sev, go: x.go, title, text, attach: x.attach, ids: x.ids, tab: x.tab }; });
-    // the list of duplicates behind "N possible duplicates" holds both entries in the old app and one in views/alerts.js: only the count is shown, so it is left out
+    // the list of duplicates behind "N possible duplicates" holds both entries in the old app and one in lib/alerts.js: only the count is shown, so it is left out
     const noDup = (L) => L.map((x) => (x.id.startsWith("dp-") ? { ...x, ids: undefined } : x));
     assert.deepEqual(noDup(JSON.parse(JSON.stringify(n))), noDup(o));
   });

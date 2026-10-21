@@ -1,7 +1,7 @@
 // Home's numbers follow the current app: totals, accounts, cards, bills, budgets, jars and the money flow.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { homeModel, flowSteps, cadenceOf, instOf, rdOf } from "../src/views/home.js";
+import { homeModel, flowSteps, cadenceOf, instOf, rdOf } from "../src/lib/home.js";
 
 const NOW = new Date(2026, 9, 17, 12); // 17 Oct 2026
 const base = () => ({

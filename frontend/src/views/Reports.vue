@@ -13,10 +13,10 @@ import { dateFormat, readJson, weekStart, writeJson } from "../core/prefs.js";
 import { fm, f0 } from "../format.js";
 import { goActivity } from "../core/shell.js";
 import { catColor, catLabel } from "../core/cats.js";
-import { addM } from "./home.js";
+import { addM } from "../lib/home.js";
 import PageHeader from "../components/PageHeader.vue";
 import RangeCal from "./RangeCal.vue";
-import { periodRange, cmpEnd, block, merchants, sumBy, byAmount, totalOf, seriesN, trOptions, trSeries, nwSeries, monthCompare } from "./reports.js";
+import { periodRange, cmpEnd, block, merchants, sumBy, byAmount, totalOf, seriesN, trOptions, trSeries, nwSeries, monthCompare } from "../lib/reports.js";
 import { vTip } from "../core/tooltip.js";
 import { dcell } from "../dates.js";
 
