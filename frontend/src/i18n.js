@@ -16,7 +16,11 @@ const sections = (files) => Object.fromEntries(Object.entries(files).map(([p, m]
 const settingsEn = sections(import.meta.glob("./locales/settings/*.en.json", { eager: true }));
 const settingsHe = sections(import.meta.glob("./locales/settings/*.he.json", { eager: true }));
 
-export const i18n = createI18n({ legacy: false, locale: saved, fallbackLocale: "en", messages: { en: { ...en, settings: settingsEn }, he: { ...he, settings: settingsHe } } });
+// Pages and parts that keep their texts in their own files: locales/pages/<name>.en.json and .he.json, filed under "<name>".
+const pagesEn = sections(import.meta.glob("./locales/pages/*.en.json", { eager: true }));
+const pagesHe = sections(import.meta.glob("./locales/pages/*.he.json", { eager: true }));
+
+export const i18n = createI18n({ legacy: false, locale: saved, fallbackLocale: "en", messages: { en: { ...en, ...pagesEn, settings: settingsEn }, he: { ...he, ...pagesHe, settings: settingsHe } } });
 
 // True while the language is Hebrew. Use it for the rare things CSS cannot flip by itself; prefer logical CSS (margin-inline-start and so on).
 export const isRtl = computed(() => isHebrew(i18n.global.locale.value));

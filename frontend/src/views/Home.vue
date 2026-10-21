@@ -5,6 +5,8 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { home } from "../core/derived.js";
+import { now } from "../core/clock.js";
 import { readPref, writePref } from "../core/prefs.js";
 import { pages } from "../routes.js";
 import { hrefOf, onLink, go } from "../router.js";
@@ -12,11 +14,11 @@ import { formatMoney, currencySymbol } from "../format.js";
 import PageHeader from "../components/PageHeader.vue";
 import { brandIcon, glyphIcon } from "../brands.js";
 import BaseTabs from "../components/BaseTabs.vue";
-import { homeModel, flowSteps } from "./home.js";
+import { flowSteps } from "./home.js";
 import { alertsModel } from "./alerts.js";
 import TxWindow from "./TxWindow.vue";
 import AvailWhy from "./AvailWhy.vue";
-import { vTip, TP } from "../tip.js";
+import { vTip, TP } from "../core/tooltip.js";
 import { dcell, dstr, titleCase } from "../dates.js";
 import { categoryName } from "../catnames.js";
 
@@ -37,7 +39,7 @@ onMounted(async () => {
 });
 
 const S = computed(() => data.state.value);
-const M = computed(() => homeModel(S.value, new Date(), fx.value.fx));
+const M = home; // worked out once for the whole app (core/derived.js)
 const loc = computed(() => (locale.value === "he" ? "he-IL" : "en-GB"));
 const monthName = (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, { month: "long" });
 const catName = (c) => (!c || c === "Uncategorized" ? t("home.uncategorizedCat") : categoryName(c, locale.value));
@@ -53,7 +55,7 @@ const friendly = (e) => {
   if (/fetchPostWithinPage|fetchGetWithinPage|Unexpected end of JSON/i.test(e)) { const st = (e.match(/reqName=([A-Za-z_0-9]+)/) || [])[1] || ""; return /^(ValidateIdData|performLogonI)$/.test(st) ? t("al.feLogon") : t("al.feNoData") + (st ? t("al.feStep", { st }) : ""); }
   return /^OTP_REQUIRED/.test(e) ? t("al.feOtp") : e;
 };
-const alertList = computed(() => (S.value && M.value.any ? alertsModel(S.value, M.value, new Date(), {}, friendly) : []));
+const alertList = computed(() => (S.value && M.value.any ? alertsModel(S.value, M.value, now.value, {}, friendly) : []));
 const monthYear = (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, { month: "short", year: "numeric" });
 function alertText(x) {
   const p = { ...x.p }; if (p.k) p.k = catName(p.k); if (p.n && x.key === "card") p.n = an(p.n); if (p.date && /^\d{4}-/.test(String(p.date)) || p.date instanceof Date) p.date = dstr(p.date);

@@ -4,6 +4,7 @@
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { now, dayOf } from "../core/clock.js";
 import { toast } from "../core/toast.js";
 import { request } from "../core/http.js";
 import { hrefOf, onLink } from "../router.js";
@@ -17,12 +18,12 @@ import { nameOf } from "./home.js";
 import { categoryName } from "../catnames.js";
 
 const { t, locale } = useI18n();
-const today = new Date().toISOString().slice(0, 10);
+const today = computed(() => dayOf(now.value));
 const tk = (key, ...a) => t(key, ...a);
 const S = computed(() => data.state.value);
 const dupSet = computed(() => duplicateIds(S.value));
 const tagText = ref("");
-const k = computed(() => kinds(S.value, today));
+const k = computed(() => kinds(S.value, today.value));
 const cats = computed(() => categoryNames(S.value));
 const catLabel = (c) => (!c || c === "Uncategorized" ? t("activity.uncategorized") : categoryName(c, locale.value));
 const dateFmt = (d, o) => new Date(d + "T12:00:00").toLocaleDateString(locale.value === "he" ? "he-IL" : "en-GB", o);

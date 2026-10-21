@@ -55,6 +55,7 @@ const oldHtml = (S) => old.run(prep + `(function(){const OUT={};const $=id=>({se
 async function load() {
   if (mods) return mods;
   const [Alerts, store, i18nMod, dates, cn] = await Promise.all(["/src/views/Alerts.vue", "/src/stores/data.js", "/src/i18n.js", "/src/dates.js", "/src/catnames.js"].map((p) => vite.ssrLoadModule(p)));
+  (await vite.ssrLoadModule("/src/core/clock.js")).setNow(NOW); // the page works out its numbers for the same day as the old app
   return (mods = { Alerts: Alerts.default, data: store.data, i18n: i18nMod.i18n, setLang: i18nMod.setLang, dstr: dates.dstr, categoryName: cn.categoryName });
 }
 async function ctxOf(lang) {

@@ -1,15 +1,8 @@
 // Every English text must have a Hebrew text (and the other way round), and none may be empty.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
 
-const load = (n) => {
-  const o = JSON.parse(readFileSync(new URL(`../src/locales/${n}.json`, import.meta.url), "utf8"));
-  // The Settings texts are one file per section, filed under settings.<section> (see src/i18n.js).
-  const dir = new URL("../src/locales/settings/", import.meta.url);
-  o.settings = Object.fromEntries(readdirSync(dir).filter((f) => f.endsWith(`.${n}.json`)).map((f) => [f.slice(0, -`.${n}.json`.length), JSON.parse(readFileSync(new URL(f, dir), "utf8"))]));
-  return o;
-};
+import { loadLocale as load } from "./load-locales.js";
 const flat = (o, p = "") => Object.entries(o).flatMap(([k, v]) => (v && typeof v === "object" ? flat(v, p + k + ".") : [[p + k, v]]));
 const en = Object.fromEntries(flat(load("en")));
 const he = Object.fromEntries(flat(load("he")));

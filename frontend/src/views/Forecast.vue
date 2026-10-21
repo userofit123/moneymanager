@@ -5,6 +5,7 @@
 import { ref, computed, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { now } from "../core/clock.js";
 import { readJson, writeJson } from "../core/prefs.js";
 import PageHeader from "../components/PageHeader.vue";
 import BaseCard from "../components/BaseCard.vue";
@@ -30,12 +31,11 @@ const S = computed(() => data.state.value);
 // The page's choices, saved like the current app does.
 const fc = ref((() => { let z = null; try { z = readJson("moneyFc", null); } catch { /* none saved */ } const o = { h: 12, n: 6, m: "smart", ...(z || {}) }; if (![3, 6, 12].includes(o.n)) o.n = 6; return o; })());
 const pick = (k, v) => { fc.value = { ...fc.value, [k]: isNaN(+v) ? v : +v }; try { writeJson("moneyFc", (fc.value)); } catch { /* not saved */ } };
-const M = computed(() => forecastModel(S.value, new Date(), fx.value, fc.value));
+const M = computed(() => forecastModel(S.value, now.value, fx.value, fc.value));
 
-const now = new Date();
 const monthOf = (key, opt) => new Date(+key.slice(0, 4), +key.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, opt);
 const mshort = (key) => monthOf(key, { month: "short" });
-const mlab = (k) => new Date(now.getFullYear(), now.getMonth() + k, 1).toLocaleDateString(loc.value, { month: "short", year: "2-digit" });
+const mlab = (k) => new Date(now.value.getFullYear(), now.value.getMonth() + k, 1).toLocaleDateString(loc.value, { month: "short", year: "2-digit" });
 const jarWhen = (k) => (k ? new Date(+M.value.FH.keys[12].slice(0, 4), +M.value.FH.keys[12].slice(5, 7) - 1 + k, 1).toLocaleDateString(loc.value, { month: "short", year: "numeric" }) : "");
 const catName = (c) => (c === "Other / uncategorized" ? t("forecast.otherCat") : categoryName(c, locale.value));
 const srcName = (k) => (k === "Other income" ? t("forecast.otherInc") : categoryName(k, locale.value));

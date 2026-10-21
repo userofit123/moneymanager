@@ -444,7 +444,8 @@
     "failed": "Sync failed",
     "seeSources": "see sources",
     "notSynced": "Not synced",
-    "yet": "yet"
+    "yet": "yet",
+    "moreInfo": "More info"
   },
   "home": {
     "loading": "Loading your money…",

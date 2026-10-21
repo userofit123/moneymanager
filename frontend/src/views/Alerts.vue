@@ -6,15 +6,15 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { home, budgets } from "../core/derived.js";
+import { now } from "../core/clock.js";
 import { request, sendJson } from "../core/http.js";
 import { i18n } from "../i18n.js";
 import { go, hrefOf } from "../router.js";
 import { pages } from "../routes.js";
 import PageHeader from "../components/PageHeader.vue";
 import TxWindow from "./TxWindow.vue";
-import { homeModel } from "./home.js";
 import { alertsModel } from "./alerts.js";
-import { budgetsModel } from "../lib/budgets.js";
 import { alertTexts, reverseTable, reverseText } from "../lib/alerttext.js";
 import { dstr } from "../dates.js";
 import { categoryName } from "../catnames.js";
@@ -39,8 +39,8 @@ const friendly = (e) => {
 };
 
 // ---- the alerts ----
-const M = computed(() => (S.value ? homeModel(S.value, new Date(), fx.value) : null));
-const list = computed(() => (S.value && M.value.any ? alertsModel(S.value, { ...M.value, budgets: budgetsModel(S.value, new Date()).info }, new Date(), {}, friendly) : []));
+const M = home; // worked out once for the whole app (core/derived.js)
+const list = computed(() => (S.value && M.value.any ? alertsModel(S.value, { ...M.value, budgets: budgets.value.info }, now.value, {}, friendly) : []));
 const ctx = computed(() => ({ t, catName, an, dstr, monthYear }));
 const rows = computed(() => list.value.map((x) => { const [title, text] = alertTexts(x, ctx.value); return { ...x, title, text }; }));
 

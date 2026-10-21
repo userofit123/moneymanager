@@ -6,6 +6,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { now } from "../core/clock.js";
 import { openForm } from "../core/forms.js";
 import { readJson } from "../core/prefs.js";
 import { toast } from "../core/toast.js";
@@ -30,7 +31,7 @@ onMounted(async () => {
 const S = computed(() => data.state.value);
 // The Forecast page's choices, saved by the current app in this browser; the "Full by" dates use the same guess.
 const fcOpt = (() => { try { return readJson("moneyFc", null) || {}; } catch { return {}; } })();
-const M = computed(() => jarsModel(S.value, new Date(), fx.value, fcOpt));
+const M = computed(() => jarsModel(S.value, now.value, fx.value, fcOpt));
 const loc = computed(() => (locale.value === "he" ? "he-IL" : "en-GB"));
 const mlab = (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, { month: "short", year: "numeric" });
 const dstr = (d) => new Date(String(d).slice(0, 10) + "T12:00:00").toLocaleDateString(loc.value, { day: "numeric", month: "short", year: "numeric" });

@@ -6,6 +6,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { now } from "../core/clock.js";
 import { openForm } from "../core/forms.js";
 import { dstr } from "../dates.js";
 import { toast } from "../core/toast.js";
@@ -37,7 +38,7 @@ const srcOf = (n) => {
 };
 
 // ---- the page ----
-const M = computed(() => (S.value ? billsModel(S.value, new Date()) : null));
+const M = computed(() => (S.value ? billsModel(S.value, now.value) : null));
 const cad = (every) => cadText(t, every);
 const freq = (every, plain) => freqText(t, every, plain);
 const kpis = computed(() => {
@@ -72,7 +73,7 @@ function change(edit) {
   data.change((next) => { const r = edit(next); if (r === false) return false; return r.map(([a, d, who]) => [a, d, null, who]); });
 }
 // The payments of bill number i, worked out on the same state the change is made on.
-const txOf = (next, i) => { const st = billState(next, new Date()); return st.billTx(next.bills[i]); };
+const txOf = (next, i) => { const st = billState(next, now.value); return st.billTx(next.bills[i]); };
 
 // ---- the ⋯ menu ----
 const menu = ref(null); // { i, btn }
@@ -101,14 +102,14 @@ function pick(a) {
   if (a == "billHist") openHist(i);
   else if (a == "billType") openType(i);
   else if (a == "billFlag") change((n) => flagBill(n, i));
-  else if (a == "billCanceled") change((n) => cancelBill(n, i, billState(n, new Date()).TODAY));
+  else if (a == "billCanceled") change((n) => cancelBill(n, i, billState(n, now.value).TODAY));
   else if (a == "billDel") change((n) => deleteBill(n, i));
 }
 
 // ---- opening a bill: its payment history (the current app opens the last payment's window, which lives in Activity here) ----
 const hist = ref(null); // { title, sub, h }
 function openHist(i, sub) {
-  const st = billState(S.value, new Date()), b = st.bills[i]; if (!b) return;
+  const st = billState(S.value, now.value), b = st.bills[i]; if (!b) return;
   const h = payHistory(st.billTx(b));
   if (!h) { say(t("bills.h.none"), "err"); return; }
   hist.value = { title: b.n, sub: sub || (b.mode == "once" ? t("bills.h.once") : t("bills.h.bill")), h };
@@ -124,7 +125,7 @@ const openAdd = () => openForm("bill");
 // ---- Change bill type ----
 const typeFor = ref(null); // { i, name, v }
 function openType(i) {
-  const b = S.value && billState(S.value, new Date()).bills[i]; if (!b) return;
+  const b = S.value && billState(S.value, now.value).bills[i]; if (!b) return;
   const info = M.value.all.find((x) => x.idx == i) || {};
   typeFor.value = { i, name: b.n, v: typeOf(b, info) };
 }

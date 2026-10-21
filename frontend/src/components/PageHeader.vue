@@ -3,9 +3,10 @@
 // Markup is the old app's: header > div > h1 + .sub (styled in styles/legacy.css, including the sticky band on a phone).
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { now } from "../core/clock.js";
 defineProps({ title: { type: String, required: true } });
 const { locale } = useI18n();
-const today = computed(() => new Date().toLocaleDateString(locale.value === "he" ? "he-IL" : "en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" }));
+const today = computed(() => now.value.toLocaleDateString(locale.value === "he" ? "he-IL" : "en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" }));
 </script>
 
 <template>

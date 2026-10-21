@@ -6,6 +6,8 @@
 import { ref, computed, reactive, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { now } from "../core/clock.js";
+import { home } from "../core/derived.js";
 import { dshort } from "../dates.js";
 import { dateFormat, readJson, weekStart, writeJson } from "../core/prefs.js";
 import { pages } from "../routes.js";
@@ -13,9 +15,8 @@ import { hrefOf, go } from "../router.js";
 import { formatMoney } from "../format.js";
 import PageHeader from "../components/PageHeader.vue";
 import RangeCal from "./RangeCal.vue";
-import { homeModel } from "./home.js";
 import { periodRange, cmpEnd, block, merchants, sumBy, byAmount, totalOf, seriesN, trOptions, trSeries, nwSeries, monthCompare } from "./reports.js";
-import { vTip } from "../tip.js";
+import { vTip } from "../core/tooltip.js";
 import { dcell, titleCase } from "../dates.js";
 
 // Card labels start every word with a capital in English, like titleCase in the old app.
@@ -36,8 +37,8 @@ onMounted(async () => {
   data.start();
 });
 const S = computed(() => data.state.value);
-const NOW = new Date(), MK = NOW.getFullYear() + "-" + String(NOW.getMonth() + 1).padStart(2, "0");
-const M = computed(() => (S.value ? homeModel(S.value, NOW, fx.value) : null));
+const NOW = now.value, MK = NOW.getFullYear() + "-" + String(NOW.getMonth() + 1).padStart(2, "0");
+const M = home; // worked out once for the whole app (core/derived.js)
 const loc = computed(() => (he.value ? "he-IL" : "en-GB"));
 const MNAME = (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, { month: "long" });
 const MSHORT = (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, { month: "short" });

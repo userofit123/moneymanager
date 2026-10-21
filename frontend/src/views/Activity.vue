@@ -4,6 +4,7 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { now, dayOf } from "../core/clock.js";
 import { home } from "../core/derived.js";
 import { dshort, dcell } from "../dates.js";
 import { dateFormat, readJson, weekStart, writeJson } from "../core/prefs.js";
@@ -22,7 +23,7 @@ import { RANGES, rmOf, instOf, NFIELDS, nameField, nameHit, kinds, totals, leftO
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a); // for keys built from a value, like "activity.sort." + "new"
 const PAGE = 50;
-const today = new Date().toISOString().slice(0, 10);
+const today = computed(() => dayOf(now.value));
 const S = computed(() => data.state.value);
 
 const tab = ref("all");
@@ -39,7 +40,7 @@ const tagText = ref("");
 
 watch([f, group, sort], () => { shownCount.value = PAGE; }, { deep: true });
 
-const k = computed(() => kinds(S.value, today));
+const k = computed(() => kinds(S.value, today.value));
 const rows = computed(() => sortRows(filterRows(S.value, S.value?.tx || [], { ...f.value, ws: weekStart.value }, k.value), sort.value));
 const T = computed(() => totals(rows.value, k.value));
 const lo = computed(() => leftOut(rows.value, k.value));

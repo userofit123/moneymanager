@@ -7,8 +7,8 @@ import { kinds, instOf } from "../views/activity.js";
 const p2 = (n) => String(n).padStart(2, "0");
 const sum = (a) => a.reduce((t, x) => t + x, 0);
 export const med = (a) => { const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
-export const f0 = (n) => Math.abs(n).toLocaleString("en-IL", { maximumFractionDigits: 0 });
-export const fm = (n) => (n < 0 ? "−" : "") + "₪" + f0(n);
+export { f0, fm } from "../format.js";
+import { fm } from "../format.js";
 const byDate = (a, b) => a.d.localeCompare(b.d);
 
 // How often does this store charge you? Returns null when there is no regular rhythm.

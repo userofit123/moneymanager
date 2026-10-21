@@ -107,6 +107,7 @@ test("the fixture really covers every kind of budget", () => {
 async function load() {
   if (mods) return mods;
   const [Budgets, store, i18nMod] = await Promise.all(["/src/views/Budgets.vue", "/src/stores/data.js", "/src/i18n.js"].map((p) => vite.ssrLoadModule(p)));
+  (await vite.ssrLoadModule("/src/core/clock.js")).setNow(NOW); // the page works out its numbers for the same day as the old app
   return (mods = { Budgets: Budgets.default, data: store.data, i18n: i18nMod.i18n, setLang: i18nMod.setLang });
 }
 async function page(S, lang = "en") {

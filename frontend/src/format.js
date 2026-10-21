@@ -8,3 +8,6 @@ export function formatMoney(n, { currency = "ILS", decimals = 0, sign = false } 
   return pre + currencySymbol(currency) + abs;
 }
 export const clampPercent = (value, max) => (max > 0 ? Math.max(0, Math.min(100, (value / max) * 100)) : 0);
+// The current app's short forms: f0(1250.4) → "1,250", fm(-80) → "−₪80" (web/js/01-prefs-theme.js f, fm).
+export const f0 = (n) => Math.abs(n).toLocaleString("en-IL", { maximumFractionDigits: 0 });
+export const fm = (n) => (n < 0 ? "−" : "") + "₪" + f0(n);

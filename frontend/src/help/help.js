@@ -6,7 +6,7 @@ import EN from "./en.js";
 import HE from "./he.js";
 import DOTS from "./dots.js";
 import { HDEMO } from "./demo.js";
-import { vTip } from "../tip.js";
+import { vTip } from "../core/tooltip.js";
 
 // The page the guide describes, by the new app's page name (the old app's names in HELP).
 export const HELP_PAGE = { home: "dash", activity: "tx", accounts: "acc", jars: "jars", bills: "bills", budgets: "budg", reports: "rep", forecast: "fc", alerts: "alerts", categories: "cats" };

@@ -1,5 +1,6 @@
 <script setup>
 // "Custom range": a calendar to pick two dates, and the same two dates to type. A copy of the current app's calendar (rcMonthHtml, openRangeCal, rcApply in web/js/07-periods-rules.js).
+import { now } from "../core/clock.js";
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { rangeOf } from "./activity.js";
@@ -10,7 +11,7 @@ const { t, locale } = useI18n();
 const tk = (key) => t(key); // for keys built from a value
 const p2 = (n) => String(n).padStart(2, "0");
 const iso = (d) => d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate());
-const today = iso(new Date());
+const today = iso(now.value);
 const addM = (m, k) => { const d = new Date(+m.slice(0, 4), +m.slice(5, 7) - 1 + k, 1); return d.getFullYear() + "-" + p2(d.getMonth() + 1); };
 const has = !!props.from;
 const from = ref(has ? props.from : ""), to = ref(has ? props.to : ""), hover = ref("");
@@ -56,7 +57,7 @@ function pick(k) {
   if (!from.value || to.value) { from.value = k; to.value = ""; hover.value = ""; } else { to.value = k; if (to.value < from.value) [from.value, to.value] = [to.value, from.value]; }
   syncText();
 }
-function quick(p) { const [a, b] = rangeOf(p, new Date(), props.ws); from.value = a; to.value = b.endsWith("-31") ? iso(new Date(+b.slice(0, 4), +b.slice(5, 7), 0)) : b; view.value = from.value.slice(0, 7); syncText(); }
+function quick(p) { const [a, b] = rangeOf(p, now.value, props.ws); from.value = a; to.value = b.endsWith("-31") ? iso(new Date(+b.slice(0, 4), +b.slice(5, 7), 0)) : b; view.value = from.value.slice(0, 7); syncText(); }
 function apply() { if (!canApply.value) return; let a = from.value, b = to.value || from.value; if (b < a) [a, b] = [b, a]; emit("apply", { from: a, to: b }); }
 const el = ref(null), pos = ref({});
 const off = (e) => { if (el.value && !el.value.contains(e.target)) emit("cancel"); };

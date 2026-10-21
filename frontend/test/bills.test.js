@@ -21,7 +21,7 @@ const TODAY = "2026-10-17";
 // ---- the data ----
 let nid = 1;
 const T = (d, to, a, o = {}) => ({ id: nid++, d, desc: to, from: "Bank", to, a, c: o.c ?? "Subscriptions", tags: [], docs: [], note: "", ...o });
-const monthly = (to, day, from, n, a, o) => Array.from({ length: n }, (_, i) => { const d = new Date(2026, from + i, day); return T(d.toISOString().slice(0, 10).replace(/^(\d{4})-(\d{2})-(\d{2})$/, (_, y, m, dd) => `${y}-${m}-${String(day).padStart(2, "0")}`), to, -(typeof a == "function" ? a(i) : a), o); });
+const monthly = (to, day, from, n, a, o) => Array.from({ length: n }, (_, i) => { const d = new Date(2026, from + i, day); return T(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`, to, -(typeof a == "function" ? a(i) : a), o); });
 function fixture(over = {}) {
   nid = 1;
   const tx = [
@@ -119,6 +119,7 @@ test("'Why is this a bill?' reads the same as the current app", async () => {
 async function load() {
   if (mods) return mods;
   const [Bills, store, i18nMod, bills] = await Promise.all(["/src/views/Bills.vue", "/src/stores/data.js", "/src/i18n.js", "/src/lib/bills.js"].map((p) => vite.ssrLoadModule(p)));
+  (await vite.ssrLoadModule("/src/core/clock.js")).setNow(NOW); // the page works out its numbers for the same day as the old app
   return (mods = { Bills: Bills.default, data: store.data, i18n: i18nMod.i18n, setLang: i18nMod.setLang });
 }
 async function i18n(lang) { const m = await load(); m.setLang(lang); return { t: (k, v, n) => (n == null ? m.i18n.global.t(k, v || {}) : m.i18n.global.t(k, v || {}, n)), ...m }; }

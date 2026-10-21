@@ -6,6 +6,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { now } from "../core/clock.js";
 import { openForm } from "../core/forms.js";
 import { dstr } from "../dates.js";
 import { toast } from "../core/toast.js";
@@ -21,7 +22,7 @@ const S = computed(() => data.state.value);
 onMounted(() => { data.start(); });
 
 const cc = (n) => (n == "Income" || S.value?.cats?.[n] === 99 ? "var(--pos)" : `var(--c${(S.value?.cats?.[n] == null ? 6 : S.value.cats[n]) % 7})`);
-const M = computed(() => (S.value ? budgetsModel(S.value, new Date()) : null));
+const M = computed(() => (S.value ? budgetsModel(S.value, now.value) : null));
 const mlab = computed(() => M.value.budMonths.map((m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(locale.value === "he" ? "he-IL" : "en-GB", { month: "short" })).join(", "));
 
 const kpis = computed(() => {
