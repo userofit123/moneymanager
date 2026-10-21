@@ -14,3 +14,13 @@ export function goActivity(o = {}) {
   activityGo.value = { ...o, at: Date.now() };
   go("/activity");
 }
+
+// "Open" on an alert (alOpen): its transaction, or Activity showing only the alert's items (with its title above them),
+// or the tab or settings section it is about, or its page.
+const ALGO = { bills: "/bills", budg: "/budgets", jars: "/jars", tx: "/activity", dash: "/home", set: "/settings", fc: "/forecast", acc: "/accounts" };
+export async function openAlert(al, title) {
+  if (al.attach) { go("/activity"); (await import("./txwin.js")).openTx(al.attach); return; }
+  if (al.go == "tx") { goActivity(al.ids && al.ids.length ? { focus: al.ids, label: title } : { tab: al.tab || "all" }); return; }
+  if (al.go == "set" && al.tab) (await import("../views/settings/tab.js")).openSettingsTab(al.tab);
+  go(ALGO[al.go] || "/alerts");
+}

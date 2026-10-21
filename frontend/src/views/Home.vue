@@ -5,6 +5,10 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { openAlert as openAlertFrom, goActivity } from "../core/shell.js";
+import { openForm } from "../core/forms.js";
+import { amtText } from "../lib/txrows.js";
+import { openSettingsTab } from "./settings/tab.js";
 import { home } from "../core/derived.js";
 import { now } from "../core/clock.js";
 import { readPref, writePref } from "../core/prefs.js";
@@ -16,7 +20,7 @@ import { brandIcon, glyphIcon } from "../brands.js";
 import BaseTabs from "../components/BaseTabs.vue";
 import { flowSteps } from "./home.js";
 import { alertsModel } from "./alerts.js";
-import { openTx } from "../core/txwin.js";
+import { openTx, openPop } from "../core/txwin.js";
 import AvailWhy from "./AvailWhy.vue";
 import { vTip, TP } from "../core/tooltip.js";
 import { dcell, dstr, titleCase } from "../dates.js";
@@ -82,8 +86,10 @@ function alertText(x) {
 const alerts3 = computed(() => alertList.value.slice(0, 3).map((x) => ({ ...x, title: alertText(x)[0], text: alertText(x)[1] })));
 const avail = ref(false);
 const openTxId = (id) => openTx(id);
-const GO = { bills: "bills", budg: "budgets", jars: "jars", tx: "activity", dash: "home", set: "settings", fc: "forecast" };
-const openAlert = (x) => { if (x.attach) return openTxId(x.attach); to(GO[x.go] || "alerts"); };
+const openAlert = (x) => openAlertFrom(x, x.title);
+// an account's own page (accGo), Settings → Connections (goConn)
+const accGo = (n) => go("/accounts?n=" + encodeURIComponent(n));
+const goConn = () => { openSettingsTab("conn"); go("/settings"); };
 
 // The four totals at the top, each with the old hover text.
 const kpis = computed(() => {
@@ -141,7 +147,7 @@ const colTip = (c) => {
   if (c.k === "cushion") return TP(t("tip.keptTitle"), [[t("tip.cushionRow"), fm(F.buffer)]], t("tip.cushionNote"));
   if (c.k === "other") return TP(t("tip.otherTitle"), c.rest.map((x) => [colName(x), fm(x.a)]), t("tip.otherNote"));
   if (c.unplanned) return TP(colName(c), [...six((c.cats || []).map((e) => [catName(e[0]), fm(e[1])])), "---", [t("tip.spentRow"), fm(c.spent)]], t("tip.unplannedNote"));
-  const bud = c.kind === "budget", bill = c.kind === "bill";
+  const bud = c.rk === "budget", bill = c.rk === "bill"; // the column's own kind (kind is its place in the chart)
   const note = [...(c.over || (bud && c.base > 0 && c.spent > c.base) ? ["!" + t("tip.overBy", { amt: fm(Math.round(c.spent - c.base)) })] : []), tk(bud ? "tip.noteBudget" : bill ? "tip.noteBill" : "tip.noteUsual")]
     .concat(c.bcov > 0 || c.jarCov > 0 ? [t("tip.jarNoRecount")] : [], (c.bills || []).length ? [t("tip.includesBills", { list: c.bills.map((b) => b.n).join(", ") })] : []).join("\n");
   return TP(catName(c.k), [[tk(bud ? "tip.budgetRow" : bill ? "tip.billsRow" : "tip.usualRow"), fm(Math.round(c.base))], [t("tip.spentRow"), fm(c.spent)], ...(c.bcov > 0 ? [[t("tip.jarPaysBills"), fm(c.bcov)]] : []), ...(c.jarCov > 0 ? [[t("tip.paidByJar", { j: c.jar }), fm(c.jarCov)]] : []), "---", [tk(bud ? "tip.leftBudget" : bill ? "tip.leftPay" : "tip.leftUsual"), fm(c.left)]], note);
@@ -195,20 +201,20 @@ const hvStyle = computed(() => {
 });
 
 const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", donut: "reports", accts: "accounts", fx: "settings" };
-const amtText = (x) => (x.a > 0 ? "+" : "−") + "₪" + n0(x.a);
-const openBill = (b) => { const bl = M.value.billsAll[b.idx]; const last = bl && M.value.rows.filter((x) => x.a < 0 && (bl.mode == "once" ? (bl.ids || []).includes(x.id) : (x.desc + " " + x.to).toLowerCase().includes(bl.match))).sort((p, q) => p.d.localeCompare(q.d)).pop(); if (last) openTxId(last.id); else to("bills"); };
+// "+₪1,250", "≈ −₪80" for an expected bill, "balance +₪500" for a balance update (amtT)
+const openBill = (b) => { const bl = M.value.billsAll[b.idx]; const last = bl && M.value.rows.filter((x) => x.a < 0 && (bl.mode == "once" ? (bl.ids || []).includes(x.id) : (x.desc + " " + x.to).toLowerCase().includes(bl.match))).sort((p, q) => p.d.localeCompare(q.d)).pop(); if (last) openTxId(last.id); else if (bl) openPop("hist", { title: bl.n, rows: [], sub: t("txw.chip.bill"), q: bl.match }); };
 </script>
 
 <template>
-  <div>
-    <PageHeader :title="t('nav.home')" />
+  <PageHeader :title="t('nav.home')" />
+  <section id="dash" class="view on">
 
     <p v-if="data.error.value && !S" class="muted">{{ t("home.loadError") }}</p>
     <p v-else-if="!S" class="muted">{{ t("home.loading") }}</p>
 
     <template v-else>
-      <div id="attn" v-if="alerts3.length" style="padding-bottom:16px">
-        <div class="card warn" style="margin-bottom:16px;padding:6px 18px">
+      <div id="attn">
+        <div v-if="alerts3.length" class="card warn" style="margin-bottom:16px;padding:6px 18px">
           <div v-for="x in alerts3" :key="x.id" class="al" style="padding:10px 0"><span class="sev" :class="x.sev" /><div style="flex:1;min-width:0"><b style="font-size:14px">{{ x.title }}</b><div class="sm">{{ x.text }}</div></div><button type="button" class="btn o s" @click="openAlert(x)">{{ t("home.alertOpen") }}</button></div>
           <div style="padding:8px 0"><a class="sm" style="cursor:pointer;color:var(--acc);font-weight:600" :href="link('alerts')" @click="onLink">{{ t("home.allAlerts", { n: alertList.length }) }}</a></div>
         </div>
@@ -217,7 +223,7 @@ const openBill = (b) => { const bl = M.value.billsAll[b.idx]; const last = bl &&
       <div v-if="!M.any" id="homeEmpty" class="card">
         <b>{{ t("home.emptyTitle") }}</b>
         <div class="sm" style="margin:6px 0 12px">{{ t("home.emptyText") }}</div>
-        <div class="flex" style="gap:8px;flex-wrap:wrap"><a href="/settings"><button type="button" class="btn s">{{ t("home.connect") }}</button></a><a :href="link('activity')" @click="onLink"><button type="button" class="btn o s">{{ t("home.addTx") }}</button></a></div>
+        <div class="flex" style="gap:8px;flex-wrap:wrap"><button type="button" class="btn s" @click="goConn">{{ t("home.connect") }}</button><button type="button" class="btn o s" @click="openForm('tx')">{{ t("home.addTx") }}</button></div>
       </div>
 
       <template v-else>
@@ -236,7 +242,7 @@ const openBill = (b) => { const bl = M.value.billsAll[b.idx]; const last = bl &&
         <div v-if="M.has.accts" id="sec-accts">
           <h2>{{ t("home.accounts") }}<a class="sm hl" :href="link('accounts')" @click="onLink">{{ t("home.all") }}</a></h2>
           <div id="accts" class="grid g3">
-            <div v-for="g in M.groups" :key="g.n" class="card click" :style="g.manual ? 'opacity:.85' : ''" role="button" tabindex="0" @click="to('accounts')">
+            <div v-for="g in M.groups" :key="g.n" class="card click" :style="g.manual ? 'opacity:.85' : ''" role="button" tabindex="0" @click="accGo(g.n)">
               <div class="lbl"><span class="gi" v-html="brandIcon(g.n, g.L[0].src, g.L[0].kind, g.L[0].ck)" /><span>{{ an(g.n) }}</span><span v-if="accSub(g).chips" class="chip" style="margin-inline-start:auto;padding:1px 9px">{{ accSub(g).chips }}</span></div>
               <div class="val"><small>₪</small>{{ n0(g.total) }}</div>
               <div class="sm">
@@ -253,7 +259,7 @@ const openBill = (b) => { const bl = M.value.billsAll[b.idx]; const last = bl &&
         <div v-if="M.has.cards" id="sec-cards">
           <h2>{{ t("home.cards") }}<a class="sm hl" :href="link('accounts')" @click="onLink">{{ t("home.all") }}</a></h2>
           <div id="cards" class="grid g3">
-            <div v-for="c in cardRows" :key="c.n" class="card click" v-tip="c.tip" role="button" tabindex="0" @click="to('accounts')">
+            <div v-for="c in cardRows" :key="c.n" class="card click" v-tip="c.tip" role="button" tabindex="0" @click="accGo(c.wise ? 'Wise' : c.n)">
               <div class="lbl"><span class="gi" v-html="brandIcon(c.n, c.acc?.src, c.acc?.kind || 'card', c.acc?.ck)" /><span><template v-if="c.wise">{{ titleCase(c.nme) }} · {{ titleCase(t("home.paidNow")) }}</template><template v-else><span v-html="accLbl(c.n)" /> · {{ titleCase(t("home.upcomingCharge")) }}</template></span></div>
               <div class="val"><small>₪</small>{{ n0(c.now) }}</div>
               <div class="sm">{{ t("home.lastMonthAmount", { amount: "₪" + n0(c.last) }) }} <span v-if="c.last" class="bd" :class="c.d > 0 ? 'up' : 'dn'">{{ c.d > 0 ? "▲" : "▼" }} {{ c.p }}%</span></div>
@@ -288,17 +294,17 @@ const openBill = (b) => { const bl = M.value.billsAll[b.idx]; const last = bl &&
           </div>
         </div>
 
-        <div id="row-bb" class="grid g2" style="margin-top:28px">
+        <div v-show="M.has.bills || M.has.budg || M.has.jars || M.has.fx || M.has.donut || M.has.recent" id="row-bb" class="grid g2">
           <div v-if="M.has.donut" id="sec-donut">
             <h2 style="margin-top:0"><span>{{ t("home.byCategory") }}<span class="mo"> · {{ monthName(M.MK) }}</span></span><a class="sm hl" :href="link(H2.donut)" @click="onLink">{{ t("home.all") }}</a></h2>
             <div class="card"><div id="donutHome" class="flex dnt" :class="{ hv: hover }">
               <svg width="200" height="200" viewBox="0 0 200 200" class="dsvg" style="max-width:100%">
-                <path v-for="p in donut.parts" :key="p.n" :d="p.d" :fill="p.color" :class="{ on: hover === p.n }" style="cursor:pointer" v-tip="p.tip" @mouseenter="hover = p.n" @mouseleave="hover = null" @click="to('activity')" />
+                <path v-for="p in donut.parts" :key="p.n" :d="p.d" :fill="p.color" :class="{ on: hover === p.n }" style="cursor:pointer" v-tip="p.tip" @mouseenter="hover = p.n" @mouseleave="hover = null" @click="goActivity({ cat: p.n })" />
                 <text x="100" y="98" text-anchor="middle" style="font-size:22px;font-weight:600;fill:var(--tx)">₪{{ n0(donut.tot) }}</text>
                 <text x="100" y="117" text-anchor="middle">{{ t("home.spentThisMonth") }}</text>
               </svg>
               <div class="legend">
-                <div v-for="p in donut.parts" :key="p.n" :class="{ on: hover === p.n }" data-k="" @mouseenter="hover = p.n" @mouseleave="hover = null"><span class="dot" :style="{ background: p.color }" /><span class="catl" @click="to('activity')">{{ catName(p.n) }}</span><b>₪{{ n0(p.v) }}</b></div>
+                <div v-for="p in donut.parts" :key="p.n" :class="{ on: hover === p.n }" data-k="" @mouseenter="hover = p.n" @mouseleave="hover = null"><span class="dot" :style="{ background: p.color }" /><span class="catl" @click="goActivity({ cat: p.n })">{{ catName(p.n) }}</span><b>₪{{ n0(p.v) }}</b></div>
               </div>
             </div></div>
           </div>
@@ -307,7 +313,7 @@ const openBill = (b) => { const bl = M.value.billsAll[b.idx]; const last = bl &&
             <h2 style="margin-top:0"><span>{{ t("home.budgets") }}<span class="mo"> · {{ monthName(M.MK) }}</span></span><a class="sm hl" :href="link(H2.budg)" @click="onLink">{{ t("home.all") }}</a></h2>
             <div id="budHome" class="card">
               <div v-for="b in M.budgets.slice(0, 8)" :key="b.k" style="margin-bottom:14px">
-                <div style="display:flex;justify-content:space-between;font-size:14px"><b><span class="catl" @click="to('activity')">{{ catName(b.k) }}</span></b><span class="sm num">{{ fm(b.s) }} / {{ fm(b.lim) }}</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:14px"><b><span class="catl" @click="goActivity({ cat: b.k })">{{ catName(b.k) }}</span></b><span class="sm num">{{ fm(b.s) }} / {{ fm(b.lim) }}</span></div>
                 <div class="bar" style="margin:8px 0 2px"><i :style="{ width: Math.min(100, b.pc) + '%', background: b.st == 'over' ? 'var(--neg)' : b.st == 'warn' ? '#e68a00' : '' }" /><u :style="{ insetInlineStart: (M.DAYN / M.DIM) * 100 + '%' }" /></div>
               </div>
               <div v-if="M.budgets.length > 8" class="sm" style="padding-top:4px"><a style="cursor:pointer;color:var(--acc)" :href="link('budgets')" @click="onLink">{{ t("home.moreBudgets", { n: M.budgets.length - 8 }) }}</a></div>
@@ -378,7 +384,7 @@ const openBill = (b) => { const bl = M.value.billsAll[b.idx]; const last = bl &&
       </template>
     </template>
     <AvailWhy v-if="S" v-model:open="avail" :M="M" />
-  </div>
+  </section>
 </template>
 
 <style scoped>
