@@ -1,6 +1,5 @@
 // The entry window's changes (lib/txactions.js) change the data and write the agreed history lines (saved in fixtures/, see golden.js).
 import test from "node:test";
-import assert from "node:assert/strict";
 import { matchesSaved } from "./golden.js";
 import { buildDemo } from "../../server/src/seed.js";
 import * as A from "../src/lib/txactions.js";

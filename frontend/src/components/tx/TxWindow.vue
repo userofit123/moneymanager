@@ -20,7 +20,7 @@ import { allRows, costRows, txChips, amtText, SYM, CHIP_ICON, whyBill, futureTip
 import { kinds, displayName, duplicateIds, rmOf, instOf, cardOf, detailRows, flat, prettyKey } from "../../lib/activity.js";
 import { catJarsOf } from "../../lib/jars.js";
 import { fm, f0 } from "../../format.js";
-import { dcell, dstr } from "../../dates.js";
+import { dstr } from "../../dates.js";
 import { go } from "../../router.js";
 import BaseSheet from "../BaseSheet.vue";
 import TagEditor from "../TagEditor.vue";

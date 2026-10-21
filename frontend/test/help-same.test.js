@@ -63,7 +63,7 @@ async function render(view, lang) {
 for (const [name, view] of Object.entries(PAGES)) for (const lang of ["en", "he"]) {
   test(`${name} (${lang}): every ? finds its section`, async () => {
     const html = await render(view, lang), key = HELP_PAGE[name], miss = [];
-    for (const [k, root, sel, txt, , how, txtHe] of DOTS) {
+    for (const [k, root, , txt, , how, txtHe] of DOTS) {
       if (k !== key) continue;
       const id = root.slice(1), i = html.indexOf(`id="${id}"`);
       if (i < 0) { miss.push(root + " missing"); continue; }

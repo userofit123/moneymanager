@@ -19,9 +19,7 @@ import { categoryName } from "../catnames.js";
 import en from "../locales/en.json";
 
 const { t, locale } = useI18n();
-const tk = (key, ...a) => t(key, ...a);
 const S = computed(() => data.state.value);
-const fx = computed(() => data.fx.value.fx); // exchange rates, loaded with the data
 onMounted(async () => {
   data.start();
 });

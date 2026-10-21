@@ -2,7 +2,7 @@
 // Each alert is { id, type, sev, key, p, go, ... }: key and p (the numbers and names) fill the English and Hebrew sentences in the language files.
 import { forecastSurplus } from "./jars.js";
 import { balanceGaps, gapBill, duplicateIds, transferIds, isIgnored, rn } from "./activity.js";
-import { addM, rdOf } from "./home.js";
+import { addM } from "./home.js";
 
 const f = (n) => Math.abs(n).toLocaleString("en-IL", { maximumFractionDigits: 0 });
 export const fm = (n) => (n < 0 ? "−" : "") + "₪" + f(n);

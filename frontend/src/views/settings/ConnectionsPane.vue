@@ -1,6 +1,6 @@
 <script setup>
 // Settings → Connections: what is connected, adding a bank or card, and one card per login.
-import { ref, onMounted, nextTick } from "vue";
+import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
 import { friendlyErr } from "../../core/sources.js";

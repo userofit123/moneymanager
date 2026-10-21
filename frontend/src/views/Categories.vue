@@ -19,7 +19,7 @@ import { catTab, searches, newRuleTags } from "./categories/state.js";
 import * as C from "../lib/categories.js";
 import { ask as askYes } from "../core/ask.js";
 
-const { t, locale } = useI18n();
+const { t } = useI18n();
 const S = computed(() => data.state.value);
 onMounted(() => { data.start(); });
 

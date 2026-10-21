@@ -1,6 +1,6 @@
 // The Forecast page's numbers, kept apart from the screen so they can be tested.
 // Nothing here changes the data.
-import { homeModel, addM } from "./home.js";
+import { homeModel } from "./home.js";
 import { forecastHistory, proj, jarProject, capOfAt, monthsToOf } from "./jars.js";
 import { cardInfo, isCardPay } from "./activity.js";
 

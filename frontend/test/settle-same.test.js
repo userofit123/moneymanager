@@ -7,8 +7,6 @@ import { buildDemo } from "../../server/src/seed.js";
 import { settle } from "../src/core/settle.js";
 
 const NOW = new Date(2026, 9, 17, 12);
-let nid = 1;
-const T = (d, desc, a, o = {}) => ({ id: nid++, d, desc, from: "Bank Hapoalim", to: desc, a, c: "", tags: [], docs: [], note: "", ...o });
 function demo() {
   const d = buildDemo(NOW); let id = 1;
   const tx = d.rows.map((r) => ({ id: id++, d: r.d, desc: r.desc, from: r.from, to: r.to, a: r.a, ...(r.orig ? { orig: r.orig } : {}), c: r.c || "", tags: r.tags || [], docs: [], note: "", ...(r.pending ? { pending: true } : {}), src: "demo" }));
@@ -18,7 +16,6 @@ function demo() {
     cfg: {}, currencies: ["ILS", "USD"], accounts: acc.map(([n, cur, kind, src, inNW], i) => ({ id: i + 1, n, cur, kind, src, inNW, v: d.balances[n] ?? 0, at: NOW.toISOString(), sort: i })), nwSnaps: [], gaps: [], balUpdates: [], connected: {}, locked: {}, connStatus: {} };
 }
 function own() {
-  nid = 1;
   const S = demo();
   S.tx = S.tx.filter((t) => t.d < "2026-10-18");
   S.tx.forEach((t) => { if (/wolt|shufersal/i.test(t.desc)) t.c = ""; }); // left for the rules
@@ -34,7 +31,7 @@ function own() {
   S.jarsBuffer = 1500;
   return S;
 }
-const STATES = [["the made-up demo data", "demo", () => (nid = 1, demo())], ["rules, a transfer and jars that pay for things", "own", own]];
+const STATES = [["the made-up demo data", "demo", demo], ["rules, a transfer and jars that pay for things", "own", own]];
 
 const pick = (S) => ({
   xf: S.xf, bills: S.bills, jarsReserve: S.jarsReserve,

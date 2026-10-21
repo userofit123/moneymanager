@@ -7,7 +7,7 @@ import { dstr } from "../dates.js";
 const sum = (a) => a.reduce((t, x) => t + x, 0);
 
 // The name an income is grouped under: who sent it, or else its cleaned-up description.
-const incKey = (t) => { const f = String(t.from || "").trim(); if (f && !/^(bank transfer|other)$/i.test(f)) return f; const d = String(t.desc || "").replace(/[0-9\/\\.,:;*#()\-_]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 40); return d || "Other income"; };
+const incKey = (t) => { const f = String(t.from || "").trim(); if (f && !/^(bank transfer|other)$/i.test(f)) return f; const d = String(t.desc || "").replace(/[0-9/\\.,:;*#()\-_]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 40); return d || "Other income"; };
 const medOf = (v) => { const x = [...v].sort((a, b) => a - b), h = x.length >> 1; return x.length % 2 ? x[h] : (x[h - 1] + x[h]) / 2; };
 // "Smart" estimate: one unusually large or small month is pulled back toward the typical month, and a trend counts only a little.
 function est(v, m, sl) {

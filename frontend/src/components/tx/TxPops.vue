@@ -15,7 +15,7 @@ import { displayName, rmOf, NFIELDS, nameField, guessKw, cardInfo, tagSimilar } 
 import { catJarsOf, markDone } from "../../lib/jars.js";
 import { fm } from "../../format.js";
 import { now, dayOf } from "../../core/clock.js";
-import { dstr, dcell } from "../../dates.js";
+import { dstr } from "../../dates.js";
 import BaseSheet from "../BaseSheet.vue";
 import MoneyInput from "../MoneyInput.vue";
 

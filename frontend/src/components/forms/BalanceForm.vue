@@ -1,7 +1,7 @@
 <script setup>
 // "Update balance" of an account you keep yourself:
 // the new balance and a note. The server keeps the old balance in the account's history. id: the account.
-import { ref, computed, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
 import { toast } from "../../core/toast.js";

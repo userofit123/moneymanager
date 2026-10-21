@@ -49,7 +49,7 @@ export const exExt = (E) => (E.what == "all" || E.fmt == "json" ? ".json" : ".cs
 export const exFile = (E, today) => `money-${E.what}-${today}`;
 // The file's name and contents. S: the whole data (for "everything").
 export function exBuild(S, E, d, today) {
-  const base = (E.name || "").trim().replace(/[\\/:*?"<>|\x00-\x1f]/g, "-").replace(/\.(csv|json)$/i, "").slice(0, 80) || exFile(E, today);
+  const base = (E.name || "").trim().replace(/[\\/:*?"<>|\x00-\x1f]/g, "-").replace(/\.(csv|json)$/i, "").slice(0, 80) || exFile(E, today); // eslint-disable-line no-control-regex -- control characters are not allowed in file names
   if (d.all || E.fmt == "json") { const o = d.all ? S : d.rows.map((r) => Object.fromEntries(d.head.map((h, i) => [h, r[i]]))); return { body: JSON.stringify(o, null, 1), mime: "application/json", name: base + ".json" }; }
   return { body: exCsv(d.head, d.rows), mime: "text/csv;charset=utf-8", name: base + ".csv" };
 }

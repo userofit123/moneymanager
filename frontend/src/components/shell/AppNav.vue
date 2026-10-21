@@ -1,7 +1,7 @@
 <script setup>
 // The menu: a rail on a computer, a bar at the bottom of a phone (<nav>), with each page's icon and badge;
 // the gliding highlight moves to the open page. At the bottom of the rail: update, sync status and Appearance.
-import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
+import { ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import { pages } from "../../routes.js";
 import { current, hrefOf, go } from "../../router.js";

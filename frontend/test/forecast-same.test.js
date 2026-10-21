@@ -72,7 +72,6 @@ async function page(S, lang = "en") {
 }
 const unesc = (x) => x.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&");
 const words = (html) => unesc(html.replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim();
-const section = (html, id) => { const i = html.indexOf(`id="${id}"`); return i < 0 ? "" : html.slice(i); };
 
 test("the English page shows every block, in order, with the agreed words", async () => {
   const S = demoState(), html = await page(S), got = {};

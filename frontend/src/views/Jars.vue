@@ -17,7 +17,6 @@ import { fm, f0 } from "../format.js";
 import { dstr } from "../dates.js";
 import { isolateNumbers } from "../core/polish.js";
 import BaseCard from "../components/BaseCard.vue";
-import BaseButton from "../components/BaseButton.vue";
 import BaseSheet from "../components/BaseSheet.vue";
 import BaseTabs from "../components/BaseTabs.vue";
 import MoneyInput from "../components/MoneyInput.vue";

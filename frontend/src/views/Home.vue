@@ -32,7 +32,6 @@ const tk = (key, ...a) => t(key, ...a);
 const fm = (v) => formatMoney(Math.round(v));
 const n0 = (v) => Math.round(Math.abs(v)).toLocaleString("en-IL");
 const link = (name) => hrefOf(pages.find((p) => p.name === name));
-const to = (name) => go(hrefOf(pages.find((p) => p.name === name)));
 const an = (n) => categoryName(n, locale.value); // a bank, card or wallet name
 const subOf = (s) => String(s).split(" · ").map(tx).join(" · "); // an account's subtitle from the server ("Cash · entered by you"), like Accounts
 const cur = (c) => (locale.value === "he" ? { USD: "דולר", ILS: "שקל" }[c] || c : c);

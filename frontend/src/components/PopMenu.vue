@@ -27,7 +27,7 @@ escLayer(() => !!props.at, () => emit("close"));
 // scrolling the page (not the menu itself) closes it
 const onScroll = (e) => { if (props.at && !(e.target.closest && e.target.closest(".cmenu"))) emit("close"); };
 onMounted(() => { document.addEventListener("click", onClick); addEventListener("scroll", onScroll, { passive: true, capture: true }); });
-onBeforeUnmount(() => { document.removeEventListener("click", onClick); removeEventListener("scroll", onScroll, { capture: true }); if (props.at) delete props.at.dataset.open; });
+onBeforeUnmount(() => { document.removeEventListener("click", onClick); removeEventListener("scroll", onScroll, { capture: true }); if (props.at) delete props.at.dataset.open; }); // eslint-disable-line vue/no-mutating-props -- the button is a DOM element; its data-open mark is not Vue state
 </script>
 
 <template>

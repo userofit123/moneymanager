@@ -15,7 +15,7 @@ import { catColor, catLabel } from "../core/cats.js";
 import { addM } from "../lib/home.js";
 import PageHeader from "../components/PageHeader.vue";
 import RangeCal from "./RangeCal.vue";
-import { periodRange, cmpEnd, block, merchants, sumBy, byAmount, totalOf, seriesN, trOptions, trSeries, nwSeries, monthCompare } from "../lib/reports.js";
+import { cmpEnd, block, merchants, sumBy, byAmount, totalOf, seriesN, trOptions, trSeries, nwSeries, monthCompare } from "../lib/reports.js";
 import { vTip } from "../core/tooltip.js";
 import { dcell } from "../dates.js";
 
@@ -103,7 +103,6 @@ const optGroups = computed(() => [
 const flatOpts = computed(() => optGroups.value.flatMap((g) => g[1].map((x) => x[0])));
 const trM = computed(() => (flatOpts.value.includes(TR.m) ? TR.m : "nw"));
 const nw = computed(() => (M.value ? nwSeries(S.value, M.value, MK.value) : null));
-const trName = (spec) => { const [k, ...r] = spec.split(":"), a = r.join(":"); return { nw: t("rep.oNw"), inc: t("rep.income"), exp: t("rep.expenses"), net: t("rep.nNet"), bills: t("rep.nBills"), cat: catName(a), src: t("rep.incomeFrom", { a }), tag: "#" + a }[k] || spec; };
 const trColor = (spec) => { const k = spec.split(":")[0], a = spec.split(":").slice(1).join(":"); return k == "nw" ? "var(--acc)" : k == "inc" || k == "src" ? "var(--pos)" : k == "exp" ? "var(--c1)" : k == "net" ? "var(--acc)" : k == "bills" ? "var(--c3)" : k == "cat" ? cc(a) : "var(--c5)"; };
 const hasPension = computed(() => (S.value?.accounts || []).some((a) => a.kind == "pension" && +a.v > 0));
 const trm = computed(() => {
@@ -201,7 +200,6 @@ const hoverCat = ref(null), hoverTag = ref(null);
 const dlt = (now, then) => { if (then == null) return null; if (!then) return now ? { cls: "am2", text: t("rep.newPill") } : null; const p = (now / then - 1) * 100; if (Math.abs(p) < 1) return { cls: "fl", text: t("rep.same") }; return { cls: p > 0 ? "up" : "dn", text: (p > 0 ? "▲" : "▼") + " " + Math.abs(p).toFixed(0) + "%" }; };
 const hideMerch = (n) => { const l = String(n).toLowerCase(); if ((S.value.hiddenMerchants || []).includes(l)) return; save((s) => { s.hiddenMerchants = [...(s.hiddenMerchants || []), l]; }, "Hid a merchant", n + " is no longer shown as a merchant", { type: "merchant", name: l }); };
 const showMerch = (n) => save((s) => { s.hiddenMerchants = (s.hiddenMerchants || []).filter((x) => x != String(n).toLowerCase()); }, "Showed a merchant again", n);
-const monthDay = computed(() => (cmp.value ? { month: pmN.value, day: cmp.value.DAYN } : {}));
 </script>
 
 <template>

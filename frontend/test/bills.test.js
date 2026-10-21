@@ -7,7 +7,7 @@ import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { matchesSaved } from "./golden.js";
 import { buildDemo } from "../../server/src/seed.js";
-import { billState, billsModel, withDetected, addBill, flagBill, cancelBill, restoreBill, deleteBill, setBillType, sugYes, sugNo, payHistory, whyText, evTipText, makeDstr, cadenceOf } from "../src/lib/bills.js";
+import { billState, billsModel, withDetected, addBill, flagBill, cancelBill, restoreBill, deleteBill, setBillType, sugYes, sugNo, payHistory, whyText, makeDstr, cadenceOf } from "../src/lib/bills.js";
 
 process.on("unhandledRejection", () => {});
 // The page is drawn on the server with the real Vue file (Vite), so no browser is needed.
@@ -109,7 +109,7 @@ test("'Why is this a bill?' explains each bill", async () => {
 // ---- the page ----
 async function load() {
   if (mods) return mods;
-  const [Bills, store, i18nMod, bills] = await Promise.all(["/src/views/Bills.vue", "/src/stores/data.js", "/src/i18n.js", "/src/lib/bills.js"].map((p) => vite.ssrLoadModule(p)));
+  const [Bills, store, i18nMod] = await Promise.all(["/src/views/Bills.vue", "/src/stores/data.js", "/src/i18n.js"].map((p) => vite.ssrLoadModule(p)));
   (await vite.ssrLoadModule("/src/core/clock.js")).setNow(NOW); // the page works out its numbers for a fixed day
   return (mods = { Bills: Bills.default, data: store.data, i18n: i18nMod.i18n, setLang: i18nMod.setLang });
 }

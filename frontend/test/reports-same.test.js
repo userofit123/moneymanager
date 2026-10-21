@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { matchesSaved } from "./golden.js";
 import { buildDemo } from "../../server/src/seed.js";
 import { homeModel } from "../src/lib/home.js";
-import { block, merchants, sumBy, byAmount, totalOf, seriesN, trOptions, trSeries, nwSeries, monthCompare, cmpRange } from "../src/lib/reports.js";
+import { block, merchants, sumBy, seriesN, trOptions, trSeries, nwSeries, monthCompare } from "../src/lib/reports.js";
 
 process.on("unhandledRejection", () => {});
 const NOW = new Date(2026, 9, 17, 12);

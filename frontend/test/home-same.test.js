@@ -1,10 +1,8 @@
 // Home gives the agreed numbers, bills, budgets, jars and recent payments on made-up bank data from the demo (saved in fixtures/, see golden.js).
 import test from "node:test";
-import assert from "node:assert/strict";
 import { matchesSaved } from "./golden.js";
 import { buildDemo } from "../../server/src/seed.js";
-import { homeModel, flowSteps } from "../src/lib/home.js";
-import { alertsModel, fm } from "../src/lib/alerts.js";
+import { homeModel } from "../src/lib/home.js";
 
 process.on("unhandledRejection", () => {});
 const NOW = new Date(2026, 9, 17, 12);

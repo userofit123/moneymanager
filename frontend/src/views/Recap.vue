@@ -84,7 +84,7 @@ function greeting() {
   const p = S.value?.cfg?.profile || {}, name = String(p.name || "").trim(), h = now.value.getHours(), band = h < 1 ? "n" : h < 5 ? "l" : h < 12 ? "m" : h < 17 ? "a" : h < 21 ? "e" : "n";
   const g = p.gender == "f" || p.gender == "m" ? p.gender : "o";
   let s = t("recap.greet." + g + "." + band + "." + (SEED % 4), { n: "\u0001" });
-  if (!name) s = s.replace(/,? ?\u0001/, "");
+  if (!name) s = s.replace(/,? ?\u0001/, ""); // eslint-disable-line no-control-regex -- \u0001 marks where the name goes
   return esc(s).replace("\u0001", "<bdi>" + esc(name) + "</bdi>");
 }
 const dayScale = (m) => { let s = ""; for (let d = 1; d <= m.dim; d++) s += `<i class="${d < m.day ? "p" : d == m.day ? "n" : ""}" data-d="${d}" role="button" tabindex="0" aria-label="${esc(dfull(m.MK + "-" + p2(d)))}" style="--i:${d}"></i>`;

@@ -5,14 +5,12 @@ import { kinds } from "./activity.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
 export const addM = (m, k) => { const d = new Date(+m.slice(0, 4), +m.slice(5, 7) - 1 + k, 1); return d.getFullYear() + "-" + p2(d.getMonth() + 1); };
-const med = (a) => { const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 const sum = (a) => a.reduce((t, x) => t + x, 0);
 const rmOf = (t) => (t.rm && t.rm !== String(t.d).slice(0, 7) ? t.rm : "");
 // The date reports use: a payment moved to another month counts in that month.
 export const rdOf = (t) => { const m = rmOf(t); if (!m) return t.d; const last = new Date(+m.slice(0, 4), +m.slice(5, 7), 0).getDate(); return m + "-" + p2(Math.min(+String(t.d).slice(8, 10) || 1, last)); };
 // "payment 8 of 10" (instOf): the shared one in activity.js.
 export { instOf } from "./activity.js";
-import { instOf } from "./activity.js";
 export const heldOf = (j) => Math.max(0, (+j.bal || 0) - (+j.out || 0));
 const RSKIP = (S, k) => ["Income", "Uncategorized", "Fees & FX costs"].includes(k) || S.cats?.[k] === 99;
 
@@ -38,7 +36,7 @@ export function withTransfers(S) {
 }
 const nohtml = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&").trim();
 const nameField = (t, f) => (f == "desc" ? t.desc : f == "memo" ? t.memo : f == "from" ? t.from : f == "to" ? t.to : f == "note" ? t.note : [t.desc, t.memo, t.bd, t.from, t.to, t.note].filter(Boolean).join(" "));
-const rnm = (s) => String(s == null ? "" : s).toLowerCase().replace(/[0-9*#_\/\\\-.,:;()'"\u05f3\u05f4]+/g, " ").replace(/\s+/g, " ").trim();
+const rnm = (s) => String(s == null ? "" : s).toLowerCase().replace(/[0-9*#_/\\\-.,:;()'"\u05f3\u05f4]+/g, " ").replace(/\s+/g, " ").trim();
 // The name shown for a payment: the one you typed, a naming rule, or the bank's text.
 export const nameOf = (S, t) => { const c = S?.cfg || {}, o = c.renames && c.renames[t.id]; if (o) return o; if (c.nameRules) { const r = c.nameRules.find((x) => { const q = rnm(x.k); if (!q) return false; const v = rnm(nameField(t, x.f || "any")); return x.m == "eq" ? v == q : v.includes(q); }); if (r) return r.n; } return nohtml(t.desc); };
 
@@ -105,7 +103,6 @@ export function homeModel(S, now = new Date(), fx = {}) {
   // Jars and the money already spoken for this month.
   const jarsS = jarsAll.filter((j) => !j.done).sort((a, b) => a.p - b.p);
   const catJars = {}; jarsS.forEach((j) => (j.cats || []).forEach((x) => { if (!catJars[x.c]) catJars[x.c] = { j, since: x.since }; }));
-  const recBills = BC.filter((b) => !b.once && !b.irregular && b.flag != "canceled" && b.mo > 0);
   const R = (() => {
     const linked = new Set(jarsS.map((j) => j.bill).filter(Boolean)), allB = linked.has("*") || linked.has("*a"), useAvg = cfg.reserveAvg !== false, bl0 = {}, cov = {};
     activeBills.forEach((b) => { if (b.once || b.irregular || !b.nx) return; const unpaid = (b.status == "overdue" || b.status == "pending") && (NOW - b.pd) / 864e5 <= 45, comes = b.nx.toISOString().slice(0, 7) == MK; if (!unpaid && !comes) return; const kk = b.cat || "Other bills"; if (allB || linked.has(b.match)) { cov[kk] = (cov[kk] || 0) + b.pred; return; } (bl0[kk] = bl0[kk] || []).push({ n: b.n, amt: b.pred, overdue: b.status == "overdue" }); });

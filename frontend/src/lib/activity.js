@@ -19,7 +19,7 @@ export function cardRe(name) {
   if (/(diners|דיינרס)/i.test(n)) return /(diners|דיינרס)/i;
   return new RegExp(esc(n), "i");
 }
-export const normD = (s) => String(s || "").toLowerCase().replace(/[.'"״׳_,\-]/g, "").replace(/\s+/g, " ").trim();
+export const normD = (s) => String(s || "").toLowerCase().replace(/[.'"״׳_,-]/g, "").replace(/\s+/g, " ").trim();
 // Names a bank prints for a card bill. The strong ones are enough alone; "max" and "cal" are also ordinary words, so they need "charge" (חיוב) next to them.
 const CARD_STRONG = /(ישראכרט|isracard|(^| )כאל( |$)|visa ?cal|ויזה ?כאל|אמריקן ?אקס|american ?express|amex|דיינרס|diners|לאומי ?קארד|leumi ?card|כרטיסי אשראי|מקס ?איט|max ?it)/;
 const CARD_WEAK = /((^| )(מקס|max|cal)( |$).*(חיוב|charge|debit))|((חיוב|charge|debit).*(^| )(מקס|max|cal)( |$))/;
@@ -198,13 +198,13 @@ export function normTag(S, v) {
 }
 
 // Text as the rules compare it: lower case, numbers and punctuation turned into spaces.
-export const rn = (s) => String(s == null ? "" : s).toLowerCase().replace(/[0-9*#_\/\\\-.,:;()'"\u05f3\u05f4]+/g, " ").replace(/\s+/g, " ").trim();
+export const rn = (s) => String(s == null ? "" : s).toLowerCase().replace(/[0-9*#_/\\\-.,:;()'"\u05f3\u05f4]+/g, " ").replace(/\s+/g, " ").trim();
 export const ruleHit = (t, kw) => { const q = rn(kw); return q.length > 0 && rn(t.desc + " " + (t.to || "") + " " + (t.from || "")).includes(q); };
 export const ruleTags = (r) => String(r?.t || "").split(",").map((x) => x.trim().replace(/^#+/, "")).filter(Boolean);
 // The words a rule would look for: the store's name (or the description), first two words.
 export function guessKw(t, ci) {
   const store = t.a < 0 && t.to && !ci.banks.has(t.to) && !ci.cards.some((c) => c.n === t.to) ? t.to : t.desc;
-  const w = String(store).toLowerCase().replace(/[0-9*#_\/\\\-.,:;()]+/g, " ").replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+  const w = String(store).toLowerCase().replace(/[0-9*#_/\\\-.,:;()]+/g, " ").replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
   let kw = w.slice(0, 2).join(" ");
   if (kw.length < 3 && w[0]) kw = w[0];
   return kw;

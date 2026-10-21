@@ -35,7 +35,7 @@ jobs:
       - run: npm test
         working-directory: server
       - name: The app (frontend/) - tests and build
-        run: npm ci && npm test && npm run build
+        run: npm ci && npm run lint && npm test && npm run build
         working-directory: frontend
 
   version:

@@ -27,7 +27,6 @@ onMounted(() => { data.start(); });
 // ---- how dates, amounts and accounts are written ----
 const loc = computed(() => (locale.value === "he" ? "he-IL" : "en-GB"));
 const monYr = (d, k) => { const x = new Date(d); x.setMonth(x.getMonth() + k); return x.toLocaleDateString(loc.value, { month: "short", year: "numeric" }); };
-const monShort = (d) => new Date(d + "T12:00:00").toLocaleDateString(loc.value, { month: "short" });
 const cc = (n) => (n == "Income" || S.value?.cats?.[n] === 99 ? "var(--pos)" : `var(--c${((S.value?.cats?.[n] == null ? 6 : S.value.cats[n])) % 7})`);
 const avStyle = (b) => { const c = cc(b.cat || "Other"); return { background: `color-mix(in srgb,${c} 22%,transparent)`, color: c }; };
 // "Max ·· 1234": the name with the last digits of a card, like accLbl.
