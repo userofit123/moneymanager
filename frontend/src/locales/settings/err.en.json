@@ -24,5 +24,7 @@
   "tAllOne": "1 error copied",
   "tAllMany": "{n} errors copied",
   "tCleared": "Error log cleared",
-  "copied": "Copied"
+  "copied": "Copied",
+  "loading": "Loading…",
+  "kNode": "Node / Electron"
 }

@@ -73,7 +73,6 @@
     "locked": "Paused after two failed attempts in a row. Check the login, then press Unlock."
   },
   "prov": {
-    "wise": "Wise",
     "hapoalim": "Bank Hapoalim",
     "leumi": "Bank Leumi",
     "discount": "Discount Bank",

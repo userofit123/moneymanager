@@ -32,7 +32,7 @@
   "status": "סטטוס",
   "on": "פעיל",
   "off": "כבוי",
-  "tgToken": "טוקן הבוט (מ‑@BotFather)",
+  "tgToken": "טוקן הבוט (מ‑{'@'}BotFather)",
   "tgSaved": "שמור · הקלידו כדי להחליף",
   "tgChat": "מזהה צ׳אט (שלחו הודעה לבוט, ואז פתחו api.telegram.org/bot…/getUpdates)",
   "whD": "התראות שנשלחות ל‑Discord, ל‑Slack, ל‑Home Assistant, ל‑n8n ולדומיהם.",

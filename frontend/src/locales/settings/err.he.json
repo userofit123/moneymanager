@@ -24,5 +24,7 @@
   "tAllOne": "שגיאה אחת הועתקה",
   "tAllMany": "{n} שגיאות הועתקו",
   "tCleared": "יומן השגיאות נוקה",
-  "copied": "הועתק"
+  "copied": "הועתק",
+  "loading": "טוען…",
+  "kNode": "גרסת Node / Electron"
 }

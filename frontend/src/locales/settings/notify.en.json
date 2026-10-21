@@ -32,7 +32,7 @@
   "status": "Status",
   "on": "On",
   "off": "Off",
-  "tgToken": "Bot token (from @BotFather)",
+  "tgToken": "Bot token (from {'@'}BotFather)",
   "tgSaved": "saved · type to replace",
   "tgChat": "Chat id (message your bot, then open api.telegram.org/bot…/getUpdates)",
   "whD": "Alerts sent to Discord, Slack, Home Assistant, n8n and similar.",

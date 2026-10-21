@@ -4,6 +4,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
+import { tx } from "../../core/heText.js";
 import SetHead from "./SetHead.vue";
 import { api, sendJson, toast, toastErr, changeState } from "./shared.js";
 import { symOf, listOf, isUsed, addable, withAdded, withRemoved } from "./currencies.js";
@@ -19,10 +20,12 @@ async function add() {
   if (!c) return;
   pick.value = "";
   try { await changeState((s) => { s.currencies = withAdded(s, c); return [["Added currency", c]]; }); } catch (e) { toastErr(e); return; }
-  try { await api("/api/fx/refresh", sendJson("POST")); toast(tk("loaded", { c })); } catch (e) { toastErr(tk("ratesFail", { e: e.message })); }
+  try { await api("/api/fx/refresh", sendJson("POST")); toast(tk("loaded", { c })); } catch (e) { toastErr(tk("ratesFail", { e: tx(e.message) })); }
+  data.loadFx(); // the new rates count at once (loadFX in the current app)
 }
 async function remove(c) {
-  try { await changeState((s) => { s.currencies = withRemoved(s, c); return [["Removed currency", c]]; }); } catch (e) { toastErr(e); }
+  try { await changeState((s) => { s.currencies = withRemoved(s, c); return [["Removed currency", c]]; }); } catch (e) { toastErr(e); return; }
+  await data.flushNow(); data.loadFx(); // like flushNow().then(loadFX)
 }
 </script>
 

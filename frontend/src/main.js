@@ -8,8 +8,11 @@ import "./styles/base.css";
 
 import { startTooltips } from "./core/tooltip.js";
 import { startDropdowns } from "./core/dropdown.js";
+import { startPolish } from "./core/polish.js";
+import { withErrors } from "./core/errors.js";
 
 startMobile();
-createApp(App).use(i18n).mount("#app");
+withErrors(createApp(App)).use(i18n).mount("#app"); // page errors go to Settings → Error log (core/errors.js)
 startTooltips(i18n.global.t("shell.moreInfo"));
 startDropdowns();
+startPolish();
