@@ -17,6 +17,7 @@ import { fm } from "../../format.js";
 import { now, dayOf } from "../../core/clock.js";
 import { dstr, dcell } from "../../dates.js";
 import BaseSheet from "../BaseSheet.vue";
+import MoneyInput from "../MoneyInput.vue";
 
 const { t, locale } = useI18n();
 const tk = (k, ...a) => t(k, ...a);
@@ -164,7 +165,7 @@ const tagsText = computed(() => (P.value?.tags || []).map((g) => "#" + g).join("
     <h3>{{ t("txw.w.jaTitle") }}</h3>
     <div class="sm" style="margin-bottom:14px">{{ name(x) }} · {{ fm(Math.abs(x.a)) }} · {{ dstr(x.d) }}</div>
     <div class="fld"><label for="jaJ">{{ t("txw.w.jaFrom") }}</label><select id="jaJ" v-model="f.jar"><option v-for="j in openJars" :key="j.id" :value="j.id">{{ t("txw.w.jaSaved", { n: j.n, amt: fm(j.bal) }) }}</option></select></div>
-    <div class="fld"><label for="jaA">{{ t("txw.w.jaAmt") }}</label><input id="jaA" v-model="f.amt" type="number" inputmode="decimal"></div>
+    <div class="fld"><label for="jaA">{{ t("txw.w.jaAmt") }}</label><MoneyInput id="jaA" v-model="f.amt" /></div>
     <div class="jhint">{{ jaHint }}</div>
     <div class="flex" style="justify-content:flex-end;gap:10px"><button type="button" class="btn o" @click="closePop">{{ t("activity.d.cancel") }}</button><button type="button" class="btn" @click="jarSave">{{ t("txw.w.jaGo") }}</button></div>
   </BaseSheet>

@@ -13,6 +13,7 @@ import { fm } from "../../lib/bills.js";
 import { currencySymbol } from "../../format.js";
 import { useFormSheet } from "../../core/useFormSheet.js";
 import BaseSheet from "../BaseSheet.vue";
+import MoneyInput from "../MoneyInput.vue";
 
 const props = defineProps({ gap: { type: Object, default: null }, plain: Boolean, photo: Boolean });
 const emit = defineEmits(["close"]);
@@ -61,7 +62,7 @@ async function save() {
     <h3>{{ g && !plain ? t("qa.explainT") : t("qa.addT") }}</h3>
     <div class="fld"><label for="nDesc">{{ t("qa.desc") }}</label><input id="nDesc" v-model="f.desc" :placeholder="t('qa.descEx')"></div>
     <div class="two">
-      <div class="fld"><label for="nAmt">{{ t("qa.amount") }} <span>({{ currencySymbol(pick.c) }})</span></label><input id="nAmt" v-model="f.amt" type="number" inputmode="decimal" placeholder="0"></div>
+      <div class="fld"><label for="nAmt">{{ t("qa.amount") }} <span>({{ currencySymbol(pick.c) }})</span></label><MoneyInput id="nAmt" v-model="f.amt" placeholder="0" /></div>
       <div class="fld"><label for="nType">{{ t("qa.type") }}</label><select id="nType" v-model="f.type"><option value="-1">{{ t("qa.exp") }}</option><option value="1">{{ t("qa.inc") }}</option></select></div>
     </div>
     <div class="two">

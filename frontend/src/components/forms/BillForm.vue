@@ -7,6 +7,7 @@ import { now } from "../../core/clock.js";
 import { addBill } from "../../lib/bills.js";
 import { useFormSheet } from "../../core/useFormSheet.js";
 import BaseSheet from "../BaseSheet.vue";
+import MoneyInput from "../MoneyInput.vue";
 
 const emit = defineEmits(["close"]);
 const { open, close } = useFormSheet(emit);
@@ -30,7 +31,7 @@ function save() {
     <h3>{{ t("bills.add.title") }}</h3>
     <div class="sm" style="margin-bottom:12px;line-height:1.5">{{ t("bills.add.i1") }}<br>{{ t("bills.add.i2") }}<br>{{ t("bills.add.i3") }}</div>
     <div class="fld"><label for="bN">{{ t("bills.add.name") }}</label><input id="bN" v-model="f.n" :placeholder="t('bills.add.nameEx')"></div>
-    <div class="two"><div class="fld"><label for="bA">{{ t("bills.add.amount") }}</label><input id="bA" v-model="f.amt" type="number" inputmode="decimal"></div><div class="fld"><label for="bE">{{ t("bills.add.often") }}</label><select id="bE" v-model="f.every"><option value="1">{{ t("bills.cad.1") }}</option><option value="2">{{ t("bills.cad.2") }}</option><option value="12">{{ t("bills.cad.12") }}</option><option value="0">{{ t("bills.add.opt0") }}</option></select></div></div>
+    <div class="two"><div class="fld"><label for="bA">{{ t("bills.add.amount") }}</label><MoneyInput id="bA" v-model="f.amt" /></div><div class="fld"><label for="bE">{{ t("bills.add.often") }}</label><select id="bE" v-model="f.every"><option value="1">{{ t("bills.cad.1") }}</option><option value="2">{{ t("bills.cad.2") }}</option><option value="12">{{ t("bills.cad.12") }}</option><option value="0">{{ t("bills.add.opt0") }}</option></select></div></div>
     <div class="two"><div class="fld"><label for="bD">{{ t("bills.add.day") }}</label><input id="bD" v-model="f.dom" type="number" inputmode="numeric" min="1" max="28"></div><div class="fld"><label for="bS">{{ t("bills.add.from") }}</label><select id="bS" v-model="f.src"><option v-for="o in srcList" :key="o.v" :value="o.v">{{ o.label }}</option></select></div></div>
     <div class="fld"><label for="bM">{{ t("bills.add.match") }}</label><input id="bM" v-model="f.match" :placeholder="t('bills.add.matchEx')"></div>
     <div class="flex" style="justify-content:flex-end;gap:10px"><button type="button" class="btn o" @click="close">{{ t("bills.cancel") }}</button><button type="button" class="btn" @click="save">{{ t("bills.save") }}</button></div>
