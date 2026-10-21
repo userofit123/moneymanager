@@ -1,6 +1,6 @@
 # Spec addendum v1.1: Missing money and missing transactions
 
-Applies on top of the final specification (v1.0), section 4.9 (balance check) and the Wise source in section 2.
+Applies on top of the final specification (v1.0), section 4.9 (balance check) and the Wise source in section 2. Built: see "Missing money" in [How it works](HOW_IT_WORKS.md).
 
 ## Why
 Wise gives the app a live balance but no transaction list (personal accounts cannot read statements over the API). The same can happen with any source that is late or incomplete. The app must therefore notice when the balance moved without a matching transaction, say so clearly, and let me fix it by adding the transaction by hand or by importing the CSV.

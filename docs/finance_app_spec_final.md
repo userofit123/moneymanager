@@ -1,6 +1,6 @@
 # Personal Finance Hub: Final Specification (v1.0)
 
-Status: ready to build. Items marked **[OPEN]** still need a decision. This version merges v0.4 and the v0.5 addendum and adds the mobile fixes.
+Status: **the original plan** (October 2026), kept for reference. The app has been built from it; where it differs, the app and [How it works](HOW_IT_WORKS.md) are right. The **[OPEN]** items were decided as listed in [Explained](app_explained.md#9-decisions-made-along-the-way). This version merged v0.4 and the v0.5 addendum and added the mobile fixes.
 
 ## 1. Purpose and principles
 A self-hosted app on my home server that gathers all of my money data in one place and works out as much as it can by itself.

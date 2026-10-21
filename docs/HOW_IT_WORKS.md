@@ -3,7 +3,10 @@
 Details of how the app behaves. The short version is in the [README](../README.md).
 
 ## Data flow
-- The UI loads `GET /api/state` and saves edits with `PUT /api/state`. If a sync changed data in between, the server answers 409 and the UI reloads.
+- The app loads `GET /api/state` and saves edits with `PUT /api/state` a moment after each change. If a sync changed the data in between, the server answers 409 and the app takes the newer copy and asks you to repeat the change. Other open windows and devices get the change within a second (`/api/events`).
+- **Change history and Undo:** every change is written to the change history (Settings → Change history) with what it replaced, so almost any change can be undone, from the "Saved" message or from the history. Deleting transactions cannot be undone.
+- **Upkeep after every change:** the app finds transfers between your own accounts and repeating bills, applies your category rules, pays from jars linked to a category and keeps the amount held back for this month up to date.
+- **Offline:** the service worker keeps the app and the last data on the device; without a connection the app opens read-only with a banner.
 - **Sync:** Wise balances via its API, bank and card transactions via the scraper, then dedupe (never imported twice), conversion at the transaction date's rate (stored on the row), category and tag rules (never overwriting manual ones), transfer pairing, balance snapshots and gaps.
 - **Several logins and cards:** each login is a connection (`wise`, `wise~2`, …) with an optional nickname ("Wise · Business"). One login holding several cards or bank accounts gets one account per card ("Max ·· 1234") with its own balance. A login with one card keeps the plain name. Only accounts that are connected, imported or hand-entered appear.
 - **Missing money:** a balance that moved without a transaction becomes a gap in Activity → Needs review. Clear it by adding the transaction, importing the Wise CSV (merges with hand-entered rows), recording a small charge as a fee, or marking it reviewed with a note.

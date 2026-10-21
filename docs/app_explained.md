@@ -1,6 +1,6 @@
 # Money app: Explained in plain language
 
-This guide explains what the app does, how it thinks, what is real and what is only a demo, and what to do next. The detailed requirements are in the final specification.
+This guide explains what the app does and how it thinks. The original plan is in the [specification](finance_app_spec_final.md); how each part behaves in detail is in [How it works](HOW_IT_WORKS.md).
 
 ## 1. What it is
 One private place that shows all of your money: your Israeli banks and cards, Wise and your pension. It only reads. It cannot move money or change anything at a bank. It adds its own layer on top: categories, bills, budgets, savings jars, alerts and forecasts.
@@ -60,62 +60,46 @@ The pension is updated by hand when you move money into it. It is left out of ne
 ### Alerts
 Bills due or overdue, price changes, budgets, a card charge much higher than last month, large transactions, transfers or duplicates to review, balance differences, uncategorized items, a forecast that turns negative, and income with no document attached. You can switch each type off and change the thresholds.
 
-## 5. What is real and what is demo
+## 5. What works today
 
 | Part | Today |
 |---|---|
-| Screens, design, phone layout, install, offline | Real and working |
-| Bill detection, transfer detection, budgets, jars, forecast, alerts | Real logic, running on demo data |
-| Bank data | Made up. The real data comes from the scrapers |
-| Saving your changes | In your browser only. The real app uses a server database |
-| Background notifications | Only while the app is open. Real background alerts need the server |
-| Hebrew right-to-left layout, split transactions, planned one-off items | Not built yet |
+| Screens, phone and computer layouts, English and Hebrew (right to left), install as an app | Working |
+| Bank, card and Wise data | Real, read by the sync (see below), plus CSV import and transactions you add by hand |
+| Bill and transfer detection, budgets, jars, forecast, alerts | Working on your real data |
+| Saving your changes | In the app's database, with a change history; almost every change can be undone |
+| Offline | The app opens without a connection and shows your last data, read-only |
+| Background alerts | Through ntfy, a Telegram bot or a webhook, if you set one up (Settings → Alerts) |
+| Not built | Splitting one transaction into parts; planned one-off future items; a PIN lock for the phone app |
 
-## 6. Getting the real data
+## 6. Where the data comes from
 
 ### Wise
-You already created a personal token with limited permissions. It should read your balances. Whether it can read transactions for your account is unconfirmed. If Wise refuses, you import a monthly CSV instead.
+Balances come from Wise's API with a read-only personal token. Statements are refused for personal tokens in most regions, so the app falls back to Wise's activity list; **Test connection** says which one your token gets. A monthly CSV export can be imported too, and it merges with what is already there.
 
 ### Banks and credit cards
-A community library, israeli-bank-scrapers, logs in to the websites like you would and reads your data. Supported: Bank Hapoalim, Bank Leumi, Discount, Mercantile Discount, Mizrahi-Tefahot, Otsar Hahayal, Union, First International, Massad, Yahav, and the cards Max, Isracard, Visa Cal and American Express. In Settings → Connections you choose which ones to add; only those you add are shown and synced. A connected one is not offered again and is removed from its own card.
+A community library, israeli-bank-scrapers, logs in to the websites like you would and reads your data. Supported: Bank Hapoalim, Bank Leumi, Discount, Mercantile Discount, Mizrahi-Tefahot, Otsar Hahayal, Union, First International, Massad, Yahav, and the cards Max, Isracard, Visa Cal and American Express. In Settings → Connections you choose which ones to add; only those you add are shown and synced.
 
-- It needs your real passwords, so keep them in a protected file on the server and never in chat.
-- Banks change their sites, so a scraper can break and need an update.
-- Hapoalim may ask for a code.
-- Test one source at a time in a throwaway container. Pull the last 30 days, print a summary, and delete the credentials file afterwards.
-- If a test fails twice, stop and look into it before trying again, so you do not lock the account.
-- Fix the server's DNS problem first: add extra DNS servers to systemd-resolved and plug the built-in Ethernet cable back in.
+- Your bank logins are stored encrypted and are never shown again, not even to you.
+- Banks change their sites, so a sync can break until the library is updated (see [Troubleshooting](TROUBLESHOOTING.md)).
+- When a bank asks for a one-time code, use Settings → Connections → **Verify this device** once.
+- After failed logins the app stops trying a source (it shows **Locked**) so the bank does not lock your account. Fix the login, then **Unlock**.
 
-## 7. Putting the demo on your server
-The README has the full steps. In short:
-1. Put the files in `~/docker/money/app`.
-2. Run them in a small nginx container on the `proxy` network, with the supplied `nginx.conf`.
-3. Add a block for it to your Caddyfile, using a free port. 9008 is reserved for n8n in your notes.
-4. Open `https://rhs.taile6739f.ts.net:PORT` on a phone connected to Tailscale.
-5. Android: browser menu → Install app. iPhone: Share → Add to Home Screen.
-
-If the phone shows an old version, clear the site's data, or remove and reinstall the app. If the bottom bar looks wrong, send a screenshot and your phone model.
+## 7. Installing it
+The [README](../README.md) has the steps for the Windows app and for Docker on a home server, how to reach it from your phone, and how updates work.
 
 ## 8. Security in plain terms
 - The app is read-only toward your banks.
 - Reach it only through Tailscale or your home network, never from the open internet.
-- Keep bank passwords in a protected file on the server, not in the app.
-- Back up the database and your documents to the old Dell server.
-- Decide whether the installed phone app should ask for a PIN or fingerprint if you lose the phone.
+- Bank logins are encrypted with a key kept outside the database. Save that key in your password manager.
+- Back up the database and your documents regularly (`backup.sh`).
+- More in [Security](SECURITY.md).
 
-## 9. Decisions still open
-1. Does your Wise token return transactions?
-2. Which details do Max and Isracard provide?
-3. What counts as "money available" for jars, and should the forecast use it?
-4. Which exchange rate is official for tax: Bank of Israel or ECB?
-5. Which port will the app use?
-6. Web push or your own ntfy server for background alerts?
-7. A lock for the phone app, and whether recent transactions may be saved for offline viewing?
-8. How to avoid counting a credit card bill twice when you pay it from the bank?
-
-## 10. Suggested next steps
-1. Fix the server DNS and test the scrapers one source at a time.
-2. Check what your Wise token can read.
-3. Decide the open questions above.
-4. Give the final specification and the demo to the coding agent, in the build order from the spec.
-5. Import as much history as the sources allow, so the forecast and bill detection have enough to work with.
+## 9. Decisions made along the way
+1. **Wise:** balances from the API; transactions from the activity list or a CSV import.
+2. **Credit card bills are not counted twice:** a payment from the bank to a connected card is a *card payment*, left out of spending, reports and the forecast.
+3. **Money available for jars:** your real balance minus what is already in jars and the amount you keep untouched.
+4. **Exchange rates:** the European Central Bank's daily reference rates (through Frankfurter), stored per transaction date.
+5. **Port:** 8787 by default (`APP_PORT` in `.env`).
+6. **Background alerts:** ntfy, a Telegram bot or a webhook.
+7. **Offline:** the last data is kept on the device so the app opens without a connection; signing out removes it.
