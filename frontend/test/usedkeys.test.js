@@ -21,9 +21,11 @@ test("every t('key') used in the code exists in English and Hebrew", () => {
   const bad = [];
   for (const f of files(SRC)) {
     const code = readFileSync(f, "utf8");
-    for (const m of code.matchAll(/(?<![\w.])\$?t\(\s*["'`]([\w.]+)["'`]/g)) {
-      if (!en.has(m[1])) bad.push(`${f.slice(SRC.length)}: ${m[1]} (English)`);
-      if (!he.has(m[1])) bad.push(`${f.slice(SRC.length)}: ${m[1]} (Hebrew)`);
+    for (const m of code.matchAll(/(?<![\w.])\$?t\(\s*["'`]([\w.]+)(\$\{)?/g)) {
+      // t(`settings.cur.${x}`) or t("settings.cur." + x): a key put together in the code; the part before ${ must be a group in both languages
+      const has = (set) => (m[2] || m[1].endsWith(".") ? [...set].some((k) => k.startsWith(m[1])) : set.has(m[1]));
+      if (!has(en)) bad.push(`${f.slice(SRC.length)}: ${m[1]} (English)`);
+      if (!has(he)) bad.push(`${f.slice(SRC.length)}: ${m[1]} (Hebrew)`);
     }
   }
   assert.deepEqual(bad, [], "Missing texts:\n" + bad.join("\n"));
