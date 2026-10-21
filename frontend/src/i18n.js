@@ -4,6 +4,7 @@ import en from "./locales/en.json";
 import he from "./locales/he.json";
 import { applyLang, isHebrew } from "./direction.js";
 import { readPref, writePref } from "./core/prefs.js";
+import { isolateNumbers } from "./core/polish.js";
 
 export { applyLang };
 
@@ -20,7 +21,9 @@ const settingsHe = sections(import.meta.glob("./locales/settings/*.he.json", { e
 const pagesEn = sections(import.meta.glob("./locales/pages/*.en.json", { eager: true }));
 const pagesHe = sections(import.meta.glob("./locales/pages/*.he.json", { eager: true }));
 
-export const i18n = createI18n({ legacy: false, locale: saved, fallbackLocale: "en", messages: { en: { ...en, ...pagesEn, settings: settingsEn }, he: { ...he, ...pagesHe, settings: settingsHe } } });
+// In Hebrew, amounts and numbers inside a sentence keep their order (the current app wraps them in ⁦…⁩ the same way).
+const postTranslation = (str) => (i18n?.global?.locale?.value === "he" && typeof str === "string" ? isolateNumbers(str) : str);
+export const i18n = createI18n({ legacy: false, locale: saved, fallbackLocale: "en", postTranslation, messages: { en: { ...en, ...pagesEn, settings: settingsEn }, he: { ...he, ...pagesHe, settings: settingsHe } } });
 
 // True while the language is Hebrew. Use it for the rare things CSS cannot flip by itself; prefer logical CSS (margin-inline-start and so on).
 export const isRtl = computed(() => isHebrew(i18n.global.locale.value));

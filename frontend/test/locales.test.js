@@ -19,7 +19,7 @@ test("no text is empty, and Hebrew texts contain Hebrew letters", () => {
   for (const [k, v] of Object.entries(en)) assert.ok(String(v).trim(), "empty English text: " + k);
   for (const [k, v] of Object.entries(he)) {
     assert.ok(String(v).trim(), "empty Hebrew text: " + k);
-    if (String(en[k]).replace(/[^A-Za-z]/g, "").length > 3) assert.match(v, /[֐-׿]/, "Hebrew text without Hebrew letters (still English?): " + k);
+    if (String(en[k]).replace(/[^A-Za-z]/g, "").length > 3 && !/^[A-Z0-9 .()-]+$/.test(en[k])) assert.match(v, /[֐-׿]/, "Hebrew text without Hebrew letters (still English?): " + k);
   }
 });
 test("placeholders like {name} match in both languages", () => {

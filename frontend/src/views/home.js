@@ -10,27 +10,15 @@ const sum = (a) => a.reduce((t, x) => t + x, 0);
 const rmOf = (t) => (t.rm && t.rm !== String(t.d).slice(0, 7) ? t.rm : "");
 // The date reports use: a payment moved to another month counts in that month.
 export const rdOf = (t) => { const m = rmOf(t); if (!m) return t.d; const last = new Date(+m.slice(0, 4), +m.slice(5, 7), 0).getDate(); return m + "-" + p2(Math.min(+String(t.d).slice(8, 10) || 1, last)); };
-// "payment 8 of 10", from the bank's numbers or from the description.
-export const instOf = (t) => {
-  if (t.inst && t.inst[1] > 1 && t.inst[0] >= 1 && t.inst[0] <= t.inst[1]) return { n: t.inst[0], total: t.inst[1] };
-  const d = String(t.desc || ""), m = d.match(/תשלום\s*(\d{1,2})\s*(?:\/|מתוך)\s*(\d{1,2})/) || d.match(/payment\s*(\d{1,2})\s*(?:\/|of)\s*(\d{1,2})/i) || d.match(/(\d{1,2})\s*מתוך\s*(\d{1,2})/);
-  return m && +m[2] >= 2 && +m[2] <= 60 && +m[1] >= 1 && +m[1] <= +m[2] ? { n: +m[1], total: +m[2] } : null;
-};
+// "payment 8 of 10" (instOf): the shared one in activity.js.
+export { instOf } from "./activity.js";
+import { instOf } from "./activity.js";
 export const heldOf = (j) => Math.max(0, (+j.bal || 0) - (+j.out || 0));
 const RSKIP = (S, k) => ["Income", "Uncategorized", "Fees & FX costs"].includes(k) || S.cats?.[k] === 99;
 
-// How often does this store charge you? null when there is no regular rhythm.
-export function cadenceOf(L) {
-  if (L.length < 2) return null;
-  const gaps = L.slice(1).map((t, i) => (new Date(t.d) - new Date(L[i].d)) / 864e5), md = med(gaps), every = md >= 26 && md <= 35 ? 1 : md >= 55 && md <= 68 ? 2 : md >= 355 && md <= 375 ? 12 : 0;
-  if (!every || (every < 12 && L.length < 3)) return null;
-  const tol = every == 12 ? 15 : 6;
-  if (gaps.filter((x) => Math.abs(x - md) <= tol).length < gaps.length * 0.75) return null;
-  const am = L.map((t) => -t.a), mean = sum(am) / am.length;
-  if (Math.max(...am.map((x) => Math.abs(x - mean))) / mean > 0.25) return null;
-  const last = L[L.length - 1];
-  return { every, anchor: +last.d.slice(5, 7), dom: +last.d.slice(8, 10), mean };
-}
+// How often does this store charge you (cadenceOf): the shared one in lib/bills.js.
+export { cadenceOf } from "../lib/bills.js";
+import { cadenceOf } from "../lib/bills.js";
 
 // The current app looks for transfers between your own accounts every time the data loads (detect() in web/js/02-state-data.js), and the totals leave them out.
 // Same here, in memory only: a possible transfer waits for review ("auto") and is not counted as spending or income.
@@ -178,33 +166,9 @@ export function homeModel(S, now = new Date(), fx = {}) {
   };
 }
 
-// One bill's state: when it is next due, if it was paid, what it usually costs. Like billsInfo0 in the current app.
-export function billInfo(b, idx, mt, NOW) {
-  const last = mt[mt.length - 1], prev = mt[mt.length - 2];
-  let cad = null, ended = false;
-  if (b.mode != "once") {
-    if (b.every) { cad = { every: b.every, anchor: b.anchor, dom: b.dom }; if (!b.manual && mt.length >= 2) { const R = mt.slice(-3).map((t) => +String(t.d).slice(8, 10)).sort((x, y) => x - y); cad.dom = R[R.length >> 1]; cad.anchor = +String(mt[mt.length - 1].d).slice(5, 7); } }
-    else if (b.rec != "irregular") cad = cadenceOf(mt);
-  }
-  if (cad && !b.manual && last) {
-    const li = instOf(last), oc0 = [];
-    for (let y = NOW.getFullYear() - 2; y <= NOW.getFullYear() + 1; y++) for (let m = 1; m <= 12; m++) if ((((m - cad.anchor) % cad.every) + cad.every) % cad.every == 0) { const d = new Date(y, m - 1, Math.min(cad.dom, 28), 9); if (d <= NOW) oc0.push(d); }
-    const pd0 = oc0[oc0.length - 1], pd1 = oc0[oc0.length - 2], ld = new Date(last.d);
-    const missed = (pd1 && ld < new Date(pd1 - 4 * 864e5)) || (pd0 && ld < new Date(pd0 - 4 * 864e5) && NOW - pd0 > 10 * 864e5);
-    if (missed || (li && li.n >= li.total)) { cad = null; ended = true; }
-  }
-  if (!cad) {
-    const once = b.mode == "once", yr = mt.filter((t) => (NOW - new Date(t.d)) / 864e5 <= 365), am = mt.slice(-6).map((t) => -t.a), typ = am.length ? med(am) : b.amt || 0;
-    return { ...b, idx, ended, irregular: !once, once, status: once ? "once" : "irregular", pd: null, nx: null, days: 99999, lp: last ? last.d : null, amt: last ? -last.a : (b.amt || 0), was: prev ? -prev.a : (last ? -last.a : 0), pred: typ, vari: true, fresh: false, mo: once ? 0 : sum(yr.map((t) => -t.a)) / 12, every: 0 };
-  }
-  const B = { ...b, ...cad }, oc = [];
-  for (let y = NOW.getFullYear() - 1; y <= NOW.getFullYear() + 2; y++) for (let m = 1; m <= 12; m++) if ((((m - B.anchor) % B.every) + B.every) % B.every == 0) oc.push(new Date(y, m - 1, Math.min(B.dom, 28), 9));
-  let pd = null, nx = null; oc.forEach((d) => { if (d <= NOW) pd = d; else if (!nx) nx = d; });
-  const amt = last ? -last.a : B.amt || 0, was = prev ? -prev.a : amt, rc = mt.slice(-3).map((t) => -t.a), mean = rc.length ? sum(rc) / rc.length : amt;
-  const r4 = mt.slice(-4).map((t) => -t.a), nch = r4.slice(1).filter((x, i) => Math.abs(x - r4[i]) / r4[i] > 0.03).length, vari = r4.length >= 3 && nch >= 2, pred = vari ? mean : amt;
-  const lp = last ? last.d : B.lastPaid, paid = lp && new Date(lp) >= new Date(pd - 4 * 864e5), status = paid ? "paid" : NOW - pd <= 3 * 864e5 ? "pending" : "overdue";
-  return { ...B, idx, pd, nx, days: Math.ceil((nx - NOW) / 864e5), lp, status, amt, was, pred, vari, fresh: last ? (NOW - new Date(last.d)) / 864e5 <= 45 : false, mo: pred / B.every };
-}
+// One bill's state (billsInfo0): the shared one in lib/bills.js.
+export { billInfo } from "../lib/bills.js";
+import { billInfo } from "../lib/bills.js";
 
 // The money flow (waterfall): from what you had before spending, step by step down to what is free.
 // mode "left" (Planned): each item takes off its full budget or usual month. "actual": what you really spent.

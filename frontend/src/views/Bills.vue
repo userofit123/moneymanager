@@ -6,6 +6,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { openTx, openPop } from "../core/txwin.js";
 import { now } from "../core/clock.js";
 import { openForm } from "../core/forms.js";
 import { dstr } from "../dates.js";
@@ -16,7 +17,7 @@ import BaseSheet from "../components/BaseSheet.vue";
 import { displayName } from "./activity.js";
 import { placeMenu } from "./jars-ui.js";
 import { vRich } from "../lib/richtip.js";
-import { billsModel, billState, payHistory, flagBill, cancelBill, restoreBill, deleteBill, setBillType, sugYes, sugNo, typeOf, cadText, freqText, evTipText, f0, fm } from "../lib/bills.js";
+import { billsModel, billState, flagBill, cancelBill, restoreBill, deleteBill, setBillType, sugYes, sugNo, typeOf, cadText, freqText, evTipText, f0, fm } from "../lib/bills.js";
 
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);
@@ -106,18 +107,16 @@ function pick(a) {
   else if (a == "billDel") change((n) => deleteBill(n, i));
 }
 
-// ---- opening a bill: its payment history (the current app opens the last payment's window, which lives in Activity here) ----
-const hist = ref(null); // { title, sub, h }
-function openHist(i, sub) {
+// ---- opening a bill: its last payment's entry window, or its payment history (billOpen, billHist) ----
+function openHist(i) {
   const st = billState(S.value, now.value), b = st.bills[i]; if (!b) return;
-  const h = payHistory(st.billTx(b));
-  if (!h) { say(t("bills.h.none"), "err"); return; }
-  hist.value = { title: b.n, sub: sub || (b.mode == "once" ? t("bills.h.once") : t("bills.h.bill")), h };
+  openPop("hist", { title: b.n, rows: st.billTx(b), sub: b.mode == "once" ? t("bills.h.once") : t("bills.h.bill"), q: b.mode == "once" ? b.n : b.match });
 }
-const openBill = (b) => openHist(b.idx);
-const histMon = (d) => monShort(d), histDay = (d) => +d.slice(8, 10);
-const histSpan = computed(() => (hist.value ? t("bills.h.to", { from: dstr(hist.value.h.L[hist.value.h.L.length - 1].d), to: dstr(hist.value.h.L[0].d) }) : ""));
-const goActivity = () => { hist.value = null; go("/activity"); };
+function openBill(bi) {
+  const st = billState(S.value, now.value), b = st.bills[bi.idx]; if (!b) return;
+  const L = st.billTx(b), last = L[L.length - 1];
+  if (last) openTx(last.id); else openHist(bi.idx);
+}
 
 // ---- Add a bill: the shared window (components/forms/BillForm.vue) ----
 const openAdd = () => openForm("bill");
@@ -183,7 +182,7 @@ const remove = (b) => change((n) => deleteBill(n, b.idx));
             </template>
             <!-- instalments -->
             <template v-else-if="g.k == 'ins'">
-              <div v-for="x in g.L" :key="x.last.id" class="row" data-a="openTx" :data-id="x.last.id">
+              <div v-for="x in g.L" :key="x.last.id" class="row" data-a="openTx" :data-id="x.last.id" style="cursor:pointer" @click="openTx(x.last.id)">
                 <span class="av" :style="{ background: `color-mix(in srgb,${cc(x.last.c || 'Uncategorized')} 22%,transparent)`, color: cc(x.last.c || 'Uncategorized') }">{{ (displayName(S, x.last) || "?")[0] }}</span>
                 <div class="grow"><b>{{ x.name }}</b><div class="sm">{{ t("bills.instA", { paid: x.paid, total: x.total }) }} · <b style="color:var(--tx)">{{ t("bills.instLeft", { n: x.left }) }}</b> · {{ t("bills.instLast", { when: monYr(x.last.d, x.left) }) }}</div><div class="bar" style="margin:8px 0 0;height:6px;max-width:260px"><i :style="{ width: (x.paid / x.total) * 100 + '%' }" /></div></div>
                 <div style="text-align:end"><b class="num">{{ fm(x.amt) }}</b><div class="sm">{{ t("bills.instUnit") }}</div><div class="sm num">{{ t("bills.instRemain", { amount: fm(x.remain) }) }}</div></div>
@@ -234,18 +233,5 @@ const remove = (b) => change((n) => deleteBill(n, b.idx));
       <div class="flex" style="justify-content:flex-end;gap:10px"><button class="btn o" data-a="close" @click="typeFor = null">{{ t("bills.cancel") }}</button><button class="btn" data-a="billTypeSave" @click="saveType">{{ t("bills.save") }}</button></div>
     </BaseSheet>
 
-    <BaseSheet :open="!!hist" @close="hist = null">
-      <div class="txh"><h3>{{ hist.title }}</h3><div class="sm">{{ hist.sub }} · {{ histSpan }}</div></div>
-      <div class="phs"><div><span>{{ t("bills.h.payments") }}</span><b>{{ hist.h.L.length }}</b></div><div><span>{{ t("bills.h.total") }}</span><b>{{ fm(hist.h.tot) }}</b></div><div><span>{{ t("bills.h.average") }}</span><b>{{ fm(hist.h.avg) }}</b></div></div>
-      <div v-if="hist.h.bars.length" class="phb" aria-hidden="true"><i v-for="x in hist.h.bars" :key="x.id" :style="{ height: Math.max(8, (Math.abs(x.a) / hist.h.mx) * 100) + '%' }" :title="dstr(x.d) + ': ' + fm(Math.abs(x.a))" /></div>
-      <div v-if="hist.h.mx - hist.h.mn > 0.5" class="phr"><span>{{ t("bills.h.lowest") }} <b>{{ fm(hist.h.mn) }}</b></span><span>{{ t("bills.h.highest") }} <b>{{ fm(hist.h.mx) }}</b></span></div>
-      <div class="phl">
-        <template v-for="(r, i) in hist.h.rows" :key="r.t.id">
-          <div v-if="i == 0 || r.t.d.slice(0, 4) !== hist.h.rows[i - 1].t.d.slice(0, 4)" class="phy">{{ r.t.d.slice(0, 4) }}</div>
-          <div class="phi" style="cursor:default"><div class="phd"><span>{{ histMon(r.t.d) }}</span><b>{{ histDay(r.t.d) }}</b></div><div class="phm"><div class="pht">{{ displayName(S, r.t) || hist.title }}</div><div class="sm">{{ r.t.from || "" }}{{ r.t.c ? " · " + r.t.c : "" }}</div></div><div class="pha"><b class="num" :class="{ pos: r.t.a > 0 }">{{ r.t.a < 0 ? "" : "+" }}{{ fm(Math.abs(r.t.a)) }}</b><span v-if="i < hist.h.rows.length - 1 && Math.abs(r.diff) > 0.5" class="bd" :class="r.diff > 0 ? 'up' : 'dn'">{{ r.diff > 0 ? "▲" : "▼" }} {{ fm(Math.abs(r.diff)) }}</span></div></div>
-        </template>
-      </div>
-      <div class="flex" style="justify-content:flex-end;gap:10px;margin-top:14px"><button class="btn o" data-a="goSearch" @click="goActivity">{{ t("bills.h.show") }}</button><button class="btn" data-a="close" @click="hist = null">{{ t("bills.done") }}</button></div>
-    </BaseSheet>
   </template>
 </template>

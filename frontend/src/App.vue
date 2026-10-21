@@ -24,6 +24,12 @@ import SyncSheet from "./components/shell/SyncSheet.vue";
 import WelcomePops from "./components/shell/WelcomePops.vue";
 import QuickSheet from "./components/shell/QuickSheet.vue";
 import FormHost from "./components/FormHost.vue";
+import Suggestions from "./components/shell/Suggestions.vue";
+import AskPop from "./components/AskPop.vue";
+import TxWindow from "./components/tx/TxWindow.vue";
+import TxPops from "./components/tx/TxPops.vue";
+import DocViewer from "./components/tx/DocViewer.vue";
+import { suggestions, suggestOpen, bulbPop } from "./core/suggest.js";
 
 const { t } = useI18n();
 startRouter();
@@ -34,6 +40,10 @@ const alertsPage = pages.find((p) => p.name === "alerts");
 
 // The tab shows the app's name only, like the current app.
 watch(current, () => { document.title = t("app.title"); }, { immediate: true });
+
+// the light bulb pops when a new suggestion arrives
+const bulb = ref(false);
+watch(bulbPop, () => { bulb.value = false; requestAnimationFrame(() => (bulb.value = true)); });
 
 const online = ref(typeof navigator === "undefined" ? true : navigator.onLine);
 addEventListener("online", () => (online.value = true));
@@ -48,6 +58,7 @@ addEventListener("offline", () => (online.value = false));
     <AppNav />
     <AppearancePanel />
     <div class="fabx">
+      <button id="suggBtn" type="button" class="sugb" :class="{ pop2: bulb }" :style="{ display: suggestions.length ? 'grid' : 'none' }" :aria-label="t('txw.suggA')" :data-tip="t('txw.suggTip')" @click="suggestOpen = true"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z" /></svg><i>{{ suggestions.length }}</i></button>
       <button id="helpBtn" type="button" class="ib" :aria-label="t('shell.aboutPage')" :aria-expanded="helpOpen ? 'true' : 'false'" aria-controls="help" @click="helpSet(!helpOpen)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.5h.01" /></svg></button>
       <a class="ib" :href="hrefOf(alertsPage)" :aria-label="t('shell.alerts')" @click="onLink"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0" /></svg><span class="badge" :style="{ display: alertList.length ? 'grid' : 'none' }">{{ alertList.length }}</span></a>
     </div>
@@ -62,7 +73,12 @@ addEventListener("offline", () => (online.value = false));
     <SyncSheet />
     <QuickSheet />
     <FormHost />
+    <TxWindow />
+    <TxPops />
+    <DocViewer />
+    <Suggestions />
     <WelcomePops v-if="app.phase === 'ready'" />
   </template>
+  <AskPop />
   <ToastHost />
 </template>

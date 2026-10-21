@@ -251,7 +251,9 @@
       "amtOut": "out",
       "amtIn": "in",
       "instRowLeft": "Payment {n} of {total}, {rest} left",
-      "instRowLast": "Payment {n} of {total}, the last one"
+      "instRowLast": "Payment {n} of {total}, the last one",
+      "dupKeepQ": "Keep both?",
+      "dupKeepText": "The app will stop flagging them as a possible duplicate."
     },
     "revTip": "Things the app is not sure about: transfers it guessed, possible duplicates, and balance changes with no matching transaction.",
     "timeFrame": "Time frame",

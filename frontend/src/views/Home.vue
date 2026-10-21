@@ -16,7 +16,7 @@ import { brandIcon, glyphIcon } from "../brands.js";
 import BaseTabs from "../components/BaseTabs.vue";
 import { flowSteps } from "./home.js";
 import { alertsModel } from "./alerts.js";
-import TxWindow from "./TxWindow.vue";
+import { openTx } from "../core/txwin.js";
 import AvailWhy from "./AvailWhy.vue";
 import { vTip, TP } from "../core/tooltip.js";
 import { dcell, dstr, titleCase } from "../dates.js";
@@ -80,8 +80,8 @@ function alertText(x) {
   }
 }
 const alerts3 = computed(() => alertList.value.slice(0, 3).map((x) => ({ ...x, title: alertText(x)[0], text: alertText(x)[1] })));
-const txw = ref(null), avail = ref(false);
-const openTxId = (id) => { const x = (S.value?.tx || []).find((y) => y.id === id); if (x) txw.value?.openTx(x); };
+const avail = ref(false);
+const openTxId = (id) => openTx(id);
 const GO = { bills: "bills", budg: "budgets", jars: "jars", tx: "activity", dash: "home", set: "settings", fc: "forecast" };
 const openAlert = (x) => { if (x.attach) return openTxId(x.attach); to(GO[x.go] || "alerts"); };
 
@@ -377,7 +377,6 @@ const openBill = (b) => { const bl = M.value.billsAll[b.idx]; const last = bl &&
         </div>
       </template>
     </template>
-    <TxWindow ref="txw" />
     <AvailWhy v-if="S" v-model:open="avail" :M="M" />
   </div>
 </template>

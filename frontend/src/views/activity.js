@@ -131,7 +131,7 @@ export function filterRows(S, rows, f, k) {
     if (f.type) {
       if (f.type === "transfer") return k.isXf(t);
       if (f.type === "cardpay") return k.isCp(t);
-      if (f.type === "bill") return t.upBill != null || !!t.bill;
+      if (f.type === "bill") return !!(f.billOf && f.billOf(t)); // the bill a payment belongs to (billOf, passed in by the page)
       return !k.isXf(t) && !k.isCp(t) && (f.type === "income") === (t.a > 0);
     }
     return true;
@@ -148,13 +148,14 @@ export const SORTS = {
 export const sortRows = (rows, mode) => [...rows].sort(SORTS[mode] || SORTS.new);
 
 export const GROUPS = ["none", "day", "week", "month", "cat", "type", "acct", "merchant", "tag"];
-const weekStart = (d) => { const x = new Date(d + "T12:00:00Z"); x.setUTCDate(x.getUTCDate() - x.getUTCDay()); return x.toISOString().slice(0, 10); };
+// The first day of the week a date is in; the week starts on Sunday or Monday (Settings → Preferences).
+const weekStart = (d, ws = "sun") => { const x = new Date(d + "T12:00:00Z"); x.setUTCDate(x.getUTCDate() - ((x.getUTCDay() - (ws == "mon" ? 1 : 0) + 7) % 7)); return x.toISOString().slice(0, 10); };
 
 // [key, label parts, is it by date]. The screen turns the parts into words in the chosen language.
-export function groupOf(t, mode, k) {
+export function groupOf(t, mode, k, ws) {
   switch (mode) {
     case "day": return [t.d, { day: t.d }, true];
-    case "week": { const w = weekStart(t.d); return [w, { week: w }, true]; }
+    case "week": { const w = weekStart(t.d, ws); return [w, { week: w }, true]; }
     case "month": { const r = rdOf(t); return [r.slice(0, 7), { month: r.slice(0, 7) }, true]; }
     case "cat": return [t.c || "Uncategorized", { cat: t.c || "Uncategorized" }];
     case "type": { const x = k.isXf(t) ? "transfers" : t.a > 0 ? "income" : "expenses"; return [x, { type: x }]; }
@@ -164,10 +165,10 @@ export function groupOf(t, mode, k) {
   }
 }
 
-export function groupRows(rows, mode, sort, k) {
+export function groupRows(rows, mode, sort, k, ws) {
   const gs = new Map();
   for (const t of rows) {
-    const [key, label, chrono] = groupOf(t, mode, k);
+    const [key, label, chrono] = groupOf(t, mode, k, ws);
     if (!gs.has(key)) gs.set(key, { key, label, chrono: !!chrono, rows: [] });
     gs.get(key).rows.push(t);
   }
