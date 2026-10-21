@@ -52,7 +52,9 @@ export function helpDots(page, he, label, doc = document) {
     if (how === "after") { inside ? el.appendChild(b) : el.insertAdjacentElement("afterend", b); return; }
     if (el.tagName === "H2") { const t = el.firstChild; if (t && (t.nodeType === 3 || t.nodeType === 1)) { const w = doc.createElement("span"); w.className = "hqw"; t.replaceWith(w); w.append(t, b); return; } }
     const at = [...el.children].find((c) => c.matches("a,.h2r,.chip,button,.hl,.cnt,.seg,.flex") && !c.classList.contains("bi") && !c.classList.contains("tinfo"));
-    at ? el.insertBefore(b, at) : el.appendChild(b);
+    // the (i) of a tooltip stays last, as in the current app (there the ? is added before the (i) is)
+    const ti = at || [...el.children].find((c) => c.classList.contains("tinfo"));
+    ti ? el.insertBefore(b, ti) : el.appendChild(b);
   });
 }
 // Open the panel (if it is closed) and bring the section the ? belongs to into view.

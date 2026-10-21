@@ -357,7 +357,7 @@ const openBill = (b) => { const bl = M.value.billsAll[b.idx]; const last = bl &&
             <h2 style="margin-top:0">{{ t("home.fx") }}<a class="sm hl" :href="link(H2.fx)" @click="onLink">{{ t("home.currencies") }}</a></h2>
             <div id="fxc" class="card">
               <template v-if="fxView">
-                <div class="fxh"><BaseTabs v-if="fxKeys.length > 1" v-model="fxCur" :options="fxOpts" :label="t('home.fx')" /><span v-else class="fxpair">{{ pair(fxCur) }}</span><span class="bd" :class="Math.abs(fxView.ch) < .005 ? '' : fxView.ch > 0 ? 'dn' : 'up'">{{ Math.abs(fxView.ch) < .005 ? "▬" : fxView.ch > 0 ? "▲" : "▼" }} {{ Math.abs(fxView.ch).toFixed(2) }}% · {{ t("home.days30") }}</span></div>
+                <div class="fxh"><BaseTabs v-if="fxKeys.length > 1" v-model="fxCur" style="margin:0" :options="fxOpts" :label="t('home.fx')" /><span v-else class="fxpair">{{ pair(fxCur) }}</span><span class="bd" :class="Math.abs(fxView.ch) < .005 ? '' : fxView.ch > 0 ? 'dn' : 'up'">{{ Math.abs(fxView.ch) < .005 ? "▬" : fxView.ch > 0 ? "▲" : "▼" }} {{ Math.abs(fxView.ch).toFixed(2) }}% · {{ t("home.days30") }}</span></div>
                 <div class="fxr"><span class="fxl">{{ currencySymbol(fxCur) }}1</span><span class="fxe">=</span><b class="num">₪{{ fxView.last.toFixed(4) }}</b></div>
                 <div ref="fxWrap" class="trw tight">
                   <svg ref="fxSvg" width="100%" :viewBox="`0 0 ${fxView.Wd} ${fxView.H}`" style="margin-top:6px" @pointermove="hvShow" @pointerdown="hvShow" @pointerleave="hv = null">
