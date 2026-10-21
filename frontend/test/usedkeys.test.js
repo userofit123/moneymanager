@@ -6,7 +6,13 @@ import { join } from "node:path";
 
 const SRC = new URL("../src/", import.meta.url).pathname;
 const files = (d) => readdirSync(d).flatMap((n) => { const p = join(d, n); return statSync(p).isDirectory() ? files(p) : /\.(vue|js)$/.test(n) ? [p] : []; });
-const load = (n) => JSON.parse(readFileSync(join(SRC, "locales", n + ".json"), "utf8"));
+const load = (n) => {
+  const o = JSON.parse(readFileSync(join(SRC, "locales", n + ".json"), "utf8"));
+  // The Settings texts are one file per section, filed under settings.<section> (see src/i18n.js).
+  const dir = join(SRC, "locales", "settings");
+  o.settings = Object.fromEntries(readdirSync(dir).filter((f) => f.endsWith(`.${n}.json`)).map((f) => [f.slice(0, -`.${n}.json`.length), JSON.parse(readFileSync(join(dir, f), "utf8"))]));
+  return o;
+};
 const flat = (o, p = "") => Object.entries(o).flatMap(([k, v]) => (v && typeof v === "object" ? flat(v, p + k + ".") : [p + k]));
 const en = new Set(flat(load("en")));
 const he = new Set(flat(load("he")));

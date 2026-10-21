@@ -1,0 +1,19 @@
+{
+  "title": "Language and region",
+  "desc": "How the app is written and how dates are shown.",
+  "lang": "Language",
+  "langDesc": "The language of the whole app.",
+  "dateFormat": "Date format",
+  "weekStart": "First day of the week",
+  "weekDesc": "Used by calendars and weekly views.",
+  "sun": "Sunday",
+  "mon": "Monday",
+  "iconTitle": "App icon",
+  "iconDesc": "The symbol on the logo, the loading screen and the browser tab.",
+  "shekel": "Shekel",
+  "dollar": "Dollar",
+  "euro": "Euro",
+  "pound": "Pound",
+  "yen": "Yen",
+  "coin": "Coin"
+}

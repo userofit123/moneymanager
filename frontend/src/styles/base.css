@@ -1,33 +1,7 @@
-@font-face{font-family:Inter;src:url(/fonts/inter-latin.woff2) format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-@font-face{font-family:Inter;src:url(/fonts/inter-ils-400.woff2) format("woff2");font-weight:100 450;font-style:normal;font-display:swap;unicode-range:U+20AA}
-@font-face{font-family:Inter;src:url(/fonts/inter-ils-500.woff2) format("woff2");font-weight:451 550;font-style:normal;font-display:swap;unicode-range:U+20AA}
-@font-face{font-family:Inter;src:url(/fonts/inter-ils-600.woff2) format("woff2");font-weight:551 650;font-style:normal;font-display:swap;unicode-range:U+20AA}
-@font-face{font-family:Inter;src:url(/fonts/inter-ils-700.woff2) format("woff2");font-weight:651 750;font-style:normal;font-display:swap;unicode-range:U+20AA}
-@font-face{font-family:Inter;src:url(/fonts/inter-ils-800.woff2) format("woff2");font-weight:751 900;font-style:normal;font-display:swap;unicode-range:U+20AA}
-body { margin: 0; min-height: 100vh; background: radial-gradient(70% 58% at 8% -8%, color-mix(in srgb, var(--acc) 20%, transparent), transparent), radial-gradient(58% 58% at 100% 0, color-mix(in srgb, var(--acc2) 16%, transparent), transparent), var(--bg); background-attachment: fixed; color: var(--tx); font-family: var(--font); font-size: var(--fs); -webkit-font-smoothing: antialiased; line-height: 1.5; }
-h1 { font-size: var(--fs-h1); font-weight: 600; letter-spacing: -.6px; margin: 0; }
-/* Section titles: small grey capitals with a link on the far side, as in the current app (web/css/app.css h2, a.hl). */
-h2 { font-size: 12px; font-weight: 600; margin: 28px 0 10px; color: var(--tx2); letter-spacing: 1.1px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-a.hl, .hl { cursor: pointer; color: var(--acc); text-transform: none; letter-spacing: 0; font-weight: 600; text-decoration: none; }
-@media (max-width: 860px), (pointer: coarse) and (max-width: 1100px) {
-  h2 { margin: 24px 0 10px; letter-spacing: .9px; min-height: 28px; flex-wrap: wrap; }
-  h2 .hl { padding: 8px 0 8px 10px; font-size: 13px; }
-}
-.num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
-.pos { color: var(--pos); } .neg { color: var(--neg); } .muted { color: var(--tx2); }
+/* Everything global now comes from legacy.css, a whole copy of web/css/app.css (rules, dark/light, Hebrew, phone, print, animations).
+   Only what the old app does in JavaScript instead of CSS is kept here. */
+/* Hebrew: <html> stays left to right (scrollbar on the right); only the content is right to left. Same rule as in legacy.css. */
+html.he body { direction: rtl; }
+#app { display: contents; }
 /* Anything with a tooltip uses the normal or pointer cursor, never the question mark. */
 [title], [data-tip], abbr { cursor: inherit; }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
-button, input, select, textarea { font: inherit; }
-* { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--tx) 28%, transparent) transparent; }
-/* Hebrew, same as the current app: <html> stays left to right so the scrollbar stays on the right; only the content is right to left. */
-html.he body { direction: rtl; }
-html.he svg { direction: ltr; }
-html.he .num { direction: ltr; unicode-bidi: isolate; }
-/* Account and number icons (web/css/app.css .bi), drawn by brands.js. */
-.bi { flex: none; width: 28px; height: 28px; border-radius: 9px; display: inline-grid; place-items: center; background: color-mix(in srgb, var(--bc, var(--acc)) 13%, transparent); color: color-mix(in srgb, var(--bc, var(--acc)) 68%, var(--tx)); font: 700 13px/1 var(--font); letter-spacing: 0; text-transform: none; }
-.bi svg { width: 16px; height: 16px; display: block; }
-.bi svg.f { fill: currentColor; }
-.bi svg.s { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
-.bi.w { font-size: 11px; letter-spacing: -.2px; }
-.card.hero .bi { background: color-mix(in srgb, var(--onc) 18%, transparent); color: var(--onc); }

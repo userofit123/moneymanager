@@ -1,0 +1,112 @@
+{
+  "loading": "Loading…",
+  "auto": {
+    "t": "Automatic backup",
+    "d": "A copy of your data is saved on this device. It never contains your bank logins."
+  },
+  "daily": "Back up every day",
+  "time": {
+    "t": "Time of day",
+    "d": "If the device is off at that time, the backup is made as soon as it is on again.",
+    "aria": "Time of day"
+  },
+  "keep": {
+    "t": "Keep backups for",
+    "d": "Older ones are deleted by themselves. The newest one is always kept.",
+    "aria": "Keep backups for",
+    "d3": "3 days",
+    "w1": "1 week",
+    "w2": "2 weeks",
+    "d30": "30 days",
+    "d60": "60 days",
+    "d90": "90 days",
+    "y1": "1 year"
+  },
+  "folder": {
+    "t": "Backup folder",
+    "tip": "To save somewhere else, type the full path of a folder. With Docker, link that folder in docker-compose.yml first.",
+    "aria": "Backup folder",
+    "change": "Change…",
+    "open": "Open",
+    "default": "Use the default"
+  },
+  "pw": {
+    "t": "Password",
+    "on": "New backups are protected. You need the password to restore them, also on another device.",
+    "off": "Off. Anyone who finds a backup file can read your activity. You can choose a password for new backups.",
+    "change": "Change password",
+    "set": "Set a password",
+    "turnOff": "Turn off"
+  },
+  "docs": "Include receipts and documents",
+  "last": {
+    "ok": "Last backup:",
+    "fail": "The last backup failed:",
+    "none": "No backup yet."
+  },
+  "contains": {
+    "t": "What a backup contains",
+    "inc": "Included: all your activity, accounts and balances, categories, tags, rules, budgets, jars, bills and your settings.",
+    "never": "Never included: bank logins, the Wise token, the app password and notification links. After a restore, your connections stay as they are, or you add them again, and the app will not import anything twice."
+  },
+  "list": {
+    "t": "Your backups",
+    "d": "Restoring replaces the data in the app with the data in the backup.",
+    "now": "Back up now",
+    "find": "Find a backup file…",
+    "empty": "No backups yet."
+  },
+  "file": {
+    "enc": "Password protected",
+    "safety": "Saved just before a restore",
+    "imported": "Added from a file",
+    "restore": "Restore",
+    "download": "Download",
+    "del": "Delete this backup"
+  },
+  "toast": {
+    "running": "Backing up…",
+    "done": "Backup saved",
+    "restoring": "Restoring…",
+    "restored": "Restored. Reloading…",
+    "delConfirm": "Delete this backup file?",
+    "reading": "Reading the file…",
+    "downloading": "Downloading the backup. Look in your Downloads folder.",
+    "cantOpen": "Could not open this backup",
+    "enterPw": "Enter the password",
+    "pwShort": "Use at least 6 characters",
+    "pwMismatch": "The two passwords are not the same",
+    "pwOffConfirm": "Turn off the password? New backups will not be protected.",
+    "saved": "Saved"
+  },
+  "rs": {
+    "t": "Restore this backup?",
+    "made": "Made on",
+    "from": "From",
+    "to": "to",
+    "transactions": "transactions",
+    "accounts": "accounts",
+    "categories": "categories",
+    "rules": "rules",
+    "budgets": "budgets",
+    "jars": "jars",
+    "newer": "This backup was made by a newer version of the app. Update the app first.",
+    "text": "This replaces the activity, categories, tags, rules, budgets and jars in the app with the ones in the backup. Your bank connections are not touched. A copy of what you have now is saved first, so you can go back.",
+    "cancel": "Cancel",
+    "go": "Restore"
+  },
+  "ask": {
+    "t": "This backup has a password",
+    "label": "Password",
+    "go": "Continue",
+    "cancel": "Cancel"
+  },
+  "setpw": {
+    "t": "Backup password",
+    "text": "New backups will need this password to be opened, here or on another device. If you forget it, those backups cannot be opened. Older backups keep the password they were made with. The app keeps the password on this device so the daily backup can use it.",
+    "p1": "Password",
+    "p2": "Repeat the password",
+    "cancel": "Cancel",
+    "save": "Save"
+  }
+}

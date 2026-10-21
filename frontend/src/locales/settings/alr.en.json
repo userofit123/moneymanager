@@ -1,0 +1,29 @@
+{
+  "showT": "Which alerts to show",
+  "showD": "Turn each kind on or off. The alerts you see are on the Alerts page and at the top of Home.",
+  "types": {
+    "jars": "Payments that look like they came from a jar",
+    "bills": "Bills due or overdue",
+    "price": "Bill price changes",
+    "budget": "Budget limits",
+    "card": "Card charge much higher than last month",
+    "large": "Large transactions",
+    "xfer": "Transfers and duplicates to review",
+    "recon": "Books do not match the bank",
+    "pending": "Charges the bank still lists as pending",
+    "sync": "A source is out of date",
+    "uncat": "Uncategorized transactions",
+    "forecast": "Forecast turns negative",
+    "docs": "Income without documents"
+  },
+  "whenT": "When an alert shows",
+  "whenD": "The amounts that trigger the alerts above.",
+  "cardPct": "Card charge higher by (%)",
+  "largeAmt": "Large transaction from (₪)",
+  "billDays": "Bill reminder (days before)",
+  "budgetPct": "Budget warning at (%)",
+  "mistake": "Dismissed an alert by mistake?",
+  "reset": "Show dismissed alerts again",
+  "goAlerts": "Go to alerts →",
+  "saveFailed": "Could not save. Try again."
+}

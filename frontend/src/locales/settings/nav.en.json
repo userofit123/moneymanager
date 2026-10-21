@@ -1,0 +1,26 @@
+{
+  "aria": "Settings sections",
+  "groups": {
+    "you": "You and the app",
+    "banks": "Banks and cards",
+    "data": "Your data",
+    "alerts": "Alerts",
+    "about": "About"
+  },
+  "tabs": {
+    "prof": "Profile",
+    "sec": "Security",
+    "pref": "Preferences",
+    "cur": "Currencies",
+    "conn": "Connections",
+    "sync": "Sync",
+    "data": "Import and export",
+    "backup": "Backup and restore",
+    "log": "Change history",
+    "alr": "Which alerts",
+    "notify": "Notifications",
+    "app": "Version and updates",
+    "rel": "Change log",
+    "err": "Error log"
+  }
+}

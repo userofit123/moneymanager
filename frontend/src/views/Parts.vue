@@ -53,7 +53,7 @@ const remind = ref(true);
         <div class="chips"><BaseChip>{{ t("demo.chip") }}</BaseChip><BaseChip kind="tint">{{ t("demo.food") }}</BaseChip><BaseChip kind="good">{{ t("demo.good") }}</BaseChip><BaseChip kind="bad">{{ t("demo.bad") }}</BaseChip><BaseBadge :count="3" :label="t('demo.needsLook', { n: 3 })" /></div>
       </div>
     </BaseCard>
-    <BaseCard><EmptyState :title="t('demo.emptyTitle')" :text="t('demo.emptyText')"><template #action><BaseButton variant="tonal">{{ t("demo.emptyAction") }}</BaseButton></template></EmptyState></BaseCard>
+    <BaseCard><EmptyState :title="t('demo.emptyTitle')" :text="t('demo.emptyText')"><template #action><BaseButton variant="outline">{{ t("demo.emptyAction") }}</BaseButton></template></EmptyState></BaseCard>
     <BaseDialog v-model:open="help" :title="t('demo.rowHelpTitle')">{{ t("demo.rowHelp") }}</BaseDialog>
     <div class="chips">
       <BaseButton variant="outline" @click="setLang(locale === 'he' ? 'en' : 'he')">{{ t("app.otherLanguage") }}</BaseButton>

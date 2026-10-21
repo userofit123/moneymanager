@@ -1,0 +1,9 @@
+{
+  "title": "Change log",
+  "desc": "Everything that changed in each version, newest first.",
+  "youOn": "You are on version {v}.",
+  "none": "No change log is available.",
+  "version": "Version",
+  "installed": "Installed",
+  "newer": "Newer"
+}

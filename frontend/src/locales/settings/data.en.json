@@ -1,0 +1,64 @@
+{
+  "imp": {
+    "t": "Import",
+    "d": "Add transactions from a file. Rows already imported are skipped, and rows that match ones you typed in by hand are merged."
+  },
+  "wise": {
+    "t": "Wise statement",
+    "d": "A CSV from Wise. Rows clear matching gaps.",
+    "btn": "Import Wise CSV"
+  },
+  "bank": {
+    "t": "Bank or card export",
+    "d": "A CSV exported from your bank or card.",
+    "acct": "Account…",
+    "acctAria": "Account",
+    "btn": "Choose CSV file"
+  },
+  "pos": "Charges are shown as positive numbers (cards)",
+  "pension": {
+    "t": "Pension balance",
+    "d": "The pension is entered by hand.",
+    "btn": "Update pension balance"
+  },
+  "your": {
+    "t": "Your data",
+    "d": "Lives in the database on this device. Automatic daily backups are in Backup and restore."
+  },
+  "export": {
+    "t": "Export",
+    "d": "Choose what to export and the format.",
+    "btn": "Export…"
+  },
+  "full": {
+    "t": "Full export",
+    "d": "Everything in one JSON file, to read or keep. To restore from a backup, use Backup and restore.",
+    "btn": "Download export"
+  },
+  "restore": {
+    "t": "Restore from a backup",
+    "d": "Moving to a new device? Start here.",
+    "btn": "Backup and restore"
+  },
+  "toast": {
+    "pickAcct": "Choose an account first",
+    "failed": "Import failed: {msg}",
+    "bankDone": "Read {rows} rows · {added} new, {merged} merged",
+    "wiseDone": "Imported {added} new, merged {merged}",
+    "downloaded": "Downloaded money-export.json. Look in your Downloads folder.",
+    "noPension": "There is no pension account",
+    "pnNum": "Enter the balance as a number",
+    "pnSame": "That is already the balance"
+  },
+  "pn": {
+    "title": "Update pension balance",
+    "text": "Updated by hand when you move money into it. It is kept out of net worth, reports and the forecast unless you switch it on in Reports.",
+    "label": "Current balance (₪)",
+    "ph": "e.g. 412000",
+    "cancel": "Cancel",
+    "save": "Save"
+  },
+  "audit": {
+    "pension": "Updated pension"
+  }
+}

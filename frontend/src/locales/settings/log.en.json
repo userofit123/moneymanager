@@ -1,0 +1,14 @@
+{
+  "t": "Change history",
+  "d": "Everything that was changed in the app, by you or by the app itself, newest first. Edits to categories, notes, budgets and jars can be undone.",
+  "undo": "Undo",
+  "more": "Show 50 more",
+  "shown": "({n} of {total} shown)",
+  "who": {
+    "You": "You",
+    "System": "System"
+  },
+  "audit": {
+    "undid": "Undid a change"
+  }
+}

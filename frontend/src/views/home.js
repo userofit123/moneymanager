@@ -32,14 +32,37 @@ export function cadenceOf(L) {
   return { every, anchor: +last.d.slice(5, 7), dom: +last.d.slice(8, 10), mean };
 }
 
+// The current app looks for transfers between your own accounts every time the data loads (detect() in web/js/02-state-data.js), and the totals leave them out.
+// Same here, in memory only: a possible transfer waits for review ("auto") and is not counted as spending or income.
+export function withTransfers(S) {
+  const tx = S.tx || [], xf = [...(S.xf || [])];
+  const own = [...new Set(["Bank Hapoalim", "Wise", ...(S.accounts || []).filter((a) => a.kind == "bank" || a.kind == "wallet" || a.kind == "custom").map((a) => a.n)])];
+  tx.forEach((o) => {
+    if (!(o.a < 0 && own.includes(o.from))) return;
+    tx.forEach((i) => {
+      if (!(i.a > 0 && own.includes(i.to) && i.to !== o.from)) return;
+      if (xf.some((x) => x.o == o.id || x.i == i.id)) return;
+      const dd = Math.abs((new Date(o.d) - new Date(i.d)) / 864e5), r = i.a / -o.a;
+      if (dd <= 3 && r >= 0.94 && r <= 1.03) xf.push({ o: o.id, i: i.id, st: "auto" });
+    });
+  });
+  return xf.length === (S.xf || []).length ? S : { ...S, xf };
+}
+const nohtml = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&").trim();
+const nameField = (t, f) => (f == "desc" ? t.desc : f == "memo" ? t.memo : f == "from" ? t.from : f == "to" ? t.to : f == "note" ? t.note : [t.desc, t.memo, t.bd, t.from, t.to, t.note].filter(Boolean).join(" "));
+const rnm = (s) => String(s == null ? "" : s).toLowerCase().replace(/[0-9*#_\/\\\-.,:;()'"\u05f3\u05f4]+/g, " ").replace(/\s+/g, " ").trim();
+// The name shown for a payment: the one you typed, a naming rule, or the bank's text (dn in the current app).
+export const nameOf = (S, t) => { const c = S?.cfg || {}, o = c.renames && c.renames[t.id]; if (o) return o; if (c.nameRules) { const r = c.nameRules.find((x) => { const q = rnm(x.k); if (!q) return false; const v = rnm(nameField(t, x.f || "any")); return x.m == "eq" ? v == q : v.includes(q); }); if (r) return r.n; } return nohtml(t.desc); };
+
 // Everything Home needs, worked out once per data load. now: today's date; fx: { USD: 3.7, ... }.
 export function homeModel(S, now = new Date(), fx = {}) {
-  S = S || {};
+  S = withTransfers(S || {});
   const NOW = now, MK = NOW.getFullYear() + "-" + p2(NOW.getMonth() + 1), TODAY = MK + "-" + p2(NOW.getDate()), DAYN = NOW.getDate(), DIM = new Date(NOW.getFullYear(), NOW.getMonth() + 1, 0).getDate();
   const k = kinds(S, TODAY), tx = S.tx || [], jarsAll = S.jars || [], cfg = { budgetPct: 80, ...(S.cfg || {}) }, budgets = S.budgets || {};
   const rate = (c) => (c === "ILS" ? 1 : fx[c] || 1);
   const accts = (S.accounts || []).filter((a) => a.kind != "card" && !a.hide);
   const accILS = (a) => a.v * rate(a.cur);
+  const accCur = (a) => a.n + (a.cur != "ILS" || accts.some((x) => x !== a && (x.n == a.n || (x.src && x.src == a.src))) ? " (" + a.cur + ")" : "");
   const cashAccts = accts.filter((a) => a.inNW && (a.kind == "bank" || a.kind == "wallet"));
   const cashNow = sum(cashAccts.map(accILS)), custNW = sum(accts.filter((a) => a.kind == "custom" && a.inNW).map(accILS));
   const NR = new Set((S.accounts || []).filter((a) => a.inR === false).map((a) => a.n));
@@ -88,7 +111,7 @@ export function homeModel(S, now = new Date(), fx = {}) {
   const budgetInfo = Object.entries(budgets).map(([kk, lim]) => {
     const s = spendM[kk] || 0, pc = lim ? (s / lim) * 100 : 0, B = BC.filter((b) => !b.once && !b.irregular && b.flag != "canceled" && b.cat == kk);
     const paid = Math.min(s, sum(B.filter((b) => b.lp && b.lp.startsWith(MK)).map((b) => b.pred))), due = sum(B.filter((b) => !(b.lp && b.lp.startsWith(MK)) && b.nx && b.nx.toISOString().slice(0, 7) == MK).map((b) => b.pred)), pace = paid + due + ((s - paid) / DAYN) * DIM;
-    return { k: kk, lim, s, pc, st: s > lim ? "over" : pc >= cfg.budgetPct ? "warn" : pace > lim ? "pace" : "ok" };
+    return { k: kk, lim, s, pc, pace, left: lim - s, st: s > lim ? "over" : pc >= cfg.budgetPct ? "warn" : pace > lim ? "pace" : "ok" };
   });
 
   // Jars and the money already spoken for this month (the same rules as the current app).
@@ -144,12 +167,14 @@ export function homeModel(S, now = new Date(), fx = {}) {
 
   return {
     MK, pm, DAYN, DIM, today: TODAY, k,
-    kpi: { cash, pen, withPension: cash + pen, inc, ex, net: inc - ex, incLast: hist.inc[4], exLast: hist.exp[4], missing, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a) })), notCounted: accts.filter((a) => (a.kind == "bank" || a.kind == "wallet") && !a.inNW).map((a) => a.n), nwSpark: nwSpark.filter((v) => v > 0).length > 1 ? nwSpark : null, incSpark: hist.inc.some((v) => v > 0) ? hist.inc : null, exSpark: hist.exp.some((v) => v > 0) ? hist.exp : null },
+    kpi: { cash, pen, withPension: cash + pen, inc, ex, net: inc - ex, incLast: hist.inc[4], exLast: hist.exp[4], missing, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a), lbl: accCur(a) })), notCounted: accts.filter((a) => (a.kind == "bank" || a.kind == "wallet") && !a.inNW).map((a) => a.n), nwSpark: nwSpark.filter((v) => v > 0).length > 1 ? nwSpark : null, incSpark: hist.inc.some((v) => v > 0) ? hist.inc : null, exSpark: hist.exp.some((v) => v > 0) ? hist.exp : null },
     groups, cards, recent, upcoming, budgets: budgetsSorted, jars, spend, rate,
-    flow: { cash: cashNow, inJars, buffer, saved: inJars + buffer, free, over, R, jarsHeld: jarsS.filter((j) => heldOf(j) > 0).sort((a, b) => heldOf(b) - heldOf(a)).map((j) => ({ n: j.n, v: heldOf(j) })), spend, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a) })) },
+    flow: { cash: cashNow, inJars, buffer, saved: inJars + buffer, free, over, R, jarsHeld: jarsS.filter((j) => heldOf(j) > 0).sort((a, b) => heldOf(b) - heldOf(a)).map((j) => ({ n: j.n, v: heldOf(j) })), spend, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a), lbl: accCur(a) })) },
     has, any,
     // For the Jars page: bill names by their match text, and six months of income and spending (this one last).
     billNames: Object.fromEntries(BC.map((b) => [b.match, b.n])), hist,
+    // For the Jars page's pop-ups and "Full by" dates: every bill, and the counted payments.
+    billsAll: BC, rows: A, S, nameOf: (t) => nameOf(S, t),
   };
 }
 
@@ -170,15 +195,15 @@ export function billInfo(b, idx, mt, NOW) {
   }
   if (!cad) {
     const once = b.mode == "once", yr = mt.filter((t) => (NOW - new Date(t.d)) / 864e5 <= 365), am = mt.slice(-6).map((t) => -t.a), typ = am.length ? med(am) : b.amt || 0;
-    return { ...b, idx, ended, irregular: !once, once, status: once ? "once" : "irregular", pd: null, nx: null, days: 99999, lp: last ? last.d : null, pred: typ, vari: true, mo: once ? 0 : sum(yr.map((t) => -t.a)) / 12, every: 0 };
+    return { ...b, idx, ended, irregular: !once, once, status: once ? "once" : "irregular", pd: null, nx: null, days: 99999, lp: last ? last.d : null, amt: last ? -last.a : (b.amt || 0), was: prev ? -prev.a : (last ? -last.a : 0), pred: typ, vari: true, fresh: false, mo: once ? 0 : sum(yr.map((t) => -t.a)) / 12, every: 0 };
   }
   const B = { ...b, ...cad }, oc = [];
   for (let y = NOW.getFullYear() - 1; y <= NOW.getFullYear() + 2; y++) for (let m = 1; m <= 12; m++) if ((((m - B.anchor) % B.every) + B.every) % B.every == 0) oc.push(new Date(y, m - 1, Math.min(B.dom, 28), 9));
   let pd = null, nx = null; oc.forEach((d) => { if (d <= NOW) pd = d; else if (!nx) nx = d; });
-  const amt = last ? -last.a : B.amt || 0, rc = mt.slice(-3).map((t) => -t.a), mean = rc.length ? sum(rc) / rc.length : amt;
+  const amt = last ? -last.a : B.amt || 0, was = prev ? -prev.a : amt, rc = mt.slice(-3).map((t) => -t.a), mean = rc.length ? sum(rc) / rc.length : amt;
   const r4 = mt.slice(-4).map((t) => -t.a), nch = r4.slice(1).filter((x, i) => Math.abs(x - r4[i]) / r4[i] > 0.03).length, vari = r4.length >= 3 && nch >= 2, pred = vari ? mean : amt;
   const lp = last ? last.d : B.lastPaid, paid = lp && new Date(lp) >= new Date(pd - 4 * 864e5), status = paid ? "paid" : NOW - pd <= 3 * 864e5 ? "pending" : "overdue";
-  return { ...B, idx, pd, nx, days: Math.ceil((nx - NOW) / 864e5), lp, status, amt, pred, vari, mo: pred / B.every };
+  return { ...B, idx, pd, nx, days: Math.ceil((nx - NOW) / 864e5), lp, status, amt, was, pred, vari, fresh: last ? (NOW - new Date(last.d)) / 864e5 <= 45 : false, mo: pred / B.every };
 }
 
 // The money flow (waterfall): from what you had before spending, step by step down to what is free.

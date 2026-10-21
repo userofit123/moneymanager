@@ -1,0 +1,26 @@
+// The small section icons of the current app's Settings (web/js/06-trend-forecast-sync.js, the SI list), copied as is.
+// Each value is the inside of a 24x24 svg.
+export const SI = {
+  user: "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7\"/>",
+  sliders: "<path d=\"M4 7h10M18 7h2M4 17h2M10 17h10\"/><circle cx=\"16\" cy=\"7\" r=\"2\"/><circle cx=\"8\" cy=\"17\" r=\"2\"/>",
+  link: "<path d=\"M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1\"/>",
+  bell: "<path d=\"M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0\"/>",
+  card: "<rect x=\"3\" y=\"6\" width=\"18\" height=\"12\" rx=\"2\"/><path d=\"M3 10h18M7 15h3\"/>",
+  plus: "<path d=\"M12 5v14M5 12h14\"/>",
+  eye: "<path d=\"M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>",
+  rules: "<path d=\"M4 6h16M4 12h10M4 18h6\"/><path d=\"M17 15l3 3-3 3\"/>",
+  tag: "<path d=\"M3 12V4h8l10 10-8 8z\"/><path d=\"M7.5 8h.01\"/>",
+  log: "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>",
+  install: "<path d=\"M12 4v11M7 11l5 5 5-5M5 20h14\"/>",
+  imp: "<path d=\"M12 16V4M7 9l5-5 5 5M5 20h14\"/>",
+  cur: "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M9 9.5c0-1 1.3-1.8 3-1.8s3 .8 3 2-1.3 1.7-3 2-3 .8-3 2 1.3 2 3 2 3-.8 3-1.8M12 6v1.7M12 16.3V18\"/>",
+  data: "<ellipse cx=\"12\" cy=\"6\" rx=\"8\" ry=\"3\"/><path d=\"M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3\"/>",
+  sync: "<path d=\"M20 11a8 8 0 0 0-14-4L4 9M4 4v5h5M4 13a8 8 0 0 0 14 4l2-2M20 20v-5h-5\"/>",
+  lock: "<rect x=\"5\" y=\"11\" width=\"14\" height=\"9\" rx=\"2\"/><path d=\"M8 11V8a4 4 0 0 1 8 0v3\"/>",
+  key: "<circle cx=\"8\" cy=\"15\" r=\"4\"/><path d=\"M11 12l9-9M16 7l3 3\"/>",
+  shield: "<path d=\"M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z\"/><path d=\"M9 12l2 2 4-4\"/>",
+  phone: "<rect x=\"7\" y=\"3\" width=\"10\" height=\"18\" rx=\"2\"/><path d=\"M11 18h2\"/>",
+  bank: "<path d=\"M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18\"/>",
+  clock: "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>",
+  door: "<path d=\"M14 4h5v16h-5M10 8l-4 4 4 4M6 12h10\"/>",
+};

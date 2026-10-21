@@ -12,8 +12,8 @@ const color = computed(() => (props.tone === "auto" ? (props.value > 0 ? "pos" :
   <span class="num amt" :class="[color, size]" dir="ltr">{{ text }}</span>
 </template>
 
-<style scoped>
+<style>
 .amt { unicode-bidi: isolate; white-space: nowrap; font-weight: 600; }
-.big { display: block; font-size: var(--fs-val); letter-spacing: -1px; margin: var(--sp2) 0 2px; }
-.small { font-size: var(--fs-sm); font-weight: 500; }
+.amt.big { display: block; font-size: 32px; letter-spacing: -1px; margin: 8px 0 2px; }
+.amt.small { font-size: 12.5px; font-weight: 500; }
 </style>

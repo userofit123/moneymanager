@@ -10,7 +10,12 @@ export { applyLang };
 const KEY = "moneyLang";
 const saved = (() => { try { return localStorage.getItem(KEY) === "he" ? "he" : "en"; } catch { return "en"; } })();
 
-export const i18n = createI18n({ legacy: false, locale: saved, fallbackLocale: "en", messages: { en, he } });
+// The Settings texts are kept one file per section (locales/settings/<section>.en.json and .he.json) and filed under "settings.<section>".
+const sections = (files) => Object.fromEntries(Object.entries(files).map(([p, m]) => [p.split("/").pop().replace(/\.(en|he)\.json$/, ""), m.default ?? m]));
+const settingsEn = sections(import.meta.glob("./locales/settings/*.en.json", { eager: true }));
+const settingsHe = sections(import.meta.glob("./locales/settings/*.he.json", { eager: true }));
+
+export const i18n = createI18n({ legacy: false, locale: saved, fallbackLocale: "en", messages: { en: { ...en, settings: settingsEn }, he: { ...he, settings: settingsHe } } });
 
 // True while the language is Hebrew. Use it for the rare things CSS cannot flip by itself; prefer logical CSS (margin-inline-start and so on).
 export const isRtl = computed(() => isHebrew(i18n.global.locale.value));

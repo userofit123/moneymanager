@@ -41,7 +41,16 @@ export function isCardPay(S, t, ci = cardInfo(S)) {
   return cardRuleHit(S, t) || ci.cards.some((c) => c.re.test(x));
 }
 export const cardOf = (t, ci) => { const x = t.desc + " " + (t.to || ""); return ci.cards.find((c) => c.re.test(x))?.n || ""; };
-export const displayName = (S, t) => S?.cfg?.renames?.[t.id] || String(t.desc || "").replace(/<[^>]*>/g, "");
+// Name rules ("Look in", "Match", "Text", "Call it"), the same as the current app's nameField / nameHit / dn.
+export const NFIELDS = ["any", "desc", "memo", "from", "to", "note"];
+export const nameField = (t, f) => (f === "desc" ? t.desc : f === "memo" ? t.memo : f === "from" ? t.from : f === "to" ? t.to : f === "note" ? t.note : [t.desc, t.memo, t.bd, t.from, t.to, t.note].filter(Boolean).join(" "));
+export function nameHit(t, r) { const q = rn(r.k); if (!q) return false; const v = rn(nameField(t, r.f || "any")); return r.m === "eq" ? v === q : v.includes(q); }
+export function displayName(S, t) {
+  const c = S?.cfg || {}, o = c.renames && c.renames[t.id];
+  if (o) return o;
+  if (c.nameRules) { const r = c.nameRules.find((x) => nameHit(t, x)); if (r) return r.n; }
+  return String(t.desc || "").replace(/<[^>]*>/g, "");
+}
 
 export function kinds(S, today) {
   const xs = transferIds(S), ci = cardInfo(S);
@@ -74,12 +83,46 @@ export function leftOut(list, k) {
   };
 }
 
-export const hasFilters = (f) => !!(f.q || f.src || f.cat || f.type || f.tag);
+export const hasFilters = (f) => !!(f.q || f.src || f.cat || f.type || f.tag || (f.p && f.p !== "all"));
+
+// The time frame filter, the same choices as the current app. The week starts on Sunday unless the user chose Monday.
+export const RANGES = ["all", "today", "yesterday", "week", "lastweek", "month", "lastmonth", "30d", "90d", "year", "lastyear"];
+const p2 = (n) => String(n).padStart(2, "0");
+const isoD = (d) => d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate());
+export function rangeOf(p, now = new Date(), ws = "sun", from = "", to = "") {
+  const n = new Date(now.getFullYear(), now.getMonth(), now.getDate()), add = (d, k) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + k);
+  const wk = add(n, -((n.getDay() - (ws === "mon" ? 1 : 0) + 7) % 7)), Y = n.getFullYear(), MK = Y + "-" + p2(n.getMonth() + 1);
+  const lm = isoD(new Date(Y, n.getMonth() - 1, 1)).slice(0, 7);
+  switch (p) {
+    case "today": return [isoD(n), isoD(n)];
+    case "yesterday": return [isoD(add(n, -1)), isoD(add(n, -1))];
+    case "week": return [isoD(wk), isoD(add(wk, 6))];
+    case "lastweek": return [isoD(add(wk, -7)), isoD(add(wk, -1))];
+    case "month": return [MK + "-01", MK + "-31"];
+    case "lastmonth": return [lm + "-01", lm + "-31"];
+    case "30d": return [isoD(add(n, -29)), isoD(n)];
+    case "90d": return [isoD(add(n, -89)), isoD(n)];
+    case "year": return [Y + "-01-01", Y + "-12-31"];
+    case "lastyear": return [(Y - 1) + "-01-01", (Y - 1) + "-12-31"];
+    case "custom": return [from || "0000-01-01", to || "9999-12-31"];
+    default: return ["0000-01-01", "9999-12-31"];
+  }
+}
+// The date reports count a transaction on: its own date, or the same day in the month the user moved it to.
+export const rmOf = (t) => (t.rm && t.rm !== String(t.d).slice(0, 7) ? t.rm : "");
+export function rdOf(t) {
+  const m = rmOf(t); if (!m) return t.d;
+  const last = new Date(+m.slice(0, 4), +m.slice(5, 7), 0).getDate();
+  return m + "-" + p2(Math.min(+String(t.d).slice(8, 10) || 1, last));
+}
 
 export function filterRows(S, rows, f, k) {
   const q = (f.q || "").toLowerCase();
+  const [ra, rb] = rangeOf(f.p || "all", f.now, f.ws, f.from, f.to);
   return rows.filter((t) => {
     const tags = t.tags || [];
+    const rd = rdOf(t);
+    if (rd < ra || rd > rb) return false;
     if (t.balUpd && (f.type || f.cat || f.tag)) return false;
     if (q && !(displayName(S, t) + " " + t.desc + " " + t.to + " " + (t.note || "") + " " + tags.join(" ")).toLowerCase().includes(q)) return false;
     if (f.src && t.from !== f.src && t.to !== f.src) return false;
@@ -112,7 +155,7 @@ export function groupOf(t, mode, k) {
   switch (mode) {
     case "day": return [t.d, { day: t.d }, true];
     case "week": { const w = weekStart(t.d); return [w, { week: w }, true]; }
-    case "month": return [t.d.slice(0, 7), { month: t.d.slice(0, 7) }, true];
+    case "month": { const r = rdOf(t); return [r.slice(0, 7), { month: r.slice(0, 7) }, true]; }
     case "cat": return [t.c || "Uncategorized", { cat: t.c || "Uncategorized" }];
     case "type": { const x = k.isXf(t) ? "transfers" : t.a > 0 ? "income" : "expenses"; return [x, { type: x }]; }
     case "acct": { const x = (t.a < 0 ? t.from : t.to) || ""; return [x, { name: x }]; }
@@ -130,7 +173,9 @@ export function groupRows(rows, mode, sort, k) {
   }
   const size = (g) => Math.abs(g.T.out) + Math.abs(g.T.inc);
   const last = (g) => g.rows.reduce((m, t) => (t.d > m ? t.d : m), "");
-  return [...gs.values()].map((g) => ({ ...g, T: totals(g.rows, k) })).sort((a, b) => {
+  // P: upcoming spending in the group, which the header shows as "still to come"; E: upcoming income.
+  const ok = (t) => !t.balUpd && !k.isXf(t) && !k.isIgn(t) && !k.isCp(t) && k.isFut(t);
+  return [...gs.values()].map((g) => ({ ...g, T: totals(g.rows, k), P: g.rows.filter((t) => ok(t) && t.a < 0).reduce((x, t) => x - t.a, 0), E: g.rows.filter((t) => ok(t) && t.a > 0).reduce((x, t) => x + t.a, 0), allFut: g.rows.every(k.isFut) })).sort((a, b) => {
     if (a.chrono) return sort === "old" ? a.key.localeCompare(b.key) : b.key.localeCompare(a.key);
     return sort === "big" ? size(b) - size(a) : sort === "small" ? size(a) - size(b) : sort === "old" ? last(a).localeCompare(last(b)) : last(b).localeCompare(last(a));
   });
@@ -240,21 +285,46 @@ export function flat(o, pre = "", out = []) {
   for (const [k, v] of Object.entries(o)) { if (v == null || v === "") continue; const key = pre ? pre + "." + k : k; if (typeof v === "object") flat(v, key, out); else out.push([key, String(v)]); }
   return out;
 }
-export function detailRows(S, t, x) {
-  const det = x?.details || {}, rows = [], R = (k, v, o = {}) => { if (v == null || v === "") return; rows.push({ k, v: o.raw ? v : nohtml(v), ...o }); };
+const SRCL = { hapoalim: "Bank Hapoalim", max: "Max", isracard: "Isracard", wise: "Wise", demo: "The sample data" };
+const SYMS = { ILS: "₪", USD: "$", EUR: "€", GBP: "£", JPY: "¥" };
+const n0 = (v) => Math.abs(v).toLocaleString("en-IL", { maximumFractionDigits: 0 });
+const sym = (c) => SYMS[c] || c + " ";
+// "Payment n of N" for instalments (the same reading of the bank's text as the current app).
+export function instOf(t) {
+  if (t.inst && t.inst[1] > 1 && t.inst[0] >= 1 && t.inst[0] <= t.inst[1]) return { n: t.inst[0], total: t.inst[1] };
+  const d = String(t.desc || ""), m = d.match(/תשלום\s*(\d{1,2})\s*(?:\/|מתוך)\s*(\d{1,2})/) || d.match(/payment\s*(\d{1,2})\s*(?:\/|of)\s*(\d{1,2})/i) || d.match(/(\d{1,2})\s*מתוך\s*(\d{1,2})/);
+  return m && +m[2] >= 2 && +m[2] <= 60 && +m[1] >= 1 && +m[1] <= +m[2] ? { n: +m[1], total: +m[2] } : null;
+}
+// The rows of the details box, in the order of the current app. The screen turns { key } and { date } into words.
+export function detailRows(S, t, x, xf) {
+  const det = x?.details || {}, nested = det.details || {}, rows = [], R = (k, v, o = {}) => { if (v == null || v === "") return; rows.push({ k, v: o.raw ? v : nohtml(v), ...o }); };
+  const i = instOf(t), fee = det.totalFees, ex = det.exchangeDetails, rb = det.runningBalance;
   R("date", { date: t.d }, { raw: true });
   if (det.processedDate && ilD(det.processedDate) !== t.d) R("chargedOn", { date: ilD(det.processedDate) }, { raw: true });
   R("account", t.from && t.to ? nohtml(t.from) + " → " + nohtml(t.to) : t.from || t.to);
-  R("source", t.src === "manual" ? { key: "byHand" } : S?.connStatus?.[t.src]?.label || t.src, { raw: t.src === "manual" });
-  R("amount", { money: t.a }, { raw: true });
-  if (t.orig) R("origAmount", t.orig.amt + " " + t.orig.cur);
-  else if (det.originalAmount != null && det.originalCurrency && det.originalCurrency !== "ILS") R("origAmount", Math.abs(det.originalAmount) + " " + det.originalCurrency);
+  R("source", t.src === "manual" ? { key: "byHand" } : SRCL[t.src] || t.src, { raw: t.src === "manual" });
+  R("amount", { amtDir: t.a }, { raw: true });
+  if (t.orig) R("origAmount", sym(t.orig.cur) + n0(t.orig.amt) + " " + t.orig.cur);
+  else if (det.originalAmount != null && det.originalCurrency && det.originalCurrency !== "ILS") R("origAmount", sym(det.originalCurrency) + n0(det.originalAmount) + " " + det.originalCurrency);
+  if (det.chargedCurrency && det.chargedCurrency !== "ILS") R("chargedIn", det.chargedCurrency);
   const st = det.status || (x?.pending ? "pending" : "");
   R("status", t.pending || /pending/i.test(st) ? { key: "pending" } : st ? prettyKey(String(st).toLowerCase()) : t.src === "manual" ? "" : { key: "completed" }, { raw: true });
+  if (det.type && !/^normal$/i.test(det.type)) R("type", prettyKey(String(det.type).toLowerCase()));
+  if (i) R("instalment", { inst: i }, { raw: true });
   R("bankCategory", det.category || x?.bankCategory);
   if (det.description && det.description !== t.desc) R("bankDescription", det.description);
   R("memo", det.memo);
   if (displayName(S, t) !== nohtml(t.desc)) R("originalName", t.desc);
+  R("merchant", nested.merchant && nested.merchant.name);
+  R("recipient", nested.recipient && nested.recipient.name);
+  if (nested.type && det.via) R("paymentType", prettyKey(String(nested.type).toLowerCase()));
+  const plain = (v) => String(v).replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ");
+  if (det.title && det.via === "activity list") R("title", det.title);
+  if (det.primaryAmount && det.via === "activity list") R("shownAs", plain(det.primaryAmount));
+  if (det.secondaryAmount && det.via === "activity list") R("otherSide", plain(det.secondaryAmount));
+  if (fee && fee.value) R("fees", n0(fee.value) + " " + (fee.currency || ""));
+  if (ex) R("exchange", [ex.rate ? "rate " + ex.rate : "", ex.fromAmount && ex.fromAmount.value ? n0(ex.fromAmount.value) + " " + ex.fromAmount.currency + " →" : "", ex.toAmount && ex.toAmount.value ? n0(ex.toAmount.value) + " " + ex.toAmount.currency : ""].filter(Boolean).join(" "));
+  if (rb && rb.value != null) R("balanceAfter", n0(rb.value) + " " + (rb.currency || ""));
   R("reference", det.identifier || det.referenceNumber || det.id || (x?.externalId && !/^[0-9a-f]{20}:/.test(x.externalId) ? x.externalId : ""), { mono: true });
   if (det.account) R("accountNumber", det.account, { mono: true });
   R("entry", "#" + t.id, { mono: true });
