@@ -6,6 +6,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { toast } from "../core/toast.js";
 import { go } from "../router.js";
 import PageHeader from "../components/PageHeader.vue";
 import ActSheet from "./ActSheet.vue";
@@ -65,20 +66,15 @@ const lastLine = (b) => (b.n_tx ? t("bills.lastCharge", { amount: fm(b.amt), dat
 const evTip = (b) => evTipText(b, t, dstr);
 
 // ---- saving (like Jars: change a copy, send the whole state, then load the fresh copy) ----
-const toast = ref(null);
-let toastTimer = null;
-const say = (m, kind = "ok") => { toast.value = { m, kind }; clearTimeout(toastTimer); toastTimer = setTimeout(() => { toast.value = null; }, 3800); };
-async function change(edit) {
-  const { next, lines } = withDetected(S.value, new Date());
-  const r = edit(next); if (r === false) return;
-  const all = [...lines, ...r], at = new Date().toISOString();
-  next.audit = [...all.map(([a, d, who]) => ({ t: at, who: who || "You", action: a, detail: d, undo: null })).reverse(), ...(next.audit || [])].slice(0, 2000);
-  data.state.value = next;
-  try {
-    const res = await fetch("/api/state", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(next) });
-    if (!res.ok) say(res.status === 409 ? t("bills.stale") : t("bills.saveFailed"), "err");
-  } catch { say(t("bills.saveFailed"), "err"); }
-  await data.load();
+const say = (m, kind = "ok") => toast(m, { kind }); // the toasts at the bottom of the page (core/toast.js)
+// Saving goes through the data store (stores/data.js). The bills found by the app are saved with the first change, like the current app.
+function change(edit) {
+  data.change((cur) => {
+    const { next, lines } = withDetected(cur, new Date());
+    const r = edit(next); if (r === false) return false;
+    Object.keys(cur).forEach((k) => delete cur[k]); Object.assign(cur, next);
+    return [...lines, ...r].map(([a, d, who]) => [a, d, null, who]);
+  });
 }
 // The payments of bill number i, worked out on the same state the change is made on.
 const txOf = (next, i) => { const st = billState(next, new Date()); return st.billTx(next.bills[i]); };
@@ -119,7 +115,7 @@ const hist = ref(null); // { title, sub, h }
 function openHist(i, sub) {
   const st = billState(S.value, new Date()), b = st.bills[i]; if (!b) return;
   const h = payHistory(st.billTx(b));
-  if (!h) { say(t("bills.h.none")); return; }
+  if (!h) { say(t("bills.h.none"), "err"); return; }
   hist.value = { title: b.n, sub: sub || (b.mode == "once" ? t("bills.h.once") : t("bills.h.bill")), h };
 }
 const openBill = (b) => openHist(b.idx);
@@ -241,8 +237,6 @@ const remove = (b) => change((n) => deleteBill(n, b.idx));
         <button v-for="[a, ic, label, z] in menuItems" :key="a" role="menuitem" :class="z ? 'dz' : undefined" :data-a="a" :data-i="menu.i" @click="pick(a)"><svg viewBox="0 0 24 24" v-html="MI[ic]" />{{ tk("bills." + label) }}</button>
       </div>
     </Teleport>
-
-    <div v-if="toast" id="toasts" role="status"><div class="toast" :class="toast.kind"><span class="ti"><svg viewBox="0 0 24 24"><path v-if="toast.kind === 'err'" d="M12 7.5v5.5M12 16.5h.01M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0" /><path v-else d="M5 12.5l4.5 4.5L19 7.5" /></svg></span><div class="tm"><div>{{ toast.m }}</div></div><button type="button" class="tx" aria-label="Dismiss" @click="toast = null"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg></button></div></div>
 
     <ActSheet v-if="form" @close="form = null">
       <h3>{{ t("bills.add.title") }}</h3>

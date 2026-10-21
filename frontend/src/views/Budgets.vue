@@ -6,6 +6,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { toast } from "../core/toast.js";
 import { go } from "../router.js";
 import PageHeader from "../components/PageHeader.vue";
 import ActSheet from "./ActSheet.vue";
@@ -40,25 +41,14 @@ const rvOf = computed(() => Object.fromEntries(M.value.review.map((r) => [r.k, r
 const lastVals = (b) => M.value.budMonths.map((m) => (M.value.M[b.k] || {})[m] || 0);
 
 // ---- saving (like Jars: change a copy, send the whole state, then load the fresh copy) ----
-const toast = ref(null);
-let toastTimer = null;
-const say = (m, kind = "ok") => { toast.value = { m, kind }; clearTimeout(toastTimer); toastTimer = setTimeout(() => { toast.value = null; }, 3800); };
-async function change(edit) {
-  const next = structuredClone(S.value), r = edit(next); if (r === false) return;
-  const at = new Date().toISOString();
-  next.audit = [...r.map(([a, d, u]) => ({ t: at, who: "You", action: a, detail: d, undo: u || null })).reverse(), ...(next.audit || [])].slice(0, 2000);
-  data.state.value = next;
-  try {
-    const res = await fetch("/api/state", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(next) });
-    if (!res.ok) say(res.status === 409 ? t("budgets.stale") : t("budgets.saveFailed"), "err");
-  } catch { say(t("budgets.saveFailed"), "err"); }
-  await data.load();
-}
+const say = (m, kind = "ok") => toast(m, { kind }); // the toasts at the bottom of the page (core/toast.js)
+// Saving goes through the data store (stores/data.js).
+function change(edit) { data.change(edit); }
 
 // ---- suggestions ----
 const props = ref({}); // what is typed in each suggestion's amount box
 const propOf = (x) => (x.k in props.value ? props.value[x.k] : x.prop);
-const accept = (x) => { const v = Math.round(+propOf(x)); if (!(v > 0)) { say(t("budgets.enter")); return; } change((n) => acceptBudget(n, x.k, v)); };
+const accept = (x) => { const v = Math.round(+propOf(x)); if (!(v > 0)) { say(t("budgets.enter"), "err"); return; } change((n) => acceptBudget(n, x.k, v)); };
 const acceptEvery = () => change((n) => acceptAll(n, M.value.fresh.slice(0, 8).map((x) => [x.k, propOf(x)])));
 const dismiss = (k) => change((n) => dismissSuggestion(n, k));
 const later = (k) => change((n) => laterReview(n, k, M.value.MK));
@@ -126,7 +116,6 @@ const goBill = () => go("/bills");
   </section>
 
   <template v-if="S">
-    <div v-if="toast" id="toasts" role="status"><div class="toast" :class="toast.kind"><span class="ti"><svg viewBox="0 0 24 24"><path v-if="toast.kind === 'err'" d="M12 7.5v5.5M12 16.5h.01M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0" /><path v-else d="M5 12.5l4.5 4.5L19 7.5" /></svg></span><div class="tm"><div>{{ toast.m }}</div></div><button type="button" class="tx" aria-label="Dismiss" @click="toast = null"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg></button></div></div>
 
     <ActSheet v-if="form" @close="form = null">
       <h3>{{ t("budgets.add.title") }}</h3>

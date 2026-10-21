@@ -6,7 +6,6 @@ import { computed, defineAsyncComponent, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
 import PageHeader from "../components/PageHeader.vue";
-import ToastHost from "./settings/ToastHost.vue";
 import { NAV, PANES } from "./settings/nav.js";
 import { settingsTab } from "./settings/tab.js";
 
@@ -34,5 +33,4 @@ const pane = computed(() => panes[settingsTab.value] || panes.prof);
       </div>
     </div>
   </section>
-  <ToastHost />
 </template>

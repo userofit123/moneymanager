@@ -4,6 +4,8 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { toast } from "../core/toast.js";
+import { request, sendJson } from "../core/http.js";
 import PageHeader from "../components/PageHeader.vue";
 import BaseButton from "../components/BaseButton.vue";
 import BaseChip from "../components/BaseChip.vue";
@@ -150,17 +152,9 @@ onMounted(() => { if (typeof IntersectionObserver === "undefined") return; io = 
 onBeforeUnmount(() => io && io.disconnect());
 
 // Saving: change a copy, send the whole state like the old page, then load the fresh copy. 409 means a sync changed the data first.
-const saveError = ref("");
-async function save(edit, action, detail) {
-  const next = structuredClone(S.value);
-  if (edit(next) === false) return;
-  next.audit = [{ t: new Date().toISOString(), who: "You", action, detail, undo: null }, ...(next.audit || [])].slice(0, 2000);
-  data.state.value = next;
-  try {
-    const r = await fetch("/api/state", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(next) });
-    saveError.value = r.ok ? "" : r.status === 409 ? t("activity.stale") : t("activity.saveFailed");
-  } catch { saveError.value = t("activity.saveFailed"); }
-  await data.load();
+// Saving goes through the data store (stores/data.js), which shows "Saved" or "Not saved" by itself.
+function save(edit, action, detail, undo) {
+  data.change((next) => (edit(next) === false ? false : [[action, detail, undo]]));
 }
 const change = (id, edit, action, detail) => save((next) => { const tx = next.tx.find((x) => x.id === id); if (!tx) return false; edit(tx); }, action, detail);
 const setCat = (x, c) => change(x.id, (tx) => { tx.c = c || "Uncategorized"; }, "Edited category", x.desc + ": " + (x.c || "—") + " → " + (c || "—"));
@@ -183,9 +177,7 @@ function onTagKey(e, x) {
 const offer = ref(null); // { id, tags, kw, n }
 const rule = ref(null); // the rule window: { id, tags, kw, all }
 const ruleMatches = computed(() => (rule.value ? tagSimilar(S.value, rule.value.kw.trim().toLowerCase(), rule.value.id, rule.value.tags) : []));
-const toast = ref("");
-let toastTimer = null;
-const say = (m) => { toast.value = m; clearTimeout(toastTimer); toastTimer = setTimeout(() => { toast.value = ""; }, 4000); };
+const say = (m, kind = "ok") => toast(m, { kind }); // the toasts at the bottom of the page (core/toast.js)
 function openRule() { rule.value = { ...offer.value, all: true }; offer.value = null; }
 async function saveRule() {
   const r = rule.value, kw = r.kw.trim().toLowerCase();
@@ -207,7 +199,7 @@ const xfNo = (o) => save((n) => { n.xf.find((x) => x.o === o).st = "rej"; }, "No
 const dupDel = (x) => save((n) => { n.tx = n.tx.filter((y) => y.id !== x.id); }, "Deleted duplicate", x.desc + " on " + x.d);
 const dupKeep = (x) => save((n) => { n.dupOk = { ...(n.dupOk || {}), [x.id]: 1 }; }, "Kept both transactions", x.desc);
 async function gapCall(id, what, body) {
-  try { const r = await fetch(`/api/gaps/${id}/${what}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body || {}) }); if (!r.ok) throw 0; } catch { saveError.value = t("activity.saveFailed"); }
+  try { await data.api(`/api/gaps/${id}/${what}`, sendJson("POST", body || {})); } catch { say(t("activity.saveFailed"), "err"); }
   await data.load();
 }
 const gapNote = ref(null); // the gap being dismissed, with the user's note
@@ -228,7 +220,7 @@ function openTx(x) {
   if (!x.hasDet) { details.value = { ...details.value, [x.id]: details.value[x.id] || { details: null } }; return; }
   if (details.value[x.id]) return;
   details.value = { ...details.value, [x.id]: "load" };
-  fetch("/api/transactions/" + x.id + "/details", { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).catch(() => null)
+  request("/api/transactions/" + x.id + "/details", { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).catch(() => null)
     .then((j) => { details.value = { ...details.value, [x.id]: j || { details: null } }; });
 }
 const det = computed(() => (cur.value ? details.value[cur.value.id] : null));
@@ -304,9 +296,9 @@ async function attach(e) {
   if (!x || !files.length) return;
   try {
     const ups = [];
-    for (const fl of files) { const r = await fetch(`/api/transactions/${x.id}/documents`, { method: "POST", headers: { "x-filename": encodeURIComponent(fl.name), "content-type": fl.type || "application/octet-stream" }, body: fl }); if (!r.ok) throw 0; ups.push(await r.json()); }
+    for (const fl of files) ups.push(await data.api(`/api/transactions/${x.id}/documents`, { method: "POST", headers: { "x-filename": encodeURIComponent(fl.name), "content-type": fl.type || "application/octet-stream" }, body: fl }));
     await change(x.id, (tx) => { tx.docs = [...(tx.docs || []), ...ups.map((u) => u.filename)]; tx.docIds = [...(tx.docIds || []), ...ups.map((u) => u.id)]; tx.docHas = [...(tx.docHas || []), ...ups.map(() => true)]; }, "Attached document", x.desc + ": " + ups.map((u) => u.filename).join(", "));
-  } catch { say(t("activity.w.uploadFail")); }
+  } catch { say(t("activity.w.uploadFail"), "err"); }
 }
 
 // "Count in another month", "Name rule" and "Payment history": the current app's three pop-ups, with the same words and layout.
@@ -318,7 +310,7 @@ const mk = (m) => mname(m) + " " + m.slice(0, 4);
 function monthOpen(x) { txOpen.value = null; pop.value = { kind: "month", id: x.id, pick: rmOf(x) || String(x.d).slice(0, 7) }; }
 const monthTx = computed(() => (pop.value?.kind === "month" ? (S.value?.tx || []).find((y) => y.id === pop.value.id) : null));
 function monthSet(x, m) {
-  if (!/^\d{4}-\d{2}$/.test(m || "")) { say(t("activity.w.mPickFirst")); return; }
+  if (!/^\d{4}-\d{2}$/.test(m || "")) { say(t("activity.w.mPickFirst"), "err"); return; }
   const own = String(x.d).slice(0, 7), v = m === own ? undefined : m;
   if (v === x.rm) return;
   change(x.id, (tx) => { if (v) tx.rm = v; else delete tx.rm; }, "Counted in another month", x.desc + ": " + (v ? mk(v) : "its own month"));
@@ -329,13 +321,13 @@ function nameRuleFrom(x) { txOpen.value = null; const f0 = x.memo ? "memo" : "de
 watch(() => pop.value?.f, (v) => { const p = pop.value; if (p?.kind === "rule" && v !== "any") { const x = (S.value?.tx || []).find((y) => y.id === p.id); p.k = (x && nameField(x, v)) || ""; } });
 async function ruleSave() {
   const p = pop.value, kw = p.k.trim(), nm = p.n.trim();
-  if (!kw || !nm) { say(t("activity.w.nrNeed")); return; }
+  if (!kw || !nm) { say(t("activity.w.nrNeed"), "err"); return; }
   await save((next) => { next.cfg = next.cfg || {}; next.cfg.nameRules = [...(next.cfg.nameRules || []), { k: kw, n: nm, f: p.f, m: p.m }]; }, "Added name rule", '"' + kw + '" → ' + nm);
   popClose(); say(t("activity.w.nrAdded") + ": “" + kw + "” → “" + nm + "”");
 }
 function histOpen(x) {
   const L = sameStore(x).sort((a, b) => b.d.localeCompare(a.d) || String(b.id).localeCompare(String(a.id)));
-  if (!L.length) { say(t("activity.w.hNone")); return; }
+  if (!L.length) { say(t("activity.w.hNone"), "err"); return; }
   txOpen.value = null; pop.value = { kind: "hist", title: displayName(S.value, x), rows: L, q: displayName(S.value, x) };
 }
 const hist = computed(() => {
@@ -456,8 +448,6 @@ onMounted(() => data.start());
     </div>
 
     <RangeCal v-if="cal" :from="f.p === 'custom' ? f.from : ''" :to="f.p === 'custom' ? f.to : ''" :anchor="cal.anchor" :df="DFM" :ws="WS" @apply="calApply" @cancel="calCancel" />
-
-    <div v-if="toast || saveError" id="toasts" role="status"><div class="toast" :class="saveError ? 'err' : 'ok'"><span class="ti"><svg viewBox="0 0 24 24"><path v-if="saveError" d="M12 7.5v5.5M12 16.5h.01M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0" /><path v-else d="M5 12.5l4.5 4.5L19 7.5" /></svg></span><div class="tm"><div>{{ saveError || toast }}</div></div><button type="button" class="tx" aria-label="Dismiss" @click="toast = ''; saveError = ''">×</button></div></div>
 
     <!-- "Tag more like this?" -->
     <BaseDialog :open="!!offer" :title="t('activity.offer.title')" @update:open="(v) => !v && (offer = null)">

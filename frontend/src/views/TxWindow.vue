@@ -4,6 +4,8 @@
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { toast } from "../core/toast.js";
+import { request } from "../core/http.js";
 import { hrefOf, onLink } from "../router.js";
 import { pages } from "../routes.js";
 import BaseButton from "../components/BaseButton.vue";
@@ -27,17 +29,9 @@ const dateFmt = (d, o) => new Date(d + "T12:00:00").toLocaleDateString(locale.va
 const day = (d) => dateFmt(d, { day: "numeric", month: "short" });
 const plainAmount = (x) => x.balUpd || k.value.isXf(x);
 // Saving: change a copy, send the whole state like the old page, then load the fresh copy. 409 means a sync changed the data first.
-const saveError = ref("");
-async function save(edit, action, detail) {
-  const next = structuredClone(S.value);
-  if (edit(next) === false) return;
-  next.audit = [{ t: new Date().toISOString(), who: "You", action, detail, undo: null }, ...(next.audit || [])].slice(0, 2000);
-  data.state.value = next;
-  try {
-    const r = await fetch("/api/state", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(next) });
-    saveError.value = r.ok ? "" : r.status === 409 ? t("activity.stale") : t("activity.saveFailed");
-  } catch { saveError.value = t("activity.saveFailed"); }
-  await data.load();
+// Saving goes through the data store (stores/data.js), which shows "Saved" or "Not saved" by itself.
+function save(edit, action, detail, undo) {
+  data.change((next) => (edit(next) === false ? false : [[action, detail, undo]]));
 }
 const change = (id, edit, action, detail) => save((next) => { const tx = next.tx.find((x) => x.id === id); if (!tx) return false; edit(tx); }, action, detail);
 const setCat = (x, c) => change(x.id, (tx) => { tx.c = c || "Uncategorized"; }, "Edited category", x.desc + ": " + (x.c || "—") + " → " + (c || "—"));
@@ -60,9 +54,7 @@ function onTagKey(e, x) {
 const offer = ref(null); // { id, tags, kw, n }
 const rule = ref(null); // the rule window: { id, tags, kw, all }
 const ruleMatches = computed(() => (rule.value ? tagSimilar(S.value, rule.value.kw.trim().toLowerCase(), rule.value.id, rule.value.tags) : []));
-const toast = ref("");
-let toastTimer = null;
-const say = (m) => { toast.value = m; clearTimeout(toastTimer); toastTimer = setTimeout(() => { toast.value = ""; }, 4000); };
+const say = (m, kind = "ok") => toast(m, { kind }); // the toasts at the bottom of the page (core/toast.js)
 function openRule() { rule.value = { ...offer.value, all: true }; offer.value = null; }
 async function saveRule() {
   const r = rule.value, kw = r.kw.trim().toLowerCase();
@@ -93,7 +85,7 @@ function openTx(x) {
   if (!x.hasDet) { details.value = { ...details.value, [x.id]: details.value[x.id] || { details: null } }; return; }
   if (details.value[x.id]) return;
   details.value = { ...details.value, [x.id]: "load" };
-  fetch("/api/transactions/" + x.id + "/details", { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).catch(() => null)
+  request("/api/transactions/" + x.id + "/details", { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).catch(() => null)
     .then((j) => { details.value = { ...details.value, [x.id]: j || { details: null } }; });
 }
 const det = computed(() => (cur.value ? details.value[cur.value.id] : null));
@@ -125,7 +117,6 @@ const activityHref = hrefOf(pages.find((p) => p.name === "activity"));
 
 <template>
   <div>
-    <p v-if="toast" class="toast" role="status">{{ toast }}</p>
 
     <!-- "Tag more like this?" -->
     <BaseDialog :open="!!offer" :title="t('activity.offer.title')" @update:open="(v) => !v && (offer = null)">
@@ -219,7 +210,6 @@ const activityHref = hrefOf(pages.find((p) => p.name === "activity"));
 h3 { font-size: 14px; font-weight: 600; margin: var(--sp4) 0 var(--sp2); color: var(--tx); }
 .row { display: flex; flex-wrap: wrap; gap: var(--sp2); align-items: center; }
 .btnlink { display: inline-flex; align-items: center; min-height: 40px; padding: 0 var(--sp4); border-radius: var(--pill); border: 1px solid var(--ol); color: var(--acc); text-decoration: none; font-weight: 600; }
-.toast { position: fixed; inset-inline: 0; bottom: calc(90px + var(--sb)); margin: 0 auto; width: fit-content; max-width: 90vw; padding: 10px 18px; border-radius: var(--pill); background: var(--tx); color: var(--bg); z-index: 30; }
 .fld { display: grid; gap: 4px; margin-bottom: var(--sp3); color: var(--tx); font-size: 13px; }
 .chk { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--tx); }
 .txh { display: flex; justify-content: space-between; align-items: center; gap: var(--sp3); flex-wrap: wrap; }

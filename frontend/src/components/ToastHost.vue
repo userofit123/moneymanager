@@ -1,7 +1,7 @@
 <script setup>
-// The messages at the bottom of the page, the current app's toast markup (web/js/07-periods-rules.js toast()).
+// The messages at the bottom of the page, the current app's toast markup (web/js/07-periods-rules.js toast()). Shown on every page (App.vue).
 import { useI18n } from "vue-i18n";
-import { toasts, dismissToast } from "./shared.js";
+import { toasts, dismissToast } from "../core/toast.js";
 const { t } = useI18n();
 const ICON = {
   ok: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
@@ -19,11 +19,11 @@ const act = (a, id) => { dismissToast(id); a.run && a.run(); };
         <b v-if="x.title">{{ x.title }}</b>
         <div>{{ x.m }}</div>
         <div v-if="x.undo || x.actions.length" class="tacts">
-          <button v-if="x.undo" type="button" class="tu" @click="act({ run: x.undo }, x.id)">{{ t("settings.common.undo") }}</button>
+          <button v-if="x.undo" type="button" class="tu" @click="act({ run: x.undo }, x.id)">{{ t("save.undo") }}</button>
           <button v-for="(a, i) in x.actions" :key="i" type="button" class="tu" @click="act(a, x.id)">{{ a.label }}</button>
         </div>
       </div>
-      <button type="button" class="tx" :aria-label="t('settings.common.dismiss')" @click="dismissToast(x.id)">×</button>
+      <button type="button" class="tx" :aria-label="t('save.dismiss')" @click="dismissToast(x.id)">×</button>
     </div>
   </div>
 </template>

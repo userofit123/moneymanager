@@ -31,10 +31,9 @@ const WS = (() => { try { return localStorage.getItem("moneyWs") === "mon" ? "mo
 const DF = (() => { try { return localStorage.getItem("moneyDf") === "mdy" ? "mdy" : "dmy"; } catch { return "dmy"; } })();
 
 // ---- data ----
-const fx = ref({});
+const fx = computed(() => data.fx.value.fx); // exchange rates, loaded with the data
 onMounted(async () => {
   data.start();
-  try { const r = await fetch("/api/fx", { cache: "no-store" }); if (r.ok) fx.value = (await r.json()).fx || {}; } catch { /* no rates */ }
 });
 const S = computed(() => data.state.value);
 const NOW = new Date(), MK = NOW.getFullYear() + "-" + String(NOW.getMonth() + 1).padStart(2, "0");
@@ -62,12 +61,9 @@ watch(() => [RNG.cat, RNG.merch, RNG.tag, RN.bars, RN.lines, RN.lt, CMP.cat, CMP
 watch(() => JSON.stringify(TR), saveTR);
 
 // ---- saving ----
-async function save(edit, action, detail, undo) {
-  const next = structuredClone(S.value); edit(next);
-  if (action) next.audit = [{ t: new Date().toISOString(), who: "You", action, detail, undo: undo || null }, ...(next.audit || [])].slice(0, 2000);
-  data.state.value = next;
-  try { await fetch("/api/state", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(next) }); } catch { /* reloaded below */ }
-  await data.load();
+// Saving goes through the data store (stores/data.js).
+function save(edit, action, detail, undo) {
+  data.change((next) => { edit(next); return action ? [[action, detail, undo]] : []; });
 }
 
 // ---- opening Activity on a period, a category, a tag or a merchant ----

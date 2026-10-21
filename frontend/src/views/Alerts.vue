@@ -6,6 +6,7 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { request, sendJson } from "../core/http.js";
 import { i18n } from "../i18n.js";
 import { go, hrefOf } from "../router.js";
 import { pages } from "../routes.js";
@@ -22,10 +23,9 @@ import en from "../locales/en.json";
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);
 const S = computed(() => data.state.value);
-const fx = ref({});
+const fx = computed(() => data.fx.value.fx); // exchange rates, loaded with the data
 onMounted(async () => {
   data.start();
-  try { const r = await fetch("/api/fx", { cache: "no-store" }); if (r.ok) fx.value = (await r.json()).fx || {}; } catch { /* the old page shows the same without rates */ }
 });
 
 const loc = computed(() => (locale.value === "he" ? "he-IL" : "en-GB"));
@@ -53,16 +53,12 @@ watch(enRows, (L) => {
   if (!S.value || S.value.rev == null) return;
   const s = JSON.stringify(L.map((x) => [x.key, x.title, x.detail]));
   if (s === sig) return; sig = s;
-  fetch("/api/alerts/seen", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ alerts: L }) }).then(() => { if (tab.value === "hist" && hist.value.loaded) loadHist(false); }).catch(() => {});
+  request("/api/alerts/seen", sendJson("POST", { alerts: L })).then(() => { if (tab.value === "hist" && hist.value.loaded) loadHist(false); }).catch(() => {});
 }, { immediate: true });
 
 // ---- saving ----
-async function change(edit) {
-  const next = structuredClone(S.value); edit(next);
-  data.state.value = next;
-  try { await fetch("/api/state", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(next) }); } catch { /* the next load shows what the server has */ }
-  await data.load();
-}
+// Saving goes through the data store (stores/data.js).
+function change(edit) { data.change((next) => { edit(next); return []; }); }
 const dismiss = (x) => change((n) => { n.dismissed = { ...(n.dismissed || {}), [x.id]: 1 }; });
 
 // ---- Open: the same places as the old page (it also narrows the list, which Activity here does not do yet) ----
@@ -77,7 +73,7 @@ const hist = ref({ rows: [], more: false, loaded: false, busy: false });
 async function loadHist(more) {
   const h = hist.value; if (h.busy) return; h.busy = true;
   try {
-    const off = more ? h.rows.length : 0, r = await fetch("/api/alerts/history?limit=50&offset=" + off, { cache: "no-store" }), j = await r.json();
+    const off = more ? h.rows.length : 0, r = await request("/api/alerts/history?limit=50&offset=" + off, { cache: "no-store" }), j = await r.json();
     h.rows = more ? h.rows.concat(j.rows) : j.rows; h.more = j.more; h.loaded = true;
   } catch { /* stays on Loading */ }
   h.busy = false;

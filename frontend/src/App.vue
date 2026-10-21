@@ -9,10 +9,14 @@ import { current, hrefOf, onLink, startRouter } from "./router.js";
 import NotMovedYet from "./views/NotMovedYet.vue";
 import BaseDialog from "./components/BaseDialog.vue";
 import HelpPanel from "./help/HelpPanel.vue";
+import ToastHost from "./components/ToastHost.vue";
+import { data } from "./stores/data.js";
+import "./core/notices.js";
 
 const { t, locale } = useI18n();
 const tk = (k) => t(k);
 startRouter();
+data.start(); // the data loads once for the whole app and stays fresh (stores/data.js)
 const navPages = pages.filter((p) => p.nav);
 const views = new Map(pages.filter((p) => p.component).map((p) => [p.name, defineAsyncComponent(p.component)]));
 const view = computed(() => views.get(current.value.name));
@@ -43,6 +47,7 @@ watch(locale, () => { document.title = tk("nav." + current.value.name) + " · " 
       <NotMovedYet v-else :key="current.name" :page="current" />
     </main>
     <HelpPanel />
+    <ToastHost />
 
     <BaseDialog v-model:open="more" :title="t('shell.more')">
       <div class="morelist">

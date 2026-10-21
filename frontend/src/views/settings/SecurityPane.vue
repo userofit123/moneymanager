@@ -6,6 +6,7 @@ import { useI18n } from "vue-i18n";
 import SetHead from "./SetHead.vue";
 import SetRow from "./SetRow.vue";
 import { api, sendJson, toast, toastErr } from "./shared.js";
+import { request } from "../../core/http.js";
 
 const { t } = useI18n();
 const tk = (k) => t("settings.sec." + k);
@@ -13,7 +14,7 @@ const totp = ref(false);
 const start = ref(null); // { secret, uri } while two-factor is being set up
 const pw = ref({ cur: "", next: "" }), code = ref(""), offPw = ref("");
 
-async function status() { try { totp.value = (await (await fetch("/api/auth/status")).json()).totp; } catch { /* keep what we had */ } }
+async function status() { try { totp.value = (await (await request("/api/auth/status", { cache: "no-store" })).json()).totp; } catch { /* keep what we had */ } }
 onMounted(status);
 
 // A call to the sign-in part of the server; says `msg` when it worked and shows the server's words when it did not.
@@ -29,7 +30,7 @@ async function tfaEnable() { const r = await call("/api/auth/2fa/enable", { code
 async function tfaDisable() { const r = await call("/api/auth/2fa/disable", { password: offPw.value }, tk("tfaIsOff")); if (r) { offPw.value = ""; await status(); } }
 // Signing out sends you to the sign-in page.
 async function logout(all) {
-  try { await fetch(all ? "/api/auth/logout-all" : "/api/auth/logout", { method: "POST" }); } catch { /* go to sign in anyway */ }
+  try { await request(all ? "/api/auth/logout-all" : "/api/auth/logout", { method: "POST" }); } catch { /* go to sign in anyway */ }
   try { caches.delete("money-data"); } catch { /* none */ }
   location.assign("/");
 }

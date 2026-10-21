@@ -6,6 +6,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { toast } from "../core/toast.js";
 import BaseCard from "../components/BaseCard.vue";
 import BaseButton from "../components/BaseButton.vue";
 import PageHeader from "../components/PageHeader.vue";
@@ -20,10 +21,9 @@ const tk = (key, ...a) => t(key, ...a);
 const n0 = (v) => Math.round(Math.abs(v)).toLocaleString("en-IL");
 const fm = (v) => (v < 0 ? "−" : "") + "₪" + n0(v);
 
-const fx = ref({});
+const fx = computed(() => data.fx.value.fx); // exchange rates, loaded with the data
 onMounted(async () => {
   data.start();
-  try { const r = await fetch("/api/fx", { cache: "no-store" }); if (r.ok) fx.value = (await r.json()).fx || {}; } catch { /* no rates: foreign money counts at 1 */ }
 });
 
 const S = computed(() => data.state.value);
@@ -34,23 +34,12 @@ const loc = computed(() => (locale.value === "he" ? "he-IL" : "en-GB"));
 const mlab = (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, { month: "short", year: "numeric" });
 const dstr = (d) => new Date(String(d).slice(0, 10) + "T12:00:00").toLocaleDateString(loc.value, { day: "numeric", month: "short", year: "numeric" });
 
-// Saving: change a copy, send the whole state like the old page, then load the fresh copy. 409 means a sync changed the data first.
-async function save(edit, action, detail) {
-  const next = structuredClone(S.value);
-  const r = edit(next); if (r === false) return;
-  // edit can give back its own history lines as [[action, detail], ...] (one per change, like the current app).
-  const lines = Array.isArray(r) ? r : [[action, detail]], at = new Date().toISOString();
-  next.audit = [...lines.map(([a, d]) => ({ t: at, who: "You", action: a, detail: d, undo: null })).reverse(), ...(next.audit || [])].slice(0, 2000);
-  data.state.value = next;
-  try {
-    const r = await fetch("/api/state", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(next) });
-    if (!r.ok) say(r.status === 409 ? t("jars.stale") : t("jars.saveFailed"), "err");
-  } catch { say(t("jars.saveFailed"), "err"); }
-  await data.load();
+// Saving goes through the data store (stores/data.js), like every page.
+// edit can give back its own history lines as [[action, detail, undo?], ...] (one per change, like the current app).
+function save(edit, action, detail) {
+  data.change((next) => { const r = edit(next); if (r === false) return false; return Array.isArray(r) ? r : [[action, detail]]; });
 }
-const toast = ref(null); // { m, kind }: the old app's toast box
-let toastTimer = null;
-const say = (m, kind = "ok") => { toast.value = { m, kind }; clearTimeout(toastTimer); toastTimer = setTimeout(() => { toast.value = null; }, kind === "err" ? 3800 : 3800); };
+const say = (m, kind = "ok") => toast(m, { kind }); // the toasts at the bottom of the page (core/toast.js)
 
 // Keep untouched.
 const bufText = ref(null);
@@ -69,7 +58,7 @@ const filling = ref(false);
 async function fill() {
   filling.value = true;
   try {
-    const r = await fetch("/api/jars/fill", { method: "POST" }); if (!r.ok) throw 0; const j = await r.json();
+    const j = await data.api("/api/jars/fill", { method: "POST" });
     say(j.applied ? t("jars.filled", { n: j.applied, amount: fm(j.total || 0) }, j.applied) : t("jars.nothingToFill"));
     await data.load();
   } catch { say(t("jars.saveFailed"), "err"); }
@@ -270,8 +259,6 @@ const doneLine = (d) => [t("jars.doneOn", { date: dstr(d.done) }), d.need > 0 ? 
         </template>
       </div>
     </Teleport>
-
-    <div v-if="toast" id="toasts" role="status"><div class="toast" :class="toast.kind"><span class="ti"><svg viewBox="0 0 24 24"><path v-if="toast.kind === 'err'" d="M12 7.5v5.5M12 16.5h.01M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0" /><path v-else d="M5 12.5l4.5 4.5L19 7.5" /></svg></span><div class="tm"><div>{{ toast.m }}</div></div><button type="button" class="tx" aria-label="Dismiss" @click="toast = null">×</button></div></div>
 
     <JarForm v-model:open="form.open" :S="S" :M="M" :id="form.id" :start="form.start" @save="saveForm" />
 

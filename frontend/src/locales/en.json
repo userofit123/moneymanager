@@ -1384,5 +1384,23 @@
     "histEmpty": "No alerts yet. Every alert that appears is recorded here, with when it came and when it went.",
     "more": "Show more"
   },
-  "help": {"aboutPage": "About this page", "aboutSection": "About this section", "close": "Close", "noGuide": "There is no guide for this page yet."}
+  "help": {
+    "aboutPage": "About this page",
+    "aboutSection": "About this section",
+    "close": "Close",
+    "noGuide": "There is no guide for this page yet."
+  },
+  "save": {
+    "saved": "Saved",
+    "nSaved": "{n} changes saved",
+    "stale": "Updated from a sync · please repeat your last change",
+    "failTitle": "Not saved",
+    "fail": "Your last change is not saved yet. We will keep trying.",
+    "offTitle": "You are offline",
+    "off": "You are offline, so this is the data from your last visit. You cannot save changes until you are back online.",
+    "jars": "Jars",
+    "filled": "1 jar received money | {n} jars received money",
+    "undo": "Undo",
+    "dismiss": "Dismiss"
+  }
 }

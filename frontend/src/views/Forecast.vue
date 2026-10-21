@@ -20,10 +20,9 @@ const fm = (v) => (v < 0 ? "−" : "") + "₪" + n0(v);
 const sg = fm;
 const loc = computed(() => (locale.value === "he" ? "he-IL" : "en-GB"));
 
-const fx = ref({});
+const fx = computed(() => data.fx.value.fx); // exchange rates, loaded with the data
 onMounted(async () => {
   data.start();
-  try { const r = await fetch("/api/fx", { cache: "no-store" }); if (r.ok) fx.value = (await r.json()).fx || {}; } catch { /* no rates: foreign money counts at 1 */ }
 });
 const S = computed(() => data.state.value);
 

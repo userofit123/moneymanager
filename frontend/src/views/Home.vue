@@ -30,10 +30,9 @@ const cur = (c) => (locale.value === "he" ? { USD: "דולר", ILS: "שקל" }[c
 const pair = (c) => (locale.value === "he" && c === "USD" ? "דולר ← שקל" : c + " → ILS");
 const lblOf = (a) => (a.lbl || a.n).replace(a.n, an(a.n));
 
-const fx = ref({ fx: {}, series: {}, asOf: null, stale: false, live: false });
+const fx = data.fx; // exchange rates, loaded with the data
 onMounted(async () => {
   data.start();
-  try { const r = await fetch("/api/fx", { cache: "no-store" }); if (!r.ok) throw 0; const j = await r.json(); fx.value = { fx: j.fx || {}, series: j.series || {}, asOf: j.asOf, stale: !!j.stale, live: Object.values(j.series || {}).some((x) => x.length >= 2) }; } catch { /* no rates: the block says so */ }
 });
 
 const S = computed(() => data.state.value);
