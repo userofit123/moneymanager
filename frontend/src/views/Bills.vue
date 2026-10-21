@@ -13,7 +13,7 @@ import ActSheet from "./ActSheet.vue";
 import { displayName } from "./activity.js";
 import { placeMenu } from "./jars-ui.js";
 import { vRich } from "../lib/richtip.js";
-import { billsModel, billState, payHistory, withDetected, addBill, flagBill, cancelBill, restoreBill, deleteBill, setBillType, sugYes, sugNo, typeOf, cadText, freqText, evTipText, makeDstr, f0, fm } from "../lib/bills.js";
+import { billsModel, billState, payHistory, addBill, flagBill, cancelBill, restoreBill, deleteBill, setBillType, sugYes, sugNo, typeOf, cadText, freqText, evTipText, makeDstr, f0, fm } from "../lib/bills.js";
 
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);
@@ -67,14 +67,9 @@ const evTip = (b) => evTipText(b, t, dstr);
 
 // ---- saving (like Jars: change a copy, send the whole state, then load the fresh copy) ----
 const say = (m, kind = "ok") => toast(m, { kind }); // the toasts at the bottom of the page (core/toast.js)
-// Saving goes through the data store (stores/data.js). The bills found by the app are saved with the first change, like the current app.
+// Saving goes through the data store (stores/data.js). Bills the app finds are saved by the upkeep after every load (core/settle.js).
 function change(edit) {
-  data.change((cur) => {
-    const { next, lines } = withDetected(cur, new Date());
-    const r = edit(next); if (r === false) return false;
-    Object.keys(cur).forEach((k) => delete cur[k]); Object.assign(cur, next);
-    return [...lines, ...r].map(([a, d, who]) => [a, d, null, who]);
-  });
+  data.change((next) => { const r = edit(next); if (r === false) return false; return r.map(([a, d, who]) => [a, d, null, who]); });
 }
 // The payments of bill number i, worked out on the same state the change is made on.
 const txOf = (next, i) => { const st = billState(next, new Date()); return st.billTx(next.bills[i]); };

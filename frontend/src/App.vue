@@ -12,6 +12,7 @@ import HelpPanel from "./help/HelpPanel.vue";
 import ToastHost from "./components/ToastHost.vue";
 import { data } from "./stores/data.js";
 import "./core/notices.js";
+import "./core/upkeep.js";
 
 const { t, locale } = useI18n();
 const tk = (k) => t(k);

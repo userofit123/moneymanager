@@ -35,11 +35,12 @@ export function createDataStore({ fetchJson = getJson, connect = connectLive, se
       .finally(() => { loading.value = false; busy = null; });
     return busy;
   }
-  // Takes the server's copy, then lets the app do its own upkeep on it (see settle in core/settle.js).
+  // Takes the server's copy, then the app does its own upkeep on it (core/settle.js), saved like any change.
   function adopt(s) {
     state.value = s;
-    if (hooks.settle) change((S) => hooks.settle(S), { quiet: true });
+    resettle();
   }
+  const resettle = () => { if (hooks.settle && state.value) change(() => [], { quiet: true }); };
   // Only loads again when the server's version changed, and never over a change that is not saved yet.
   async function refreshIfChanged() {
     if (dirty || saving.value) return;
@@ -53,6 +54,7 @@ export function createDataStore({ fetchJson = getJson, connect = connectLive, se
     try {
       const j = await fetchJson("/api/fx");
       fx.value = { fx: j.fx || {}, series: j.series || {}, asOf: j.asOf, stale: !!j.stale, live: Object.values(j.series || {}).some((x) => x.length >= 2) };
+      resettle(); // the held-back amount counts foreign money at the new rates
     } catch { /* no rates: foreign money counts at 1, and the pages say so */ }
   }
   async function start() {
@@ -71,10 +73,11 @@ export function createDataStore({ fetchJson = getJson, connect = connectLive, se
     const next = structuredClone(cur);
     const lines = edit(next);
     if (lines === false) return [];
+    // after every change the app's upkeep runs on the result, like renderAll() in the current app
+    const upkeep = hooks.settle ? hooks.settle(next) || [] : [];
     const at = new Date().toISOString();
-    const entries = (lines || []).map(([action, detail, undo, who]) => ({ t: at, who: who || "You", action, detail: detail || "", undo: undo || null }));
+    const entries = [...(lines || []), ...upkeep].map(([action, detail, undo, who]) => ({ t: at, who: who || "You", action, detail: detail || "", undo: undo || null }));
     if (entries.length) next.audit = [...[...entries].reverse(), ...(next.audit || [])].slice(0, 2000);
-    if (!quiet && hooks.settle) hooks.settle(next);
     state.value = next;
     if (JSON.stringify(next) !== JSON.stringify(cur)) { dirty = true; schedule(delay); }
     const mine = entries.filter((e) => e.who !== "System");
@@ -93,15 +96,16 @@ export function createDataStore({ fetchJson = getJson, connect = connectLive, se
         state.value = r.json.state; // the server's copy wins; the person repeats the last change
         hooks.notify("stale");
         saving.value = false;
-        if (hooks.settle) change((S) => hooks.settle(S), { quiet: true });
+        resettle();
         return;
       }
       if (!r.ok) throw new Error("HTTP " + r.status);
       const j = r.json, now = state.value;
       // what the server gives back: the new version, the ids of the new history lines, and the jars after it filled them
-      const key = (a) => a.t + "|" + a.action + "|" + a.detail;
-      const ids = new Map(fresh.map((a, i) => [key(a), j.auditIds?.[i]]));
-      const next = { ...now, rev: j.rev, audit: (now.audit || []).map((a) => (!a.id && ids.get(key(a)) != null ? { ...a, id: ids.get(key(a)) } : a)) };
+      // The history lines sent without an id are the oldest of the lines still without one (newer lines are added in front), in the same order.
+      const audit = [...(now.audit || [])], open = audit.map((a, i) => (a.id ? -1 : i)).filter((i) => i >= 0).slice(-fresh.length);
+      if (fresh.length) open.forEach((at, k) => { const id = j.auditIds?.[k]; if (id != null) audit[at] = { ...audit[at], id }; });
+      const next = { ...now, rev: j.rev, audit };
       // the typed jar balances are saved now, so their "just typed" marks go
       next.jars = (now.jars || []).map((x) => (edited.has(x.id) ? strip(x) : x));
       if (j.jars) next.jars = mergeJars(next.jars, j.jars, now === sent);
