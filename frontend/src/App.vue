@@ -29,6 +29,7 @@ import AskPop from "./components/AskPop.vue";
 import TxWindow from "./components/tx/TxWindow.vue";
 import TxPops from "./components/tx/TxPops.vue";
 import DocViewer from "./components/tx/DocViewer.vue";
+import AssistWindow from "./views/settings/AssistWindow.vue";
 import { suggestions, suggestOpen, bulbPop } from "./core/suggest.js";
 
 const { t } = useI18n();
@@ -76,6 +77,7 @@ addEventListener("offline", () => (online.value = false));
     <TxWindow />
     <TxPops />
     <DocViewer />
+    <AssistWindow />
     <Suggestions />
     <WelcomePops v-if="app.phase === 'ready'" />
   </template>

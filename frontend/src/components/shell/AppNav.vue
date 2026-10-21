@@ -17,7 +17,6 @@ const navPages = pages.filter((p) => p.nav);
 // the current app's page names, which its stylesheet uses (for example nav .nb[data-v=alerts] is hidden on a phone)
 const OLDV = { recap: "recap", home: "dash", accounts: "acc", activity: "tx", jars: "jars", bills: "bills", budgets: "budg", reports: "rep", forecast: "fc", alerts: "alerts", categories: "cats", settings: "set" };
 const badge = (p) => (p.name === "alerts" ? alertList.value.length : p.name === "activity" ? reviewCount.value : 0);
-const moreOn = computed(() => !current.value.main);
 const nav = ref(null), pill = ref(null);
 
 // The highlight glides from the old page to the new one, stretching on the way (navPill in web/js/09-profile-export-settings.js).
@@ -55,7 +54,7 @@ onBeforeUnmount(() => removeEventListener("resize", onResize));
       </button>
       <button v-if="p.name === 'jars'" type="button" class="nb only-m navplus" :aria-label="t('shell.add')" @click="quickOpen = true"><span class="pb">+</span></button>
     </template>
-    <button type="button" class="nb only-m" :class="{ on: moreOn }" @click="moreOpen = true">
+    <button type="button" class="nb only-m" @click="moreOpen = true">
       <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="19" cy="12" r="1.6" /></svg></span>{{ t("shell.more") }}<span class="badge" :style="{ display: alertList.length ? 'grid' : 'none' }">{{ alertList.length }}</span>
     </button>
     <div class="navb">

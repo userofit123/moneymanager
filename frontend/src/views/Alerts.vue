@@ -11,10 +11,8 @@ import { home, budgets } from "../core/derived.js";
 import { now } from "../core/clock.js";
 import { request, sendJson } from "../core/http.js";
 import { i18n } from "../i18n.js";
-import { go, hrefOf } from "../router.js";
-import { pages } from "../routes.js";
 import PageHeader from "../components/PageHeader.vue";
-import { openTx } from "../core/txwin.js";
+import { openAlert } from "../core/shell.js";
 import { alertsModel } from "./alerts.js";
 import { alertTexts, reverseTable, reverseText } from "../lib/alerttext.js";
 import { dstr } from "../dates.js";
@@ -62,10 +60,8 @@ watch(enRows, (L) => {
 function change(edit) { data.change((next) => { edit(next); return []; }); }
 const dismiss = (x) => change((n) => { n.dismissed = { ...(n.dismissed || {}), [x.id]: 1 }; });
 
-// ---- Open: the same places as the old page (it also narrows the list, which Activity here does not do yet) ----
-const GO = { bills: "bills", budg: "budgets", jars: "jars", tx: "activity", dash: "home", set: "settings", fc: "forecast" };
-const to = (name) => go(hrefOf(pages.find((p) => p.name === name)));
-const open = (x) => { if (x.attach) { const tx = (S.value?.tx || []).find((y) => y.id === x.attach); if (tx) { to("activity"); openTx(tx.id); } return; } to(GO[x.go] || "alerts"); };
+// ---- Open: the same places as the old page (alOpen in core/shell.js) ----
+const open = (x) => openAlert(x, x.title);
 
 // ---- tabs and history ----
 const tab = ref("now");

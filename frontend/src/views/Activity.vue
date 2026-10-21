@@ -184,8 +184,8 @@ onMounted(() => data.start());
 </script>
 
 <template>
-  <div class="activity actv">
-    <PageHeader :title="t('activity.title')" />
+  <PageHeader :title="t('activity.title')" />
+  <section id="tx" class="view on">
     <div id="txTabs" class="seg" role="tablist" :aria-label="t('activity.title')">
       <button type="button" role="tab" :aria-selected="tab === 'all'" :class="{ on: tab === 'all' }" @click="tab = 'all'">{{ t("activity.all") }}</button>
       <button type="button" role="tab" :aria-selected="tab === 'rev'" :class="{ on: tab === 'rev' }" :data-tip="t('activity.revTip')" @click="tab = 'rev'">{{ t("activity.review") }}{{ reviewCount ? " (" + reviewCount + ")" : "" }}</button>
@@ -302,5 +302,5 @@ onMounted(() => data.start());
       <label v-if="gapNote" class="fld">{{ t("activity.r.gapNoteQ") }}<textarea v-model="gapNote.note" rows="3" /></label>
       <template #actions><BaseButton variant="outline" size="small" @click="gapNote = null">{{ t("activity.d.cancel") }}</BaseButton><BaseButton :disabled="!gapNote || !gapNote.note.trim()" @click="gapCall(gapNote.id, 'review', t('txw.a.reviewed'), { note: gapNote.note.trim() }); gapNote = null">{{ t("activity.r.gapRevGo") }}</BaseButton></template>
     </BaseDialog>
-  </div>
+  </section>
 </template>

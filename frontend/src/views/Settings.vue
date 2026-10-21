@@ -8,7 +8,6 @@ import { data } from "../stores/data.js";
 import PageHeader from "../components/PageHeader.vue";
 import { NAV, PANES } from "./settings/nav.js";
 import { settingsTab } from "./settings/tab.js";
-import AssistWindow from "./settings/AssistWindow.vue";
 
 const { t } = useI18n();
 onMounted(() => { data.start(); });
@@ -34,5 +33,4 @@ const pane = computed(() => panes[settingsTab.value] || panes.prof);
       </div>
     </div>
   </section>
-  <AssistWindow />
 </template>

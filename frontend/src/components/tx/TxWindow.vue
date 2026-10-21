@@ -17,12 +17,13 @@ import { openDocs } from "../../core/docs.js";
 import { run, setCategory, addTags as addTagsAct, cpMark as cpMarkAct, ignOn as ignOnAct } from "../../core/txact.js";
 import * as A from "../../lib/txactions.js";
 import { allRows, costRows, txChips, amtText, SYM, CHIP_ICON, whyBill, futureTip } from "../../lib/txrows.js";
-import { kinds, displayName, duplicateIds, rmOf, instOf, cardOf, allTags, normTag, detailRows, flat, prettyKey } from "../../views/activity.js";
+import { kinds, displayName, duplicateIds, rmOf, instOf, cardOf, detailRows, flat, prettyKey } from "../../views/activity.js";
 import { catJarsOf } from "../../views/jars.js";
 import { fm, f0 } from "../../format.js";
 import { dcell, dstr } from "../../dates.js";
 import { go } from "../../router.js";
 import BaseSheet from "../BaseSheet.vue";
+import TagEditor from "../TagEditor.vue";
 
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);
@@ -82,23 +83,9 @@ const toggleSec = (key, ev) => { sec.value = { ...sec.value, [key]: ev.target.op
 const setName = (x, v) => run(A.setName, x.id, v);
 const setCat = (x, v) => setCategory(x.id, v);
 const setNote = (x, v) => run(A.setField, x.id, "note", v);
-const tagText = ref(""), tagOpen = ref(false), tagHi = ref(-1);
-function addTags(x, val) {
-  const add = String(val).split(",").map((v) => normTag(S.value, v)).filter((g) => g && !(x.tags || []).includes(g));
-  tagText.value = ""; tagHi.value = -1;
-  if (add.length) addTagsAct(x.id, add);
-}
+// the tags (TagEditor gives them already spelled like the tags in use); a tag rule is offered afterwards
+const addTags = (x, list) => { const add = list.filter((g) => g && !(x.tags || []).includes(g)); if (add.length) addTagsAct(x.id, add); };
 const removeTag = (x, g) => run(A.removeTag, x.id, g);
-const tagPicks = (x) => { const cur = (x.tags || []).map((g) => g.toLowerCase()), q = tagText.value.trim().replace(/^#+/, "").toLowerCase(); return allTags(S.value).filter(([g]) => !cur.includes(g.toLowerCase()) && (!q || g.toLowerCase().includes(q))).slice(0, 40); };
-const tagNew = (x) => { const q = tagText.value.trim().replace(/^#+/, ""); return q && !allTags(S.value).some(([g]) => g.toLowerCase() === q.toLowerCase()) && !(x.tags || []).some((g) => g.toLowerCase() === q.toLowerCase()); };
-function onTagKey(e, x) {
-  const L = tagPicks(x);
-  if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); tagOpen.value = true; if (L.length) tagHi.value = (tagHi.value + (e.key === "ArrowDown" ? 1 : -1) + L.length) % L.length; }
-  else if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addTags(x, tagHi.value >= 0 && L[tagHi.value] ? L[tagHi.value][0] : tagText.value); }
-  else if (e.key === "Backspace" && !tagText.value && x.tags?.length) removeTag(x, x.tags[x.tags.length - 1]);
-  else if (e.key === "Escape") { e.stopPropagation(); tagOpen.value = false; }
-}
-const onTagBlur = (x) => { if (tagText.value.trim()) addTags(x, tagText.value); setTimeout(() => { tagOpen.value = false; }, 150); };
 
 // ---- "How it's counted" and "Actions" (relH and tiles in openTx) ----
 const TIC = { hist: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', bill: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/>', rep: '<path d="M20 11a8 8 0 0 0-14-4L4 9M4 4v5h5M4 13a8 8 0 0 0 14 4l2-2M20 20v-5h-5"/>', jar: '<path d="M8 3h8M9 3v3M15 3v3M6 6h12v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/>', card: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 15h3"/>', off: '<path d="M3 3l18 18M10.6 6.2A9.5 9.5 0 0 1 12 6c6 0 10 6 10 6a17 17 0 0 1-3.2 3.7M6.3 6.3C3.8 8 2 12 2 12s4 6 10 6a9 9 0 0 0 3.5-.7"/>', swap: '<path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/>', warn: '<path d="M12 3l10 18H2zM12 10v5M12 18v.01"/>', cal: '<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>', clip: '<path d="M20 11l-8.5 8.5a5 5 0 0 1-7-7L13 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L14 7"/>', inst: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h4M7 14h2"/>', twin: '<path d="M4 7h16M4 12h10M4 17h7"/><path d="M17 14l3 3-3 3"/>' };
@@ -195,8 +182,7 @@ function copyDetails() {
           <details v-if="!cur.virtual && !isXf(cur)" class="txs2" data-s="org" :open="!!sec.org" @toggle="toggleSec('org', $event)"><summary><span class="sct">{{ t("activity.d.organise") }}</span></summary><div class="sbd">
             <div class="fld"><label>{{ t("activity.d.displayName") }}</label><div style="display:flex;gap:6px"><input :value="S.cfg?.renames?.[cur.id] || ''" :placeholder="name(cur)" maxlength="80" style="flex:1;min-width:0" @change="setName(cur, $event.target.value)" /><button type="button" class="btn o s" @click="openPop('nameRule', { id: cur.id })">{{ t("activity.w.nrRule") }}</button></div></div>
             <div class="two"><div class="fld"><label>{{ t("activity.category") }}</label><select :value="cur.c && cur.c !== 'Uncategorized' ? cur.c : ''" @change="setCat(cur, $event.target.value)"><option value="">{{ t("activity.uncategorized") }}</option><option v-for="c in cats" :key="c" :value="c">{{ catLabel(c) }}</option></select></div>
-              <div class="fld"><label>{{ t("activity.w.tags") }}</label><div class="tbox"><div class="tcs"><span v-for="g in cur.tags || []" :key="g" class="tchip"><span class="catl" @click="goTag(g)">{{ g }}</span><button type="button" class="tx2" :aria-label="t('activity.removeTag')" @click="removeTag(cur, g)">×</button></span><input v-model="tagText" class="tin" :placeholder="cur.tags?.length ? t('activity.addMore') : t('activity.addTag')" autocomplete="off" @focus="tagOpen = true" @input="tagHi = -1" @blur="onTagBlur(cur)" @keydown="onTagKey($event, cur)" /></div>
-                <div class="tsug" :hidden="!tagOpen || (!tagPicks(cur).length && !tagNew(cur))"><button v-for="([g, n], i) in tagPicks(cur)" :key="g" type="button" class="tpick" :data-hi="i === tagHi ? 1 : undefined" @mousedown.prevent="addTags(cur, g)"><span>{{ g }}</span><small>{{ n }}</small></button><button v-if="tagNew(cur)" type="button" class="tpick new" @mousedown.prevent="addTags(cur, tagText)">{{ t("activity.createTag", { tag: tagText.trim() }) }}</button></div></div></div></div>
+              <div class="fld"><label>{{ t("activity.w.tags") }}</label><TagEditor :tags="cur.tags || []" @add="(L) => addTags(cur, L)" @remove="(i) => removeTag(cur, cur.tags[i])" @go="goTag" /></div></div>
           </div></details>
           <details v-if="!cur.virtual" class="txs2" data-s="note" :open="!!sec.note" @toggle="toggleSec('note', $event)"><summary><span class="sct">{{ t("activity.d.note") }}</span><em v-if="cur.note && !isXf(cur)">{{ t("activity.w.added") }}</em></summary><div class="sbd"><div class="fld"><label>{{ t("activity.d.note") }}</label><textarea rows="2" :placeholder="t('activity.d.notePh')" :value="cur.note || ''" @change="setNote(cur, $event.target.value)" /></div></div></details>
           <details v-if="rels.length" class="txs2" data-s="rel" :open="!!sec.rel" @toggle="toggleSec('rel', $event)"><summary><span class="sct">{{ t("activity.d.counted") }}</span><i v-if="rels.some((r) => r.cls === 'amber')" class="tfl" :data-tip="t('activity.w.needsLook')"></i><em>{{ rels.length }}</em></summary><div class="sbd"><div class="rels">

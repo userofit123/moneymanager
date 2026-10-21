@@ -21,19 +21,9 @@ export function catTiles(S) {
   return Object.keys(S.cats || {}).sort(CNC.compare).sort((a, b) => (a == "Uncategorized") - (b == "Uncategorized") || (n[b] || 0) - (n[a] || 0)).map((k) => ({ k, n: n[k] || 0, letter: (Array.from(k)[0] || "?").toUpperCase() }));
 }
 // Tags used anywhere with their counts, the most used first (tags only in tag rules count 0).
-export function allTags(S) {
-  const m = {};
-  for (const t of S?.tx || []) if (!t.virtual) for (const g of t.tags || []) m[g] = (m[g] || 0) + 1;
-  for (const r of S?.tagRules || []) for (const g of ruleTags(r)) if (!(g in m)) m[g] = 0;
-  return Object.entries(m).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-}
-// "#food" and "Food" become the tag already in use, so the same tag is not made twice.
-export function normTag(S, v) {
-  v = String(v).trim().replace(/^#+/, "");
-  if (!v) return "";
-  const e = allTags(S).find(([t]) => t.toLowerCase() == v.toLowerCase());
-  return e ? e[0] : v;
-}
+// Every tag in use (with how often) and "#food" → the tag already in use: the shared ones in views/activity.js.
+export { allTags, normTag } from "../views/activity.js";
+import { allTags } from "../views/activity.js";
 // The tag tiles, and which tags a tag rule adds.
 export function tagTiles(S) {
   const by = new Set((S.tagRules || []).flatMap(ruleTags));
