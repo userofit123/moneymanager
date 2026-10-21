@@ -45,10 +45,7 @@
     "failed": "הייבוא נכשל: {msg}",
     "bankDone": "נקראו {rows} שורות · {added} חדשות, {merged} מוזגו",
     "wiseDone": "יובאו {added} חדשים, מוזגו {merged}",
-    "downloaded": "money-export.json הורד. חפשו בתיקיית ההורדות.",
-    "noPension": "אין חשבון פנסיה",
-    "pnNum": "הזינו את היתרה כמספר",
-    "pnSame": "זו כבר היתרה"
+    "downloaded": "money-export.json הורד. חפשו בתיקיית ההורדות."
   },
   "pn": {
     "title": "עדכון יתרת הפנסיה",

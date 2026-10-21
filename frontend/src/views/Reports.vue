@@ -1,7 +1,6 @@
 <script setup>
-// Reports: a copy of the current app's Reports page (web/js/06-trend-forecast-sync.js reps, renderNW, trDraw, lineChart, barChart and 03-bills-home.js renderCmp).
-// The main chart, this month against last month, income against expenses, top merchants, spending by category and by tag, and the category trend.
-// It reads the shared data store and GET /api/fx. The only things it saves are the choices the current app also keeps in this browser
+// Reports: the main chart, this month against last month, income against expenses, top merchants, spending by category and by tag, and the category trend.
+// It reads the shared data store and GET /api/fx. The only things it saves are choices kept in this browser
 // (moneyRanges, moneyTrend), "Include pension", and hiding or showing a merchant.
 import { ref, computed, reactive, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
@@ -40,7 +39,7 @@ const trShort = (m, long) => MSHORT(m) + (long ? " " + m.slice(2, 4) : "");
 const catName = catLabel;
 const cc = (n) => catColor(S.value, n);
 
-// ---- the choices this page remembers (the same keys as the current app) ----
+// ---- the choices this page remembers in this browser ----
 const RNG = reactive({ cat: { p: "month", from: "", to: "" }, merch: { p: "month", from: "", to: "" }, tag: { p: "month", from: "", to: "" } });
 const RN = reactive({ bars: 12, lines: 12, lt: "exp" });
 const CMP = reactive({ cat: "none", merch: "none", tag: "none" });
@@ -144,7 +143,7 @@ function trShow(e) {
   const d = trDraw.value, m = trm.value; if (!d) return; const r = e.currentTarget.getBoundingClientRect();
   if (e.clientX - r.left < d.Pl - 6) return;
   const i = Math.max(0, Math.min(m.vals.length - 1, Math.floor((e.clientX - r.left - d.Pl) / d.band))), x = d.X(i), y = d.Y(m.vals[i]);
-  trHov.value = { i, x, y, lx: 0, top: Math.max(0, y - (m.prev ? 78 : 62) - 14) }; // the old app places it by its left edge, in both languages
+  trHov.value = { i, x, y, lx: 0, top: Math.max(0, y - (m.prev ? 78 : 62) - 14) }; // placed by its left edge, in both languages
   nextTick(() => { const tp = tipEl.value; if (tp && trHov.value) trHov.value = { ...trHov.value, lx: Math.max(0, Math.min(d.W - tp.offsetWidth, x - tp.offsetWidth / 2)) }; });
 }
 const tipEl = ref(null);

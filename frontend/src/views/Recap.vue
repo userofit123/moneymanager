@@ -1,8 +1,8 @@
 <script setup>
-// Recap: a calm page that tells you how the month is going, step by step. A copy of the current app's Recap (web/recap.js):
-// the same parts in the same order for the time of the month, the same pictures, links, day tooltips and scroll animation.
-// The numbers come from lib/recap.js. The page is drawn as one piece of markup, like the old page, so its scroll code works the same;
-// every word comes from the language files (locales/pages/recap.*.json). The page has no title band, like the old one.
+// Recap: a calm page that tells you how the month is going, step by step:
+// parts that change with the time of the month, with pictures, links, day tooltips and a scroll animation.
+// The numbers come from lib/recap.js. The page is drawn as one piece of markup, so its scroll code can work on it as a whole;
+// every word comes from the language files (locales/pages/recap.*.json). The page has no title band.
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
@@ -25,12 +25,12 @@ const { t, locale } = useI18n();
 const S = computed(() => data.state.value);
 onMounted(() => { data.start(); });
 
-// The greeting moves one step along its list every time the app opens (GREET_SEED, kept under "moneyGreet" like the current app).
+// The greeting moves one step along its list every time the app opens (kept in this browser as "moneyGreet").
 const SEED = (() => { let n = 1; try { n = (parseInt(readPref("moneyGreet"), 10) || 0) + 1; writePref("moneyGreet", String(n)); } catch { /* not kept */ } return n; })();
 
-// Hebrew follows the profile's gender, like the current app (HE.gen); the dictionary is loaded only for Hebrew.
+// Hebrew follows the profile's gender (HE.gen); the dictionary is loaded only for Hebrew.
 const gen = ref(null);
-watch(locale, (l) => { if (l === "he" && !gen.value) import("../core/he-legacy.js").then((m) => { m.setProfileState(data.state.value); gen.value = (s) => m.default.gen(s); }); }, { immediate: true });
+watch(locale, (l) => { if (l === "he" && !gen.value) import("../core/heDict.js").then((m) => { m.setProfileState(data.state.value); gen.value = (s) => m.default.gen(s); }); }, { immediate: true });
 const H = () => locale.value === "he";
 const G = (s) => (H() && gen.value ? gen.value(s) : s);
 const L = (k, p, n) => G(n == null ? t("recap." + k, p || {}) : t("recap." + k, p || {}, n));
@@ -62,7 +62,7 @@ const ICON = {
   info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
 };
 
-// ---- the pieces of markup (part, chip, lk, eq, segBar … in web/recap.js) ----
+// ---- the pieces of markup (tiles, chips, links, sums, bars …) ----
 const tile = (ic, tone) => `<div class="rki ${tone || ""}"><svg viewBox="0 0 24 24">${ICON[ic]}</svg></div>`;
 const pc = (z) => (z % 2 ? "var(--acc2)" : "var(--acc)");
 // zz: the part's place in the zig-zag chain (0: a plain part at the top)

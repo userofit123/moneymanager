@@ -1,5 +1,5 @@
-// The person's choices kept in this browser (language, look, date format, remembered time frames...), under the same keys as the current app,
-// and also kept on the server, so a new device or window address gets them too (web/js/01-prefs-theme.js prefsAll/prefsPush/prefsRestore).
+// The person's choices kept in this browser (language, look, date format, remembered time frames...), under keys that start with "money",
+// and also kept on the server, so a new device or window address gets them too.
 // Every change is stamped with its time; at start the newer copy (here or on the server) wins.
 // Always read and write these through readPref/writePref (or usePref), never localStorage directly, or the server copy falls behind.
 import { ref, watch } from "vue";

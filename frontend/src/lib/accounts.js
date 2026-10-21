@@ -1,5 +1,4 @@
-// The Accounts page's numbers and lists, kept apart from the screen so they can be tested against the current app
-// (web/js/05-accounts-charts-help.js: accState, accTail, accGroupList, accTotals, accMonthly, accTxFill, balRows).
+// The Accounts page's numbers and lists, kept apart from the screen so they can be tested.
 // Nothing here changes the data. S: the whole data, today: "YYYY-MM-DD", fx: { USD: 3.7 }.
 import { shallowRef } from "vue";
 import { kinds } from "./activity.js";
@@ -7,8 +6,7 @@ import { withTransfers, addM } from "./home.js";
 import { balRows, costRows } from "./txrows.js";
 import { CURS } from "../views/settings/currencies.js";
 
-// The type names (keys of the acc.kind / acc.ck texts) and the colour of each connection state's badge, as in the current app.
-export const ACC_KINDS = ["bank", "card", "wallet", "pension", "custom"];
+// The kinds of a custom account (keys of the acc.ck texts) and the colour of each connection state's badge.
 export const CK = ["cash", "savings", "investment", "loan", "other"];
 export const TONEC = { green: "dn", yellow: "am2", red: "up", gray: "fl" };
 export const typeKey = (a) => (a.custom ? (CK.includes(a.ck) ? "ck." + a.ck : "ck.account") : "kind." + a.kind);

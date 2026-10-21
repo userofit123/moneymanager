@@ -1,7 +1,6 @@
-// Bills: found and predicted from the payments. Shared bill logic, a port of the current app
-// (web/js/03-bills-home.js billsInfo, web/js/04-transactions.js renderBills, web/js/08-jars.js bill actions).
+// Bills: found and predicted from the payments. Shared bill logic for the Bills page, Home, Budgets and alerts.
 // Nothing here touches the screen. Bills the app finds by itself are only worked out; they are saved
-// the first time a change is made (withDetected), like the current app saves them when it draws a page.
+// the first time a change is made (withDetected), so a change always has a saved bill to work on.
 import { kinds, instOf } from "./activity.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
@@ -25,7 +24,7 @@ export function cadenceOf(L) {
   return { every, anchor: +last.d.slice(5, 7), dom: +last.d.slice(8, 10), mean };
 }
 
-// The payments that count (no transfers, card payments, future or left-out ones), plus the cost of moving money. Like A() in the current app.
+// The payments that count (no transfers, card payments, future or left-out ones), plus the cost of moving money.
 export function countedTx(S, today) {
   const k = kinds(S, today), tx = S.tx || [];
   const NR = new Set((S.accounts || []).filter((a) => a.inR === false).map((a) => a.n));
@@ -56,7 +55,7 @@ export function detectNew(S, A) {
 
 export const billTx0 = (b, A, tx) => (b.mode == "once" ? (tx || []).filter((t) => (b.ids || []).includes(t.id)).sort(byDate) : A.filter((t) => t.a < 0 && (t.desc + " " + t.to).toLowerCase().includes(b.match)).sort(byDate));
 
-// One bill's state: when it is next due, if it was paid, what it usually costs. Like billsInfo0 in the current app.
+// One bill's state: when it is next due, if it was paid, what it usually costs.
 // Three kinds: recurring (a rhythm is known: predicted and tracked), irregular (every payment still counts) and one-off.
 export function billInfo(b, idx, mt, NOW) {
   const last = mt[mt.length - 1], prev = mt[mt.length - 2], ev = mt.slice(-6).map((t) => [t.d, -t.a]);
@@ -87,7 +86,7 @@ export function billInfo(b, idx, mt, NOW) {
 }
 
 // Everything about the bills for one moment: the saved bills plus the found ones, every bill's state, and the counted payments.
-// all = true also keeps canceled and ended bills (billsInfo(true) in the current app).
+// all = true also keeps canceled and ended bills.
 export function billState(S, now = new Date()) {
   S = S || {};
   const NOW = now, MK = NOW.getFullYear() + "-" + p2(NOW.getMonth() + 1), TODAY = MK + "-" + p2(NOW.getDate());
@@ -126,7 +125,7 @@ export function billsModel(S, now = new Date()) {
     tot: { rec: sum(rec.map((b) => b.mo || 0)), irr: sum(irr.map((b) => b.mo || 0)), ins: sum(inst.map((x) => x.remain)), one: sum(one.map((b) => b.amt || 0)) } };
 }
 
-// Details of one payment history window (payHist in the current app): the list newest first, the average, lowest and highest, and each change from the one before.
+// Details of one payment history window: the list newest first, the average, lowest and highest, and each change from the one before.
 export function payHistory(L) {
   L = [...L].sort((a, b) => b.d.localeCompare(a.d) || String(b.id).localeCompare(String(a.id)));
   if (!L.length) return null;
@@ -184,7 +183,7 @@ const CADS = { 1: 1, 2: 1, 12: 1 };
 const dyn = (t, key, ...a) => t(key, ...a); // for texts whose name is worked out
 export const cadText = (t, every) => (every in CADS ? dyn(t, "bills.cad." + every) : t("bills.cad.n", { n: every }));
 export const freqText = (t, every, plain) => (every in CADS ? dyn(t, "bills.freq." + every) : plain ? t("bills.freq.regular") : t("bills.freq.n", { n: every }));
-// "Why is this a bill?" (whyBill in the current app)
+// "Why is this a bill?": the reasons in plain words
 export function whyText(b, t) {
   if (b.once) return t("bills.why.once");
   const told = b.manual ? t("bills.why.told", { match: b.match }) + " " : "", n = b.n_tx;
@@ -197,7 +196,7 @@ export function evTipText(b, t, dstr) {
   const rows = [...(b.irregular || b.once ? [] : [[t("bills.tip.how"), b.every in CADS ? cadText(t, b.every) : t("bills.g.rec.title")]]), [t("bills.tip.typical"), fm(b.pred || b.amt || 0)], [t("bills.tip.so"), String(b.n_tx || 0)], ...(b.ev && b.ev.length ? ["---", ...b.ev.map((e) => [dstr(e[0]), fm(e[1])])] : [])];
   return [b.n + " · " + dyn(t, "bills.kind." + kind), ...rows.map((r) => (r === "---" ? "---" : r[0] + "\t" + r[1])), "---", whyText(b, t)].join("\n");
 }
-// Dates the way the current app writes them: day/month/year, or month/day/year when chosen in Settings (df = "mdy").
+// Dates as the app writes them: day/month/year, or month/day/year when chosen in Settings (df = "mdy").
 export function makeDstr(df = "dmy") {
   const dnum = (y, m, d) => { const p = (n) => String(n).padStart(2, "0"); return df === "mdy" ? p(m) + "/" + p(d) + "/" + y : p(d) + "/" + p(m) + "/" + y; };
   return (d) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(d)); if (m) return dnum(m[1], m[2], m[3]); const x = new Date(d); return isNaN(x) ? String(d) : dnum(x.getFullYear(), x.getMonth() + 1, x.getDate()); };

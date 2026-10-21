@@ -1,7 +1,7 @@
 <script setup>
-// Jars: money put aside for something. A copy of the current app's Jars page (web/js/04-transactions.js renderJars, jarCard, jarState):
+// Jars: money put aside for something:
 // what is safe to put in jars, what went in this month, the amount kept untouched, each jar, goals and completed jars.
-// The jar changes (lib/jars.js) write the same history lines and undo entries as web/js/08-jars.js; "How is this worked out?" is the
+// The jar changes (lib/jars.js) write history lines and undo entries; "How is this worked out?" is the
 // shared AvailWhy window, the ⋯ and history menus the shared PopMenu, a payment in a jar's history opens its entry window.
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
@@ -39,7 +39,7 @@ const mlab = (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDate
 const save = (edit) => data.change((next) => { const r = edit(next); return r && r.length ? r : r === false ? false : []; });
 const ctx = () => jarCtx(M.value, fm); // what the changes need to write their history lines
 
-// Keep untouched: no history line, like the current app (bufSet, #jbuf).
+// Keep untouched (#jbuf): changing it writes no history line.
 const bufText = ref(null);
 const setBuffer = (v) => { v = Math.max(0, +v || 0); bufText.value = null; save((s) => { if ((+s.jarsBuffer || 0) === v) return false; s.jarsBuffer = v; return []; }); };
 const bufShown = computed(() => (bufText.value != null ? bufText.value : M.value.F.buffer || ""));
@@ -60,8 +60,8 @@ const menu = ref(null);
 const toggleMenu = (id, kind, ev) => { menu.value = menu.value && menu.value.id == id && menu.value.kind == kind ? null : { id, kind, btn: ev.currentTarget }; };
 const hist = computed(() => (menu.value && menu.value.kind == "hist" ? jarHistory(S.value, menu.value.id, (x) => displayName(S.value, x)) : []));
 const histName = computed(() => (menu.value ? (S.value.jars || []).find((j) => j.id == menu.value.id)?.n || "" : ""));
-// names and notes come from the data (names are shown through the old dictionary too, like the current app does with every text);
-// notes (the app's and the server's English, "Auto-fill 2026-10"): shown in Hebrew through the old dictionary
+// names and notes come from the data (names are shown through the Hebrew dictionary too);
+// notes (the app's and the server's English, "Auto-fill 2026-10"): shown in Hebrew through the Hebrew dictionary
 const noteText = (h) => (h.earlier ? t(h.note == "start" ? "jars.hist.start" : "jars.hist.untracked") : h.pay ? t(h.payoff ? "jars.hist.paidBack" : "jars.hist.paid", { name: "\u2068" + h.name + "\u2069" }) : tx(h.note));
 const amtText = (h) => (h.pay && h.payoff ? "" : h.amt < 0 ? "−" : "+") + "₪" + f0(h.amt);
 const histOpen = (h) => { menu.value = null; allOf.value = null; openTx(h.id); };
@@ -91,7 +91,7 @@ const ALLB = { "*": "all", "*i": "allIrregular", "*a": "allAny" };
 const payoff = (j) => j.kind === "payoff";
 const kindOf = (j) => (payoff(j) ? t("jars.kind.payoff") : j.type !== "bill" ? (j.type === "month" ? t("jars.kind.month") : t("jars.kind.goal")) : ALLB[j.bill] ? tk("jars.kind." + ALLB[j.bill]) : j.billName || t("jars.kind.bill"));
 const stLabel = (s) => (s.key === "needs" ? t("jars.st.needs", { amount: fm(s.want) }) : tk("jars.st." + s.key));
-// The tooltips, in the current app's layout: a title, rows, a line, a note (TP).
+// The tooltips' layout: a title, rows, a line, a note.
 const T = (k, v) => tk("jarp.tip." + k, v);
 function stTip(j) {
   const s = j.state;
@@ -105,7 +105,7 @@ function stTip(j) {
 const priTip = (j) => TP(t("jars.priority", { n: j.ix + 1, total: M.value.jars.length }), [], T("priorityN"));
 const catTip = (j) => TP(T("catsT"), [...j.cats.map((x) => [catLabel(x.c), T("spent", { amount: fm(M.value.spend[x.c] || 0) })]), "---", [T("paidMonth"), fm(j.autoPaid)], [T("stillIn"), fm(j.bal)]], t("jars.paysForTip"));
 const etaWhen = (e) => (e.k ? mlab(e.when) : t("jars.over5"));
-// on the card, in Hebrew the year stays left to right (יוני ⁦2028⁩), like the current app
+// on the card, in Hebrew the year stays left to right (יוני ⁦2028⁩)
 const etaShow = (e) => (locale.value === "he" ? isolateNumbers(etaWhen(e)) : etaWhen(e));
 const etaTip = (e) => TP(T("fullByT", { when: etaWhen(e) }), [[T("toSave"), fm(e.left)], [T("perMonth"), fm(e.cap)], [T("monthsTo"), e.k ? String(e.k) : "60+"], ...(e.due ? [[T("deadline"), mlab(e.due)]] : [])]);
 const statTips = computed(() => { const m = M.value.month, F = M.value.F; return {
@@ -287,7 +287,7 @@ const doneLine = (d) => [t("jars.doneOn", { date: dstr(d.done) }), d.need > 0 ? 
 .hist .hall { display: block; width: 100%; padding: 9px 10px; border: 0; border-top: 1px solid var(--ol); background: none; color: var(--acc); font: inherit; font-size: 13px; font-weight: 600; text-align: start; cursor: pointer; border-radius: 0; }
 .hist .hall:hover { background: var(--s2); }
 .hsheet { display: block; margin-top: 12px; }
-/* a payment line (.hs) also matched the help guide's section style (.hs, margin under it) in the current app, which spread the lines apart */
+/* a payment line (.hs) also matches the help guide's section style (.hs, margin under it), which would spread the lines apart */
 .hist .hr.hs { margin: 0; }
 .hsheet .hr:first-child { border-top: 0; }
 </style>

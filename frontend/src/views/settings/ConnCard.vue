@@ -1,5 +1,5 @@
 <script setup>
-// One connection in Settings → Connections, the same markup as the current app's connCard() (web/js/07-periods-rules.js):
+// One connection in Settings → Connections:
 // its state, what was found, the login form (open while it is not working, or when "Edit connection" is pressed) and "Import more history".
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -30,7 +30,7 @@ if (!typed[props.c.source]) typed[props.c.source] = { nick: props.c.nickname || 
 const v = computed(() => typed[src.value] || { nick: "", f: {} });
 const days = ref("1825");
 const toggle = () => { if (openCards.has(src.value)) openCards.delete(src.value); else openCards.add(src.value); };
-// while a sync or test runs: the badge and the note under the card follow it (applyJobUI)
+// while a sync or test runs: the badge and the note under the card follow it
 const me = computed(() => !!job.value && (job.value.source == src.value || job.value.source == "all"));
 const word = (k) => ({ test: t("sync.testing"), sync: t("sync.syncing"), assist: t("sync.verifying") })[k];
 const note = computed(() => {

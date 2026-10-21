@@ -1,4 +1,4 @@
-// Turns on the app's upkeep (core/settle.js) for the shared data: it runs after every load and every change, like the current app.
+// Turns on the app's upkeep (core/settle.js) for the shared data: it runs after every load and every change.
 import { data } from "../stores/data.js";
 import { settle } from "./settle.js";
 

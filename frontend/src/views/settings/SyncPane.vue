@@ -5,8 +5,7 @@ const N = ref(50);
 </script>
 
 <script setup>
-// Settings → Sync. A copy of the current app's Sync section (web/js/07-periods-rules.js renderSyncCfg and loadSyncLog; the syncset change
-// and the syncLogRef/syncLogMore cases in 08-jars.js): when the server syncs by itself, how far back it reads, and the log of every sync.
+// Settings → Sync: when the server syncs by itself, how far back it reads, and the log of every sync.
 import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";

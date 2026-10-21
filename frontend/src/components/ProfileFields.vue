@@ -1,6 +1,6 @@
 <script setup>
 // The profile fields (name, age, gender, what matters most), all optional: in Settings → Profile and in the "Make it yours" window
-// (profFields in web/js/09-profile-export-settings.js). v-model is { name, age, gender, goal }; prefix keeps the ids apart.
+// v-model is { name, age, gender, goal }; prefix keeps the ids apart.
 import { useI18n } from "vue-i18n";
 import { PF_GENDER, PF_GOAL } from "../views/settings/profile.js";
 const model = defineModel({ type: Object, required: true });

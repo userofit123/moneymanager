@@ -1,6 +1,6 @@
 <script setup>
-// Budgets: a monthly limit for a category. A copy of the current app's Budgets page (web/js/04-transactions.js renderBudg,
-// web/js/08-jars.js budget actions): the three numbers on top, suggested budgets, each budget with its pace, bills and jar,
+// Budgets: a monthly limit for a category:
+// the three numbers on top, suggested budgets, each budget with its pace, bills and jar,
 // spending with no budget, and "Add a budget". The numbers come from lib/budgets.js, worked out once for the app (core/derived.js).
 // Changes go through the data store.
 import { ref, computed, onMounted } from "vue";
@@ -14,7 +14,7 @@ import { catColor, catLabel } from "../core/cats.js";
 import { dstr } from "../dates.js";
 import { toast } from "../core/toast.js";
 import PageHeader from "../components/PageHeader.vue";
-import MoneyInput from "../components/MoneyInput.vue"; // the amount boxes show "1,200" like the current app (data-money)
+import MoneyInput from "../components/MoneyInput.vue"; // the amount boxes show "1,200" with thousands separators
 import { vRich } from "../lib/richtip.js";
 import { f0, fm } from "../lib/bills.js";
 import { acceptBudget, acceptAll, dismissSuggestion, laterReview, resetDismissed, applyBudget, removeBudget, changeBudget } from "../lib/budgets.js";

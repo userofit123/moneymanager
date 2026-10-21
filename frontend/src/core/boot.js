@@ -1,4 +1,4 @@
-// Starting the app, like boot() and afterLogin() in web/js/08-jars.js: put the look on the page, ask whether this browser is signed in,
+// Starting the app: put the look on the page, ask whether this browser is signed in,
 // show the sign-in (or first password) screen if not, then take the newer saved choices, load the data and keep it fresh.
 import { reactive, ref, watch } from "vue";
 import { request, getJson, sendJson, signedOut } from "./http.js";
@@ -8,10 +8,10 @@ import { startClock } from "./clock.js";
 import { data } from "../stores/data.js";
 import { startUpdates } from "./updates.js";
 import { watchJobs } from "./jobs.js";
-import { startPwa, notify } from "./pwa.js";
+import { startPwa } from "./pwa.js";
 import { openForm } from "./forms.js";
 import { go, current } from "../router.js";
-import { pages } from "../routes.js";
+import { pages, SHORT } from "../routes.js";
 
 // phase: "start" (splash) | "auth" (sign-in screen) | "ready" | "down" (the server cannot be reached)
 export const app = reactive({ phase: "start", authMode: "login", need2fa: false, error: "" });
@@ -44,16 +44,11 @@ async function afterLogin() {
   openFromAddress();
 }
 
-// The current app's old links still work: ?view=jars, #jars, and ?add=1 opens "Add transaction".
-const OLDV = { dash: "home", tx: "activity", acc: "accounts", budg: "budgets", rep: "reports", fc: "forecast", set: "settings", cats: "categories" };
+// Links like ?view=jars or #jars open that page (the app's shortcuts and notifications use them), and ?add=1 opens "Add transaction".
 function openFromAddress() {
-  const p = new URLSearchParams(location.search), v = p.get("view") || location.hash.slice(1), name = OLDV[v] || v;
-  if (name && pages.some((x) => x.name === name)) go("/" + pages.find((x) => x.name === name).path.slice(1), { replace: true });
+  const p = new URLSearchParams(location.search), v = p.get("view") || location.hash.slice(1), name = SHORT[v] || v;
+  if (name && pages.some((x) => x.name === name)) go(pages.find((x) => x.name === name).path, { replace: true });
   if (p.get("add")) openForm("tx");
-}
-// Up to two urgent alerts as phone notifications when the app opens (if notifications are allowed).
-export function notifyUrgent(list, text) {
-  list.filter((x) => x.sev == "high").slice(0, 2).forEach((x) => { const [title, body] = text(x); notify(title, body); });
 }
 
 // "Create password" / "Sign in" on the sign-in screen. Returns nothing; app.error carries the message.
@@ -69,7 +64,7 @@ export async function signIn({ pw, pw2, code }) {
   app.error = j.error || "failed";
 }
 
-// "Sign out" / "Sign out everywhere" (Settings → Security): the saved offline copy goes, and the sign-in screen shows (like the current app).
+// "Sign out" / "Sign out everywhere" (Settings → Security): the saved offline copy goes, and the sign-in screen shows.
 export async function signOut(all) {
   try { await request(all ? "/api/auth/logout-all" : "/api/auth/logout", { method: "POST" }); } catch { /* sign in again anyway */ }
   try { caches.delete("money-data"); } catch { /* none */ }
@@ -89,7 +84,7 @@ async function syncTz() {
 }
 
 // Waits until the page is on screen (its code is loaded separately), so the splash fades into the page and its opening
-// animation (html.intro) plays on it, like the current app where the page is drawn before bootDone(). At most 3 seconds.
+// animation (html.intro) plays on it. At most 3 seconds.
 async function pageShown() {
   try { await current.value?.component?.(); } catch { /* the page shows its own error */ }
   const t0 = Date.now();

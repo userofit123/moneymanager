@@ -1,5 +1,5 @@
 <script setup>
-// Activity → Export: choose exactly what leaves the app, see it, and download it as a file on this device (buildExport/exSync/exPrev/exGo).
+// Activity → Export: choose exactly what leaves the app, see it, and download it as a file on this device.
 // Opened from Activity it starts from Activity's filters; from Settings it starts empty.
 import { ref, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";

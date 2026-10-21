@@ -1,4 +1,4 @@
-// The new app's look: the same colors as the current app, money written the same way, and no question-mark cursor anywhere.
+// The app's look: the Indigo colors, money written one way everywhere, and no question-mark cursor anywhere.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
@@ -7,20 +7,19 @@ import { formatMoney, clampPercent, currencySymbol } from "../src/format.js";
 const read = (p) => readFileSync(new URL("../src/" + p, import.meta.url), "utf8");
 // every .vue file under components/, also in its folders, as "components/…"
 const comps = () => readdirSync(new URL("../src/components", import.meta.url), { recursive: true }).filter((f) => f.endsWith(".vue")).map((f) => "components/" + f);
-const old = readFileSync(new URL("../../web/js/01-prefs-theme.js", import.meta.url), "utf8");
 
-test("default colors match the current app's Indigo look, light and dark", () => {
+// The Indigo look (the default), light and dark.
+const INDIGO = { light: ["#4355b9", "#dee0ff", "#0b1550", "#fbf8fd", "#7b4fb8", "#ffffff"], dark: ["#b9c3ff", "#2d3f9e", "#dee0ff", "#111218", "#c7a6ff", "#0b1550"] };
+test("default colors are the Indigo look, light and dark", () => {
   const css = read("styles/tokens.css");
-  const m = old.match(/Indigo:\{L:\[([^\]]*)\],D:\[([^\]]*)\]/);
   const names = ["acc", "accc", "onc", "bg", "acc2", "on"];
   const [light, dark] = css.split("prefers-color-scheme: dark");
-  [[m[1], light], [m[2], dark]].forEach(([list, part]) => list.split(",").map((c) => c.replace(/"/g, "")).forEach((c, i) => {
-    const want = c === "#fff" ? "#ffffff" : c;
+  [[INDIGO.light, light], [INDIGO.dark, dark]].forEach(([list, part]) => list.forEach((want, i) => {
     assert.match(part, new RegExp(`--${names[i]}:\\s*${want}`, "i"), `--${names[i]} should be ${want}`);
   }));
 });
 
-test("money is written like the current app", () => {
+test("money is written with the shekel sign, commas and a real minus sign", () => {
   assert.equal(formatMoney(1250), "₪1,250");
   assert.equal(formatMoney(-80), "−₪80");
   assert.equal(formatMoney(15, { sign: true }), "+₪15");

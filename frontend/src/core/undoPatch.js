@@ -1,4 +1,4 @@
-// Undo for any change, not only the few kinds the current app records by hand: what a change replaced is kept with its
+// Undo for any change, not only the few kinds that record their own undo: what a change replaced is kept with its
 // history line ({ type: "patch", ops }), and Undo puts those values back. Only the parts that changed are kept, at the
 // smallest level that is safe to put back on its own (one field of one transaction, one budget, the list of rules...),
 // so later changes to other things stay. Changes that delete transactions get no Undo: the server cannot bring a bank
@@ -43,7 +43,7 @@ export function applyPatch(S, u) {
       else if (i >= 0) {
         const x = L[i], was = x[op.f];
         if (op.old === undefined) delete x[op.f]; else x[op.f] = structuredClone(op.old);
-        // a jar's money put back is recorded like the current app's jar undo (web/js/08-jars.js case undo)
+        // a jar's money put back is recorded the same way as a jar's own undo
         if (c == "jars" && op.f == "bal") { x.balEdit = true; if (op.old > was) { x.balUndo = 1; x.balNote = "Undone"; } }
       }
     } else if (op.k !== undefined) { S[c] = S[c] || {}; if (op.old === undefined) delete S[c][op.k]; else S[c][op.k] = structuredClone(op.old); }

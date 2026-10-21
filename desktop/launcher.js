@@ -41,7 +41,7 @@ function findChrome(dir) {
 
 /**
  * dataDir: where everything is kept (database, encryption key, receipts, bank browser profiles)
- * root: folder holding server/, scraper/, web/ and chrome/ (the app's resources, or the repository when developing)
+ * root: folder holding server/, scraper/, web/ (the built app) and chrome/ (the app's resources; when developing, the repository, with the app built in frontend/dist)
  * appKey: base64 key for saved logins; without it the server keeps its own key file in the data folder
  * nodeBin: the executable that runs the scraper (Electron's own binary with ELECTRON_RUN_AS_NODE, or plain node)
  */
@@ -66,7 +66,7 @@ async function startBackend({ dataDir, root, nodeBin = process.execPath, appKey 
   Object.assign(process.env, {
     ...(appKey ? { APP_KEY: appKey } : {}), // the key that encrypts saved logins, when the caller keeps it protected (see main.js)
     DB_DRIVER: "pglite", PGLITE_DIR: dbDir, DATA_DIR: path.join(dataDir, "data"), DOCS_DIR: path.join(dataDir, "data", "documents"),
-    WEB_DIR: path.join(root, "web"), SCRAPER_URL: `http://127.0.0.1:${scraperPort}`, SCRAPER_KEY: scraperKey, HOST: "127.0.0.1", PORT: String(port), NODE_ENV: "production",
+    WEB_DIR: fs.existsSync(path.join(root, "web")) ? path.join(root, "web") : path.join(root, "frontend", "dist"), CHANGELOG_FILE: path.join(root, "CHANGELOG.md"), SCRAPER_URL: `http://127.0.0.1:${scraperPort}`, SCRAPER_KEY: scraperKey, HOST: "127.0.0.1", PORT: String(port), NODE_ENV: "production",
   });
   fs.mkdirSync(process.env.DOCS_DIR, { recursive: true });
   const server = await import(pathToFileURL(path.join(root, "server", "src", "index.js")).href);

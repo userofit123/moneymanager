@@ -1,4 +1,4 @@
-// The words of one alert (title, text), from the language files. The same sentences as alerts() in web/js/04-transactions.js.
+// The words of one alert (title, text), from the language files.
 // x: an alert from alertsModel (lib/alerts.js). c: { t, catName, an, dstr, monthYear } for the language to write in.
 export function alertTexts(x, c) {
   const { t, catName, an, dstr, monthYear } = c, tk = t;

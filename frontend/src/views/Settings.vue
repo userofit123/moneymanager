@@ -1,7 +1,7 @@
 <script setup>
-// Settings. A copy of the current app's Settings page (web/index.html #set, web/js/06-trend-forecast-sync.js renderSet): the list of
+// Settings: the list of
 // sections on one side (five groups) and the open section next to it. Each section is its own file in views/settings/.
-// Like the current app, the open section is not part of the address.
+// The open section is not part of the address.
 import { computed, defineAsyncComponent, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";

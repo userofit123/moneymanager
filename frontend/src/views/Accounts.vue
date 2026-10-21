@@ -1,8 +1,7 @@
 <script setup>
-// Accounts: every account the app knows, and one account's own page. A copy of the current app's Accounts page
-// (web/js/05-accounts-charts-help.js renderAccounts, accList, accCard, accDetail, accSvg, accTxFill and the acc* cases in 08-jars.js).
+// Accounts: every account the app knows, and one account's own page.
 // The numbers come from lib/accounts.js. Adding, editing and updating a balance are shared windows (FormHost kinds "account" and "balance").
-// /app/accounts?id=<id> opens that account's page.
+// /accounts?id=<id> opens that account's page.
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
@@ -32,7 +31,7 @@ const tk = (k, ...a) => t(k, ...a);
 const S = computed(() => data.state.value);
 const fx = computed(() => data.fx.value.fx);
 const today = computed(() => dayOf(now.value));
-const an = (n) => String(n).split(" · ").map(tx).join(" · "); // a bank, card or wallet name, or a subtitle, in the page's language (the old dictionary)
+const an = (n) => String(n).split(" · ").map(tx).join(" · "); // a bank, card or wallet name, or a subtitle, in the page's language (the Hebrew dictionary)
 const loc = computed(() => (locale.value === "he" ? "he-IL" : "en-GB"));
 const mon = (k, o) => new Date(+k.slice(0, 4), +k.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, o);
 const MSHORT = (k) => mon(k, { month: "short" }), MNAME = (k) => mon(k, { month: "long" });
@@ -105,7 +104,7 @@ async function del() {
   catch (e) { toast(tx(e.message), { kind: "err" }); }
 }
 
-// the chart takes the page's width, measured like the current app (#acc's width)
+// the chart takes the page's width (#acc's width)
 const root = ref(null), box = ref(0);
 let ro = null;
 onMounted(() => { const m = () => { box.value = root.value?.clientWidth || 0; }; m(); if (typeof ResizeObserver != "undefined") { ro = new ResizeObserver(m); ro.observe(root.value); } });

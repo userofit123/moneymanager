@@ -1,7 +1,7 @@
 <script setup>
-// A list of transactions as the current app draws them (txRowT and txItemT in web/js/04-transactions.js): a table on a computer
+// A list of transactions: a table on a computer
 // (date, name with its labels, from → to, category, tags, amount, attachments) and a list on a phone. Changing a row's category
-// saves at once like the old page (setField). Clicking a row emits "open"; a category or tag opens Activity filtered by it.
+// saves at once. Clicking a row emits "open"; a category or tag opens Activity filtered by it.
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
@@ -28,7 +28,7 @@ const name = (x) => (x.virtual ? tx(displayName(S.value, x)) : displayName(S.val
 const av = (x) => { const c = catColor(S.value, x.c || "Uncategorized"); return { background: `color-mix(in srgb,${c} 22%,transparent)`, color: c }; };
 const pos = (x) => x.a > 0 && !K.value.isXf(x);
 const canCat = (x) => !x.virtual && !K.value.isXf(x) && x.upBill == null;
-// setField(id, "c", value) of the current app: the same history line, with its undo
+// change the category through setField: it writes the history line, with its undo
 const setCat = (x, v) => data.change((n) => setField(n, x.id, "c", v).lines || false);
 </script>
 

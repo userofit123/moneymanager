@@ -1,6 +1,5 @@
-// What the entry window, Activity and Needs review change on a transaction, exactly like the current app
-// (web/js/04-transactions.js setField, 02-state-data.js setName, and the act() cases in 08-jars.js).
-// Each function changes the data S it is given and returns { lines } (the change-history lines, English like the old app),
+// What the entry window, Activity and Needs review change on a transaction: its fields, its name, rules made from it, ignoring, splitting and so on.
+// Each function changes the data S it is given and returns { lines } (the change-history lines, in English),
 // or { err } when nothing can be done. Extra results (how many were changed) come back too. Nothing here touches the screen.
 import { fm } from "../format.js";
 import { dstr } from "../dates.js";

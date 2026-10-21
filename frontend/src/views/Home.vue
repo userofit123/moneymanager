@@ -1,7 +1,7 @@
 <script setup>
-// Home: the overview. A copy of the current app's Home page (web/js/03-bills-home.js, renderHome): alerts, the four totals, accounts, cards,
+// Home: the overview: alerts, the four totals, accounts, cards,
 // the money flow, spending by category, budgets, upcoming bills, recent activity, jars and exchange rates, with the same hover texts.
-// It only reads: the shared data store and GET /api/fx, the same as the old page. A block with nothing to show is hidden.
+// It only reads: the shared data store and GET /api/fx. A block with nothing to show is hidden.
 import { ref, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
@@ -55,7 +55,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 const accTail = (n) => { const m = /··\s*(\S+)$/.exec(n); if (m) return m[1]; const a = (S.value?.accounts || []).find((x) => x.n == n && x.tail); return a ? a.tail : ""; };
 const accLbl = (n) => { const m = /^(.*?)\s*··\s*(\S+)$/.exec(n), tl = m ? m[2] : accTail(n), sp = (x) => ` <span class="sm" dir="ltr" style="font-weight:500;opacity:.8;unicode-bidi:isolate">·· ${esc(x)}</span>`; return m ? esc(titleCase(an(m[1]))) + sp(tl) : esc(titleCase(an(n))) + (tl ? sp(tl) : ""); };
 
-// Alerts: the first three, like the old page. Their sentences come from the language files.
+// Alerts: the first three. Their sentences come from the language files.
 const friendly = (e) => {
   e = e || "";
   if (/fetchPostWithinPage|fetchGetWithinPage|Unexpected end of JSON/i.test(e)) { const st = (e.match(/reqName=([A-Za-z_0-9]+)/) || [])[1] || ""; return /^(ValidateIdData|performLogonI)$/.test(st) ? t("al.feLogon") : t("al.feNoData") + (st ? t("al.feStep", { st }) : ""); }
@@ -93,7 +93,7 @@ const openAlert = (x) => openAlertFrom(x, x.title);
 const accGo = (n) => go("/accounts?n=" + encodeURIComponent(n));
 const goConn = () => { openSettingsTab("conn"); go("/settings"); };
 
-// The four totals at the top, each with the old hover text.
+// The four totals at the top, each with its hover text.
 const kpis = computed(() => {
   const K = M.value.kpi, pm = M.value.pm, inc = K.inc, ex = K.ex, net = K.net;
   const sub0 = (K.pen > 0 ? t("home.withPension", { amount: fm(K.withPension) }) : K.missing.length ? "" : t("home.worthSub")) + (K.missing.length ? (K.pen > 0 ? " · " : "") + t("home.notRead", { names: K.missing.map(an).join(", ") }) : "");
@@ -174,7 +174,7 @@ const donut = computed(() => {
 });
 const hover = ref(null);
 
-// Exchange rates (shown only when there are rates, like the old page).
+// Exchange rates (shown only when there are rates).
 const fxCur = ref("USD");
 const fxKeys = computed(() => Object.keys(fx.value.series).filter((k) => (fx.value.series[k] || []).length > 1));
 watch(fxKeys, (ks) => { if (ks.length && !ks.includes(fxCur.value)) fxCur.value = ks[0]; }, { immediate: true });
@@ -187,7 +187,7 @@ const fxView = computed(() => {
   return { Wd, H, P, grid, pts, ser, xs: ser.map((_, i) => x(i)), ys: ser.map((s) => y(s[1])), y0: 12, y1: H - 22, area: `${x(0)},${H - 22} ${pts} ${x(v.length - 1)},${H - 22}`, lastX: x(v.length - 1), lastY: y(last), first: ser[0][0].slice(5), end: ser[ser.length - 1][0].slice(5), last, ch, mn, mx, av, pos: mx > mn ? Math.min(100, Math.max(0, ((last - mn) / (mx - mn)) * 100)) : 50 };
 });
 const fxOpts = computed(() => fxKeys.value.map((k) => ({ value: k, label: pair(k) })));
-// Hover over the chart: a dashed line, a dot and the day's rate (hoverInit in the old app).
+// Hover over the chart: a dashed line, a dot and the day's rate.
 const hv = ref(null), fxSvg = ref(null), fxWrap = ref(null);
 function hvShow(e) {
   const F = fxView.value, svg = fxSvg.value; if (!F || !svg) return;
@@ -203,7 +203,7 @@ const hvStyle = computed(() => {
 });
 
 const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", donut: "reports", accts: "accounts", fx: "settings" };
-// "+₪1,250", "≈ −₪80" for an expected bill, "balance +₪500" for a balance update (amtT)
+// "+₪1,250", "≈ −₪80" for an expected bill, "balance +₪500" for a balance update
 const openBill = (b) => { const bl = M.value.billsAll[b.idx]; const last = bl && M.value.rows.filter((x) => x.a < 0 && (bl.mode == "once" ? (bl.ids || []).includes(x.id) : (x.desc + " " + x.to).toLowerCase().includes(bl.match))).sort((p, q) => p.d.localeCompare(q.d)).pop(); if (last) openTxId(last.id); else if (bl) openPop("hist", { title: bl.n, rows: [], sub: t("txw.chip.bill"), q: bl.match }); };
 </script>
 

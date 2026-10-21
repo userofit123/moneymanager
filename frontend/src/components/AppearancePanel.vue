@@ -1,6 +1,6 @@
 <script setup>
-// The Appearance panel (web/index.html #pop and the theme actions in web/js/08-jars.js): mode, colour set, background, texture,
-// surface, corners, font, density, spacing, navigation, and saved looks. Same markup and classes as the current app (styles/legacy.css).
+// The Appearance panel: mode, colour set, background, texture, surface, corners, font, density, spacing,
+// navigation, and saved looks. Styled by the shared classes in styles/app.css.
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import { theme, ATM, ST0, CP, CUST, AKEYS, looks, lookFor, saveLooks, copy, isDark, atmOf, cpOf, custVal, lookPal, setTheme, themeSwap, PKEYS } from "../core/theme.js";
@@ -15,7 +15,7 @@ const TABS = { col: "ap.tCol", sty: "ap.tSty", lay: "ap.tLay", sav: "ap.tSav" };
 const k = computed(() => (isDark() ? "D" : "L"));
 const dark = computed(() => k.value === "D");
 
-// closing plays the same short fade-out as the current app (outAnim)
+// closing plays a short fade-out
 const out = ref(false);
 watch(appearanceOpen, (o) => { if (!o) { out.value = true; setTimeout(() => (out.value = false), 200); } });
 const close = () => { appearanceOpen.value = false; };

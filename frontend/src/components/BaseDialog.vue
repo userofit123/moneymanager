@@ -1,5 +1,5 @@
 <script setup>
-// A pop-up window with a title and buttons at the bottom (BaseSheet with the current app's h3 and footer). Open and close it with v-model:open.
+// A pop-up window with a title and buttons at the bottom (BaseSheet with an h3 title and a footer). Open and close it with v-model:open.
 import { useI18n } from "vue-i18n";
 import BaseSheet from "./BaseSheet.vue";
 import BaseButton from "./BaseButton.vue";

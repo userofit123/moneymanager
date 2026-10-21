@@ -1,4 +1,4 @@
-// The small finishing touches the current app puts on every text of the page (web/js/09-profile-export-settings.js pass/trPass/caps/titleCase):
+// The small finishing touches put on every text of the page:
 // - " · " between parts is drawn as a lighter dot with room around it (<span class="dt">·</span>);
 // - the first letter of a badge, chip or label is a capital, and card labels are in Title Case (English letters only);
 // - in Hebrew, amounts stay left to right inside a sentence (⁦₪1,250⁩).
@@ -12,7 +12,7 @@ const MONEY = /[−+-]?\s?[₪$€£¥]\s?\d[\d,]*(?:\.\d+)?%?/g;
 function dots(el) {
   const n = el.firstChild;
   if (!n || n !== el.lastChild || n.nodeType !== 3 || !n.nodeValue.includes(" · ") || SKIP.test(el.tagName) || el.closest("svg,[contenteditable]")) return;
-  // the parts go in one <span>, like the current app, so a box that lays out its children in a row keeps the line together
+  // the parts go in one <span>, so a box that lays out its children in a row keeps the line together
   const w = document.createElement("span");
   n.nodeValue.split(" · ").forEach((t, i) => { if (i) { const d = document.createElement("span"); d.className = "dt"; d.textContent = "·"; w.appendChild(d); } if (t) w.appendChild(document.createTextNode(t)); });
   el.replaceChildren(w);
@@ -44,9 +44,9 @@ function pass(root = document.body) {
   if (!root || root.nodeType !== 1) return;
   [root, ...root.querySelectorAll("*")].forEach((el) => { if (el.childNodes.length === 1) dots(el); });
   dotsMixed(root);
-  // like the current app, also in Hebrew (they only touch English letters, such as an account named in English)
+  // also in Hebrew (they only touch English letters, such as an account named in English)
   root.querySelectorAll(CAPS).forEach(caps); if (root.matches?.(CAPS)) caps(root); root.querySelectorAll(".lbl").forEach(titleCase);
-  if (isHe()) { money(root); root.querySelectorAll("[placeholder*=\"⁦\"]").forEach((e) => { e.placeholder = e.placeholder.replace(/[⁦⁩]/g, ""); }); } // the current app keeps numbers in placeholders as they are ("למשל 34")
+  if (isHe()) { money(root); root.querySelectorAll("[placeholder*=\"⁦\"]").forEach((e) => { e.placeholder = e.placeholder.replace(/[⁦⁩]/g, ""); }); } // numbers in placeholders stay as they are ("למשל 34")
 }
 let started = false;
 export function startPolish() {
@@ -57,5 +57,5 @@ export function startPolish() {
   run();
 }
 // For Hebrew sentences made from translations: amounts and numbers in them stay left to right (vue-i18n postTranslation, see i18n.js).
-// (not digits that are part of a word, such as the name "10bis": the current app translates such a name as its own text, so it stays as is)
+// (not digits that are part of a word, such as the name "10bis", which is translated as one word and stays as is)
 export const isolateNumbers = (s) => String(s).replace(/(?<![A-Za-z\d])[−+]?₪?\d[\d,]*(?:\.\d+)?%?(?![A-Za-z\d])/g, "⁦$&⁩");

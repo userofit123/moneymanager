@@ -1,5 +1,5 @@
-// Every <details> in the app slides open and closed instead of jumping (web/js/04-transactions.js, the "details>summary" click handler).
-// The height is animated; "opening"/"closing" classes let styles/legacy.css turn the arrow and fade the content. data-noanim opts out.
+// Every <details> in the app slides open and closed instead of jumping.
+// The height is animated; "opening"/"closing" classes let styles/app.css turn the arrow and fade the content. data-noanim opts out.
 let started = false;
 export function startDetails() {
   if (started || typeof document === "undefined") return; started = true;

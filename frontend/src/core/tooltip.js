@@ -1,5 +1,5 @@
-// The current app's tooltips (web/js/08-jars.js tipFill, tipPlace, tipAt, tipCol, tipIcons): any element with data-tip="text" (or v-tip="text") has one.
-// The text is the old format: first line the title, "label\tvalue" lines are rows, "---" is a line, "!text" is a warning, other lines are notes.
+// The app's tooltips: any element with data-tip="text" (or v-tip="text") has one.
+// The text format: first line the title, "label\tvalue" lines are rows, "---" is a line, "!text" is a warning, other lines are notes.
 // A single line is a plain hint. Hovering shows it after a short pause, an (i) button (class "tinfo") shows it at once and keeps it until you tap elsewhere.
 
 let tipEl = null, host = null, pinned = null, timer = null, hideT = null, wired = false;
@@ -33,7 +33,7 @@ function place(el) {
   x = Math.max(10, Math.min(x, innerWidth - w - 10)); y = Math.max(10, y);
   t.style.left = x + "px"; t.style.top = y + "px";
 }
-// Beside a waterfall column, like the current app.
+// Beside a waterfall column.
 function placeCol(el) {
   const t = tipEl, r = el.getBoundingClientRect(), w = t.offsetWidth, h = t.offsetHeight;
   let x = r.right + 8; if (x + w > innerWidth - 8) x = r.left - w - 8; if (x < 8) x = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 8));
@@ -81,7 +81,7 @@ function wire() {
   document.addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.classList && e.target.classList.contains("tinfo")) { e.preventDefault(); pin(e.target); } }, true);
 }
 const TI_NO = "button:not(.jst),a,input,select,textarea,option,td,tr,th,i,u,svg,.jpm,.mh,.dchip,.v";
-// Every explanatory tooltip gets a small (i) next to its label (tipIcons in the old app).
+// Every explanatory tooltip gets a small (i) next to its label.
 function icon(el) {
   if (el.dataset.ti) return; el.dataset.ti = "1";
   if (el.closest("svg") || el.matches(TI_NO) || el.querySelector(":scope > .tinfo")) return;
@@ -101,5 +101,5 @@ export function startTooltips(label = "More info") {
   scan();
 }
 let infoLabel = "More info";
-// Builds the old text format: title, rows [[label, value] | "---"], note.
+// Builds the tooltip text format: title, rows [[label, value] | "---"], note.
 export const TP = (title, rows, note) => [title, ...rows.map((r) => (r === "---" ? "---" : r[0] + "\t" + r[1])), ...(note ? ["---", note] : [])].join("\n");

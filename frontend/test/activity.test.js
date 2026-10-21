@@ -1,4 +1,4 @@
-// The Activity list follows the current app: what counts in In, Out and Net, filters, sorting and grouping.
+// The Activity list: what counts in In, Out and Net, filters, sorting and grouping.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { kinds, totals, leftOut, filterRows, sortRows, groupRows, normTag, allTags } from "../src/lib/activity.js";
@@ -55,7 +55,7 @@ test("Activity has no question-mark cursor", async () => {
 
 import { isCardPay, cardInfo, reviewTransfers, duplicateIds, tagOffer, applyTagRule, guessKw, detailRows, amountsFit } from "../src/lib/activity.js";
 
-test("card payments are found like the current app: by card name, by the user's cards, by rule, or by hand", () => {
+test("card payments are found by card name, by the user's cards, by rule, or by hand", () => {
   const S2 = { accounts: [{ n: "Bank", kind: "bank" }, { n: "Max", kind: "card" }], cardRules: ["my card co"], ccOverride: { m1: 1, m2: 2 },
     tx: [{ id: "c", a: -10, from: "Max", desc: "Shop" }] };
   const ci = cardInfo(S2);

@@ -1,7 +1,7 @@
 <script setup>
-// A line with a soft area under it, like the current app's account chart (accSvg in web/js/05-accounts-charts-help.js),
+// A line with a soft area under it (the account chart),
 // with its hover: a dashed line and a dot follow the pointer to the nearest point and a small box shows that point's name and amount
-// (hvReg/hoverInit). Touch shows it too. box: the width the chart may use (the page's width), as the old chart measured it.
+// Touch shows it too. box: the width the chart may use (the page's width).
 import { ref, computed } from "vue";
 import { fm } from "../../format.js";
 

@@ -11,7 +11,6 @@ export function escLayer(isOpen, close) {
   watch(isOpen, (o) => (o ? layerOpen(close) : layerClose(close)), { immediate: true });
   if (getCurrentInstance()) onBeforeUnmount(() => layerClose(close));
 }
-export const layersOpen = () => open.length;
 
 if (typeof window !== "undefined") {
   addEventListener("keydown", (e) => {

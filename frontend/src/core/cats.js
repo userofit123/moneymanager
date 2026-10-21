@@ -1,4 +1,4 @@
-// Category helpers every page shares: the names in the order the current app lists them (catNames: as typed, ignoring case),
+// Category helpers every page shares: the names in the order lists show them (catNames: as typed, ignoring case),
 // a category's colour (cc), and the name shown in the page's language.
 import { i18n } from "../i18n.js";
 import { categoryName } from "../catnames.js";

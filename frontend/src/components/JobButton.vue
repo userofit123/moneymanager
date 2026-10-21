@@ -1,6 +1,6 @@
 <script setup>
 // A button that starts a sync, test or bank verification. While any of them runs it is turned off ("Wait for the current one to finish"),
-// and the one that runs shows a spinner (applyJobUI in web/js/06-trend-forecast-sync.js). kind: sync | test | assist; source: a connection or "all".
+// and the one that runs shows a spinner. kind: sync | test | assist; source: a connection or "all".
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { job } from "../core/jobs.js";

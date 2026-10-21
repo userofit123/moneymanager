@@ -1,13 +1,13 @@
-// Home gives the same numbers, bills, budgets, jars, recent payments and alerts as the current app, on the same data (made-up bank data from the demo).
+// Home gives the agreed numbers, bills, budgets, jars and recent payments on made-up bank data from the demo (saved in fixtures/, see golden.js).
 import test from "node:test";
 import assert from "node:assert/strict";
-import { oldApp } from "./old-app.js";
+import { matchesSaved } from "./golden.js";
 import { buildDemo } from "../../server/src/seed.js";
 import { homeModel, flowSteps } from "../src/lib/home.js";
 import { alertsModel, fm } from "../src/lib/alerts.js";
 
 process.on("unhandledRejection", () => {});
-const NOW = new Date(2026, 9, 17, 12), old = oldApp(NOW);
+const NOW = new Date(2026, 9, 17, 12);
 function demoState(o = {}) {
   const d = buildDemo(NOW); let id = 1;
   const tx = d.rows.map((r) => ({ id: id++, d: r.d, desc: r.desc, from: r.from, to: r.to, a: r.a, ...(r.orig ? { orig: r.orig } : {}), c: r.c || "", tags: r.tags || [], docs: [], note: "", ...(r.pending ? { pending: true } : {}), src: "demo" }));
@@ -19,22 +19,18 @@ function demoState(o = {}) {
     nwSnaps: d.snaps, gaps: [], balUpdates: [], connected: {}, locked: {}, connStatus: {}, ...o };
 }
 const FX = { USD: 3.62 };
-const oldVals = (S) => JSON.parse(JSON.stringify(old.run(`localStorage.setItem("moneyFc","{}");S={...emptyState(),...structuredClone(__S)};S.cfg={...DEF_CFG,...S.cfg};fx={ILS:1,...__FX};fxSrc="live";detect();derive();detectBills();BC=billsInfo(true);JPC=null;
-  ({inc:monthSum(MK,1),ex:monthSum(MK,-1),cash:cashNow()+custNW(),incLast:hist.inc[4],exLast:hist.exp[4],cards:cardsD,budgets:budgetInfo().map(b=>[b.k,b.s,b.lim,b.st,Math.round(b.pc*100)/100]),
-   jars:jarCalc().out.map(j=>[j.id,j.got,j.want,j.bal]),free:jarFree().free,spend:spend(),
-   bills:billsInfo().filter(b=>b.nx).sort((a,b)=>(a.status=="overdue"?-1e3:0)+a.days-((b.status=="overdue"?-1e3:0)+b.days)).slice(0,4).map(b=>[b.n,b.days,b.status,Math.round(b.pred)]),
-   recent:ALL().filter(t=>!isXf(t)&&t.d>=MK&&!isFuture(t)).sort((a,b)=>b.d.localeCompare(a.d)).slice(0,5).map(t=>t.id),
-   alerts:alerts().map(a=>[a.id,a.sev,a.title,a.text])})`, { __S: S, __FX: FX })));
 
-for (const [name, S] of [["demo", demoState()], ["no budgets, big card bill", demoState({ budgets: {}, jarsBuffer: 0 })], ["a repeating bill that stopped", (() => { const s = demoState(); s.tx = s.tx.filter((t) => !/netflix/i.test(t.desc) || t.d < "2026-08-01"); return s; })()]]) test("Home matches the current app: " + name, () => {
-  const o = oldVals(S), M = homeModel(structuredClone(S), NOW, FX);
-  assert.equal(Math.round(M.kpi.inc), Math.round(o.inc)); assert.equal(Math.round(M.kpi.ex), Math.round(o.ex));
-  assert.equal(Math.round(M.kpi.cash), Math.round(o.cash)); assert.equal(Math.round(M.kpi.incLast), Math.round(o.incLast)); assert.equal(Math.round(M.kpi.exLast), Math.round(o.exLast));
-  assert.deepEqual(M.cards.map((c) => [c.n, c.now, c.last]), o.cards.map((c) => c.slice(0, 3)));
-  assert.deepEqual(M.budgets.map((b) => [b.k, b.s, b.lim, b.st, Math.round(b.pc * 100) / 100]), o.budgets.sort((a, b) => b[4] - a[4]));
-  assert.deepEqual(M.jars.map((j) => [j.id, j.got, j.want, j.bal]), o.jars);
-  assert.equal(Math.round(M.flow.free), Math.round(o.free));
-  assert.deepEqual(M.spend.map(([k, v]) => [k, Math.round(v)]), o.spend.map(([k, v]) => [k, Math.round(v)]));
-  assert.deepEqual(M.upcoming.map((b) => [b.n, b.days, b.status, Math.round(b.pred)]), o.bills);
-  assert.deepEqual(M.recent.map((t) => t.id), o.recent);
+const CASES = [["demo", "demo", demoState()], ["no budgets, big card bill", "nobudgets", demoState({ budgets: {}, jarsBuffer: 0 })], ["a repeating bill that stopped", "stopped", (() => { const s = demoState(); s.tx = s.tx.filter((t) => !/netflix/i.test(t.desc) || t.d < "2026-08-01"); return s; })()]];
+for (const [name, key, S] of CASES) test("Home shows this month's money, cards, budgets, jars, bills and recent payments: " + name, () => {
+  const M = homeModel(structuredClone(S), NOW, FX);
+  matchesSaved("home." + key, {
+    kpi: ["inc", "ex", "cash", "incLast", "exLast"].map((k) => [k, Math.round(M.kpi[k])]),
+    cards: M.cards.map((c) => [c.n, c.now, c.last]),
+    budgets: M.budgets.map((b) => [b.k, b.s, b.lim, b.st, Math.round(b.pc * 100) / 100]),
+    jars: M.jars.map((j) => [j.id, j.got, j.want, j.bal]),
+    free: Math.round(M.flow.free),
+    spend: M.spend.map(([k, v]) => [k, Math.round(v)]),
+    upcoming: M.upcoming.map((b) => [b.n, b.days, b.status, Math.round(b.pred)]),
+    recent: M.recent.map((t) => t.id),
+  });
 });

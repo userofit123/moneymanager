@@ -1,8 +1,7 @@
 <script setup>
-// Alerts: what needs attention now, and the history of every alert. A copy of the current app's Alerts page
-// (web/js/04-transactions.js renderAlerts / renderAlertHistory, web/js/08-jars.js alOpen / alDismiss). The alerts themselves
+// Alerts: what needs attention now, and the history of every alert. The alerts themselves
 // come from lib/alerts.js (the same rules as the Home box); their words from lib/alerttext.js and the language files.
-// Dismiss is saved like the old page: change a copy, PUT /api/state, load the fresh copy.
+// Dismiss is saved directly: change a copy, PUT /api/state, load the fresh copy.
 import { openSettingsTab } from "./settings/tab.js";
 import { ref, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
@@ -47,7 +46,7 @@ watch(alertsReported, () => { if (tab.value === "hist" && hist.value.loaded) loa
 function change(edit) { data.change((next) => { edit(next); return []; }); }
 const dismiss = (x) => change((n) => { n.dismissed = { ...(n.dismissed || {}), [x.id]: 1 }; });
 
-// ---- Open: the same places as the old page (alOpen in core/shell.js) ----
+// ---- Open: each alert goes to its place (openAlert in core/shell.js) ----
 const open = (x) => openAlert(x, x.title);
 
 // ---- tabs and history ----

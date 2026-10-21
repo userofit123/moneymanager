@@ -1,10 +1,9 @@
 # Live development: the app runs the code in this folder instead of the published image.
 #   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
-# web/ changes: refresh the page (the offline cache can need a second refresh).
 # server/src or server/migrations changes: docker compose -f docker-compose.yml -f docker-compose.dev.yml restart app
 # server/package.json changes (new dependencies): run the up -d --build command again.
-# frontend/ (the new Vue app) changes: hot reload, nothing to do. https://money.local/app/ updates by itself as you save.
-#   The 'vite' container runs the Vite dev server; the app forwards /app/ to it (VITE_DEV_URL).
+# frontend/ changes: hot reload, nothing to do. https://money.local updates by itself as you save.
+#   The 'vite' container runs the Vite dev server; the app forwards every page and file to it (VITE_DEV_URL).
 # Back to the published image: docker compose up -d --force-recreate app
 services:
   app:
@@ -16,10 +15,10 @@ services:
       context: .
       dockerfile: server/Dockerfile
     volumes:
-      - ./web:/app/web:ro
       - ./server/src:/app/server/src:ro
       - ./server/migrations:/app/server/migrations:ro
       - ./CHANGELOG.md:/app/CHANGELOG.md:ro
+      - ./CHANGELOG.he.md:/app/CHANGELOG.he.md:ro
   vite:
     image: node:22-alpine
     working_dir: /src/frontend

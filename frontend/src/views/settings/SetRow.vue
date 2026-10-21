@@ -1,6 +1,6 @@
 <script setup>
-// One line of a card in Settings: a title and a small explanation on one side, the control on the other. Same markup as the
-// current app's sr() (web/js/06-trend-forecast-sync.js). "desc" can also be given as the "desc" slot when it has markup in it.
+// One line of a card in Settings: a title and a small explanation on one side, the control on the other.
+// "desc" can also be given as the "desc" slot when it has markup in it.
 defineProps({ title: { type: String, default: "" }, desc: { type: String, default: "" }, cls: { type: String, default: "" } });
 </script>
 

@@ -1,6 +1,6 @@
 // Suggestions: things the app noticed and can do (a rule for a category, a tag, a card payment). Each one shows as a toast for a while
-// and stays in the list behind the light-bulb button until it is done or cleared (addSugg/suggUI/suggOpen in web/js/09-profile-export-settings.js).
-// Kept in this browser as "moneySugg", like the current app. An action is { label, kind, arg }; core/suggestActions.js runs it.
+// and stays in the list behind the light-bulb button until it is done or cleared.
+// Kept in this browser as "moneySugg". An action is { label, kind, arg }; core/txact.js runs it (setSuggestionRunner).
 import { ref } from "vue";
 import { readJson, writeJson } from "./prefs.js";
 import { toast } from "./toast.js";

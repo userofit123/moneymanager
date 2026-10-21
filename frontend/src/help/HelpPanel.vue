@@ -1,5 +1,5 @@
 <script setup>
-// The guide panel that slides in from the side (the help button is in App.vue). Same markup and class names as the current app (#help, .helph, .helpb).
+// The guide panel that slides in from the side (the help button is in App.vue). Styled by #help, .helph and .helpb.
 import { computed, ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import { current } from "../router.js";

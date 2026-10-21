@@ -22,7 +22,8 @@ await page.evaluate(async (pw) => {
   await fetch(st.setup ? "/api/auth/setup" : "/api/auth/login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ password: pw }) });
 }, PW);
 
-const theme = (o) => page.evaluate((o) => { Object.assign(st, o); applyTheme(); renderAll(); }, o);
+// a look is set the way the app keeps it (moneyTheme, stamped newer than the copy on the server), then the page is loaded again
+const theme = async (o) => { await page.evaluate((o) => { const t = JSON.parse(localStorage.getItem("moneyTheme") || "{}"); localStorage.setItem("moneyTheme", JSON.stringify({ ...t, ...o })); localStorage.setItem("moneyPrefsAt", String(Date.now())); localStorage.setItem("moneyPrefsSeen", "1"); }, o); await page.reload(); await w(2500); };
 const open = async (name) => { await page.evaluate((n) => [...document.querySelectorAll("nav .nb")].find((x) => x.textContent.includes(n)).click(), name); await w(1300); };
 const shot = async (file, opts = {}) => { await w(250); await page.screenshot({ path: path.join(OUT, file + ".webp"), type: "webp", quality: 88, ...opts }); console.log(file); };
 const desktop = { width: 1360, height: 860, deviceScaleFactor: 1 };

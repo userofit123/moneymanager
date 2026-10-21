@@ -1,6 +1,5 @@
 <script setup>
-// Settings → Backup and restore. A copy of the current app's section (web/js/07-periods-rules.js renderBackup, bkRun, bkRestoreGo, bkDel,
-// bkPut, bkInspect, bkAskPw; the bk* cases and the bkFile handler in 08-jars.js): the daily copy, its password, and restoring a copy.
+// Settings → Backup and restore: the daily copy, its password, and restoring a copy.
 import { ref, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";

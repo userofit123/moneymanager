@@ -1,7 +1,7 @@
 <script setup>
-// variant: "filled" (main action), "outline" (other actions), "danger" (deletes or removes something). Same kinds as the current app.
+// variant: "filled" (main action), "outline" (other actions), "danger" (deletes or removes something).
 // size "small" for buttons inside rows and cards. "busy" shows a spinner and blocks clicks while something is running.
-// Markup and classes are the old app's: btn, btn o, btn r, btn s, btn running, spinner (all styled in styles/legacy.css).
+// Markup uses the shared classes: btn, btn o, btn r, btn s, btn running, spinner (all styled in styles/app.css).
 defineProps({ variant: { type: String, default: "filled" }, size: { type: String, default: "normal" }, type: { type: String, default: "button" }, busy: Boolean, disabled: Boolean });
 </script>
 

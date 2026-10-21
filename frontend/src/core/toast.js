@@ -1,5 +1,5 @@
-// The little messages at the bottom of the page (components/ToastHost.vue shows them). Port of toast() and toastClear()
-// in web/js/07-periods-rules.js. The old app guessed ok/err from the English words; here the caller says, because the text may be Hebrew.
+// The little messages at the bottom of the page (components/ToastHost.vue shows them).
+// The caller says whether a message is good news or an error: the text may be Hebrew, so it cannot be guessed from the words.
 import { ref } from "vue";
 
 export const toasts = ref([]);

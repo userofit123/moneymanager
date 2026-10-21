@@ -1,4 +1,4 @@
-// The small section icons of the current app's Settings (web/js/06-trend-forecast-sync.js, the SI list), copied as is.
+// The small section icons of Settings.
 // Each value is the inside of a 24x24 svg.
 export const SI = {
   user: "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7\"/>",

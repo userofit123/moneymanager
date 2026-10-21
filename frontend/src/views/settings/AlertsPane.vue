@@ -1,6 +1,5 @@
 <script setup>
-// Settings → Which alerts. A copy of the current app's section (web/js/04-transactions.js renderAlertSettings, first half; the cfg/cfgn
-// changes and the alReset case in 08-jars.js): each kind of alert on or off, the amounts that trigger them, and dismissed ones back.
+// Settings → Which alerts: each kind of alert on or off, the amounts that trigger them, and dismissed ones back.
 import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
@@ -14,7 +13,7 @@ const S = computed(() => data.state.value);
 onMounted(() => { data.start(); });
 const TYPES = ["jars", "bills", "price", "budget", "card", "large", "xfer", "recon", "pending", "sync", "uncat", "forecast", "docs"];
 const NUMS = ["cardPct", "largeAmt", "billDays", "budgetPct"];
-// none of these write a change-history line, like the current app
+// none of these write a change-history line
 const setOn = (k, on) => data.change((s) => { s.cfg[k] = on ? 1 : 0; return []; });
 const setNum = (k, v) => data.change((s) => { s.cfg[k] = +v; return []; });
 const reset = () => data.change((s) => { s.dismissed = {}; return []; });

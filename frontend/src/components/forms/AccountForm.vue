@@ -1,6 +1,5 @@
 <script setup>
-// "Add an account" and "Edit account" (accChoose, accConnectList, accConnectGo and accFormOpen in web/js/05-accounts-charts-help.js,
-// case accSave in 08-jars.js). One window whose content changes, like the current app's one sheet:
+// "Add an account" and "Edit account". One window whose content changes from step to step:
 // step "choose" (bank or card, or one you keep yourself) → "connect" (the list of banks and cards) or "manual" (the form).
 // id: the account to edit (then the form opens at once). Saving calls the server, loads the data again and opens the account's page.
 import { ref, computed, onMounted, nextTick } from "vue";

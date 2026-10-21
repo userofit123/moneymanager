@@ -78,6 +78,13 @@ test("bank CSV: English and Hebrew headers, card charges positive, debit/credit 
 });
 
 // ---------- the real HTTP app ----------
+// the built app may not exist in a test run: a stand-in page is enough to check what the server sends with it
+if (!process.env.WEB_DIR) {
+  const fs = await import("node:fs"), os = await import("node:os"), path = await import("node:path");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "money-web-"));
+  fs.writeFileSync(path.join(dir, "index.html"), "<!doctype html><title>Money</title>");
+  process.env.WEB_DIR = dir;
+}
 const { app } = await import("../src/index.js");
 let base, srv, mock;
 const call = async (method, path, { body, cookie, headers = {} } = {}) => {

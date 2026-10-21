@@ -1,15 +1,15 @@
-// The Reports page says the same things as the current app on the same data: every card's words, numbers and labels,
-// drawn with the real Vue file and compared with what the old code (web/js reps, renderNW, renderCmp) writes into its page.
+// The Reports page says the agreed things on fixed data: every card's words, numbers and labels, drawn with the real Vue file
+// and compared with saved words (fixtures/, see golden.js).
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "vite";
 import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
-import { oldApp } from "./old-app.js";
+import { matchesSaved } from "./golden.js";
 import { buildDemo } from "../../server/src/seed.js";
 
 process.on("unhandledRejection", () => {});
-const NOW = new Date(2026, 9, 17, 12), old = oldApp(NOW);
+const NOW = new Date(2026, 9, 17, 12);
 function demoState(o = {}) {
   const d = buildDemo(NOW); let id = 1;
   const tx = d.rows.map((r) => ({ id: id++, d: r.d, desc: r.desc, from: r.from, to: r.to, a: r.a, ...(r.orig ? { orig: r.orig } : {}), c: r.c || "", tags: r.tags || [], docs: [], note: "", ...(r.pending ? { pending: true } : {}), src: "demo" }));
@@ -23,11 +23,6 @@ function demoState(o = {}) {
 const FX = { USD: 3.62 };
 const IDS = ["nwc", "cmp", "merch", "donutRep", "catCmp", "donutTag", "tagCmp"];
 
-// What the current app writes into each block of its Reports page.
-const oldBlocks = (S, ctl = {}) => old.run(`localStorage.setItem("moneyFc","{}");S={...emptyState(),...structuredClone(__S)};S.cfg={...DEF_CFG,...S.cfg};fx={ILS:1,...__FX};fxSrc="live";detect();derive();detectBills();BC=billsInfo();Object.assign(RNG,__C.RNG||{});Object.assign(CMP,__C.CMP||{});(()=>{
-  const P=new Proxy(function(){},{get:(t,k)=>k===Symbol.toPrimitive?()=>"":k==="length"?0:P,apply:()=>P,set:()=>true}),cap={};
-  document={getElementById:id=>cap[id]||(cap[id]=new Proxy({innerHTML:"",textContent:"",style:{},dataset:{},className:"",classList:{add(){},remove(){},toggle(){}},clientWidth:900,clientHeight:250,querySelector:()=>P,querySelectorAll:()=>[]},{get:(t,k)=>k in t?t[k]:P,set:(t,k,v)=>{t[k]=v;return true}})),querySelector:()=>null,querySelectorAll:()=>[],documentElement:{classList:{contains:()=>false}}};
-  reps();return Object.fromEntries(${JSON.stringify(IDS)}.map(k=>[k,cap[k]?cap[k].innerHTML:""]))})()`, { __S: S, __FX: FX, __C: ctl });
 
 const vite = await createServer({ root: new URL("..", import.meta.url).pathname, server: { middlewareMode: true, hmr: false, ws: false }, appType: "custom", logLevel: "silent" });
 after(() => vite.close());
@@ -46,7 +41,7 @@ async function page(S, lang = "en", ctl = {}) {
   const m = await load(); m.setLang(lang); m.data.state.value = structuredClone(S); m.data.fx.value = { ...m.data.fx.value, fx: FX };
   const app = createSSRApp({ render: () => h(m.Rep) }); app.use(m.i18n);
   const html = await renderToString(app), i = html.indexOf("<section");
-  // the dots between parts (<span class="dt">·</span> in a <span>, made by vite-dots.js) are added on the page in the current app too, not in its HTML strings
+  // the dots between parts (<span class="dt">·</span> in a <span>, made by vite-dots.js) are left out: only the words are compared
   return html.slice(i).replace(/<!--[\s\S]*?-->/g, "").replace(/<span>([^<]*(?:<span class="dt">·<\/span>[^<]*)+)<\/span>/g, "$1").replace(/<span class="dt">·<\/span>/g, " · ");
 }
 // the inside of the element with this id (its tags balanced)
@@ -60,16 +55,17 @@ const unesc = (x) => x.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quo
 // the words a block shows (the main chart's drawing and hover box are left out: they depend on the page's width)
 const words = (html) => unesc(html.replace(/<svg[\s\S]*?<\/svg>/g, (s) => (/class="dsvg"/.test(s) ? s : " ")).replace(/<div class="trtip[\s\S]*?<\/div>/g, " ").replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim();
 
-const STATES = [["demo", demoState()], ["a hidden merchant and tags", (() => { const s = demoState(); s.hiddenMerchants = ["netflix"]; s.tx.forEach((t, i) => { if (t.a < 0 && t.d >= "2026-10-01" && i % 3 == 0) t.tags = ["vacation"]; }); return s; })()], ["no tags", (() => { const s = demoState(); s.tx.forEach((t) => (t.tags = [])); return s; })()]];
+const STATES = [["demo", "demo", demoState()], ["a hidden merchant and tags", "hidden", (() => { const s = demoState(); s.hiddenMerchants = ["netflix"]; s.tx.forEach((t, i) => { if (t.a < 0 && t.d >= "2026-10-01" && i % 3 == 0) t.tags = ["vacation"]; }); return s; })()], ["no tags", "notags", (() => { const s = demoState(); s.tx.forEach((t) => (t.tags = [])); return s; })()]];
 const MONTH = { p: "month", from: "", to: "" }, cmpAll = (c, p = MONTH) => ({ RNG: { cat: p, merch: p, tag: p }, CMP: { cat: c, merch: c, tag: c } });
-STATES.push(["compared with the month before", demoState(), cmpAll("prev")], ["compared with last year, over 90 days", demoState(), cmpAll("yoy", { p: "90d", from: "", to: "" })],
-  ["a custom time frame compared with the one before", STATES[1][1], cmpAll("prev", { p: "custom", from: "2026-08-01", to: "2026-09-15" })]);
-for (const [name, S, ctl = {}] of STATES) test("the English page shows the same words and numbers as the current app: " + name, async () => {
-  const o = oldBlocks(S, ctl), html = await page(S, "en", ctl);
+STATES.push(["compared with the month before", "prev", demoState(), cmpAll("prev")], ["compared with last year, over 90 days", "yoy90", demoState(), cmpAll("yoy", { p: "90d", from: "", to: "" })],
+  ["a custom time frame compared with the one before", "custom", STATES[1][2], cmpAll("prev", { p: "custom", from: "2026-08-01", to: "2026-09-15" })]);
+for (const [name, key, S, ctl = {}] of STATES) test("the English page shows the agreed words and numbers: " + name, async () => {
+  const html = await page(S, "en", ctl), got = {};
   for (const id of IDS) {
     const b = inner(html, id); assert.ok(b != null, "block " + id + " is on the page");
-    assert.equal(words(b), words(o[id]), id); if (!/Cmp$/.test(id) || ctl.CMP) assert.ok(words(o[id]).length > 20, id + " has words"); if (process.env.SHOWW) console.log(id, words(b).slice(0, 160));
+    got[id] = words(b); if (!/Cmp$/.test(id) || ctl.CMP) assert.ok(got[id].length > 20, id + " has words");
   }
+  matchesSaved("reports-page." + key, got);
 });
 
 test("the Hebrew page has Hebrew words only (apart from names) and no broken numbers", async () => {

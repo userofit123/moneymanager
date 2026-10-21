@@ -1,5 +1,5 @@
 // What the data store tells the person while saving (saved, not saved, offline, a sync changed the data first), as toasts.
-// Same words, titles and undo button as the current app (web/js/02-state-data.js log/flush/setOffline).
+// Each message names what changed and has an Undo button.
 import { i18n } from "../i18n.js";
 import { data } from "../stores/data.js";
 import { toast, clearToast } from "./toast.js";
@@ -9,7 +9,7 @@ const t = (...a) => i18n.global.t(...a);
 let queue = [], timer = null;
 data.hooks.notify = (kind, o = {}) => {
   if (kind === "saved") {
-    // changes made together show as one message, like log() in the current app
+    // changes made together show as one message
     queue.push(...o.entries); clearTimeout(timer);
     timer = setTimeout(() => {
       const m = queue; queue = [];

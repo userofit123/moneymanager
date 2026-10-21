@@ -1,5 +1,5 @@
 <script setup>
-// "Update balance" of an account you keep yourself (accBalOpen in web/js/05-accounts-charts-help.js, case accBalSave in 08-jars.js):
+// "Update balance" of an account you keep yourself:
 // the new balance and a note. The server keeps the old balance in the account's history. id: the account.
 import { ref, computed, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";

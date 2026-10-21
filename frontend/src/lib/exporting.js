@@ -1,5 +1,5 @@
-// The export: what goes in the file and how it is written (exDef/exTx/exData/exCsv in web/js/09-profile-export-settings.js).
-// The file's column names and words are English, like the current app (a file leaves the app and is read by other programs).
+// The export: what goes in the file and how it is written (CSV or JSON).
+// The file's column names and words are always English (a file leaves the app and is read by other programs).
 import { kinds, rdOf, rangeOf } from "./activity.js";
 import { costRows } from "./txrows.js";
 

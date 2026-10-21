@@ -1,5 +1,5 @@
-// The Home page's numbers, kept apart from the screen so they can be tested. They follow the current app exactly
-// (web/js/02-state-data.js, 03-bills-home.js, 04-transactions.js, 08-jars.js): the same totals, bills, budgets, jars and money flow.
+// The Home page's numbers, kept apart from the screen so they can be tested:
+// the totals, bills, budgets, jars and money flow.
 // Nothing here changes the data; bills the app finds by itself are only worked out, not saved.
 import { kinds } from "./activity.js";
 
@@ -20,8 +20,8 @@ const RSKIP = (S, k) => ["Income", "Uncategorized", "Fees & FX costs"].includes(
 export { cadenceOf } from "./bills.js";
 import { cadenceOf } from "./bills.js";
 
-// The current app looks for transfers between your own accounts every time the data loads (detect() in web/js/02-state-data.js), and the totals leave them out.
-// Same here, in memory only: a possible transfer waits for review ("auto") and is not counted as spending or income.
+// Transfers between your own accounts are looked for every time the data loads, and the totals leave them out.
+// This is done in memory only: a possible transfer waits for review ("auto") and is not counted as spending or income.
 export function withTransfers(S) {
   const tx = S.tx || [], xf = [...(S.xf || [])];
   const own = [...new Set(["Bank Hapoalim", "Wise", ...(S.accounts || []).filter((a) => a.kind == "bank" || a.kind == "wallet" || a.kind == "custom").map((a) => a.n)])];
@@ -39,7 +39,7 @@ export function withTransfers(S) {
 const nohtml = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&").trim();
 const nameField = (t, f) => (f == "desc" ? t.desc : f == "memo" ? t.memo : f == "from" ? t.from : f == "to" ? t.to : f == "note" ? t.note : [t.desc, t.memo, t.bd, t.from, t.to, t.note].filter(Boolean).join(" "));
 const rnm = (s) => String(s == null ? "" : s).toLowerCase().replace(/[0-9*#_\/\\\-.,:;()'"\u05f3\u05f4]+/g, " ").replace(/\s+/g, " ").trim();
-// The name shown for a payment: the one you typed, a naming rule, or the bank's text (dn in the current app).
+// The name shown for a payment: the one you typed, a naming rule, or the bank's text.
 export const nameOf = (S, t) => { const c = S?.cfg || {}, o = c.renames && c.renames[t.id]; if (o) return o; if (c.nameRules) { const r = c.nameRules.find((x) => { const q = rnm(x.k); if (!q) return false; const v = rnm(nameField(t, x.f || "any")); return x.m == "eq" ? v == q : v.includes(q); }); if (r) return r.n; } return nohtml(t.desc); };
 
 // Everything Home needs, worked out once per data load. now: today's date; fx: { USD: 3.7, ... }.
@@ -102,7 +102,7 @@ export function homeModel(S, now = new Date(), fx = {}) {
     return { k: kk, lim, s, pc, pace, left: lim - s, st: s > lim ? "over" : pc >= cfg.budgetPct ? "warn" : pace > lim ? "pace" : "ok" };
   });
 
-  // Jars and the money already spoken for this month (the same rules as the current app).
+  // Jars and the money already spoken for this month.
   const jarsS = jarsAll.filter((j) => !j.done).sort((a, b) => a.p - b.p);
   const catJars = {}; jarsS.forEach((j) => (j.cats || []).forEach((x) => { if (!catJars[x.c]) catJars[x.c] = { j, since: x.since }; }));
   const recBills = BC.filter((b) => !b.once && !b.irregular && b.flag != "canceled" && b.mo > 0);

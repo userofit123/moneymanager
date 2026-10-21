@@ -1,5 +1,5 @@
 <script setup>
-// The app's frame, like web/index.html: the menu (a rail on a computer, a bar at the bottom of a phone), the job bar, the offline banner,
+// The app's frame: the menu (a rail on a computer, a bar at the bottom of a phone), the job bar, the offline banner,
 // the help and alerts buttons, the + button, the page for the current address, and the windows every page can open.
 // Before that, the sign-in screen when this browser is not signed in (core/boot.js).
 import { ref, computed, defineAsyncComponent, watch } from "vue";
@@ -39,7 +39,7 @@ const views = new Map(pages.filter((p) => p.component).map((p) => [p.name, defin
 const view = computed(() => views.get(current.value.name));
 const alertsPage = pages.find((p) => p.name === "alerts");
 
-// The tab shows the app's name only, like the current app.
+// The tab shows the app's name only.
 watch(current, () => { document.title = t("app.title"); }, { immediate: true });
 
 // the light bulb pops when a new suggestion arrives

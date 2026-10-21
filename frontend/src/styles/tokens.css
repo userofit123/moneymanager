@@ -1,5 +1,5 @@
-/* Shared look of the new app, copied from the current app (web/css/app.css and the default "Indigo" colors in web/js/01-prefs-theme.js).
-   Components use these names only, never colors typed in by hand. The names match the current app so styles can be moved over as they are. */
+/* The app's shared look: colors, spacing, corners and type (the default "Indigo" colour set; core/theme.js changes them at run time).
+   Components use these names only, never colors typed in by hand. The names are the ones app.css uses. */
 :root {
   color-scheme: light;
   --acc: #4355b9; --accc: #dee0ff; --onc: #0b1550; --bg: #fbf8fd; --acc2: #7b4fb8; --on: #ffffff;

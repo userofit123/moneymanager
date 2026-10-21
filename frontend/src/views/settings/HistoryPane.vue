@@ -1,12 +1,11 @@
 <script>
 import { ref } from "vue";
-// how many lines show; kept while you move between sections (LOGN in the current app)
+// how many lines show; kept while you move between sections
 const N = ref(50);
 </script>
 
 <script setup>
-// Settings → Change history. A copy of the current app's section (web/js/06-trend-forecast-sync.js renderSet, the setLog part;
-// the undo and logMore cases in 08-jars.js): every change, newest first, with Undo where it can be undone.
+// Settings → Change history: every change, newest first, with Undo where it can be undone.
 import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";

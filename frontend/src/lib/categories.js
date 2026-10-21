@@ -1,6 +1,5 @@
-// The Categories and tags page's logic, the same as the current app (web/js/08-jars.js act() cases cat*, tag*, rule*, tr*,
-// nameRule*, ccRule*, salRule*; web/js/04-transactions.js tagCommit / tagRemove / tagRuleMatches; web/js/06 allTags / normTag).
-// Each change works on a copy of the data (S) and returns the change-history lines [action, detail] in the old app's English,
+// The Categories and tags page's logic: categories, tags, category rules, tag rules, name rules, card rules and salary rules.
+// Each change works on a copy of the data (S) and returns the change-history lines [action, detail] in English (saved as is, shown in Hebrew through the dictionary),
 // or false when nothing changes. Numbers the page shows afterwards (how many moved) go into `out`.
 import { ruleHit, ruleTags, normD, transferIds } from "./activity.js";
 
@@ -65,7 +64,7 @@ export function renameCategory(S, k, tg) {
   for (const j of S.jars || []) if (j.cats) { for (const x of j.cats) if (x.c == k) x.c = tg; const seen = new Set(); j.cats = j.cats.filter((x) => !seen.has(x.c) && seen.add(x.c)); }
   return [["Renamed category", `${k} → ${tg} · ${pl(c, "transaction")}`]];
 }
-// Its transactions become uncategorized; its rules and budget go. Bills and jars keep the name, like the current app.
+// Its transactions become uncategorized; its rules and budget go. Bills and jars keep the name.
 export function deleteCategory(S, k) {
   delete S.cats[k];
   for (const t of S.tx) if (t.c == k) t.c = "";
@@ -175,7 +174,7 @@ export function addNameRule(S, { k, n, f, m }) {
   return [["Added name rule", '"' + k + '" → ' + n]];
 }
 export function deleteNameRule(S, i) { const r = (S.cfg.nameRules || []).splice(+i, 1)[0]; return r ? [["Deleted name rule", '"' + r.k + '" → ' + r.n]] : false; }
-// field: k (text), n (name), f (where to look), m (in / eq). Saved even when left empty (the page warns), like the current app.
+// field: k (text), n (name), f (where to look), m (in / eq). Saved even when left empty (the page warns).
 export function setNameRule(S, i, field, v) {
   const r = (S.cfg.nameRules || [])[+i]; if (!r) return false;
   r[field] = field == "k" || field == "n" ? String(v).trim() : v;

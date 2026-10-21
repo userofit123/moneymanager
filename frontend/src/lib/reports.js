@@ -1,6 +1,5 @@
-// The Reports page's numbers, kept apart from the screen so they can be tested. They follow the current app exactly
-// (web/js/06-trend-forecast-sync.js reps/renderNW/trSeries/seriesN, 03-bills-home.js renderCmp, 07-periods-rules.js ranges):
-// the same periods, comparisons, monthly series, merchants and tags. Nothing here changes the data.
+// The Reports page's numbers, kept apart from the screen so they can be tested:
+// the periods, comparisons, monthly series, merchants and tags. Nothing here changes the data.
 import { rangeOf as rangeOfA, rdOf } from "./activity.js";
 import { addM } from "./home.js";
 
@@ -81,7 +80,7 @@ export function trSeries(M, S, spec, ms) {
   return null;
 }
 
-// Net worth by month for the main chart: saved snapshots, or rebuilt from the payments (web/js/02-state-data.js).
+// Net worth by month for the main chart: saved snapshots, or rebuilt from the payments.
 export function nwSeries(S, M, MK) {
   const N = 60, nm = []; for (let i = N - 1; i >= 0; i--) nm.push(addM(MK, -i));
   const rate = M.rate, snap = Object.fromEntries((S.nwSnaps || []).map((x) => [x.month, x])), sumK = (kind) => sum((S.accounts || []).filter((a) => a.kind == kind).map((a) => a.v * rate(a.cur)));

@@ -1,4 +1,4 @@
-// Copied from the current app (web/brands.js) so account and number icons look the same. Keep the two in step.
+// Bank, card and wallet logos for account icons (brandIcon), and the small glyph icons (glyphIcon).
 /* Brand marks for the Home blocks. The paths come from the Simple Icons project (CC0, https://simpleicons.org); the marks themselves belong to their owners and are used only to tell an account apart.
    Banks and cards that have no mark here (the Israeli banks, Max, Isracard, Cal) get a monogram tile instead. To use an official logo, add it to BRANDS below as {p:"<svg path>",c:"#hex"} under the bank's key. */
 export const BRANDS={

@@ -99,8 +99,6 @@
     "card6Digits": "Last 6 digits of the card"
   },
   "err": {
-    "noAnswer": "The bank gave no answer to the login request, so the app could not log in. This is usually the bank’s bot protection blocking the app’s browser, or a short block after several tries. Wait an hour, then press Test connection once. Press “See where it stopped” to see what the app’s browser saw. Until then, use the CSV export (Settings → Import and export).",
-    "noData": "The bank accepted the login but sent back no data. Usually the bank wants something first: a code, a new-device check, a new password, or a notice. Or it blocks automatic access. Log in on the bank's website yourself to see what it asks for. If it asks nothing, press “See where it stopped” on the connection to see what the app’s browser saw. Until then, use the CSV export (Settings → Import and export).",
     "step": " (Step: {step})",
     "otp": "The bank asked for a one-time code by SMS, so automatic sync is paused. Press Verify this device once. Log in in the live window, enter the code, and tick “remember this device”. Banks usually only ask on a device they do not know. (Or use a CSV export: Settings → Import and export.)"
   },
@@ -110,15 +108,8 @@
     "verifying": "Verifying",
     "wait": "Wait for the current one to finish",
     "allSources": "all sources",
-    "doneOf": "{d} of {n} · ",
-    "tailAssist": " · finish in the verification window",
-    "tailOne": " · usually a few minutes; a long history can take much longer. It keeps going while the bank is answering, please wait",
-    "tailMany": " · this can take a few minutes, please wait",
     "mine": "{what} {src}… {time}. Please wait, do not close this page.",
-    "busy": "{src} is busy ({what}). Wait for it to finish before starting another.",
-    "busyTest": "testing",
-    "busySync": "syncing",
-    "busyAssist": "verifying"
+    "busy": "{src} is busy ({what}). Wait for it to finish before starting another."
   },
   "toast": {
     "nick": "Nickname saved",
@@ -132,9 +123,7 @@
     "closed": "Closed",
     "assistSaved": "Saved. Now press Test connection",
     "assistGone": "The verification window closed",
-    "opening": "Opening the bank's page… this takes a few seconds",
-    "syncDone": "Sync finished",
-    "syncBad": "{list} failed. See Settings → Connections"
+    "opening": "Opening the bank's page… this takes a few seconds"
   },
   "shotT": "{label} · where it stopped",
   "shotD": "This is what the app's bank browser saw when the last login failed. A captcha, a notice or a blank page here tells us why. Every picture taken during each failed login is saved in the app's data folder, in profiles → _failed-logins (one folder per attempt, the newest 15 per bank are kept).",

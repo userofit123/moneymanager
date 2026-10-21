@@ -1,5 +1,5 @@
 <script setup>
-// "More" on a phone: the pages that are not in the bottom bar, then Appearance, Sync status and Install app (openMore in web/js/06-trend-forecast-sync.js).
+// "More" on a phone: the pages that are not in the bottom bar, then Appearance, Sync status and Install app.
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { pages } from "../../routes.js";

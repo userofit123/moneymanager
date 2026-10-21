@@ -1,15 +1,13 @@
-// Recap gives the same numbers as the current app's Recap (web/recap.js model()) on the same data, at the start, middle and end of a month,
-// and shows the same parts in the same order. One known difference: a day's tooltip lists payees by name (the old page showed "days ago" numbers).
+// Recap gives the agreed numbers at the start, middle and end of a month, and shows its parts in the agreed order
+// (saved in fixtures/, see golden.js). A day's tooltip lists payees by name.
 import test from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import { oldApp } from "./old-app.js";
+import { matchesSaved } from "./golden.js";
 import { buildDemo } from "../../server/src/seed.js";
 import { homeModel } from "../src/lib/home.js";
 import { recapModel, recapParts, dayBarHeights } from "../src/lib/recap.js";
 
 process.on("unhandledRejection", () => {});
-const RECAP = fs.readFileSync(new URL("../../web/recap.js", import.meta.url), "utf8").replace("window.renderRecap=function(){", "window.__recapModel=model;window.__recapOrder=m=>{const o=m.phase==\"start\"?[hero,startPart,inPart,nowPart,aheadPart,outPart,budgetsPart,endPart]:m.phase==\"end\"?[hero,startPart,inPart,outPart,budgetsPart,aheadPart,nowPart,endPart]:[hero,startPart,inPart,outPart,nowPart,aheadPart,budgetsPart,endPart];return o.map(f=>{try{return f(m)?f.name:\"\"}catch(e){return \"\"}}).filter(Boolean)};window.renderRecap=function(){");
 const FX = { USD: 3.62 };
 function demoState(NOW, o = {}) {
   const d = buildDemo(NOW); let id = 1;
@@ -27,19 +25,13 @@ const pick = (m) => ({
   over: m.over.map((b) => b.k), risk: m.risk.map((b) => b.k), okB: m.okB.map((b) => b.k), above: m.above.map((x) => x.k), below: m.below.map((x) => x.k),
   days: m.days.map((D) => [D.d, r0(D.spent), r0(D.inc), D.ex.map((x) => r0(x[1])), D.inn.map((x) => r0(x[1])), D.up.map((x) => [x[0], r0(x[1])])]),
 });
-const PART = { hero: "hero", startPart: "start", inPart: "in", outPart: "out", nowPart: "now", aheadPart: "ahead", budgetsPart: "budgets", endPart: "end" };
 
 // The last case needs R.jarCov (the list of what jars pay, reserveCalc) from lib/home.js: a category a jar pays in full is missing from R.rows.
 const JARCOV = (S) => { S.budgets = {}; S.jars[0].cats = [{ c: "Groceries", since: "2026-10-01" }]; S.jars[0].bal = 5000; };
-for (const [label, day, mod, opt] of [["start of the month", 3], ["middle of the month", 17], ["end of the month", 28], ["middle, no budgets, a jar paying for groceries in full", 17, JARCOV]]) test("Recap matches the current app: " + label, opt || {}, () => {
-  const NOW = new Date(2026, 9, day, 12), old = oldApp(NOW), S = demoState(NOW); if (mod) mod(S);
-  old.run(RECAP);
-  const o = JSON.parse(old.run(`localStorage.setItem("moneyFc","{}");S={...emptyState(),...structuredClone(__S)};S.cfg={...DEF_CFG,...S.cfg};fx={ILS:1,...__FX};fxSrc="live";detect();derive();detectBills();BC=billsInfo(true);JPC=null;acReset();
-    const m=__recapModel();JSON.stringify({m,order:__recapOrder(m)})`, { __S: S, __FX: FX }));
+for (const [label, key, day, mod, opt] of [["start of the month", "start", 3], ["middle of the month", "middle", 17], ["end of the month", "end", 28], ["middle, no budgets, a jar paying for groceries in full", "jarpays", 17, JARCOV]]) test("Recap works out the month and picks its parts: " + label, opt || {}, () => {
+  const NOW = new Date(2026, 9, day, 12), S = demoState(NOW); if (mod) mod(S);
   const M = homeModel(structuredClone(S), NOW, FX), m = recapModel(M, NOW);
-  const a = pick(m), b = pick(o.m);
-  for (const k of Object.keys(a)) assert.deepEqual(a[k], b[k], k);
-  assert.deepEqual(recapParts(m), o.order.map((n) => PART[n]));
+  matchesSaved("recap." + key, { ...pick(m), parts: recapParts(m) });
   assert.equal(dayBarHeights(m).length, m.dim);
   // the day's tooltip names the payee
   const D = m.days.find((x) => x.ex.length); if (D) assert.equal(typeof D.ex[0][0], "string");

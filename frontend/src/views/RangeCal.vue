@@ -1,5 +1,5 @@
 <script setup>
-// "Custom range": a calendar to pick two dates, and the same two dates to type. A copy of the current app's calendar (rcMonthHtml, openRangeCal, rcApply in web/js/07-periods-rules.js).
+// "Custom range": a calendar to pick two dates, and the same two dates to type.
 import { now } from "../core/clock.js";
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useI18n } from "vue-i18n";

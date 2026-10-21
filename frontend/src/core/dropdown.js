@@ -1,4 +1,4 @@
-// Every drop-down opens the app's own animated menu instead of the browser's (the .ddm menu of web/js/01-prefs-theme.js).
+// Every drop-down opens the app's own animated menu instead of the browser's (.ddm).
 // The <select> underneath keeps its value and fires input and change as usual, so v-model works unchanged.
 // A select with data-native keeps the browser's own list; data-ddanchor on a parent sets what the menu lines up with.
 import { layerOpen, layerClose } from "./layers.js";
@@ -58,4 +58,3 @@ export function startDropdowns() {
   addEventListener("resize", close);
   addEventListener("scroll", (e) => { if (M && !(e.target.closest && e.target.closest(".ddm"))) close(); }, { passive: true, capture: true });
 }
-export const closeDropdown = close;

@@ -1,5 +1,5 @@
 <script setup>
-// "Add or update" (the + button): every kind of thing that can be added, each opening its own window (openQuick in web/js/07-periods-rules.js).
+// "Add or update" (the + button): every kind of thing that can be added, each opening its own window.
 import { useI18n } from "vue-i18n";
 import { quickOpen } from "../../core/shell.js";
 import { openForm } from "../../core/forms.js";

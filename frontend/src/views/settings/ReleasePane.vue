@@ -1,11 +1,11 @@
 <script>
 import { ref } from "vue";
-// the versions, read once (REL in the current app)
+// the versions, read once
 const REL = ref({ sections: [], loaded: false, raw: null });
 </script>
 
 <script setup>
-// Settings → Change log. A copy of the current app's section (web/js/09-profile-export-settings.js renderRel and loadRel):
+// Settings → Change log:
 // every version with what changed, newest first, in Hebrew where the Hebrew notes have it.
 import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";

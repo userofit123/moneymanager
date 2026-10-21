@@ -1,6 +1,6 @@
 // The sliding highlight of every row of tabs (.seg): when another tab is picked, the coloured pill stretches and glides over to it.
-// A copy of the current app's seg slider (web/js/09-profile-export-settings.js): the pill is an <i class="segi"><b></b></i> put first in
-// the .seg, styled in styles/legacy.css (.segi, .seg.sl). It watches the page, so every tab row gets it without any code in the page.
+// The pill is an <i class="segi"><b></b></i> put first in
+// the .seg, styled in styles/app.css (.segi, .seg.sl). It watches the page, so every tab row gets it without any code in the page.
 const st = new Map(), waiting = new Set();
 let raf = 0, started = false;
 const todo = new Set();

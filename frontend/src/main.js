@@ -3,7 +3,7 @@ import App from "./App.vue";
 import { i18n } from "./i18n.js";
 import { startMobile } from "./mobile.js";
 import "./styles/tokens.css";
-import "./styles/legacy.css";
+import "./styles/app.css";
 import "./styles/base.css";
 
 import { startTooltips } from "./core/tooltip.js";

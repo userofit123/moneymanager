@@ -1,20 +1,28 @@
-// Page addresses work like the current app's, under /app.
+// Page addresses: each page has its own address, short names from older links still work, and unknown ones go Home.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { matchPage, hrefOf } from "../src/router.js";
 import { pages } from "../src/routes.js";
 
 test("addresses pick the right page, unknown ones go Home", () => {
-  assert.equal(matchPage("/app/activity").name, "activity");
-  assert.equal(matchPage("/app/activity/").name, "activity");
-  assert.equal(matchPage("/app/jars?x=1").name, "jars");
-  assert.equal(matchPage("/app/").name, "home");
-  assert.equal(matchPage("/app/nope").name, "home");
-  assert.equal(hrefOf(pages.find((p) => p.name === "bills")), "/app/bills");
+  assert.equal(matchPage("/activity").name, "activity");
+  assert.equal(matchPage("/activity/").name, "activity");
+  assert.equal(matchPage("/jars?x=1").name, "jars");
+  assert.equal(matchPage("/").name, "home");
+  assert.equal(matchPage("/nope").name, "home");
+  assert.equal(hrefOf(pages.find((p) => p.name === "bills")), "/bills");
+  assert.equal(hrefOf(pages.find((p) => p.name === "home")), "/");
 });
 
-test("every page not moved yet links to the same page in the current app", () => {
-  for (const p of pages.filter((x) => x.nav && !x.component)) assert.match(p.old, /^\//, p.name);
+test("short names from older links open their page", () => {
+  assert.equal(matchPage("/fc").name, "forecast");
+  assert.equal(matchPage("/tx").name, "activity");
+  assert.equal(matchPage("/dash").name, "home");
+  assert.equal(matchPage("/budg#x").name, "budgets");
+});
+
+test("every page in the menu has a page to show and its own address", () => {
+  for (const p of pages.filter((x) => x.nav)) { assert.equal(typeof p.component, "function", p.name); assert.match(p.path, /^\//, p.name); }
 });
 
 test("every page name has English and Hebrew menu text", async () => {

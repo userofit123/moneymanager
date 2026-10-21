@@ -1,4 +1,4 @@
-// Every call to the server goes through here, like the fetch wrapper at the top of web/js/01-prefs-theme.js:
+// Every call to the server goes through here:
 // the session cookie is always sent, changes carry the header the server asks for (it refuses them without it),
 // and a lost session shows the sign-in screen.
 import { ref } from "vue";

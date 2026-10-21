@@ -25,7 +25,7 @@ import * as auth from "./auth.js";
 import * as bk from "./backup.js";
 import { createAccount, updateAccount, setBalance, deleteAccount, alertsSeen, alertHistory } from "./accounts.js";
 
-const WEB = process.env.WEB_DIR || path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "web");
+const WEB = process.env.WEB_DIR || path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "frontend", "dist"); // the built app (frontend/, npm run build)
 export const app = express();
 app.disable("x-powered-by");
 app.set("trust proxy", process.env.TRUST_PROXY === "1"); // set when Caddy or another proxy sits in front
@@ -342,12 +342,12 @@ app.post("/api/backup/restore", json, wrap(async (req, res) => {
 }));
 
 // ---------- version, changelog and "is there a newer version?" ----------
-const CHANGELOG = process.env.CHANGELOG_FILE || path.join(WEB, "..", "CHANGELOG.md");
+const CHANGELOG = process.env.CHANGELOG_FILE || path.join(process.env.WEB_DIR ? path.join(WEB, "..") : path.join(path.dirname(fileURLToPath(import.meta.url)), "..", ".."), "CHANGELOG.md"); // next to the app folder (Docker, desktop) or the repository root
 const readChangelog = () => { try { return fs.readFileSync(CHANGELOG, "utf8"); } catch { return ""; } };
 const versionOf = (t) => (t.match(/^## \[?v?(\d+\.\d+\.\d+)/m) || [])[1] || "";
 const newer = (a, b) => { const x = a.split(".").map(Number), y = b.split(".").map(Number); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); return false; };
 let latestCache = { at: 0, v: null, err: "" };
-const readChangelogHe = () => { try { return fs.readFileSync(path.join(WEB, "changelog-he.md"), "utf8"); } catch { return ""; } };
+const readChangelogHe = () => { try { return fs.readFileSync(CHANGELOG.replace(/\.md$/, ".he.md"), "utf8"); } catch { return ""; } }; // CHANGELOG.he.md next to CHANGELOG.md
 app.get("/api/version", wrap(async (_req, res) => { const t = readChangelog(); res.json({ version: versionOf(t), changelog: t, changelogHe: readChangelogHe() }); }));
 // asks GitHub (public repository) for the latest release; cached for an hour. No release published yet is not an error.
 app.get("/api/update-check", wrap(async (req, res) => {
@@ -367,34 +367,20 @@ app.get("/api/update-check", wrap(async (req, res) => {
 
 app.use("/api", (_req, res) => res.status(404).json({ error: "not found" }));
 
-// ---------- front end: the page and service worker are never cached ----------
-app.use((req, res, next) => {
-  if (req.path === "/" || req.path.endsWith(".html") || req.path === "/sw.js") res.set("Cache-Control", req.path === "/sw.js" ? "no-store" : "no-cache");
-  next();
-});
-// The page's own scripts get ?v=<last change> in their address. An older copy kept by the browser or the service worker has a different address,
-// so a new page is never run with old scripts or old translations.
-const sendIndex = (_req, res, next) => {
-  try {
-    const html = fs.readFileSync(path.join(WEB, "index.html"), "utf8").replace(/(<script src="|<link rel="stylesheet" href=")([\w./-]+\.(?:js|css))(")/g, (m, a, f, z) => {
-      try { return `${a}${f}?v=${Math.round(fs.statSync(path.join(WEB, f)).mtimeMs)}${z}`; } catch { return m; }
-    });
-    res.set("Cache-Control", "no-cache").type("html").send(html);
-  } catch { next(); }
-};
-app.get(["/", "/index.html"], sendIndex);
-// The new Vue app lives under /app/ (built by Vite into web/app). In dev, VITE_DEV_URL points at the Vite dev server and /app/ is forwarded to it, including hot reload.
+// ---------- front end: the built app (frontend/dist), or the Vite dev server while developing ----------
+// The page and the service worker are never cached; the files under /assets/ have their content in their name, so they can be kept for good.
+const sendIndex = (_req, res, next) => res.set("Cache-Control", "no-cache").sendFile(path.join(WEB, "index.html"), (e) => e && next());
 let devUpgrade = null;
 if (process.env.VITE_DEV_URL) {
+  // In dev, every page and file comes from the Vite dev server (VITE_DEV_URL), including hot reload over a websocket.
   const target = new URL(process.env.VITE_DEV_URL);
   const forward = (req, res) => {
     const p = http.request({ host: target.hostname, port: target.port, path: req.originalUrl, method: req.method, headers: { ...req.headers, host: target.host } }, (r) => { res.writeHead(r.statusCode, r.headers); r.pipe(res); });
     p.on("error", () => res.status(502).type("text").send("The Vite dev server is not running yet."));
     req.pipe(p);
   };
-  app.use("/app", forward);
+  app.use((req, res, next) => (req.path.startsWith("/api/") ? next() : forward(req, res)));
   devUpgrade = (req, socket, head) => {
-    if (!req.url.startsWith("/app/")) return socket.destroy();
     const p = http.request({ host: target.hostname, port: target.port, path: req.url, method: req.method, headers: { ...req.headers, host: target.host } });
     p.on("upgrade", (r, s, h) => {
       socket.write(`HTTP/1.1 101 Switching Protocols\r\n${Object.entries(r.headers).map(([k, v]) => `${k}: ${v}`).join("\r\n")}\r\n\r\n`);
@@ -405,11 +391,12 @@ if (process.env.VITE_DEV_URL) {
     p.end(head);
   };
 } else {
-  app.get(/^\/app\/(?!assets\/).*$/, (req, res, next) => (path.extname(req.path) ? next() : res.set("Cache-Control", "no-cache").sendFile(path.join(WEB, "app", "index.html"), (e) => e && next())));
+  app.get(["/", "/index.html"], sendIndex);
+  app.use("/assets", express.static(path.join(WEB, "assets"), { immutable: true, maxAge: "1y" }));
+  app.use(express.static(WEB, { index: false, setHeaders: (res, f) => { if (f.endsWith("sw.js") || f.endsWith(".webmanifest")) res.set("Cache-Control", "no-cache"); } }));
+  // every other address that is not a file (/jars, /settings, an old link like /fc) opens the app, which shows that page
+  app.get(/^\/(?!api\/|assets\/)[^.]*$/, sendIndex);
 }
-app.use(express.static(WEB, { extensions: ["html"] }));
-// Page addresses like /jars open the app, which then shows that page. Old #jars links still work.
-app.get(/^\/(recap|dash|tx|activity|acc|accounts|jars|bills|budg|budgets|rep|reports|fc|forecast|alerts|cats|categories|set|settings)\/?$/, sendIndex);
 
 let httpServer = null;
 // closes the web server and the database cleanly (the desktop app calls this when it quits)

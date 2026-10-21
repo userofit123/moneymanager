@@ -1,15 +1,15 @@
-// The Jars page's numbers, kept apart from the screen so they can be tested. They follow the current app
-// (web/js/02-state-data.js jarFree/jarCalc, 04-transactions.js jarState/renderJars, 06-trend-forecast-sync.js jarProject).
+// The Jars page's numbers, kept apart from the screen so they can be tested: the free money, each jar's state
+// and what each jar will hold in the months ahead.
 // Nothing here changes the data.
 import { homeModel, addM, rdOf } from "./home.js";
 import { dstr } from "../dates.js";
 
 const sum = (a) => a.reduce((t, x) => t + x, 0);
 
-// The name an income is grouped under (web/js/07-periods-rules.js incKey).
+// The name an income is grouped under: who sent it, or else its cleaned-up description.
 const incKey = (t) => { const f = String(t.from || "").trim(); if (f && !/^(bank transfer|other)$/i.test(f)) return f; const d = String(t.desc || "").replace(/[0-9\/\\.,:;*#()\-_]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 40); return d || "Other income"; };
 const medOf = (v) => { const x = [...v].sort((a, b) => a - b), h = x.length >> 1; return x.length % 2 ? x[h] : (x[h - 1] + x[h]) / 2; };
-// "Smart" estimate: one unusually large or small month is pulled back toward the typical month, and a trend counts only a little (est in the current app).
+// "Smart" estimate: one unusually large or small month is pulled back toward the typical month, and a trend counts only a little.
 function est(v, m, sl) {
   const nn = v.length, avg = v.reduce((x, y) => x + y, 0) / nn;
   if (m != "smart" || nn < 3) return { mean: avg, at: (k) => (m == "avg" || m == "smart" ? avg : Math.min(avg * 1.5, Math.max(avg * 0.5, avg + sl * ((nn - 1) / 2 + k)))) };
@@ -17,7 +17,7 @@ function est(v, m, sl) {
   return { mean, at: (k) => Math.min(mean * 1.3, Math.max(mean * 0.7, mean + sl * 0.5 * Math.min(k, 3))) };
 }
 const slope = (v) => { const nn = v.length, mean = v.reduce((x, y) => x + y, 0) / nn; let sl = 0; if (nn > 1) { const xm = (nn - 1) / 2; let num = 0, den = 0; v.forEach((y, i) => { num += (i - xm) * (y - mean); den += (i - xm) ** 2; }); sl = num / den; } return sl; };
-// One income source or spending category, carried forward (proj in the current app). v: the months it is based on, sl: its change per month.
+// One income source or spending category, carried forward. v: the months it is based on, sl: its change per month.
 export function proj(FH, a, n, m, inc) {
   if (inc) {
     const occ = []; for (let j = Math.max(FH.first || 0, FH.last - n); j <= FH.last; j++) if (a[j] > 0) occ.push(j);
@@ -27,7 +27,7 @@ export function proj(FH, a, n, m, inc) {
   let v = a.slice(Math.max(FH.last - n, FH.first || 0), FH.last); if (!v.length) v = [0];
   const sl = slope(v); return { v, nn: v.length, sl, ...est(v, m, sl) };
 }
-// The last 13 months (12 complete ones and this one) split into income sources and spending categories (FH in the current app).
+// The last 13 months (12 complete ones and this one) split into income sources and spending categories.
 export function forecastHistory(S, H) {
   const MK = H.MK, N = 13, ks = [];
   for (let i = N - 1; i >= 0; i--) ks.push(addM(MK, -i));
@@ -39,7 +39,7 @@ export function forecastHistory(S, H) {
   ct.slice(0, 8).forEach(([k, v]) => (cat[k] = v)); it.slice(0, 6).forEach(([k, v]) => (incSrc[k] = v)); if (it.length > 6) incSrc["Other income"] = ks.map((_, i) => it.slice(6).reduce((s, [, v]) => s + v[i], 0));
   return { keys: ks, last: N - 1, first: fi, inc, exp, cat, incSrc };
 }
-// The money expected to be left in month k from now: expected income minus expected spending (fcCalc in the current app).
+// The money expected to be left in month k from now: expected income minus expected spending.
 export function forecastSurplus(S, H, now, fcOpt = {}) {
   const n = [3, 6, 12].includes(+fcOpt.n) ? +fcOpt.n : 6, m = fcOpt.m || "smart", FH = forecastHistory(S, H);
   const E = {}; Object.entries(FH.cat).forEach(([k, a]) => (E[k] = a.slice(0, FH.last))); E["Other / uncategorized"] = FH.exp.slice(0, FH.last).map((t, i) => t - Object.values(FH.cat).reduce((s, a) => s + a[i], 0));
@@ -52,7 +52,7 @@ export function forecastSurplus(S, H, now, fcOpt = {}) {
 export const monthsToOf = (now) => (d) => Math.max(1, Math.ceil((new Date(d) - now) / (864e5 * 30.44)));
 // A jar's monthly amount: a jar with "auto" and a deadline works out its own. off: months from now (for the forecast).
 export const capOfAt = (now) => { const monthsTo = monthsToOf(now); return (j, got, off = 0) => (j.cap == null ? null : j.auto && j.due && j.need > 0 ? Math.max(0, Math.ceil((j.need - (j.bal - (got || 0))) / Math.max(1, monthsTo(j.due) - off))) : j.cap); };
-// What each open jar will hold month by month (jarProject in the current app, shared by the Jars and Forecast pages): the free money today
+// What each open jar will hold month by month (shared by the Jars and Forecast pages): the free money today
 // plus the money expected to be left each month, shared out in priority order. series: what it will hold, planned: what its monthly amount
 // alone would give, eta: the month (from now) it is full.
 export function jarProject(S, H, now, fcOpt = {}, M = 60) {
@@ -70,7 +70,7 @@ export function jarProject(S, H, now, fcOpt = {}, M = 60) {
 }
 
 // now: today's date; fx: { USD: 3.7, ... }.
-// fcOpt: the Forecast page's choices { n: months to base it on, m: "smart" | "avg" | "trend" }, saved by the current app as "moneyFc".
+// fcOpt: the Forecast page's choices { n: months to base it on, m: "smart" | "avg" | "trend" }, saved in this browser as "moneyFc".
 export function jarsModel(S, now = new Date(), fx = {}, fcOpt = {}) {
   S = S || {};
   const H = homeModel(S, now, fx), F = H.flow, MK = H.MK;
@@ -88,7 +88,7 @@ export function jarsModel(S, now = new Date(), fx = {}, fcOpt = {}) {
 
   // When each jar will be full: what is free today plus the money expected to be left each month, shared out in priority order.
   // The expected monthly surplus is the average of the complete months so far (income minus spending).
-  // The money left each month is the Forecast page's guess (web/js/06-trend-forecast-sync.js fcCalc), so both pages agree.
+  // The money left each month is the Forecast page's guess (forecastSurplus), so both pages agree.
   const eta = {}; jarProject(S, H, now, fcOpt).J.forEach((j) => { if (j.eta != null) eta[j.id] = j.eta; });
 
   const jars = out.map((j, ix) => {
@@ -141,7 +141,7 @@ export function jarState(j, k, MK, monthsTo) {
   return st;
 }
 
-// ---- Changes to the jars. Each one changes S (a copy) the same way the current app does (web/js/08-jars.js)
+// ---- Changes to the jars. Each one changes S (a copy)
 // and gives back the history lines to log as [action, detail, undo?]. fm formats money for those lines.
 const r2 = (v) => +(+v).toFixed(2);
 const jarsOpen = (S) => (S.jars || []).filter((j) => !j.done).sort((a, b) => a.p - b.p);
@@ -161,7 +161,7 @@ export function billLists(H) {
   const all = (k) => (k == "*i" ? irr : k == "*a" ? [...rec, ...irr] : rec), allMo = (k) => sum(all(k).map((b) => b.mo));
   return { BC, rec, irr, all, allMo };
 }
-// One change to a field, logged like jset in the current app.
+// One change to a field, with its change-history line.
 const FLD = { n: "name", desc: "description", months: "months covered", auto: "monthly amount mode", cap: "monthly amount", need: "target", bal: "saved amount", due: "deadline", bill: "linked bill" };
 function jset(j, fld, v, ctx) {
   if (j[fld] === v || (fld == "auto" && !!j[fld] === !!v)) return null;
@@ -228,7 +228,7 @@ export function catJarsOf(S) { const o = {}; jarsOpen(S).forEach((j) => (j.cats 
 
 // The form for a new jar or for editing one. f: what was typed. Gives back an error key, or the history lines.
 // kind: "goal" (savings), "bill" or "payoff".
-// What the jar actions need from the jars model to write their history lines (dates as chosen in Settings, like the current app's dstr).
+// What the jar actions need from the jars model to write their history lines (dates as chosen in Settings).
 export const jarCtx = (M, fm) => ({ fm, dstr, BC: M.bills.BC, bills: M.bills, today: M.today, MK: M.MK, monthsTo: M.monthsTo });
 export function saveJar(S, id, f, ctx) {
   const { today, MK, bills } = ctx, n = String(f.n || "").trim();

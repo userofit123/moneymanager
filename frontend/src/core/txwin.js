@@ -5,7 +5,7 @@ export const txOpenId = ref(null);
 export const openTx = (id) => { txPop.value = null; txOpenId.value = id; };
 export const closeTx = () => { txOpenId.value = null; };
 // The smaller windows: { kind: "month" | "nameRule" | "hist" | "bill" | "jar" | "ruleOffer" | "tagRule" | "jarEmpty", ... }.
-// They replace the entry window, like the current app's one sheet.
+// They replace the entry window: one pop-up shows at a time.
 export const txPop = shallowRef(null);
 export const openPop = (kind, o = {}) => { txOpenId.value = null; txPop.value = { kind, ...o, at: Date.now() }; };
 export const closePop = () => { txPop.value = null; };

@@ -84,7 +84,7 @@ Only the accounts you connect or import appear in the app. Nothing is pre-filled
   - **Dockhand, Watchtower and similar:** point them at the stack or containers; they compare the image tag (`latest`) and update when it changes.
   - **Terminal:** `docker compose pull && docker compose up -d`.
   - To pin a version, set `MM_VERSION=0.6.1` in `.env`. To build from the source in this folder instead: `docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build`.
-  - To work on the code: `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build` runs the app from this folder. Edits in `web/` show on a page refresh; edits in `server/src` need `docker compose -f docker-compose.yml -f docker-compose.dev.yml restart app`.
+  - To work on the code: `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build` runs the app from this folder. Edits in `frontend/` show at once (hot reload); edits in `server/src` need `docker compose -f docker-compose.yml -f docker-compose.dev.yml restart app`.
 
 ## Screenshots
 Light and dark, desktop and phone. Made from the demo data (`docs/screenshots`, regenerate with `scripts/screenshots.mjs`).
@@ -131,7 +131,7 @@ The full audit is in [`docs/SECURITY.md`](docs/SECURITY.md). **Honest limits:** 
 | Port 8787 is taken | set `APP_PORT=9000` in `.env`, then `docker compose up -d` |
 | Logs | `docker compose logs -f app` (or `scraper`) |
 
-More: [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) (scraper problems), [`docs/HOW_IT_WORKS.md`](docs/HOW_IT_WORKS.md) (how bills, jars, budgets, the forecast and sync behave), [`docs/app_explained.md`](docs/app_explained.md) (plain-language overview), [`CHANGELOG.md`](CHANGELOG.md).
+More: [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) (scraper problems), [`docs/HOW_IT_WORKS.md`](docs/HOW_IT_WORKS.md) (how bills, jars, budgets, the forecast and sync behave), [`docs/app_explained.md`](docs/app_explained.md) (plain-language overview), [`CHANGELOG.md`](CHANGELOG.md) ([Hebrew](CHANGELOG.he.md)).
 
 ## For developers
 ```sh
@@ -139,10 +139,11 @@ cd server && npm install
 DB_DRIVER=pglite PGLITE_DIR=memory:// npm test                          # server tests, no Postgres needed
 # or: createdb money_test && DATABASE_URL=postgres://money:money@localhost/money_test npm test
 (cd ../scraper && npm ci && node --test)                                # needs a Chromium; uses a fake bank
+(cd ../frontend && npm ci && npm test && npm run build)                 # the app: tests, then the build the server serves (frontend/dist)
 ```
 | Path | What |
 |---|---|
-| `web/` | The UI (one page) and PWA files |
+| `frontend/` | The app (Vue 3, Vite, vue-i18n): pages, texts in English and Hebrew (`src/locales`), PWA files (`public/`). Built into `frontend/dist` |
 | `server/` | Node API, migrations, auth, encryption, scheduler, FX, imports, tests |
 | `scraper/` | Separate service with Chromium and a pinned `israeli-bank-scrapers` |
 | `desktop/` | The Windows app (Electron) |

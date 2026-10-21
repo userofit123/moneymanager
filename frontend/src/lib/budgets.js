@@ -1,5 +1,4 @@
-// Budgets: a monthly limit for a category. Shared budget logic, a port of the current app
-// (web/js/03-bills-home.js budgetInfo, web/js/04-transactions.js renderBudg / budgetIdeas / budBills / budForm, web/js/08-jars.js budget actions).
+// Budgets: a monthly limit for a category. Shared budget logic: each budget's pace, suggested budgets, the bills in a budget, and the changes.
 // Nothing here touches the screen. Suggestions are only worked out; nothing is created until the user accepts.
 import { rdOf } from "./activity.js";
 import { billState, fm } from "./bills.js";
@@ -19,7 +18,7 @@ export function budgetsModel(S, now = new Date()) {
   // this month's spending by category, biggest first
   const sp0 = {}; A.filter((t) => t.a < 0 && rdOf(t).startsWith(MK)).forEach((t) => { const c = t.c || "Uncategorized"; sp0[c] = (sp0[c] || 0) + Math.abs(t.a); });
   const spend = Object.entries(sp0).sort((a, b) => b[1] - a[1]);
-  // the last six months, the first one with data, and the biggest categories (hist in the current app)
+  // the last six months, the first one with data, and the biggest categories
   const ms = []; for (let i = 5; i >= 0; i--) ms.push(addM(MK, -i));
   const hist = { keys: ms, first: 0, cat: {} };
   { const first = (S.tx || []).filter((t) => !st.k.isFut(t) && !t.virtual).reduce((m, t) => (t.d < m ? t.d : m), "9999-99-99"); let fi = first == "9999-99-99" ? 5 : ms.indexOf(first.slice(0, 7)); if (fi < 0) fi = first.slice(0, 7) < ms[0] ? 0 : 5; if (first != "9999-99-99" && +first.slice(8) > 10 && fi < 5) fi++; hist.first = Math.max(0, Math.min(5, fi)); }

@@ -1,5 +1,5 @@
 <script setup>
-// "Add a bill by hand" (billForm in web/js/04-transactions.js): name, amount, how often, day of the month, paid from, matching text.
+// "Add a bill by hand": name, amount, how often, day of the month, paid from, matching text.
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";

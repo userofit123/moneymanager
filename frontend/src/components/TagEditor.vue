@@ -1,7 +1,6 @@
 <script setup>
 // The tag editor: the tags as chips with ×, and a box to type more with a list of existing tags under it.
-// A copy of the current app's tagEd / tagSug / tagCommit / tagRemove and their key handlers (web/js/04-transactions.js):
-// ↓/↑ pick from the list, Enter or "," adds (several at once with commas), Backspace in an empty box removes the last tag,
+// Keys: ↓/↑ pick from the list, Enter or "," adds (several at once with commas), Backspace in an empty box removes the last tag,
 // Escape hides the list, and leaving the box adds what was typed (unless commitOnBlur is off, as for a rule not added yet).
 // The parent changes the data: "add" gives the new tags (spelled like the tags already in use), "remove" the chip's index,
 // "go" a tag that was clicked. take() hands over (and clears) what is typed but not added yet.

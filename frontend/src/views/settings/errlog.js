@@ -1,5 +1,5 @@
-// The text that "Copy" puts on the clipboard in Settings → Error log, word for word as the current app writes it
-// (web/js/09-profile-export-settings.js errTime, errSysText, errText, copyText). The report stays in English so it can be sent as it is.
+// The text that "Copy" puts on the clipboard in Settings → Error log.
+// The report stays in English so it can be sent as it is.
 import { i18n } from "../../i18n.js";
 import { toast } from "../../core/toast.js";
 

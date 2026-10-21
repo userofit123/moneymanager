@@ -1,6 +1,6 @@
 <script setup>
-// The top of every page, same as the current app: the page name and today's date under it.
-// Markup is the old app's: header > div > h1 + .sub (styled in styles/legacy.css, including the sticky band on a phone).
+// The top of every page: the page name and today's date under it.
+// Markup: header > div > h1 + .sub (styled in styles/app.css, including the sticky band on a phone).
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { now } from "../core/clock.js";

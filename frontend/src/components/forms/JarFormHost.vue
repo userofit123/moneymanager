@@ -1,5 +1,5 @@
 <script setup>
-// New jar or goal, or edit a jar (jarNewOpen/jarEditOpen in web/js/08-jars.js), from anywhere: the + button, Jars, Home.
+// New jar or goal, or edit a jar, from anywhere: the + button, Jars, Home.
 // id: the jar to edit (0 for a new one); start: what the form starts with (jarFormOf(jar) when editing).
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";

@@ -1,8 +1,8 @@
 <script setup>
-// The app's pop-up window, the current app's #scrim and #sheet (web/js/03-bills-home.js openSheet/closeSheet), styled in styles/legacy.css:
+// The app's pop-up window (#scrim and #sheet), styled in styles/app.css:
 // a centred window on a computer that grows out of the button that opened it, a bottom sheet on a phone that can be swiped down.
 // Both fade out when closed. Escape, a click outside and the phone's Back button close it. Show it with v-if or v-model:open.
-// cls adds the old size classes: "xw" (wider) or "txw" (the wide entry window).
+// cls adds a size class: "xw" (wider) or "txw" (the wide entry window).
 import { ref, watch, nextTick, onBeforeUnmount } from "vue";
 import { sheetOpened, sheetClosed, sheetsOpen, lastTap } from "../core/sheets.js";
 import { layerOpen, layerClose } from "../core/layers.js";
@@ -23,7 +23,7 @@ watch(() => props.open, (o, was) => {
 }, { immediate: true });
 onBeforeUnmount(() => { if (props.open) { sheetClosed(close); layerClose(close); } });
 
-// swipe down to close, on a phone (the current app's touch handlers on #sheet)
+// swipe down to close, on a phone
 let y0 = null, dy = 0, ok = false;
 function ts(e) { if (!document.documentElement.classList.contains("mob")) return; y0 = e.touches[0].clientY; dy = 0; ok = el.value.scrollTop <= 0 || !!e.target.closest(".grab"); el.value.style.transition = "none"; }
 function tm(e) { if (y0 == null || !ok) return; dy = e.touches[0].clientY - y0; if (dy > 0) { el.value.style.transform = "translateY(" + dy + "px)"; if (e.cancelable) e.preventDefault(); } else if (dy < 0 && el.value.scrollTop <= 0) dy = 0; }
@@ -34,8 +34,8 @@ function te() {
 }
 function tc() { y0 = null; if (el.value) { el.value.style.transform = ""; el.value.style.transition = ""; } }
 const reduce = () => matchMedia("(prefers-reduced-motion:reduce)").matches;
-// A window that takes over from another (the old one is still fading out, or it opens on top of one) is simply there, without
-// growing or sliding in, and the old one goes at once: the current app has one #sheet and only swaps its content.
+// A window that takes over from another (the previous one is still fading out, or it opens on top of one) is simply there, without
+// growing or sliding in, and the previous one goes at once, so it reads as one window whose content changes.
 function swapIn() {
   const prev = [...document.querySelectorAll(".sheet.out,.scrim.out")];
   if (!prev.length && sheetsOpen() < 2) return;

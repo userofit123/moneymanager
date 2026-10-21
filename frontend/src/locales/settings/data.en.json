@@ -45,10 +45,7 @@
     "failed": "Import failed: {msg}",
     "bankDone": "Read {rows} rows · {added} new, {merged} merged",
     "wiseDone": "Imported {added} new, merged {merged}",
-    "downloaded": "Downloaded money-export.json. Look in your Downloads folder.",
-    "noPension": "There is no pension account",
-    "pnNum": "Enter the balance as a number",
-    "pnSame": "That is already the balance"
+    "downloaded": "Downloaded money-export.json. Look in your Downloads folder."
   },
   "pn": {
     "title": "Update pension balance",

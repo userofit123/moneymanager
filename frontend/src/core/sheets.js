@@ -1,6 +1,6 @@
-// The open pop-up windows (BaseSheet), newest last. On a phone the Back button closes the newest one instead of leaving the page,
-// like the current app (it adds a history entry while a window is open, web/js/09-profile-export-settings.js).
-// Also remembers the last tap, so a window grows out of the button that opened it (lastTap in web/js/03-bills-home.js).
+// The open pop-up windows (BaseSheet), newest last. On a phone the Back button closes the newest one instead of leaving the page
+// (a history entry is added while a window is open).
+// Also remembers the last tap, so a window grows out of the button that opened it.
 const stack = [];
 let pushed = false, backing = false; // backing: our own history.back() has not arrived yet
 export let lastTap = null;

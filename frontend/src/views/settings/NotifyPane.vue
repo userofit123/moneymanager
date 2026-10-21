@@ -1,7 +1,5 @@
 <script setup>
-// Settings → Notifications. A copy of the current app's section (web/js/04-transactions.js renderAlertSettings, second half, pushReg,
-// pushRefresh, pushOn, pushOff, loadNch; the notifOn, notifTest, push*, ntfyTest and nch* cases in 08-jars.js): notifications on this
-// device, phone push, ntfy, Telegram and a webhook.
+// Settings → Notifications: notifications on this device, phone push, ntfy, Telegram and a webhook.
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";

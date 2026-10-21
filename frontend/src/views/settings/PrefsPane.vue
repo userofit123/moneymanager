@@ -1,6 +1,5 @@
 <script setup>
-// Settings → Preferences. A copy of the current app's "Language and region" and "App icon" cards (web/js/06-trend-forecast-sync.js renderSet;
-// the lang, datef, weekf and opt actions in web/js/08-jars.js). The choices are kept in this browser, under the current app's names.
+// Settings → Preferences: the "Language and region" and "App icon" cards. The choices are kept in this browser.
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { setLang } from "../../i18n.js";

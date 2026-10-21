@@ -1,4 +1,4 @@
-// Every row the Activity list shows (ALL() + upBillRows() + balRows() in web/js/02-state-data.js), and the labels after a row's name (chipsT).
+// Every row the Activity list shows (transactions, expected bills and balance updates), and the labels after a row's name (chipsT).
 // Besides the transactions there are rows the app makes itself: the cost of moving money between your accounts, the bills expected in the
 // next 31 days (never counted, never saved), and the balances you changed by hand (a note, never income or spending).
 import { i18n } from "../i18n.js";

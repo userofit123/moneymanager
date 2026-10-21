@@ -1,5 +1,5 @@
 <script setup>
-// The messages at the bottom of the page, the current app's toast markup (web/js/07-periods-rules.js toast()). Shown on every page (App.vue).
+// The messages at the bottom of the page (toasts). Shown on every page (App.vue).
 import { useI18n } from "vue-i18n";
 import { toasts, dismissToast } from "../core/toast.js";
 const { t } = useI18n();

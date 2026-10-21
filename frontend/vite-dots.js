@@ -1,6 +1,6 @@
 // A template step for every .vue file: in a run of text written in a template, each " · " becomes <span class="dt">·</span>,
-// the lighter dot with room around it that the current app draws between parts of a line. Like its pass() in
-// web/js/09-profile-export-settings.js, the whole run of text is wrapped in a <span> first (so it also works inside flex boxes).
+// the lighter dot with room around it drawn between parts of a line. The whole run of text is wrapped in a <span> first
+// (so it also works inside flex boxes), as core/polish.js does for text made at run time.
 // Dots inside text that comes from code are handled on the page by core/polish.js.
 const ELEMENT = 1, TEXT = 2, INTERPOLATION = 5, IF_BRANCH = 10, FOR = 11, ROOT = 0;
 const textNode = (content, loc) => ({ type: TEXT, content, loc });

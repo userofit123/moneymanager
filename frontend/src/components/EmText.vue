@@ -1,6 +1,6 @@
 <script setup>
-// A sentence with the names, dates and amounts it is about in bold (data-em/emph in the current app's
-// web/js/09-profile-export-settings.js). em: the names to bold; lead: also bold a short "Label:" at the start ("Usual causes:").
+// A sentence with the names, dates and amounts it is about in bold.
+// em: the names to bold; lead: also bold a short "Label:" at the start ("Usual causes:").
 import { computed } from "vue";
 import { categoryName } from "../catnames.js";
 import { i18n } from "../i18n.js";

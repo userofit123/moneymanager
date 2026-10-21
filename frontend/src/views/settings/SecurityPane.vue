@@ -1,6 +1,5 @@
 <script setup>
-// Settings → Security. A copy of the current app's Security section (web/js/07-periods-rules.js renderSec and secCall;
-// web/js/08-jars.js pwChange, tfaStart, tfaEnable, tfaDisable, logout, logoutAll): the password, two-factor sign-in and sessions.
+// Settings → Security: the password, two-factor sign-in and sessions.
 import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import SetHead from "./SetHead.vue";

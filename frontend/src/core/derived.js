@@ -14,7 +14,7 @@ export const home = computed(() => (S.value ? homeModel(S.value, now.value, data
 export const budgets = computed(() => (S.value ? budgetsModel(S.value, now.value) : null));
 // the open alerts (their texts are made where they are shown)
 export const alertList = computed(() => (S.value && home.value ? alertsModel(S.value, { ...home.value, budgets: budgets.value.info }, now.value) : []));
-// how many things wait in Activity → Needs review (reviewCount in web/js/03-bills-home.js)
+// how many things wait in Activity → Needs review
 export const reviewCount = computed(() => (S.value ? reviewTransfers(S.value).length + duplicateIds(S.value).size + reviewGaps(S.value, home.value?.billsAll).filter((r) => r.diff != 0).length : 0));
 // the Jars page's numbers; the "Full by" dates use the Forecast page's choices (moneyFc)
 export const jars = computed(() => (S.value ? (prefTick.value, jarsModel(S.value, now.value, data.fx.value.fx, readJson("moneyFc", null) || {})) : null));

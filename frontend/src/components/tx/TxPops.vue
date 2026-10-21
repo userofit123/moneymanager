@@ -1,7 +1,7 @@
 <script setup>
-// The smaller windows the entry window opens, with the current app's words and layout: count in another month (moOpen), name rule
-// (nameRuleFrom), payment history (payHist), mark as a bill (billMark), attach to a jar (jarAttachOpen), a category rule (roOpen),
-// a tag rule (taOpen), and "this jar is empty" after a payment emptied it. One at a time, opened with openPop() (core/txwin.js).
+// The smaller windows the entry window opens: count in another month, name rule,
+// payment history, mark as a bill, attach to a jar, a category rule,
+// a tag rule, and "this jar is empty" after a payment emptied it. One at a time, opened with openPop() (core/txwin.js).
 import { ref, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
@@ -71,7 +71,7 @@ const hist = computed(() => {
 });
 watch(P, (p) => { if (p?.kind === "hist" && !p.rows.length) { toast(t("activity.w.hNone"), { kind: "err" }); closePop(); } });
 const monShort = (d) => new Date(d + "T12:00:00").toLocaleDateString(loc(), { month: "short" });
-// "Show in Activity" searches for the name, keeping the time frame (goSearch)
+// "Show in Activity" searches for the name, keeping the time frame
 const histShow = () => { const q = P.value.q; closePop(); goActivity({ q, keepRange: true }); };
 
 // ---- mark as a bill ----

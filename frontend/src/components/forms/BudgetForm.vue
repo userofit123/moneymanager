@@ -1,5 +1,5 @@
 <script setup>
-// "Add a budget" (budForm in web/js/04-transactions.js): a category and its monthly limit, with a suggested amount from past months. k: the category to start with.
+// "Add a budget": a category and its monthly limit, with a suggested amount from past months. k: the category to start with.
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";

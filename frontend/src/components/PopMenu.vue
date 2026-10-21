@@ -1,6 +1,6 @@
 <script setup>
-// The small floating menu next to a button (cmenu in web/js/07-periods-rules.js): the ⋯ menus on Jars and Bills and a jar's history.
-// at: the button it belongs to (null = closed). Like the old app it sits under the button (above when there is no room, under the whole
+// The small floating menu next to a button (.cmenu): the ⋯ menus on Jars and Bills and a jar's history.
+// at: the button it belongs to (null = closed). It sits under the button (above when there is no room, under the whole
 // [data-menuanchor] group when there is one), marks the button with data-open, and closes on a click elsewhere (or Esc).
 // Buttons with aria-haspopup open and close menus themselves, so a click on one is left to the page.
 import { ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
@@ -24,7 +24,7 @@ watch(() => props.at, (b, old) => {
 
 const onClick = (e) => { if (props.at && !(el.value && el.value.contains(e.target)) && !e.target.closest?.("[aria-haspopup]")) emit("close"); };
 escLayer(() => !!props.at, () => emit("close"));
-// scrolling the page (not the menu itself) closes it, like the current app
+// scrolling the page (not the menu itself) closes it
 const onScroll = (e) => { if (props.at && !(e.target.closest && e.target.closest(".cmenu"))) emit("close"); };
 onMounted(() => { document.addEventListener("click", onClick); addEventListener("scroll", onScroll, { passive: true, capture: true }); });
 onBeforeUnmount(() => { document.removeEventListener("click", onClick); removeEventListener("scroll", onScroll, { capture: true }); if (props.at) delete props.at.dataset.open; });

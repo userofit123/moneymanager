@@ -1,6 +1,5 @@
 <script setup>
-// Settings → Version and updates. A copy of the current app's section (web/js/05-accounts-charts-help.js updCardHtml; the updCheck,
-// updDownload, updInstall, updNotes and install cases in 08-jars.js): the installed version, new versions, and installing the app.
+// Settings → Version and updates: the installed version, new versions, and installing the app.
 import { useI18n } from "vue-i18n";
 import { UP, upWeb } from "../../core/updates.js";
 import { installPrompt, install } from "../../core/pwa.js";

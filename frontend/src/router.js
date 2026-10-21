@@ -1,35 +1,32 @@
-// A very small router: the address after /app picks the page, links change the address without reloading,
-// and Back and Forward work. The same pages and addresses as the current app.
+// A very small router: the address picks the page, links change the address without reloading,
+// and Back and Forward work.
 import { ref, computed } from "vue";
-import { BASE, pages } from "./routes.js";
+import { SHORT, pages } from "./routes.js";
 
-// "/app/activity/" → the Activity page. "/app" or an unknown address → Home.
-export function matchPage(pathname, list = pages, base = BASE) {
-  let p = String(pathname || "").split(/[?#]/)[0];
-  if (p.startsWith(base)) p = p.slice(base.length);
-  p = "/" + p.replace(/^\/+|\/+$/g, "");
-  return list.find((x) => x.path === p) || list.find((x) => x.name === "home");
+// "/activity/" → the Activity page; "/fc" (a short name) → Forecast; "/" or an unknown address → Home.
+export function matchPage(pathname, list = pages) {
+  const p = String(pathname || "").split(/[?#]/)[0].replace(/^\/+|\/+$/g, ""), name = SHORT[p] || p;
+  return list.find((x) => x.name === name) || list.find((x) => x.name === "home");
 }
-export const hrefOf = (page, base = BASE) => base + page.path;
+export const hrefOf = (page) => page.path;
 
-const path = ref(typeof location !== "undefined" ? location.pathname : BASE + "/home");
+const path = ref(typeof location !== "undefined" ? location.pathname : "/");
 export const current = computed(() => matchPage(path.value));
 
 export function go(to, { replace = false } = {}) {
-  const url = to.startsWith(BASE) ? to : BASE + to;
-  // the page that is already open: only back to its top, like the current app's nav()
-  if (url === location.pathname) { window.scrollTo(0, 0); return; }
-  history[replace ? "replaceState" : "pushState"]({}, "", url);
+  // the page that is already open: only back to its top
+  if (to === location.pathname) { window.scrollTo(0, 0); return; }
+  history[replace ? "replaceState" : "pushState"]({}, "", to);
   path.value = location.pathname;
   window.scrollTo(0, 0);
 }
 export function startRouter() {
-  // Back and Forward to another page start at its top, like the current app (it turns the browser's own scroll memory off)
+  // Back and Forward to another page start at its top (the browser's own scroll memory is off)
   try { history.scrollRestoration = "manual"; } catch { /* old browsers */ }
   addEventListener("popstate", () => { const was = current.value; path.value = location.pathname; if (current.value !== was) window.scrollTo(0, 0); });
-  // "/app/" alone shows Home at its own address.
-  // (the ?query and #hash stay, so links like ?add=1 still work)
-  if (matchPage(location.pathname).path !== location.pathname.replace(BASE, "").replace(/\/+$/, "")) { history.replaceState({}, "", hrefOf(matchPage(location.pathname)) + location.search + location.hash); path.value = location.pathname; }
+  // a short or unknown address shows its page at the page's own address (the ?query and #hash stay, so links like ?add=1 still work)
+  const pg = matchPage(location.pathname);
+  if (pg.path !== location.pathname) { history.replaceState({}, "", hrefOf(pg) + location.search + location.hash); path.value = location.pathname; }
 }
 // For <a href> links inside the app: an ordinary click stays in the app, Ctrl or middle click still opens a new tab.
 export function onLink(e) {

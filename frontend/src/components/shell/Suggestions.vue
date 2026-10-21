@@ -1,5 +1,5 @@
 <script setup>
-// The list the suggestions stay in (suggOpen). The light-bulb button that opens it is in App.vue (suggUI).
+// The list the suggestions stay in. The light-bulb button that opens it is in App.vue.
 import { watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { suggestions, suggestOpen, runSuggestion, dropSuggestion, clearSuggestions } from "../../core/suggest.js";

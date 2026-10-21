@@ -1,6 +1,5 @@
 <script setup>
-// Settings → Connections. A copy of the current app's Connections section (web/js/07-periods-rules.js renderConn, connCard,
-// showShot, showTest; the conn* cases in web/js/08-jars.js): what is connected, adding a bank or card, and one card per login.
+// Settings → Connections: what is connected, adding a bank or card, and one card per login.
 import { ref, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";

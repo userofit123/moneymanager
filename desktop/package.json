@@ -51,7 +51,7 @@
         ]
       },
       {
-        "from": "../web",
+        "from": "../frontend/dist",
         "to": "web"
       },
       {
@@ -61,6 +61,10 @@
       {
         "from": "../CHANGELOG.md",
         "to": "CHANGELOG.md"
+      },
+      {
+        "from": "../CHANGELOG.he.md",
+        "to": "CHANGELOG.he.md"
       }
     ],
     "win": {
@@ -72,7 +76,7 @@
           ]
         }
       ],
-      "icon": "../web/icon-512.png"
+      "icon": "../frontend/public/icon-512.png"
     },
     "nsis": {
       "oneClick": true,

@@ -1,11 +1,11 @@
-// The Budgets page gives the same numbers, suggestions, words and markup as the current app, on the same data.
-// The old code (web/js) and the new code (lib/budgets.js and views/Budgets.vue) both run on each state below and their results are compared.
+// The Budgets page gives the agreed numbers, suggestions, words and markup on each state below (saved in fixtures/, see golden.js):
+// lib/budgets.js and views/Budgets.vue run on the data and their results are compared with the saved ones.
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "vite";
 import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
-import { oldApp } from "./old-app.js";
+import { matchesSaved } from "./golden.js";
 import { buildDemo } from "../../server/src/seed.js";
 import { budgetsModel, acceptBudget, acceptAll, dismissSuggestion, laterReview, resetDismissed, applyBudget, setBudget, removeBudget, changeBudget, formSuggestion, formCategories } from "../src/lib/budgets.js";
 
@@ -15,7 +15,7 @@ const vite = await createServer({ root: new URL("..", import.meta.url).pathname,
 after(() => vite.close());
 globalThis.document = { documentElement: { lang: "", classList: { toggle() {} } } };
 let mods = null;
-const NOW = new Date(2026, 9, 17, 12), old = oldApp(NOW); // 17 Oct 2026
+const NOW = new Date(2026, 9, 17, 12); // 17 Oct 2026
 
 // ---- the data ----
 let nid = 1;
@@ -67,30 +67,19 @@ function demo() {
     cfg: { bills: 1, price: 1, billDays: 3, budgetPct: 80, gapDays: 3 }, currencies: ["ILS", "USD"], accounts: acc.map(([n, cur, kind, src, s, inNW], i) => ({ id: i + 1, n, cur, kind, src, s, inNW, v: d.balances[n] ?? 0, at: NOW.toISOString(), sort: i })), nwSnaps: [], gaps: [], balUpdates: [], connected: {}, locked: {}, connStatus: {} };
 }
 const STATES = [
-  ["every kind of budget and suggestion", fixture()],
-  ["some suggestions dismissed", fixture({ budgetNo: ["new|Gifts", "new|Toys", "rev|Groceries|2026-10"] })],
-  ["only one budget left, no suggestions", fixture({ budgets: { Health: 1000 }, budgetNo: ["new|Groceries", "new|Dining", "new|Transport", "new|Fun", "new|Pets", "new|Home", "new|Clothes", "new|Books", "new|Gifts", "new|Toys"] })],
-  ["the made-up demo data", demo()],
-  ["no budgets and only one month of history", { ...fixture({ budgets: {} }), tx: fixture().tx.filter((t) => t.d >= "2026-09-01") }],
-  ["nothing at all", { ...fixture({ budgets: {}, bills: [] }), tx: [] }],
+  ["every kind of budget and suggestion", "all", fixture()],
+  ["some suggestions dismissed", "dismissed", fixture({ budgetNo: ["new|Gifts", "new|Toys", "rev|Groceries|2026-10"] })],
+  ["only one budget left, no suggestions", "one", fixture({ budgets: { Health: 1000 }, budgetNo: ["new|Groceries", "new|Dining", "new|Transport", "new|Fun", "new|Pets", "new|Home", "new|Clothes", "new|Books", "new|Gifts", "new|Toys"] })],
+  ["the made-up demo data", "demo", demo()],
+  ["no budgets and only one month of history", "onemonth", { ...fixture({ budgets: {} }), tx: fixture().tx.filter((t) => t.d >= "2026-09-01") }],
+  ["nothing at all", "empty", { ...fixture({ budgets: {}, bills: [] }), tx: [] }],
 ];
 
-// ---- the old code, run on the same data ----
-const prep = `acReset();S={...emptyState(),...structuredClone(__S)};S.cfg={...DEF_CFG,...S.cfg};detect();derive();detectBills();acReset();BC=billsInfo(true);`;
-const oldNums = (S) => JSON.parse(old.run(prep + `(function(){const M=monthlyByCat(),ideas=budgetIdeas(M);return JSON.stringify({info:budgetInfo(),fresh:ideas.fresh,review:ideas.review,idx:ideas.idx,months:budMonths(),spend:spend(),DAYN,DIM,un:spend().filter(([k])=>!(k in S.budgets)&&k!="Uncategorized")})})()`, { __S: S }));
-const oldHtml = (S) => old.run(prep + `(function(){const OUT={};const $=id=>({set innerHTML(v){OUT[id]=v}});eval("("+renderBudg.toString()+")")();return OUT})()`, { __S: S });
-const plain = (x) => JSON.parse(JSON.stringify(x));
 
-for (const [name, S] of STATES) {
-  test(`budgets, suggestions and the month's numbers match the current app: ${name}`, () => {
-    const o = oldNums(S), M = budgetsModel(structuredClone(S), NOW);
-    assert.deepEqual(plain(M.info), o.info);
-    assert.deepEqual(plain(M.fresh), o.fresh);
-    assert.deepEqual(plain(M.review), o.review);
-    assert.deepEqual(M.budMonths, o.months);
-    assert.deepEqual(plain(M.spend), o.spend);
-    assert.deepEqual(plain(M.un), o.un);
-    assert.deepEqual([M.DAYN, M.DIM], [o.DAYN, o.DIM]);
+for (const [name, key, S] of STATES) {
+  test(`budgets, suggestions and the month's numbers: ${name}`, () => {
+    const M = budgetsModel(structuredClone(S), NOW);
+    matchesSaved(`budgets#numbers-${key}`, { info: M.info, fresh: M.fresh, review: M.review, months: M.budMonths, spend: M.spend, un: M.un, DAYN: M.DAYN, DIM: M.DIM });
   });
 }
 
@@ -103,18 +92,18 @@ test("the fixture really covers every kind of budget", () => {
   assert.equal(M.billsIn("Home").length, 2); assert.equal(M.catJars.Transport.j.n, "Car jar");
 });
 
-// ---- the page, drawn like the current app ----
+// ---- the page ----
 async function load() {
   if (mods) return mods;
   const [Budgets, store, i18nMod] = await Promise.all(["/src/views/Budgets.vue", "/src/stores/data.js", "/src/i18n.js"].map((p) => vite.ssrLoadModule(p)));
-  (await vite.ssrLoadModule("/src/core/clock.js")).setNow(NOW); // the page works out its numbers for the same day as the old app
+  (await vite.ssrLoadModule("/src/core/clock.js")).setNow(NOW); // the page works out its numbers for a fixed day
   return (mods = { Budgets: Budgets.default, data: store.data, i18n: i18nMod.i18n, setLang: i18nMod.setLang });
 }
 async function page(S, lang = "en") {
   const m = await load(); m.setLang(lang); m.data.state.value = structuredClone(S);
   const app = createSSRApp({ render: () => h(m.Budgets) }); app.use(m.i18n);
   const html = await renderToString(app), i = html.indexOf("<section");
-  // the dots between parts (<span class="dt">·</span> in a <span>, made by vite-dots.js) are added on the page in the current app too, not in its HTML strings
+  // the dots between parts (<span class="dt">·</span> in a <span>, made by vite-dots.js) are left out: only blocks and words are compared
   return html.slice(i).replace(/<!--[\s\S]*?-->/g, "").replace(/<span>([^<]*(?:<span class="dt">·<\/span>[^<]*)+)<\/span>/g, "$1").replace(/<span class="dt">·<\/span>/g, " · ");
 }
 const unesc = (s) => s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&");
@@ -125,14 +114,11 @@ const skeleton = (html) => [...html.matchAll(/<([a-z0-9]+)([^>]*)>/g)].map(([, t
   return [tag, (g("class") || "").split(/\s+/).filter((c) => c && c !== "on").sort().join("."), g("data-a") || "", g("data-k") ?? g("data-bp") ?? g("data-cat") ?? "", g("data-i") ?? "", g("id") || ""].join("|");
 });
 const tips = (html) => [...html.matchAll(/data-tip="([^"]*)"/g)].map((m) => unesc(m[1]));
-const oldPage = (S) => { const o = oldHtml(S); return `<section class="view on" id="budg"><div class="grid g3" id="budK">${o.budK}</div><div id="budS">${o.budS}</div><h2>By category<button class="btn o s" data-a="budNew">+ Add budget</button></h2><div class="grid g2" id="budL">${o.budL}</div><div id="budU">${o.budU}</div></section>`; };
 
-for (const [name, S] of STATES) {
-  test(`the English page has the same blocks, words and tips as the current app: ${name}`, async () => {
-    const a = oldPage(S), b = await page(S, "en");
-    assert.deepEqual(skeleton(b), skeleton(a));
-    assert.equal(text(b), text(a));
-    assert.deepEqual(tips(b), tips(a));
+for (const [name, key, S] of STATES) {
+  test(`the English page has the agreed blocks, words and tips: ${name}`, async () => {
+    const b = await page(S, "en");
+    matchesSaved(`budgets#page-${key}`, { blocks: skeleton(b), text: text(b), tips: tips(b) });
   });
 }
 
@@ -143,7 +129,7 @@ test("the Hebrew page shows no English words from the app (only names from the d
   assert.match(b, /תקציב/);
 });
 test("a page without enough history says suggestions need two months, in both languages", async () => {
-  const S = STATES[4][1];
+  const S = STATES[4][2];
   assert.match(text(await page(S, "en")), /Suggestions need at least two full months/);
   assert.match(text(await page(S, "he")), /הצעות דורשות/);
 });

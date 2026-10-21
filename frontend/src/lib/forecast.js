@@ -1,12 +1,12 @@
-// The Forecast page's numbers, kept apart from the screen so they can be tested. They follow the current app
-// (web/js/06-trend-forecast-sync.js fcCalc, jarProject, renderFc). Nothing here changes the data.
+// The Forecast page's numbers, kept apart from the screen so they can be tested.
+// Nothing here changes the data.
 import { homeModel, addM } from "./home.js";
 import { forecastHistory, proj, jarProject, capOfAt, monthsToOf } from "./jars.js";
 import { cardInfo, isCardPay } from "./activity.js";
 
 const sum = (a) => a.reduce((t, x) => t + x, 0);
 
-// fcOpt: the page's choices { h: how far ahead, n: months to base it on, m: "smart" | "avg" | "trend" }, saved by the current app as "moneyFc".
+// fcOpt: the page's choices { h: how far ahead, n: months to base it on, m: "smart" | "avg" | "trend" }, saved in this browser as "moneyFc".
 // H: the Home numbers for the same moment, when they are already worked out (core/derived.js home).
 export function forecastModel(S, now = new Date(), fx = {}, fcOpt = {}, H = null) {
   S = S || {}; H = H || homeModel(S, now, fx);
@@ -34,7 +34,7 @@ export function forecastModel(S, now = new Date(), fx = {}, fcOpt = {}, H = null
   return { fc, FH, MK, d, E, cardPays, jars, capOf: capOfAt(now), monthsTo: monthsToOf(now) };
 }
 
-// The money a line adds up to over the whole forecast period (y12 in the current app), and the words for how it is moving.
+// The money a line adds up to over the whole forecast period, and the words for how it is moving.
 export const periodTotal = (r, h) => Array.from({ length: h }, (_, i) => r.at(i + 1)).reduce((a, c) => a + c, 0);
 export function direction(r, ty) {
   const pc = r.mean ? (r.sl / r.mean) * 100 : 0, flat = Math.abs(pc) < 2, good = ty == "in" ? pc > 0 : pc < 0;

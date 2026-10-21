@@ -1,5 +1,5 @@
-// The app as an installed app: the service worker the current app uses (/sw.js, which keeps a copy for offline use and shows phone notifications),
-// and the browser's "install" offer, kept for the Install buttons (beforeinstallprompt in web/js/08-jars.js).
+// The app as an installed app: the service worker (/sw.js, which keeps a copy for offline use and shows phone notifications),
+// and the browser's "install" offer, kept for the Install buttons (beforeinstallprompt).
 import { ref, shallowRef } from "vue";
 export const installPrompt = shallowRef(null);
 export const swOk = ref(false); // the service worker is running (needed for phone notifications)
@@ -14,7 +14,7 @@ export async function install() {
   installPrompt.value = null;
   try { await p.prompt(); } catch { /* the browser said no */ }
 }
-// A notification on this device, through the service worker like notify() in the current app. Returns false when not allowed.
+// A notification on this device, through the service worker. Returns false when not allowed.
 export async function notify(title, body) {
   if (!("Notification" in window) || Notification.permission != "granted") return false;
   try {

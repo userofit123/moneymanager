@@ -1,4 +1,4 @@
-// The alerts the current app works out (alerts() in web/js/04-transactions.js, jarSuggest in 08-jars.js), the same rules, in the same order.
+// The alerts the app works out from the data (including the jar suggestions), in the order they show.
 // Each alert is { id, type, sev, key, p, go, ... }: key and p (the numbers and names) fill the English and Hebrew sentences in the language files.
 import { forecastSurplus } from "./jars.js";
 import { balanceGaps, gapBill, duplicateIds, transferIds, isIgnored, rn } from "./activity.js";
@@ -33,7 +33,7 @@ function jarSuggest(S, X, XS, catJars, jarsS, t) {
   return bs >= 2 ? jarsS.find((j) => j.id === best) || null : null;
 }
 const fmtWhen = (t) => new Date(t).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-// The connections list on Home's sync alerts (SRC in web/js/02-state-data.js).
+// The connections list on Home's sync alerts.
 function sources(S) {
   const DEF = [["Bank Hapoalim", "hapoalim"], ["Max", "max"], ["Isracard", "isracard"], ["Wise", "wise"]];
   const L = Object.keys(S.connStatus || {}).filter((k) => S.connected?.[k]).map((k) => [S.connStatus[k].label || k, k]);

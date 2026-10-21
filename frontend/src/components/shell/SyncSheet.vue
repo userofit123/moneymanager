@@ -1,5 +1,5 @@
 <script setup>
-// "Sources": every connection and how its last sync went, live while a sync runs, with Sync now (openSync/syncRow in web/js/06-trend-forecast-sync.js).
+// "Sources": every connection and how its last sync went, live while a sync runs, with Sync now.
 import { useI18n } from "vue-i18n";
 import { syncOpen } from "../../core/shell.js";
 import { sources, syncNow, friendlyErr } from "../../core/sources.js";

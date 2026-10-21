@@ -1,4 +1,4 @@
-// "Are you sure?" before a change: the current app's small box with Cancel and "Yes, do it" (askOpen in web/js/04-transactions.js).
+// "Are you sure?" before a change: a small box with Cancel and "Yes, do it".
 // ask(title, text, run, { danger }) shows it; components/AskPop.vue draws it.
 import { shallowRef } from "vue";
 export const asking = shallowRef(null); // { title, text, danger, run }

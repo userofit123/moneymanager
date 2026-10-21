@@ -1,4 +1,4 @@
-// Syncs and connection tests that run on the server, one at a time (web/js/06-trend-forecast-sync.js startJob/endJob/runJob/watchJobs/jobItems).
+// Syncs and connection tests that run on the server, one at a time.
 // `job` is the one running now ({ source, kind: "sync" | "test" | "assist", since, items: { source: { state, added, msg } } }), or null.
 // The bar at the top, the sync button and every Test/Sync button follow it.
 import { ref, shallowRef } from "vue";

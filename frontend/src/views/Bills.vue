@@ -1,6 +1,6 @@
 <script setup>
-// Bills: the same business or person charging you again and again. A copy of the current app's Bills page
-// (web/js/04-transactions.js renderBills, web/js/08-jars.js bill actions): the three numbers on top, regular, irregular,
+// Bills: the same business or person charging you again and again:
+// the three numbers on top, regular, irregular,
 // instalment and one-off bills, canceled bills, the ⋯ menu, "Add a bill", "Change bill type" and the payment history.
 // The numbers come from lib/bills.js. Changes go through the data store; a bill is found by what it is (billKey), not its place in the list.
 import { ref, computed, onMounted } from "vue";
@@ -8,7 +8,7 @@ import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
 import { openTx, openPop } from "../core/txwin.js";
 import { now } from "../core/clock.js";
-import { tx } from "../core/heText.js"; // names from the data are shown through the old dictionary, like the current app
+import { tx } from "../core/heText.js"; // names from the data are shown through the Hebrew dictionary
 import { openForm } from "../core/forms.js";
 import { dstr } from "../dates.js";
 import PageHeader from "../components/PageHeader.vue";
@@ -24,7 +24,7 @@ const tk = (key, ...a) => t(key, ...a);
 const S = computed(() => data.state.value);
 onMounted(() => { data.start(); });
 
-// ---- how things are written (the current app's dstr, cc and accLbl) ----
+// ---- how dates, amounts and accounts are written ----
 const loc = computed(() => (locale.value === "he" ? "he-IL" : "en-GB"));
 const monYr = (d, k) => { const x = new Date(d); x.setMonth(x.getMonth() + k); return x.toLocaleDateString(loc.value, { month: "short", year: "numeric" }); };
 const monShort = (d) => new Date(d + "T12:00:00").toLocaleDateString(loc.value, { month: "short" });

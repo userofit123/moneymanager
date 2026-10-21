@@ -1,11 +1,11 @@
-// The "Full by" dates on the Jars page: the new app gives the same months as the current app's own code (web/js jarProject, jarWhen) on the same data.
+// The "Full by" dates on the Jars page: the agreed months on fixed data (saved in fixtures/, see golden.js).
 import test from "node:test";
 import assert from "node:assert/strict";
-import { oldApp } from "./old-app.js";
+import { matchesSaved } from "./golden.js";
 import { jarsModel } from "../src/lib/jars.js";
 
 process.on("unhandledRejection", () => {});
-const old = oldApp(new Date(2026, 9, 17, 12)); // 17 Oct 2026
+const NOW = new Date(2026, 9, 17, 12); // 17 Oct 2026
 const ds = (y, m, d) => new Date(y, m, d).toISOString().slice(0, 10);
 const data = (o = {}) => {
   const tx = []; let id = 1;
@@ -20,19 +20,17 @@ const data = (o = {}) => {
       { id: 3, n: "Rainy", p: 3, bal: 500, need: 0, cap: 300 }, { id: 4, n: "Laptop", p: 4, bal: 0, need: 6000, cap: 1500 }, { id: 5, n: "House", p: 5, bal: 0, need: 900000, cap: 2000 }],
     tx, ...o };
 };
-const oldDates = (S, fc) => old.run(`localStorage.setItem("moneyFc",JSON.stringify(__fc));fc={h:12,n:6,m:"smart",...__fc};S={...emptyState(),...structuredClone(__S)};detect();derive();detectBills();BC=billsInfo(true);JPC=null;
-  jarProject().J.filter(j=>!(j.need>0)?false:j.cap!=null&&capOf(j,j.got)>0&&j.bal<j.need).map(j=>[j.id,j.eta?jarWhen(j.eta):"Over 5 years"])`, { __S: S, __fc: fc });
-const newDates = (S, fc) => jarsModel(structuredClone(S), new old.Date(), {}, fc).jars.filter((j) => j.state.eta)
+const newDates = (S, fc) => jarsModel(structuredClone(S), NOW, {}, fc).jars.filter((j) => j.state.eta)
   .map((j) => [j.id, j.state.eta.k ? new Date(+j.state.eta.when.slice(0, 4), +j.state.eta.when.slice(5, 7) - 1, 1).toLocaleDateString("en-GB", { month: "short", year: "numeric" }) : "Over 5 years"]);
 
-for (const [name, S, fc] of [
-  ["typical month", data(), {}],
-  ["more kept untouched", data({ jarsBuffer: 9000 }), {}],
-  ["little money today", data({ accounts: [{ id: 1, n: "Bank", kind: "bank", v: 3000, cur: "ILS", inNW: true, at: "x" }] }), {}],
-  ["forecast on 3 months, average", data(), { n: 3, m: "avg" }],
-  ["forecast on 12 months, trend", data(), { n: 12, m: "trend" }],
-]) test("Full by dates match the current app: " + name, () => {
-  const a = JSON.parse(JSON.stringify(oldDates(S, fc))), b = newDates(S, fc);
-  assert.ok(a.length >= 3);
-  assert.deepEqual(b, a);
+for (const [name, key, S, fc] of [
+  ["typical month", "typical", data(), {}],
+  ["more kept untouched", "buffer", data({ jarsBuffer: 9000 }), {}],
+  ["little money today", "lowcash", data({ accounts: [{ id: 1, n: "Bank", kind: "bank", v: 3000, cur: "ILS", inNW: true, at: "x" }] }), {}],
+  ["forecast on 3 months, average", "avg3", data(), { n: 3, m: "avg" }],
+  ["forecast on 12 months, trend", "trend12", data(), { n: 12, m: "trend" }],
+]) test("each jar with a goal says the month it will be full: " + name, () => {
+  const b = newDates(S, fc);
+  assert.ok(b.length >= 3);
+  matchesSaved("jars-fullby." + key, b);
 });

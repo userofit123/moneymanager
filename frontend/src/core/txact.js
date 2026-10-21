@@ -1,4 +1,4 @@
-// Runs the changes of lib/txactions.js on the shared data, with what the current app shows after them:
+// Runs the changes of lib/txactions.js on the shared data, with what shows after them:
 // toasts, and the suggestions it makes ("Set up a rule for this category?", "Tag more like this?", "Always count these as card payments?").
 import { i18n } from "../i18n.js";
 import { data } from "../stores/data.js";

@@ -1,6 +1,5 @@
 // New versions: the "Update available" button in the menu, the update card in Settings → Version and updates,
-// and the "has been updated" window after an update (web/js/05-accounts-charts-help.js initUpdates/upWeb/upFromDesk,
-// web/js/09-profile-export-settings.js updCheck/relPick/relParse/vNewer, mdLite).
+// and the "has been updated" window after an update.
 import { reactive } from "vue";
 import { getJson } from "./http.js";
 import { readPref, writePref } from "./prefs.js";
@@ -35,7 +34,7 @@ export function relParse(t) {
   String(t).split(/^(?=## \[)/m).forEach((b) => { const m = b.match(/^## \[?v?(\d+\.\d+\.\d+)\]?(?:\s*-\s*([^\n]*))?/); if (!m) return; out.push({ v: m[1], date: (m[2] || "").trim(), body: b.slice(b.indexOf("\n") + 1) }); });
   return out;
 }
-// The versions with their notes, in Hebrew when the page is (CHANGELOG.md and web/changelog-he.md).
+// The versions with their notes, in Hebrew when the page is (CHANGELOG.md and CHANGELOG.he.md).
 export function relPick(j, he = i18n.global.locale.value === "he") {
   const en = relParse((j && j.changelog) || "");
   if (!he || !j || !j.changelogHe) return en;

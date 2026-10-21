@@ -1,6 +1,5 @@
 <script setup>
-// Settings → Currencies. A copy of the current app's Currencies section (web/js/06-trend-forecast-sync.js renderSet;
-// web/js/08-jars.js curAdd and curDel): the currencies in use, remove the ones no account holds, add another and load its rates.
+// Settings → Currencies: the currencies in use, remove the ones no account holds, add another and load its rates.
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
@@ -21,11 +20,11 @@ async function add() {
   pick.value = "";
   try { await changeState((s) => { s.currencies = withAdded(s, c); return [["Added currency", c]]; }); } catch (e) { toastErr(e); return; }
   try { await api("/api/fx/refresh", sendJson("POST")); toast(tk("loaded", { c })); } catch (e) { toastErr(tk("ratesFail", { e: tx(e.message) })); }
-  data.loadFx(); // the new rates count at once (loadFX in the current app)
+  data.loadFx(); // the new rates count at once
 }
 async function remove(c) {
   try { await changeState((s) => { s.currencies = withRemoved(s, c); return [["Removed currency", c]]; }); } catch (e) { toastErr(e); return; }
-  await data.flushNow(); data.loadFx(); // like flushNow().then(loadFX)
+  await data.flushNow(); data.loadFx(); // save first, then load the rates
 }
 </script>
 

@@ -1,4 +1,4 @@
-// The Jars page's numbers follow the current app: what is free, the monthly fill, each jar's state, goals and completed jars.
+// The Jars page's numbers: what is free, the monthly fill, each jar's state, goals and completed jars.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { jarsModel } from "../src/lib/jars.js";

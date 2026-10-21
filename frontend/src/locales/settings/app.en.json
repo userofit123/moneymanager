@@ -19,7 +19,6 @@
   "error": "Could not check for updates right now.",
   "errorNeed": "The server needs internet access to github.com.",
   "dev": "Updates apply to the installed app.",
-  "ghDown": "GitHub could not be reached.",
   "downloadUpdate": "Download and update",
   "restartUpdate": "Restart and update",
   "closingToUpdate": "Closing to update…",

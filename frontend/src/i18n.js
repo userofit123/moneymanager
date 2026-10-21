@@ -1,14 +1,14 @@
-import { computed, watch, shallowRef } from "vue";
+import { watch, shallowRef } from "vue";
 import { createI18n } from "vue-i18n";
 import en from "./locales/en.json";
 import he from "./locales/he.json";
-import { applyLang, isHebrew } from "./direction.js";
+import { applyLang } from "./direction.js";
 import { readPref, writePref } from "./core/prefs.js";
 import { isolateNumbers } from "./core/polish.js";
 
 export { applyLang };
 
-// Same storage key as the old page, so the language choice is shared between the old and new app.
+// The language choice is kept under "moneyLang".
 const KEY = "moneyLang";
 const saved = readPref(KEY) === "he" ? "he" : "en";
 
@@ -21,16 +21,13 @@ const settingsHe = sections(import.meta.glob("./locales/settings/*.he.json", { e
 const pagesEn = sections(import.meta.glob("./locales/pages/*.en.json", { eager: true }));
 const pagesHe = sections(import.meta.glob("./locales/pages/*.he.json", { eager: true }));
 
-// In Hebrew, amounts and numbers inside a sentence keep their order (the current app wraps them in ⁦…⁩ the same way),
+// In Hebrew, amounts and numbers inside a sentence keep their order (wrapped in ⁦…⁩),
 // and "you" forms follow the gender in the profile once the Hebrew rules are loaded (HE.gen, set by core/heText.js).
 // (a ref, so the page redraws when the rules arrive or the gender changes: setHebrewFilter is called again then)
 const hebrewFilter = shallowRef((s) => s);
 export const setHebrewFilter = (fn) => { hebrewFilter.value = (s) => fn(s); };
 const postTranslation = (str) => (i18n?.global?.locale?.value === "he" && typeof str === "string" ? isolateNumbers(hebrewFilter.value(str)) : str);
 export const i18n = createI18n({ legacy: false, locale: saved, fallbackLocale: "en", postTranslation, messages: { en: { ...en, ...pagesEn, settings: settingsEn }, he: { ...he, ...pagesHe, settings: settingsHe } } });
-
-// True while the language is Hebrew. Use it for the rare things CSS cannot flip by itself; prefer logical CSS (margin-inline-start and so on).
-export const isRtl = computed(() => isHebrew(i18n.global.locale.value));
 
 // Whatever changes the language, the page language and direction follow right away.
 watch(i18n.global.locale, (lang) => applyLang(lang), { immediate: true });

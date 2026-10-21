@@ -1,5 +1,5 @@
 <script setup>
-// The sign-in screen, and the first-time "choose a password" screen (web/index.html #auth, web/js/08-jars.js showAuth/authGo).
+// The sign-in screen, and the first-time "choose a password" screen.
 import { ref, computed, watch, nextTick, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { app, signIn } from "../core/boot.js";
@@ -10,7 +10,7 @@ const { t, te } = useI18n();
 const pw = ref(""), pw2 = ref(""), code = ref(""), busy = ref(false);
 const pwEl = ref(null), codeEl = ref(null);
 const setup = computed(() => app.authMode === "setup");
-// the server's own message (in Hebrew through the old dictionary, like the current app), or one of ours by its key
+// the server's own message (in Hebrew through the Hebrew dictionary), or one of ours by its key
 const err = computed(() => (!app.error ? "" : te("auth." + app.error) ? t("auth." + app.error) : tx(app.error)));
 async function go() {
   if (busy.value) return;

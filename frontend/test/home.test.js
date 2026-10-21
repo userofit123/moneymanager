@@ -1,4 +1,4 @@
-// Home's numbers follow the current app: totals, accounts, cards, bills, budgets, jars and the money flow.
+// Home's numbers: totals, accounts, cards, bills, budgets, jars and the money flow.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { homeModel, flowSteps, cadenceOf, instOf, rdOf } from "../src/lib/home.js";

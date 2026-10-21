@@ -1,12 +1,12 @@
-// The upkeep after every load and change (core/settle.js) gives the same data as the current app's renderAll() on the same state:
+// The upkeep after every load and change (core/settle.js) gives the agreed data on fixed states (saved in fixtures/, see golden.js):
 // transfers found, bills found, "all bills" jar targets, category rules, jars paying for categories, and the amount held back.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { oldApp } from "./old-app.js";
+import { matchesSaved } from "./golden.js";
 import { buildDemo } from "../../server/src/seed.js";
 import { settle } from "../src/core/settle.js";
 
-const NOW = new Date(2026, 9, 17, 12), old = oldApp(NOW);
+const NOW = new Date(2026, 9, 17, 12);
 let nid = 1;
 const T = (d, desc, a, o = {}) => ({ id: nid++, d, desc, from: "Bank Hapoalim", to: desc, a, c: "", tags: [], docs: [], note: "", ...o });
 function demo() {
@@ -34,11 +34,8 @@ function own() {
   S.jarsBuffer = 1500;
   return S;
 }
-const STATES = [["the made-up demo data", () => (nid = 1, demo())], ["rules, a transfer and jars that pay for things", own]];
+const STATES = [["the made-up demo data", "demo", () => (nid = 1, demo())], ["rules, a transfer and jars that pay for things", "own", own]];
 
-const oldRun = (S) => JSON.parse(old.run(`acReset();S={...emptyState(),...structuredClone(__S)};S.cfg={...DEF_CFG,...S.cfg};
-detect();derive();detectBills();BC=billsInfo(true);S.jars.forEach(j=>{if(isAll(j.bill)&&!j.done){const n=Math.round(allMo(j.bill)*(j.months||12));if(n>0&&j.need!=n)j.need=n}});applyRules();jarAuto();S.jarsReserve=Math.round(jarFree().reserve);
-JSON.stringify(S)`, { __S: S }));
 const pick = (S) => ({
   xf: S.xf, bills: S.bills, jarsReserve: S.jarsReserve,
   tx: S.tx.map((t) => ({ id: t.id, c: t.c, jar: t.jar ? { id: t.jar.id, amt: t.jar.amt, auto: t.jar.auto } : null, jarNo: t.jarNo || null })),
@@ -46,13 +43,12 @@ const pick = (S) => ({
   audit: (S.audit || []).filter((a) => a.who === "System").map((a) => [a.action, a.detail]),
 });
 
-for (const [name, make] of STATES) {
-  test("the upkeep matches the current app: " + name, () => {
-    const a = oldRun(make());
+for (const [name, key, make] of STATES) {
+  test("the upkeep finds transfers and bills, applies rules and fills jars: " + name, () => {
     const b = make(); b.cfg = { ...b.cfg }; const lines = settle(b, NOW, {});
     b.audit = [...lines.map(([action, detail, , who]) => ({ action, detail, who })).reverse(), ...b.audit];
-    const A = pick(a), B = pick(b);
-    for (const k of Object.keys(A)) assert.deepEqual(B[k], A[k], k);
+    const B = pick(b);
+    matchesSaved(`settle.${key}`, B);
   });
 }
 test("a second run changes nothing (so a load does not save again and again)", () => {

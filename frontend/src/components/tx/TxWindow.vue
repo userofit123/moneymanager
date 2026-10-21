@@ -1,5 +1,5 @@
 <script setup>
-// The entry window: one transaction, the same layout, sections, wording and actions as the current app's openTx (web/js/04-transactions.js).
+// The entry window: one transaction, with its details, sections and actions.
 // One for the whole app, opened with openTx(id) (core/txwin.js) from Activity, Home, Alerts, Bills, Accounts...
 import { ref, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -92,7 +92,7 @@ const TIC = { hist: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', bi
 const sameStore = (x) => { const key = String(x.desc || "").trim().toLowerCase(); return key ? (S.value?.tx || []).filter((y) => !y.virtual && (y.a < 0) === (x.a < 0) && String(y.desc || "").trim().toLowerCase() === key) : []; };
 const pairOf = (x) => (S.value?.xf || []).find((p) => p.st !== "rej" && (p.o === x.id || p.i === x.id));
 const openJars = computed(() => (S.value?.jars || []).filter((j) => !j.done).sort((a, b) => a.p - b.p));
-// a change asked about first, then the window closes like the old one-sheet app
+// a change that is asked about first (the "Are you sure?" box)
 const confirmDo = (q, text, fn, o) => ask(q, text, fn, o);
 const histOf = (x) => { const b = A.billOf(x, BC.value); if (b) openPop("hist", { title: b.n, rows: billRows(b), sub: t("txw.w.regBill"), q: b.n }); else openPop("hist", { title: name(x), rows: sameStore(x), sub: t("txw.w.allPay"), q: name(x) }); };
 const billRows = (b) => (home.value?.rows || []).filter((y) => y.a < 0 && !y.virtual && (b.mode == "once" ? (b.ids || []).includes(y.id) : (y.desc + " " + y.to).toLowerCase().includes(b.match)));
@@ -145,7 +145,7 @@ async function attach(e) {
 const changes = computed(() => (cur.value ? (S.value?.audit || []).filter((a) => (a.undo && a.undo.id == cur.value.id) || (a.detail || "").startsWith(cur.value.desc)).slice(0, 6) : []));
 const when = (x) => new Date(x).toLocaleString(loc(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
-// ---- Copy details (txCopy) ----
+// ---- Copy details ----
 function copyDetails() {
   const x = cur.value; if (!x) return;
   const L = [name(x) + "  " + (x.a < 0 ? "−" : "+") + "₪" + f0(x.a), dateFmt(String(x.d).slice(0, 10), { weekday: "short", day: "numeric", month: "long", year: "numeric" }) + (x.from && x.to ? " · " + x.from + " → " + x.to : "")];

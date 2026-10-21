@@ -1,6 +1,6 @@
 <script setup>
 // The attachments viewer (#docv): the list of an entry's files and a preview of the chosen one (pictures, and PDFs drawn page by page
-// with the pdf.js the current app ships at /pdf.min.js). Escape closes it, the arrow keys move between files.
+// with the pdf.js the app ships at /pdf.min.js). Escape closes it, the arrow keys move between files.
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";

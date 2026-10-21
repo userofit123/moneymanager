@@ -6,6 +6,5 @@ data/
 
 .claude/worktrees/
 
-# Vue app build output (made by "npm run build" in frontend/)
-web/app/
+# the built app (made by "npm run build" in frontend/)
 frontend/dist/

@@ -1,6 +1,5 @@
 <script setup>
-// Settings → Import and export. A copy of the current app's section (web/js/06-trend-forecast-sync.js renderSet, the setData part;
-// the importCsv, bankCsv, pensionSet, exOpen (Activity's Export tab) and exportJson cases and the csvFile/bankCsvFile handlers in web/js/08-jars.js).
+// Settings → Import and export: import a CSV or a bank's file, the pension, export (Activity's Export tab) and a full JSON copy.
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";

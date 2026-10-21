@@ -1,4 +1,4 @@
-// Same as the small script at the top of web/index.html: html.mob is set on phones (860px wide, or a touch screen up to 1100px).
+// html.mob is set on phones (860px wide, or a touch screen up to 1100px).
 // (Light or dark, html[data-mode], is set by the look: core/theme.js.)
 export function startMobile(root = document.documentElement, win = window) {
   const mob = () => {

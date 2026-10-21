@@ -1,11 +1,11 @@
-// The new app's pages by address, the same addresses as the old app (for example /app/activity is the old /activity).
+// The app's pages by address (Home is "/", the others "/" + their name).
 // "nav" pages show in the side and bottom menus;
-// "main" ones also show in the phone's bottom bar (the rest are under More), like the current app. "icon" is the inside of the
-// current app's 24x24 menu icon, copied as is.
-export const BASE = "/app";
+// "main" ones also show in the phone's bottom bar (the rest are under More). "icon" is the inside of the 24x24 menu icon.
+// Short page names that older links use (?view=tx, #jars, /fc) and that alerts point to.
+export const SHORT = { dash: "home", home: "home", tx: "activity", acc: "accounts", budg: "budgets", rep: "reports", fc: "forecast", set: "settings", cats: "categories" };
 export const pages = [
   { name: "recap", path: "/recap", nav: true, component: () => import("./views/Recap.vue"), icon: '<path d="M4 18h16M7 18a5 5 0 0 1 10 0M12 4v3M5.6 8.6l1.8 1.8M18.4 8.6l-1.8 1.8"/>' },
-  { name: "home", path: "/home", nav: true, main: true, icon: '<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>', component: () => import("./views/Home.vue") },
+  { name: "home", path: "/", nav: true, main: true, icon: '<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>', component: () => import("./views/Home.vue") },
   { name: "accounts", path: "/accounts", nav: true, component: () => import("./views/Accounts.vue"), icon: '<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/>' },
   { name: "activity", path: "/activity", nav: true, main: true, icon: '<path d="M4 6h16M4 12h16M4 18h10"/>', component: () => import("./views/Activity.vue") },
   { name: "jars", path: "/jars", nav: true, main: true, icon: '<path d="M7 3h10v3H7zM6 6h12v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/>', component: () => import("./views/Jars.vue") },

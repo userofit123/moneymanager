@@ -34,7 +34,7 @@ jobs:
         working-directory: server
       - run: npm test
         working-directory: server
-      - name: New Vue app (frontend/) - translations test and build
+      - name: The app (frontend/) - tests and build
         run: npm ci && npm test && npm run build
         working-directory: frontend
 
@@ -113,7 +113,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with: { node-version: 22 }
-      - name: Build the new Vue app into web/app (shipped inside the installer)
+      - name: Build the app into frontend/dist (shipped inside the installer)
         run: npm ci && npm run build
         working-directory: frontend
       - run: npm ci --omit=dev

@@ -1,5 +1,5 @@
 // The Activity list's rules, kept apart from the screen so they can be tested: which rows show, in what order,
-// how they are grouped, and how In, Out and Net are counted. They follow the current app (web/js/04-transactions.js, 07-periods-rules.js).
+// how they are grouped, and how In, Out and Net are counted.
 
 // Money moved between the user's own accounts (confirmed or guessed). Not income or spending.
 // A pair is "auto" (found by the app, waiting for review), "ok" (confirmed) or "rej" (the user said it is not a transfer).
@@ -7,7 +7,7 @@ export const transferIds = (S) => new Set((S?.xf || []).filter((x) => x.st !== "
 export const isIgnored = (S, t) => !!(S?.txIgnore && S.txIgnore[t.id]);
 export const isFuture = (t, today) => t.upBill != null || (!t.virtual && String(t.d) > today);
 // Paying the credit card bill from the bank: the purchases are already counted on the card.
-// Exactly like the current app (web/js/07-periods-rules.js): a payment from a bank account whose text names a card company,
+// It counts as one when it comes from a bank account and its text names a card company,
 // one of the user's cards, or one of their card rules. ccOverride: 1 = counted as spending anyway, 2 = marked as a card payment by hand.
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 export function cardRe(name) {
@@ -41,7 +41,7 @@ export function isCardPay(S, t, ci = cardInfo(S)) {
   return cardRuleHit(S, t) || ci.cards.some((c) => c.re.test(x));
 }
 export const cardOf = (t, ci) => { const x = t.desc + " " + (t.to || ""); return ci.cards.find((c) => c.re.test(x))?.n || ""; };
-// Name rules ("Look in", "Match", "Text", "Call it"), the same as the current app's nameField / nameHit / dn.
+// Name rules ("Look in", "Match", "Text", "Call it"): which field a rule reads, whether it matches, and the name shown.
 export const NFIELDS = ["any", "desc", "memo", "from", "to", "note"];
 export const nameField = (t, f) => (f === "desc" ? t.desc : f === "memo" ? t.memo : f === "from" ? t.from : f === "to" ? t.to : f === "note" ? t.note : [t.desc, t.memo, t.bd, t.from, t.to, t.note].filter(Boolean).join(" "));
 export function nameHit(t, r) { const q = rn(r.k); if (!q) return false; const v = rn(nameField(t, r.f || "any")); return r.m === "eq" ? v === q : v.includes(q); }
@@ -85,7 +85,7 @@ export function leftOut(list, k) {
 
 export const hasFilters = (f) => !!(f.q || f.src || f.cat || f.type || f.tag || (f.p && f.p !== "all"));
 
-// The time frame filter, the same choices as the current app. The week starts on Sunday unless the user chose Monday.
+// The time frame filter and its choices. The week starts on Sunday unless the user chose Monday.
 export const RANGES = ["all", "today", "yesterday", "week", "lastweek", "month", "lastmonth", "30d", "90d", "year", "lastyear"];
 const p2 = (n) => String(n).padStart(2, "0");
 const isoD = (d) => d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate());
@@ -196,10 +196,8 @@ export function normTag(S, v) {
   const e = allTags(S).find(([t]) => t.toLowerCase() === v.toLowerCase());
   return e ? e[0] : v;
 }
-export const categoryNames = (S) => [...new Set([...Object.keys(S?.cats || {}), ...(S?.tx || []).map((t) => t.c)].filter((c) => c && c !== "Uncategorized"))].sort((a, b) => a.localeCompare(b));
-export const accountNames = (S) => [...new Set((S?.tx || []).flatMap((t) => [t.from, t.to]).filter(Boolean))].sort((a, b) => a.localeCompare(b));
 
-// Text compared the same way as the current app's rules: lower case, numbers and punctuation turned into spaces.
+// Text as the rules compare it: lower case, numbers and punctuation turned into spaces.
 export const rn = (s) => String(s == null ? "" : s).toLowerCase().replace(/[0-9*#_\/\\\-.,:;()'"\u05f3\u05f4]+/g, " ").replace(/\s+/g, " ").trim();
 export const ruleHit = (t, kw) => { const q = rn(kw); return q.length > 0 && rn(t.desc + " " + (t.to || "") + " " + (t.from || "")).includes(q); };
 export const ruleTags = (r) => String(r?.t || "").split(",").map((x) => x.trim().replace(/^#+/, "")).filter(Boolean);
@@ -233,7 +231,7 @@ export function applyTagRule(next, kw, tags, except, all) {
   return { rule: ex, n: L.length };
 }
 
-// Needs review: transfers the app found, possible duplicates and balance changes no transaction explains. Same rules as the current app.
+// Needs review: transfers the app found, possible duplicates and balance changes no transaction explains.
 export const reviewTransfers = (S) => {
   const by = new Map((S?.tx || []).map((t) => [t.id, t]));
   return (S?.xf || []).filter((x) => x.st === "auto").map((x) => ({ x, o: by.get(x.o), i: by.get(x.i) })).filter((r) => r.o && r.i)
@@ -271,7 +269,7 @@ function pendCover(S, r) {
     .map((t) => Math.abs(r.cur === "ILS" ? t.a : t.orig && t.orig.cur === r.cur ? t.orig.amt : 0)).filter((x) => x > 0);
   return amountsFit(L.slice(0, 40), need);
 }
-// Open balance gaps that pending charges do not already explain (recon in the current app).
+// Open balance gaps that pending charges do not already explain.
 export const balanceGaps = (S) => (S?.gaps || []).filter((g) => g.status === "open" && g.remaining != 0)
   .map((g) => ({ id: g.id, n: g.account, cur: g.currency, diff: g.remaining, amount: g.amount, from: g.window_from, to: g.window_to }))
   .filter((r) => !pendCover(S, r));
@@ -298,13 +296,13 @@ const SRCL = { hapoalim: "Bank Hapoalim", max: "Max", isracard: "Isracard", wise
 const SYMS = { ILS: "₪", USD: "$", EUR: "€", GBP: "£", JPY: "¥" };
 const n0 = (v) => Math.abs(v).toLocaleString("en-IL", { maximumFractionDigits: 0 });
 const sym = (c) => SYMS[c] || c + " ";
-// "Payment n of N" for instalments (the same reading of the bank's text as the current app).
+// "Payment n of N" for instalments, read from the bank's text.
 export function instOf(t) {
   if (t.inst && t.inst[1] > 1 && t.inst[0] >= 1 && t.inst[0] <= t.inst[1]) return { n: t.inst[0], total: t.inst[1] };
   const d = String(t.desc || ""), m = d.match(/תשלום\s*(\d{1,2})\s*(?:\/|מתוך)\s*(\d{1,2})/) || d.match(/payment\s*(\d{1,2})\s*(?:\/|of)\s*(\d{1,2})/i) || d.match(/(\d{1,2})\s*מתוך\s*(\d{1,2})/);
   return m && +m[2] >= 2 && +m[2] <= 60 && +m[1] >= 1 && +m[1] <= +m[2] ? { n: +m[1], total: +m[2] } : null;
 }
-// The rows of the details box, in the order of the current app. The screen turns { key } and { date } into words.
+// The rows of the details box, in the order they show. The screen turns { key } and { date } into words.
 export function detailRows(S, t, x, xf) {
   const det = x?.details || {}, nested = det.details || {}, rows = [], R = (k, v, o = {}) => { if (v == null || v === "") return; rows.push({ k, v: o.raw ? v : nohtml(v), ...o }); };
   const i = instOf(t), fee = det.totalFees, ex = det.exchangeDetails, rb = det.runningBalance;

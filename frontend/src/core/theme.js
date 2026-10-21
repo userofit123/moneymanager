@@ -1,6 +1,6 @@
-// The look of the app: light or dark, colour set, background, texture, surfaces, corners, density, font... (web/js/01-prefs-theme.js).
-// The choice lives in `theme` (saved as "moneyTheme", like the current app) and is put on the page by applyTheme(): CSS variables and
-// data-* attributes on <html>, and classes on <body>. The rules that use them are in styles/legacy.css.
+// The look of the app: light or dark, colour set, background, texture, surfaces, corners, density, font...
+// The choice lives in `theme` (saved as "moneyTheme") and is put on the page by applyTheme(): CSS variables and
+// data-* attributes on <html>, and classes on <body>. The rules that use them are in styles/app.css.
 import { reactive, ref, watch } from "vue";
 import { readJson, writeJson } from "./prefs.js";
 
@@ -58,7 +58,7 @@ export function customAtm(hex) {
   const L = [c(H, S, 42), c(H, S, 92), c(H, S, 14), c(H, 28, 98), c(H + 40, Math.round(S * 0.8), 42), "#ffffff"], D = [c(H, S, 78), c(H, Math.round(S * 0.7), 28), c(H, S, 90), c(H, 16, 8), c(H + 40, S, 76), c(H, S, 14)];
   return { L, D };
 }
-// hsl → #rrggbb (the current app asks a canvas for this; the result is the same)
+// hsl → #rrggbb
 function hslHex(h, s, l) {
   s /= 100; l /= 100;
   const k = (n) => (n + h / 30) % 12, a = s * Math.min(l, 1 - l), f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));

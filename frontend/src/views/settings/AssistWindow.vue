@@ -1,6 +1,6 @@
 <script setup>
-// "Verify this device": the bank's page in the app's own browser, shown live over the whole page (#assist in web/index.html,
-// assistOpen/assistTick/assistPost in web/js/07-periods-rules.js, the assist* cases in 08-jars.js). Clicking the picture clicks the page,
+// "Verify this device": the bank's page in the app's own browser, shown live over the whole page (#assist).
+// Clicking the picture clicks the page,
 // the wheel scrolls it, and "Type my…" fills a saved login without it ever reaching this page.
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";

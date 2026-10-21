@@ -1,5 +1,5 @@
-// The connected banks, cards and wallets and how their last sync went (the SRC list in web/js/02-state-data.js derive, syncLabel in 08-jars.js),
-// and "Sync now" (syncNow in 07-periods-rules.js).
+// The connected banks, cards and wallets and how their last sync went,
+// and "Sync now".
 import { computed } from "vue";
 import { i18n } from "../i18n.js";
 import { data } from "../stores/data.js";

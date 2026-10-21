@@ -1,6 +1,6 @@
 // One shared copy of the user's data for the whole app, and the one place that saves it.
 // Screens read from it and never fetch the data on their own, so every screen shows the same numbers and all of them update together.
-// Saving works like the current app (web/js/02-state-data.js save/flush/flushNow/adopt/log): a change is made on a copy,
+// Saving: a change is made on a copy,
 // written to the change history, shown at once, and sent to the server a moment later as the whole data with its version (rev).
 // If the server has a newer version (a sync ran meanwhile), its copy is taken and the person is asked to repeat the change.
 import { ref, shallowRef } from "vue";
@@ -15,8 +15,8 @@ const putState = async (S) => {
   return { status: r.status, ok: r.ok, json: j };
 };
 
-// GET /api/state. When there is no connection the app's service worker (web/sw.js) answers with the last saved copy and marks it
-// with the x-offline-cache header; the copy then carries a hidden "offline" mark (like load() in the current app).
+// GET /api/state. When there is no connection the app's service worker (public/sw.js) answers with the last saved copy and marks it
+// with the x-offline-cache header; the copy then carries a hidden "offline" mark.
 async function getState(url) {
   if (url !== "/api/state") return getJson(url);
   const r = await request(url, { cache: "no-store" });
@@ -32,7 +32,7 @@ export function createDataStore({ fetchJson = getState, connect = connectLive, s
   const error = ref(null);
   const offline = ref(false);
   const saving = ref(false);
-  // Exchange rates (GET /api/fx), loaded once with the data like loadFX() in the current app. fx.fx is { USD: 3.7, ... }.
+  // Exchange rates (GET /api/fx), loaded once with the data. fx.fx is { USD: 3.7, ... }.
   const fx = shallowRef({ fx: {}, series: {}, asOf: null, stale: false, live: false });
   let stop = null, listening = false, busy = null, dirty = false, timer = null, failed = false;
   const hooks = { settle, notify };
@@ -51,7 +51,7 @@ export function createDataStore({ fetchJson = getState, connect = connectLive, s
       .finally(() => { loading.value = false; busy = null; });
     return busy;
   }
-  // "You are offline" stays as a message until the connection is back (setOffline in the current app).
+  // "You are offline" stays as a message until the connection is back.
   function setOffline(v) {
     if (v === offline.value) return;
     offline.value = v;
@@ -82,7 +82,7 @@ export function createDataStore({ fetchJson = getState, connect = connectLive, s
   async function start() {
     if (stop) return;
     stop = connect(refreshIfChanged);
-    // back online: send what is waiting, or look for news; coming back to the window: look for news (the current app's chk)
+    // back online: send what is waiting, or look for news; coming back to the window: look for news
     if (typeof window !== "undefined" && !listening) {
       listening = true;
       addEventListener("online", () => { if (!state.value) return; if (dirty) flush(); else load(); }); // back online: send what waits, or take the news
@@ -106,7 +106,7 @@ export function createDataStore({ fetchJson = getState, connect = connectLive, s
     // what the change replaced, so its history line can be undone (unless the line already says how)
     const mine0 = (lines || []).findIndex(([action, , undo, who]) => !undo && (who || "You") !== "System" && action !== "Undid a change");
     if (mine0 >= 0) { const p = makePatch(cur, next); if (p) lines[mine0] = [lines[mine0][0], lines[mine0][1], p, lines[mine0][3]]; }
-    // after every change the app's upkeep runs on the result, like renderAll() in the current app
+    // after every change the app's upkeep runs on the result (core/settle.js)
     const upkeep = hooks.settle ? hooks.settle(next) || [] : [];
     const at = new Date().toISOString();
     const entries = [...(lines || []), ...upkeep].map(([action, detail, undo, who]) => ({ t: at, who: who || "You", action, detail: detail || "", undo: undo || null }));
@@ -170,7 +170,7 @@ export function createDataStore({ fetchJson = getState, connect = connectLive, s
     if (!r.ok) throw new Error(j.error || "HTTP " + r.status);
     return j;
   }
-  // Undo one change from the history (the "undo" action of the current app).
+  // Undo one change from the history.
   function undo(entry) {
     change((S) => {
       const e = (S.audit || []).find((x) => (entry.id != null ? x.id === entry.id : x.t === entry.t && x.action === entry.action && x.detail === entry.detail));

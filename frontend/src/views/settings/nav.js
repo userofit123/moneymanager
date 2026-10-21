@@ -1,4 +1,4 @@
-// The Settings side list, copied from the current app's page (web/index.html, #setTabs): five groups, each with its sections and their icons.
+// The Settings side list (#setTabs): five groups, each with its sections and their icons.
 // "pane" is the file that draws the section (loaded when it is opened).
 export const NAV = [
   { group: "you", tabs: [

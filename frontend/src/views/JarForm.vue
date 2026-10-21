@@ -1,5 +1,5 @@
 <script setup>
-// The pop-up to make a new jar or edit one, like the current app's (web/js/08-jars.js jarShell, jarForm, jarHint, jarCatsDraw).
+// The pop-up to make a new jar or edit one.
 // It only collects what is typed; Jars.vue saves it with saveJar() from jars.js.
 import { ref, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -25,7 +25,7 @@ const mon = (k) => new Date(+props.M.MK.slice(0, 4), +props.M.MK.slice(5, 7) - 1
 const billName = (k) => tk("jars.kind." + { "*": "all", "*i": "allIrregular", "*a": "allAny" }[k]);
 const billOpts = computed(() => [...["*a", "*", "*i"].map((k) => ({ v: k, l: billName(k) + " · " + t("jars.form.perMonth", { amount: fm(props.M.bills.allMo(k)) }) })), ...props.M.bills.rec.map((b) => ({ v: b.match, l: b.n + " · " + t("jars.form.perMonth", { amount: fm(b.mo) }) }))]);
 
-// The line under the fields that says what will happen (jarHint).
+// The line under the fields that says what will happen.
 const hint = computed(() => {
   const x = f.value, sv = num(x.S), M = props.M;
   if (x.kind == "payoff") { const T = num(x.T), C = num(x.C), rest = Math.max(0, T - sv), k = C > 0 ? Math.ceil(rest / C) : 0; return !(T > 0) ? t("jars.form.hOwe") : rest <= 0 ? t("jars.form.hPaidOff") : C > 0 ? t("jars.form.hPayoff", { c: fm(C), rest: fm(rest), k, when: mon(k - 1) }, k) : t("jars.form.hPayBack"); }

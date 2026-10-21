@@ -1,6 +1,5 @@
 <script setup>
 // Activity: every transaction in one list, with search, filters, grouping, sorting, quick category changes, Needs review and Export.
-// A copy of the current app's Activity page (web/js/04-transactions.js renderTx/renderRev, 06-trend-forecast-sync.js fillFilters/resetTx).
 // The entry window is the shared one (components/tx/TxWindow.vue); other pages open this page with filters through goActivity().
 import { ref, computed, watch, onMounted, onBeforeUnmount, onUpdated, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
@@ -44,11 +43,11 @@ const name = (x) => displayName(S.value, x);
 // ---- the filters ----
 const tab = ref("all");
 const EMPTY = { q: "", src: "", cat: "", type: "", tag: "" };
-// The time frame is remembered under the same key as the current app ("moneyRanges", entry "tx"), so both apps show the same one.
+// The time frame is remembered in this browser ("moneyRanges", entry "tx").
 const savedRange = (() => { const r = readJson("moneyRanges", {}).tx; return r && (RANGES.includes(r.p) || r.p === "custom") ? r : null; })();
 const f = ref({ ...EMPTY, p: savedRange?.p || "all", from: savedRange?.from || "", to: savedRange?.to || "" });
 watch(() => [f.value.p, f.value.from, f.value.to], () => { const j = readJson("moneyRanges", {}); j.tx = { p: f.value.p, from: f.value.from, to: f.value.to }; writeJson("moneyRanges", j); });
-const group = usePref("moneyGroup", "month"); // remembered, like the old GMODE
+const group = usePref("moneyGroup", "month"); // remembered in this browser
 const sort = ref("new");
 const focus = ref(null); // { ids: Set, label }: only these entries, opened from another page
 const shownCount = ref(PAGE);
@@ -106,9 +105,9 @@ const groupOpts = computed(() => GROUPS.map((g) => opt(g, tk("activity.group." +
 const sortOpts = computed(() => ["new", "old", "big", "small"].map((s) => opt(s, tk("activity.sort." + s))));
 const typeOpts = computed(() => [opt("", t("activity.type.all")), ...["income", "expense", "transfer", "bill", "cardpay"].map((x) => opt(x, tk("activity.type." + x)))]);
 const cats = computed(() => catNames(S.value).filter((k) => k != "Uncategorized"));
-// the filter lists of the current app (fillFilters, tagFill): your accounts, every category with Uncategorized among them, tags in use with their count
+// the filter lists: your accounts, every category with Uncategorized among them, tags in use with their count
 const catOpts = computed(() => [opt("", t("activity.allCats")), ...[...new Set([...catNames(S.value), "Uncategorized"])].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })).map((c) => opt(c, catLabel(c)))]);
-const srcOpts = computed(() => [opt("", t("activity.allSources")), ...[...new Set((S.value?.accounts || []).filter((a) => a.kind != "pension").map((a) => a.n))].map((a) => opt(a, tx(a)))]); // bank names in the page's language, like the current app
+const srcOpts = computed(() => [opt("", t("activity.allSources")), ...[...new Set((S.value?.accounts || []).filter((a) => a.kind != "pension").map((a) => a.n))].map((a) => opt(a, tx(a)))]); // bank names in the page's language
 const tagOpts = computed(() => [opt("", t("activity.allTags")), ...allTags(S.value).filter(([, n]) => n > 0).map(([g, n]) => opt(g, g + " (" + n + ")"))]);
 watch(tagOpts, (L) => { if (f.value.tag && !L.some((o) => o.value === f.value.tag)) f.value.tag = ""; });
 
@@ -122,7 +121,7 @@ function groupLabel(L) {
   if ("tag" in L) return L.tag || t("activity.noTag");
   return L.name || t("activity.other");
 }
-// Opening or closing a group slides it (grpToggle in web/js/07-periods-rules.js): the arrow turns at once and the rows grow or shrink.
+// Opening or closing a group slides it: the arrow turns at once and the rows grow or shrink.
 // A table group keeps its header row while it shrinks; the rows go only when the slide has finished.
 const closing = ref(new Map()); // group → its running slide
 const headClosed = (g) => closed.value.has(gkey(g)) || closing.value.has(gkey(g));
@@ -151,7 +150,7 @@ const nohtml = (s) => String(s ?? "").replace(/<[^>]*>/g, "").replace(/&nbsp;/g,
 const avStyle = (x) => ({ background: `color-mix(in srgb,${catColor(S.value, x.c || "Uncategorized")} 22%,transparent)`, color: catColor(S.value, x.c || "Uncategorized") });
 const chips = (x) => txChips(S.value, x, { K: K.value, dup: dup.value, BC: BC.value });
 
-// What a click on a row opens (openAT): an expected bill opens the bill, a balance update opens the account, the rest the entry window.
+// What a click on a row opens: an expected bill opens the bill, a balance update opens the account, the rest the entry window.
 function openRow(x) {
   if (x.upBill != null) {
     const b = (S.value.bills || [])[x.upBill]; if (!b) return;
@@ -176,19 +175,19 @@ const sumTip = computed(() => {
   return TP(t("activity.sumTitle"), [[t("activity.sumIncluded"), String(cnt)], ...ks.filter((key) => o[key]).map((key) => [tk("activity.lot." + key), String(o[key])])], [t(filtered.value ? "activity.sumFilt" : "activity.sumAll"), ...ks.filter((key) => o[key]).map((key) => tk("activity.sumWhy." + key))].join("\n"));
 });
 const loText = computed(() => { const o = lo.value; return [o.transfers && t("activity.lo.transfers", { n: o.transfers }, o.transfers), o.cardPays && t("activity.lo.cardPays", { n: o.cardPays }, o.cardPays), o.upcoming && t("activity.lo.upcoming", { n: o.upcoming }, o.upcoming), o.balance && t("activity.lo.balance", { n: o.balance }, o.balance), o.ignored && t("activity.lo.ignored", { n: o.ignored })].filter(Boolean).join(", "); });
-// A group that is all upcoming shows what is expected; one with bills still to come says "Out so far" (grpSum).
+// A group that is all upcoming shows what is expected; one with bills still to come says "Out so far".
 function grpParts(g) {
   if (g.rows.length && g.allFut) return [...(g.E > 0 ? [{ l: t("activity.g.expIn"), v: fm(g.E) }] : []), { l: t("activity.g.expOut"), v: fm(g.P) }, ...(g.E > 0 ? [{ l: t("activity.net"), v: fm(g.E - g.P), neg: g.E - g.P < 0 }] : [])];
   const more = g.P >= 1 || g.E > 0;
   const tip = more ? TP(t("txw.a.stillTitle"), [[t("txw.a.outSoFar"), fm(g.T.out)], ...(g.P >= 1 ? [[t("txw.a.stillOut"), fm(g.P)], [t("txw.a.totalOut"), fm(g.T.out + g.P)]] : []), ...(g.E > 0 ? [[t("txw.a.stillIn"), fm(g.E)]] : []), "---", [t("txw.a.netDone"), fm(g.T.inc + g.E - g.T.out - g.P)]], t("txw.a.stillNote")) : "";
   return [{ l: t("activity.in"), v: fm(g.T.inc) }, { l: more ? t("activity.g.outSoFar") : t("activity.out"), v: fm(g.T.out), tip }, { l: t("activity.net"), v: fm(g.T.net), neg: g.T.net < 0 }];
 }
-// The table header sticks to the top of the screen and loses its round corners while stuck, like the current app.
+// The table header sticks to the top of the screen and loses its round corners while stuck.
 const sent = ref(null), stuck = ref(false);
 let io = null;
 onMounted(() => { if (typeof IntersectionObserver === "undefined") return; io = new IntersectionObserver(([e]) => { stuck.value = !e.isIntersecting && e.boundingClientRect.top < 0; }); watch(sent, (el) => { io.disconnect(); if (el) io.observe(el); }, { immediate: true }); });
 onBeforeUnmount(() => io && io.disconnect());
-// group headers stick just under the table header: --hh is its real height (renderTx sets it the same way)
+// group headers stick just under the table header: --hh is its real height
 const txTab = ref(null);
 const setHh = () => { const th = txTab.value?.querySelector("thead"); if (th && th.offsetHeight) txTab.value.style.setProperty("--hh", th.offsetHeight + "px"); };
 onMounted(setHh); onUpdated(setHh);
@@ -325,7 +324,7 @@ onMounted(() => data.start());
 
     <RangeCal v-if="cal" :from="f.p === 'custom' ? f.from : ''" :to="f.p === 'custom' ? f.to : ''" :anchor="cal.anchor" :df="dateFormat" :ws="weekStart" @apply="calApply" @cancel="calCancel" />
 
-    <!-- Dismissing a balance change, with a note (the current app asks with the browser's prompt) -->
+    <!-- Dismissing a balance change, with a note -->
     <BaseDialog :open="!!gapNote" :title="t('activity.r.gapRev')" @update:open="(v) => !v && (gapNote = null)">
       <label v-if="gapNote" class="fld">{{ t("activity.r.gapNoteQ") }}<textarea v-model="gapNote.note" rows="3" /></label>
       <template #actions><BaseButton variant="outline" size="small" @click="gapNote = null">{{ t("activity.d.cancel") }}</BaseButton><BaseButton :disabled="!gapNote || !gapNote.note.trim()" @click="gapCall(gapNote.id, 'review', t('txw.a.reviewed'), { note: gapNote.note.trim() }); gapNote = null">{{ t("activity.r.gapRevGo") }}</BaseButton></template>

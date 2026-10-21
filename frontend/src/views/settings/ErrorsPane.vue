@@ -1,12 +1,11 @@
 <script>
 import { ref } from "vue";
-// the log, read when the section opens (ERRS in the current app)
+// the log, read when the section opens
 const ERRS = ref({ rows: [], system: null, loaded: false });
 </script>
 
 <script setup>
-// Settings → Error log. A copy of the current app's section (web/js/09-profile-export-settings.js renderErr and loadErr; the errClear,
-// errCopy, errCopyAll, errCopySys and errRefresh cases in 08-jars.js): what the server knows about this system, and every error recorded.
+// Settings → Error log: what the server knows about this system, and every error recorded.
 import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { getJson, request } from "../../core/http.js";

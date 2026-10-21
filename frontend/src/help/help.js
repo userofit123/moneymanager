@@ -1,5 +1,5 @@
-// The page guide and the small ? next to section names, ported from web/js/05-accounts-charts-help.js.
-// The guide text is in en.js / he.js (copied from web/help.js and web/help-he.js), the little pictures in demo.js, the ? places in dots.js.
+// The page guide and the small ? next to section names.
+// The guide text is in en.js / he.js, the little pictures in demo.js, the ? places in dots.js.
 import { ref } from "vue";
 import { readPref, writePref } from "../core/prefs.js";
 import EN from "./en.js";
@@ -8,7 +8,7 @@ import DOTS from "./dots.js";
 import { HDEMO } from "./demo.js";
 import { vTip } from "../core/tooltip.js";
 
-// The page the guide describes, by the new app's page name (the old app's names in HELP).
+// The guide's page key (its key in en.js / he.js) for each page of the app.
 export const HELP_PAGE = { home: "dash", activity: "tx", accounts: "acc", jars: "jars", bills: "bills", budgets: "budg", reports: "rep", forecast: "fc", alerts: "alerts", categories: "cats" };
 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -27,9 +27,9 @@ export function guideOf(page, he) {
   const key = HELP_PAGE[page] || page, H = he ? HE : EN;
   return H[key] || EN[key] || null;
 }
-// The little pictures are drawn in English; in Hebrew each text and box value goes through the old dictionary, as the current app's page-wide pass does.
+// The little pictures are drawn in English; in Hebrew each text and box value goes through the Hebrew dictionary.
 const heDemo = (h, tx) => h.replace(/>([^<]*[A-Za-z][^<]*)</g, (m, t) => ">" + t.replace(/\S(.*\S)?/s, (x) => x.split(" · ").map(tx).join(" · ")) + "<").replace(/(value|placeholder)="([^"]*[A-Za-z][^"]*)"/g, (m, k, v) => k + '="' + tx(v) + '"');
-// The panel's inside, as the old helpRender builds it (labels are the Example / Tip words of the language).
+// The panel's inside (labels are the Example / Tip words of the language).
 export function guideHtml(P, he, tr) { // tr: the Hebrew dictionary (core/heText.js tx), for the little pictures
   const B = P.blocks || [];
   return (P.lead ? `<div class="hlead">${hMd(P.lead)}</div>` : "")
@@ -54,7 +54,7 @@ export function helpDots(page, he, label, doc = document) {
     if (how === "after") { inside ? el.appendChild(b) : el.insertAdjacentElement("afterend", b); return; }
     if (el.tagName === "H2") { const t = el.firstChild; if (t && (t.nodeType === 3 || t.nodeType === 1)) { const w = doc.createElement("span"); w.className = "hqw"; t.replaceWith(w); w.append(t, b); return; } }
     const at = [...el.children].find((c) => c.matches("a,.h2r,.chip,button,.hl,.cnt,.seg,.flex") && !c.classList.contains("bi") && !c.classList.contains("tinfo"));
-    // the (i) of a tooltip stays last, as in the current app (there the ? is added before the (i) is)
+    // the (i) of a tooltip stays last: the ? goes before it
     const ti = at || [...el.children].find((c) => c.classList.contains("tinfo"));
     ti ? el.insertBefore(b, ti) : el.appendChild(b);
   });
@@ -68,7 +68,7 @@ export function helpAt(k, block) {
   };
   if (!helpOpen.value) { helpSet(true); setTimeout(go, 120); } else go();
 }
-// Keep the ?s in place while the page changes (the old app watches the page the same way).
+// Keep the ?s in place while the page changes.
 export function watchDots(get) {
   let q = 0;
   const run = () => { q = 0; try { const { page, he, label } = get(); helpDots(page, he, label); } catch { /* a page without sections */ } };

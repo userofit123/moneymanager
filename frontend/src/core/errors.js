@@ -1,4 +1,4 @@
-// Errors in the page are sent to the server's error log (Settings → Error log), like reportErr() in web/js/09-profile-export-settings.js:
+// Errors in the page are sent to the server's error log (Settings → Error log):
 // at most 25 per page load, each message once, with the last clicks so it is clear what was being done. Nothing is sent before sign-in.
 import { request, sendJson } from "./http.js";
 import { i18n } from "../i18n.js";

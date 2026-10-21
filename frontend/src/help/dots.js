@@ -1,4 +1,4 @@
-// Where the small ? goes, copied from HELPDOTS in web/js/05-accounts-charts-help.js:
+// Where the small ? goes:
 // [help page, area on the page, element holding the name, start of its English text, title of the info block to open, how ("after" = next to the area), the same name in Hebrew].
 export default [
   ["dash", "#kpis", ".lbl", "Net worth", "The four big numbers", "", "שווי נקי"],

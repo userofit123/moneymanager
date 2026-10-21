@@ -7,7 +7,7 @@ import { applyLang } from "../src/direction.js";
 
 const fakeRoot = () => { const set = new Set(); return { lang: "", classList: { toggle: (c, on) => (on ? set.add(c) : set.delete(c)), has: (c) => set.has(c) } }; };
 
-test("Hebrew sets lang=he and class he; English removes it; <html> itself never gets dir (scrollbars stay on the right, like the current app)", () => {
+test("Hebrew sets lang=he and class he; English removes it; <html> itself never gets dir (scrollbars stay on the right)", () => {
   const r = fakeRoot();
   applyLang("he", r);
   assert.equal(r.lang, "he"); assert.ok(r.classList.has("he")); assert.equal(r.dir, undefined);
@@ -15,7 +15,7 @@ test("Hebrew sets lang=he and class he; English removes it; <html> itself never 
   assert.equal(r.lang, "en"); assert.ok(!r.classList.has("he")); assert.equal(r.dir, undefined);
 });
 
-test("Hebrew content is right to left through 'html.he body { direction: rtl }', like the current app", () => {
+test("Hebrew content is right to left through 'html.he body { direction: rtl }'", () => {
   const css = readFileSync(new URL("../src/styles/base.css", import.meta.url), "utf8");
   assert.match(css, /html\.he body\s*\{[^}]*direction:\s*rtl/);
   assert.doesNotMatch(readFileSync(new URL("../index.html", import.meta.url), "utf8"), /dir\s*=\s*["']rtl/);
@@ -30,8 +30,8 @@ test("styles use logical properties (start/end), never fixed left/right", () => 
   const dir = new URL("../src/", import.meta.url).pathname;
   const walk = (d) => readdirSync(d).flatMap((n) => { const p = join(d, n); return statSync(p).isDirectory() ? walk(p) : /\.(vue|css)$/.test(n) ? [p] : []; });
   const bad = [];
-  // legacy.css is a verbatim copy of web/css/app.css (which has its own Hebrew rules), so it is compared with the old file instead (see legacy.test.js)
-  for (const f of walk(dir).filter((x) => !x.endsWith("legacy.css"))) {
+  // app.css is the main stylesheet with its own Hebrew rules (html.he ...), so it is left out here (see app-css.test.js)
+  for (const f of walk(dir).filter((x) => !x.endsWith("app.css"))) {
     // in a .vue file only the CSS counts: its <style> block and static style="…" (a tooltip placed at a measured x, or a "left" amount in a sentence, is not CSS)
     const src = readFileSync(f, "utf8"), css = f.endsWith(".css");
     let inStyle = false;

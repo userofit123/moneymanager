@@ -1,6 +1,5 @@
 <script setup>
-// Settings → Profile. A copy of the current app's Profile section (web/js/09-profile-export-settings.js profFields, renderProfile, profSave;
-// web/js/08-jars.js profClear): name, age, gender and what matters most, all optional, kept in the user's own data (cfg.profile).
+// Settings → Profile: name, age, gender and what matters most, all optional, kept in the user's own data (cfg.profile).
 import { ref, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
@@ -20,7 +19,7 @@ const fill = () => {
   form.value = { name: p.name || "", age: profAge(p) || "", gender: p.gender || "", goal: p.goal || "" };
 };
 onMounted(() => { data.start(); fill(); });
-// Like the current app, a change that arrives while you are typing here does not replace what you typed.
+// A change that arrives while you are typing here does not replace what you typed.
 watch(() => JSON.stringify(S.value && S.value.cfg && S.value.cfg.profile), () => {
   if (root.value && root.value.contains(document.activeElement) && document.activeElement.matches("input,select")) return;
   fill();

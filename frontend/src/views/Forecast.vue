@@ -1,7 +1,7 @@
 <script setup>
-// Forecast: where the money is heading. A copy of the current app's Forecast page (web/js/06-trend-forecast-sync.js, renderFc):
+// Forecast: where the money is heading:
 // the choices at the top, the balance now and ahead, what it is based on, the chart, what drives it and what each jar will hold.
-// The numbers come from forecast.js. The choices are saved in this browser under the same name as in the current app ("moneyFc").
+// The numbers come from forecast.js. The choices are saved in this browser ("moneyFc").
 import { ref, computed, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
@@ -29,19 +29,19 @@ onMounted(async () => {
 });
 const S = computed(() => data.state.value);
 
-// The page's choices, saved like the current app does.
+// The page's choices, saved in this browser.
 const fc = ref((() => { let z = null; try { z = readJson("moneyFc", null); } catch { /* none saved */ } const o = { h: 12, n: 6, m: "smart", ...(z || {}) }; if (![3, 6, 12].includes(o.n)) o.n = 6; return o; })());
 const pick = (k, v) => { fc.value = { ...fc.value, [k]: isNaN(+v) ? v : +v }; try { writeJson("moneyFc", (fc.value)); } catch { /* not saved */ } };
 const M = computed(() => forecastModel(S.value, now.value, fx.value, fc.value, home.value));
 
 const monthOf = (key, opt) => new Date(+key.slice(0, 4), +key.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, opt);
 const mshort = (key) => monthOf(key, { month: "short" });
-// "Oct 27"; in Hebrew the year keeps its place in the chart like the current app (it isolates numbers in translated text)
+// "Oct 27"; in Hebrew the year keeps its place in the chart (numbers are isolated in translated text)
 const mlab = (k) => { const s = new Date(now.value.getFullYear(), now.value.getMonth() + k, 1).toLocaleDateString(loc.value, { month: "short", year: "2-digit" }); return locale.value === "he" ? isolateNumbers(s) : s; };
 const jarWhen = (k) => (k ? new Date(+M.value.FH.keys[12].slice(0, 4), +M.value.FH.keys[12].slice(5, 7) - 1 + k, 1).toLocaleDateString(loc.value, { month: "short", year: "numeric" }) : "");
 const catName = (c) => (c === "Other / uncategorized" ? t("forecast.otherCat") : categoryName(c, locale.value));
-const srcName = (k) => (k === "Other income" ? t("forecast.otherInc") : tx(categoryName(k, locale.value))); // names from the data go through the old Hebrew dictionary, like the current app
-// A line's name opens Activity with only that category, like the current app (goCat; an income line passes its source's name the same way).
+const srcName = (k) => (k === "Other income" ? t("forecast.otherInc") : tx(categoryName(k, locale.value))); // names from the data go through the Hebrew dictionary
+// A line's name opens Activity with only that category (an income line passes its source's name the same way).
 const goCat = (cat) => goActivity({ cat });
 
 const d = computed(() => M.value.d);
@@ -137,7 +137,7 @@ const jarCards = computed(() => M.value.jars.J.map((j) => {
 
       <div class="sm" id="fcDiag" style="line-height:1.55"><b style="color:var(--tx)">{{ t("forecast.diag.title") }}</b> {{ t("forecast.diag.main", { inc: fm(incM), exp: fm(exM), span: t("forecast.diag.span", { n: nEff }, nEff), months: usedMonths, cur: mshort(M.FH.keys[M.FH.last]) }) }}<template v-if="M.cardPays">{{ " " + t("forecast.diag.cards", { n: M.cardPays }, M.cardPays) }}</template><template v-if="fc.n > nEff">{{ " " + t("forecast.diag.only", { n: nEff }, nEff) }}</template><template v-if="zeroMonths.length">{{ " " }}<span class="neg">{{ t("forecast.diag.zero", { months: zeroMonths.join(", ") }) }}</span></template></div>
 
-      <!-- the inner span keeps the parts around the dot together, like the current app's wrapper (polish.js puts the dot inside it) -->
+      <!-- the inner span keeps the parts around the dot together (polish.js puts the dot inside it) -->
       <h2><span>{{ t("fc.x.chartTitle") }}</span></h2>
       <div class="card" id="fcChart">
         <div class="flex" style="justify-content:space-between;margin-bottom:6px">

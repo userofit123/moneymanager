@@ -1,5 +1,5 @@
 <script setup>
-// "Add transaction" (openAdd/addSave in web/js/04-transactions.js), also "Explain missing money" for a balance gap
+// "Add transaction", also "Explain missing money" for a balance gap
 // (gap: { acc, cur, amt, date }; plain: the plain title even with an account given). photo: open the file picker at once (Receipt photo).
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";

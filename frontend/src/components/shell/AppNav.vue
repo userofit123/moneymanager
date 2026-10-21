@@ -1,6 +1,6 @@
 <script setup>
-// The menu: a rail on a computer, a bar at the bottom of a phone (web/index.html <nav>). Same items, order, icons and badges as the current app;
-// the gliding highlight (navPill) moves to the open page. At the bottom of the rail: update, sync status and Appearance.
+// The menu: a rail on a computer, a bar at the bottom of a phone (<nav>), with each page's icon and badge;
+// the gliding highlight moves to the open page. At the bottom of the rail: update, sync status and Appearance.
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import { pages } from "../../routes.js";
@@ -14,12 +14,12 @@ import UpdateButton from "./UpdateButton.vue";
 
 const { t } = useI18n();
 const navPages = pages.filter((p) => p.nav);
-// the current app's page names, which its stylesheet uses (for example nav .nb[data-v=alerts] is hidden on a phone)
-const OLDV = { recap: "recap", home: "dash", accounts: "acc", activity: "tx", jars: "jars", bills: "bills", budgets: "budg", reports: "rep", forecast: "fc", alerts: "alerts", categories: "cats", settings: "set" };
+// the short page names the stylesheet uses in data-v (for example nav .nb[data-v=alerts] is hidden on a phone)
+const NAV_ID = { recap: "recap", home: "dash", accounts: "acc", activity: "tx", jars: "jars", bills: "bills", budgets: "budg", reports: "rep", forecast: "fc", alerts: "alerts", categories: "cats", settings: "set" };
 const badge = (p) => (p.name === "alerts" ? alertList.value.length : p.name === "activity" ? reviewCount.value : 0);
 const nav = ref(null), pill = ref(null);
 
-// The highlight glides from the old page to the new one, stretching on the way (navPill in web/js/09-profile-export-settings.js).
+// The highlight glides from the previous page to the open one, stretching on the way.
 let cur = null, anim = null, at = null;
 const D = 300;
 function place(animate) {
@@ -56,7 +56,7 @@ onBeforeUnmount(() => { removeEventListener("resize", onResize); ro?.disconnect(
     <i ref="pill" class="nbi" style="transform-origin:0 0" />
     <AppLogo shuffle />
     <template v-for="p in navPages" :key="p.name">
-      <button type="button" class="nb" :class="{ on: current.name === p.name, sec: !p.main }" :data-v="OLDV[p.name]" :aria-current="current.name === p.name ? 'page' : undefined" @click="go(hrefOf(p))">
+      <button type="button" class="nb" :class="{ on: current.name === p.name, sec: !p.main }" :data-v="NAV_ID[p.name]" :aria-current="current.name === p.name ? 'page' : undefined" @click="go(hrefOf(p))">
         <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" v-html="p.icon" /></span>{{ t("nav." + p.name) }}<span v-if="p.name === 'activity' || p.name === 'alerts'" class="badge" :style="{ display: badge(p) ? 'grid' : 'none' }">{{ badge(p) }}</span>
       </button>
       <button v-if="p.name === 'jars'" type="button" class="nb only-m navplus" :aria-label="t('shell.add')" @click="quickOpen = true"><span class="pb">+</span></button>

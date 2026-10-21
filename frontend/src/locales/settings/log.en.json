@@ -7,8 +7,5 @@
   "who": {
     "You": "You",
     "System": "System"
-  },
-  "audit": {
-    "undid": "Undid a change"
   }
 }

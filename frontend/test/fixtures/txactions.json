@@ -1,0 +1,50 @@
+{
+ "category-change-with-undo": {
+  "lines": [
+   [
+    "Edited category",
+    "Moses Burger: Eating out → Groceries",
+    {"type":"tx","id":5,"f":"c","old":"Eating out"}
+   ]
+  ],
+  "data": "Groceries"
+ },
+ "note-change": {
+  "lines": [["Edited note","Moses Burger: — → hello there",{"type":"tx","id":5,"f":"note","old":""}]],
+  "data": "hello there"
+ },
+ "display-name": {"lines":[["Renamed an entry","Moses Burger: — → My shop",null]],"data":{"5":"My shop"}},
+ "not-a-transfer": {
+  "lines": [["Not a transfer","To savings and From bank are counted as normal transactions",null]],
+  "data": [{"o":9001,"i":9002,"st":"rej"}]
+ },
+ "transfer-confirmed": {
+  "lines": [["Transfer confirmed","Bank Hapoalim → Wise",null]],
+  "data": [{"o":9001,"i":9002,"st":"ok"}]
+ },
+ "delete-a-duplicate-gives-back-what-it-took-from-a-jar": {"lines":[["Deleted duplicate","Coffee · −₪12 on 06/10/2026",null]],"data":[509,112,0]},
+ "keep-both": {"lines":[["Kept both transactions","Maccabi",null]],"data":{"7":1}},
+ "card-payment-marks": {
+  "lines": [
+   ["Treated as a card payment again","Spotify",null],
+   ["Counted card payment as spending","Spotify",null]
+  ],
+  "data": {}
+ },
+ "leave-out-and-count-again": {"lines":[["Counted again","To savings",null],["Left out of totals","To savings",null]],"data":{}},
+ "count-in-another-month-and-back": {
+  "lines": [
+   [
+    "Counted in another month",
+    "Moses Burger: back to its own month",
+    {"type":"tx","id":5,"f":"rm","old":"2026-08"}
+   ],
+   ["Counted in another month","Moses Burger: August 2026",{"type":"tx","id":5,"f":"rm"}]
+  ],
+  "data": null
+ },
+ "card-payment-rule": {"lines":[["Card payment rule","\"spotify\" counts as a card payment",null]],"data":["spotify"]},
+ "unmark-a-one-off-bill": {"lines":[["Removed from bills","X",null]],"data":[]},
+ "detach-from-a-jar": {"lines":[["Detached from a jar","Coffee · Fun jar",null]],"data":[null,"Eating out",112]},
+ "refund-twin": [9101,9100]
+}

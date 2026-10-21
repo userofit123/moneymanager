@@ -1,6 +1,5 @@
 // Today, for every page. Pages work out their numbers from `now` instead of calling new Date() themselves, so all of them agree,
-// tests can fix the day (setNow), and a window left open past midnight moves on to the new day
-// (the current app reloads the page when it comes back to the front on a new day).
+// tests can fix the day (setNow), and a window left open past midnight moves on to the new day.
 import { ref } from "vue";
 
 export const now = ref(new Date());

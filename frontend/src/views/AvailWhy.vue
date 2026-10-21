@@ -1,5 +1,5 @@
 <script setup>
-// "Safe to put in jars": how the free money is worked out (openAvail in web/js/04-transactions.js). Opened from the Jars page
+// "Safe to put in jars": how the free money is worked out. Opened from the Jars page
 // ("How is this worked out?") and from Home ("Full breakdown →"). M: the home model (lib/home.js). A category name opens Activity
 // showing only that category (goCat).
 import { computed } from "vue";

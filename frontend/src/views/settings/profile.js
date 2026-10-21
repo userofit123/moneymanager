@@ -1,4 +1,4 @@
-// The profile form of Settings, from the current app (web/js/09-profile-export-settings.js: PF_GENDER, PF_GOAL, profAge, profRead).
+// The profile form of Settings: the gender and goal choices, the age check and reading the form.
 export const PF_GENDER = [["", "genderNone"], ["f", "genderF"], ["m", "genderM"]];
 export const PF_GOAL = [["", "goalNone"], ["save", "goalSave"], ["debt", "goalDebt"], ["spend", "goalSpend"], ["retire", "goalRetire"]];
 

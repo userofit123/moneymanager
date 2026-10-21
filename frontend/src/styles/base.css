@@ -1,8 +1,8 @@
-/* Everything global now comes from legacy.css, a whole copy of web/css/app.css (rules, dark/light, Hebrew, phone, print, animations).
-   Only what the old app does in JavaScript instead of CSS is kept here. */
-/* Hebrew: <html> stays left to right (scrollbar on the right); only the content is right to left. Same rule as in legacy.css. */
+/* The global styles (rules, dark/light, Hebrew, phone, print, animations) are in app.css.
+   This file only adds the few global rules that are not there. */
+/* Hebrew: <html> stays left to right (scrollbar on the right); only the content is right to left. Same rule as in app.css. */
 html.he body { direction: rtl; }
 #app { display: contents; }
 /* Anything with a tooltip uses the normal or pointer cursor, never the question mark. Zero weight (:where), so a button's own
-   pointer cursor from legacy.css (the ? and (i) buttons, chips...) still wins, like in the current app. */
+   pointer cursor from app.css (the ? and (i) buttons, chips...) still wins. */
 :where([title], [data-tip], abbr) { cursor: inherit; }

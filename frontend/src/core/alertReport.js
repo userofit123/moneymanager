@@ -1,4 +1,4 @@
-// The server keeps a history of every alert (Alerts → History). Like alertsReport() in web/js/04-transactions.js, the app tells it
+// The server keeps a history of every alert (Alerts → History). The app tells it
 // which alerts are open whenever they change, on every page, not only while the Alerts page is open.
 // The history keeps the English sentences, so what is reported is always English.
 import { ref, computed, watch } from "vue";
@@ -11,6 +11,7 @@ import { alertsModel } from "../lib/alerts.js";
 import { alertTexts } from "../lib/alerttext.js";
 import { dstr } from "../dates.js";
 import { categoryName } from "../catnames.js";
+import { notify } from "./pwa.js";
 
 const enT = (k, p) => i18n.global.t(k, p || {}, { locale: "en" });
 // makeFriendly(t)(error): a bank's raw error text in plain words, in the language of t (the Alerts page uses it too)
@@ -35,3 +36,15 @@ watch(rows, (L) => {
   if (s === sig) return; sig = s;
   request("/api/alerts/seen", sendJson("POST", { alerts: L })).then(() => alertsReported.value++).catch(() => {});
 }, { immediate: true });
+
+// Up to two urgent alerts as phone notifications, once each time the app opens (only when notifications are allowed),
+// in the language of the page.
+let notified = false;
+watch(rows, (L) => {
+  if (notified || !L.length || !data.state.value || data.state.value.rev == null) return;
+  notified = true;
+  const t = i18n.global.t, lc = i18n.global.locale.value, loc = lc === "he" ? "he-IL" : "en-GB";
+  const ctx = { t, catName: (c) => (!c || c === "Uncategorized" ? t("home.uncategorizedCat") : categoryName(c, lc)), an: (n) => categoryName(n, lc), dstr, monthYear: (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(loc, { month: "short", year: "numeric" }) };
+  const list = alertsModel(data.state.value, { ...home.value, budgets: budgets.value.info }, now.value, {}, makeFriendly(t));
+  list.filter((x) => x.sev == "high").slice(0, 2).forEach((x) => { const [title, body] = alertTexts(x, ctx); notify(title, body); });
+});

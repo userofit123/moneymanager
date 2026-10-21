@@ -1,0 +1,28 @@
+{
+ "kpi": [["inc",18900],["ex",10585],["cash",30573],["incLast",34917],["exLast",14083]],
+ "cards": [["Max",1986,3624],["Isracard",568.9,953.9]],
+ "budgets": [],
+ "jars": [[1,0,0,3000],[2,0,800,3200],[3,0,1000,1800],[4,0,2000,6000]],
+ "free": 13261,
+ "spend": [
+  ["Rent & housing",5600],
+  ["Savings & investments",1500],
+  ["Groceries",1103],
+  ["Kids & education",480],
+  ["Health & pharmacy",420],
+  ["Eating out",302],
+  ["Shopping & home",300],
+  ["Clothing & shoes",281],
+  ["Entertainment & leisure",259],
+  ["Software & hosting",152],
+  ["Phone & internet",99],
+  ["Subscriptions",89]
+ ],
+ "upcoming": [
+  ["Partner",1,"paid",89],
+  ["Disney+",4,"paid",35],
+  ["Wise conversion fee",10,"paid",18],
+  ["Rent – Cohen",15,"paid",5600]
+ ],
+ "recent": [1,2,3,4,5]
+}

@@ -1,6 +1,5 @@
 // Settings → Connections and Sync: the connected banks, cards and wallets, the automatic sync settings, and the live
-// "Verify this device" window. From the current app (web/js/07-periods-rules.js loadConn, renderConn, connCard, connCall,
-// assistStart/assistOpen/assistTick/assistPost/assistClose; web/js/05-accounts-charts-help.js connStart; the conn* cases in 08-jars.js).
+// "Verify this device" window.
 // Kept outside the page so the Sync section, the verification window and the page all share one copy.
 import { nextTick, ref, shallowRef, computed, reactive } from "vue";
 import { i18n } from "../../i18n.js";
@@ -131,7 +130,7 @@ export async function syncSet(k, v) {
 export const AS = shallowRef(null);
 export const shot = ref(""); // the current picture (an object URL)
 let timer = null, busy = false;
-const closeByBack = () => assistClose(); // the phone's Back button closes it, like the current app
+const closeByBack = () => assistClose(); // the phone's Back button closes it
 
 export async function assistStart(src) {
   if (job.value) { toast(i18n.global.t("sync.waitFirst"), { kind: "err" }); return; }

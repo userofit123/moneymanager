@@ -1,7 +1,6 @@
 <script setup>
 // Categories and tags: six tabs (categories, tags, category rules, tag rules, name rules, card and salary rules).
-// A copy of the current app's #cats page (web/index.html, renderSet in web/js/06-trend-forecast-sync.js, the search bars
-// rsApply in web/js/09, the act() cases in web/js/08-jars.js). The data changes and their history lines come from lib/categories.js.
+// Each tab has a search bar. The data changes and their history lines come from lib/categories.js.
 import { ref, computed, watch, onMounted, onUpdated, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
@@ -39,7 +38,7 @@ const TABS = [
   ["names", '<path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/>'],
   ["gen", '<path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'],
 ];
-// The panes in the order of the current app's page (the ids are the old ones, the help dots find them by id).
+// The panes in page order (the help dots find them by these ids).
 const PANES = [["cats", "setCats"], ["rules", "setRules"], ["tags", "setTags"], ["tagrules", "setTagrules"], ["names", "setNames"], ["gen", "setGen"]];
 
 // ---- the search bars (rsApply): hide the rows whose words do not contain the search, case ignored ----
@@ -91,7 +90,7 @@ async function catSuggest() {
     const r = await data.api("/api/categories/suggested", { method: "POST" });
     await data.load();
     if (r.categories || r.rules || r.applied) ok(r.applied ? t("cats.c.addedSorted", { c: r.categories, r: r.rules, n: r.applied }, r.applied) : t("cats.c.added", { c: r.categories, r: r.rules }));
-    else toast(t("cats.c.haveAll"), { kind: "info" }); // nothing went wrong, so not red (the current app shows it as an error)
+    else toast(t("cats.c.haveAll"), { kind: "info" }); // nothing went wrong, so not red
   } catch (e) { err(tx(e.message)); }
 }
 

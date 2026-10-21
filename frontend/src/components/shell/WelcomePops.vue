@@ -1,6 +1,6 @@
 <script setup>
-// After signing in: the "has been updated" window with what is new since the last visit (updCheck), then, once, "Make it yours"
-// asking for the profile (profileAsk). Same markup as the current app (.wnp, styles/legacy.css).
+// After signing in: the "has been updated" window with what is new since the last visit then, once, "Make it yours"
+// asking for the profile. Styled as .wnp in styles/app.css.
 import { ref, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
@@ -38,7 +38,7 @@ function save() {
 escLayer(() => !!(news.value || ask.value), () => { if (news.value) closeNews(); else if (ask.value) skip(); });
 onMounted(async () => {
   news.value = await whatsNew(!!data.state.value?.tx?.length);
-  // the current app asks "Got it" to take the focus while the loading screen still hides the page, so in fact nothing has it (no focus ring)
+  // "Got it" is not focused: the loading screen may still hide the page, and a focus ring there would look odd
   if (!news.value) setTimeout(profileAsk, 500);
 });
 </script>

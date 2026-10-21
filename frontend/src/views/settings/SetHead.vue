@@ -1,5 +1,5 @@
 <script setup>
-// The title line of a card in Settings, the same markup as the current app's ssh() (web/js/06-trend-forecast-sync.js):
+// The title line of a card in Settings:
 // a round icon, a bold title with an optional count, and a small grey explanation. Anything in the slot sits at the end (a button).
 import { SI } from "./icons.js";
 defineProps({ icon: { type: String, required: true }, title: { type: String, required: true }, desc: { type: String, default: "" }, count: { type: [Number, String], default: null } });

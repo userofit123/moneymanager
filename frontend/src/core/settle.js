@@ -1,4 +1,4 @@
-// The upkeep the current app does on the data after every load and every change (web/js/07-periods-rules.js renderAll),
+// The upkeep the app does on the data after every load and every change,
 // so its results are saved like any other change:
 //   1. find transfers between your own accounts (detect)          4. give uncategorized payments the category of a matching rule (applyRules)
 //   2. find new repeating bills (detectBills)                       5. pay from jars that are linked to a category, or give the money back (jarAuto)
@@ -48,7 +48,7 @@ export function settle(S, now = new Date(), fx = {}) {
   return lines;
 }
 
-// ---- jars paying for categories (web/js/02-state-data.js jarAuto, 08-jars.js jarPay/jarUnpay/jarOut) ----
+// ---- jars paying for categories ----
 const heldOf = (j) => Math.max(0, (+j.bal || 0) - (+j.out || 0));
 const jarClamp = (j) => { j.out = Math.min(+j.out || 0, Math.max(0, +j.bal || 0)); };
 function jarOut(j, amt, note, paid, now) {

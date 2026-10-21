@@ -1,4 +1,4 @@
-// The names of the standard categories, banks and cards in Hebrew, the same words the current app shows (web/he-text.js). A category you made yourself keeps its own name.
+// The names of the standard categories, banks and cards in Hebrew, the same words as the Hebrew dictionary (core/heDict.js). A category you made yourself keeps its own name.
 const HE = {
   "Bank Hapoalim": "בנק הפועלים",
   "Bank Leumi": "בנק לאומי",

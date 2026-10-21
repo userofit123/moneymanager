@@ -1,5 +1,5 @@
-// The Recap page's numbers: how the month is going, worked out from the Home numbers (lib/home.js homeModel) exactly like
-// the current app's Recap (web/recap.js model()), and which parts show in which order. Nothing here changes the data.
+// The Recap page's numbers: how the month is going, worked out from the Home numbers (lib/home.js homeModel),
+// and which parts show in which order. Nothing here changes the data.
 import { addM, rdOf, nameOf } from "./home.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
@@ -35,8 +35,7 @@ export function recapModel(M, now) {
   const ago = (t) => Math.floor((new Date(TODAY + "T12:00:00") - new Date(rdOf(t) + "T12:00:00")) / 864e5);
   const exp = A.filter((t) => t.a < 0);
   const w1 = exp.filter((t) => { const d = ago(t); return d >= 0 && d < 7; }).reduce((s, t) => s - t.a, 0), w0 = exp.filter((t) => { const d = ago(t); return d >= 7 && d < 14; }).reduce((s, t) => s - t.a, 0);
-  // what happened on each day of the month (and what is planned for the days to come). The tooltip lists payees by name
-  // (the current app meant to, but showed how many days ago instead).
+  // what happened on each day of the month (and what is planned for the days to come). The tooltip lists payees by name.
   const days = Array.from({ length: dim }, (_, i) => ({ d: MK + "-" + p2(i + 1), spent: 0, inc: 0, ex: [], inn: [], up: [] }));
   A.forEach((t) => { const r = rdOf(t); if (!r.startsWith(MK)) return; const i = +r.slice(8) - 1; if (i < 0 || i >= dim) return; const D = days[i]; if (t.a < 0) { D.spent -= t.a; D.ex.push([dn(t), -t.a]); } else if (!t.pending) { D.inc += t.a; D.inn.push([dn(t), t.a]); } });
   const rec = BI.filter((b) => !b.once && !b.irregular && b.flag != "canceled" && b.nx);

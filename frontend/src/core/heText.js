@@ -1,5 +1,5 @@
 // English text that comes from saved data or the server (the change history, messages from a sync) is shown in Hebrew
-// the way the current app does it: through its Hebrew dictionary and rules (he-legacy.js, made from web/he-*.js).
+// through the Hebrew dictionary and rules in heDict.js.
 // The dictionary is big, so it is loaded only when the language is Hebrew.
 import { shallowRef, watch } from "vue";
 import { i18n, setHebrewFilter } from "../i18n.js";
@@ -10,7 +10,7 @@ let asked = false;
 function loadHe() {
   if (asked || typeof window === "undefined") return; // not while pages are drawn in Node (tests)
   asked = true;
-  import("./he-legacy.js").then((m) => { m.default.on = true; m.setProfileState(data.state.value); HE.value = m; setHebrewFilter((x) => m.default.gen(x)); });
+  import("./heDict.js").then((m) => { m.default.on = true; m.setProfileState(data.state.value); HE.value = m; setHebrewFilter((x) => m.default.gen(x)); });
 }
 watch(i18n.global.locale, (l) => { if (l === "he") loadHe(); }, { immediate: true });
 // Some Hebrew wording follows the gender saved in the profile ("you" as a man, a woman, or everyone).

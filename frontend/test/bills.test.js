@@ -1,11 +1,11 @@
-// The Bills page gives the same bills, numbers, words and markup as the current app, on the same data.
-// The old code (web/js) and the new code (lib/bills.js and views/Bills.vue) both run on each state below and their results are compared.
+// The Bills page gives the agreed bills, numbers, words and markup on each state below (saved in fixtures/, see golden.js):
+// lib/bills.js and views/Bills.vue run on the data and their results are compared with the saved ones.
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "vite";
 import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
-import { oldApp } from "./old-app.js";
+import { matchesSaved } from "./golden.js";
 import { buildDemo } from "../../server/src/seed.js";
 import { billState, billsModel, withDetected, addBill, flagBill, cancelBill, restoreBill, deleteBill, setBillType, sugYes, sugNo, payHistory, whyText, evTipText, makeDstr, cadenceOf } from "../src/lib/bills.js";
 
@@ -13,10 +13,10 @@ process.on("unhandledRejection", () => {});
 // The page is drawn on the server with the real Vue file (Vite), so no browser is needed.
 const vite = await createServer({ root: new URL("..", import.meta.url).pathname, server: { middlewareMode: true, hmr: false, ws: false }, appType: "custom", logLevel: "silent" });
 // the page loads the Hebrew dictionary (core/heText.js) when the language turns Hebrew: let it finish before the server closes
-after(async () => { await vite.ssrLoadModule("/src/core/he-legacy.js"); await new Promise((r) => setTimeout(r, 200)); await vite.close(); });
+after(async () => { await vite.ssrLoadModule("/src/core/heDict.js"); await new Promise((r) => setTimeout(r, 200)); await vite.close(); });
 globalThis.document = { documentElement: { lang: "", classList: { toggle() {} } } };
 let mods = null;
-const NOW = new Date(2026, 9, 17, 12), old = oldApp(NOW); // 17 Oct 2026
+const NOW = new Date(2026, 9, 17, 12); // 17 Oct 2026
 const TODAY = "2026-10-17";
 
 // ---- the data ----
@@ -73,30 +73,21 @@ function demo() {
   return { v: 4, rev: 1, cats, rules: [], tagRules: [], tx, budgets: d.budgets, bills: [], ignoredBills: [], jars: [], audit: [], xf: [], dismissed: {}, dupOk: {}, adj: {}, jarsBuffer: 0, ccOverride: {}, txIgnore: {}, budgetNo: [], hiddenMerchants: [], cardRules: [], salaryRules: [],
     cfg: { bills: 1, price: 1, billDays: 3, budgetPct: 80, gapDays: 3 }, currencies: ["ILS", "USD"], accounts: acc.map(([n, cur, kind, src, s, inNW], i) => ({ id: i + 1, n, cur, kind, src, s, inNW, v: d.balances[n] ?? 0, at: NOW.toISOString(), sort: i })), nwSnaps: [], gaps: [], balUpdates: [], connected: {}, locked: {}, connStatus: {} };
 }
-const STATES = [["a mix of every kind of bill", fixture()], ["the made-up demo data", demo()], ["no bills at all", { ...fixture(), tx: [], bills: [], ignoredBills: [] }]];
+const STATES = [["a mix of every kind of bill", "mix", fixture()], ["the made-up demo data", "demo", demo()], ["no bills at all", "none", { ...fixture(), tx: [], bills: [], ignoredBills: [] }]];
 
-// ---- the old code, run on the same data ----
-const prep = `acReset();S={...emptyState(),...structuredClone(__S)};S.cfg={...DEF_CFG,...S.cfg};detect();derive();detectBills();acReset();BC=billsInfo(true);`;
-const oldAll = (S) => JSON.parse(old.run(prep + "JSON.stringify(BC)", { __S: S }));
-const oldHtml = (S) => old.run(prep + `(function(){const OUT={};const $=id=>({set innerHTML(v){OUT[id]=v}});eval("("+renderBills.toString()+")")();return OUT})()`, { __S: S });
-const oldWhy = (S) => JSON.parse(old.run(prep + `JSON.stringify(billsInfo().map(b=>[b.idx,whyBill(b)]))`, { __S: S }));
 const plain = (x) => JSON.parse(JSON.stringify(x));
 
-for (const [name, S] of STATES) {
-  test(`every bill's state matches the current app: ${name}`, () => {
-    const o = oldAll(S), n = plain(billState(structuredClone(S), NOW).all);
-    assert.equal(n.length, o.length);
-    o.forEach((b, i) => assert.deepEqual(n[i], b, "bill " + b.n));
+for (const [name, key, S] of STATES) {
+  test(`every bill's state: ${name}`, () => {
+    matchesSaved(`bills#state-${key}`, plain(billState(structuredClone(S), NOW).all));
   });
-  test(`the three numbers, the groups and the instalments match the current app: ${name}`, () => {
-    const o = JSON.parse(old.run(prep + `(function(){const bs=billsInfo(),rec=bs.filter(b=>!b.irregular&&!b.once),irr=bs.filter(b=>b.irregular),one=bs.filter(b=>b.once).sort((x,y)=>(y.lp||"").localeCompare(x.lp||"")),mo=bs.reduce((s,b)=>s+b.mo,0),soon=rec.filter(b=>b.days<=14),soonT=soon.reduce((s,b)=>s+b.pred,0),ch=rec.filter(b=>b.fresh&&!b.vari&&Math.abs(b.amt-b.was)>b.was*.001);
-      rec.sort((a,b)=>(a.status=="overdue"?-1e4:0)+a.days-((b.status=="overdue"?-1e4:0)+b.days));
-      return JSON.stringify({rec:rec.map(b=>b.idx),irr:irr.map(b=>b.idx),one:one.map(b=>b.idx),mo,soonT,soon:soon.length,ch:ch.length,chT:ch.reduce((s,b)=>s+(b.amt-b.was)*12/b.every,0),inst:instSeries().map(x=>[x.name,x.paid,x.total,x.left,x.amt,x.remain,x.last.id]),canceled:billsInfo(true).filter(b=>b.flag=="canceled").map(b=>b.idx)})})()`, { __S: S }));
+  test(`the three numbers, the groups and the instalments: ${name}`, () => {
     const M = billsModel(structuredClone(S), NOW);
-    assert.deepEqual(M.rec.map((b) => b.idx), o.rec); assert.deepEqual(M.irr.map((b) => b.idx), o.irr); assert.deepEqual(M.one.map((b) => b.idx), o.one);
-    assert.equal(M.mo, o.mo); assert.equal(M.soonT, o.soonT); assert.equal(M.soon.length, o.soon); assert.equal(M.ch.length, o.ch); assert.equal(M.chT, o.chT);
-    assert.deepEqual(M.inst.map((x) => [x.name, x.paid, x.total, x.left, x.amt, x.remain, x.last.id]), o.inst);
-    assert.deepEqual(M.canceled.map((b) => b.idx), o.canceled);
+    matchesSaved(`bills#numbers-${key}`, {
+      rec: M.rec.map((b) => b.idx), irr: M.irr.map((b) => b.idx), one: M.one.map((b) => b.idx),
+      mo: M.mo, soonT: M.soonT, soon: M.soon.length, ch: M.ch.length, chT: M.chT,
+      inst: M.inst.map((x) => [x.name, x.paid, x.total, x.left, x.amt, x.remain, x.last.id]), canceled: M.canceled.map((b) => b.idx),
+    });
   });
 }
 
@@ -110,17 +101,16 @@ test("the fixture really covers every kind of bill", () => {
 });
 
 // ---- the words ----
-test("'Why is this a bill?' reads the same as the current app", async () => {
+test("'Why is this a bill?' explains each bill", async () => {
   const { t } = await i18n("en"), S = fixture(), st = billState(S, NOW);
-  const o = Object.fromEntries(oldWhy(S));
-  for (const b of st.info(false)) assert.equal(whyText(b, t), o[b.idx], b.n);
+  matchesSaved("bills#why", Object.fromEntries(st.info(false).map((b) => [b.idx, whyText(b, t)])));
 });
 
-// ---- the page, drawn like the current app ----
+// ---- the page ----
 async function load() {
   if (mods) return mods;
   const [Bills, store, i18nMod, bills] = await Promise.all(["/src/views/Bills.vue", "/src/stores/data.js", "/src/i18n.js", "/src/lib/bills.js"].map((p) => vite.ssrLoadModule(p)));
-  (await vite.ssrLoadModule("/src/core/clock.js")).setNow(NOW); // the page works out its numbers for the same day as the old app
+  (await vite.ssrLoadModule("/src/core/clock.js")).setNow(NOW); // the page works out its numbers for a fixed day
   return (mods = { Bills: Bills.default, data: store.data, i18n: i18nMod.i18n, setLang: i18nMod.setLang });
 }
 async function i18n(lang) { const m = await load(); m.setLang(lang); return { t: (k, v, n) => (n == null ? m.i18n.global.t(k, v || {}) : m.i18n.global.t(k, v || {}, n)), ...m }; }
@@ -137,18 +127,15 @@ const skeleton = (html) => [...html.matchAll(/<([a-z0-9]+)([^>]*)>/g)].map(([, t
   const g = (n) => (new RegExp(`(?:^|\\s)${n}="([^"]*)"`).exec(at) || [])[1];
   return [tag, (g("class") || "").split(/\s+/).filter((c) => c && c !== "on").sort().join("."), g("data-a") || "", g("data-i") ?? g("data-id") ?? "", g("id") || ""].join("|");
 });
-// The " · " dots in the templates are drawn as <span class="dt">·</span> inside a plain <span> around the text (vite-dots.js); the old app
-// adds them on the page, not in its HTML strings, so both are left out of the comparison.
+// The " · " dots in the templates are drawn as <span class="dt">·</span> inside a plain <span> around the text (vite-dots.js);
+// they are left out of the comparison.
 const noDots = (L) => L.filter((x, i) => x !== "span|dt|||" && !(x === "span||||" && L[i + 1] === "span|dt|||"));
 const tips = (html) => [...html.matchAll(/data-tip="([^"]*)"/g)].map((m) => unesc(m[1]));
-const oldPage = (S) => { const o = oldHtml(S); return `<section class="view on" id="bills"><div class="grid g3" id="billK">${o.billK}</div><div class="billbar"><button class="btn o s" data-a="billNew">+ Add bill</button></div><div id="billL">${o.billL}</div><div id="billCw">${o.billCw || ""}</div></section>`; };
 
-for (const [name, S] of STATES) {
-  test(`the English page has the same blocks, words and tips as the current app: ${name}`, async () => {
-    const a = oldPage(S), b = await page(S, "en");
-    assert.deepEqual(noDots(skeleton(b)), noDots(skeleton(a)));
-    assert.equal(text(b), text(a));
-    assert.deepEqual(tips(b), tips(a));
+for (const [name, key, S] of STATES) {
+  test(`the English page has the agreed blocks, words and tips: ${name}`, async () => {
+    const b = await page(S, "en");
+    matchesSaved(`bills#page-${key}`, { blocks: noDots(skeleton(b)), text: text(b), tips: tips(b) });
   });
 }
 
@@ -159,7 +146,7 @@ test("the Hebrew page shows no English words from the app (only names from the d
   assert.match(b, /בעוד|באיחור/);
 });
 test("an empty page says how to get a bill, in both languages", async () => {
-  const S = STATES[2][1];
+  const S = STATES[2][2];
   assert.match(text(await page(S, "en")), /You have no bills yet/);
   assert.match(text(await page(S, "he")), /עדיין אין לכם תשלומים קבועים/);
 });
@@ -172,7 +159,7 @@ test("bills the app found are saved on the first change, with the same history l
   assert.ok(lines.some(([, d]) => /^Netflix · monthly · about ₪50$/.test(d)));
   assert.equal(withDetected(next, NOW).lines.length, 0, "nothing new the second time");
 });
-test("add, mark to cancel, cancel, restore and remove do what the current app does", () => {
+test("add, mark to cancel, cancel, restore and remove change the bill and write history lines", () => {
   const S = withDetected(fixture(), NOW).next, n0 = S.bills.length;
   assert.deepEqual(addBill(S, { n: "Pool", amt: "120", every: "1", dom: 40, src: "Bank", match: "" }, NOW), [["Added bill", "Pool · ₪120"]]);
   const p = S.bills.at(-1); assert.deepEqual([p.match, p.every, p.dom, p.anchor, p.rec, p.manual, p.lastPaid, p.cat], ["pool", 1, 28, 10, "recurring", true, TODAY, "Subscriptions"]);
