@@ -6,19 +6,20 @@ import { ref, computed, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
 import { now } from "../core/clock.js";
+import { home } from "../core/derived.js";
+import { goActivity } from "../core/shell.js";
+import { fm, f0 as n0 } from "../format.js";
 import { readJson, writeJson } from "../core/prefs.js";
+import { isolateNumbers } from "../core/polish.js";
+import { tx } from "../core/heText.js";
 import PageHeader from "../components/PageHeader.vue";
 import BaseCard from "../components/BaseCard.vue";
 import { vRich } from "../lib/richtip.js";
 import { categoryName } from "../catnames.js";
-import { hrefOf, go } from "../router.js";
-import { pages } from "../routes.js";
 import { forecastModel, periodTotal, direction, chartOf } from "./forecast.js";
 
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);
-const n0 = (v) => Math.round(Math.abs(v)).toLocaleString("en-IL");
-const fm = (v) => (v < 0 ? "−" : "") + "₪" + n0(v);
 const sg = fm;
 const loc = computed(() => (locale.value === "he" ? "he-IL" : "en-GB"));
 
@@ -31,15 +32,17 @@ const S = computed(() => data.state.value);
 // The page's choices, saved like the current app does.
 const fc = ref((() => { let z = null; try { z = readJson("moneyFc", null); } catch { /* none saved */ } const o = { h: 12, n: 6, m: "smart", ...(z || {}) }; if (![3, 6, 12].includes(o.n)) o.n = 6; return o; })());
 const pick = (k, v) => { fc.value = { ...fc.value, [k]: isNaN(+v) ? v : +v }; try { writeJson("moneyFc", (fc.value)); } catch { /* not saved */ } };
-const M = computed(() => forecastModel(S.value, now.value, fx.value, fc.value));
+const M = computed(() => forecastModel(S.value, now.value, fx.value, fc.value, home.value));
 
 const monthOf = (key, opt) => new Date(+key.slice(0, 4), +key.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, opt);
 const mshort = (key) => monthOf(key, { month: "short" });
-const mlab = (k) => new Date(now.value.getFullYear(), now.value.getMonth() + k, 1).toLocaleDateString(loc.value, { month: "short", year: "2-digit" });
+// "Oct 27"; in Hebrew the year keeps its place in the chart like the current app (it isolates numbers in translated text)
+const mlab = (k) => { const s = new Date(now.value.getFullYear(), now.value.getMonth() + k, 1).toLocaleDateString(loc.value, { month: "short", year: "2-digit" }); return locale.value === "he" ? isolateNumbers(s) : s; };
 const jarWhen = (k) => (k ? new Date(+M.value.FH.keys[12].slice(0, 4), +M.value.FH.keys[12].slice(5, 7) - 1 + k, 1).toLocaleDateString(loc.value, { month: "short", year: "numeric" }) : "");
 const catName = (c) => (c === "Other / uncategorized" ? t("forecast.otherCat") : categoryName(c, locale.value));
-const srcName = (k) => (k === "Other income" ? t("forecast.otherInc") : categoryName(k, locale.value));
-const to = (name) => go(hrefOf(pages.find((p) => p.name === name)));
+const srcName = (k) => (k === "Other income" ? t("forecast.otherInc") : tx(categoryName(k, locale.value))); // names from the data go through the old Hebrew dictionary, like the current app
+// A line's name opens Activity with only that category, like the current app (goCat; an income line passes its source's name the same way).
+const goCat = (cat) => goActivity({ cat });
 
 const d = computed(() => M.value.d);
 const H = computed(() => fc.value.h);
@@ -94,9 +97,9 @@ const jarCards = computed(() => M.value.jars.J.map((j) => {
   let chip;
   if (bill) chip = ["dn", t("forecast.j.funded")];
   else if (!open && j.bal >= j.need) chip = ["dn", t("forecast.j.reached")];
-  else if (j.eta) chip = dl != null && j.eta > dl ? ["up", t("forecast.j.fullLate", { when: jarWhen(j.eta) })] : ["dn", t("forecast.j.full", { when: jarWhen(j.eta) })];
+  else if (j.eta) chip = dl != null && j.eta > dl ? ["up", t("fc.j.fullLate", { when: jarWhen(j.eta) })] : ["dn", t("fc.j.full", { when: jarWhen(j.eta) })];
   else chip = open ? ["fl", t("forecast.j.noGoal")] : ["fl", t("forecast.j.notIn5")];
-  const sub = bill ? t("forecast.j.refilled", { amount: fm(j.need) }) : [cp ? t("forecast.j.perMonth", { amount: fm(cp) }) : t("forecast.j.noMonthly"), open ? t("forecast.j.noGoalLow") : t("forecast.j.goal", { amount: fm(j.need) }), ...(j.due ? [t("forecast.j.by", { when: new Date(j.due).toLocaleDateString(loc.value, { month: "short", year: "numeric" }) })] : [])].join(" · ");
+  const sub = bill ? t("forecast.j.refilled", { amount: fm(j.need) }) : [cp ? t("forecast.j.perMonth", { amount: fm(cp) }) : t("fc.j.noMonthly"), open ? t("forecast.j.noGoalLow") : t("forecast.j.goal", { amount: fm(j.need) }), ...(j.due ? [t("forecast.j.by", { when: new Date(j.due).toLocaleDateString(loc.value, { month: "short", year: "numeric" }) })] : [])].join(" · ");
   const tile = (label, k) => ({ label, v: fm(at(k)), g: k ? (gain(k) > 0 ? "+" : "") + fm(gain(k)) : t("forecast.j.today"), pos: k && gain(k) > 0 });
   return { j, chip, sub, sp: spark(j), tiles: [tile(t("forecast.now"), 0), tile(t("forecast.j.mo3"), 3), tile(t("forecast.j.mo6"), 6), tile(t("forecast.y1"), 12)], warn: short ? t("forecast.j.short", { planned: fm(cp), avg: fm(Math.max(0, gain(12) / 12)) }) : "" };
 }));
@@ -114,12 +117,12 @@ const jarCards = computed(() => M.value.jars.J.map((j) => {
         <div><div class="pl">{{ t("forecast.horizon") }}</div><div class="seg"><button v-for="[v, l] in [[3, 'mo3'], [6, 'mo6'], [12, 'y1']]" :key="v" :class="{ on: fc.h == v }" data-a="fc" @click="pick('h', v)">{{ tk("forecast." + l) }}</button></div></div>
         <div><div class="pl">{{ t("forecast.based") }}</div><div class="seg"><button v-for="[v, l] in [[3, 'mo3'], [6, 'mo6'], [12, 'mo12']]" :key="v" :class="{ on: fc.n == v }" data-a="fc" @click="pick('n', v)">{{ tk("forecast." + l) }}</button></div></div>
         <div><div class="pl">{{ t("forecast.method") }}</div><div class="seg"><button v-for="v in ['smart', 'avg', 'trend']" :key="v" :class="{ on: fc.m == v }" data-a="fc" @click="pick('m', v)">{{ tk("forecast." + v) }}</button></div></div>
-        <div class="sm" style="flex-basis:100%;margin-top:-6px">{{ tk("forecast.last" + fc.n) }} {{ t("forecast.never") }}</div>
+        <div class="sm" style="flex-basis:100%;margin-top:-6px">{{ tk("fc.x.ctl" + fc.n) }}</div>
       </div>
 
       <div class="grid g4" id="fcK">
         <BaseCard v-for="[k, l] in CARDS" :key="k" :hero="k == H">
-          <div class="lbl">{{ tk("forecast." + l) }}{{ k ? " · " + mlab(k) : "" }}</div>
+          <div class="lbl"><span>{{ tk("forecast." + l) }}{{ k ? " · " + mlab(k) : "" }}</span></div>
           <div class="val"><small>₪</small>{{ d.bal[k] < 0 ? "−" : "" }}{{ n0(d.bal[k]) }}</div>
           <template v-if="k">
             <div class="sm"><span class="bd" :class="d.bal[k] - d.start >= 0 ? 'dn' : 'up'">{{ d.bal[k] - d.start >= 0 ? "▲" : "▼" }} ₪{{ n0(d.bal[k] - d.start) }}</span> {{ t("forecast.vsNow") }}</div>
@@ -134,7 +137,8 @@ const jarCards = computed(() => M.value.jars.J.map((j) => {
 
       <div class="sm" id="fcDiag" style="line-height:1.55"><b style="color:var(--tx)">{{ t("forecast.diag.title") }}</b> {{ t("forecast.diag.main", { inc: fm(incM), exp: fm(exM), span: t("forecast.diag.span", { n: nEff }, nEff), months: usedMonths, cur: mshort(M.FH.keys[M.FH.last]) }) }}<template v-if="M.cardPays"> {{ t("forecast.diag.cards", { n: M.cardPays }, M.cardPays) }}</template><template v-if="fc.n > nEff"> {{ t("forecast.diag.only", { n: nEff }, nEff) }}</template><template v-if="zeroMonths.length"> <span class="neg">{{ t("forecast.diag.zero", { months: zeroMonths.join(", ") }) }}</span></template></div>
 
-      <h2>{{ t("forecast.chartTitle") }}</h2>
+      <!-- the inner span keeps the parts around the dot together, like the current app's wrapper (polish.js puts the dot inside it) -->
+      <h2><span>{{ t("fc.x.chartTitle") }}</span></h2>
       <div class="card" id="fcChart">
         <div class="flex" style="justify-content:space-between;margin-bottom:6px">
           <div class="sm">{{ t("forecast.methodLine", { how: tk("forecast.how." + fc.m), span: t("forecast.lastSpan", { n: nEff }, nEff) }) }}</div>
@@ -166,10 +170,10 @@ const jarCards = computed(() => M.value.jars.J.map((j) => {
           <thead><tr><th /><th style="text-align:end">{{ t("forecast.usually") }}</th><th style="text-align:end">{{ t("forecast.nextMonth") }}</th><th style="text-align:end">{{ H == 12 ? t("forecast.nextYear") : t("forecast.nextN", { n: H }) }}</th><th>{{ t("forecast.direction") }}</th></tr></thead>
           <tbody>
             <tr class="grp"><td colspan="5">{{ t("forecast.in") }}</td></tr>
-            <tr v-for="x in incRows" :key="'i' + x.r.k"><td class="mer"><span class="catl" @click="to('activity')">{{ srcName(x.r.k) }}</span></td><td class="am">₪{{ n0(x.r.mean) }}</td><td class="am">₪{{ n0(x.r.at(1)) }}</td><td class="am">₪{{ n0(x.tot) }}</td><td><span class="bd" :class="x.cls" v-rich="x.tip">{{ x.sym }}{{ tk("forecast.dir." + x.word) }}</span></td></tr>
+            <tr v-for="x in incRows" :key="'i' + x.r.k"><td class="mer"><span class="catl" @click="goCat(x.r.k)">{{ srcName(x.r.k) }}</span></td><td class="am">₪{{ n0(x.r.mean) }}</td><td class="am">₪{{ n0(x.r.at(1)) }}</td><td class="am">₪{{ n0(x.tot) }}</td><td><span class="bd" :class="x.cls" v-rich="x.tip">{{ x.sym }}{{ tk("forecast.dir." + x.word) }}</span></td></tr>
             <tr class="tot"><td>{{ t("forecast.totalIn") }}</td><td class="am">₪{{ n0(incM) }}</td><td class="am">₪{{ n0(i1) }}</td><td class="am pos">₪{{ n0(i12) }}</td><td /></tr>
             <tr class="grp"><td colspan="5">{{ t("forecast.out") }}</td></tr>
-            <tr v-for="x in exRows" :key="'e' + x.r.k"><td class="mer"><template v-if="x.r.k == 'Other / uncategorized'">{{ catName(x.r.k) }}</template><span v-else class="catl" @click="to('activity')">{{ catName(x.r.k) }}</span></td><td class="am">₪{{ n0(x.r.mean) }}</td><td class="am">₪{{ n0(x.r.at(1)) }}</td><td class="am">₪{{ n0(x.tot) }}</td><td><span class="bd" :class="x.cls" v-rich="x.tip">{{ x.sym }}{{ tk("forecast.dir." + x.word) }}</span></td></tr>
+            <tr v-for="x in exRows" :key="'e' + x.r.k"><td class="mer"><template v-if="x.r.k == 'Other / uncategorized'">{{ catName(x.r.k) }}</template><span v-else class="catl" @click="goCat(x.r.k)">{{ catName(x.r.k) }}</span></td><td class="am">₪{{ n0(x.r.mean) }}</td><td class="am">₪{{ n0(x.r.at(1)) }}</td><td class="am">₪{{ n0(x.tot) }}</td><td><span class="bd" :class="x.cls" v-rich="x.tip">{{ x.sym }}{{ tk("forecast.dir." + x.word) }}</span></td></tr>
             <tr class="tot"><td>{{ t("forecast.totalOut") }}</td><td class="am">₪{{ n0(exM) }}</td><td class="am">₪{{ n0(e1) }}</td><td class="am">₪{{ n0(e12) }}</td><td /></tr>
             <tr class="tot"><td>{{ t("forecast.left") }}</td><td v-for="(v, i) in leftOver" :key="i" class="am" :class="v < 0 ? 'neg' : 'pos'">{{ v < 0 ? "−" : "" }}₪{{ n0(v) }}</td><td /></tr>
           </tbody>
@@ -180,7 +184,7 @@ const jarCards = computed(() => M.value.jars.J.map((j) => {
       <div id="fcJars">
         <div v-if="jarCards.length" class="jfg">
           <div v-for="c in jarCards" :key="c.j.id" class="card jf">
-            <div class="jfh"><div style="min-width:0"><b>{{ c.j.n }}</b><div class="sm">{{ c.sub }}</div></div><span class="bd" :class="c.chip[0]">{{ c.chip[1] }}</span></div>
+            <div class="jfh"><div style="min-width:0"><b>{{ tx(c.j.n) }}</b><div class="sm">{{ c.sub }}</div></div><span class="bd" :class="c.chip[0]"><span>{{ c.chip[1] }}</span></span></div>
             <div class="jfc">
               <svg :viewBox="`0 0 ${c.sp.W} ${c.sp.Ht}`" width="100%" :height="c.sp.Ht" preserveAspectRatio="none" aria-hidden="true">
                 <defs><linearGradient :id="'jfg' + c.j.id" x1="0" x2="0" y1="0" y2="1"><stop offset="0" :stop-color="c.sp.col" stop-opacity=".35" /><stop offset="1" :stop-color="c.sp.col" stop-opacity="0" /></linearGradient></defs>

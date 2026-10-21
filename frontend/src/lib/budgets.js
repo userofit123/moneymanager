@@ -3,10 +3,10 @@
 // Nothing here touches the screen. Suggestions are only worked out; nothing is created until the user accepts.
 import { rdOf } from "../views/activity.js";
 import { billState, fm } from "./bills.js";
+import { addM } from "../views/home.js";
+import { catJarsOf } from "../views/jars.js";
 
-const p2 = (n) => String(n).padStart(2, "0");
 const sum = (a) => a.reduce((t, x) => t + x, 0);
-export const addM = (m, k) => { const d = new Date(+m.slice(0, 4), +m.slice(5, 7) - 1 + k, 1); return d.getFullYear() + "-" + p2(d.getMonth() + 1); };
 const CNC = new Intl.Collator(undefined, { sensitivity: "base" });
 const SKIP_ALWAYS = ["Income", "Uncategorized", "Fees & FX costs"];
 
@@ -49,7 +49,7 @@ export function budgetsModel(S, now = new Date()) {
   fresh.sort((a, b) => b.avg - a.avg);
   // bills that sit inside a budget's category, and the jar that pays for a category
   const billsIn = (k) => BC.filter((b) => !b.once && b.flag != "canceled" && !b.ended && b.cat == k && (b.nx || b.irregular));
-  const catJars = {}; (S.jars || []).filter((j) => !j.done).sort((a, b) => a.p - b.p).forEach((j) => (j.cats || []).forEach((x) => { if (!catJars[x.c]) catJars[x.c] = { j, since: x.since }; }));
+  const catJars = catJarsOf(S);
   const catNames = Object.keys(S.cats || {}).slice().sort(CNC.compare);
   const un = spend.filter(([k]) => !(k in budgets) && k != "Uncategorized");
   const totL = sum(info.map((b) => b.lim)), totS = sum(info.map((b) => b.s));

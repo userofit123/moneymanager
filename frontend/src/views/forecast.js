@@ -1,15 +1,16 @@
 // The Forecast page's numbers, kept apart from the screen so they can be tested. They follow the current app
 // (web/js/06-trend-forecast-sync.js fcCalc, jarProject, renderFc). Nothing here changes the data.
 import { homeModel, addM } from "./home.js";
-import { forecastHistory, proj } from "./jars.js";
+import { forecastHistory, proj, jarProject, capOfAt, monthsToOf } from "./jars.js";
 import { cardInfo, isCardPay } from "./activity.js";
 
 const sum = (a) => a.reduce((t, x) => t + x, 0);
 
 // fcOpt: the page's choices { h: how far ahead, n: months to base it on, m: "smart" | "avg" | "trend" }, saved by the current app as "moneyFc".
-export function forecastModel(S, now = new Date(), fx = {}, fcOpt = {}) {
-  S = S || {};
-  const H = homeModel(S, now, fx), FH = forecastHistory(S, H), MK = H.MK;
+// H: the Home numbers for the same moment, when they are already worked out (core/derived.js home).
+export function forecastModel(S, now = new Date(), fx = {}, fcOpt = {}, H = null) {
+  S = S || {}; H = H || homeModel(S, now, fx);
+  const FH = forecastHistory(S, H), MK = H.MK;
   const fc = { h: 12, n: 6, m: "smart", ...fcOpt }; if (![3, 6, 12].includes(fc.n)) fc.n = 6;
   const { n, m } = fc, inc = Object.entries(FH.incSrc).map(([k, a]) => ({ k, ...proj(FH, a, n, m, true) })).filter((r) => !r.oneoff);
   const E = {}; Object.entries(FH.cat).forEach(([k, a]) => (E[k] = a.slice(0, FH.last))); E["Other / uncategorized"] = FH.exp.slice(0, FH.last).map((t, i) => t - Object.values(FH.cat).reduce((s, a) => s + a[i], 0));
@@ -28,22 +29,9 @@ export function forecastModel(S, now = new Date(), fx = {}, fcOpt = {}) {
   // How many bank payments of a card's bill are left out of the numbers (the purchases are already counted on the card).
   const HS = H.S || S, ci = cardInfo(HS), cardPays = (HS.tx || []).filter((t) => isCardPay(HS, t, ci)).length;
 
-  // What the jars will hold in the coming months (jarProject): only really free money goes in, shared by priority.
-  const monthsTo = (dd) => Math.max(1, Math.ceil((new Date(dd) - now) / (864e5 * 30.44)));
-  const capOf = (j, got, off = 0) => (j.cap == null ? null : j.auto && j.due && j.need > 0 ? Math.max(0, Math.ceil((j.need - (j.bal - (got || 0))) / Math.max(1, monthsTo(j.due) - off))) : j.cap);
-  const sur = (k) => (k <= 12 ? d.bal[k] - d.bal[k - 1] : d.bal[12] - d.bal[11]);
-  let pool = H.flow.free;
-  const J = (S.jars || []).filter((j) => !j.done).sort((a, c) => a.p - c.p).map((j) => ({ ...j, b: +j.bal || 0, eta: null, series: [+j.bal || 0], plan: +j.bal || 0, planned: [+j.bal || 0] }));
-  for (let k = 1; k <= 60; k++) {
-    pool = Math.max(0, pool + sur(k));
-    J.forEach((j) => {
-      const open = !(j.need > 0), full = j.cap == null && !open && j.bill;
-      if (!full && (open || j.b < j.need)) { const c = capOf({ ...j, bal: j.b }, 0, k - 1), want = c == null ? (open ? 0 : j.need - j.b) : Math.min(c, open ? 1e12 : j.need - j.b), g = Math.max(0, Math.min(pool, want)); pool -= g; j.b += g; if (!open && j.b >= j.need - 0.5 && j.eta == null) j.eta = k; }
-      j.series.push(j.b); const cp = j.cap == null ? 0 : capOf({ ...j, bal: j.plan }, 0, k - 1); j.plan = open ? j.plan + (cp || 0) : Math.min(j.need, j.plan + (cp || 0)); j.planned.push(j.plan);
-    });
-  }
-  const jars = { J, pool0: H.flow.free, sur: Array.from({ length: 12 }, (_, i) => sur(i + 1)), net: d.nm };
-  return { fc, FH, MK, d, E, cardPays, jars, capOf, monthsTo };
+  // What the jars will hold in the coming months: only really free money goes in, shared by priority (the same projection as the Jars page).
+  const jars = { ...jarProject(S, H, now, fc), net: d.nm };
+  return { fc, FH, MK, d, E, cardPays, jars, capOf: capOfAt(now), monthsTo: monthsToOf(now) };
 }
 
 // The money a line adds up to over the whole forecast period (y12 in the current app), and the words for how it is moving.

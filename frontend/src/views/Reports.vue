@@ -10,43 +10,35 @@ import { now } from "../core/clock.js";
 import { home } from "../core/derived.js";
 import { dshort } from "../dates.js";
 import { dateFormat, readJson, weekStart, writeJson } from "../core/prefs.js";
-import { pages } from "../routes.js";
-import { hrefOf, go } from "../router.js";
-import { formatMoney } from "../format.js";
+import { fm, f0 } from "../format.js";
+import { goActivity } from "../core/shell.js";
+import { catColor, catLabel } from "../core/cats.js";
+import { addM } from "./home.js";
 import PageHeader from "../components/PageHeader.vue";
 import RangeCal from "./RangeCal.vue";
 import { periodRange, cmpEnd, block, merchants, sumBy, byAmount, totalOf, seriesN, trOptions, trSeries, nwSeries, monthCompare } from "./reports.js";
 import { vTip } from "../core/tooltip.js";
-import { dcell, titleCase } from "../dates.js";
-
-// Card labels start every word with a capital in English, like titleCase in the old app.
-const tc = (el) => { for (const e of el.querySelectorAll(".lbl")) { const w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT); while (w.nextNode()) { const n = w.currentNode, r = titleCase(n.nodeValue); if (r !== n.nodeValue) n.nodeValue = r; } } };
-const vTcase = { mounted: tc, updated: tc };
-import { categoryName } from "../catnames.js";
+import { dcell } from "../dates.js";
 
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);
 const he = computed(() => locale.value === "he");
-const fm = (v) => formatMoney(Math.round(v));
-const f0 = (v) => Math.round(Math.abs(v)).toLocaleString("en-IL");
 const isMob = () => document.documentElement.classList.contains("mob");
 
 // ---- data ----
-const fx = computed(() => data.fx.value.fx); // exchange rates, loaded with the data
 onMounted(async () => {
   data.start();
 });
 const S = computed(() => data.state.value);
-const NOW = now.value, MK = NOW.getFullYear() + "-" + String(NOW.getMonth() + 1).padStart(2, "0");
+const MK = computed(() => now.value.getFullYear() + "-" + String(now.value.getMonth() + 1).padStart(2, "0"));
 const M = home; // worked out once for the whole app (core/derived.js)
 const loc = computed(() => (he.value ? "he-IL" : "en-GB"));
 const MNAME = (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, { month: "long" });
 const MSHORT = (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, { month: "short" });
 const trFull = (m) => MNAME(m) + " " + m.slice(0, 4);
 const trShort = (m, long) => MSHORT(m) + (long ? " " + m.slice(2, 4) : "");
-const catName = (c) => (!c || c === "Uncategorized" ? t("home.uncategorizedCat") : categoryName(c, locale.value));
-const cc = (n) => (n == "Income" || S.value?.cats?.[n] === 99 ? "var(--pos)" : `var(--c${(S.value?.cats?.[n] == null ? 6 : S.value.cats[n]) % 7})`);
-const addM = (m, k) => { const d = new Date(+m.slice(0, 4), +m.slice(5, 7) - 1 + k, 1); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); };
+const catName = catLabel;
+const cc = (n) => catColor(S.value, n);
 
 // ---- the choices this page remembers (the same keys as the current app) ----
 const RNG = reactive({ cat: { p: "month", from: "", to: "" }, merch: { p: "month", from: "", to: "" }, tag: { p: "month", from: "", to: "" } });
@@ -67,17 +59,7 @@ function save(edit, action, detail, undo) {
   data.change((next) => { edit(next); return action ? [[action, detail, undo]] : []; });
 }
 
-// ---- opening Activity on a period, a category, a tag or a merchant ----
-// Activity reads its time frame from moneyRanges.tx; the rest waits in sessionStorage ("mmGo") for it to pick up.
-function goActivity(o = {}) {
-  try {
-    const j = readJson("moneyRanges", {});
-    j.tx = o.from || o.to ? { p: "custom", from: o.from || "", to: o.to || "" } : { p: "all", from: "", to: "" };
-    writeJson("moneyRanges", (j));
-    sessionStorage.setItem("mmGo", JSON.stringify({ cat: o.cat || "", tag: o.tag || "", ty: o.ty || "", q: o.q || "" }));
-  } catch { /* opens Activity without the filter */ }
-  go(hrefOf(pages.find((p) => p.name === "activity")));
-}
+// Every link to Activity (a category, a tag, a merchant, a month of a chart) opens it with only that filter: goActivity in core/shell.js.
 
 // ---- time frames ----
 const rangeKeys = ["all", "today", "yesterday", "week", "lastweek", "month", "lastmonth", "30d", "90d", "year", "lastyear"];
@@ -121,23 +103,23 @@ const optGroups = computed(() => [
 ].filter((g) => g[1].length));
 const flatOpts = computed(() => optGroups.value.flatMap((g) => g[1].map((x) => x[0])));
 const trM = computed(() => (flatOpts.value.includes(TR.m) ? TR.m : "nw"));
-const nw = computed(() => (M.value ? nwSeries(S.value, M.value, MK) : null));
+const nw = computed(() => (M.value ? nwSeries(S.value, M.value, MK.value) : null));
 const trName = (spec) => { const [k, ...r] = spec.split(":"), a = r.join(":"); return { nw: t("rep.oNw"), inc: t("rep.income"), exp: t("rep.expenses"), net: t("rep.nNet"), bills: t("rep.nBills"), cat: catName(a), src: t("rep.incomeFrom", { a }), tag: "#" + a }[k] || spec; };
 const trColor = (spec) => { const k = spec.split(":")[0], a = spec.split(":").slice(1).join(":"); return k == "nw" ? "var(--acc)" : k == "inc" || k == "src" ? "var(--pos)" : k == "exp" ? "var(--c1)" : k == "net" ? "var(--acc)" : k == "bills" ? "var(--c3)" : k == "cat" ? cc(a) : "var(--c5)"; };
 const hasPension = computed(() => (S.value?.accounts || []).some((a) => a.kind == "pension" && +a.v > 0));
 const trm = computed(() => {
   if (!M.value || !nw.value) return null;
   const spec = trM.value, isNW = spec == "nw", NW = nw.value, NN = NW.keys.length, wp = !!S.value.nwPension; let n;
-  if (TR.r) n = TR.r; else { const e = isNW ? NW.keys[NW.first] : M.value.rows.reduce((m, x) => (x.d < m ? x.d : m), MK + "-31").slice(0, 7); n = 1; while (n < 60 && addM(MK, -n) >= e) n++; n = Math.max(n, 36); }
+  if (TR.r) n = TR.r; else { const e = isNW ? NW.keys[NW.first] : M.value.rows.reduce((m, x) => (x.d < m ? x.d : m), MK.value + "-31").slice(0, 7); n = 1; while (n < 60 && addM(MK.value, -n) >= e) n++; n = Math.max(n, 36); }
   n = Math.min(n, isNW ? NN : 60);
-  const ms = Array.from({ length: n }, (_, i) => addM(MK, -(n - 1 - i))), pms = ms.map((m) => addM(m, -n)), noCmp = isNW && NN < 2 * n;
+  const ms = Array.from({ length: n }, (_, i) => addM(MK.value, -(n - 1 - i))), pms = ms.map((m) => addM(m, -n)), noCmp = isNW && NN < 2 * n;
   let vals, prev = null, signed = false;
   if (isNW) { const cash = NW.hap.map((v, i) => v + NW.wise[i] + (NW.oth[i] || 0)), tot = cash.map((v, i) => v + NW.pen[i]), main = wp ? tot : cash; vals = main.slice(-n); if (TR.c && NN >= 2 * n) prev = main.slice(NN - 2 * n, NN - n); }
   else { vals = trSeries(M.value, S.value, spec, ms); if (TR.c) prev = trSeries(M.value, S.value, spec, pms); signed = spec == "net"; }
   const sum = (a) => a.reduce((x, y) => x + y, 0), labels = ms.map((m) => trShort(m, n > 12)), fullL = ms.map(trFull);
   let big, delta;
   if (isNW) { big = vals[n - 1]; const ch = big - vals[0], pc = vals[0] ? (ch / Math.abs(vals[0])) * 100 : 0; delta = { pill: { cls: ch >= 0 ? "dn" : "up", text: (ch >= 0 ? "▲" : "▼") + " " + fm(Math.abs(ch)) + " (" + Math.abs(pc).toFixed(1) + "%)" }, rest: " " + t("rep.since", { m: fullL[0] }) }; }
-  else { big = sum(vals); const pt = prev ? sum(prev) : null; delta = pt == null ? { text: t("rep.avgMonth", { amt: fm(sum(vals) / n) }) } : { pill: { cls: (big >= pt) == (spec == "inc" || spec == "net" || spec.startsWith("src:") ? true : false) ? "dn" : "up", text: (big >= pt ? "▲" : "▼") + " " + (pt ? Math.abs((big / pt - 1) * 100).toFixed(0) + "%" : t("rep.newPill")) }, rest: " " + t("rep.vsBefore", { amt: fm(pt) }) }; }
+  else { big = sum(vals); const pt = prev ? sum(prev) : null; delta = pt == null ? { text: t("rep.avgMonth", { amt: fm(sum(vals) / n) }) } : { pill: { cls: (big >= pt) == (spec == "inc" || spec == "net" || spec == "src") ? "dn" : "up", text: (big >= pt ? "▲" : "▼") + " " + (pt ? Math.abs((big / pt - 1) * 100).toFixed(0) + "%" : t("rep.newPill")) }, rest: " " + t("rep.vsBefore", { amt: fm(pt) }) }; }
   const hi = Math.max(...vals), lo = Math.min(...vals), at = (v) => fullL[vals.indexOf(v)];
   const stats = isNW ? [["change", t("rep.now"), vals[n - 1]], ["chg", t("rep.change"), vals[n - 1] - vals[0]], ["hi", t("rep.highest"), hi, at(hi)], ["lo", t("rep.lowest"), lo, at(lo)]] : [["tot", t("rep.total"), sum(vals)], ["avg", t("rep.monthlyAvg"), sum(vals) / n], ["hi", t("rep.highest"), hi, at(hi)], ["lo", t("rep.lowest"), lo, at(lo)]];
   return { spec, isNW, n, ms, vals, prev, signed, labels, fullL, big, delta, stats, noCmp, wp, col: trColor(spec), zero: isNW && Math.min(...vals) < 0 };
@@ -162,7 +144,7 @@ function trShow(e) {
   const d = trDraw.value, m = trm.value; if (!d) return; const r = e.currentTarget.getBoundingClientRect();
   if (e.clientX - r.left < d.Pl - 6) return;
   const i = Math.max(0, Math.min(m.vals.length - 1, Math.floor((e.clientX - r.left - d.Pl) / d.band))), x = d.X(i), y = d.Y(m.vals[i]);
-  trHov.value = { i, x, y, lx: 0, top: Math.max(0, y - (m.prev ? 78 : 62) - 14) };
+  trHov.value = { i, x, y, lx: 0, top: Math.max(0, y - (m.prev ? 78 : 62) - 14) }; // the old app places it by its left edge, in both languages
   nextTick(() => { const tp = tipEl.value; if (tp && trHov.value) trHov.value = { ...trHov.value, lx: Math.max(0, Math.min(d.W - tp.offsetWidth, x - tp.offsetWidth / 2)) }; });
 }
 const tipEl = ref(null);
@@ -173,12 +155,12 @@ function trClick(e) {
 const setPension = (e) => save((n) => { n.nwPension = e.target.checked; });
 
 // ---- 2. this month vs last month ----
-const cmp = computed(() => (M.value ? monthCompare(M.value, MK) : null));
+const cmp = computed(() => (M.value ? monthCompare(M.value, MK.value) : null));
 const pmN = computed(() => (cmp.value ? MNAME(cmp.value.pm) : ""));
 
 // ---- 3. income vs expenses (bars) and the category trend (lines) ----
-const barsData = computed(() => (M.value ? seriesN(M.value, RN.bars, "exp", MK) : null));
-const linesData = computed(() => (M.value ? seriesN(M.value, RN.lines, RN.lt, MK) : null));
+const barsData = computed(() => (M.value ? seriesN(M.value, RN.bars, "exp", MK.value) : null));
+const linesData = computed(() => (M.value ? seriesN(M.value, RN.lines, RN.lt, MK.value) : null));
 const monLabels = (H0) => H0.keys.map((m) => (H0.keys.length > 12 ? MSHORT(m) + " " + m.slice(2, 4) : MSHORT(m)));
 const bcw = useSize();
 const barChart = computed(() => {
@@ -203,7 +185,7 @@ function lineShow(e) {
 const lineTip = ref(null);
 
 // ---- 4. spending by category, merchants and tags ----
-const blk = (id) => (M.value ? block(M.value, RNG[id], CMP[id], NOW, weekStart.value) : null);
+const blk = (id) => (M.value ? block(M.value, RNG[id], CMP[id], now.value, weekStart.value) : null);
 const catB = computed(() => { const B = blk("cat"); if (!B) return null; const cur = sumBy(B.cur, (x) => [x.c || "Uncategorized"]), prev = B.prev ? sumBy(B.prev, (x) => [x.c || "Uncategorized"]) : null; return { B, cur, prev, ents: byAmount(cur), keys: [...new Set([...Object.keys(cur), ...Object.keys(prev || {})])].sort((a, b) => (cur[b] || 0) - (cur[a] || 0)) }; });
 const tagB = computed(() => { const B = blk("tag"); if (!B) return null; const cur = sumBy(B.cur, (x) => x.tags || []), prev = B.prev ? sumBy(B.prev, (x) => x.tags || []) : null; return { B, cur, prev, ents: byAmount(cur), keys: [...new Set([...Object.keys(cur), ...Object.keys(prev || {})])].sort((a, b) => (cur[b] || 0) - (cur[a] || 0)) }; });
 const merch = computed(() => (M.value ? merchants(M.value, blk("merch"), S.value) : null));
@@ -224,9 +206,8 @@ const monthDay = computed(() => (cmp.value ? { month: pmN.value, day: cmp.value.
 </script>
 
 <template>
-  <div>
-    <PageHeader :title="t('nav.reports')" />
-    <div class="view on" id="rep" v-tcase>
+  <PageHeader :title="t('nav.reports')" />
+  <section class="view on" id="rep">
     <p v-if="data.error.value && !S" class="muted">{{ t("home.loadError") }}</p>
     <p v-else-if="!M" class="muted">{{ t("home.loading") }}</p>
 
@@ -255,7 +236,7 @@ const monthDay = computed(() => (cmp.value ? { month: pmN.value, day: cmp.value.
               <line class="trx" :x1="trHov ? trHov.x : 0" :x2="trHov ? trHov.x : 0" :y1="trDraw.Pt" :y2="trDraw.H - trDraw.Pb" stroke="var(--tx)" stroke-opacity=".35" stroke-dasharray="3 3" :style="{ display: trHov ? '' : 'none' }" />
               <circle class="trd" r="5.5" :cx="trHov ? trHov.x : 0" :cy="trHov ? trHov.y : 0" :fill="trm.col" stroke="var(--bg)" stroke-width="2" :style="{ display: trHov && trDraw.kind != 'bars' ? '' : 'none' }" />
             </svg>
-            <div v-if="trHov" ref="tipEl" class="trtip" :style="{ display: 'flex', insetInlineStart: trHov.lx + 'px', top: trHov.top + 'px', direction: 'ltr' }"><b>{{ trm.fullL[trHov.i] }}</b><span>{{ fm(trm.vals[trHov.i]) }}</span><small v-if="trm.prev">{{ t("rep.prevLabel", { amt: fm(trm.prev[trHov.i]) }) }}</small><small v-if="!isMob()">{{ t("rep.clickOpen") }}</small></div>
+            <div v-if="trHov" ref="tipEl" class="trtip" :style="{ display: 'flex', left: trHov.lx + 'px', top: trHov.top + 'px' }"><b>{{ trm.fullL[trHov.i] }}</b><span>{{ fm(trm.vals[trHov.i]) }}</span><small v-if="trm.prev">{{ t("rep.prevLabel", { amt: fm(trm.prev[trHov.i]) }) }}</small><small v-if="!isMob()">{{ t("rep.clickOpen") }}</small></div>
           </div>
         </div>
         <div class="trstats"><div v-for="s in trm.stats" :key="s[0]"><span>{{ s[1] }}<template v-if="s[3]">{{ " " }}<small>(<bdi>{{ s[3] }}</bdi>)</small></template></span><b class="num" :class="{ neg: s[0] == 'chg' && s[2] < 0 }">{{ s[2] < 0 ? "−" : "" }}{{ fm(Math.abs(s[2])) }}</b></div></div>
@@ -325,11 +306,10 @@ const monthDay = computed(() => (cmp.value ? { month: pmN.value, day: cmp.value.
               <circle v-for="d in l.dots" :key="d.mk" class="gob" :cx="d.x" :cy="d.y" r="4.5" fill="var(--bg)" :stroke="cc(l.k)" stroke-width="2.5" @click="!isMob() && goActivity({ from: d.mk + '-01', to: d.mk + '-31', cat: l.k, ty: RN.lt == 'inc' ? 'income' : 'expense' })" /></g>
             <line v-if="lhov" :x1="lhov.x" :x2="lhov.x" y1="14" :y2="lineChart.H - 24" stroke="var(--tx)" stroke-opacity=".35" stroke-dasharray="3 3" style="pointer-events:none" />
           </svg>
-          <div v-if="lhov" ref="lineTip" class="trtip m" :style="{ display: 'flex', insetInlineStart: lhov.lx + 'px', top: '4px', direction: 'ltr' }"><b>{{ lineChart.labels[lhov.i] }}</b><span v-for="r in lineChart.lines.map((l) => [l.k, l.vals[lhov.i]]).sort((p, q) => q[1] - p[1]).slice(0, 7)" :key="r[0]"><i class="tdot" :style="{ background: cc(r[0]) }"></i>{{ catName(r[0]) }} ₪{{ f0(r[1]) }}</span></div></div>
+          <div v-if="lhov" ref="lineTip" class="trtip m" :style="{ display: 'flex', left: lhov.lx + 'px', top: '4px' }"><b>{{ lineChart.labels[lhov.i] }}</b><span v-for="r in lineChart.lines.map((l) => [l.k, l.vals[lhov.i]]).sort((p, q) => q[1] - p[1]).slice(0, 7)" :key="r[0]"><i class="tdot" :style="{ background: cc(r[0]) }"></i>{{ catName(r[0]) }} ₪{{ f0(r[1]) }}</span></div></div>
           <div class="trleg"><div v-for="l in lineChart.lines" :key="l.k" class="lgi" :class="{ on: lineHot === l.k }" @mouseenter="lineHot = l.k" @mouseleave="lineHot = null"><span class="dot" :style="{ background: cc(l.k) }"></span><span class="catl" @click="goActivity({ cat: l.k })">{{ catName(l.k) }}</span><b class="num">₪{{ f0(l.total) }}</b></div></div></template>
           <div v-else class="sm" style="padding:20px 0">{{ RN.lt == "inc" ? t("rep.noIncomeMonths") : t("rep.noSpendMonths") }}</div></div></div>
     </template>
-    </div>
-    <RangeCal v-if="cal" :from="RNG[cal.id].p === 'custom' ? RNG[cal.id].from : ''" :to="RNG[cal.id].p === 'custom' ? RNG[cal.id].to : ''" :anchor="cal.anchor" :df="dateFormat" :ws="weekStart" @apply="calApply" @cancel="calCancel" />
-  </div>
+  </section>
+  <RangeCal v-if="cal" :from="RNG[cal.id].p === 'custom' ? RNG[cal.id].from : ''" :to="RNG[cal.id].p === 'custom' ? RNG[cal.id].to : ''" :anchor="cal.anchor" :df="dateFormat" :ws="weekStart" @apply="calApply" @cancel="calCancel" />
 </template>

@@ -114,7 +114,8 @@ async function page(S, lang = "en") {
   const m = await load(); m.setLang(lang); m.data.state.value = structuredClone(S);
   const app = createSSRApp({ render: () => h(m.Budgets) }); app.use(m.i18n);
   const html = await renderToString(app), i = html.indexOf("<section");
-  return html.slice(i).replace(/<!--[\s\S]*?-->/g, "");
+  // the dots between parts (<span class="dt">·</span> in a <span>, made by vite-dots.js) are added on the page in the current app too, not in its HTML strings
+  return html.slice(i).replace(/<!--[\s\S]*?-->/g, "").replace(/<span>([^<]*(?:<span class="dt">·<\/span>[^<]*)+)<\/span>/g, "$1").replace(/<span class="dt">·<\/span>/g, " · ");
 }
 const unesc = (s) => s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&");
 const text = (html) => unesc(html.replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim();

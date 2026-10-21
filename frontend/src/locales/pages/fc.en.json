@@ -1,0 +1,13 @@
+{
+  "x": {
+    "ctl3": "Last 3 months: follows recent changes quickly. Months before your first transaction are never counted.",
+    "ctl6": "Last 6 months: a steady middle ground. Months before your first transaction are never counted.",
+    "ctl12": "Last 12 months: includes yearly costs (holidays, annual insurance), but is slow to notice a change in income. Months before your first transaction are never counted.",
+    "chartTitle": "Projected balance · bank + Wise"
+  },
+  "j": {
+    "fullLate": "Full {when} · after the deadline",
+    "full": "Full {when}",
+    "noMonthly": "no monthly amount"
+  }
+}
