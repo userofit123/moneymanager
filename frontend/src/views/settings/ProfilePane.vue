@@ -5,8 +5,9 @@ import { ref, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
 import SetHead from "./SetHead.vue";
+import ProfileFields from "../../components/ProfileFields.vue";
 import { changeState, toastErr } from "./shared.js";
-import { PF_GENDER, PF_GOAL, profAge, profRead } from "./profile.js";
+import { profAge, profRead } from "./profile.js";
 
 const { t } = useI18n();
 const tk = (k) => t("settings.prof." + k);
@@ -41,12 +42,7 @@ async function clear() {
     <div class="card ss">
       <SetHead icon="user" :title="tk('title')" :desc="tk('desc')" />
       <div class="ssb p">
-        <div class="fld"><label for="pfName">{{ tk("name") }}</label><input id="pfName" v-model="form.name" maxlength="40" autocomplete="off" :placeholder="tk('namePh')"><div class="sm">{{ tk("nameHint") }}</div></div>
-        <div class="two">
-          <div class="fld"><label for="pfAge">{{ tk("age") }}</label><input id="pfAge" v-model="form.age" type="number" inputmode="numeric" min="10" max="110" :placeholder="tk('agePh')"><div class="sm">{{ tk("ageHint") }}</div></div>
-          <div class="fld"><label for="pfGender">{{ tk("gender") }}</label><select id="pfGender" v-model="form.gender"><option v-for="[k, l] in PF_GENDER" :key="k" :value="k">{{ tk(l) }}</option></select><div class="sm">{{ tk("genderHint") }}</div></div>
-        </div>
-        <div class="fld"><label for="pfGoal">{{ tk("goal") }}</label><select id="pfGoal" v-model="form.goal"><option v-for="[k, l] in PF_GOAL" :key="k" :value="k">{{ tk(l) }}</option></select><div class="sm">{{ tk("goalHint") }}</div></div>
+        <ProfileFields v-model="form" prefix="pf" />
         <div class="flex" style="justify-content:flex-end;gap:10px"><button type="button" class="btn o" data-a="profClear" @click="clear">{{ tk("clear") }}</button><button type="button" class="btn" data-a="profSave" @click="save">{{ tk("save") }}</button></div>
       </div>
     </div>

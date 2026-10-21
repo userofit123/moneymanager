@@ -1,32 +1,22 @@
 <script setup>
-// A pop-up window. Open and close it with v-model:open. Escape, the close button and a click outside all close it.
-// Same markup as the current app: a .scrim behind and a .sheet with an h3 title (centered window on a computer, slides up on a phone). Styled in styles/legacy.css.
-import { watch, onBeforeUnmount } from "vue";
+// A pop-up window with a title and buttons at the bottom (BaseSheet with the current app's h3 and footer). Open and close it with v-model:open.
 import { useI18n } from "vue-i18n";
+import BaseSheet from "./BaseSheet.vue";
 import BaseButton from "./BaseButton.vue";
-const props = defineProps({ open: Boolean, title: { type: String, required: true } });
+defineProps({ open: Boolean, title: { type: String, required: true }, cls: { type: String, default: "" } });
 const emit = defineEmits(["update:open"]);
 const { t } = useI18n();
 const close = () => emit("update:open", false);
-const esc = (e) => { if (e.key === "Escape") close(); };
-watch(() => props.open, (o) => { if (o) document.addEventListener("keydown", esc); else document.removeEventListener("keydown", esc); }, { immediate: true });
-onBeforeUnmount(() => document.removeEventListener("keydown", esc));
 </script>
 
 <template>
-  <Teleport to="body">
-    <template v-if="open">
-      <div class="scrim on" @click="close" />
-      <div class="sheet on" role="dialog" aria-modal="true" :aria-label="title">
-        <span class="grab" aria-hidden="true" />
-        <h3>{{ title }}</h3>
-        <div class="dlg-body"><slot /></div>
-        <div class="flex dlg-actions">
-          <slot name="actions"><BaseButton variant="outline" @click="close">{{ t("common.close") }}</BaseButton></slot>
-        </div>
-      </div>
-    </template>
-  </Teleport>
+  <BaseSheet :open="open" :cls="cls" :label="title" @close="close">
+    <h3>{{ title }}</h3>
+    <div class="dlg-body"><slot /></div>
+    <div class="flex dlg-actions">
+      <slot name="actions"><BaseButton variant="outline" @click="close">{{ t("common.close") }}</BaseButton></slot>
+    </div>
+  </BaseSheet>
 </template>
 
 <style>

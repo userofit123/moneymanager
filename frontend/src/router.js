@@ -25,7 +25,8 @@ export function go(to, { replace = false } = {}) {
 export function startRouter() {
   addEventListener("popstate", () => { path.value = location.pathname; });
   // "/app/" alone shows Home at its own address.
-  if (matchPage(location.pathname).path !== location.pathname.replace(BASE, "").replace(/\/+$/, "")) go(hrefOf(matchPage(location.pathname)), { replace: true });
+  // (the ?query and #hash stay, so links like ?add=1 still work)
+  if (matchPage(location.pathname).path !== location.pathname.replace(BASE, "").replace(/\/+$/, "")) { history.replaceState({}, "", hrefOf(matchPage(location.pathname)) + location.search + location.hash); path.value = location.pathname; }
 }
 // For <a href> links inside the app: an ordinary click stays in the app, Ctrl or middle click still opens a new tab.
 export function onLink(e) {

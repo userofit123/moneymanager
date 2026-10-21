@@ -11,13 +11,13 @@ test("legacy.css is the current app's app.css, only the font paths differ", () =
   assert.equal(copy, old.replaceAll("url(../fonts/", "url(/fonts/"));
 });
 
-test("main.js loads legacy.css and starts the phone/dark switches the old stylesheet depends on", () => {
+test("main.js loads legacy.css and starts the phone switch; the look sets light/dark (data-mode), which the old stylesheet depends on", () => {
   const main = read("../src/main.js");
   assert.match(main, /import "\.\/styles\/legacy\.css"/);
   assert.match(main, /startMobile\(\)/);
   const mob = read("../src/mobile.js");
   assert.match(mob, /w <= 860 \|\| \(touch && w <= 1100\)/);
-  assert.match(mob, /data-mode/);
+  assert.match(read("../src/core/theme.js"), /h\.dataset\.mode = d \? "dark" : "light"/);
 });
 
 test("the Hebrew rules are the old ones: html.he body is right to left, nothing else mirrors the page", () => {

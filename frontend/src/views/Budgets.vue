@@ -6,21 +6,20 @@
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { openForm } from "../core/forms.js";
+import { dstr } from "../dates.js";
 import { toast } from "../core/toast.js";
 import { go } from "../router.js";
 import PageHeader from "../components/PageHeader.vue";
-import ActSheet from "./ActSheet.vue";
 import { vRich } from "../lib/richtip.js";
-import { makeDstr, f0, fm } from "../lib/bills.js";
-import { budgetsModel, formSuggestion, formCategories, acceptBudget, acceptAll, dismissSuggestion, laterReview, resetDismissed, applyBudget, setBudget, removeBudget, changeBudget } from "../lib/budgets.js";
+import { f0, fm } from "../lib/bills.js";
+import { budgetsModel, acceptBudget, acceptAll, dismissSuggestion, laterReview, resetDismissed, applyBudget, removeBudget, changeBudget } from "../lib/budgets.js";
 
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);
 const S = computed(() => data.state.value);
 onMounted(() => { data.start(); });
 
-const DF = (() => { try { return localStorage.getItem("moneyDf") === "mdy" ? "mdy" : "dmy"; } catch { return "dmy"; } })();
-const dstr = makeDstr(DF);
 const cc = (n) => (n == "Income" || S.value?.cats?.[n] === 99 ? "var(--pos)" : `var(--c${(S.value?.cats?.[n] == null ? 6 : S.value.cats[n]) % 7})`);
 const M = computed(() => (S.value ? budgetsModel(S.value, new Date()) : null));
 const mlab = computed(() => M.value.budMonths.map((m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(locale.value === "he" ? "he-IL" : "en-GB", { month: "short" })).join(", "));
@@ -58,10 +57,8 @@ const edit = (k, ev) => change((n) => changeBudget(n, k, ev.target.value));
 const remove = (k) => change((n) => removeBudget(n, k));
 
 // ---- Add a budget ----
-const form = ref(null); // { k, a }
-const openAdd = (k) => { const sug = formSuggestion(M.value, k || ""); form.value = { k: k || formCategories(M.value, k || "")[0] || "", a: sug, sug: !!sug }; };
-const cats = computed(() => (form.value ? formCategories(M.value, form.value.k) : []));
-function saveAdd() { const f = form.value; if (!f.k || !+f.a) return; form.value = null; change((n) => setBudget(n, f.k, f.a)); }
+// Add a budget: the shared window (components/forms/BudgetForm.vue).
+const openAdd = (k) => openForm("budget", { k: k || "" });
 const goCat = () => go("/activity");
 const goBill = () => go("/bills");
 </script>
@@ -117,12 +114,5 @@ const goBill = () => go("/bills");
 
   <template v-if="S">
 
-    <ActSheet v-if="form" @close="form = null">
-      <h3>{{ t("budgets.add.title") }}</h3>
-      <div class="fld"><label>{{ t("budgets.add.cat") }}</label><select v-model="form.k"><option v-for="c in cats" :key="c" :value="c">{{ c }}</option></select></div>
-      <div class="fld"><label>{{ t("budgets.add.limit") }}</label><input v-model="form.a" type="number" inputmode="numeric"></div>
-      <div v-if="form.sug" class="sm" style="margin-bottom:12px">{{ t("budgets.add.sug") }}</div>
-      <div class="flex" style="justify-content:flex-end;gap:10px"><button class="btn o" data-a="close" @click="form = null">{{ t("budgets.cancel") }}</button><button class="btn" data-a="budSave" @click="saveAdd">{{ t("budgets.save") }}</button></div>
-    </ActSheet>
   </template>
 </template>

@@ -4,6 +4,9 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { home } from "../core/derived.js";
+import { dshort, dcell } from "../dates.js";
+import { dateFormat, readJson, weekStart, writeJson } from "../core/prefs.js";
 import { toast } from "../core/toast.js";
 import { request, sendJson } from "../core/http.js";
 import PageHeader from "../components/PageHeader.vue";
@@ -12,7 +15,7 @@ import BaseChip from "../components/BaseChip.vue";
 import BaseTooltip from "../components/BaseTooltip.vue";
 import BaseDialog from "../components/BaseDialog.vue";
 import RangeCal from "./RangeCal.vue";
-import ActSheet from "./ActSheet.vue";
+import BaseSheet from "../components/BaseSheet.vue";
 import MoneyAmount from "../components/MoneyAmount.vue";
 import { RANGES, rmOf, instOf, NFIELDS, nameField, nameHit, kinds, totals, leftOut, filterRows, sortRows, groupRows, GROUPS, hasFilters, displayName, allTags, normTag, categoryNames, accountNames, tagOffer, tagSimilar, applyTagRule, reviewTransfers, duplicateIds, reviewGaps, detailRows, flat, prettyKey, cardOf } from "./activity.js";
 
@@ -24,11 +27,9 @@ const S = computed(() => data.state.value);
 
 const tab = ref("all");
 // The time frame is remembered in the browser under the same key as the current app ("moneyRanges", entry "tx"), so both apps show the same one.
-const WS = (() => { try { return localStorage.getItem("moneyWs") === "mon" ? "mon" : "sun"; } catch { return "sun"; } })();
-const DFM = (() => { try { return localStorage.getItem("moneyDf") === "mdy" ? "mdy" : "dmy"; } catch { return "dmy"; } })();
-const savedRange = (() => { try { const r = JSON.parse(localStorage.getItem("moneyRanges") || "{}").tx; return r && (RANGES.includes(r.p) || r.p === "custom") ? r : null; } catch { return null; } })();
+const savedRange = (() => { try { const r = readJson("moneyRanges", {}).tx; return r && (RANGES.includes(r.p) || r.p === "custom") ? r : null; } catch { return null; } })();
 const f = ref({ q: "", src: "", cat: "", type: "", tag: "", p: savedRange?.p || "all", from: savedRange?.from || "", to: savedRange?.to || "" });
-watch(() => [f.value.p, f.value.from, f.value.to], () => { try { const j = JSON.parse(localStorage.getItem("moneyRanges") || "{}"); j.tx = { p: f.value.p, from: f.value.from, to: f.value.to }; localStorage.setItem("moneyRanges", JSON.stringify(j)); } catch { /* the browser may not allow saving */ } });
+watch(() => [f.value.p, f.value.from, f.value.to], () => { try { const j = readJson("moneyRanges", {}); j.tx = { p: f.value.p, from: f.value.from, to: f.value.to }; writeJson("moneyRanges", (j)); } catch { /* the browser may not allow saving */ } });
 const group = ref("month");
 const sort = ref("new");
 const shownCount = ref(PAGE);
@@ -39,7 +40,7 @@ const tagText = ref("");
 watch([f, group, sort], () => { shownCount.value = PAGE; }, { deep: true });
 
 const k = computed(() => kinds(S.value, today));
-const rows = computed(() => sortRows(filterRows(S.value, S.value?.tx || [], { ...f.value, ws: WS }, k.value), sort.value));
+const rows = computed(() => sortRows(filterRows(S.value, S.value?.tx || [], { ...f.value, ws: weekStart.value }, k.value), sort.value));
 const T = computed(() => totals(rows.value, k.value));
 const lo = computed(() => leftOut(rows.value, k.value));
 const filtered = computed(() => hasFilters(f.value));
@@ -59,7 +60,7 @@ const opt = (v, label) => ({ value: v, label });
 const rangeLabel = () => {
   const { from, to } = f.value;
   if (/^\d{4}-\d{2}-01$/.test(from) && to === from.slice(0, 7) + "-31") return mname(from.slice(0, 7)) + " " + from.slice(0, 4);
-  const short = (d) => (DFM === "mdy" ? d.slice(5, 7) + "/" + d.slice(8, 10) : d.slice(8, 10) + "/" + d.slice(5, 7));
+  const short = dshort;
   return (from && to && from.slice(0, 4) === to.slice(0, 4) ? short(from) : from ? dcell(from) : "…") + " – " + (to ? dcell(to) : "…");
 };
 const rangeOpts = computed(() => [...RANGES.map((r) => opt(r, tk("activity.range." + r))), opt("custom", f.value.p === "custom" ? rangeLabel() : t("activity.range.custom"))]);
@@ -97,8 +98,6 @@ const plainAmount = (x) => x.balUpd || k.value.isXf(x);
 const canEditCat = (x) => !x.virtual && !k.value.isXf(x) && x.upBill == null;
 
 // The way the current app writes things: dates as 05/10/2026 (or 10/05/2026 when the user chose month first), money as ₪1,250 or −₪80.
-const DF = (() => { try { return localStorage.getItem("moneyDf") === "mdy" ? "mdy" : "dmy"; } catch { return "dmy"; } })();
-const dcell = (d) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(d)); return m ? (DF === "mdy" ? m[2] + "/" + m[3] + "/" + m[1] : m[3] + "/" + m[2] + "/" + m[1]) : String(d); };
 const f0 = (n) => Math.abs(n).toLocaleString("en-IL", { maximumFractionDigits: 0 });
 const fm = (n) => (n < 0 ? "−" : "") + "₪" + f0(n);
 const SYM = { ILS: "₪", USD: "$", EUR: "€", GBP: "£", JPY: "¥" };
@@ -192,7 +191,7 @@ async function saveRule() {
 const revXf = computed(() => reviewTransfers(S.value));
 const dupSet = computed(() => duplicateIds(S.value));
 const revDups = computed(() => (S.value?.tx || []).filter((x) => dupSet.value.has(x.id)));
-const revGaps = computed(() => reviewGaps(S.value));
+const revGaps = computed(() => reviewGaps(S.value, home.value?.billsAll));
 const reviewCount = computed(() => revXf.value.length + revDups.value.length + revGaps.value.length);
 const xfOk = (r) => save((n) => { n.xf.find((x) => x.o === r.x.o).st = "ok"; }, "Transfer confirmed", r.o.from + " → " + r.i.to);
 const xfNo = (o) => save((n) => { n.xf.find((x) => x.o === o).st = "rej"; }, "Not a transfer", "");
@@ -447,7 +446,7 @@ onMounted(() => data.start());
       <div v-if="!revGaps.length" class="card sm">{{ t("activity.r.gapNone") }}</div>
     </div>
 
-    <RangeCal v-if="cal" :from="f.p === 'custom' ? f.from : ''" :to="f.p === 'custom' ? f.to : ''" :anchor="cal.anchor" :df="DFM" :ws="WS" @apply="calApply" @cancel="calCancel" />
+    <RangeCal v-if="cal" :from="f.p === 'custom' ? f.from : ''" :to="f.p === 'custom' ? f.to : ''" :anchor="cal.anchor" :df="dateFormat" :ws="weekStart" @apply="calApply" @cancel="calCancel" />
 
     <!-- "Tag more like this?" -->
     <BaseDialog :open="!!offer" :title="t('activity.offer.title')" @update:open="(v) => !v && (offer = null)">
@@ -471,7 +470,7 @@ onMounted(() => data.start());
     </BaseDialog>
 
     <!-- The transaction window: the same layout, fields and wording as the current app -->
-    <ActSheet v-if="cur" cls="txw" @close="txOpen = null">
+    <BaseSheet :open="!!cur" cls="txw" @close="txOpen = null">
       <div class="txp">
         <div class="txgrid2">
           <div class="txmain">
@@ -513,16 +512,16 @@ onMounted(() => data.start());
           <label v-if="!cur.virtual" class="btn o upl" style="margin-inline-end:auto"><svg viewBox="0 0 24 24" v-html="TIC.clip"></svg> {{ t("activity.w.attach") }}<input type="file" accept="image/*,application/pdf" multiple hidden @change="attach($event)" /></label><span v-else style="margin-inline-end:auto"></span>
           <button type="button" class="btn" @click="txOpen = null">{{ t("activity.d.done") }}</button></div>
       </div>
-    </ActSheet>
+    </BaseSheet>
 
-    <ActSheet v-if="pop?.kind === 'month' && monthTx" @close="popClose">
+    <BaseSheet :open="!!(pop?.kind === 'month' && monthTx)" @close="popClose">
       <h3>{{ t("activity.w.mTitle") }}</h3>
       <div class="sm" style="margin-bottom:12px;line-height:1.55"><b>{{ displayName(S, monthTx) }}</b> · {{ dcell(monthTx.d) }}<br><span>{{ t("activity.w.mText") }}</span></div>
       <div class="stk" style="gap:8px"><button type="button" class="btn o" @click="monthSet(monthTx, addMonth(rmOf(monthTx) || String(monthTx.d).slice(0, 7), -1))"><span>{{ t("activity.w.mPrev") }}</span> · {{ mk(addMonth(rmOf(monthTx) || String(monthTx.d).slice(0, 7), -1)) }}</button><button type="button" class="btn o" @click="monthSet(monthTx, addMonth(rmOf(monthTx) || String(monthTx.d).slice(0, 7), 1))"><span>{{ t("activity.w.mNext") }}</span> · {{ mk(addMonth(rmOf(monthTx) || String(monthTx.d).slice(0, 7), 1)) }}</button></div>
       <div class="fld" style="margin-top:14px"><label>{{ t("activity.w.mOr") }}</label><div class="flex" style="gap:8px"><input v-model="pop.pick" type="month" style="flex:1" /><button type="button" class="btn s" @click="monthSet(monthTx, pop.pick)">{{ t("activity.w.mUse") }}</button></div></div>
       <div class="flex" style="justify-content:space-between;margin-top:14px;gap:8px"><button v-if="rmOf(monthTx)" type="button" class="btn o s" @click="monthReset(monthTx)">{{ t("activity.w.mReset", { m: mk(String(monthTx.d).slice(0, 7)) }) }}</button><span v-else></span><button type="button" class="btn" @click="popClose">{{ t("activity.d.cancel") }}</button></div>
-    </ActSheet>
-    <ActSheet v-if="pop?.kind === 'rule'" @close="popClose">
+    </BaseSheet>
+    <BaseSheet :open="!!(pop?.kind === 'rule')" @close="popClose">
       <h3>{{ t("activity.w.nrTitle") }}</h3>
       <div class="sm" style="margin-bottom:12px;line-height:1.5">{{ t("activity.w.nrText") }}</div>
       <div class="fld"><label>{{ t("activity.w.nrLook") }}</label><select v-model="pop.f"><option v-for="n in NFIELDS" :key="n" :value="n">{{ tk("activity.w.f." + n) }}</option></select></div>
@@ -530,8 +529,8 @@ onMounted(() => data.start());
       <div class="fld"><label>{{ t("activity.w.nrTxt") }}</label><input v-model="pop.k" /></div>
       <div class="fld"><label>{{ t("activity.w.nrCall") }}</label><input v-model="pop.n" maxlength="80" :placeholder="t('activity.w.nrPh')" /></div>
       <div class="flex" style="gap:8px;margin-top:14px"><button type="button" class="btn" @click="ruleSave">{{ t("activity.w.nrAdd") }}</button><button type="button" class="btn o" @click="popClose">{{ t("activity.d.cancel") }}</button></div>
-    </ActSheet>
-    <ActSheet v-if="hist" @close="popClose">
+    </BaseSheet>
+    <BaseSheet :open="!!hist" @close="popClose">
       <div class="txh"><h3>{{ pop.title }}</h3><div class="sm">{{ t("activity.w.hAll") }} · {{ t("activity.w.hTo", { a: dcell(hist.L[hist.L.length - 1].d), b: dcell(hist.L[0].d) }) }}</div></div>
       <div class="phs"><div><span>{{ t("activity.w.hPayments") }}</span><b>{{ hist.L.length }}</b></div><div><span>{{ t("activity.w.hTotal") }}</span><b>{{ fm(hist.tot) }}</b></div><div><span>{{ t("activity.w.hAvg") }}</span><b>{{ fm(hist.avg) }}</b></div></div>
       <div v-if="hist.L.length > 2" class="phb" aria-hidden="true"><i v-for="x in [...hist.L].reverse().slice(-40)" :key="x.id" :style="{ height: Math.max(8, Math.abs(x.a) / hist.mx * 100) + '%' }" :title="dcell(x.d) + ': ' + fm(Math.abs(x.a))"></i></div>
@@ -539,7 +538,7 @@ onMounted(() => data.start());
       <div class="phl"><template v-for="it in hist.items" :key="it.x.id"><div v-if="it.head" class="phy">{{ it.head }}</div>
         <div class="phi" @click="pop = null; openTx(it.x)"><div class="phd"><span>{{ monShort(it.x.d) }}</span><b>{{ +it.x.d.slice(8, 10) }}</b></div><div class="phm"><div class="pht">{{ displayName(S, it.x) || pop.title }}</div><div class="sm">{{ it.x.from || "" }}{{ it.x.c ? " · " + it.x.c : "" }}</div></div><div class="pha"><b class="num" :class="{ pos: it.x.a > 0 }" dir="ltr">{{ it.x.a < 0 ? "" : "+" }}{{ fm(Math.abs(it.x.a)) }}</b><span v-if="it.d" class="bd" :class="it.d > 0 ? 'up' : 'dn'">{{ it.d > 0 ? "▲" : "▼" }} {{ fm(Math.abs(it.d)) }}</span></div></div></template></div>
       <div class="flex" style="justify-content:flex-end;gap:10px;margin-top:14px"><button type="button" class="btn o" @click="histShow">{{ t("activity.w.hShow") }}</button><button type="button" class="btn" @click="popClose">{{ t("activity.d.done") }}</button></div>
-    </ActSheet>
+    </BaseSheet>
 
     <BaseDialog :open="!!ask" :title="ask ? ask.title : ''" @update:open="(v) => !v && (ask = null)">
       <template v-if="ask">{{ ask.text }}</template>

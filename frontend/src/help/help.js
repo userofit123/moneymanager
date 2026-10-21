@@ -1,6 +1,7 @@
 // The page guide and the small ? next to section names, ported from web/js/05-accounts-charts-help.js.
 // The guide text is in en.js / he.js (copied from web/help.js and web/help-he.js), the little pictures in demo.js, the ? places in dots.js.
 import { ref } from "vue";
+import { readPref, writePref } from "../core/prefs.js";
 import EN from "./en.js";
 import HE from "./he.js";
 import DOTS from "./dots.js";
@@ -8,17 +9,17 @@ import { HDEMO } from "./demo.js";
 import { vTip } from "../tip.js";
 
 // The page the guide describes, by the new app's page name (the old app's names in HELP).
-export const HELP_PAGE = { home: "dash", activity: "tx", accounts: "acc", jars: "jars", bills: "bills", budgets: "budg", reports: "rep", forecast: "fc", alerts: "alerts", categories: "cats", settings: "set.conn" };
+export const HELP_PAGE = { home: "dash", activity: "tx", accounts: "acc", jars: "jars", bills: "bills", budgets: "budg", reports: "rep", forecast: "fc", alerts: "alerts", categories: "cats" };
 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 export const hMd = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
 
 export const helpOpen = ref(false);
-try { helpOpen.value = localStorage.getItem("moneyHelp") === "1"; } catch { /* private mode: closed */ }
+helpOpen.value = readPref("moneyHelp") === "1";
 export function helpSet(on) {
   helpOpen.value = on;
   document.documentElement.classList.toggle("help-on", on);
-  try { localStorage.setItem("moneyHelp", on ? "1" : "0"); } catch { /* not remembered */ }
+  writePref("moneyHelp", on ? "1" : "0");
 }
 
 // What the panel shows for a page: the same sentences, in the language of the page. Null when there is no guide for it.

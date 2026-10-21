@@ -187,6 +187,8 @@ export function catJarsOf(S) { const o = {}; jarsOpen(S).forEach((j) => (j.cats 
 
 // The form for a new jar or for editing one. f: what was typed. Gives back an error key, or the history lines.
 // kind: "goal" (savings), "bill" or "payoff".
+// What the jar actions need from the jars model to write their history lines (dates in the history are English, like the current app).
+export const jarCtx = (M, fm) => ({ fm, dstr: (d) => new Date(String(d).slice(0, 10) + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }), BC: M.bills.BC, bills: M.bills, today: M.today, MK: M.MK });
 export function saveJar(S, id, f, ctx) {
   const { today, MK, bills } = ctx, n = String(f.n || "").trim();
   if (!n) return { err: "name", field: "n" };

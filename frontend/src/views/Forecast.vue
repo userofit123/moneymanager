@@ -5,6 +5,7 @@
 import { ref, computed, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { readJson, writeJson } from "../core/prefs.js";
 import PageHeader from "../components/PageHeader.vue";
 import BaseCard from "../components/BaseCard.vue";
 import { vRich } from "../lib/richtip.js";
@@ -27,8 +28,8 @@ onMounted(async () => {
 const S = computed(() => data.state.value);
 
 // The page's choices, saved like the current app does.
-const fc = ref((() => { let z = null; try { z = JSON.parse(localStorage.getItem("moneyFc") || "null"); } catch { /* none saved */ } const o = { h: 12, n: 6, m: "smart", ...(z || {}) }; if (![3, 6, 12].includes(o.n)) o.n = 6; return o; })());
-const pick = (k, v) => { fc.value = { ...fc.value, [k]: isNaN(+v) ? v : +v }; try { localStorage.setItem("moneyFc", JSON.stringify(fc.value)); } catch { /* not saved */ } };
+const fc = ref((() => { let z = null; try { z = readJson("moneyFc", null); } catch { /* none saved */ } const o = { h: 12, n: 6, m: "smart", ...(z || {}) }; if (![3, 6, 12].includes(o.n)) o.n = 6; return o; })());
+const pick = (k, v) => { fc.value = { ...fc.value, [k]: isNaN(+v) ? v : +v }; try { writeJson("moneyFc", (fc.value)); } catch { /* not saved */ } };
 const M = computed(() => forecastModel(S.value, new Date(), fx.value, fc.value));
 
 const now = new Date();

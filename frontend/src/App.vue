@@ -1,75 +1,68 @@
 <script setup>
-// The app's frame: the side menu (computer), the bottom bar (phone), and the page for the current address.
-// Same pages, order and icons as the current app. Pages not moved yet show a link to the current app.
+// The app's frame, like web/index.html: the menu (a rail on a computer, a bar at the bottom of a phone), the job bar, the offline banner,
+// the help and alerts buttons, the + button, the page for the current address, and the windows every page can open.
+// Before that, the sign-in screen when this browser is not signed in (core/boot.js).
 import { ref, computed, defineAsyncComponent, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { setLang } from "./i18n.js";
 import { pages } from "./routes.js";
 import { current, hrefOf, onLink, startRouter } from "./router.js";
-import NotMovedYet from "./views/NotMovedYet.vue";
-import BaseDialog from "./components/BaseDialog.vue";
-import HelpPanel from "./help/HelpPanel.vue";
-import ToastHost from "./components/ToastHost.vue";
-import { data } from "./stores/data.js";
+import { app, boot } from "./core/boot.js";
+import { alertList } from "./core/derived.js";
+import { quickOpen } from "./core/shell.js";
 import "./core/notices.js";
 import "./core/upkeep.js";
+import NotMovedYet from "./views/NotMovedYet.vue";
+import HelpPanel from "./help/HelpPanel.vue";
+import { helpOpen, helpSet } from "./help/help.js";
+import ToastHost from "./components/ToastHost.vue";
+import AuthScreen from "./components/AuthScreen.vue";
+import AppearancePanel from "./components/AppearancePanel.vue";
+import AppNav from "./components/shell/AppNav.vue";
+import JobBar from "./components/shell/JobBar.vue";
+import MoreSheet from "./components/shell/MoreSheet.vue";
+import SyncSheet from "./components/shell/SyncSheet.vue";
+import WelcomePops from "./components/shell/WelcomePops.vue";
+import QuickSheet from "./components/shell/QuickSheet.vue";
+import FormHost from "./components/FormHost.vue";
 
-const { t, locale } = useI18n();
-const tk = (k) => t(k);
+const { t } = useI18n();
 startRouter();
-data.start(); // the data loads once for the whole app and stays fresh (stores/data.js)
-const navPages = pages.filter((p) => p.nav);
+boot();
 const views = new Map(pages.filter((p) => p.component).map((p) => [p.name, defineAsyncComponent(p.component)]));
 const view = computed(() => views.get(current.value.name));
-const more = ref(false);
-const moreOn = computed(() => !current.value.main);
-watch(current, (p) => { more.value = false; document.title = tk("nav." + p.name) + " · " + t("app.title"); }, { immediate: true });
-watch(locale, () => { document.title = tk("nav." + current.value.name) + " · " + t("app.title"); });
+const alertsPage = pages.find((p) => p.name === "alerts");
+
+// The tab shows the app's name only, like the current app.
+watch(current, () => { document.title = t("app.title"); }, { immediate: true });
+
+const online = ref(typeof navigator === "undefined" ? true : navigator.onLine);
+addEventListener("online", () => (online.value = true));
+addEventListener("offline", () => (online.value = false));
 </script>
 
 <template>
-      <!-- Same menu as the current app: a narrow rail with the icon above the name (computer), a bar at the bottom (phone). -->
-    <nav :aria-label="t('shell.menu')">
-      <div class="logo" aria-hidden="true">₪</div>
-      <a v-for="p in navPages" :key="p.name" class="nb" :class="{ on: current.name === p.name, sec: !p.main }" :href="hrefOf(p)" :aria-current="current.name === p.name ? 'page' : undefined" @click="onLink">
-        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" v-html="p.icon" /></span>{{ tk("nav." + p.name) }}
-      </a>
-      <button type="button" class="nb only-m" :class="{ on: moreOn }" @click="more = true">
-        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="19" cy="12" r="1.6" /></svg></span>{{ t("shell.more") }}
-      </button>
-      <div class="navb">
-        <button type="button" class="nb" @click="setLang(locale === 'he' ? 'en' : 'he')"><span class="ic"><b class="lang">{{ locale === "he" ? "EN" : "עב" }}</b></span>{{ t("app.otherLanguage") }}</button>
-        <a class="nb" href="/"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="flip" d="M15 6l-6 6 6 6" /></svg></span>{{ t("app.backToApp") }}</a>
-      </div>
-    </nav>
-
+  <AuthScreen v-if="app.phase === 'auth'" />
+  <template v-else-if="app.phase !== 'start'">
+    <JobBar />
+    <div id="offline" class="banner" :class="{ on: !online }">{{ t("auth.offline") }}</div>
+    <AppNav />
+    <AppearancePanel />
+    <div class="fabx">
+      <button id="helpBtn" type="button" class="ib" :aria-label="t('shell.aboutPage')" :aria-expanded="helpOpen ? 'true' : 'false'" aria-controls="help" @click="helpSet(!helpOpen)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.5h.01" /></svg></button>
+      <a class="ib" :href="hrefOf(alertsPage)" :aria-label="t('shell.alerts')" @click="onLink"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0" /></svg><span class="badge" :style="{ display: alertList.length ? 'grid' : 'none' }">{{ alertList.length }}</span></a>
+    </div>
+    <button type="button" class="fab" :aria-label="t('shell.add')" @click="quickOpen = true">+</button>
     <main>
-      <component :is="view" v-if="view" />
-      <NotMovedYet v-else :key="current.name" :page="current" />
+      <div v-if="app.phase === 'down'" class="card warn" style="margin-bottom:16px"><b>{{ t("auth.downT") }}</b><div class="sm">{{ t("auth.down") }}</div></div>
+      <component :is="view" v-if="view && app.phase === 'ready'" />
+      <NotMovedYet v-else-if="app.phase === 'ready'" :key="current.name" :page="current" />
     </main>
     <HelpPanel />
-    <ToastHost />
-
-    <BaseDialog v-model:open="more" :title="t('shell.more')">
-      <div class="morelist">
-        <a v-for="p in navPages" :key="p.name" class="mi" :class="{ on: current.name === p.name }" :href="hrefOf(p)" @click="onLink">
-          <svg viewBox="0 0 24 24" aria-hidden="true" v-html="p.icon" /><span>{{ tk("nav." + p.name) }}</span>
-        </a>
-        <button type="button" class="mi" @click="setLang(locale === 'he' ? 'en' : 'he')"><b class="lang">{{ locale === "he" ? "EN" : "עב" }}</b><span>{{ t("app.otherLanguage") }}</span></button>
-        <a class="mi" href="/"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="flip" d="M15 6l-6 6 6 6" /></svg><span>{{ t("app.backToApp") }}</span></a>
-      </div>
-    </BaseDialog>
+    <MoreSheet />
+    <SyncSheet />
+    <QuickSheet />
+    <FormHost />
+    <WelcomePops v-if="app.phase === 'ready'" />
+  </template>
+  <ToastHost />
 </template>
-
-<style>
-/* Menu, logo, .nb, .navb, main and the phone rules all come from legacy.css (a copy of web/css/app.css). Only what the old app does not have is here. */
-a.nb { text-decoration: none; text-align: center; line-height: 1.3; }
-.lang { font-size: 11px; font-weight: 700; }
-html.he .flip { transform: scaleX(-1); transform-origin: center; }
-.morelist { display: flex; flex-direction: column; gap: 2px; }
-.mi { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border: 0; border-radius: 99px; background: none; color: var(--tx); text-decoration: none; font-size: 14px; cursor: pointer; text-align: start; width: 100%; font-family: inherit; }
-.mi svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
-.mi .lang { width: 22px; text-align: center; flex: none; }
-.mi:hover { background: var(--s2); }
-.mi.on { background: var(--accc); color: var(--onc); font-weight: 600; }
-</style>

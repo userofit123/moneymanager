@@ -5,6 +5,8 @@ import { readFileSync, readdirSync } from "node:fs";
 import { formatMoney, clampPercent, currencySymbol } from "../src/format.js";
 
 const read = (p) => readFileSync(new URL("../src/" + p, import.meta.url), "utf8");
+// every .vue file under components/, also in its folders, as "components/…"
+const comps = () => readdirSync(new URL("../src/components", import.meta.url), { recursive: true }).filter((f) => f.endsWith(".vue")).map((f) => "components/" + f);
 const old = readFileSync(new URL("../../web/js/01-prefs-theme.js", import.meta.url), "utf8");
 
 test("default colors match the current app's Indigo look, light and dark", () => {
@@ -35,13 +37,13 @@ test("progress bars never go below 0% or above 100%", () => {
 });
 
 test("no style uses the question-mark (help) cursor", () => {
-  const all = ["styles/base.css", "styles/tokens.css", ...readdirSync(new URL("../src/components", import.meta.url)).map((f) => "components/" + f)];
+  const all = ["styles/base.css", "styles/tokens.css", ...comps()];
   for (const f of all) assert.doesNotMatch(read(f), /cursor:\s*help/, f);
 });
 
 test("components use the shared color names, not colors typed in by hand", () => {
-  for (const f of readdirSync(new URL("../src/components", import.meta.url))) {
-    const css = (read("components/" + f).split("<style")[1] || "").replace(/#fff\b/g, "");
+  for (const f of comps()) {
+    const css = (read(f).split("<style")[1] || "").replace(/#fff\b/g, "");
     assert.doesNotMatch(css, /#[0-9a-f]{3,8}\b/i, f);
   }
 });
@@ -53,7 +55,7 @@ test("all building blocks the screens need exist", () => {
 
 test("Hebrew style rules only change their own part, never the whole page", () => {
   // Vue keeps only what is inside :global(...), so ":global(html.he) .x" would style the whole page. Write ":global(html.he .x)".
-  for (const f of readdirSync(new URL("../src/components/", import.meta.url))) {
-    assert.doesNotMatch(read("components/" + f), /:global\([^)]*\)\s*[.#\w[]/, `${f}: put the whole selector inside :global(...)`);
+  for (const f of comps()) {
+    assert.doesNotMatch(read(f), /:global\([^)]*\)\s*[.#\w[]/, `${f}: put the whole selector inside :global(...)`);
   }
 });

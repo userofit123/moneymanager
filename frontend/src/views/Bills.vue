@@ -6,14 +6,16 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { openForm } from "../core/forms.js";
+import { dstr } from "../dates.js";
 import { toast } from "../core/toast.js";
 import { go } from "../router.js";
 import PageHeader from "../components/PageHeader.vue";
-import ActSheet from "./ActSheet.vue";
+import BaseSheet from "../components/BaseSheet.vue";
 import { displayName } from "./activity.js";
 import { placeMenu } from "./jars-ui.js";
 import { vRich } from "../lib/richtip.js";
-import { billsModel, billState, payHistory, addBill, flagBill, cancelBill, restoreBill, deleteBill, setBillType, sugYes, sugNo, typeOf, cadText, freqText, evTipText, makeDstr, f0, fm } from "../lib/bills.js";
+import { billsModel, billState, payHistory, flagBill, cancelBill, restoreBill, deleteBill, setBillType, sugYes, sugNo, typeOf, cadText, freqText, evTipText, f0, fm } from "../lib/bills.js";
 
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);
@@ -21,8 +23,6 @@ const S = computed(() => data.state.value);
 onMounted(() => { data.start(); });
 
 // ---- how things are written (the current app's dstr, cc and accLbl) ----
-const DF = (() => { try { return localStorage.getItem("moneyDf") === "mdy" ? "mdy" : "dmy"; } catch { return "dmy"; } })();
-const dstr = makeDstr(DF);
 const loc = computed(() => (locale.value === "he" ? "he-IL" : "en-GB"));
 const monYr = (d, k) => { const x = new Date(d); x.setMonth(x.getMonth() + k); return x.toLocaleDateString(loc.value, { month: "short", year: "numeric" }); };
 const monShort = (d) => new Date(d + "T12:00:00").toLocaleDateString(loc.value, { month: "short" });
@@ -118,18 +118,8 @@ const histMon = (d) => monShort(d), histDay = (d) => +d.slice(8, 10);
 const histSpan = computed(() => (hist.value ? t("bills.h.to", { from: dstr(hist.value.h.L[hist.value.h.L.length - 1].d), to: dstr(hist.value.h.L[0].d) }) : ""));
 const goActivity = () => { hist.value = null; go("/activity"); };
 
-// ---- Add a bill ----
-const form = ref(null);
-const srcList = computed(() => {
-  const A = S.value?.accounts || [], L = [...new Set(A.filter((a) => !a.hide && ["bank", "card", "wallet"].includes(a.kind)).map((a) => a.n))], src = L.length ? L : ["Bank Hapoalim", "Max", "Isracard", "Wise"];
-  return src.map((x) => { const ac = A.find((a) => a.n == x); return { v: x, label: x + (ac && ac.kind == "card" && ac.tail && !/··/.test(x) ? " ⁦·· " + ac.tail + "⁩" : "") }; });
-});
-const openAdd = () => { form.value = { n: "", amt: "", every: "1", dom: 1, src: srcList.value[0]?.v || "", match: "" }; };
-function saveAdd() {
-  const f = form.value; if (!f.n.trim() || !+f.amt) return;
-  const now = new Date(); form.value = null;
-  change((n) => addBill(n, f, now));
-}
+// ---- Add a bill: the shared window (components/forms/BillForm.vue) ----
+const openAdd = () => openForm("bill");
 
 // ---- Change bill type ----
 const typeFor = ref(null); // { i, name, v }
@@ -233,26 +223,17 @@ const remove = (b) => change((n) => deleteBill(n, b.idx));
       </div>
     </Teleport>
 
-    <ActSheet v-if="form" @close="form = null">
-      <h3>{{ t("bills.add.title") }}</h3>
-      <div class="sm" style="margin-bottom:12px;line-height:1.5">{{ t("bills.add.i1") }}<br>{{ t("bills.add.i2") }}<br>{{ t("bills.add.i3") }}</div>
-      <div class="fld"><label>{{ t("bills.add.name") }}</label><input v-model="form.n" :placeholder="t('bills.add.nameEx')"></div>
-      <div class="two"><div class="fld"><label>{{ t("bills.add.amount") }}</label><input v-model="form.amt" type="number" inputmode="decimal"></div><div class="fld"><label>{{ t("bills.add.often") }}</label><select v-model="form.every"><option value="1">{{ t("bills.cad.1") }}</option><option value="2">{{ t("bills.cad.2") }}</option><option value="12">{{ t("bills.cad.12") }}</option><option value="0">{{ t("bills.add.opt0") }}</option></select></div></div>
-      <div class="two"><div class="fld"><label>{{ t("bills.add.day") }}</label><input v-model="form.dom" type="number" inputmode="numeric" min="1" max="28"></div><div class="fld"><label>{{ t("bills.add.from") }}</label><select v-model="form.src"><option v-for="o in srcList" :key="o.v" :value="o.v">{{ o.label }}</option></select></div></div>
-      <div class="fld"><label>{{ t("bills.add.match") }}</label><input v-model="form.match" :placeholder="t('bills.add.matchEx')"></div>
-      <div class="flex" style="justify-content:flex-end;gap:10px"><button class="btn o" data-a="close" @click="form = null">{{ t("bills.cancel") }}</button><button class="btn" data-a="billSave" @click="saveAdd">{{ t("bills.save") }}</button></div>
-    </ActSheet>
 
-    <ActSheet v-if="typeFor" @close="typeFor = null">
+    <BaseSheet :open="!!typeFor" @close="typeFor = null">
       <h3>{{ t("bills.type.title") }}</h3>
       <div class="sm" style="margin-bottom:12px">{{ typeFor.name }}</div>
       <div class="inf"><div class="it"><b>{{ t("bills.type.recT") }}</b>{{ t("bills.type.rec") }}</div></div>
       <div class="inf"><div class="it"><b>{{ t("bills.type.irrT") }}</b>{{ t("bills.type.irr") }}</div></div>
       <div class="fld"><label>{{ t("bills.type.label") }}</label><select v-model="typeFor.v"><option value="1">{{ t("bills.type.o1") }}</option><option value="2">{{ t("bills.type.o2") }}</option><option value="12">{{ t("bills.type.o12") }}</option><option value="irregular">{{ t("bills.type.oirr") }}</option></select></div>
       <div class="flex" style="justify-content:flex-end;gap:10px"><button class="btn o" data-a="close" @click="typeFor = null">{{ t("bills.cancel") }}</button><button class="btn" data-a="billTypeSave" @click="saveType">{{ t("bills.save") }}</button></div>
-    </ActSheet>
+    </BaseSheet>
 
-    <ActSheet v-if="hist" @close="hist = null">
+    <BaseSheet :open="!!hist" @close="hist = null">
       <div class="txh"><h3>{{ hist.title }}</h3><div class="sm">{{ hist.sub }} · {{ histSpan }}</div></div>
       <div class="phs"><div><span>{{ t("bills.h.payments") }}</span><b>{{ hist.h.L.length }}</b></div><div><span>{{ t("bills.h.total") }}</span><b>{{ fm(hist.h.tot) }}</b></div><div><span>{{ t("bills.h.average") }}</span><b>{{ fm(hist.h.avg) }}</b></div></div>
       <div v-if="hist.h.bars.length" class="phb" aria-hidden="true"><i v-for="x in hist.h.bars" :key="x.id" :style="{ height: Math.max(8, (Math.abs(x.a) / hist.h.mx) * 100) + '%' }" :title="dstr(x.d) + ': ' + fm(Math.abs(x.a))" /></div>
@@ -264,6 +245,6 @@ const remove = (b) => change((n) => deleteBill(n, b.idx));
         </template>
       </div>
       <div class="flex" style="justify-content:flex-end;gap:10px;margin-top:14px"><button class="btn o" data-a="goSearch" @click="goActivity">{{ t("bills.h.show") }}</button><button class="btn" data-a="close" @click="hist = null">{{ t("bills.done") }}</button></div>
-    </ActSheet>
+    </BaseSheet>
   </template>
 </template>

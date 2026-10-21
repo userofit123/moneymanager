@@ -270,10 +270,18 @@ function pendCover(S, r) {
     .map((t) => Math.abs(r.cur === "ILS" ? t.a : t.orig && t.orig.cur === r.cur ? t.orig.amt : 0)).filter((x) => x > 0);
   return amountsFit(L.slice(0, 40), need);
 }
-// Open balance gaps that pending charges do not already explain.
-export const reviewGaps = (S) => (S?.gaps || []).filter((g) => g.status === "open" && g.remaining != 0)
+// Open balance gaps that pending charges do not already explain (recon in the current app).
+export const balanceGaps = (S) => (S?.gaps || []).filter((g) => g.status === "open" && g.remaining != 0)
   .map((g) => ({ id: g.id, n: g.account, cur: g.currency, diff: g.remaining, amount: g.amount, from: g.window_from, to: g.window_to }))
   .filter((r) => !pendCover(S, r));
+// The expected bill (not seen yet) that a drop in an account's balance most likely is (gapBill). BC: every bill, worked out (home.billsAll).
+export function gapBill(r, BC = []) {
+  if (!(r.diff < 0)) return null;
+  const need = -r.diff, t0 = new Date(r.from).getTime() - 2 * 864e5, t1 = new Date(r.to).getTime() + 2 * 864e5;
+  return BC.find((b) => !b.once && !b.irregular && b.flag != "canceled" && b.pd && b.status != "paid" && nmOf(b.src) == nmOf(r.n) && Math.abs(b.pred - need) <= Math.max(1, b.pred * 0.03) && +b.pd >= t0 && +b.pd <= t1) || null;
+}
+// The gaps that really need a look: not an expected bill the bank has not listed yet (that one is only an alert).
+export const reviewGaps = (S, BC = []) => balanceGaps(S).filter((r) => !gapBill(r, BC));
 
 // The transaction window's facts, as [label key, value] pairs, from what the app knows and what the bank sent (GET /api/transactions/:id/details).
 const ilD = (v) => { const s = String(v || ""); if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s; const d = new Date(s); return isNaN(d) ? s.slice(0, 10) : new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jerusalem", year: "numeric", month: "2-digit", day: "2-digit" }).format(d); };

@@ -1,14 +1,13 @@
 // The alerts the current app works out (alerts() in web/js/04-transactions.js, jarSuggest in 08-jars.js), the same rules, in the same order.
 // Each alert is { id, type, sev, key, p, go, ... }: key and p (the numbers and names) fill the English and Hebrew sentences in the language files.
 import { forecastSurplus } from "./jars.js";
-import { reviewGaps, duplicateIds, transferIds, isIgnored, rn } from "./activity.js";
+import { balanceGaps, gapBill, duplicateIds, transferIds, isIgnored, rn } from "./activity.js";
 import { addM, rdOf } from "./home.js";
 
 const f = (n) => Math.abs(n).toLocaleString("en-IL", { maximumFractionDigits: 0 });
 export const fm = (n) => (n < 0 ? "−" : "") + "₪" + f(n);
 const SYM = { ILS: "₪", USD: "$", EUR: "€", GBP: "£", JPY: "¥" };
 const sym = (c) => SYM[c] || c + " ";
-const nmOf = (x) => String(x || "").replace(/\s*··.*$/, "").trim();
 const iso = (d) => d.toISOString().slice(0, 10);
 const ymd = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 
@@ -33,12 +32,6 @@ function jarSuggest(S, X, XS, catJars, jarsS, t) {
   let best = null, bs = 0; sc.forEach((v, id) => { if (v > bs) { bs = v; best = id; } });
   return bs >= 2 ? jarsS.find((j) => j.id === best) || null : null;
 }
-// The expected bill (not yet seen) that a drop in an account's balance most likely is.
-const gapBill = (BC, r) => {
-  if (!(r.diff < 0)) return null;
-  const need = -r.diff, t0 = new Date(r.from).getTime() - 2 * 864e5, t1 = new Date(r.to).getTime() + 2 * 864e5;
-  return BC.find((b) => !b.once && !b.irregular && b.flag != "canceled" && b.pd && b.status != "paid" && nmOf(b.src) == nmOf(r.n) && Math.abs(b.pred - need) <= Math.max(1, b.pred * 0.03) && b.pd >= t0 && b.pd <= t1) || null;
-};
 const fmtWhen = (t) => new Date(t).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 // The connections list on Home's sync alerts (SRC in web/js/02-state-data.js).
 function sources(S) {
@@ -81,8 +74,8 @@ export function alertsModel(S, M, now = new Date(), fc = {}, friendly = (e) => e
   const xs = (S.xf || []).filter((x) => x.st == "auto").length; if (xs) add("xf-" + xs, "xfer", "med", "xfer", { n: xs }, "tx", { tab: "rev" });
   const dups = duplicateIds(S); if (dups.size) add("dp-" + dups.size, "xfer", "med", "dup", { n: dups.size }, "tx", { ids: [...dups] });
   // balance gaps
-  reviewGaps(S).forEach((r) => {
-    const old = (now - new Date(r.from)) / 864e5 >= c.gapDays, gb = gapBill(BC, r), amt = sym(r.cur) + f(Math.abs(r.diff));
+  balanceGaps(S).forEach((r) => {
+    const old = (now - new Date(r.from)) / 864e5 >= c.gapDays, gb = gapBill(r, BC), amt = sym(r.cur) + f(Math.abs(r.diff));
     if (gb) { add("rc-" + r.id + "-" + r.diff, "recon", "low", "gapBill", { n: r.n, amt, bill: gb.n, bamt: fm(gb.pred), date: gb.pd }, "tx", { tab: "rev" }); return; }
     add("rc-" + r.id + "-" + r.diff, "recon", old ? "high" : "med", "gap", { n: r.n, down: r.diff < 0 ? 1 : 0, amt }, "tx", { tab: "rev" });
   });

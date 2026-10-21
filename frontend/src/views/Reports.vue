@@ -6,6 +6,8 @@
 import { ref, computed, reactive, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { dshort } from "../dates.js";
+import { dateFormat, readJson, weekStart, writeJson } from "../core/prefs.js";
 import { pages } from "../routes.js";
 import { hrefOf, go } from "../router.js";
 import { formatMoney } from "../format.js";
@@ -27,8 +29,6 @@ const he = computed(() => locale.value === "he");
 const fm = (v) => formatMoney(Math.round(v));
 const f0 = (v) => Math.round(Math.abs(v)).toLocaleString("en-IL");
 const isMob = () => document.documentElement.classList.contains("mob");
-const WS = (() => { try { return localStorage.getItem("moneyWs") === "mon" ? "mon" : "sun"; } catch { return "sun"; } })();
-const DF = (() => { try { return localStorage.getItem("moneyDf") === "mdy" ? "mdy" : "dmy"; } catch { return "dmy"; } })();
 
 // ---- data ----
 const fx = computed(() => data.fx.value.fx); // exchange rates, loaded with the data
@@ -52,11 +52,11 @@ const RNG = reactive({ cat: { p: "month", from: "", to: "" }, merch: { p: "month
 const RN = reactive({ bars: 12, lines: 12, lt: "exp" });
 const CMP = reactive({ cat: "none", merch: "none", tag: "none" });
 const TR = reactive({ m: "nw", r: 12, v: "area", c: false });
-try { const j = JSON.parse(localStorage.getItem("moneyRanges") || "{}"); ["cat", "merch", "tag"].forEach((k) => { if (j[k]) RNG[k] = j[k]; }); if (j.RN) Object.assign(RN, j.RN); if (j.CMP) Object.assign(CMP, j.CMP); } catch { /* defaults */ }
-try { Object.assign(TR, JSON.parse(localStorage.getItem("moneyTrend") || "{}")); } catch { /* defaults */ }
+try { const j = readJson("moneyRanges", {}); ["cat", "merch", "tag"].forEach((k) => { if (j[k]) RNG[k] = j[k]; }); if (j.RN) Object.assign(RN, j.RN); if (j.CMP) Object.assign(CMP, j.CMP); } catch { /* defaults */ }
+try { Object.assign(TR, readJson("moneyTrend", {})); } catch { /* defaults */ }
 if (!["area", "line", "bars"].includes(TR.v)) TR.v = "area";
-function saveRng() { try { const j = JSON.parse(localStorage.getItem("moneyRanges") || "{}"); localStorage.setItem("moneyRanges", JSON.stringify({ ...j, cat: RNG.cat, merch: RNG.merch, tag: RNG.tag, RN: { ...RN }, CMP: { ...CMP } })); } catch { /* not remembered */ } }
-const saveTR = () => { try { localStorage.setItem("moneyTrend", JSON.stringify({ ...TR })); } catch { /* not remembered */ } };
+function saveRng() { try { const j = readJson("moneyRanges", {}); writeJson("moneyRanges", ({ ...j, cat: RNG.cat, merch: RNG.merch, tag: RNG.tag, RN: { ...RN }, CMP: { ...CMP } })); } catch { /* not remembered */ } }
+const saveTR = () => { try { writeJson("moneyTrend", ({ ...TR })); } catch { /* not remembered */ } };
 watch(() => [RNG.cat, RNG.merch, RNG.tag, RN.bars, RN.lines, RN.lt, CMP.cat, CMP.merch, CMP.tag].map((x) => JSON.stringify(x)).join("|"), saveRng);
 watch(() => JSON.stringify(TR), saveTR);
 
@@ -70,9 +70,9 @@ function save(edit, action, detail, undo) {
 // Activity reads its time frame from moneyRanges.tx; the rest waits in sessionStorage ("mmGo") for it to pick up.
 function goActivity(o = {}) {
   try {
-    const j = JSON.parse(localStorage.getItem("moneyRanges") || "{}");
+    const j = readJson("moneyRanges", {});
     j.tx = o.from || o.to ? { p: "custom", from: o.from || "", to: o.to || "" } : { p: "all", from: "", to: "" };
-    localStorage.setItem("moneyRanges", JSON.stringify(j));
+    writeJson("moneyRanges", (j));
     sessionStorage.setItem("mmGo", JSON.stringify({ cat: o.cat || "", tag: o.tag || "", ty: o.ty || "", q: o.q || "" }));
   } catch { /* opens Activity without the filter */ }
   go(hrefOf(pages.find((p) => p.name === "activity")));
@@ -82,7 +82,7 @@ function goActivity(o = {}) {
 const rangeKeys = ["all", "today", "yesterday", "week", "lastweek", "month", "lastmonth", "30d", "90d", "year", "lastyear"];
 const cmpOpts = computed(() => [["none", t("rep.cmpNone")], ["prev", t("rep.cmpPrev")], ["yoy", t("rep.cmpYoy")]]);
 const monOpts = computed(() => [[3, t("rep.m3")], [6, t("rep.m6")], [12, t("rep.m12")], [24, t("rep.m24")], [0, t("rep.mAll")]]);
-const dateShort = (d) => (DF === "mdy" ? d.slice(5, 7) + "/" + d.slice(8, 10) : d.slice(8, 10) + "/" + d.slice(5, 7));
+const dateShort = dshort;
 const rangeLabel = (r) => (/^\d{4}-\d{2}-01$/.test(r.from) && r.to == r.from.slice(0, 7) + "-31" ? MNAME(r.from.slice(0, 7)) + " " + r.from.slice(0, 4)
   : (r.from && r.to && r.from.slice(0, 4) == r.to.slice(0, 4) ? dateShort(r.from) : r.from ? dcell(r.from) : "…") + " – " + (r.to ? dcell(r.to) : "…"));
 const rangeOpts = (id) => [...rangeKeys.map((k) => [k, tk("activity.range." + k)]), ["custom", RNG[id].p == "custom" ? rangeLabel(RNG[id]) : t("activity.range.custom")]];
@@ -202,7 +202,7 @@ function lineShow(e) {
 const lineTip = ref(null);
 
 // ---- 4. spending by category, merchants and tags ----
-const blk = (id) => (M.value ? block(M.value, RNG[id], CMP[id], NOW, WS) : null);
+const blk = (id) => (M.value ? block(M.value, RNG[id], CMP[id], NOW, weekStart.value) : null);
 const catB = computed(() => { const B = blk("cat"); if (!B) return null; const cur = sumBy(B.cur, (x) => [x.c || "Uncategorized"]), prev = B.prev ? sumBy(B.prev, (x) => [x.c || "Uncategorized"]) : null; return { B, cur, prev, ents: byAmount(cur), keys: [...new Set([...Object.keys(cur), ...Object.keys(prev || {})])].sort((a, b) => (cur[b] || 0) - (cur[a] || 0)) }; });
 const tagB = computed(() => { const B = blk("tag"); if (!B) return null; const cur = sumBy(B.cur, (x) => x.tags || []), prev = B.prev ? sumBy(B.prev, (x) => x.tags || []) : null; return { B, cur, prev, ents: byAmount(cur), keys: [...new Set([...Object.keys(cur), ...Object.keys(prev || {})])].sort((a, b) => (cur[b] || 0) - (cur[a] || 0)) }; });
 const merch = computed(() => (M.value ? merchants(M.value, blk("merch"), S.value) : null));
@@ -329,6 +329,6 @@ const monthDay = computed(() => (cmp.value ? { month: pmN.value, day: cmp.value.
           <div v-else class="sm" style="padding:20px 0">{{ RN.lt == "inc" ? t("rep.noIncomeMonths") : t("rep.noSpendMonths") }}</div></div></div>
     </template>
     </div>
-    <RangeCal v-if="cal" :from="RNG[cal.id].p === 'custom' ? RNG[cal.id].from : ''" :to="RNG[cal.id].p === 'custom' ? RNG[cal.id].to : ''" :anchor="cal.anchor" :df="DF" :ws="WS" @apply="calApply" @cancel="calCancel" />
+    <RangeCal v-if="cal" :from="RNG[cal.id].p === 'custom' ? RNG[cal.id].from : ''" :to="RNG[cal.id].p === 'custom' ? RNG[cal.id].to : ''" :anchor="cal.anchor" :df="dateFormat" :ws="weekStart" @apply="calApply" @cancel="calCancel" />
   </div>
 </template>

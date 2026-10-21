@@ -6,13 +6,14 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { openForm } from "../core/forms.js";
+import { readJson } from "../core/prefs.js";
 import { toast } from "../core/toast.js";
 import BaseCard from "../components/BaseCard.vue";
 import BaseButton from "../components/BaseButton.vue";
 import PageHeader from "../components/PageHeader.vue";
 import BaseDialog from "../components/BaseDialog.vue";
-import JarForm from "./JarForm.vue";
-import { jarsModel, releaseJars, markDone, deleteJar, jarHistory, saveJar, jarFormOf } from "./jars.js";
+import { jarsModel, jarCtx, releaseJars, markDone, deleteJar, jarHistory, jarFormOf } from "./jars.js";
 import { displayName } from "./activity.js";
 import { vTip, placeMenu } from "./jars-ui.js";
 
@@ -28,7 +29,7 @@ onMounted(async () => {
 
 const S = computed(() => data.state.value);
 // The Forecast page's choices, saved by the current app in this browser; the "Full by" dates use the same guess.
-const fcOpt = (() => { try { return JSON.parse(localStorage.getItem("moneyFc") || "null") || {}; } catch { return {}; } })();
+const fcOpt = (() => { try { return readJson("moneyFc", null) || {}; } catch { return {}; } })();
 const M = computed(() => jarsModel(S.value, new Date(), fx.value, fcOpt));
 const loc = computed(() => (locale.value === "he" ? "he-IL" : "en-GB"));
 const mlab = (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, { month: "short", year: "numeric" });
@@ -66,7 +67,7 @@ async function fill() {
 }
 
 // The jar actions. ctx: what the change needs to write its history lines.
-const ctx = () => ({ fm, dstr: (d) => new Date(String(d).slice(0, 10) + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }), BC: M.value.bills.BC, bills: M.value.bills, today: M.value.today, MK: M.value.MK });
+const ctx = () => jarCtx(M.value, fm);
 const menu = ref(null); // { id, kind: "more" | "hist", btn }
 const menuEl = ref(null);
 const toggleMenu = (id, kind, ev) => {
@@ -85,17 +86,9 @@ const NOTES = { "Edited by you": "edited", "Marked as done": "markedDone", "Rele
 const noteText = (h) => (h.earlier ? t(h.note == "start" ? "jars.hist.start" : "jars.hist.untracked") : h.pay ? t(h.payoff ? "jars.hist.paidBack" : "jars.hist.paid", { name: h.name }) : NOTES[h.note] ? tk("jars.hist." + NOTES[h.note]) : h.note);
 const amtText = (h) => (h.pay && h.payoff ? "" : h.amt < 0 ? "−" : "+") + "₪" + n0(h.amt);
 
-// New jar, new goal and edit.
-const form = ref({ open: false, id: 0, start: null });
-const openNew = () => { form.value = { open: true, id: 0, start: { kind: "goal" } }; };
-const openEdit = (id) => { const j = S.value.jars.find((x) => x.id == id); if (!j) return; menu.value = null; form.value = { open: true, id, start: jarFormOf(j) }; };
-function saveForm(f) {
-  let res = null;
-  const probe = structuredClone(S.value); res = saveJar(probe, form.value.id, f, ctx());
-  if (res.err) { say(tk("jars.form.e." + res.err), "err"); const el = res.field && document.getElementById("nj" + res.field.toUpperCase()); if (el) el.focus(); return; }
-  form.value.open = false;
-  save((next) => { const r = saveJar(next, form.value.id, f, ctx()); return r.logs.length ? r.logs : false; });
-}
+// New jar, new goal and edit: the shared window (components/forms/JarFormHost.vue).
+const openNew = () => openForm("jar", { start: { kind: "goal" } });
+const openEdit = (id) => { const j = S.value.jars.find((x) => x.id == id); if (!j) return; menu.value = null; openForm("jar", { id, start: jarFormOf(j) }); };
 // Mark as done.
 const doneAsk = ref(null);
 const askDone = (id) => { menu.value = null; doneAsk.value = S.value.jars.find((x) => x.id == id) || null; };
@@ -259,8 +252,6 @@ const doneLine = (d) => [t("jars.doneOn", { date: dstr(d.done) }), d.need > 0 ? 
         </template>
       </div>
     </Teleport>
-
-    <JarForm v-model:open="form.open" :S="S" :M="M" :id="form.id" :start="form.start" @save="saveForm" />
 
     <BaseDialog :open="!!doneAsk" :title="t('jars.done.title', { name: doneAsk?.n || '' })" @update:open="doneAsk = null">
       <div class="sm" style="line-height:1.5">{{ t("jars.done.text") }}<template v-if="doneAsk?.bal > 0"> {{ t("jars.done.back", { amount: fm(doneAsk.bal) }) }}</template></div>

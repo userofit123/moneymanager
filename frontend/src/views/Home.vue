@@ -5,6 +5,7 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { readPref, writePref } from "../core/prefs.js";
 import { pages } from "../routes.js";
 import { hrefOf, onLink, go } from "../router.js";
 import { formatMoney, currencySymbol } from "../format.js";
@@ -116,8 +117,8 @@ const cardRows = computed(() => M.value.cards.map((c) => {
 
 // Money flow.
 const FLOWKEY = "moneyFlow";
-const flowMode = ref((() => { try { return localStorage.getItem(FLOWKEY) === "actual" ? "actual" : "left"; } catch { return "left"; } })());
-watch(flowMode, (v) => { try { localStorage.setItem(FLOWKEY, v); } catch { /* not remembered */ } });
+const flowMode = ref((() => { try { return readPref(FLOWKEY) === "actual" ? "actual" : "left"; } catch { return "left"; } })());
+watch(flowMode, (v) => { try { writePref(FLOWKEY, v); } catch { /* not remembered */ } });
 const flowOpts = computed(() => [{ value: "left", label: t("home.planned") }, { value: "actual", label: t("home.actual") }]);
 const W = computed(() => flowSteps(M.value.flow, flowMode.value));
 const colName = (c) => c.kind === "start" ? t("home.beforeSpending") : c.kind === "end" ? (W.value.eOver > 0 ? t("home.short") : W.value.ACT ? t("home.availableNow") : t("home.freeToUse"))

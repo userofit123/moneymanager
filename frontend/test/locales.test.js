@@ -30,6 +30,6 @@ test("no text is empty, and Hebrew texts contain Hebrew letters", () => {
   }
 });
 test("placeholders like {name} match in both languages", () => {
-  const ph = (s) => (String(s).match(/\{\w+\}/g) || []).sort().join();
+  const ph = (s) => [...new Set(String(s).match(/\{\w+\}/g) || [])].sort().join(); // each placeholder once: a plural form may leave out {n} ("one jar")
   for (const k of Object.keys(en)) if (k in he) assert.equal(ph(he[k]), ph(en[k]), "placeholder mismatch: " + k);
 });
