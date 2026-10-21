@@ -10,7 +10,7 @@ import { tx } from "../../core/heText.js";
 import BaseSheet from "../../components/BaseSheet.vue";
 import ConnCard from "./ConnCard.vue";
 import { SI } from "./icons.js";
-import { CONN, adding, avail, cards, formOpen, nConnected, nBad, provName, companyOf, labelOf, loadConn, connStart } from "./conn.js";
+import { CONN, adding, avail, cards, formOpen, nConnected, nBad, provName, companyOf, labelOf, loadConn, connStartHere } from "./conn.js";
 
 const { t } = useI18n();
 const tk = (k, a) => t("settings.conn." + k, a || {});
@@ -22,8 +22,7 @@ const used = () => CONN.value.filter((c) => c.configured).map((c) => provName(c)
 function add() {
   const v = pick.value; if (!v) return;
   formOpen.value = false; pick.value = "";
-  // the new card comes into view with its first box ready to type in
-  connStart(v, (id) => nextTick(() => setTimeout(() => { const c = document.getElementById("conn-" + id); if (c) { c.scrollIntoView({ behavior: "smooth", block: "center" }); c.querySelector("input")?.focus({ preventScroll: true }); } }, 60)));
+  connStartHere(v);
 }
 
 // "Test connection" result and "See where it stopped" (showTest, showShot)

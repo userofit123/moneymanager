@@ -108,7 +108,7 @@ export function homeModel(S, now = new Date(), fx = {}) {
   const recBills = BC.filter((b) => !b.once && !b.irregular && b.flag != "canceled" && b.mo > 0);
   const R = (() => {
     const linked = new Set(jarsS.map((j) => j.bill).filter(Boolean)), allB = linked.has("*") || linked.has("*a"), useAvg = cfg.reserveAvg !== false, bl0 = {}, cov = {};
-    activeBills.forEach((b) => { if (b.once || b.irregular || !b.nx) return; const unpaid = (b.status == "overdue" || b.status == "pending") && (NOW - b.pd) / 864e5 <= 45, comes = b.nx.toISOString().slice(0, 7) == MK; if (!unpaid && !comes) return; const kk = b.cat || "Other bills"; if (allB || linked.has(b.match)) { cov[kk] = (cov[kk] || 0) + b.pred; return; } (bl0[kk] = bl0[kk] || []).push({ n: b.n, amt: b.pred }); });
+    activeBills.forEach((b) => { if (b.once || b.irregular || !b.nx) return; const unpaid = (b.status == "overdue" || b.status == "pending") && (NOW - b.pd) / 864e5 <= 45, comes = b.nx.toISOString().slice(0, 7) == MK; if (!unpaid && !comes) return; const kk = b.cat || "Other bills"; if (allB || linked.has(b.match)) { cov[kk] = (cov[kk] || 0) + b.pred; return; } (bl0[kk] = bl0[kk] || []).push({ n: b.n, amt: b.pred, overdue: b.status == "overdue" }); });
     const keys = new Set([...Object.keys(budgets), ...Object.keys(bl0)]); if (useAvg && budMonths.length >= 2) Object.keys(monthlyByCat).forEach((kk) => { if (!RSKIP(S, kk)) keys.add(kk); });
     const cand = [], done = [];
     keys.forEach((kk) => { const bl = sum((bl0[kk] || []).map((x) => x.amt)), spent = spendM[kk] || 0; let base = 0, kind = "";
@@ -116,10 +116,12 @@ export function homeModel(S, now = new Date(), fx = {}) {
       const left = Math.max(0, base - spent - (cov[kk] || 0)), amt = Math.max(bl, left);
       if (amt < 1) { if (spent >= 1 && base > 0) done.push({ k: kk, base, spent, kind, over: spent > base + 0.5 }); return; }
       cand.push({ k: kk, amt, kind: bl >= left && bl > 0 ? "bill" : kind, bills: bl0[kk] || [], base, spent, bcov: cov[kk] || 0 }); });
-    const rows = [], pool = {}; Object.values(catJars).forEach((x) => { pool[x.j.id] = x.j.kind == "payoff" ? heldOf(x.j) : Math.max(0, +x.j.bal || 0); });
-    cand.sort((a, b) => b.amt - a.amt).forEach((r) => { const c = catJars[r.k]; let amt = r.amt; if (c) { const take = Math.min(pool[c.j.id], amt); pool[c.j.id] -= take; amt -= take; } if (amt < 1) return; rows.push({ ...r, amt, jar: c ? c.j.n : "", jarCov: c ? r.amt - amt : 0 }); });
+    // a jar that pays for a category covers what is left in it, up to what the jar holds (jarCov: what each jar covers)
+    const rows = [], pool = {}, jarCov = []; Object.values(catJars).forEach((x) => { pool[x.j.id] = x.j.kind == "payoff" ? heldOf(x.j) : Math.max(0, +x.j.bal || 0); });
+    cand.sort((a, b) => b.amt - a.amt).forEach((r) => { const c = catJars[r.k]; let amt = r.amt; if (c) { const take = Math.min(pool[c.j.id], amt); pool[c.j.id] -= take; amt -= take; if (take >= 1) jarCov.push({ k: r.k, jar: c.j.n, cov: take, of: r.amt }); } if (amt < 1) return; rows.push({ ...r, amt, jar: c ? c.j.n : "", jarCov: c ? r.amt - amt : 0 }); });
     rows.sort((a, b) => b.amt - a.amt);
-    return { total: sum(rows.map((r) => r.amt)), rows, done };
+    const total = sum(rows.map((r) => r.amt)), billsT = sum(rows.filter((r) => r.kind == "bill").map((r) => r.amt));
+    return { total, rows, bills: billsT, limits: total - billsT, jarCov, done };
   })();
   const inJars = sum(jarsS.map(heldOf)), buffer = Math.max(0, +S.jarsBuffer || 0), raw = cashNow - inJars - buffer - R.total;
   const free = Math.max(0, raw), over = -raw >= 1 ? Math.round(-raw) : 0;

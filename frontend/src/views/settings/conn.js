@@ -2,7 +2,7 @@
 // "Verify this device" window. From the current app (web/js/07-periods-rules.js loadConn, renderConn, connCard, connCall,
 // assistStart/assistOpen/assistTick/assistPost/assistClose; web/js/05-accounts-charts-help.js connStart; the conn* cases in 08-jars.js).
 // Kept outside the page so the Sync section, the verification window and the page all share one copy.
-import { ref, shallowRef, computed, reactive } from "vue";
+import { nextTick, ref, shallowRef, computed, reactive } from "vue";
 import { i18n } from "../../i18n.js";
 import { data } from "../../stores/data.js";
 import { getJson, sendJson, request } from "../../core/http.js";
@@ -65,6 +65,8 @@ const find = (src) => CONN.value.find((c) => c.source == src) || pending.value.f
 export const labelOf = (src) => { const c = find(src); return c ? nameOf(c) : srcName(src); };
 
 // Starts adding a source: the first login of a company is its own card; a second one gets a new id from the server.
+// The new card comes into view with its first box ready to type in.
+export const connStartHere = (v) => connStart(v, (id) => nextTick(() => setTimeout(() => { const c = document.getElementById("conn-" + id); if (c) { c.scrollIntoView({ behavior: "smooth", block: "center" }); c.querySelector("input")?.focus({ preventScroll: true }); } }, 60)));
 export async function connStart(v, after) {
   const go = (id) => { adding.value = [...adding.value, id]; after?.(id); };
   const base = CONN.value.find((c) => c.source == v);

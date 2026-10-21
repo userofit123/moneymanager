@@ -31,7 +31,7 @@ const PART = { hero: "hero", startPart: "start", inPart: "in", outPart: "out", n
 
 // The last case needs R.jarCov (the list of what jars pay, reserveCalc) from views/home.js: a category a jar pays in full is missing from R.rows.
 const JARCOV = (S) => { S.budgets = {}; S.jars[0].cats = [{ c: "Groceries", since: "2026-10-01" }]; S.jars[0].bal = 5000; };
-for (const [label, day, mod, opt] of [["start of the month", 3], ["middle of the month", 17], ["end of the month", 28], ["middle, no budgets, a jar paying for groceries in full", 17, JARCOV, { todo: "views/home.js R.jarCov" }]]) test("Recap matches the current app: " + label, opt || {}, () => {
+for (const [label, day, mod, opt] of [["start of the month", 3], ["middle of the month", 17], ["end of the month", 28], ["middle, no budgets, a jar paying for groceries in full", 17, JARCOV]]) test("Recap matches the current app: " + label, opt || {}, () => {
   const NOW = new Date(2026, 9, day, 12), old = oldApp(NOW), S = demoState(NOW); if (mod) mod(S);
   old.run(RECAP);
   const o = JSON.parse(old.run(`localStorage.setItem("moneyFc","{}");S={...emptyState(),...structuredClone(__S)};S.cfg={...DEF_CFG,...S.cfg};fx={ILS:1,...__FX};fxSrc="live";detect();derive();detectBills();BC=billsInfo(true);JPC=null;acReset();

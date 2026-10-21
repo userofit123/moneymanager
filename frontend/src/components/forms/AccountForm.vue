@@ -11,7 +11,8 @@ import { tx } from "../../core/heText.js";
 import { getJson, sendJson } from "../../core/http.js";
 import { go } from "../../router.js";
 import { openSettingsTab } from "../../views/settings/tab.js";
-import { CK, curOpts, accSel, connAdd } from "../../lib/accounts.js";
+import { CK, curOpts, accSel } from "../../lib/accounts.js";
+import { loadConn, connStartHere } from "../../views/settings/conn.js";
 import { useFormSheet } from "../../core/useFormSheet.js";
 import BaseSheet from "../BaseSheet.vue";
 
@@ -36,8 +37,7 @@ const groups = computed(() => KG.map(([k, l]) => [l, (conns.value || []).filter(
 // Settings → Connections, adding that login (connStart: a second login of a bank already set up gets its own new source)
 async function pick(c) {
   close(); openSettingsTab("conn"); go("/settings");
-  if (!c.configured) { connAdd.value = c.source; return; }
-  try { const r = await data.api(`/api/connections/${c.source}/new`, { method: "POST" }); connAdd.value = r.source; } catch (e) { toast(tx(e.message), { kind: "err" }); }
+  await loadConn(); connStartHere(c.source);
 }
 
 // the form

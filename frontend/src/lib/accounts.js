@@ -83,7 +83,5 @@ export const tileCols = (n) => (n <= 4 ? n : [4, 3, 5, 6].find((c) => n % c == 0
 export const curOpts = (name) => [["ILS", "₪ " + name("ILS")], ...CURS.map((c) => [c, c + " · " + name(c)])];
 
 // A bank to start adding in Settings → Connections (accConnectGo / connStart): the source id the Connections section should open
-// with its login fields. Read and cleared there.
-export const connAdd = shallowRef(null);
 // The account whose page is open on Accounts (ACC_SEL: its name; null = the list). Kept here so the add and edit windows can open the account they saved.
 export const accSel = shallowRef(null);
