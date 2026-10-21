@@ -7,6 +7,8 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [Unreleased]
 
 ### App
+- **New app: the loading screen looks like the current app's.** While the app loads it shows the app icon in the middle of your background colour, instead of a dark page with a very large icon on the side.
+- **New app: easier Categories and tags, and Bills.** Pressing Enter now adds in every add box on Categories and tags (and confirms a rename). The rename box shows the category's name in your language. "You already have them all" is no longer shown in red, because nothing went wrong. After you add a tag, the suggestion list closes so it no longer covers the "Add rule" button on phones. A bill's ⋯ menu has "Show in Activity", which lists that bill's payments.
 - **New app: Escape closes the newest pop-up first.** Pressing Escape closes only what opened last (a drop-down, a menu, a confirm box, a window, the appearance or help panel), so pressing it again closes the next one, in order.
 - **New app: every "Are you sure?" uses the app's own box.** Removing a category, a tag, a bank connection, a backup or an alert channel, clearing your profile and turning off the backup password now ask in the app's own small box instead of the browser's.
 - **New app: Undo for almost every change.** Each line in Settings → Change history, and the "Saved" message, now has Undo for nearly every change you make, not only a few kinds. It puts back only what that change touched. Deleting transactions still has no Undo.

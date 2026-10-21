@@ -17,6 +17,7 @@ import PopMenu from "../components/PopMenu.vue";
 import { displayName } from "../lib/activity.js";
 import { vRich } from "../lib/richtip.js";
 import { billsModel, billState, flagBill, cancelBill, restoreBill, deleteBill, setBillType, sugYes, sugNo, typeOf, billKey, billIndex, cadText, freqText, evTipText, f0, fm } from "../lib/bills.js";
+import { goActivity } from "../core/shell.js";
 
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);
@@ -77,10 +78,10 @@ const txOf = (next, i) => { const st = billState(next, now.value); return st.bil
 // ---- the ⋯ menu ----
 const menu = ref(null); // { i, key, btn }
 const toggleMenu = (b, ev) => { menu.value = menu.value && menu.value.i == b.idx ? null : { i: b.idx, key: billKey(b), btn: ev.currentTarget }; };
-const MI = { h: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', t: '<path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/>', f: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>', c: '<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>', k: '<path d="M5 12l5 5L20 7"/>', x: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>' };
+const MI = { a: '<path d="M4 6h16M4 12h16M4 18h10"/>', h: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', t: '<path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/>', f: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>', c: '<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>', k: '<path d="M5 12l5 5L20 7"/>', x: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>' };
 const menuItems = computed(() => {
   if (!menu.value || !M.value) return [];
-  const bi = M.value.all.find((x) => x.idx == menu.value.i) || {}, rec = !bi.once && !bi.irregular, it = [["billHist", "h", "menu.hist"]];
+  const bi = M.value.all.find((x) => x.idx == menu.value.i) || {}, rec = !bi.once && !bi.irregular, it = [["billHist", "h", "menu.hist"], ["billAct", "a", "menu.inAct"]];
   if (rec || bi.irregular) it.push(["billType", "t", "menu.type"]);
   if (rec) { if (bi.flag) it.push(["billCanceled", "c", "menu.cancelNow"], ["billFlag", "k", "menu.keep"]); else it.push(["billFlag", "f", "menu.cancel"]); }
   it.push(["billDel", "x", "menu.remove", 1]);
@@ -89,10 +90,17 @@ const menuItems = computed(() => {
 function pick(a) {
   const { i, key } = menu.value; menu.value = null;
   if (a == "billHist") openHist(i);
+  else if (a == "billAct") showInActivity(i);
   else if (a == "billType") openType(i);
   else if (a == "billFlag") change(key, flagBill);
   else if (a == "billCanceled") change(key, (n, j) => cancelBill(n, j, billState(n, now.value).TODAY));
   else if (a == "billDel") change(key, deleteBill);
+}
+
+// Activity showing only this bill's payments, with its name above them (like an alert's Open)
+function showInActivity(i) {
+  const st = billState(S.value, now.value), b = st.bills[i]; if (!b) return;
+  goActivity({ focus: st.billTx(b).map((x) => x.id), label: b.n });
 }
 
 // ---- opening a bill: its last payment's entry window, or its payment history (billOpen, billHist) ----

@@ -73,11 +73,13 @@ const newCat = ref("");
 function catAdd() { if (save((n) => C.addCategory(n, newCat.value))) newCat.value = ""; }
 const goCat = (k) => goActivity({ cat: k });
 const ren = ref(null), renName = ref(""), renIn = ref(null);
-function renOpen(kind, k) { ren.value = { kind, k }; renName.value = k; setTimeout(() => { renIn.value?.focus(); renIn.value?.select(); }, 60); }
+function renOpen(kind, k) { ren.value = { kind, k }; renName.value = kind == "tag" ? k : catLabel(k); setTimeout(() => { renIn.value?.focus(); renIn.value?.select(); }, 60); }
 function renGo() {
   const { kind, k } = ren.value;
   if (kind == "tag") return tagRenameGo(k);
-  const c = C.renameCheck(S.value, k, renName.value);
+  // the box shows the name in the page's language: a name typed the way a category is shown means that category
+  const v = renName.value.trim(), shown = names.value.find((x) => catLabel(x).toLowerCase() == v.toLowerCase());
+  const c = C.renameCheck(S.value, k, shown || v);
   if (c.err) return err(c.err == "empty" ? t("cats.typeName") : t("cats.c.reserved"));
   if (c.same) { ren.value = null; return; }
   const doIt = () => { save((n) => C.renameCategory(n, k, c.tg)); ren.value = null; ok(t("cats.c.renamed", { n: catLabel(c.tg) })); };
@@ -89,7 +91,7 @@ async function catSuggest() {
     const r = await data.api("/api/categories/suggested", { method: "POST" });
     await data.load();
     if (r.categories || r.rules || r.applied) ok(r.applied ? t("cats.c.addedSorted", { c: r.categories, r: r.rules, n: r.applied }, r.applied) : t("cats.c.added", { c: r.categories, r: r.rules }));
-    else err(t("cats.c.haveAll")); // the current app shows this one in red too ("already")
+    else toast(t("cats.c.haveAll"), { kind: "info" }); // nothing went wrong, so not red (the current app shows it as an error)
   } catch (e) { err(tx(e.message)); }
 }
 
@@ -197,7 +199,7 @@ const salDel = (i) => save((n) => C.deleteSalaryRule(n, i));
     <template v-if="S">
       <!-- Categories -->
       <div v-show="catTab == 'cats'" id="setCats">
-        <div class="rtool"><input v-model="searches.cats" class="rsearch" type="search" :placeholder="t('cats.search.cats')" :aria-label="t('cats.search.label')" autocomplete="off"><input id="nc" v-model="newCat" class="rnew" :placeholder="t('cats.search.newCat')" maxlength="60" autocomplete="off"><button type="button" class="btn s" @click="catAdd">{{ t("cats.search.addCat") }}</button></div>
+        <div class="rtool"><input v-model="searches.cats" class="rsearch" type="search" :placeholder="t('cats.search.cats')" :aria-label="t('cats.search.label')" autocomplete="off"><input id="nc" v-model="newCat" @keydown.enter.prevent="catAdd" class="rnew" :placeholder="t('cats.search.newCat')" maxlength="60" autocomplete="off"><button type="button" class="btn s" @click="catAdd">{{ t("cats.search.addCat") }}</button></div>
         <div v-if="none.cats" class="rsnone sm">{{ t("cats.search.none", { q: none.cats }) }}</div>
         <div class="card ss">
           <SetHead icon="tag" :title="t('cats.c.title')" :desc="t('cats.c.desc')" :count="Object.keys(S.cats).length" />
@@ -219,7 +221,7 @@ const salDel = (i) => save((n) => C.deleteSalaryRule(n, i));
             <div v-for="(r, i) in S.rules" :key="i + '|' + r.k" class="rule"><span>{{ t("cats.ifDesc") }}</span><input data-c="rulek" :data-i="i" :value="r.k" :aria-label="t('cats.text')" @change="ruleText(i, $event)"><span>→</span><select data-c="rulec" :data-i="i" :value="r.c" :aria-label="t('cats.r.cat')" @change="ruleCat(i, $event)"><option v-for="c in ruleOpts(r.c)" :key="c" :value="c">{{ catLabel(c) }}</option></select><button type="button" class="btn o s" style="margin-inline-start:auto" @click="ruleDel(i)">{{ t("cats.del") }}</button></div>
             <div v-if="!S.rules.length" class="sm" style="padding:4px 2px 10px">{{ t("cats.r.none") }}</div>
           </div>
-          <div class="tools ssb" style="padding-top:0;margin-top:-6px"><input id="rk" v-model="rk" :placeholder="t('cats.ifDescPh')"><select id="rc" :value="newRuleCat" @change="rc = $event.target.value"><option v-for="c in names" :key="c" :value="c">{{ catLabel(c) }}</option></select><button type="button" class="btn" @click="ruleAdd">{{ t("cats.addRule") }}</button></div>
+          <div class="tools ssb" style="padding-top:0;margin-top:-6px"><input id="rk" v-model="rk" @keydown.enter.prevent="ruleAdd" :placeholder="t('cats.ifDescPh')"><select id="rc" :value="newRuleCat" @change="rc = $event.target.value"><option v-for="c in names" :key="c" :value="c">{{ catLabel(c) }}</option></select><button type="button" class="btn" @click="ruleAdd">{{ t("cats.addRule") }}</button></div>
         </div>
       </div>
 
@@ -251,7 +253,7 @@ const salDel = (i) => save((n) => C.deleteSalaryRule(n, i));
             <div v-for="(r, i) in S.tagRules" :key="i + '|' + r.k" class="rule"><span>{{ t("cats.ifDesc") }}</span><input data-c="trk" :data-i="i" :value="r.k" :aria-label="t('cats.text')" @change="trText(i, $event)"><span>→</span><TagEditor :tags="C.ruleTags(r)" @add="trTagsAdd(i, $event)" @remove="trTagRemove(i, $event)" @go="goTag" /><button type="button" class="btn o s" style="margin-inline-start:auto" @click="trDel(i)">{{ t("cats.del") }}</button></div>
             <div v-if="!S.tagRules.length" class="sm" style="padding:4px 2px 10px">{{ t("cats.tr.none") }}</div>
           </div>
-          <div class="tools ssb" style="padding-top:0;margin-top:-6px"><input id="trk" v-model="trk" :placeholder="t('cats.ifDescPh')"><div style="flex:1 1 240px;min-width:200px"><TagEditor ref="newEd" :tags="newRuleTags" :commit-on-blur="false" @add="newTagsAdd" @remove="newRuleTags.splice($event, 1)" @go="goTag" /></div><button type="button" class="btn" @click="trAdd">{{ t("cats.addRule") }}</button></div>
+          <div class="tools ssb" style="padding-top:0;margin-top:-6px"><input id="trk" v-model="trk" @keydown.enter.prevent="trAdd" :placeholder="t('cats.ifDescPh')"><div style="flex:1 1 240px;min-width:200px"><TagEditor ref="newEd" :tags="newRuleTags" :commit-on-blur="false" @add="newTagsAdd" @remove="newRuleTags.splice($event, 1)" @go="goTag" /></div><button type="button" class="btn" @click="trAdd">{{ t("cats.addRule") }}</button></div>
         </div>
       </div>
 
@@ -269,7 +271,7 @@ const salDel = (i) => save((n) => C.deleteSalaryRule(n, i));
           <div class="tools ssb" style="padding-top:0;margin-top:-6px">
             <select id="nrf" v-model="nr.f" :aria-label="t('cats.n.field')"><option v-for="f in C.NFIELDS" :key="f" :value="f">{{ t("cats.n.f." + f) }}</option></select>
             <select id="nrm" v-model="nr.m" :aria-label="t('cats.n.how')"><option value="in">{{ t("cats.n.in") }}</option><option value="eq">{{ t("cats.n.eq") }}</option></select>
-            <input id="nrk" v-model="nr.k" :placeholder="t('cats.n.textPh')"><input id="nrn" v-model="nr.n" :placeholder="t('cats.n.namePh')"><button type="button" class="btn" @click="nameAdd">{{ t("cats.addRule") }}</button>
+            <input id="nrk" v-model="nr.k" @keydown.enter.prevent="nameAdd" :placeholder="t('cats.n.textPh')"><input id="nrn" v-model="nr.n" @keydown.enter.prevent="nameAdd" :placeholder="t('cats.n.namePh')"><button type="button" class="btn" @click="nameAdd">{{ t("cats.addRule") }}</button>
           </div>
         </div>
       </div>
@@ -284,7 +286,7 @@ const salDel = (i) => save((n) => C.deleteSalaryRule(n, i));
             <div v-for="(r, i) in S.cardRules || []" :key="i + r" class="rule"><span>{{ t("cats.gen.ifIn") }}</span><b class="gtxt">{{ r }}</b><span>→</span><b>{{ t("cats.gen.cardPay") }}</b><button type="button" class="btn o s" style="margin-inline-start:auto" @click="ccDel(i)">{{ t("cats.del") }}</button></div>
             <div v-if="!(S.cardRules || []).length" class="sm" style="padding:4px 2px 10px">{{ t("cats.gen.cardNone") }}</div>
           </div>
-          <div class="tools ssb" style="padding-top:0;margin-top:-6px"><input id="ccr" v-model="ccr" :placeholder="t('cats.gen.cardPh')"><button type="button" class="btn" @click="ccAdd">{{ t("cats.addRule") }}</button></div>
+          <div class="tools ssb" style="padding-top:0;margin-top:-6px"><input id="ccr" v-model="ccr" @keydown.enter.prevent="ccAdd" :placeholder="t('cats.gen.cardPh')"><button type="button" class="btn" @click="ccAdd">{{ t("cats.addRule") }}</button></div>
           <div class="sm ssb" style="padding-top:0;line-height:1.55">{{ t("cats.gen.cardAuto", { list: C.CARD_NAMES.join(", ") }) }}</div>
         </div>
         <div class="card ss">
@@ -293,7 +295,7 @@ const salDel = (i) => save((n) => C.deleteSalaryRule(n, i));
             <div v-for="(r, i) in S.salaryRules || []" :key="i + r" class="rule"><span>{{ t("cats.gen.ifIn") }}</span><b class="gtxt">{{ r }}</b><span>→</span><b>{{ t("cats.gen.salary") }}</b><button type="button" class="btn o s" style="margin-inline-start:auto" @click="salDel(i)">{{ t("cats.del") }}</button></div>
             <div v-if="!(S.salaryRules || []).length" class="sm" style="padding:4px 2px 10px">{{ t("cats.gen.salNone") }}</div>
           </div>
-          <div class="tools ssb" style="padding-top:0;margin-top:-6px"><input id="slr" v-model="slr" :placeholder="t('cats.gen.salPh')"><button type="button" class="btn" @click="salAdd">{{ t("cats.addRule") }}</button></div>
+          <div class="tools ssb" style="padding-top:0;margin-top:-6px"><input id="slr" v-model="slr" @keydown.enter.prevent="salAdd" :placeholder="t('cats.gen.salPh')"><button type="button" class="btn" @click="salAdd">{{ t("cats.addRule") }}</button></div>
           <div class="sm ssb" style="padding-top:0;line-height:1.55">{{ t("cats.gen.salAuto") }}</div>
         </div>
       </div>
@@ -305,7 +307,7 @@ const salDel = (i) => save((n) => C.deleteSalaryRule(n, i));
     <template v-if="ren">
       <h3>{{ ren.kind == "tag" ? t("cats.g.renTitle") : t("cats.c.renTitle") }}</h3>
       <div class="sm" :style="ren.kind == 'tag' ? 'margin-bottom:12px' : 'margin-bottom:12px;line-height:1.5'">{{ ren.kind == "tag" ? t("cats.g.renText") : t("cats.c.renText") }}</div>
-      <div class="fld"><label>{{ t("cats.newName") }}</label><input ref="renIn" v-model="renName" :maxlength="ren.kind == 'tag' ? null : 60" autocomplete="off"></div>
+      <div class="fld"><label>{{ t("cats.newName") }}</label><input ref="renIn" v-model="renName" @keydown.enter.prevent="renGo" :maxlength="ren.kind == 'tag' ? null : 60" autocomplete="off"></div>
       <div class="flex" style="justify-content:flex-end;gap:10px"><button type="button" class="btn o" @click="ren = null">{{ t("cats.cancel") }}</button><button type="button" class="btn" @click="renGo">{{ t("cats.rename") }}</button></div>
     </template>
   </BaseSheet>

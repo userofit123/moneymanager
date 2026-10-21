@@ -34,10 +34,11 @@ function move(d) {
 function key(e) {
   if (e.key == "ArrowDown") { e.preventDefault(); move(1); }
   else if (e.key == "ArrowUp") { e.preventDefault(); move(-1); }
-  else if (e.key == "Enter" || e.key == ",") { e.preventDefault(); e.stopPropagation(); const v = hi.value >= 0 && picks.value[hi.value] != null ? picks.value[hi.value] : text.value; text.value = ""; hi.value = -1; commit(v); }
+  else if (e.key == "Enter" || e.key == ",") { e.preventDefault(); e.stopPropagation(); const v = hi.value >= 0 && picks.value[hi.value] != null ? picks.value[hi.value] : text.value; text.value = ""; hi.value = -1; if (e.key == "Enter") open.value = false; commit(v); }
   else if (e.key == "Backspace" && !text.value) { if (props.tags.length) emit("remove", props.tags.length - 1); }
 }
-function pick(g) { text.value = ""; hi.value = -1; commit(g); }
+// after a tag is added the list closes, so it does not cover the buttons under it (typing opens it again)
+function pick(g) { text.value = ""; hi.value = -1; open.value = false; commit(g); }
 function blur() {
   const v = text.value;
   setTimeout(() => { if (document.activeElement !== inp.value) open.value = false; }, 150);

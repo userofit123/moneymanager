@@ -1065,6 +1065,7 @@
       "canceled": "You marked it as canceled."
     },
     "menu": {
+      "inAct": "Show in Activity",
       "hist": "History",
       "type": "Change type",
       "cancelNow": "Mark as canceled",
