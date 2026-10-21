@@ -1,4 +1,4 @@
-import { computed, watch } from "vue";
+import { computed, watch, shallowRef } from "vue";
 import { createI18n } from "vue-i18n";
 import en from "./locales/en.json";
 import he from "./locales/he.json";
@@ -21,8 +21,12 @@ const settingsHe = sections(import.meta.glob("./locales/settings/*.he.json", { e
 const pagesEn = sections(import.meta.glob("./locales/pages/*.en.json", { eager: true }));
 const pagesHe = sections(import.meta.glob("./locales/pages/*.he.json", { eager: true }));
 
-// In Hebrew, amounts and numbers inside a sentence keep their order (the current app wraps them in ⁦…⁩ the same way).
-const postTranslation = (str) => (i18n?.global?.locale?.value === "he" && typeof str === "string" ? isolateNumbers(str) : str);
+// In Hebrew, amounts and numbers inside a sentence keep their order (the current app wraps them in ⁦…⁩ the same way),
+// and "you" forms follow the gender in the profile once the Hebrew rules are loaded (HE.gen, set by core/heText.js).
+// (a ref, so the page redraws when the rules arrive or the gender changes: setHebrewFilter is called again then)
+const hebrewFilter = shallowRef((s) => s);
+export const setHebrewFilter = (fn) => { hebrewFilter.value = (s) => fn(s); };
+const postTranslation = (str) => (i18n?.global?.locale?.value === "he" && typeof str === "string" ? isolateNumbers(hebrewFilter.value(str)) : str);
 export const i18n = createI18n({ legacy: false, locale: saved, fallbackLocale: "en", postTranslation, messages: { en: { ...en, ...pagesEn, settings: settingsEn }, he: { ...he, ...pagesHe, settings: settingsHe } } });
 
 // True while the language is Hebrew. Use it for the rare things CSS cannot flip by itself; prefer logical CSS (margin-inline-start and so on).
