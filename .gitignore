@@ -1,10 +1,23 @@
+# dependencies and secrets
 node_modules/
 .env
+.env.*
+!.env.example
 secrets/
 data/
-*.log
-
-.claude/worktrees/
 
 # the built app (made by "npm run build" in frontend/)
 frontend/dist/
+
+# logs, test and tool output
+*.log
+coverage/
+.fallow/
+
+# editors, the operating system, Claude Code's personal files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.claude/worktrees/
+.claude/settings.local.json
