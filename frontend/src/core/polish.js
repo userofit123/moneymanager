@@ -17,6 +17,15 @@ function dots(el) {
   n.nodeValue.split(" · ").forEach((t, i) => { if (i) { const d = document.createElement("span"); d.className = "dt"; d.textContent = "·"; w.appendChild(d); } if (t) w.appendChild(document.createTextNode(t)); });
   el.replaceChildren(w);
 }
+// A " · " text that shares its element with other nodes (Vue's <!--v-if--> placeholders, links...): Vue keeps that text node and may change
+// it, so it stays in place, emptied, with the dotted copy right after it. The copy goes when Vue changes or removes the text (see pass).
+const dotSpan = (s) => { const w = document.createElement("span"); s.split(" · ").forEach((t, i) => { if (i) { const d = document.createElement("span"); d.className = "dt"; d.textContent = "·"; w.appendChild(d); } if (t) w.appendChild(document.createTextNode(t)); }); return w; };
+function dotsMixed(root) {
+  root.querySelectorAll("span[data-dts]").forEach((w) => { if (w.previousSibling !== w._src || w._src.nodeValue !== "") w.remove(); });
+  const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: (n) => (n.nodeValue.includes(" · ") && n.parentElement && n.parentElement.childNodes.length > 1 && !SKIP.test(n.parentElement.tagName) && !n.parentElement.closest("svg,.dt,[contenteditable]") ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT) });
+  const L = []; while (tw.nextNode()) L.push(tw.currentNode);
+  L.forEach((n) => { const w = dotSpan(n.nodeValue); w.dataset.dts = ""; w._src = n; n.nodeValue = ""; n.after(w); });
+}
 function caps(el) {
   let n = el.firstChild; while (n && (n.nodeType == 8 || (n.nodeType == 3 && !n.nodeValue.trim()))) n = n.nextSibling; // past Vue's empty placeholders (<!--v-if-->)
   if (n && n.nodeType == 3) { const v = n.nodeValue, m = v.match(/^(\s*)([a-z])/); if (m) n.nodeValue = m[1] + m[2].toUpperCase() + v.slice(m[0].length); }
@@ -34,9 +43,10 @@ function money(root) {
 function pass(root = document.body) {
   if (!root || root.nodeType !== 1) return;
   [root, ...root.querySelectorAll("*")].forEach((el) => { if (el.childNodes.length === 1) dots(el); });
+  dotsMixed(root);
   // like the current app, also in Hebrew (they only touch English letters, such as an account named in English)
   root.querySelectorAll(CAPS).forEach(caps); if (root.matches?.(CAPS)) caps(root); root.querySelectorAll(".lbl").forEach(titleCase);
-  if (isHe()) money(root);
+  if (isHe()) { money(root); root.querySelectorAll("[placeholder*=\"⁦\"]").forEach((e) => { e.placeholder = e.placeholder.replace(/[⁦⁩]/g, ""); }); } // the current app keeps numbers in placeholders as they are ("למשל 34")
 }
 let started = false;
 export function startPolish() {
@@ -47,4 +57,5 @@ export function startPolish() {
   run();
 }
 // For Hebrew sentences made from translations: amounts and numbers in them stay left to right (vue-i18n postTranslation, see i18n.js).
-export const isolateNumbers = (s) => String(s).replace(/[−+]?₪?\d[\d,]*(?:\.\d+)?%?/g, "⁦$&⁩");
+// (not digits that are part of a word, such as the name "10bis": the current app translates such a name as its own text, so it stays as is)
+export const isolateNumbers = (s) => String(s).replace(/(?<![A-Za-z\d])[−+]?₪?\d[\d,]*(?:\.\d+)?%?(?![A-Za-z\d])/g, "⁦$&⁩");

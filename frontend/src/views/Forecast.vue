@@ -135,7 +135,7 @@ const jarCards = computed(() => M.value.jars.J.map((j) => {
         </BaseCard>
       </div>
 
-      <div class="sm" id="fcDiag" style="line-height:1.55"><b style="color:var(--tx)">{{ t("forecast.diag.title") }}</b> {{ t("forecast.diag.main", { inc: fm(incM), exp: fm(exM), span: t("forecast.diag.span", { n: nEff }, nEff), months: usedMonths, cur: mshort(M.FH.keys[M.FH.last]) }) }}<template v-if="M.cardPays"> {{ t("forecast.diag.cards", { n: M.cardPays }, M.cardPays) }}</template><template v-if="fc.n > nEff"> {{ t("forecast.diag.only", { n: nEff }, nEff) }}</template><template v-if="zeroMonths.length"> <span class="neg">{{ t("forecast.diag.zero", { months: zeroMonths.join(", ") }) }}</span></template></div>
+      <div class="sm" id="fcDiag" style="line-height:1.55"><b style="color:var(--tx)">{{ t("forecast.diag.title") }}</b> {{ t("forecast.diag.main", { inc: fm(incM), exp: fm(exM), span: t("forecast.diag.span", { n: nEff }, nEff), months: usedMonths, cur: mshort(M.FH.keys[M.FH.last]) }) }}<template v-if="M.cardPays">{{ " " + t("forecast.diag.cards", { n: M.cardPays }, M.cardPays) }}</template><template v-if="fc.n > nEff">{{ " " + t("forecast.diag.only", { n: nEff }, nEff) }}</template><template v-if="zeroMonths.length">{{ " " }}<span class="neg">{{ t("forecast.diag.zero", { months: zeroMonths.join(", ") }) }}</span></template></div>
 
       <!-- the inner span keeps the parts around the dot together, like the current app's wrapper (polish.js puts the dot inside it) -->
       <h2><span>{{ t("fc.x.chartTitle") }}</span></h2>

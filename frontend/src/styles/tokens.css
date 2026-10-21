@@ -8,7 +8,6 @@
   --c0: #4355b9; --c1: #c2185b; --c2: #e68a00; --c3: #00897b; --c4: #7cb342; --c5: #8e24aa; --c6: #546e7a;
   --font: Inter, "Segoe UI", Roboto, system-ui, sans-serif;
   --r: 22px; --r-sm: 12px; --r-md: 16px; --r-sheet: 26px; --pill: 99px;
-  --sp1: 4px; --sp2: 8px; --sp3: 12px; --sp4: 16px; --sp5: 22px; --sp6: 32px;
   --fs-xs: 11px; --fs-sm: 12.5px; --fs: 14px; --fs-lg: 16px; --fs-h1: 30px; --fs-val: 32px;
   --shadow-pop: 0 14px 34px -12px rgba(0, 0, 0, .5); --shadow-sheet: 0 30px 80px -20px #000a; --scrim: #0007;
   --ease: cubic-bezier(.2, .8, .2, 1);

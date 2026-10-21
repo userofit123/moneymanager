@@ -3,5 +3,6 @@
 /* Hebrew: <html> stays left to right (scrollbar on the right); only the content is right to left. Same rule as in legacy.css. */
 html.he body { direction: rtl; }
 #app { display: contents; }
-/* Anything with a tooltip uses the normal or pointer cursor, never the question mark. */
-[title], [data-tip], abbr { cursor: inherit; }
+/* Anything with a tooltip uses the normal or pointer cursor, never the question mark. Zero weight (:where), so a button's own
+   pointer cursor from legacy.css (the ? and (i) buttons, chips...) still wins, like in the current app. */
+:where([title], [data-tip], abbr) { cursor: inherit; }

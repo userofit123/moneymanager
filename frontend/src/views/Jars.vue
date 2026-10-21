@@ -15,6 +15,7 @@ import { catLabel } from "../core/cats.js";
 import { vTip, TP } from "../core/tooltip.js";
 import { fm, f0 } from "../format.js";
 import { dstr } from "../dates.js";
+import { isolateNumbers } from "../core/polish.js";
 import BaseCard from "../components/BaseCard.vue";
 import BaseButton from "../components/BaseButton.vue";
 import BaseSheet from "../components/BaseSheet.vue";
@@ -104,6 +105,8 @@ function stTip(j) {
 const priTip = (j) => TP(t("jars.priority", { n: j.ix + 1, total: M.value.jars.length }), [], T("priorityN"));
 const catTip = (j) => TP(T("catsT"), [...j.cats.map((x) => [catLabel(x.c), T("spent", { amount: fm(M.value.spend[x.c] || 0) })]), "---", [T("paidMonth"), fm(j.autoPaid)], [T("stillIn"), fm(j.bal)]], t("jars.paysForTip"));
 const etaWhen = (e) => (e.k ? mlab(e.when) : t("jars.over5"));
+// on the card, in Hebrew the year stays left to right (יוני ⁦2028⁩), like the current app
+const etaShow = (e) => (locale.value === "he" ? isolateNumbers(etaWhen(e)) : etaWhen(e));
 const etaTip = (e) => TP(T("fullByT", { when: etaWhen(e) }), [[T("toSave"), fm(e.left)], [T("perMonth"), fm(e.cap)], [T("monthsTo"), e.k ? String(e.k) : "60+"], ...(e.due ? [[T("deadline"), mlab(e.due)]] : [])]);
 const statTips = computed(() => { const m = M.value.month, F = M.value.F; return {
   putIn: TP(t("jars.putIn"), [[T("thisMonth"), fm(m.got)]], T("putInNote")),
@@ -140,9 +143,11 @@ const doneLine = (d) => [t("jars.doneOn", { date: dstr(d.done) }), d.need > 0 ? 
         <div class="jh1">
           <div class="lbl">{{ t("jars.safe") }}</div>
           <div class="val"><small>₪</small><span>{{ f0(M.F.free) }}</span></div>
-          <div class="sm">{{ t("jars.safeSub") }}</div>
-          <div v-if="M.F.over > 0" class="jover"><b>{{ t("jars.tooMuch", { amount: fm(M.F.over) }) }}</b> {{ t("jars.tooMuchText") }}<div v-if="M.F.inJars > 0" class="flex" style="gap:8px;margin-top:8px"><button type="button" class="btn s" data-a="jarRelease" @click="relAsk = true">{{ t("jars.takeBack", { amount: fm(relAmt) }) }}</button></div></div>
-          <button type="button" class="btn o s" style="margin-top:10px" data-a="availWhy" @click="why = true">{{ t("jars.howWorked") }}</button>
+          <div id="availSub" class="sm">
+            <div class="sm">{{ t("jars.safeSub") }}</div>
+            <div v-if="M.F.over > 0" class="jover"><b>{{ t("jars.tooMuch", { amount: fm(M.F.over) }) }}</b> {{ t("jars.tooMuchText") }}<div v-if="M.F.inJars > 0" class="flex" style="gap:8px;margin-top:8px"><button type="button" class="btn s" data-a="jarRelease" @click="relAsk = true">{{ t("jars.takeBack", { amount: fm(relAmt) }) }}</button></div></div>
+            <button type="button" class="btn o s" style="margin-top:10px" data-a="availWhy" @click="why = true">{{ t("jars.howWorked") }}</button>
+          </div>
         </div>
         <div class="jh2">
           <div class="lbl">{{ t("jars.thisMonth") }}</div>
@@ -191,7 +196,7 @@ const doneLine = (d) => [t("jars.doneOn", { date: dstr(d.done) }), d.need > 0 ? 
               <div><span>{{ payoff(j) ? t("jars.paidBack") : t("jars.saved") }}</span><b class="num">₪{{ f0(j.bal) }}</b></div>
               <div><span>{{ payoff(j) ? t("jars.owed") : t("jars.goal") }}</span><b class="num">{{ j.open ? t("jars.none") : "₪" + f0(j.need) }}</b></div>
               <div><span>{{ t("jars.monthly") }}</span><b class="num">{{ j.cap == null ? t("jars.topUp") : "₪" + f0(j.capE) }}</b></div>
-              <div v-if="j.state.eta" v-tip="etaTip(j.state.eta)"><span>{{ t("jars.fullBy") }}</span><b class="num">{{ etaWhen(j.state.eta) }}</b></div>
+              <div v-if="j.state.eta" v-tip="etaTip(j.state.eta)"><span>{{ t("jars.fullBy") }}</span><b class="num">{{ etaShow(j.state.eta) }}</b></div>
             </div>
           </div>
           <div v-if="j.state.late" class="jwarn">{{ lateText(j.state.late) }}</div>
@@ -257,7 +262,7 @@ const doneLine = (d) => [t("jars.doneOn", { date: dstr(d.done) }), d.need > 0 ? 
 
     <BaseSheet :open="!!doneAsk" @close="doneAsk = null">
       <h3>{{ t("jars.done.title", { name: tx(doneAsk?.n || "") }) }}</h3>
-      <div class="sm" style="margin-bottom:14px;line-height:1.5">{{ t("jars.done.text") }}<template v-if="doneAsk?.bal > 0"> {{ t("jars.done.back", { amount: fm(doneAsk.bal) }) }}</template></div>
+      <div class="sm" style="margin-bottom:14px;line-height:1.5">{{ t("jars.done.text") }}<template v-if="doneAsk?.bal > 0">{{ " " }}{{ t("jars.done.back", { amount: fm(doneAsk.bal) }) }}</template></div>
       <div class="flex" style="justify-content:flex-end;gap:10px"><button type="button" class="btn o" data-a="close" @click="doneAsk = null">{{ t("jars.cancel") }}</button><button type="button" class="btn" data-a="jdYes" @click="doDone">{{ t("jars.markDone") }}</button></div>
     </BaseSheet>
 

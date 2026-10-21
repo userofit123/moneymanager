@@ -7,6 +7,7 @@ import SetHead from "./SetHead.vue";
 import SetRow from "./SetRow.vue";
 import { api, sendJson, toast, toastErr } from "./shared.js";
 import { request } from "../../core/http.js";
+import { signOut } from "../../core/boot.js";
 
 const { t } = useI18n();
 const tk = (k) => t("settings.sec." + k);
@@ -28,12 +29,8 @@ async function changePw() {
 async function tfaStart() { const r = await call("/api/auth/2fa/start"); if (r) { start.value = r; code.value = ""; } }
 async function tfaEnable() { const r = await call("/api/auth/2fa/enable", { code: code.value }, tk("tfaIsOn")); if (r) { start.value = null; await status(); } }
 async function tfaDisable() { const r = await call("/api/auth/2fa/disable", { password: offPw.value }, tk("tfaIsOff")); if (r) { offPw.value = ""; await status(); } }
-// Signing out sends you to the sign-in page.
-async function logout(all) {
-  try { await request(all ? "/api/auth/logout-all" : "/api/auth/logout", { method: "POST" }); } catch { /* go to sign in anyway */ }
-  try { caches.delete("money-data"); } catch { /* none */ }
-  location.assign("/");
-}
+// Signing out shows the sign-in screen (core/boot.js).
+const logout = (all) => signOut(all);
 </script>
 
 <template>

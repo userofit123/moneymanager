@@ -15,7 +15,18 @@ const putState = async (S) => {
   return { status: r.status, ok: r.ok, json: j };
 };
 
-export function createDataStore({ fetchJson = getJson, connect = connectLive, send = putState, delay = 400, settle = null, notify = () => {} } = {}) {
+// GET /api/state. When there is no connection the app's service worker (web/sw.js) answers with the last saved copy and marks it
+// with the x-offline-cache header; the copy then carries a hidden "offline" mark (like load() in the current app).
+async function getState(url) {
+  if (url !== "/api/state") return getJson(url);
+  const r = await request(url, { cache: "no-store" });
+  if (!r.ok) throw new Error(url + " " + r.status);
+  const j = await r.json();
+  if (r.headers.get("x-offline-cache")) Object.defineProperty(j, "offlineCopy", { value: true });
+  return j;
+}
+
+export function createDataStore({ fetchJson = getState, connect = connectLive, send = putState, delay = 400, settle = null, notify = () => {} } = {}) {
   const state = shallowRef(null); // what GET /api/state returns (accounts, tx, jars, budgets...)
   const loading = ref(false);
   const error = ref(null);
@@ -23,7 +34,7 @@ export function createDataStore({ fetchJson = getJson, connect = connectLive, se
   const saving = ref(false);
   // Exchange rates (GET /api/fx), loaded once with the data like loadFX() in the current app. fx.fx is { USD: 3.7, ... }.
   const fx = shallowRef({ fx: {}, series: {}, asOf: null, stale: false, live: false });
-  let stop = null, busy = null, dirty = false, timer = null, failed = false;
+  let stop = null, listening = false, busy = null, dirty = false, timer = null, failed = false;
   const hooks = { settle, notify };
 
   // Loads the data. Asking again while a load is running joins that load instead of starting another.
@@ -31,10 +42,20 @@ export function createDataStore({ fetchJson = getJson, connect = connectLive, se
     if (busy) return busy;
     loading.value = true;
     busy = fetchJson("/api/state")
-      .then((s) => { adopt(s); error.value = null; })
+      .then((s) => {
+        const off = !!s?.offlineCopy;
+        if (off && state.value && state.value.rev > s.rev) return; // never an older saved copy over newer data
+        adopt(s); error.value = null; setOffline(off);
+      })
       .catch((e) => { error.value = e; })
       .finally(() => { loading.value = false; busy = null; });
     return busy;
+  }
+  // "You are offline" stays as a message until the connection is back (setOffline in the current app).
+  function setOffline(v) {
+    if (v === offline.value) return;
+    offline.value = v;
+    hooks.notify(v ? "offline" : "clear", { key: "offline" });
   }
   // Takes the server's copy, then the app does its own upkeep on it (core/settle.js), saved like any change.
   function adopt(s) {
@@ -62,9 +83,10 @@ export function createDataStore({ fetchJson = getJson, connect = connectLive, se
     if (stop) return;
     stop = connect(refreshIfChanged);
     // back online: send what is waiting, or look for news; coming back to the window: look for news (the current app's chk)
-    if (typeof window !== "undefined") {
-      addEventListener("online", () => { offline.value = false; if (dirty) flush(); else refreshIfChanged(); });
-      addEventListener("offline", () => { offline.value = true; });
+    if (typeof window !== "undefined" && !listening) {
+      listening = true;
+      addEventListener("online", () => { if (!state.value) return; if (dirty) flush(); else load(); }); // back online: send what waits, or take the news
+      addEventListener("offline", () => { if (state.value) setOffline(true); });
       addEventListener("focus", refreshIfChanged);
       document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refreshIfChanged(); });
     }

@@ -6,6 +6,7 @@ import { current } from "../router.js";
 import { helpOpen, helpSet, guideOf, guideHtml, watchDots } from "./help.js";
 import { escLayer } from "../core/layers.js";
 import { settingsTab } from "../views/settings/tab.js";
+import { tx } from "../core/heText.js";
 escLayer(helpOpen, () => helpSet(false));
 
 const { t, locale } = useI18n();
@@ -15,7 +16,7 @@ const he = computed(() => locale.value === "he");
 const page = computed(() => (current.value.name === "settings" ? "set." + settingsTab.value : current.value.name));
 const guide = computed(() => guideOf(page.value, he.value));
 const title = computed(() => (guide.value && guide.value.title) || tk("nav." + current.value.name));
-const body = computed(() => (guide.value ? guideHtml(guide.value, he.value) : `<div class="hlead">${t("help.noGuide")}</div>`));
+const body = computed(() => (guide.value ? guideHtml(guide.value, he.value, tx) : `<div class="hlead">${t("help.noGuide")}</div>`));
 const panel = ref(null);
 const jump = (e) => {
   const b = e.target.closest && e.target.closest('[data-a="helpJump"]'); if (!b) return;

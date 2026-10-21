@@ -17,13 +17,16 @@ export const current = computed(() => matchPage(path.value));
 
 export function go(to, { replace = false } = {}) {
   const url = to.startsWith(BASE) ? to : BASE + to;
-  if (url === location.pathname) return;
+  // the page that is already open: only back to its top, like the current app's nav()
+  if (url === location.pathname) { window.scrollTo(0, 0); return; }
   history[replace ? "replaceState" : "pushState"]({}, "", url);
   path.value = location.pathname;
   window.scrollTo(0, 0);
 }
 export function startRouter() {
-  addEventListener("popstate", () => { path.value = location.pathname; });
+  // Back and Forward to another page start at its top, like the current app (it turns the browser's own scroll memory off)
+  try { history.scrollRestoration = "manual"; } catch { /* old browsers */ }
+  addEventListener("popstate", () => { const was = current.value; path.value = location.pathname; if (current.value !== was) window.scrollTo(0, 0); });
   // "/app/" alone shows Home at its own address.
   // (the ?query and #hash stay, so links like ?add=1 still work)
   if (matchPage(location.pathname).path !== location.pathname.replace(BASE, "").replace(/\/+$/, "")) { history.replaceState({}, "", hrefOf(matchPage(location.pathname)) + location.search + location.hash); path.value = location.pathname; }

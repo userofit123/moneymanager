@@ -18,6 +18,7 @@ import MoneyInput from "../components/MoneyInput.vue"; // the amount boxes show 
 import { vRich } from "../lib/richtip.js";
 import { f0, fm } from "../lib/bills.js";
 import { acceptBudget, acceptAll, dismissSuggestion, laterReview, resetDismissed, applyBudget, removeBudget, changeBudget } from "../lib/budgets.js";
+import { tx } from "../core/heText.js";
 
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);
@@ -101,7 +102,7 @@ const billOpen = (x) => { const b = M.value.bills[x.idx]; if (!b) return; const 
           <div class="val" style="font-size:26px"><small>₪</small>{{ f0(b.s) }} <span class="sm" style="font-weight:400">{{ t("budgets.of", { amount: fm(b.lim) }) }}</span></div>
           <div class="bar"><i :style="{ width: Math.min(100, b.pc) + '%', background: fillColor(b) }"></i><u v-rich="t('budgets.markTip', { day: M.DAYN, days: M.DIM })" :style="{ insetInlineStart: (M.DAYN / M.DIM) * 100 + '%' }"></u></div>
           <div class="sm">{{ b.left >= 0 ? t("budgets.leftLine", { rest: fm(b.left), perDay: fm(b.perDay) }) : t("budgets.overLine") }} · {{ t("budgets.paceLine", { amount: fm(b.pace) }) }}</div>
-          <div v-if="M.billsIn(b.k).length" class="bbin"><span class="lbl">{{ t("budgets.inc", { n: M.billsIn(b.k).length }, M.billsIn(b.k).length) }}</span><div v-for="x in M.billsIn(b.k)" :key="x.idx" class="chn" data-a="billOpen" :data-i="x.idx" @click="billOpen(x)"><span>{{ x.n }} <small class="sm">{{ billSt(x) }}</small></span><b class="num">{{ x.irregular ? "≈ " : "" }}{{ fm(x.pred) }}</b></div></div>
+          <div v-if="M.billsIn(b.k).length" class="bbin"><span class="lbl">{{ t("budgets.inc", { n: M.billsIn(b.k).length }, M.billsIn(b.k).length) }}</span><div v-for="x in M.billsIn(b.k)" :key="x.idx" class="chn" data-a="billOpen" :data-i="x.idx" @click="billOpen(x)"><span>{{ tx(x.n) }} <small class="sm">{{ billSt(x) }}</small></span><b class="num">{{ x.irregular ? "≈ " : "" }}{{ fm(x.pred) }}</b></div></div>
           <div v-if="M.catJars[b.k]" class="bbin"><span class="lbl">{{ t("budgets.jarT") }}</span><div class="sm" style="margin-top:4px"><b>{{ M.catJars[b.k].j.n }}</b>{{ t("budgets.jarPays", { amount: fm(M.catJars[b.k].j.bal) }) }}</div></div>
           <div class="sm" style="margin-top:8px">{{ t("budgets.lastMonths") }} <template v-if="M.budMonths.length"><template v-for="(v, i) in lastVals(b)" :key="i"><template v-if="i"> · </template><span :style="{ color: v > b.lim ? 'var(--neg)' : 'inherit', fontWeight: 600 }">{{ fm(v) }}</span></template></template><template v-else>{{ t("budgets.noHist") }}</template></div>
           <div v-if="rvOf[b.k]" class="sugg"><div class="sm" style="color:var(--tx);line-height:1.45" v-html="rvOf[b.k].kind == 'lower' ? t('budgets.low', { avg: fm(rvOf[b.k].avg), prop: fm(rvOf[b.k].prop) }) : t('budgets.raise', { over: rvOf[b.k].over, n: M.budMonths.length, avg: fm(rvOf[b.k].avg), prop: fm(rvOf[b.k].prop) })"></div><div class="flex" style="gap:8px;margin-top:8px"><button class="btn s" data-a="budApply" :data-k="b.k" :data-v="rvOf[b.k].prop" @click="apply(rvOf[b.k])">{{ t("budgets.use", { amount: fm(rvOf[b.k].prop) }) }}</button><button class="btn o s" data-a="budLater" :data-k="b.k" @click="later(b.k)">{{ t("budgets.notNow") }}</button></div></div>

@@ -29,7 +29,7 @@ const desc = computed(() => tk("desc") + (cur.value ? " " + tk("youOn", { v: "�
       <div v-if="!L.length" class="ssb"><div class="sm" style="padding:14px 2px">{{ REL.loaded ? tk("none") : tk("loading") }}</div></div>
     </div>
     <details v-for="(r, i) in L" :key="r.v" class="card ss relv" :open="i < 2 || (cur && vNewer(r.v, cur))">
-      <summary class="ssh" style="cursor:pointer"><div style="flex:1;min-width:0"><b><span>{{ tk("version") }}</span> ⁦{{ r.v }}⁩<template v-if="r.v == cur"> <span class="bd pc p-jar">{{ tk("installed") }}</span></template><template v-else-if="cur && vNewer(r.v, cur)"> <span class="bd pc p-bill">{{ tk("newer") }}</span></template></b><div v-if="dt(r.date)" class="sm">{{ dt(r.date) }}</div></div></summary>
+      <summary class="ssh" style="cursor:pointer"><div style="flex:1;min-width:0"><b><span>{{ tk("version") }}</span> ⁦{{ r.v }}⁩<template v-if="r.v == cur">{{ " " }}<span class="bd pc p-jar">{{ tk("installed") }}</span></template><template v-else-if="cur && vNewer(r.v, cur)">{{ " " }}<span class="bd pc p-bill">{{ tk("newer") }}</span></template></b><div v-if="dt(r.date)" class="sm">{{ dt(r.date) }}</div></div></summary>
       <div class="ssb p" v-html="mdLite(r.body)" />
     </details>
   </div>

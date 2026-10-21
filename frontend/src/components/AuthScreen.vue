@@ -3,14 +3,15 @@
 import { ref, computed, watch, nextTick, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { app, signIn } from "../core/boot.js";
+import { tx } from "../core/heText.js";
 import AppLogo from "./AppLogo.vue";
 
 const { t, te } = useI18n();
 const pw = ref(""), pw2 = ref(""), code = ref(""), busy = ref(false);
 const pwEl = ref(null), codeEl = ref(null);
 const setup = computed(() => app.authMode === "setup");
-// the server's own message, or one of ours by its key
-const err = computed(() => (!app.error ? "" : te("auth." + app.error) ? t("auth." + app.error) : app.error));
+// the server's own message (in Hebrew through the old dictionary, like the current app), or one of ours by its key
+const err = computed(() => (!app.error ? "" : te("auth." + app.error) ? t("auth." + app.error) : tx(app.error)));
 async function go() {
   if (busy.value) return;
   busy.value = true;

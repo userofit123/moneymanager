@@ -32,8 +32,10 @@ export const CUST = [["acc", "Accent"], ["acc2", "Gradient colour"], ["bg", "Bac
 // what a saved look keeps
 export const PKEYS = ["atm", "cc", "cu", "cp", "gi", "surf", "bg", "tex", "tsc", "gbl", "gsat", "gop", "rad", "den", "spc", "nsp", "fnt", "nav"];
 
+// a plain copy (structuredClone cannot copy the reactive objects the look is kept in)
+export const copy = (v) => JSON.parse(JSON.stringify(v));
 const saved = readJson("moneyTheme", {}) || {};
-export const theme = reactive({ ...structuredClone(ST0), ...saved });
+export const theme = reactive({ ...copy(ST0), ...saved });
 if (theme.surf == "static") theme.surf = "solid";
 if (theme.bg == "dots" || theme.bg == "stripes") { theme.tex = theme.bg; theme.bg = "glow"; } // textures used to be backgrounds
 
@@ -78,7 +80,7 @@ export function applyTheme() {
   if (typeof document === "undefined") return;
   const d = isDark(), k = d ? "D" : "L";
   // a look chosen for light or dark mode takes over when the mode changes
-  if (theme.ls !== k) { theme.ls = k; const x = looks.value.find((y) => y.id == lookFor.value[k]); if (x) Object.assign(theme, structuredClone(x.v)); }
+  if (theme.ls !== k) { theme.ls = k; const x = looks.value.find((y) => y.id == lookFor.value[k]); if (x) Object.assign(theme, copy(x.v)); }
   const a = atmOf(theme.atm)[k], ex = cuOf(k), h = document.documentElement, r = h.style;
   r.colorScheme = d ? "dark" : "light";
   h.dataset.mode = d ? "dark" : "light";

@@ -10,7 +10,7 @@ import { startUpdates } from "./updates.js";
 import { watchJobs } from "./jobs.js";
 import { startPwa, notify } from "./pwa.js";
 import { openForm } from "./forms.js";
-import { go } from "../router.js";
+import { go, current } from "../router.js";
 import { pages } from "../routes.js";
 
 // phase: "start" (splash) | "auth" (sign-in screen) | "ready" | "down" (the server cannot be reached)
@@ -36,6 +36,7 @@ async function afterLogin() {
   syncTz();
   try { await data.start(); } catch { /* data.error shows it */ }
   app.phase = data.state.value ? "ready" : "down";
+  if (app.phase === "ready") await pageShown();
   bootDone();
   if (app.phase !== "ready") return;
   startUpdates();
@@ -68,6 +69,14 @@ export async function signIn({ pw, pw2, code }) {
   app.error = j.error || "failed";
 }
 
+// "Sign out" / "Sign out everywhere" (Settings → Security): the saved offline copy goes, and the sign-in screen shows (like the current app).
+export async function signOut(all) {
+  try { await request(all ? "/api/auth/logout-all" : "/api/auth/logout", { method: "POST" }); } catch { /* sign in again anyway */ }
+  try { caches.delete("money-data"); } catch { /* none */ }
+  data.end(); data.state.value = null;
+  app.need2fa = false; showAuth("login");
+}
+
 // A session that ends while the app is open (signed out elsewhere, expired) brings back the sign-in screen.
 watch(signedOut, (v) => { if (v && app.phase !== "auth") { app.need2fa = false; data.end(); showAuth("login"); } });
 
@@ -77,6 +86,14 @@ async function syncTz() {
     const z = Intl.DateTimeFormat().resolvedOptions().timeZone, j = await getJson("/api/sync/settings");
     if (z && j.tz !== z) await request("/api/sync/settings", sendJson("PUT", { tz: z }));
   } catch { /* not important enough to bother anyone */ }
+}
+
+// Waits until the page is on screen (its code is loaded separately), so the splash fades into the page and its opening
+// animation (html.intro) plays on it, like the current app where the page is drawn before bootDone(). At most 3 seconds.
+async function pageShown() {
+  try { await current.value?.component?.(); } catch { /* the page shows its own error */ }
+  const t0 = Date.now();
+  while (!document.querySelector("main > .view, main > section") && Date.now() - t0 < 3000) await new Promise((r) => requestAnimationFrame(r));
 }
 
 // The splash fades out (html.boot → html.intro), like bootDone().

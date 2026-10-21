@@ -122,7 +122,7 @@ onBeforeUnmount(() => ro && ro.disconnect());
           <h2>{{ tk("acc." + s.k) }}<span v-if="s.sub" class="sm" style="text-transform:none;letter-spacing:0;font-weight:500">{{ tk("acc." + s.sub) }}</span></h2>
           <div class="grid ga">
             <div v-for="c in s.L.map(cardFor)" :key="c.g.n" class="card click acc" role="button" tabindex="0" @click="openAcc(c.g.n)" @keydown.enter="openAcc(c.g.n)">
-              <div class="lbl"><span>{{ an(c.lbl.name) }}<template v-if="c.lbl.tail"> <span class="sm" dir="ltr" style="font-weight:500;opacity:.8;unicode-bidi:isolate">·· {{ c.lbl.tail }}</span></template></span><span class="chip" style="margin-inline-start:auto;padding:1px 9px">{{ typeOf(c.a) }}</span></div>
+              <div class="lbl"><span>{{ an(c.lbl.name) }}<template v-if="c.lbl.tail">{{ " " }}<span class="sm" dir="ltr" style="font-weight:500;opacity:.8;unicode-bidi:isolate">·· {{ c.lbl.tail }}</span></template></span><span class="chip" style="margin-inline-start:auto;padding:1px 9px">{{ typeOf(c.a) }}</span></div>
               <template v-if="c.card"><div class="val"><small>₪</small>{{ f0(c.mo ? c.mo.now : 0) }}</div><div class="sm">{{ t("acc.chargedMonth") }}<template v-if="c.mo && c.mo.last"> · {{ t("acc.lastMonthAmt", { amount: "₪" + f0(c.mo.last) }) }}</template></div></template>
               <template v-else><div class="val"><small>₪</small>{{ c.tot < 0 ? "−" : "" }}{{ f0(c.tot) }}</div><div class="sm">{{ c.g.L.some((x) => x.cur != "ILS") ? curList(c.g.L) : an(c.a.s || "") }}</div></template>
               <div class="flex" style="gap:8px;margin-top:12px;justify-content:space-between;align-items:center"><span class="bd" :class="TONEC[c.st.tone]">{{ stLabel(c.st) }}</span><span class="sm">{{ c.foot }}</span></div>

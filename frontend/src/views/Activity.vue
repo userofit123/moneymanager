@@ -2,9 +2,10 @@
 // Activity: every transaction in one list, with search, filters, grouping, sorting, quick category changes, Needs review and Export.
 // A copy of the current app's Activity page (web/js/04-transactions.js renderTx/renderRev, 06-trend-forecast-sync.js fillFilters/resetTx).
 // The entry window is the shared one (components/tx/TxWindow.vue); other pages open this page with filters through goActivity().
-import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount, onUpdated, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { tx } from "../core/heText.js";
 import { now, dayOf } from "../core/clock.js";
 import { home } from "../core/derived.js";
 import { dshort, dcell, dstr } from "../dates.js";
@@ -107,7 +108,7 @@ const typeOpts = computed(() => [opt("", t("activity.type.all")), ...["income", 
 const cats = computed(() => catNames(S.value).filter((k) => k != "Uncategorized"));
 // the filter lists of the current app (fillFilters, tagFill): your accounts, every category with Uncategorized among them, tags in use with their count
 const catOpts = computed(() => [opt("", t("activity.allCats")), ...[...new Set([...catNames(S.value), "Uncategorized"])].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })).map((c) => opt(c, catLabel(c)))]);
-const srcOpts = computed(() => [opt("", t("activity.allSources")), ...[...new Set((S.value?.accounts || []).filter((a) => a.kind != "pension").map((a) => a.n))].map((a) => opt(a, a))]);
+const srcOpts = computed(() => [opt("", t("activity.allSources")), ...[...new Set((S.value?.accounts || []).filter((a) => a.kind != "pension").map((a) => a.n))].map((a) => opt(a, tx(a)))]); // bank names in the page's language, like the current app
 const tagOpts = computed(() => [opt("", t("activity.allTags")), ...allTags(S.value).filter(([, n]) => n > 0).map(([g, n]) => opt(g, g + " (" + n + ")"))]);
 watch(tagOpts, (L) => { if (f.value.tag && !L.some((o) => o.value === f.value.tag)) f.value.tag = ""; });
 
@@ -121,7 +122,29 @@ function groupLabel(L) {
   if ("tag" in L) return L.tag || t("activity.noTag");
   return L.name || t("activity.other");
 }
-const toggle = (g) => { const key = gkey(g), s = new Set(closed.value); s.has(key) ? s.delete(key) : s.add(key); closed.value = s; };
+// Opening or closing a group slides it (grpToggle in web/js/07-periods-rules.js): the arrow turns at once and the rows grow or shrink.
+// A table group keeps its header row while it shrinks; the rows go only when the slide has finished.
+const closing = ref(new Map()); // group → its running slide
+const headClosed = (g) => closed.value.has(gkey(g)) || closing.value.has(gkey(g));
+const boxOf = (key) => [...document.querySelectorAll("[data-gb]")].find((b) => b.dataset.gb === key && b.getClientRects().length);
+const keepOf = (b) => (b.tagName == "TBODY" ? b.querySelector(".ghead td")?.offsetHeight || 0 : 0);
+const SLIDE = { duration: 260, easing: "cubic-bezier(.4,0,.2,1)" };
+const setOf = (m, key, v) => { const n = new Map(m); v ? n.set(key, v) : n.delete(key); return n; };
+async function toggle(g) {
+  const key = gkey(g), reduce = matchMedia("(prefers-reduced-motion:reduce)").matches, run = closing.value.get(key);
+  if (run) { run.cancel(); closing.value = setOf(closing.value, key); return; }
+  if (closed.value.has(key)) {
+    const s = new Set(closed.value); s.delete(key); closed.value = s;
+    if (reduce) return; await nextTick();
+    const b = boxOf(key); if (b) b.animate([{ height: keepOf(b) + "px" }, { height: b.offsetHeight + "px" }], SLIDE);
+    return;
+  }
+  const b = boxOf(key);
+  if (reduce || !b) { closed.value = new Set(closed.value).add(key); return; }
+  const a = b.animate([{ height: b.offsetHeight + "px" }, { height: keepOf(b) + "px" }], { ...SLIDE, fill: "forwards" });
+  closing.value = setOf(closing.value, key, a);
+  a.finished.then(async () => { closing.value = setOf(closing.value, key); closed.value = new Set(closed.value).add(key); await nextTick(); a.cancel(); }).catch(() => {});
+}
 const isXf = (x) => K.value.isXf(x);
 const isPos = (x) => x.a > 0 && !isXf(x);
 const nohtml = (s) => String(s ?? "").replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").trim();
@@ -165,6 +188,10 @@ const sent = ref(null), stuck = ref(false);
 let io = null;
 onMounted(() => { if (typeof IntersectionObserver === "undefined") return; io = new IntersectionObserver(([e]) => { stuck.value = !e.isIntersecting && e.boundingClientRect.top < 0; }); watch(sent, (el) => { io.disconnect(); if (el) io.observe(el); }, { immediate: true }); });
 onBeforeUnmount(() => io && io.disconnect());
+// group headers stick just under the table header: --hh is its real height (renderTx sets it the same way)
+const txTab = ref(null);
+const setHh = () => { const th = txTab.value?.querySelector("thead"); if (th && th.offsetHeight) txTab.value.style.setProperty("--hh", th.offsetHeight + "px"); };
+onMounted(setHh); onUpdated(setHh);
 
 // ---- Needs review ----
 const revXf = computed(() => reviewTransfers(S.value));
@@ -214,7 +241,7 @@ onMounted(() => data.start());
       </div>
       <div v-if="focus" id="txFocus" class="card"><div class="flex" style="justify-content:space-between;gap:10px"><div><b>{{ t("txw.a.focusN", { n: rows.length }, rows.length) }}</b><div class="sm">{{ t("txw.a.focusText", { label: focus.label }) }}</div></div><button type="button" class="btn o s" @click="focus = null">{{ t("txw.a.focusAll") }}</button></div></div>
       <div class="ttool">
-        <span class="tsearch"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg><input v-model="f.q" type="search" :placeholder="t('activity.search')" :aria-label="t('activity.search')" /></span>
+        <span class="tsearch"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg><input id="q" v-model="f.q" type="search" :placeholder="t('activity.search')" :aria-label="t('activity.search')" /></span>
         <span class="vsels">
           <span class="vsel"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5" /></svg><select v-model="group" :aria-label="t('activity.groupBy')"><option v-for="o in groupOpts" :key="o.value" :value="o.value">{{ o.label }}</option></select></span>
           <span class="vsel"><svg viewBox="0 0 24 24"><path d="M4 7h10M4 12h7M4 17h4M17 5v14M17 19l-3-3M17 19l3-3" /></svg><select v-model="sort" :aria-label="t('activity.sortBy')"><option v-for="o in sortOpts" :key="o.value" :value="o.value">{{ o.label }}</option></select></span>
@@ -224,10 +251,10 @@ onMounted(() => data.start());
 
       <p v-if="!S && data.loading.value" class="sm" style="padding:20px;text-align:center">{{ t("activity.loading") }}</p>
       <template v-else>
-        <table id="txTab" class="dtab" :class="{ stuck }">
+        <table id="txTab" ref="txTab" class="dtab" :class="{ stuck }">
           <thead><tr><th>{{ t("activity.th.date") }}</th><th>{{ t("activity.th.desc") }}</th><th>{{ t("activity.th.fromTo") }}</th><th>{{ t("activity.category") }}</th><th>{{ t("activity.th.tags") }}</th><th style="text-align:end">{{ t("activity.th.amount") }}</th><th>{{ t("activity.th.docs") }}</th></tr></thead>
-          <tbody v-for="g in visibleGroups || [{ key: '', rows: visibleRows }]" :key="g.key" :class="g.label ? ['grp', { closed: closed.has(gkey(g)) }] : 'gu'">
-            <tr v-if="g.label" class="ghead" :class="{ closed: closed.has(gkey(g)) }" @click="toggle(g)"><td colspan="7">
+          <tbody v-for="g in visibleGroups || [{ key: '', rows: visibleRows }]" :key="g.key" :class="g.label ? ['grp', { closed: closed.has(gkey(g)) }] : 'gu'" :data-gb="g.label ? gkey(g) : undefined">
+            <tr v-if="g.label" class="ghead" :class="{ closed: headClosed(g) }" @click="toggle(g)"><td colspan="7">
               <span class="gtot"><template v-for="(p, i) in grpParts(g)" :key="i"><span v-if="i" class="gdot">·</span><span :class="{ neg: p.neg }" :data-tip="p.tip || undefined">{{ p.l }} <b dir="ltr">{{ p.v }}</b></span></template></span>
               <span class="gc"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></span> <b>{{ groupLabel(g.label) }}</b><span class="gdot">·</span><span class="sm">{{ t("activity.count", { n: g.rows.length }, g.rows.length) }}</span>
             </td></tr>
@@ -248,8 +275,8 @@ onMounted(() => data.start());
         </table>
         <div id="txl" class="txl card" style="padding:4px 12px">
           <template v-for="g in visibleGroups || [{ key: '', rows: visibleRows }]" :key="g.key">
-            <div v-if="g.label" class="ghead" :class="{ closed: closed.has(gkey(g)) }" @click="toggle(g)"><div class="gh1"><span class="gl"><span class="gc"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></span><b>{{ groupLabel(g.label) }}</b><span class="gdot">·</span><span class="sm">{{ t("activity.count", { n: g.rows.length }, g.rows.length) }}</span></span></div><div class="sm" style="margin-top:3px;padding-inline-start:20px"><template v-for="(p, i) in grpParts(g)" :key="i"><span v-if="i" class="gdot">·</span><span :class="{ neg: p.neg }">{{ p.l }} <b dir="ltr">{{ p.v }}</b></span></template></div></div>
-            <div v-if="!closed.has(gkey(g))" class="gbm">
+            <div v-if="g.label" class="ghead" :class="{ closed: headClosed(g) }" @click="toggle(g)"><div class="gh1"><span class="gl"><span class="gc"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></span><b>{{ groupLabel(g.label) }}</b><span class="gdot">·</span><span class="sm">{{ t("activity.count", { n: g.rows.length }, g.rows.length) }}</span></span></div><div class="sm" style="margin-top:3px;padding-inline-start:20px"><template v-for="(p, i) in grpParts(g)" :key="i"><span v-if="i" class="gdot">·</span><span :class="{ neg: p.neg }">{{ p.l }} <b dir="ltr">{{ p.v }}</b></span></template></div></div>
+            <div v-if="!closed.has(gkey(g))" class="gbm" :data-gb="g.label ? gkey(g) : undefined">
               <div v-for="x in g.rows" :key="x.id" class="txi" :class="{ fut: K.isFut(x) }" @click="openRow(x)"><span class="av" :style="avStyle(x)">{{ (name(x) || "?")[0] }}</span><div style="flex:1;min-width:0"><div class="mer" style="font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ name(x) }}</div><div class="sm"><span class="num">{{ dcell(x.d) }}</span> · <span class="catl" @click.stop="goCat(x.c)">{{ catLabel(x.c) }}</span><template v-if="x.docs && x.docs.length"> · <span class="dchip" @click.stop="openDocs(x.id)">📎 {{ x.docs.length }}</span></template></div><div style="margin-top:3px"><template v-for="c in chips(x)" :key="c.cls"><span class="bd pc" :class="c.cls" :data-tip="c.tip"><svg v-if="c.icon" class="pi" viewBox="0 0 24 24" v-html="CHIP_ICON[c.icon]"></svg>{{ c.label }}</span> </template></div></div><div style="text-align:end"><b class="num" :class="{ pos: isPos(x) }" dir="ltr"><span v-if="x.balUpd" class="sm" style="font-weight:500">{{ amtText(x) }}</span><template v-else>{{ amtText(x) }}</template></b><div v-if="x.orig" class="sm" dir="ltr">{{ SYM[x.orig.cur] }}{{ f0(x.orig.amt) }}</div></div></div>
             </div>
           </template>

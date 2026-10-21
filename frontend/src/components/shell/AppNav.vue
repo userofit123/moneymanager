@@ -39,9 +39,16 @@ function place(animate) {
   anim = p.animate(frames, { duration: D, easing: "linear" }); anim.onfinish = () => { anim = null; };
 }
 watch(() => current.value.name, () => nextTick(() => place(true)));
+// it follows the menu when its size or the look changes (corners, menu style, spacing, phone/computer), and once the fonts are in
 const onResize = () => place(false);
-onMounted(() => { nextTick(() => place(false)); addEventListener("resize", onResize); });
-onBeforeUnmount(() => removeEventListener("resize", onResize));
+let ro = null, mo = null;
+onMounted(() => {
+  nextTick(() => place(false)); setTimeout(onResize, 50); addEventListener("resize", onResize);
+  ro = new ResizeObserver(onResize); ro.observe(nav.value);
+  mo = new MutationObserver(onResize); mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-rad", "data-nav", "data-nsp", "class"] });
+  document.fonts?.ready.then(onResize);
+});
+onBeforeUnmount(() => { removeEventListener("resize", onResize); ro?.disconnect(); mo?.disconnect(); });
 </script>
 
 <template>
@@ -59,7 +66,7 @@ onBeforeUnmount(() => removeEventListener("resize", onResize));
     </button>
     <div class="navb">
       <UpdateButton />
-      <button type="button" class="syncb" :class="{ spinning: !!job }" @click="syncOpen = true"><i class="live" :class="syncState.live" /><span>{{ syncState.top }}<br><b style="color:var(--tx);font-size:12px">{{ syncState.sub }}</b></span></button>
+      <button type="button" class="syncb" :class="{ spinning: !!job }" @click="syncOpen = true"><i class="live" :class="syncState.live" /><span id="sync">{{ syncState.top }}<br><b style="color:var(--tx);font-size:12px">{{ syncState.sub }}</b></span></button>
       <button id="themeBtn" type="button" class="nb" @click="appearanceOpen = !appearanceOpen"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 3v18a9 9 0 0 0 0-18z" fill="currentColor" /></svg></span>{{ t("shell.appearance") }}</button>
     </div>
   </nav>

@@ -80,5 +80,7 @@ export function startSegSlide() {
     }
   }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
   addEventListener("resize", () => { st.forEach((s) => { s.snap = true; }); all(); });
+  // the language (right to left) or the look (font, density...) changed without a reload: every pill moves to its tab's new place at once
+  new MutationObserver(() => { st.forEach((s) => { s.snap = true; }); all(); }).observe(document.documentElement, { attributes: true, attributeFilter: ["lang", "data-fnt", "data-den", "data-spc", "data-rad", "data-nav"] });
   all();
 }

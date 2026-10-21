@@ -11,6 +11,7 @@ import { alertList } from "./core/derived.js";
 import { quickOpen } from "./core/shell.js";
 import "./core/notices.js";
 import "./core/upkeep.js";
+import "./core/alertReport.js"; // the open alerts go to the server's alert history from every page
 import HelpPanel from "./help/HelpPanel.vue";
 import { helpOpen, helpSet } from "./help/help.js";
 import ToastHost from "./components/ToastHost.vue";

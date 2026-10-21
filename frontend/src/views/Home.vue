@@ -61,7 +61,7 @@ const friendly = (e) => {
   if (/fetchPostWithinPage|fetchGetWithinPage|Unexpected end of JSON/i.test(e)) { const st = (e.match(/reqName=([A-Za-z_0-9]+)/) || [])[1] || ""; return /^(ValidateIdData|performLogonI)$/.test(st) ? t("al.feLogon") : t("al.feNoData") + (st ? t("al.feStep", { st }) : ""); }
   return /^OTP_REQUIRED/.test(e) ? t("al.feOtp") : e;
 };
-const alertList = computed(() => (S.value && M.value.any ? alertsModel(S.value, M.value, now.value, {}, friendly) : []));
+const alertList = computed(() => (S.value && M.value ? alertsModel(S.value, M.value, now.value, {}, friendly) : []));
 const monthYear = (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, { month: "short", year: "numeric" });
 function alertText(x) {
   const p = { ...x.p }; if (p.k) p.k = catName(p.k); if (p.n && x.key === "card") p.n = an(p.n); if (p.date && /^\d{4}-/.test(String(p.date)) || p.date instanceof Date) p.date = dstr(p.date);
@@ -222,7 +222,7 @@ const openBill = (b) => { const bl = M.value.billsAll[b.idx]; const last = bl &&
         </div>
       </div>
 
-      <div v-if="!M.any" id="homeEmpty" class="card">
+      <div v-if="!M.any && !fxKeys.length" id="homeEmpty" class="card">
         <b>{{ t("home.emptyTitle") }}</b>
         <div class="sm" style="margin:6px 0 12px">{{ t("home.emptyText") }}</div>
         <div class="flex" style="gap:8px;flex-wrap:wrap"><button type="button" class="btn s" @click="goConn">{{ t("home.connect") }}</button><button type="button" class="btn o s" @click="openForm('tx')">{{ t("home.addTx") }}</button></div>
@@ -296,7 +296,7 @@ const openBill = (b) => { const bl = M.value.billsAll[b.idx]; const last = bl &&
           </div>
         </div>
 
-        <div v-show="M.has.bills || M.has.budg || M.has.jars || M.has.fx || M.has.donut || M.has.recent" id="row-bb" class="grid g2">
+        <div v-show="M.has.bills || M.has.budg || M.has.jars || fxKeys.length || M.has.donut || M.has.recent" id="row-bb" class="grid g2">
           <div v-if="M.has.donut" id="sec-donut">
             <h2 style="margin-top:0"><span>{{ t("home.byCategory") }}<span class="mo"> · {{ monthName(M.MK) }}</span></span><a class="sm hl" :href="link(H2.donut)" @click="onLink">{{ t("home.all") }}</a></h2>
             <div class="card"><div id="donutHome" class="flex dnt" :class="{ hv: hover }">

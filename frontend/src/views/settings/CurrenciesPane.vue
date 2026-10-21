@@ -34,7 +34,7 @@ async function remove(c) {
     <div class="card ss">
       <SetHead icon="cur" :title="tk('title')" :desc="tk('desc')" />
       <div class="ssb p">
-        <div style="margin-bottom:12px"><span v-for="c in listOf(S)" :key="c" class="chip" style="margin:3px">{{ symOf(c) ? symOf(c) + " " : "" }}{{ c }}<template v-if="!isUsed(S, c)"> <button type="button" class="tag" style="border:0;background:none;cursor:pointer" data-a="curDel" :data-c="c" :aria-label="tk('remove', { c })" @click="remove(c)">×</button></template></span></div>
+        <div style="margin-bottom:12px"><span v-for="c in listOf(S)" :key="c" class="chip" style="margin:3px">{{ symOf(c) ? symOf(c) + " " : "" }}{{ c }}<template v-if="!isUsed(S, c)">{{ " " }}<button type="button" class="tag" style="border:0;background:none;cursor:pointer" data-a="curDel" :data-c="c" :aria-label="tk('remove', { c })" @click="remove(c)">×</button></template></span></div>
         <div class="tools"><select id="curSel" v-model="pick"><option value="">{{ tk("pick") }}</option><option v-for="c in addable(S)" :key="c" :value="c">{{ c }} · {{ t("settings.cur.names." + c) }}</option></select><button type="button" class="btn o s" data-a="curAdd" @click="add">{{ tk("add") }}</button></div>
       </div>
     </div>

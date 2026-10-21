@@ -72,7 +72,7 @@ function wire() {
   document.addEventListener("mousedown", off); document.addEventListener("keydown", off);
   addEventListener("scroll", off, { passive: true, capture: true });
   document.addEventListener("touchstart", (e) => {
-    if (pinned && !(e.target.closest && e.target.closest(".tinfo"))) { off(); return; }
+    if (pinned && !(e.target.closest && e.target.closest(".tinfo"))) off();
     const t = tipOf(e); if (!t) return; off(); timer = setTimeout(() => { show(t); hideT = setTimeout(off, 4500); }, 450);
   }, { passive: true });
   document.addEventListener("touchend", () => clearTimeout(timer), { passive: true });

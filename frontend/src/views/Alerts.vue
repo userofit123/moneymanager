@@ -9,8 +9,8 @@ import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
 import { home, budgets } from "../core/derived.js";
 import { now } from "../core/clock.js";
-import { request, sendJson } from "../core/http.js";
-import { i18n } from "../i18n.js";
+import { request } from "../core/http.js";
+import { alertsReported, makeFriendly } from "../core/alertReport.js";
 import PageHeader from "../components/PageHeader.vue";
 import { openAlert } from "../core/shell.js";
 import { alertsModel } from "../lib/alerts.js";
@@ -31,29 +31,16 @@ const loc = computed(() => (locale.value === "he" ? "he-IL" : "en-GB"));
 const an = (n) => categoryName(n, locale.value);
 const catName = (c) => (!c || c === "Uncategorized" ? t("home.uncategorizedCat") : categoryName(c, locale.value));
 const monthYear = (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, { month: "short", year: "numeric" });
-const friendly = (e) => {
-  e = e || "";
-  if (/fetchPostWithinPage|fetchGetWithinPage|Unexpected end of JSON/i.test(e)) { const st = (e.match(/reqName=([A-Za-z_0-9]+)/) || [])[1] || ""; return /^(ValidateIdData|performLogonI)$/.test(st) ? t("al.feLogon") : t("al.feNoData") + (st ? t("al.feStep", { st }) : ""); }
-  return /^OTP_REQUIRED/.test(e) ? t("al.feOtp") : e;
-};
+const friendly = makeFriendly(t);
 
 // ---- the alerts ----
 const M = home; // worked out once for the whole app (core/derived.js)
-const list = computed(() => (S.value && M.value.any ? alertsModel(S.value, { ...M.value, budgets: budgets.value.info }, now.value, {}, friendly) : []));
+const list = computed(() => (S.value && M.value ? alertsModel(S.value, { ...M.value, budgets: budgets.value.info }, now.value, {}, friendly) : []));
 const ctx = computed(() => ({ t, catName, an, dstr, monthYear }));
 const rows = computed(() => list.value.map((x) => { const [title, text] = alertTexts(x, ctx.value); return { ...x, title, text }; }));
 
-// The history keeps the English sentences, so what is reported is always English.
-const enT = (k, p) => i18n.global.t(k, p || {}, { locale: "en" });
-const enCtx = { t: enT, catName: (c) => (!c || c === "Uncategorized" ? enT("home.uncategorizedCat") : categoryName(c, "en")), an: (n) => categoryName(n, "en"), dstr, monthYear: (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString("en-GB", { month: "short", year: "numeric" }) };
-const enRows = computed(() => list.value.map((x) => { const [title, text] = alertTexts(x, enCtx); return { key: String(x.id), title, detail: text, sev: x.sev }; }));
-let sig = "";
-watch(enRows, (L) => {
-  if (!S.value || S.value.rev == null) return;
-  const s = JSON.stringify(L.map((x) => [x.key, x.title, x.detail]));
-  if (s === sig) return; sig = s;
-  request("/api/alerts/seen", sendJson("POST", { alerts: L })).then(() => { if (tab.value === "hist" && hist.value.loaded) loadHist(false); }).catch(() => {});
-}, { immediate: true });
+// The open alerts are reported to the server on every page (core/alertReport.js); an open History tab then loads again.
+watch(alertsReported, () => { if (tab.value === "hist" && hist.value.loaded) loadHist(false); });
 
 // ---- saving ----
 // Saving goes through the data store (stores/data.js).

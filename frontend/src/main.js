@@ -10,6 +10,7 @@ import { startTooltips } from "./core/tooltip.js";
 import { startDropdowns } from "./core/dropdown.js";
 import { startPolish } from "./core/polish.js";
 import { startSegSlide } from "./core/segSlide.js";
+import { startDetails } from "./core/details.js";
 import { withErrors } from "./core/errors.js";
 
 startMobile();
@@ -18,3 +19,4 @@ startTooltips(i18n.global.t("shell.moreInfo"));
 startDropdowns();
 startPolish();
 startSegSlide();
+startDetails();

@@ -3,8 +3,9 @@
 // surface, corners, font, density, spacing, navigation, and saved looks. Same markup and classes as the current app (styles/legacy.css).
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
-import { theme, ATM, ST0, CP, CUST, AKEYS, looks, lookFor, saveLooks, isDark, atmOf, cpOf, custVal, lookPal, setTheme, themeSwap, PKEYS } from "../core/theme.js";
+import { theme, ATM, ST0, CP, CUST, AKEYS, looks, lookFor, saveLooks, copy, isDark, atmOf, cpOf, custVal, lookPal, setTheme, themeSwap, PKEYS } from "../core/theme.js";
 import { toast } from "../core/toast.js";
+import { tx } from "../core/heText.js";
 import { appearanceOpen } from "../core/shell.js";
 import { escLayer } from "../core/layers.js";
 
@@ -46,14 +47,14 @@ const fromPreset = (e) => {
   setTheme({ cc: a.L[0], cu, cp: { L: {}, D: {} }, atm: "Custom" });
 };
 const setBase = (v) => Object.assign(theme, { cc: v, atm: "Custom", cu: { L: {}, D: {} }, cp: { L: {}, D: {} } });
-const setCust = (n, v) => { const cu = structuredClone(theme.cu || { L: {}, D: {} }); (cu[k.value] = cu[k.value] || {})[n] = v; Object.assign(theme, { cu, atm: "Custom" }); };
-const setChart = (i, v) => { const cp = structuredClone(theme.cp || { L: {}, D: {} }); (cp[k.value] = cp[k.value] || {})[i] = v; theme.cp = cp; };
+const setCust = (n, v) => { const cu = copy(theme.cu || { L: {}, D: {} }); (cu[k.value] = cu[k.value] || {})[n] = v; Object.assign(theme, { cu, atm: "Custom" }); };
+const setChart = (i, v) => { const cp = copy(theme.cp || { L: {}, D: {} }); (cp[k.value] = cp[k.value] || {})[i] = v; theme.cp = cp; };
 const custReset = () => setTheme({ cu: { L: {}, D: {} }, cp: { L: {}, D: {} }, cc: ST0.cc });
-const reset = () => themeSwap(() => { const keep = { sym: theme.sym, ls: theme.ls }; Object.keys(theme).forEach((x) => delete theme[x]); Object.assign(theme, structuredClone(ST0), keep); });
+const reset = () => themeSwap(() => { const keep = { sym: theme.sym, ls: theme.ls }; Object.keys(theme).forEach((x) => delete theme[x]); Object.assign(theme, copy(ST0), keep); });
 
 // saved looks
 const lookName = ref(""), nameEl = ref(null);
-const snap = () => structuredClone(Object.fromEntries(PKEYS.map((x) => [x, theme[x]])));
+const snap = () => copy(Object.fromEntries(PKEYS.map((x) => [x, theme[x]])));
 const openSave = () => { tab.value = "sav"; nextTick(() => nameEl.value?.focus()); };
 function saveLook() {
   const nm = lookName.value.trim();
@@ -62,11 +63,11 @@ function saveLook() {
   looks.value = [...looks.value, { id: Date.now().toString(36), name: nm, v: snap() }];
   lookName.value = ""; saveLooks();
 }
-const useLook = (x) => setTheme(structuredClone(x.v));
+const useLook = (x) => setTheme(copy(x.v));
 function assign(x, sc) {
   lookFor.value = { ...lookFor.value, [sc]: lookFor.value[sc] == x.id ? null : x.id }; saveLooks();
   const y = looks.value.find((z) => z.id == lookFor.value[sc]);
-  if (y && (sc == "D") == isDark()) setTheme(structuredClone(y.v));
+  if (y && (sc == "D") == isDark()) setTheme(copy(y.v));
 }
 const updLook = (x) => { looks.value = looks.value.map((y) => (y.id == x.id ? { ...y, v: snap() } : y)); saveLooks(); toast(t("ap.savedLook", { name: x.name })); };
 const delLook = (x) => { looks.value = looks.value.filter((y) => y.id != x.id); const a = { ...lookFor.value }; ["L", "D"].forEach((s) => { if (a[s] == x.id) a[s] = null; }); lookFor.value = a; saveLooks(); };
@@ -90,11 +91,11 @@ const lookDot = (x) => { const c = lookPal(x.v, k.value); return `background:lin
         </div>
         <div class="aps"><h4>{{ t("ap.atm") }}</h4>
           <div id="sw" class="sw">
-            <button v-for="(v, n) in ATM" :key="n" :class="{ on: theme.atm === n }" :aria-label="n" :title="n" @click="opt('atm', n)"><span class="swd" :style="{ background: swatch(n) }" /><span class="swn">{{ n }}</span></button>
+            <button v-for="(v, n) in ATM" :key="n" :class="{ on: theme.atm === n }" :aria-label="tx(n)" :title="tx(n)" @click="opt('atm', n)"><span class="swd" :style="{ background: swatch(n) }" /><span class="swn">{{ tx(n) }}</span></button>
             <button :class="{ on: theme.atm === 'Custom' }" :aria-label="t('ap.customA')" :title="t('ap.customA')" @click="opt('atm', 'Custom')"><span class="swd" :style="{ background: theme.atm === 'Custom' ? swatch('Custom') : 'conic-gradient(#f55,#fb3,#9d4,#3cb,#49f,#a6e,#f55)' }" /><span class="swn">{{ t("ap.custom") }}</span></button>
           </div>
           <div v-if="theme.atm === 'Custom'" id="cust" class="cust">
-            <div class="apr"><span>{{ t("ap.from") }}</span><select @change="fromPreset"><option value="">{{ t("ap.fromPh") }}</option><option v-for="(v, n) in ATM" :key="n" :value="n">{{ n }}</option></select></div>
+            <div class="apr"><span>{{ t("ap.from") }}</span><select @change="fromPreset"><option value="">{{ t("ap.fromPh") }}</option><option v-for="(v, n) in ATM" :key="n" :value="n">{{ tx(n) }}</option></select></div>
             <div class="apr"><span>{{ t("ap.base") }}</span><input type="color" :value="theme.cc || '#4355b9'" :aria-label="t('ap.base')" @input="setBase($event.target.value)"><output>{{ (theme.cc || "").toUpperCase() }}</output></div>
             <div class="cuh"><b>{{ dark ? t("ap.darkC") : t("ap.lightC") }}</b><button class="btn o s" @click="custReset">{{ t("ap.reset") }}</button></div>
             <div class="cgrid"><label v-for="[n] in CUST" :key="n" class="crow"><input type="color" :value="custVal(n, k)" :aria-label="t('ap.' + CKEY[n])" @input="setCust(n, $event.target.value)"><span>{{ t("ap." + CKEY[n]) }}</span></label></div>

@@ -109,7 +109,7 @@ const cc = (c) => (c == "Income" || props.S?.cats?.[c] === 99 ? "var(--pos)" : `
         </template>
         <div v-else class="sm" style="margin-top:6px">{{ f.cats.length ? t("jars.form.catsSet", { cats: f.cats.join(", ") }) : t("jars.form.catsNone") }}</div>
       </div>
-      <div class="sm" style="margin:2px 0 16px">{{ t("jars.form.order1") }}<template v-if="!id"> {{ t("jars.form.order2") }}</template> {{ t("jars.form.order3") }} {{ t("jars.form.order4") }}</div>
+      <div class="sm" style="margin:2px 0 16px">{{ t("jars.form.order1") }}<template v-if="!id">{{ " " }}{{ t("jars.form.order2") }}</template> {{ t("jars.form.order3") }} {{ t("jars.form.order4") }}</div>
     </div>
     <template #actions>
       <BaseButton variant="outline" @click="emit('update:open', false)">{{ t("jars.cancel") }}</BaseButton>

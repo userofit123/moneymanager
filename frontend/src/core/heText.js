@@ -8,7 +8,7 @@ import { data } from "../stores/data.js";
 const HE = shallowRef(null);
 let asked = false;
 function loadHe() {
-  if (asked) return;
+  if (asked || typeof window === "undefined") return; // not while pages are drawn in Node (tests)
   asked = true;
   import("./he-legacy.js").then((m) => { m.default.on = true; m.setProfileState(data.state.value); HE.value = m; setHebrewFilter((x) => m.default.gen(x)); });
 }

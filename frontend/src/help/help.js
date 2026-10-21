@@ -27,12 +27,14 @@ export function guideOf(page, he) {
   const key = HELP_PAGE[page] || page, H = he ? HE : EN;
   return H[key] || EN[key] || null;
 }
+// The little pictures are drawn in English; in Hebrew each text and box value goes through the old dictionary, as the current app's page-wide pass does.
+const heDemo = (h, tx) => h.replace(/>([^<]*[A-Za-z][^<]*)</g, (m, t) => ">" + t.replace(/\S(.*\S)?/s, (x) => x.split(" · ").map(tx).join(" · ")) + "<").replace(/(value|placeholder)="([^"]*[A-Za-z][^"]*)"/g, (m, k, v) => k + '="' + tx(v) + '"');
 // The panel's inside, as the old helpRender builds it (labels are the Example / Tip words of the language).
-export function guideHtml(P, he) {
+export function guideHtml(P, he, tr) { // tr: the Hebrew dictionary (core/heText.js tx), for the little pictures
   const B = P.blocks || [];
   return (P.lead ? `<div class="hlead">${hMd(P.lead)}</div>` : "")
     + (B.length > 3 ? `<div class="hjump">${B.map((b, i) => `<button data-a="helpJump" data-i="${i}">${esc(b.h)}</button>`).join("")}</div>` : "")
-    + B.map((b, i) => `<section class="hs" id="hs${i}"><h4>${esc(b.h)}</h4>${(b.p || []).map((t) => `<p>${hMd(t)}</p>`).join("")}${b.demo && HDEMO[b.demo] ? `<div class="hdemo" aria-hidden="true">${HDEMO[b.demo]()}</div>` : ""}${b.ex ? `<div class="hex"><b>${he ? "דוגמה" : "Example"}</b>${hMd(b.ex)}</div>` : ""}${b.tip ? `<div class="htip"><b>${he ? "טיפ" : "Tip"}</b>${hMd(b.tip)}</div>` : ""}</section>`).join("");
+    + B.map((b, i) => `<section class="hs" id="hs${i}"><h4>${esc(b.h)}</h4>${(b.p || []).map((t) => `<p>${hMd(t)}</p>`).join("")}${b.demo && HDEMO[b.demo] ? `<div class="hdemo" aria-hidden="true">${he && tr ? heDemo(HDEMO[b.demo](), tr) : HDEMO[b.demo]()}</div>` : ""}${b.ex ? `<div class="hex"><b>${he ? "דוגמה" : "Example"}</b>${hMd(b.ex)}</div>` : ""}${b.tip ? `<div class="htip"><b>${he ? "טיפ" : "Tip"}</b>${hMd(b.tip)}</div>` : ""}</section>`).join("");
 }
 
 // ---- the ? next to each section's name: it opens the panel at that section ----
