@@ -1,0 +1,180 @@
+{
+  "empty": "Nothing to recap yet",
+  "emptyX": "Once your accounts are connected or you add a few transactions, this page will tell you how your month is going.",
+  "hi": "Hi {n}",
+  "hello": "Hello",
+  "leadStart": "Here is how {mon} is beginning, step by step",
+  "leadMid": "Here is how {mon} has gone so far, step by step",
+  "leadEnd": "{mon} is almost over. Here is how it went",
+  "dayOf": "Day {d} of {n}",
+  "daysLeft": "1 day left | {n} days left",
+  "lastDay": "Last day of the month",
+  "barsAria": "Spending for each day of the month",
+  "jarsSet": "Set aside in jars",
+  "free": "Free to use",
+  "cards": "Credit cards",
+  "bills": "Bills",
+  "budgets": "Budgets",
+  "fromJars": "Paid from jars",
+  "pStart": "Start of month",
+  "pToday": "Today",
+  "pEnd": "Expected end",
+  "moreToday": "Today you have {a} more than that",
+  "lessToday": "Today you have {a} less than that",
+  "began": "You began {mon} with",
+  "beganX": "That is roughly what was in your accounts on {date}.",
+  "soFar": "So far, you received",
+  "nothingIn": "Nothing has come in yet this month.",
+  "biggest": "The biggest payment was {a} from {who}, on {date}. {others} added another {b}.",
+  "others": "1 other payment | {n} other payments",
+  "paidBy": "You were paid by {who} on {date}.",
+  "tookUp": "That took your accounts up to about {a}.",
+  "then": "Then, you received",
+  "startedWith": "Started with",
+  "cameIn": "Came in",
+  "broughtTo": "Brought it to",
+  "sameAs": "You have spent about the same as you did by this day last month",
+  "lessThan": "You have spent {a} less than you did by this day last month",
+  "moreThan": "You have spent {a} more than you did by this day last month",
+  "calmer": "The last 7 days were calmer than the 7 before",
+  "busier": "The last 7 days were busier than the 7 before",
+  "below": "{c} is well below its usual",
+  "above": "{c} is already above a usual month",
+  "barsLead": "Each bar below is one day. Hover over a bar to see what you spent, and click it to open that day.",
+  "since": "Since then, you have spent",
+  "left": "After all that, you are left with",
+  "leftX": "in your bank and wallet accounts today.",
+  "upcoming": "Upcoming payments",
+  "willHave": "You will have about {a} left after you pay these",
+  "moreThanHave": "That is {a} more than you have in your accounts today",
+  "inJars": "{a} of that is in your jars, so about {b} is yours to spend",
+  "jarsShort": "Your jars hold {a}, so after these payments they will be about {b} short",
+  "stillPay": "You still have to pay",
+  "stillPayX": "That is your credit card charges, your bills, the rest of your budgets and what your jars pay for.",
+  "relX": "Your jars and cushion need more than your accounts will hold after these payments. This lowers what is saved in your jars, starting with the least important, until it fits. Nothing moves in your bank.",
+  "relBtn": "Take {a} back from the jars",
+  "bOver": "Over its limit by {a}: {s} spent of {l}.",
+  "bWarn": "{pc}% used: {s} of {l}, with {left} left.",
+  "bPace": "At this pace it will reach about {p}, which is {a} over its {l} limit.",
+  "over": "Over",
+  "almost": "Almost full",
+  "heading": "Heading over",
+  "budAre": "Your budgets are",
+  "onTrack": "On track",
+  "allOk": "Your 1 budget is within its limit. | All {n} budgets are within their limits.",
+  "budgets2": "Your budgets",
+  "need": "1 needs attention | {n} need attention",
+  "why": "Here is why:",
+  "endX": "This is what should be left if you pay everything that is still due (bills and credit card charges) and use up the rest of your budgets.",
+  "moreStart": "{a} more than you started with",
+  "lessStart": "{a} less than you started with",
+  "endShort": "Your jars hold {a}, but you will probably end the month with {e}, so they would be about {b} short",
+  "nextBegin": "{mon} will begin with about {a} already on its way out",
+  "predicted": "Predicted end of {mon}",
+  "today": "today",
+  "tCameIn": "Came in",
+  "tSpent": "Spent",
+  "andMore": "and {n} more",
+  "expected": "Expected",
+  "nothingPlanned": "Nothing planned",
+  "nothingHappened": "Nothing happened",
+  "clickDay": "Click to open this day",
+  "greet": {
+    "f": {
+      "m": {
+        "0": "Good morning, {n}",
+        "1": "Rise and shine, {n}",
+        "2": "Morning, {n}",
+        "3": "Hope your day starts well, {n}"
+      },
+      "a": {
+        "0": "Good afternoon, {n}",
+        "1": "Hello, {n}",
+        "2": "Good to see you, {n}",
+        "3": "Welcome back, {n}"
+      },
+      "e": {
+        "0": "Good evening, {n}",
+        "1": "Evening, {n}",
+        "2": "Welcome back, {n}",
+        "3": "Hello, {n}"
+      },
+      "n": {
+        "0": "Good evening, {n}",
+        "1": "Still up, {n}?",
+        "2": "Evening check-in, {n}",
+        "3": "A quiet night, {n}"
+      },
+      "l": {
+        "0": "Late night, {n}?",
+        "1": "Burning the midnight oil, {n}?",
+        "2": "Up late, {n}?",
+        "3": "Can't sleep, {n}?"
+      }
+    },
+    "m": {
+      "m": {
+        "0": "Good morning, {n}",
+        "1": "Rise and shine, {n}",
+        "2": "Morning, {n}",
+        "3": "Hope your day starts well, {n}"
+      },
+      "a": {
+        "0": "Good afternoon, {n}",
+        "1": "Hello, {n}",
+        "2": "Good to see you, {n}",
+        "3": "Welcome back, {n}"
+      },
+      "e": {
+        "0": "Good evening, {n}",
+        "1": "Evening, {n}",
+        "2": "Welcome back, {n}",
+        "3": "Hello, {n}"
+      },
+      "n": {
+        "0": "Good evening, {n}",
+        "1": "Still up, {n}?",
+        "2": "Evening check-in, {n}",
+        "3": "A quiet night, {n}"
+      },
+      "l": {
+        "0": "Late night, {n}?",
+        "1": "Burning the midnight oil, {n}?",
+        "2": "Up late, {n}?",
+        "3": "Can't sleep, {n}?"
+      }
+    },
+    "o": {
+      "m": {
+        "0": "Good morning, {n}",
+        "1": "Rise and shine, {n}",
+        "2": "Morning, {n}",
+        "3": "Hope your day starts well, {n}"
+      },
+      "a": {
+        "0": "Good afternoon, {n}",
+        "1": "Hello, {n}",
+        "2": "Good to see you, {n}",
+        "3": "Welcome back, {n}"
+      },
+      "e": {
+        "0": "Good evening, {n}",
+        "1": "Evening, {n}",
+        "2": "Welcome back, {n}",
+        "3": "Hello, {n}"
+      },
+      "n": {
+        "0": "Good evening, {n}",
+        "1": "Still up, {n}?",
+        "2": "Evening check-in, {n}",
+        "3": "A quiet night, {n}"
+      },
+      "l": {
+        "0": "Late night, {n}?",
+        "1": "Burning the midnight oil, {n}?",
+        "2": "Up late, {n}?",
+        "3": "Can't sleep, {n}?"
+      }
+    }
+  }
+}

@@ -11,6 +11,8 @@ const KINDS = {
   rule: () => import("./forms/RuleForm.vue"),
   category: () => import("./forms/CategoryForm.vue"),
   pension: () => import("./forms/PensionForm.vue"),
+  account: () => import("./forms/AccountForm.vue"),
+  balance: () => import("./forms/BalanceForm.vue"),
 };
 const comps = Object.fromEntries(Object.entries(KINDS).map(([k, l]) => [k, defineAsyncComponent(l)]));
 const comp = computed(() => (form.value ? comps[form.value.kind] : null));

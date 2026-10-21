@@ -13,7 +13,7 @@ const QI = { plus: '<path d="M12 5v14M5 12h14"/>', camera: '<path d="M4 8h3l2-3h
 const settings = (tab) => () => { openSettingsTab(tab); go("/settings"); };
 const ITEMS = [
   ["plus", "tx", () => openForm("tx")],
-  ["bank", "acc", () => go("/accounts?add=1")],
+  ["bank", "acc", () => openForm("account")],
   ["camera", "photo", () => openForm("tx", { photo: true })],
   ["tag", "rule", () => openForm("rule")],
   ["folder", "cat", () => openForm("category")],
