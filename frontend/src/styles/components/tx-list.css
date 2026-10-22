@@ -89,6 +89,32 @@ td.mer {
   flex: none;
 }
 
+.mc .mw {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px 8px;
+}
+
+/* the tags travel as one group: beside the name when they fit, otherwise all of them on the line below */
+.mc .mp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px 8px;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+/* the tags sit right after the name, or all of them wrap under it when they do not fit beside it */
+.mc .mw .mt {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding-inline-end: 3px; /* the slanted last letter is not clipped */
+}
+
 .mc .mt {
   min-width: 0;
   overflow: hidden;

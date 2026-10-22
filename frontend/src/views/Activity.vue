@@ -264,7 +264,7 @@ onMounted(() => data.start());
             <template v-if="!closed.has(gkey(g))">
               <tr v-for="x in g.rows" :key="x.id" :class="{ fut: K.isFut(x) }">
                 <td class="sm num" style="white-space:nowrap">{{ dcell(x.d) }}</td>
-                <td class="mer" style="cursor:pointer" @click="openRow(x)"><div class="mc"><span class="av" :style="avStyle(x)">{{ (name(x) || "?")[0] }}</span><span class="mt" :title="name(x)">{{ name(x) }}</span><template v-for="c in chips(x)" :key="c.cls"><span class="bd pc" :class="c.cls" :data-tip="c.tip"><svg v-if="c.icon" class="pi" viewBox="0 0 24 24" v-html="CHIP_ICON[c.icon]"></svg>{{ c.label }}</span> </template></div></td>
+                <td class="mer" style="cursor:pointer" @click="openRow(x)"><div class="mc"><span class="av" :style="avStyle(x)">{{ (name(x) || "?")[0] }}</span><div class="mw"><span class="mt" :title="name(x)">{{ name(x) }}</span><div class="mp"><template v-for="c in chips(x)" :key="c.cls"><span class="bd pc" :class="c.cls" :data-tip="c.tip"><svg v-if="c.icon" class="pi" viewBox="0 0 24 24" v-html="CHIP_ICON[c.icon]"></svg>{{ c.label }}</span> </template></div></div></div></td>
                 <td class="sm ft" :title="nohtml(x.from) + ' → ' + nohtml(x.to)">{{ nohtml(x.from) }} → {{ nohtml(x.to) }}</td>
                 <td><select v-if="x.upBill != null" :value="x.c && x.c !== 'Uncategorized' ? x.c : ''" :aria-label="t('activity.category')" :data-tip="t('txw.a.upcatTip')" @change="setBillCat(x, $event.target.value)"><option value="">{{ t("activity.uncategorized") }}</option><option v-for="c in cats" :key="c" :value="c">{{ catLabel(c) }}</option></select>
                   <span v-else-if="x.virtual || isXf(x)" class="sm">{{ x.c ? catLabel(x.c) : "—" }}</span>

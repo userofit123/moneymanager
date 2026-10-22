@@ -39,7 +39,7 @@ const setCat = (x, v) => data.change((n) => setField(n, x.id, "c", v).lines || f
     <tbody>
       <tr v-for="x in rows" :key="x.id" :class="{ fut: K.isFut(x) }">
         <td class="sm num" style="white-space:nowrap">{{ dcell(x.d) }}</td>
-        <td class="mer" style="cursor:pointer" @click="emit('open', x)"><div class="mc"><span class="av" :style="av(x)">{{ (name(x) || "?")[0] }}</span><span class="mt" :title="name(x)">{{ name(x) }}</span><span v-for="c in fitChips(txChips(S, x, { K, dup, BC }))" :key="c.cls" class="bd pc" :class="c.cls" :data-tip="c.tip"><svg v-if="c.icon" class="pi" viewBox="0 0 24 24" v-html="CHIP_ICON[c.icon]" />{{ c.label }}</span></div></td>
+        <td class="mer" style="cursor:pointer" @click="emit('open', x)"><div class="mc"><span class="av" :style="av(x)">{{ (name(x) || "?")[0] }}</span><div class="mw"><span class="mt" :title="name(x)">{{ name(x) }}</span><div class="mp"><span v-for="c in fitChips(txChips(S, x, { K, dup, BC }))" :key="c.cls" class="bd pc" :class="c.cls" :data-tip="c.tip"><svg v-if="c.icon" class="pi" viewBox="0 0 24 24" v-html="CHIP_ICON[c.icon]" />{{ c.label }}</span></div></div></div></td>
         <td class="sm ft" :title="x.from + ' → ' + x.to">{{ x.from }} → {{ x.to }}</td>
         <td><select v-if="canCat(x)" :value="x.c && x.c !== 'Uncategorized' ? x.c : ''" :aria-label="t('activity.category')" @change="setCat(x, $event.target.value)"><option value="">{{ t("activity.uncategorized") }}</option><option v-for="c in cats" :key="c" :value="c">{{ catLabel(c) }}</option></select><span v-else class="sm">{{ x.c ? catLabel(x.c) : "—" }}</span></td>
         <td><span v-for="g in x.tags || []" :key="g" class="tag catl" @click="goActivity({ tag: g })">{{ g }}</span></td>
