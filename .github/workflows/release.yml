@@ -78,7 +78,7 @@ jobs:
       - uses: docker/login-action@v3
         with: { registry: ghcr.io, username: "${{ github.actor }}", password: "${{ secrets.GITHUB_TOKEN }}" }
       - name: App image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: server/Dockerfile
@@ -91,7 +91,7 @@ jobs:
           cache-from: type=gha,scope=app
           cache-to: type=gha,mode=max,scope=app
       - name: Scraper image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: scraper
           platforms: linux/amd64,linux/arm64
