@@ -1,6 +1,7 @@
 // Stops your personal data from reaching the repo. It reads, on this computer only and without storing them: your transactions (shops, payers,
 // notes, amounts, account and card numbers), everything you named yourself (categories, tags, rules, jars, renames, your profile), your bank
-// logins, your git name and email, and .git/privacy-deny. A commit or push that adds a line holding any of it fails. The commit's author
+// logins, your git name and email, and .git/privacy-deny. A commit or push that adds a line holding any of it fails, and so does one
+// whose time shows your time zone. The commit's author
 // email must be a GitHub no-reply address, and files that hold data or secrets (backups, exports, .env) are refused.
 //   node scripts/privacy-check.mjs            what is staged for the next commit (the pre-commit hook)
 //   node scripts/privacy-check.mjs <range>    the commits about to be pushed, e.g. origin/main..HEAD (the pre-push hook)
@@ -111,6 +112,11 @@ if (arg === "--history") { // every version of every file ever committed, on eve
   }
 }
 
+// Commit times must be in UTC: a time zone tells roughly where you live (the post-commit hook saves every commit that way).
+if (arg && arg !== "--tree") {
+  const zoned = git("log", "--format=%h %ad %cd", "--date=format:%z", ...(arg === "--history" ? ["--all"] : [arg])).split("\n").filter((l) => l && !/ \+0000 \+0000$/.test(l));
+  if (zoned.length) { console.error(`privacy check: ${zoned.length} commit(s) show your time zone (first: ${zoned[0].split(" ")[0]}). Save them in UTC first.`); process.exit(1); }
+}
 const hits = new Map(); // name -> where it is
 for (const [where, text] of lines) {
   const t = norm(text);

@@ -1,0 +1,5 @@
+#!/bin/sh
+# A commit's time zone tells roughly where you live: every commit is saved in UTC (the same moment, shown as +0000).
+if git log -1 --format='%ad %cd' --date=format:%z | grep -qv '^+0000 +0000$'; then
+  GIT_COMMITTER_DATE="$(git log -1 --format=%ct) +0000" git commit --amend --no-verify --no-edit --allow-empty --date="$(git log -1 --format=%at) +0000" >/dev/null
+fi

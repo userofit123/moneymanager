@@ -19,7 +19,7 @@ A finance app for people who are **not** financial and don't know financial term
 - **Very plain wording**, in English and Hebrew. No financial jargon. If a term is needed, explain it in simple words or in a tooltip.
 - **Design:** clean, modern, Material-inspired. Match the existing look (spacing, colors, components, icons) before adding anything new. Reuse components and shared modules. Right-to-left must work: icons and chevrons mirror correctly.
 - **Tooltips never show the question-mark (help) cursor.** Use the normal or pointer cursor.
-- **Never real bank data in the repo**: code, tests, fixtures, docs and screenshots use made-up names and amounts only. `scripts/privacy-check.mjs` blocks a commit or push that adds a name from your local database (install once: `git config core.hooksPath .githooks`). Commits are signed with the GitHub no-reply address, never a personal email.
+- **Never real bank data in the repo**: code, tests, fixtures, docs and screenshots use made-up names and amounts only. `scripts/privacy-check.mjs` blocks a commit or push that adds a name from your local database (install once: `git config core.hooksPath .githooks`). Commits are signed with the GitHub no-reply address, never a personal email, and saved in UTC (`.githooks/post-commit`).
 - Other threads may work in the same folder: touch only the files your task needs and commit only your own changes.
 - Push, merge and release only after R approves.
 
