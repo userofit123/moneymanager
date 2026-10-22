@@ -890,9 +890,9 @@ html.dframe #dragbar {
   inset: 0 0 auto;
   height: var(--tb);
   z-index: 400;
-  background: color-mix(in srgb, var(--bg) 70%, transparent); /* the page's own background (glow, mesh, texture) shows through, as in the phone's header */
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
-  backdrop-filter: blur(18px) saturate(1.4);
+  background: transparent; /* the page's own background (glow, mesh, texture) shows through; what scrolls under it is blurred */
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
   -webkit-app-region: drag;
 }
 
