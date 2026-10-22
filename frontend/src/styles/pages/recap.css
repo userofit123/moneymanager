@@ -620,6 +620,11 @@ html.he .rkbr .bar i {
   animation-delay: 1s;
 }
 
+.rr.in:not(.st) .rkpt {
+  animation: rkfade .5s both;
+  animation-delay: 1s;
+}
+
 .rr.in:not(.st) .rkv.path .dt.e {
   animation: rkpop .5s both;
   animation-delay: 1.5s;
