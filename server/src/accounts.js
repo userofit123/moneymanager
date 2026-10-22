@@ -87,6 +87,13 @@ export async function alertsSeen(list) {
   });
 }
 
+/** When each alert that is showing now first appeared: { key: first_seen }. */
+export async function alertsOpen() {
+  const out = {};
+  for (const r of (await q("SELECT key, first_seen FROM alert_log WHERE resolved_at IS NULL")).rows) out[r.key] = r.first_seen;
+  return out;
+}
+
 export async function alertHistory(limit = 50, offset = 0) {
   limit = Math.min(200, Math.max(1, +limit || 50)); offset = Math.max(0, +offset || 0);
   const rows = (await q(

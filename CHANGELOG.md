@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [Unreleased]
 
 ### App
+- **Alerts: each alert now shows when it first appeared** (for example "Appeared 12 Oct, 14:30"), on the Now tab as well as in History.
 - **Forecast: the shadow under the "What drives the forecast" table is no longer cut off** (it looked like a square corner in the Raised look).
 - **Raised look: tables no longer show a straight bottom line that stops at the rounded corners.**
 - **Tables: the last row now follows the table's rounded corners** (for example "Left over" on the Forecast page).

@@ -21,8 +21,14 @@ import en from "../locales/en.json";
 
 const { t, locale } = useI18n();
 const S = computed(() => data.state.value);
+// When each open alert first appeared (the server keeps it in the alert history)
+const since = ref({});
+async function loadSince() {
+  try { since.value = await (await request("/api/alerts/open", { cache: "no-store" })).json(); } catch { /* the dates are simply left out */ }
+}
 onMounted(async () => {
   data.start();
+  loadSince();
 });
 
 const loc = computed(() => (locale.value === "he" ? "he-IL" : "en-GB"));
@@ -38,7 +44,7 @@ const ctx = computed(() => ({ t, catName, an, dstr, monthYear }));
 const rows = computed(() => list.value.map((x) => { const [title, text] = alertTexts(x, ctx.value); return { ...x, title, text }; }));
 
 // The open alerts are reported to the server on every page (core/alertReport.js); an open History tab then loads again.
-watch(alertsReported, () => { if (tab.value === "hist" && hist.value.loaded) loadHist(false); });
+watch(alertsReported, () => { loadSince(); if (tab.value === "hist" && hist.value.loaded) loadHist(false); });
 
 // ---- saving ----
 // Saving goes through the data store (stores/data.js).
@@ -79,7 +85,7 @@ const histRows = computed(() => hist.value.rows.map((r) => ({ ...r, title2: said
     <template v-else>
       <div class="flex" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div class="seg" id="alTabs"><button data-a="alTab" data-t="now" :class="{ on: tab === 'now' }" @click="pick('now')">{{ t("alerts.tabNow") }}</button><button data-a="alTab" data-t="hist" :class="{ on: tab === 'hist' }" @click="pick('hist')">{{ t("alerts.tabHist") }}</button></div><button class="btn o s" data-a="alSettings" @click="openSettingsTab('alr'); go('/settings')">{{ t("alerts.settings") }}</button></div>
       <div id="alNow" :style="{ display: tab === 'now' ? '' : 'none' }"><div class="card" id="alL" style="padding:6px 18px">
-        <template v-if="rows.length"><div v-for="x in rows" :key="x.id" class="al"><span class="sev" :class="x.sev"></span><div style="flex:1;min-width:0"><b>{{ x.title }}</b><div class="sm">{{ x.text }}</div></div><div class="flex" style="gap:6px"><button class="btn o s" data-a="alOpen" :data-id="x.id" @click="open(x)">{{ t("alerts.open") }}</button><button class="btn o s" data-a="alDismiss" :data-id="x.id" @click="dismiss(x)">{{ t("alerts.dismiss") }}</button></div></div></template>
+        <template v-if="rows.length"><div v-for="x in rows" :key="x.id" class="al"><span class="sev" :class="x.sev"></span><div style="flex:1;min-width:0"><b>{{ x.title }}</b><div class="sm">{{ x.text }}</div><div v-if="since[x.id]" class="sm" style="opacity:.75">{{ t("alerts.appeared", { when: when(since[x.id]) }) }}</div></div><div class="flex" style="gap:6px"><button class="btn o s" data-a="alOpen" :data-id="x.id" @click="open(x)">{{ t("alerts.open") }}</button><button class="btn o s" data-a="alDismiss" :data-id="x.id" @click="dismiss(x)">{{ t("alerts.dismiss") }}</button></div></div></template>
         <div v-else class="sm" style="padding:22px;text-align:center">{{ t("alerts.clear") }}</div>
       </div></div>
       <div id="alHist" :style="{ display: tab === 'hist' ? '' : 'none' }">

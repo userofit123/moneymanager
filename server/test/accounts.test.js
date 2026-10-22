@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { reset, q } from "./helpers.js";
-const { createAccount, updateAccount, setBalance, deleteAccount, alertsSeen, alertHistory } = await import("../src/accounts.js");
+const { createAccount, updateAccount, setBalance, deleteAccount, alertsSeen, alertsOpen, alertHistory } = await import("../src/accounts.js");
 const { getState, putState } = await import("../src/state.js");
 
 test("a custom account: created, shown, renamed with its transactions, balance history, removed only when empty", async () => {
@@ -43,7 +43,11 @@ test("alert history: an alert keeps one row while it lasts, and is closed when i
   assert.equal(h.rows.length, 2);
   assert.equal(h.rows.find((r) => r.key === "gap:1").resolved_at, null);
   assert.ok(h.rows.find((r) => r.key === "bill:x").resolved_at);
+  const open = await alertsOpen();
+  assert.deepEqual(Object.keys(open), ["gap:1"]);
+  assert.ok(new Date(open["gap:1"]).getTime() > 0);
   await alertsSeen([]);
+  assert.deepEqual(await alertsOpen(), {});
   h = await alertHistory();
   assert.ok(h.rows.every((r) => r.resolved_at));
   assert.equal(h.more, false);

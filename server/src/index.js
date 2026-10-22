@@ -20,7 +20,7 @@ import { sendNtfy, sendNtfyOnly, ntfyProblem, ntfyUrl, channelStatus, saveChanne
 import { listConnections, saveCreds, removeCreds, unlock, getCreds, markAssisted, FIELDS, PROVIDERS, baseOf, validId, nextId, setNickname } from "./connections.js";
 import * as auth from "./auth.js";
 import * as bk from "./backup.js";
-import { createAccount, updateAccount, setBalance, deleteAccount, alertsSeen, alertHistory } from "./accounts.js";
+import { createAccount, updateAccount, setBalance, deleteAccount, alertsSeen, alertsOpen, alertHistory } from "./accounts.js";
 
 const WEB = process.env.WEB_DIR || path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "frontend", "dist"); // the built app (frontend/, npm run build)
 export const app = express();
@@ -316,6 +316,7 @@ app.post("/api/accounts/:id/balance", json, wrap(async (req, res) => { try { res
 app.delete("/api/accounts/:id", wrap(async (req, res) => { try { res.json(await deleteAccount(+req.params.id)); } catch (e) { bad(res, e); } }));
 // ---------- alert history ----------
 app.post("/api/alerts/seen", json, wrap(async (req, res) => res.json(await alertsSeen(req.body?.alerts))));
+app.get("/api/alerts/open", wrap(async (_req, res) => res.set("Cache-Control", "no-store").json(await alertsOpen())));
 app.get("/api/alerts/history", wrap(async (req, res) => res.set("Cache-Control", "no-store").json(await alertHistory(req.query.limit, req.query.offset))));
 app.post("/api/networth/snapshot", wrap(async (_req, res) => { await snapshotNetWorth(); res.json({ ok: true }); }));
 if (process.env.ALLOW_DEMO_SEED === "1") app.post("/api/demo/seed", wrap(async (_req, res) => res.json(await seedDemo())));
