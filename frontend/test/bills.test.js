@@ -12,8 +12,8 @@ import { billState, billsModel, withDetected, addBill, flagBill, cancelBill, res
 process.on("unhandledRejection", () => {});
 // The page is drawn on the server with the real Vue file (Vite), so no browser is needed.
 const vite = await createServer({ root: new URL("..", import.meta.url).pathname, server: { middlewareMode: true, hmr: false, ws: false }, appType: "custom", logLevel: "silent" });
-// the page loads the Hebrew dictionary (core/heText.js) when the language turns Hebrew: let it finish before the server closes
-after(async () => { await vite.ssrLoadModule("/src/core/heDict.js"); await new Promise((r) => setTimeout(r, 200)); await vite.close(); });
+// the page loads the Hebrew for saved text (core/heText.js) when the language turns Hebrew: let it finish before the server closes
+after(async () => { await vite.ssrLoadModule("/src/core/heSaved.js"); await new Promise((r) => setTimeout(r, 200)); await vite.close(); });
 globalThis.document = { documentElement: { lang: "", classList: { toggle() {} } } };
 let mods = null;
 const NOW = new Date(2026, 9, 17, 12); // 17 Oct 2026

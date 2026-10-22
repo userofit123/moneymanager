@@ -1,5 +1,5 @@
-// The names of the standard categories, banks and cards in Hebrew, the same words as the Hebrew dictionary (core/heDict.js). A category you made yourself keeps its own name.
-const HE = {
+// The names of the standard categories, banks and cards in Hebrew (also used for names in saved text, core/heSaved.js). A category you made yourself keeps its own name.
+export const CAT_HE = {
   "Bank Hapoalim": "בנק הפועלים",
   "Bank Leumi": "בנק לאומי",
   "Discount Bank": "בנק דיסקונט",
@@ -54,4 +54,4 @@ const HE = {
   "Unplanned spending": "הוצאות לא מתוכננות",
   "Balance update": "עדכון יתרה",
 };
-export const categoryName = (c, lang) => (lang === "he" && HE[c]) || c;
+export const categoryName = (c, lang) => (lang === "he" && CAT_HE[c]) || c;

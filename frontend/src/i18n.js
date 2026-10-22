@@ -22,7 +22,7 @@ const pagesEn = sections(import.meta.glob("./locales/pages/*.en.json", { eager: 
 const pagesHe = sections(import.meta.glob("./locales/pages/*.he.json", { eager: true }));
 
 // In Hebrew, amounts and numbers inside a sentence keep their order (wrapped in ⁦…⁩),
-// and "you" forms follow the gender in the profile once the Hebrew rules are loaded (HE.gen, set by core/heText.js).
+// and "you" forms follow the gender in the profile once the Hebrew rules are loaded (core/heGender.js, set by core/heText.js).
 // (a ref, so the page redraws when the rules arrive or the gender changes: setHebrewFilter is called again then)
 const hebrewFilter = shallowRef((s) => s);
 export const setHebrewFilter = (fn) => { hebrewFilter.value = (s) => fn(s); };

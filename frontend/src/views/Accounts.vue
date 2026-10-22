@@ -31,7 +31,7 @@ const tk = (k, ...a) => t(k, ...a);
 const S = computed(() => data.state.value);
 const fx = computed(() => data.fx.value.fx);
 const today = computed(() => dayOf(now.value));
-const an = (n) => String(n).split(" · ").map(tx).join(" · "); // a bank, card or wallet name, or a subtitle, in the page's language (the Hebrew dictionary)
+const an = (n) => String(n).split(" · ").map(tx).join(" · "); // a bank, card or wallet name, or a subtitle, in the page's language (tx(), core/heSaved.js)
 const loc = computed(() => (locale.value === "he" ? "he-IL" : "en-GB"));
 const mon = (k, o) => new Date(+k.slice(0, 4), +k.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, o);
 const MSHORT = (k) => mon(k, { month: "short" }), MNAME = (k) => mon(k, { month: "long" });

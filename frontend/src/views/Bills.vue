@@ -8,7 +8,7 @@ import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
 import { openTx, openPop } from "../core/txwin.js";
 import { now } from "../core/clock.js";
-import { tx } from "../core/heText.js"; // names from the data are shown through the Hebrew dictionary
+import { tx } from "../core/heText.js"; // names from the data are shown in Hebrew through tx() (core/heSaved.js)
 import { openForm } from "../core/forms.js";
 import { dstr } from "../dates.js";
 import PageHeader from "../components/PageHeader.vue";

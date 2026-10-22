@@ -5,7 +5,7 @@ import vue from "eslint-plugin-vue";
 import globals from "globals";
 
 export default [
-  { ignores: ["dist/", "public/", "src/core/heDict.js"] },
+  { ignores: ["dist/", "public/"] },
   js.configs.recommended,
   ...vue.configs["flat/essential"],
   {

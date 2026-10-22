@@ -10,7 +10,7 @@ const { t, te } = useI18n();
 const pw = ref(""), pw2 = ref(""), code = ref(""), busy = ref(false);
 const pwEl = ref(null), codeEl = ref(null);
 const setup = computed(() => app.authMode === "setup");
-// the server's own message (in Hebrew through the Hebrew dictionary), or one of ours by its key
+// the server's own message (in Hebrew through tx(), core/heSaved.js), or one of ours by its key
 const err = computed(() => (!app.error ? "" : te("auth." + app.error) ? t("auth." + app.error) : tx(app.error)));
 async function go() {
   if (busy.value) return;

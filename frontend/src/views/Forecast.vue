@@ -40,7 +40,7 @@ const mshort = (key) => monthOf(key, { month: "short" });
 const mlab = (k) => { const s = new Date(now.value.getFullYear(), now.value.getMonth() + k, 1).toLocaleDateString(loc.value, { month: "short", year: "2-digit" }); return locale.value === "he" ? isolateNumbers(s) : s; };
 const jarWhen = (k) => (k ? new Date(+M.value.FH.keys[12].slice(0, 4), +M.value.FH.keys[12].slice(5, 7) - 1 + k, 1).toLocaleDateString(loc.value, { month: "short", year: "numeric" }) : "");
 const catName = (c) => (c === "Other / uncategorized" ? t("forecast.otherCat") : categoryName(c, locale.value));
-const srcName = (k) => (k === "Other income" ? t("forecast.otherInc") : tx(categoryName(k, locale.value))); // names from the data go through the Hebrew dictionary
+const srcName = (k) => (k === "Other income" ? t("forecast.otherInc") : tx(categoryName(k, locale.value))); // names from the data go through tx() (core/heSaved.js)
 // A line's name opens Activity with only that category (an income line passes its source's name the same way).
 const goCat = (cat) => goActivity({ cat });
 

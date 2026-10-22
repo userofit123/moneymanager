@@ -146,7 +146,7 @@ test("the Hebrew page shows no English words from the app (only names from the d
   const left = (b.match(/[A-Za-z]{2,}/g) || []).filter((w) => !names.has(w.toLowerCase()));
   assert.deepEqual(left, [], "English left on the Hebrew page: " + left.join(", "));
   assert.match(b, /כללי קטגוריות/);
-  // the Hebrew dictionary for saved texts loads by itself in Hebrew; wait for it so nothing is still loading when the test ends
+  // the Hebrew for saved texts loads by itself in Hebrew; wait for it so nothing is still loading when the test ends
   const { tx } = await vite.ssrLoadModule("/src/core/heText.js");
-  for (let i = 0; i < 60 && tx("Delete") === "Delete"; i++) await new Promise((r) => setTimeout(r, 50));
+  for (let i = 0; i < 60 && tx("Undid a change") === "Undid a change"; i++) await new Promise((r) => setTimeout(r, 50));
 });

@@ -59,8 +59,8 @@ const menu = ref(null);
 const toggleMenu = (id, kind, ev) => { menu.value = menu.value && menu.value.id == id && menu.value.kind == kind ? null : { id, kind, btn: ev.currentTarget }; };
 const hist = computed(() => (menu.value && menu.value.kind == "hist" ? jarHistory(S.value, menu.value.id, (x) => displayName(S.value, x)) : []));
 const histName = computed(() => (menu.value ? (S.value.jars || []).find((j) => j.id == menu.value.id)?.n || "" : ""));
-// names and notes come from the data (names are shown through the Hebrew dictionary too);
-// notes (the app's and the server's English, "Auto-fill 2026-10"): shown in Hebrew through the Hebrew dictionary
+// names and notes come from the data (names are shown through tx() too);
+// notes (the app's and the server's English, "Auto-fill 2026-10"): shown in Hebrew through tx() (core/heSaved.js)
 const noteText = (h) => (h.earlier ? t(h.note == "start" ? "jars.hist.start" : "jars.hist.untracked") : h.pay ? t(h.payoff ? "jars.hist.paidBack" : "jars.hist.paid", { name: "\u2068" + h.name + "\u2069" }) : tx(h.note));
 const amtText = (h) => (h.pay && h.payoff ? "" : h.amt < 0 ? "−" : "+") + "₪" + f0(h.amt);
 const histOpen = (h) => { menu.value = null; allOf.value = null; openTx(h.id); };

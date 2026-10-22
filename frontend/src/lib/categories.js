@@ -1,5 +1,5 @@
 // The Categories and tags page's logic: categories, tags, category rules, tag rules, name rules, card rules and salary rules.
-// Each change works on a copy of the data (S) and returns the change-history lines [action, detail] in English (saved as is, shown in Hebrew through the dictionary),
+// Each change works on a copy of the data (S) and returns the change-history lines [action, detail] in English (saved as is, shown in Hebrew through tx(), core/heSaved.js),
 // or false when nothing changes. Numbers the page shows afterwards (how many moved) go into `out`.
 import { ruleHit, ruleTags, normD, transferIds } from "./activity.js";
 

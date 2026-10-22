@@ -93,7 +93,7 @@ test("the Hebrew page has Hebrew words only (apart from names) and no broken num
   const st = demoState();
   const names = new Set([...st.tx.map((t) => t.desc + " " + t.to + " " + t.from + " " + t.c), ...(st.jars || []).map((j) => j.n), ...Object.keys(st.cats || {})].flatMap((x) => String(x).split(/[^A-Za-z]+/)));
   assert.deepEqual(eng.filter((x) => !names.has(x)), []);
-  // the page loads the Hebrew dictionary for names from the data (core/heText.js): let it finish before the test ends
-  await vite.ssrLoadModule("/src/core/heDict.js"); await new Promise((r) => setTimeout(r, 300));
+  // the page loads the Hebrew for names from the data (core/heText.js): let it finish before the test ends
+  await vite.ssrLoadModule("/src/core/heSaved.js"); await new Promise((r) => setTimeout(r, 300));
   await page(demoState(), "en");
 });

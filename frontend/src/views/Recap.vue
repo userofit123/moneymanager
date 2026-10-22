@@ -13,6 +13,7 @@ import { openTx } from "../core/txwin.js";
 import { toast } from "../core/toast.js";
 import { readPref, writePref } from "../core/prefs.js";
 import { i18n } from "../i18n.js";
+import { gen } from "../core/heText.js";
 import { go } from "../router.js";
 import { f0, fm } from "../format.js";
 import { nameOf, rdOf } from "../lib/home.js";
@@ -28,11 +29,9 @@ onMounted(() => { data.start(); });
 // The greeting moves one step along its list every time the app opens (kept in this browser as "moneyGreet").
 const SEED = (() => { let n = 1; try { n = (parseInt(readPref("moneyGreet"), 10) || 0) + 1; writePref("moneyGreet", String(n)); } catch { /* not kept */ } return n; })();
 
-// Hebrew follows the profile's gender (HE.gen); the dictionary is loaded only for Hebrew.
-const gen = ref(null);
-watch(locale, (l) => { if (l === "he" && !gen.value) import("../core/heDict.js").then((m) => { m.setProfileState(data.state.value); gen.value = (s) => m.default.gen(s); }); }, { immediate: true });
+// Hebrew follows the profile's gender (gen() in core/heText.js; its rules are loaded only for Hebrew).
 const H = () => locale.value === "he";
-const G = (s) => (H() && gen.value ? gen.value(s) : s);
+const G = (s) => (H() ? gen(s) : s);
 const L = (k, p, n) => G(n == null ? t("recap." + k, p || {}) : t("recap." + k, p || {}, n));
 
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -160,7 +159,7 @@ const PARTS = {
 
 const M = computed(() => (S.value?.tx?.length && home.value ? recapModel(home.value, now.value) : null));
 const html = computed(() => {
-  locale.value; gen.value; // the words follow the language
+  locale.value; // the words follow the language (and the gender, through gen())
   if (!S.value) return "";
   if (!S.value.tx.length) return `<div class="rkw0"><section class="rkh rr"><h2>${L("empty")}</h2><p>${L("emptyX")}</p></section></div>`;
   const m = M.value, order = recapParts(m), out = []; let zc = 0;
