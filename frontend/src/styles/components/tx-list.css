@@ -216,7 +216,8 @@ td select {
   --pc: #a8863a;
 }
 
-.p-auto {
+.p-auto,
+.p-more {
   --pc: #8d8d99;
 }
 

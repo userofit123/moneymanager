@@ -13,7 +13,7 @@ import { tx } from "../core/heText.js";
 import { dcell } from "../dates.js";
 import { f0 } from "../format.js";
 import { kinds, displayName, duplicateIds } from "../lib/activity.js";
-import { txChips, amtText, SYM, CHIP_ICON } from "../lib/txrows.js";
+import { txChips, fitChips, amtText, SYM, CHIP_ICON } from "../lib/txrows.js";
 import { setField } from "../lib/txactions.js";
 
 defineProps({ rows: { type: Array, required: true }, empty: { type: String, default: "" } });
@@ -38,7 +38,7 @@ const setCat = (x, v) => data.change((n) => setField(n, x.id, "c", v).lines || f
     <tbody>
       <tr v-for="x in rows" :key="x.id" :class="{ fut: K.isFut(x) }">
         <td class="sm num" style="white-space:nowrap">{{ dcell(x.d) }}</td>
-        <td class="mer" style="cursor:pointer" @click="emit('open', x)"><div class="mc"><span class="av" :style="av(x)">{{ (name(x) || "?")[0] }}</span><span class="mt" :title="name(x)">{{ name(x) }}</span><span v-for="c in txChips(S, x, { K, dup, BC })" :key="c.cls" class="bd pc" :class="c.cls" :data-tip="c.tip"><svg v-if="c.icon" class="pi" viewBox="0 0 24 24" v-html="CHIP_ICON[c.icon]" />{{ c.label }}</span></div></td>
+        <td class="mer" style="cursor:pointer" @click="emit('open', x)"><div class="mc"><span class="av" :style="av(x)">{{ (name(x) || "?")[0] }}</span><span class="mt" :title="name(x)">{{ name(x) }}</span><span v-for="c in fitChips(txChips(S, x, { K, dup, BC }))" :key="c.cls" class="bd pc" :class="c.cls" :data-tip="c.tip"><svg v-if="c.icon" class="pi" viewBox="0 0 24 24" v-html="CHIP_ICON[c.icon]" />{{ c.label }}</span></div></td>
         <td class="sm ft" :title="x.from + ' → ' + x.to">{{ x.from }} → {{ x.to }}</td>
         <td><select v-if="canCat(x)" :value="x.c && x.c !== 'Uncategorized' ? x.c : ''" :aria-label="t('activity.category')" @change="setCat(x, $event.target.value)"><option value="">{{ t("activity.uncategorized") }}</option><option v-for="c in cats" :key="c" :value="c">{{ catLabel(c) }}</option></select><span v-else class="sm">{{ x.c ? catLabel(x.c) : "—" }}</span></td>
         <td><span v-for="g in x.tags || []" :key="g" class="tag catl" @click="goActivity({ tag: g })">{{ g }}</span></td>
@@ -48,7 +48,7 @@ const setCat = (x, v) => data.change((n) => setField(n, x.id, "c", v).lines || f
     </tbody>
   </table>
   <div class="txl card" style="padding:4px 12px">
-    <div v-for="x in rows" :key="x.id" class="txi" :class="{ fut: K.isFut(x) }" @click="emit('open', x)"><span class="av" :style="av(x)">{{ (name(x) || "?")[0] }}</span><div style="flex:1;min-width:0"><div class="mer" style="font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ name(x) }}</div><div class="sm"><span class="num">{{ dcell(x.d) }}</span> · <span class="catl" @click.stop="goActivity({ cat: x.c || 'Uncategorized' })">{{ catLabel(x.c) }}</span><template v-if="x.docs && x.docs.length"> · <span class="dchip">📎 {{ x.docs.length }}</span></template></div><div style="margin-top:3px"><template v-for="c in txChips(S, x, { K, dup, BC })" :key="c.cls"><span class="bd pc" :class="c.cls"><svg v-if="c.icon" class="pi" viewBox="0 0 24 24" v-html="CHIP_ICON[c.icon]" />{{ c.label }}</span> </template></div></div><div style="text-align:end"><b class="num" :class="{ pos: pos(x) }" dir="ltr"><span v-if="x.balUpd" class="sm" style="font-weight:500">{{ amtText(x) }}</span><template v-else>{{ amtText(x) }}</template></b><div v-if="x.orig" class="sm" dir="ltr">{{ SYM[x.orig.cur] }}{{ f0(x.orig.amt) }}</div></div></div>
+    <div v-for="x in rows" :key="x.id" class="txi" :class="{ fut: K.isFut(x) }" @click="emit('open', x)"><span class="av" :style="av(x)">{{ (name(x) || "?")[0] }}</span><div style="flex:1;min-width:0"><div class="mer" style="font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ name(x) }}</div><div class="sm"><span class="num">{{ dcell(x.d) }}</span> · <span class="catl" @click.stop="goActivity({ cat: x.c || 'Uncategorized' })">{{ catLabel(x.c) }}</span><template v-if="x.docs && x.docs.length"> · <span class="dchip">📎 {{ x.docs.length }}</span></template></div><div style="margin-top:3px"><template v-for="c in fitChips(txChips(S, x, { K, dup, BC }))" :key="c.cls"><span class="bd pc" :class="c.cls"><svg v-if="c.icon" class="pi" viewBox="0 0 24 24" v-html="CHIP_ICON[c.icon]" />{{ c.label }}</span> </template></div></div><div style="text-align:end"><b class="num" :class="{ pos: pos(x) }" dir="ltr"><span v-if="x.balUpd" class="sm" style="font-weight:500">{{ amtText(x) }}</span><template v-else>{{ amtText(x) }}</template></b><div v-if="x.orig" class="sm" dir="ltr">{{ SYM[x.orig.cur] }}{{ f0(x.orig.amt) }}</div></div></div>
     <div v-if="!rows.length" class="sm" style="padding:20px;text-align:center">{{ empty }}</div>
   </div>
 </template>

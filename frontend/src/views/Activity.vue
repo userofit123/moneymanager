@@ -20,7 +20,7 @@ import { run, setCategory } from "../core/txact.js";
 import { catNames, catColor, catLabel } from "../core/cats.js";
 import { go } from "../router.js";
 import * as A from "../lib/txactions.js";
-import { allRows, txChips, amtText, SYM, CHIP_ICON } from "../lib/txrows.js";
+import { allRows, txChips, fitChips, amtText, SYM, CHIP_ICON } from "../lib/txrows.js";
 import { fm, f0 } from "../format.js";
 import PageHeader from "../components/PageHeader.vue";
 import BaseDialog from "../components/BaseDialog.vue";
@@ -149,7 +149,7 @@ const isXf = (x) => K.value.isXf(x);
 const isPos = (x) => x.a > 0 && !isXf(x);
 const nohtml = (s) => String(s ?? "").replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").trim();
 const avStyle = (x) => ({ background: `color-mix(in srgb,${catColor(S.value, x.c || "Uncategorized")} 22%,transparent)`, color: catColor(S.value, x.c || "Uncategorized") });
-const chips = (x) => txChips(S.value, x, { K: K.value, dup: dup.value, BC: BC.value });
+const chips = (x) => fitChips(txChips(S.value, x, { K: K.value, dup: dup.value, BC: BC.value }));
 
 // What a click on a row opens: an expected bill opens the bill, a balance update opens the account, the rest the entry window.
 function openRow(x) {
