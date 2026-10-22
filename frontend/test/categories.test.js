@@ -145,7 +145,7 @@ test("the search bars have their words, and Display names has none", async () =>
 });
 test("the Hebrew page shows no English words from the app (only names from the data)", async () => {
   const S = start(), b = text(await all(S, "he"));
-  const names = new Set([...S.tx.flatMap((t) => [t.desc, t.to, t.from, ...t.tags]), ...S.rules.map((r) => r.k), ...S.tagRules.flatMap((r) => [r.k, ...r.t.split(",")]), ...S.cardRules, "wix", "Salary", "Isracard", "Visa", "Cal", "Max", "American", "Express", "Diners", "Leumi", "Card", "salary", "payroll", "netflix", "streaming", "Acme", "Ltd", "ChatGPT", "Claude", "Gemini", "JSON", "categories", "name", "income", "true", "false", "rules", "contains", "category", "tagRules", "tags", "Bills", "Food", "Dining", "Fun"].join(" ").toLowerCase().split(/[^a-z]+/));
+  const names = new Set([...S.tx.flatMap((t) => [t.desc, t.to, t.from, ...t.tags]), ...S.rules.map((r) => r.k), ...S.tagRules.flatMap((r) => [r.k, ...r.t.split(",")]), ...S.cardRules, "wix", "Salary", "Isracard", "Visa", "Cal", "Max", "American", "Express", "Diners", "Leumi", "Card", "salary", "payroll", "netflix", "streaming", "Acme", "Ltd", "ChatGPT", "Claude", "Gemini", "JSON", "categories", "name", "income", "true", "false", "rules", "contains", "category", "tagRules", "tags", "displayNames", "cardPayments", "Bills", "Food", "Dining", "Fun"].join(" ").toLowerCase().split(/[^a-z]+/));
   const left = (b.match(/[A-Za-z]{2,}/g) || []).filter((w) => !names.has(w.toLowerCase()));
   assert.deepEqual(left, [], "English left on the Hebrew page: " + left.join(", "));
   assert.match(b, /כללי קטגוריות/);

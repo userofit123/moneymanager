@@ -194,13 +194,15 @@ export function addCardRule(S, v) {
 }
 export function deleteCardRule(S, i) { if (!S.cardRules || S.cardRules[+i] == null) return false; const line = ["Removed card payment rule", '"' + S.cardRules[+i] + '"']; S.cardRules.splice(+i, 1); return [line]; }
 // Also marks the income you already have that matches and has no category as Salary.
+// Income with no category (not a move between your own accounts, xs: transferIds) whose text holds a salary text (already normD).
+export const salaryHit = (x, txt, xs) => !x.virtual && x.a > 0 && (!x.c || x.c == "Uncategorized") && !xs.has(x.id) && normD(x.desc + " " + (x.from || "")).includes(txt);
 export function addSalaryRule(S, v, out = {}) {
   if (genCheck(S.salaryRules, v)) return false;
   const txt = normD(v), xs = transferIds(S);
   S.salaryRules = [...(S.salaryRules || []), txt];
   let n = 0;
   if (S.cats.Salary == null) S.cats.Salary = 99;
-  for (const x of S.tx) { if (x.virtual || x.a <= 0 || (x.c && x.c != "Uncategorized") || xs.has(x.id)) continue; if (normD(x.desc + " " + (x.from || "")).includes(txt)) { x.c = "Salary"; n++; } }
+  for (const x of S.tx) if (salaryHit(x, txt, xs)) { x.c = "Salary"; n++; }
   out.n = n;
   return [["Salary rule", 'income containing "' + txt + '" is Salary' + (n ? " (" + n + " existing)" : "")]];
 }

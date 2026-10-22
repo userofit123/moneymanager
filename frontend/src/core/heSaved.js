@@ -70,6 +70,8 @@ const RULES = [
   [/^(.+) ([A-Z]{3}): (.+) explained by a transaction$/, (a, c, n) => a + " " + c + ": " + n + " הוסברו על ידי תנועה"],
   [/^(.+) ([A-Z]{3}): (.+) explained by a card payment from (.+)$/, (a, c, n, b) => a + " " + c + ": " + n + " הוסברו על ידי תשלום הכרטיס מ־" + b],
   [/^(\d+) categories, (\d+) rules, (\d+) tag rules, (\d+) sorted$/, (c, r, g, n) => c + " קטגוריות, " + r + " כללים, " + g + " כללי תגיות, " + n + " תנועות שויכו"],
+  [/^(\d+) categories, (\d+) rules, (\d+) tag rules, (\d+) display names, (\d+) card payment rules, (\d+) salary rules, (\d+) sorted$/,
+    (c, r, g, d, p, s, n) => c + " קטגוריות, " + r + " כללים, " + g + " כללי תגיות, " + d + " שמות תצוגה, " + p + " כללי תשלום כרטיס, " + s + " כללי משכורת, " + n + " תנועות שויכו"],
   [/^(.+): the bank now reports the real charge$/, (x) => x + ": הבנק מדווח עכשיו על החיוב האמיתי"],
   [/^asked for the last (\d+) days, the bank returned no transactions$/, (n) => "ביקשנו " + n + " ימים אחרונים, הבנק לא החזיר תנועות"],
   [/^read (\d+) transactions back to (.+), (\d+) new(?:\. You asked for (\d+) days, but the bank only returned history back to (.+)\. Banks usually keep about 12 months online\. For older history, import their statement export \(Settings → App and data\))?$/,

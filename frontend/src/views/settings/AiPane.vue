@@ -6,14 +6,18 @@ import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
 import { toast } from "../../core/toast.js";
 import { copyText } from "./errlog.js";
-import { exportTexts, readAnswer, choose, wouldSort, addAnswer, answerExample } from "../../lib/aiSort.js";
+import { exportTexts, readAnswer, choose, wouldSort, addAnswer, answerExample, planSize, rowKey, rowState, flip } from "../../lib/aiSort.js";
 import SetHead from "./SetHead.vue";
 
 const { t, locale } = useI18n();
 const S = computed(() => data.state.value);
-const file = ref(null), pasted = ref(""), found = ref(null), off = ref([]);
+const file = ref(null), pasted = ref(""), found = ref(null), off = ref({});
 
-const prompt = computed(() => t("settings.sorting.ai.prompt") + "\n\n" + answerExample({ cat: t("settings.sorting.ai.exCat"), inc: t("settings.sorting.ai.exInc"), tag: t("settings.sorting.ai.exTag"), shop: t("settings.sorting.ai.exShop"), stay: t("settings.sorting.ai.exStay") }));
+const prompt = computed(() => t("settings.sorting.ai.prompt") + "\n\n" + answerExample({
+  cat: t("settings.sorting.ai.exCat"), inc: t("settings.sorting.ai.exInc"), tag: t("settings.sorting.ai.exTag"),
+  shop: t("settings.sorting.ai.exShop"), stay: t("settings.sorting.ai.exStay"), messy: t("settings.sorting.ai.exMessy"), shown: t("settings.sorting.ai.exShown"),
+  card: t("settings.sorting.ai.exCard"), pay: t("settings.sorting.ai.exPay"),
+}));
 const nTexts = computed(() => (S.value ? exportTexts(S.value, locale.value).texts.length : 0));
 
 function download() {
@@ -28,19 +32,36 @@ const copy = () => copyText(prompt.value, t("settings.sorting.ai.copied"));
 function check(raw) {
   const r = readAnswer(S.value, raw);
   if (r.error) { found.value = null; toast(t("settings.sorting.ai.bad"), { kind: "err" }); return; }
-  off.value = []; found.value = r;
-  if (!r.plan.cats.length && !r.plan.rules.length && !r.plan.tagRules.length) { found.value = null; toast(t("settings.sorting.ai.none"), { kind: "info" }); }
+  off.value = {}; found.value = planSize(r.plan) ? r : null;
+  if (!found.value) toast(t("settings.sorting.ai.none"), { kind: "info" });
 }
 async function upload(e) { const f = e.target.files?.[0]; e.target.value = ""; if (f) check(await f.text()); }
 
 const plan = computed(() => (found.value ? choose(found.value.plan, off.value) : null));
-const toggle = (name) => { off.value = off.value.includes(name) ? off.value.filter((x) => x != name) : [...off.value, name]; };
+// One table per kind that has rows: its title, the count text, an optional line saying what it does, and the column names.
+const A = "settings.sorting.ai.";
+const SECS = [
+  { kind: "cats", title: "secCats", n: "nCats", cols: ["colName", "colKind", "colRules"] },
+  { kind: "rules", title: "secRules", n: "nRules", cols: ["colText", "colCat"] },
+  { kind: "tagRules", title: "secTags", n: "nTagRules", cols: ["colText", "colTags"] },
+  { kind: "names", title: "secNames", n: "nNames", cols: ["colText", "colShown"] },
+  { kind: "cards", title: "secCards", n: "nCards", d: "dCards", cols: ["colTextOnly"] },
+  { kind: "salary", title: "secSalary", n: "nSalary", d: "dSalary", cols: ["colTextOnly"] },
+];
+const secs = computed(() => (found.value ? SECS.filter((x) => found.value.plan[x.kind].length) : []));
+const rows = (kind) => found.value.plan[kind];
+const st = (kind, x) => rowState(off.value, kind, x);
+const toggle = (kind, x) => { off.value = flip(off.value, kind, [rowKey(kind, x)], !st(kind, x).on); };
+const allOn = (kind) => rows(kind).every((x) => st(kind, x).on || st(kind, x).locked);
+const setAll = (kind) => { off.value = flip(off.value, kind, rows(kind).map((x) => rowKey(kind, x)), !allOn(kind)); };
 const rulesFor = (name) => found.value.plan.rules.filter((r) => r.c == name).length;
+const count = (s) => t(A + s.n, { n: plan.value[s.kind].length }, plan.value[s.kind].length);
+const total = computed(() => (plan.value ? planSize(plan.value) : 0));
 const sortN = computed(() => (plan.value ? wouldSort(S.value, plan.value) : 0));
 function add() {
-  const p = plan.value;
-  if (!data.change((n) => addAnswer(n, p)).length) return;
-  toast(t("settings.sorting.ai.done", { c: p.cats.length, r: p.rules.length, g: p.tagRules.length }), { kind: "ok" });
+  const p = plan.value, n = planSize(p);
+  if (!data.change((d) => addAnswer(d, p)).length) return;
+  toast(t(A + "done", { n }, n), { kind: "ok" });
   found.value = null; pasted.value = "";
 }
 </script>
@@ -63,13 +84,28 @@ function add() {
       </details>
 
       <div v-if="plan" class="aiprev">
-        <b>{{ t("settings.sorting.ai.prev") }}</b>
-        <label v-for="x in found.plan.cats" :key="x.name" class="chk"><input type="checkbox" :checked="!off.includes(x.name)" @change="toggle(x.name)">
-          <span>{{ x.name }}<small v-if="x.income"> · {{ t("settings.sorting.ai.income") }}</small><small> · {{ t("settings.sorting.ai.nRules", { n: rulesFor(x.name) }, rulesFor(x.name)) }}</small></span></label>
-        <div class="sm">{{ [t("settings.sorting.ai.nCats", { n: plan.cats.length }, plan.cats.length), t("settings.sorting.ai.nRules", { n: plan.rules.length }, plan.rules.length), t("settings.sorting.ai.nTagRules", { n: plan.tagRules.length }, plan.tagRules.length)].join(" · ") }}</div>
-        <div class="sm">{{ t("settings.sorting.ai.sorts", { n: sortN }, sortN) }}</div>
-        <div v-if="found.skipped" class="sm">{{ t("settings.sorting.ai.skipped", { n: found.skipped }, found.skipped) }}</div>
-        <div class="flex" style="gap:8px;margin-top:10px"><button type="button" class="btn s" :disabled="!plan.cats.length && !plan.rules.length && !plan.tagRules.length" @click="add">{{ t("settings.sorting.ai.add") }}</button><button type="button" class="btn o s" @click="found = null">{{ t("settings.sorting.ai.cancel") }}</button></div>
+        <b>{{ t(A + "prev") }}</b>
+        <section v-for="s in secs" :key="s.kind" class="aisec">
+          <div class="aish"><b>{{ t(A + s.title) }}</b><small>{{ count(s) }}</small>
+            <button type="button" class="btn o s" @click="setAll(s.kind)">{{ t(A + (allOn(s.kind) ? "noneSel" : "all")) }}</button></div>
+          <div v-if="s.d" class="sm">{{ t(A + s.d) }}</div>
+          <div class="aitbl"><table>
+            <thead><tr><th class="ck" /><th v-for="c in s.cols" :key="c">{{ t(A + c) }}</th></tr></thead>
+            <tbody>
+              <tr v-for="x in rows(s.kind)" :key="rowKey(s.kind, x)" :class="{ off: !st(s.kind, x).on }" :data-tip="st(s.kind, x).locked ? t(A + 'catOff') : null">
+                <td class="ck"><input type="checkbox" :checked="st(s.kind, x).on" :disabled="st(s.kind, x).locked" :aria-label="String(s.kind == 'cats' ? x.name : rowKey(s.kind, x))" @change="toggle(s.kind, x)"></td>
+                <template v-if="s.kind == 'cats'"><td>{{ x.name }}</td><td>{{ t(A + (x.income ? "income" : "spend")) }}</td><td class="num">{{ rulesFor(x.name) }}</td></template>
+                <template v-else-if="s.kind == 'rules'"><td>{{ x.k }}</td><td>{{ x.c }}</td></template>
+                <template v-else-if="s.kind == 'tagRules'"><td>{{ x.k }}</td><td><template v-for="g in x.tags" :key="g"><bdi>#{{ g }}</bdi>{{ " " }}</template></td></template>
+                <template v-else-if="s.kind == 'names'"><td>{{ x.k }}</td><td>{{ x.n }}</td></template>
+                <td v-else>{{ x }}</td>
+              </tr>
+            </tbody>
+          </table></div>
+        </section>
+        <div class="sm">{{ t(A + "sorts", { n: sortN }, sortN) }}</div>
+        <div v-if="found.skipped" class="sm">{{ t(A + "skipped", { n: found.skipped }, found.skipped) }}</div>
+        <div class="flex" style="gap:8px;margin-top:10px"><button type="button" class="btn s" :disabled="!total" @click="add">{{ t(A + "add") }}</button><button type="button" class="btn o s" @click="found = null">{{ t(A + "cancel") }}</button></div>
       </div>
     </div>
   </div>

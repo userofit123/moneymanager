@@ -385,4 +385,14 @@ html.mob .setnav button.on {
 #aiSort .aimore summary { cursor: pointer; color: var(--acc); font-weight: 600; }
 #aiSort .aimore pre { white-space: pre-wrap; unicode-bidi: plaintext; text-align: start; font-size: 12px; max-height: 260px; overflow: auto; padding: 10px; border-radius: var(--r); background: var(--s2); }
 #aiSort .aiprev { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--ol); display: grid; gap: 6px; }
-#aiSort .aiprev .chk { display: flex; gap: 8px; align-items: center; }
+/* the preview: one compact table per kind; a long or wide table scrolls inside its own box, never the page */
+#aiSort .aisec { display: grid; gap: 6px; margin-top: 6px; }
+#aiSort .aish { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+#aiSort .aish small { color: var(--tx2); flex: 1 1 auto; }
+#aiSort .aitbl { max-height: 320px; overflow: auto; border-radius: var(--r); }
+#aiSort .aitbl table { overflow: visible; }
+#aiSort .aitbl th { padding: 8px 10px; position: sticky; top: 0; z-index: 1; }
+#aiSort .aitbl td { padding: 6px 10px; font-size: 13px; overflow-wrap: anywhere; }
+#aiSort .aitbl .ck { width: 1%; padding-inline-end: 0; }
+#aiSort .aitbl tr.off td:not(.ck) { color: var(--tx2); text-decoration: line-through; }
+#aiSort .aitbl .num { text-align: end; }

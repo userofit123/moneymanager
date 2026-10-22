@@ -272,7 +272,9 @@
   "scraper HTTP 502": "שגיאת שרת הקריאה מהבנק (502)",
   "sync": "סנכרון",
   "test": "בדיקה",
-  "yearly": "שנתי"
+  "yearly": "שנתי",
+  "3 categories, 10 rules, 2 tag rules, 12 sorted": "3 קטגוריות, 10 כללים, 2 כללי תגיות, 12 תנועות שויכו",
+  "3 categories, 10 rules, 2 tag rules, 4 display names, 1 card payment rules, 1 salary rules, 12 sorted": "3 קטגוריות, 10 כללים, 2 כללי תגיות, 4 שמות תצוגה, 1 כללי תשלום כרטיס, 1 כללי משכורת, 12 תנועות שויכו"
  },
  "server messages": {
   "\nAutomatic attempts are paused. Check the login, then unlock it in Settings.": "\nהניסיונות האוטומטיים מושהים. בדקו את פרטי ההתחברות ואז בטלו את הנעילה בהגדרות.",
