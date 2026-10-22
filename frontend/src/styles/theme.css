@@ -309,6 +309,11 @@ body.raised :is(.card,table,.bgrp):not(.hero) {
   box-shadow: 0 1px 1px color-mix(in srgb, #000 9%, transparent), 0 10px 20px -12px color-mix(in srgb, #000 40%, transparent);
 }
 
+/* a table keeps one edge colour all round: its rows reach the corners, so a different colour below shows as a straight line that stops where the corner curves */
+body.raised table:not(.hero) {
+  border-bottom-color: color-mix(in srgb, var(--tx) 9%, transparent);
+}
+
 body.raised .card.hero,
 body.raised .jhero {
   border-bottom-color: color-mix(in srgb, var(--tx) 20%, transparent);
