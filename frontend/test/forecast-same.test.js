@@ -75,7 +75,7 @@ const words = (html) => unesc(html.replace(/<[^>]*>/g, " ")).replace(/\s+/g, " "
 
 test("the English page shows every block, in order, with the agreed words", async () => {
   const S = demoState(), html = await page(S), got = {};
-  const order = ["fcCtl", "fcK", "fcDiag", "fcChart", "fcTab", "fcJars", "fcNote"];
+  const order = ["fcCtl", "fcK", "fcDiag", "fcChart", "fcTab", "fcJars"];
   // the new page, cut at each block
   const at = order.map((id) => html.indexOf(`id="${id}"`)); assert.ok(at.every((x, i) => x >= 0 && (i === 0 || x > at[i - 1])), "blocks in the same order: " + at);
   const open = (i) => html.lastIndexOf("<", at[i]);

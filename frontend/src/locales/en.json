@@ -1171,7 +1171,6 @@
     "legRange": "Likely range (±1 standard deviation of past monthly net, widening over time)",
     "drives": "What drives the forecast",
     "basedOn": "Based on the last month. | Based on the last {n} months.",
-    "tableNote": "Usually is your normal amount in a month. The last column is what the app expects over the forecast period you chose, if things keep going the way they are. Anything that has not happened in these months is not listed. Hover over a direction to see the months.",
     "usually": "Usually, each month",
     "nextMonth": "Next month",
     "nextYear": "Next year",
@@ -1212,13 +1211,7 @@
       "mo6": "6 mo",
       "short": "Planned {planned} a month, but the free money expected only allows about {avg} a month on average."
     },
-    "jarFoot": "Jars can only take money that is really free. This starts with {free} free today and adds the surplus the forecast above expects each month (about {net} a month, income minus expenses, from {span}), shared by priority. Bill jars are assumed to stay full. If your income or spending changes, so do these numbers. The dashed line is the goal.",
-    "note": {
-      "title": "How this is calculated:",
-      "a": "no AI. For each income source and expense category the app takes {span}.",
-      "b": "projects the same monthly value forward.",
-      "c": "extends the straight line through those months, limited to ±50% of the average. Each month, income minus expenses is added to today's bank + Wise balance (in ₪). The pension is not part of the forecast. One-off items, like a trip, are only included if they happened in the months used."
-    }
+    "jarFoot": "{free} is free today, and the forecast adds about {net} a month ({span}), shared between the jars by priority."
   },
   "rep": {
     "cmpTitle": "This month vs last month",

@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [Unreleased]
 
 ### App
+- **Forecast: the long explanations moved to the help panel.** The page keeps just "Based on the last N months" and one short line under the jars; how it is calculated (no AI, the trend line, what is left out) is now in the page's help.
 - **Recap: "Take back from the jars" is now a button chip right under the jars warning,** like the warning itself, instead of a paragraph with a button. It is shorter, and the longer explanation shows when you point at it.
 - **Recap: "Today" on the month's money line now sits in a small box right under its dot,** instead of in the middle, so it matches where today really is and never crowds the start and end amounts.
 - **Recap: numbers and their pictures now animate together.** The graphs, bars and lines used to wait a second or two after the numbers counted up; now they start at the same moment.

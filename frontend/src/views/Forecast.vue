@@ -166,7 +166,7 @@ const jarCards = computed(() => M.value.jars.J.map((j) => {
 
       <h2>{{ t("forecast.drives") }}</h2>
       <div id="fcTab" style="overflow-x:auto">
-        <div class="sm" style="margin:0 2px 12px;line-height:1.55"><span>{{ t("forecast.basedOn", { n: nEff }, nEff) }}</span> <span>{{ t("forecast.tableNote") }}</span></div>
+        <div class="sm" style="margin:0 2px 12px;line-height:1.55"><span>{{ t("forecast.basedOn", { n: nEff }, nEff) }}</span></div>
         <table class="rt">
           <thead><tr><th /><th style="text-align:end">{{ t("forecast.usually") }}</th><th style="text-align:end">{{ t("forecast.nextMonth") }}</th><th style="text-align:end">{{ H == 12 ? t("forecast.nextYear") : t("forecast.nextN", { n: H }) }}</th><th>{{ t("forecast.direction") }}</th></tr></thead>
           <tbody>
@@ -202,8 +202,6 @@ const jarCards = computed(() => M.value.jars.J.map((j) => {
         <div v-else class="card sm">{{ t("forecast.j.none") }}</div>
         <div class="sm" style="margin-top:12px;line-height:1.55">{{ t("forecast.jarFoot", { free: fm(M.jars.pool0), net: sg(M.jars.net), span: t("forecast.lastN", { n: nEff }, nEff) }) }}</div>
       </div>
-
-      <div class="sm" id="fcNote" style="line-height:1.6"><b style="color:var(--tx)">{{ t("forecast.note.title") }}</b>{{ " " + t("forecast.note.a", { span: t("forecast.lastSpan", { n: nEff }, nEff) }) }} <i>{{ t("forecast.avg") }}</i>{{ " " + t("forecast.note.b") }} <i>{{ t("forecast.trend") }}</i>{{ " " + t("forecast.note.c") }}</div>
     </template>
   </section>
 </template>
