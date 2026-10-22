@@ -19,9 +19,11 @@ const ready = computed(() => guideReady(he.value));
 const guide = computed((prev) => (ready.value ? guideOf(page.value, he.value) : prev));
 const title = computed(() => (guide.value && guide.value.title) || tk("nav." + current.value.name));
 const body = computed((prev) => (!ready.value ? prev || "" : guide.value ? guideHtml(guide.value, he.value, tx) : `<div class="hlead">${t("help.noGuide")}</div>`));
-// The guide is loaded when the panel opens (helpSet), right away when it was left open, and in the other language once the language changes.
+// The guide is loaded quietly a few seconds after start (so the panel opens at once), right away when the panel was left open,
+// and in the other language once the language changes.
 const load = () => loadGuide(he.value).catch(() => {});
 if (helpOpen.value) load();
+else onMounted(() => setTimeout(() => (window.requestIdleCallback || setTimeout)(load), 3000));
 watch(he, () => { if (helpOpen.value || guideReady(false)) load(); });
 const panel = ref(null);
 const jump = (e) => {
