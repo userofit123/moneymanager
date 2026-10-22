@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [Unreleased]
 
 ### App
+- **Recap: numbers and their pictures now animate together.** The graphs, bars and lines used to wait a second or two after the numbers counted up; now they start at the same moment.
 - **On every rules page, the form for a new rule is now above the list of rules.**
 - **Fixed: the Alerts settings button on the Alerts page now opens the alert settings.**
 - **Alert notifications show the app's symbol in the phone's top bar** instead of a white square.
