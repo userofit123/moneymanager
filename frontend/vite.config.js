@@ -40,5 +40,6 @@ export default defineConfig({
   base: "/",
   plugins: [vue({ template: { compilerOptions: { nodeTransforms: [dotSpans] } } }), offlineList()],
   build: { outDir: "dist", emptyOutDir: true, rollupOptions: { output: { manualChunks: chunkOf } } },
-  server: { port: 5173, strictPort: true, allowedHosts: true, hmr: { clientPort: 443, protocol: "wss" } },
+  // In the dev container the folder is shared from the host, where file-change events do not always arrive: VITE_POLL turns on checking for changes.
+  server: { port: 5173, strictPort: true, allowedHosts: true, hmr: { clientPort: 443, protocol: "wss" }, watch: process.env.VITE_POLL ? { usePolling: true, interval: 300 } : undefined },
 });

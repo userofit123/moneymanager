@@ -22,6 +22,8 @@ services:
   vite:
     image: node:22-alpine
     working_dir: /src/frontend
+    environment:
+      VITE_POLL: "1"   # notice every file change in the shared folder (see vite.config.js)
     command: sh -c "npm ci && npm run dev"
     volumes:
       - ./frontend:/src/frontend
