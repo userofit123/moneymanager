@@ -9,6 +9,7 @@ The goal is to do as much as possible by itself. It uses the data it already has
 
 ## 2. Two ways to run it
 - **Windows app:** one installer. Everything stays on that computer; nothing to configure.
+- **Linux app:** the same, as an AppImage, a .deb or an .rpm.
 - **Docker:** for a laptop or home server. Same app, data in Docker volumes.
 
 Either way the interface is the same, it works in English and Hebrew, and your data never leaves your own machine except to talk to your banks. See the README to install it.

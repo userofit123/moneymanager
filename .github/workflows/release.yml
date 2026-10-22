@@ -1,6 +1,6 @@
 # Releases and builds, automatic.
 #  - A push to main runs the tests only when CHANGELOG.md changed (a release); other pushes do not start anything.
-#  - Merging to main with a NEW top version in CHANGELOG.md tags it, builds the Windows installer, publishes the Docker images (ghcr.io) and publishes a GitHub release.
+#  - Merging to main with a NEW top version in CHANGELOG.md tags it, builds the Windows installer and the Linux packages (AppImage, .deb, .rpm), publishes the Docker images (ghcr.io) and publishes a GitHub release.
 #    Installed apps (and the Docker version's "Check for updates") see that release.
 #  - Publishing a release by hand on GitHub also builds the installer and attaches it.
 #  - "Run workflow" builds an installer without publishing anything (to try it).
@@ -153,3 +153,46 @@ jobs:
           path: |
             desktop/dist/*.exe
             desktop/dist/latest.yml
+
+  linux:
+    needs: [test, version, windows]   # after the Windows job, which creates the release the files are added to
+    if: needs.version.outputs.build == 'true'
+    runs-on: ubuntu-latest
+    env:
+      PUPPETEER_CACHE_DIR: ${{ github.workspace }}/desktop/chrome   # the scraper's browser is downloaded here and shipped inside the packages
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: 22 }
+      - name: Tools the .rpm and .deb builders need
+        run: sudo apt-get update && sudo apt-get install -y rpm
+      - name: Build the app into frontend/dist (shipped inside the packages)
+        run: npm ci && npm run build
+        working-directory: frontend
+      - run: npm ci --omit=dev
+        working-directory: server
+      - run: npm ci --omit=dev
+        working-directory: scraper
+      - name: Ship the dependencies as app_modules (the package builder skips folders named node_modules)
+        run: |
+          mv server/node_modules server/app_modules
+          mv scraper/node_modules scraper/app_modules
+      - run: npm install --no-audit --no-fund
+        working-directory: desktop
+      - name: Version and release notes
+        run: |
+          cd desktop && npm version "${{ needs.version.outputs.version }}" --no-git-tag-version --allow-same-version
+          cd .. && node scripts/release-notes.mjs "${{ needs.version.outputs.version }}" desktop/release-notes.md
+      - name: Build the AppImage, .deb and .rpm
+        working-directory: desktop
+        run: npm run ${{ (needs.version.outputs.publish == 'true' || github.event_name == 'release') && 'release:linux' || 'dist:linux' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v5
+        with:
+          name: money-manager-linux-${{ needs.version.outputs.version }}
+          path: |
+            desktop/dist/*.AppImage
+            desktop/dist/*.deb
+            desktop/dist/*.rpm
+            desktop/dist/latest-linux.yml

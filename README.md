@@ -77,7 +77,7 @@ If a login then times out, `docker compose logs egress` lists hosts it refused; 
 Only the accounts you connect or import appear in the app. Nothing is pre-filled.
 
 ## Updating
-- **Windows app:** it checks this repository's releases by itself, shows *Update available* in the sidebar and downloads it quietly. Your data stays. Turn that off, or check by hand, in Settings → App and data → *Version and updates* (which also shows the changelog).
+- **Windows and Linux apps:** they check this repository's releases by themselves, shows *Update available* in the sidebar and downloads it quietly. Your data stays. Turn that off, or check by hand, in Settings → App and data → *Version and updates* (which also shows the changelog).
 - **Docker:** the app shows the same notice. The images are published with every release (`ghcr.io/userofit123/moneymanager` and `ghcr.io/userofit123/moneymanager-scraper`, for amd64 and arm64), so you can update without a terminal like any other Docker app:
   - **Docker Desktop:** Images → the image shows *Update available* → pull, then restart the containers.
   - **Portainer:** Stacks → your stack → *Pull and redeploy* (or turn on the stack's webhook / *Re-pull image* option to update automatically). Add `POSTGRES_PASSWORD` and `SCRAPER_KEY` as the stack's environment variables (the values from `.env`).
@@ -146,7 +146,7 @@ DB_DRIVER=pglite PGLITE_DIR=memory:// npm test                          # server
 | `frontend/` | The app (Vue 3, Vite, vue-i18n): pages, texts in English and Hebrew (`src/locales`), PWA files (`public/`). Built into `frontend/dist` |
 | `server/` | Node API, migrations, auth, encryption, scheduler, FX, imports, tests |
 | `scraper/` | Separate service with Chromium and a pinned `israeli-bank-scrapers` |
-| `desktop/` | The Windows app (Electron) |
+| `desktop/` | The Windows and Linux apps (Electron) |
 | `docs/` | Specs, security, guides, screenshots |
 | `scripts/` | `bump.mjs` (new version), `screenshots.mjs` (README images) |
 

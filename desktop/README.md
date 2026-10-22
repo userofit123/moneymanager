@@ -1,4 +1,4 @@
-# Money Manager for Windows
+# Money Manager for Windows and Linux
 
 The same app as the Docker version, as one installer. Nothing to set up: install, open, create a password, connect your accounts.
 
@@ -23,3 +23,18 @@ The installer is not code-signed, so Windows SmartScreen shows "More info → Ru
 Automatic: `node scripts/bump.mjs minor`, fill in the new section of `CHANGELOG.md`, merge to `main`. The **Release** workflow (`.github/workflows/release.yml`) runs the tests, tags `vX.Y.Z`, builds the installer and publishes the GitHub release, using that version's changelog section as the release notes.
 
 Installed apps check this repository's latest release (it must be public). In the app: **Settings → App and data → Version and updates** shows the installed version, "Check for updates", "What's new" (the changelog), and an **Update automatically** switch (on by default). A newer version also shows as a notice in the sidebar. With the switch on, the update downloads by itself and installs the next time the app is closed; with it off, you press Download and update.
+
+## Linux
+
+The same app, built from the same code. Each release has three files:
+
+| File | For | Install |
+|---|---|---|
+| `Money-Manager-x.y.z-linux-x64.AppImage` | any Linux | `chmod +x` it and run it (needs FUSE 2: on Fedora `sudo dnf install fuse-libs`) |
+| `Money-Manager-x.y.z-linux-x64.deb` | Debian, Ubuntu, Mint | `sudo apt install ./file.deb` |
+| `Money-Manager-x.y.z-linux-x64.rpm` | Fedora, Red Hat, openSUSE | `sudo dnf install ./file.rpm` |
+
+- **Where your data is:** `~/.config/Money Manager`. Closing the window keeps the app in the tray so automatic sync continues (on a desktop with no tray, such as plain GNOME, start the app again to bring the window back).
+- **Saved logins:** locked with the desktop keyring (GNOME Keyring or KWallet) when there is one. Without a keyring the app keeps the key in a file in the data folder, as the Docker version does.
+- **Updates:** the AppImage, .deb and .rpm check the releases like the Windows app does; the .deb and .rpm ask for your password to install.
+- **Building:** `npm run dist:linux` in `desktop/` on Linux (the .rpm needs `rpm` installed). The workflow does the same on a Linux machine at GitHub, after the Windows job.

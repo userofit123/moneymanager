@@ -2,13 +2,15 @@
   "name": "money-manager-desktop",
   "productName": "Money Manager",
   "version": "0.11.0",
-  "description": "Money Manager for Windows: the same app, with its own database and bank scraper built in",
+  "description": "Money Manager for Windows and Linux: the same app, with its own database and bank scraper built in",
   "private": true,
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win --x64 --publish never",
-    "release": "electron-builder --win --x64 --publish always"
+    "release": "electron-builder --win --x64 --publish always",
+    "dist:linux": "electron-builder --linux --x64 --publish never",
+    "release:linux": "electron-builder --linux --x64 --publish always"
   },
   "dependencies": {
     "electron-updater": "^6.6.0"
@@ -95,6 +97,59 @@
     ],
     "releaseInfo": {
       "releaseNotesFile": "release-notes.md"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "rpm",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "../frontend/public/icon-512.png",
+      "category": "Office;Finance",
+      "synopsis": "Your money in one private place",
+      "description": "Money Manager gathers your bank, card and cash accounts on your own computer, with nothing sent anywhere.",
+      "executableName": "money-manager",
+      "artifactName": "Money-Manager-${version}-linux-${arch}.${ext}",
+      "desktop": {
+        "entry": {
+          "Name": "Money Manager",
+          "Comment": "Your money in one private place",
+          "StartupWMClass": "Money Manager"
+        }
+      }
+    },
+    "deb": {
+      "depends": [
+        "libgtk-3-0",
+        "libnotify4",
+        "libnss3",
+        "libxss1",
+        "libxtst6",
+        "xdg-utils",
+        "libatspi2.0-0",
+        "libuuid1",
+        "libsecret-1-0"
+      ]
     }
+  },
+  "homepage": "https://github.com/userofit123/moneymanager",
+  "author": {
+    "name": "Money Manager",
+    "email": "45289144+userofit123@users.noreply.github.com"
   }
 }

@@ -1,5 +1,5 @@
 // Money Manager for Windows. The same app as the Docker version: this window opens it, and the database, bank scraper and server
-// run inside the installed program. Data is kept in the user's own folder (%APPDATA%\Money Manager) and nothing is sent anywhere.
+// run inside the installed program. Data is kept in the user's own folder (%APPDATA%\Money Manager on Windows, ~/.config/Money Manager on Linux) and nothing is sent anywhere.
 const { app, BrowserWindow, Menu, Tray, shell, dialog, session, safeStorage } = require("electron");
 const fs = require("node:fs");
 const crypto = require("node:crypto");
@@ -7,16 +7,18 @@ const path = require("node:path");
 const { startBackend } = require("./launcher");
 
 const root = app.isPackaged ? process.resourcesPath : path.join(__dirname, "..");
-// The key that encrypts saved bank logins is kept protected by Windows (DPAPI, through Electron's safeStorage): the file on disk can only be
+// The key that encrypts saved bank logins is kept protected by the system (Windows DPAPI, or the Linux keyring, through Electron's safeStorage): the file on disk can only be
 // opened by this Windows user on this computer, so copying the data folder elsewhere does not expose the logins.
 function protectedKey(dir) {
-  if (!safeStorage.isEncryptionAvailable()) return null; // the server then keeps its own key file in the data folder, as the Docker version does
+  // On Linux without a keyring (GNOME Keyring, KWallet), Electron falls back to a fixed built-in password, which protects nothing: use the key file then
+  const weak = process.platform === "linux" && typeof safeStorage.getSelectedStorageBackend === "function" && safeStorage.getSelectedStorageBackend() === "basic_text";
+  if (weak || !safeStorage.isEncryptionAvailable()) return null; // the server then keeps its own key file in the data folder, as the Docker version does
   const enc = path.join(dir, "app.key.protected"), plain = path.join(dir, "data", "app.key");
   fs.mkdirSync(dir, { recursive: true });
   if (fs.existsSync(enc)) {
     try { return safeStorage.decryptString(fs.readFileSync(enc)); }
     catch {
-      dialog.showMessageBoxSync({ type: "warning", title: "Saved logins", message: "Your saved bank logins can't be unlocked on this Windows account.", detail: "This happens when the data folder was moved from another computer or user. The app will start, but you need to enter your bank logins again in Settings → Connections." });
+      dialog.showMessageBoxSync({ type: "warning", title: "Saved logins", message: "Your saved bank logins can't be unlocked on this computer account.", detail: "This happens when the data folder was moved from another computer or user. The app will start, but you need to enter your bank logins again in Settings → Connections." });
       fs.unlinkSync(enc);
     }
   }

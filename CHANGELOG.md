@@ -51,6 +51,9 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ### Windows app
 - Includes everything above.
 
+### Linux app
+- **New: Money Manager for Linux.** The same app as the Windows one, with its own database and bank scraper inside and nothing to set up. Three files on each release: an AppImage (any Linux), a .deb (Debian, Ubuntu, Mint) and an .rpm (Fedora, Red Hat, openSUSE). Your data is kept in `~/.config/Money Manager`. Saved bank logins are locked with the desktop's keyring when there is one, otherwise with a key file in the data folder.
+
 ## [0.11.0] - 2026-10-16
 
 ### App
