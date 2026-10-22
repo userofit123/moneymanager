@@ -42,6 +42,13 @@ A finance app for people who are **not** financial and don't know financial term
 - A new page: a `views/<Name>.vue`, an entry in `routes.js`, its texts in `locales/pages/<name>.en.json` and `.he.json`, its help in `help/`.
 - Built or downloaded files are never committed (`frontend/dist`, `node_modules`). Secrets stay in `.env` (template: `.env.example`).
 
+## Working efficiently (tokens and time)
+- **Break big work into small steps**, each with its own clear goal and finish line (for example one page, one folder or one kind of change at a time), and commit after each step. Don't start a step that can't finish in one go.
+- **Helpers (subagents):** at most 3 at once. Give each a narrow task, the files it may touch, and a budget: a helper should finish in well under ~200k tokens and ~1 hour. If a task would need more, split it into several helpers run one after another. A helper that hits its budget stops, commits what works and reports what is left.
+- **Check enough, not everything:** use the existing tests, lint and the screenshot comparison. Add a new kind of check only when the change can't be verified otherwise, and keep it to the pages and states the change touches. Don't repeat a long check run unless something changed.
+- **Read only what is needed:** search for the relevant lines instead of reading whole large files; don't dump long outputs; reuse results already found instead of looking again.
+- **Report briefly:** what changed, how it was checked, what is left.
+
 ## Folder layout
 | Path | What |
 |---|---|
