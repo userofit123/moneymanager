@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [Unreleased]
 
 ### App
+- **Tables: the last row now follows the table's rounded corners** (for example "Left over" on the Forecast page).
 - **Forecast: the help ? for the three choices on top now sits next to "Forecast horizon"** instead of on a row of its own.
 - **Forecast: "What this is based on" is shorter.** It keeps your monthly income and expenses and the months used; the rules (what counts as income, one-offs, card payments) are in the page's help.
 - **Forecast: the long explanations moved to the help panel.** The page keeps just "Based on the last N months" and one short line under the jars; how it is calculated (no AI, the trend line, what is left out) is now in the page's help.
