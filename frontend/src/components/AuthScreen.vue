@@ -24,8 +24,7 @@ onMounted(() => setTimeout(() => pwEl.value?.focus(), 50));
 <template>
   <div id="auth" style="display:flex;position:fixed;inset:0;z-index:300;background:var(--bg);align-items:center;justify-content:center;padding:20px">
     <div class="card" style="max-width:380px;width:100%">
-      <AppLogo style="margin:0 0 14px" />
-      <h3 style="margin:0 0 6px">{{ setup ? t("auth.setupT") : t("auth.loginT") }}</h3>
+      <div style="display:flex;align-items:center;gap:12px;margin:0 0 10px"><AppLogo sym="coin" style="margin:0" /><h3 style="margin:0">{{ setup ? t("auth.setupT") : t("auth.loginT") }}</h3></div>
       <div class="sm" style="margin-bottom:14px">{{ setup ? t("auth.setupS") : t("auth.loginS") }}</div>
       <form @submit.prevent="go">
         <div class="fld"><label for="authP">{{ t("auth.pw") }}</label><input id="authP" ref="pwEl" v-model="pw" type="password" :autocomplete="setup ? 'new-password' : 'current-password'"></div>
