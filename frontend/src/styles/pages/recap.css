@@ -365,17 +365,24 @@ html.he a.rkl:hover i {
   margin-top: 14px;
 }
 
-/* "Today" sits in a small chip right under its dot, so it never crowds the start and end labels */
-.rkpt {
+/* "Today" sits in a small chip inside the chart, right under the moving dot */
+.rkpw {
   position: relative;
-  height: 54px;
-  margin-top: 6px;
+  margin-top: 40px;
 }
 
-.rkpt > div {
+.rk.z .rkpw {
+  margin-top: 22px;
+}
+
+.rkpw .rkv.path {
+  margin-top: 0;
+}
+
+.rkpt {
   position: absolute;
   inset-inline-start: clamp(60px, var(--x), calc(100% - 60px));
-  top: 8px;
+  top: calc(var(--y) + 14px);
   translate: -50% 0;
   padding: 5px 14px 6px;
   border: 1px solid var(--ol);
@@ -385,11 +392,11 @@ html.he a.rkl:hover i {
   white-space: nowrap;
 }
 
-html.he .rkpt > div {
+html.he .rkpt {
   translate: 50% 0;
 }
 
-.rkpt > div::before {
+.rkpt::before {
   content: "";
   position: absolute;
   top: -5px;
