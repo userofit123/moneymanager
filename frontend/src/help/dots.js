@@ -36,7 +36,7 @@ export default [
   ["rep", "#rep", ".lbl", "Top merchants", "Top merchants and tags", "", "בתי העסק המובילים"],
   ["rep", "#rep", ".lbl", "Spending by tag", "Top merchants and tags", "", "הוצאות לפי תגית"],
   ["fc", "#fcK", ".lbl", "Now", "Four balance cards", "", "עכשיו"],
-  ["fc", "#fcCtl", "", "", "The three choices on top", "after", ""],
+  ["fc", "#fcCtl", ".pl", "Forecast horizon", "The three choices on top", "", "טווח התחזית"],
   ["fc", "#fc", "h2", "Projected balance", "The chart", "", "היתרה הצפויה"],
   ["fc", "#fc", "h2", "What drives the forecast", "What drives the forecast", "", "מה משפיע על התחזית"],
   ["fc", "#fc", "h2", "Jar forecast", "Jar forecast", "", "תחזית הקופות"],
