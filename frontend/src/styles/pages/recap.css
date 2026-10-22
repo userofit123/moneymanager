@@ -362,7 +362,55 @@ html.he a.rkl:hover i {
   justify-content: space-between;
   gap: 16px;
   width: 100%;
-  margin-top: 22px;
+  margin-top: 14px;
+}
+
+/* "Today" sits in a small chip right under its dot, so it never crowds the start and end labels */
+.rkpt {
+  position: relative;
+  height: 54px;
+  margin-top: 6px;
+}
+
+.rkpt > div {
+  position: absolute;
+  inset-inline-start: clamp(60px, var(--x), calc(100% - 60px));
+  top: 8px;
+  translate: -50% 0;
+  padding: 5px 14px 6px;
+  border: 1px solid var(--ol);
+  border-radius: var(--r-sm);
+  background: var(--s2);
+  text-align: center;
+  white-space: nowrap;
+}
+
+html.he .rkpt > div {
+  translate: 50% 0;
+}
+
+.rkpt > div::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  inset-inline: 0;
+  margin-inline: auto;
+  width: 8px;
+  height: 8px;
+  rotate: 45deg;
+  border: 1px solid var(--ol);
+  border-width: 1px 0 0 1px;
+  background: var(--s2);
+}
+
+.rkpt span {
+  display: block;
+  font-size: 12px;
+  color: var(--tx2);
+}
+
+.rkpt b {
+  font-size: 15px;
 }
 
 .rkpl > div {
@@ -372,10 +420,6 @@ html.he a.rkl:hover i {
 
 .rkpl > div:first-child {
   text-align: start;
-}
-
-.rkpl > div:nth-child(2) {
-  text-align: center;
 }
 
 .rkpl > div:last-child {

@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [Unreleased]
 
 ### App
+- **Recap: "Today" on the month's money line now sits in a small box right under its dot,** instead of in the middle, so it matches where today really is and never crowds the start and end amounts.
 - **Recap: numbers and their pictures now animate together.** The graphs, bars and lines used to wait a second or two after the numbers counted up; now they start at the same moment.
 - **On every rules page, the form for a new rule is now above the list of rules.**
 - **Fixed: the Alerts settings button on the Alerts page now opens the alert settings.**
