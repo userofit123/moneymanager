@@ -106,3 +106,9 @@ html.mob .ctl select {
 html.mob .jfs {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
+
+/* the table's wrapper scrolls sideways on a narrow screen, which also clips its soft shadow: room below and at the sides keeps the shadow whole */
+#fcTab {
+  padding: 0 24px 30px;
+  margin: 0 -24px -30px;
+}
