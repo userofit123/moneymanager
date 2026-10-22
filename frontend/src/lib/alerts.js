@@ -77,7 +77,7 @@ export function alertsModel(S, M, now = new Date(), fc = {}, friendly = (e) => e
   balanceGaps(S).forEach((r) => {
     const old = (now - new Date(r.from)) / 864e5 >= c.gapDays, gb = gapBill(r, BC), amt = sym(r.cur) + f(Math.abs(r.diff));
     if (gb) { add("rc-" + r.id + "-" + r.diff, "recon", "low", "gapBill", { n: r.n, amt, bill: gb.n, bamt: fm(gb.pred), date: gb.pd }, "tx", { tab: "rev" }); return; }
-    add("rc-" + r.id + "-" + r.diff, "recon", old ? "high" : "med", "gap", { n: r.n, down: r.diff < 0 ? 1 : 0, amt }, "tx", { tab: "rev" });
+    add("rc-" + r.id + "-" + r.diff, "recon", old ? "high" : "med", "gap", { n: r.n, down: r.diff < 0 ? 1 : 0, card: r.card ? 1 : 0, amt }, "tx", { tab: "rev" });
   });
   { const pg = {}; (S.tx || []).forEach((t) => { if (t.pending && !t.virtual && t.a < 0 && !XS.has(t.id)) (pg[t.from] = pg[t.from] || []).push(t); });
     Object.entries(pg).forEach(([n, L]) => { const tot = L.reduce((x, t) => x - t.a, 0); add("pd-" + n + "-" + L.length + "-" + Math.round(tot), "pending", "low", "pending", { n, c: L.length, tot: fm(tot) }, "tx", { ids: L.map((t) => t.id) }); }); }

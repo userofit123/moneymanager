@@ -170,6 +170,8 @@
     "gapPart": " ({amt} originally, part of it already explained)",
     "gapOut": "Your {name} balance dropped by {amt}{part} between {from} and {to}, the times of two syncs. The balance itself is right. What is missing is the transaction, so your spending in reports is too low until you add it.",
     "gapIn": "Your {name} balance rose by {amt}{part} between {from} and {to}, the times of two syncs. The balance itself is right. What is missing is the transaction, so your income in reports is too low until you add it.",
+    "cardOut": "What you owe on {name} went up by {amt}{part} between {from} and {to}, the times of two syncs. That amount is right. What is missing is the purchase, so your spending in reports is too low until you add it.",
+    "cardIn": "What you owe on {name} went down by {amt}{part} between {from} and {to}, the times of two syncs, and no payment of the card bill was found. Usually the bill was paid from an account that is not connected here, and then nothing is wrong: dismiss it with a note. It can also be a refund the card has not listed yet.",
     "gapCauses": "Usual causes: a purchase the bank lists with no amount yet (it fills in at a later sync, and this clears by itself), a payment the bank has not posted yet, a fee, or older history that was never imported (try Import history in Settings → Connections).",
     "gapBill": "This looks like {bill} (about {amt}), expected around {date}. The bank has not listed it yet, so nothing is needed from you. It closes by itself when the transaction appears.",
     "gapAddTip": "Opens the add form with the amount and date filled in, so you can name it and pick a category.",

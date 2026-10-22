@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 import { tx, audit, bumpRev } from "../db.js";
 import { rateOn, normCur } from "../fx.js";
 import { detectCardPayments, detectSalary } from "../autodetect.js";
-import { applyRules, applyTagRules, detectTransfers, explainGaps, healGaps } from "../engine.js";
+import { applyRules, applyTagRules, detectTransfers, explainGaps, healGaps, OLD_DAYS } from "../engine.js";
 
 const hash = (...p) => crypto.createHash("sha1").update(p.join("|")).digest("hex").slice(0, 20);
 
@@ -14,7 +14,7 @@ const hash = (...p) => crypto.createHash("sha1").update(p.join("|")).digest("hex
 export async function ingest(account, rows, { mergeManual = false } = {}) {
   return tx(async (c) => {
     let added = 0, merged = 0, migrated = 0, updated = 0;
-    const fresh = [];
+    const fresh = [], late = []; // late: settled charges that may explain a balance gap, once the whole matches are found
     const seen = {};
     // A card balance already includes a charge the bank lists as pending. Pending rows are replaced by the bank's current list on every import, so when one of them
     // comes back settled it is a new row: remember those whose money an earlier balance reading already counted, so the settled row is not counted a second time.
@@ -62,7 +62,7 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
           await c.query("UPDATE transactions SET amount=$2,orig_currency=$3,orig_amount=$4,rate=$5,external_id=$6,pending=$7,details=$8 WHERE id=$1",
             [prov.rows[0].id, ils, cur !== "ILS" ? cur : null, cur !== "ILS" ? r.amount : null, rate, ext, !!r.pending, r.details ? JSON.stringify(r.details) : null]);
           await audit(c, "Amount filled in", `${r.description}: the bank now reports the real charge`);
-          if (!r.pending) await explainGaps(c, prov.rows[0].id, account.name, cur, r.amount);
+          if (!r.pending) late.push({ id: prov.rows[0].id, cur, amt: r.amount, date: r.date });
           updated++;
           continue;
         }
@@ -96,13 +96,21 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
       if (was >= 0) { // settled version of a pending charge the balance already included: nothing new reached the balance
         counted.splice(was, 1);
         await c.query("UPDATE transactions SET gap_explained=$2 WHERE id=$1", [ins.rows[0].id, r.amount]);
-      } else if (r.amount && !r.pending) await explainGaps(c, ins.rows[0].id, account.name, cur, r.amount);
+      } else if (r.amount && !r.pending) late.push({ id: ins.rows[0].id, cur, amt: r.amount, date: r.date });
     }
     await applyRules(c);
     await applyTagRules(c, fresh);
     const pairs = await detectTransfers(c);
     const found = (await detectCardPayments(c)) + (await detectSalary(c));
+    // Whole charges that add up to a gap explain it first; only what is left then shrinks the open gaps in order, so no gap is left with
+    // a piece of another one's charge. History from a month or more back was in the balance long ago and explains nothing.
     const healed = await healGaps(c, account.name, normCur(account.currency));
+    const oldest = new Date(Date.now() - OLD_DAYS * 864e5).toISOString().slice(0, 10);
+    for (const t of late) {
+      if (t.date < oldest) continue;
+      const used = (await c.query("SELECT gap_explained::float AS g FROM transactions WHERE id=$1", [t.id])).rows[0]?.g;
+      if (!used) await explainGaps(c, t.id, account.name, t.cur, t.amt);
+    }
     if (added || merged || updated || pairs || healed || found) await bumpRev(c);
     return { added, merged, migrated, updated, transfers: pairs };
   });

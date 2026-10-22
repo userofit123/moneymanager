@@ -200,6 +200,8 @@ const revGaps = computed(() => reviewGaps(S.value, BC.value));
 const reviewCount = computed(() => revXf.value.length + revDups.value.length + revGaps.value.filter((r) => r.diff != 0).length);
 const gapWhen = (x) => new Date(x).toLocaleString(loc(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 const gapAmt = (r) => (SYM[r.cur] || r.cur + " ") + f0(Math.abs(r.diff));
+// On a card the balance is what you owe, so its texts speak of debt, not of money arriving or leaving.
+const gapKey = (r, at) => at + (r.card ? "card" : "gap") + (r.diff < 0 ? "Out" : "In");
 const gapOrig = (r) => (r.amount != r.diff ? t("txw.a.gapPart", { amt: (SYM[r.cur] || r.cur + " ") + f0(r.amount) }) : "");
 const gapB = (r) => gapBill(r, BC.value);
 async function gapCall(id, what, msg, body) {
@@ -308,10 +310,10 @@ onMounted(() => data.start());
       <h2>{{ t("activity.r.gapTitle") }}</h2>
       <div class="sm" style="margin:-4px 2px 12px">{{ t("activity.r.gapIntro") }}</div>
       <div v-for="r in revGaps" :key="r.id" class="card warn" style="margin-bottom:12px">
-        <div class="flex" style="justify-content:space-between"><div class="lbl">{{ r.n }} · {{ r.cur }}</div><span class="bd" :class="r.diff < 0 ? 'up' : 'dn'">{{ r.diff < 0 ? t("activity.r.down") : t("activity.r.up") }}</span></div>
-        <div style="margin:8px 0;font-size:16px;font-weight:600">{{ r.diff < 0 ? t("activity.r.gapOut", { amt: gapAmt(r) }) : t("activity.r.gapIn", { amt: gapAmt(r) }) }}</div>
+        <div class="flex" style="justify-content:space-between"><div class="lbl">{{ r.n }} · {{ r.cur }}</div><span class="bd" :class="r.diff < 0 ? 'up' : 'dn'">{{ t("activity.r." + (r.card ? (r.diff < 0 ? "cardMore" : "cardLess") : r.diff < 0 ? "down" : "up")) }}</span></div>
+        <div style="margin:8px 0;font-size:16px;font-weight:600">{{ t(gapKey(r, "activity.r."), { amt: gapAmt(r) }) }}</div>
         <div v-if="gapB(r)" class="sinfo" style="margin:8px 0"><EmText :text="t('txw.a.gapBill', { bill: gapB(r).n, amt: fm(gapB(r).pred), date: dstr(gapB(r).pd) })" :em="[gapB(r).n]" /></div>
-        <div class="sm" style="line-height:1.55"><EmText :text="t(r.diff < 0 ? 'txw.a.gapOut' : 'txw.a.gapIn', { name: r.n, amt: gapAmt(r), part: gapOrig(r), from: gapWhen(r.from), to: gapWhen(r.to) })" :em="[r.n]" /><br><EmText :text="t('txw.a.gapCauses')" lead /></div>
+        <div class="sm" style="line-height:1.55"><EmText :text="t(gapKey(r, 'txw.a.'), { name: r.n, amt: gapAmt(r), part: gapOrig(r), from: gapWhen(r.from), to: gapWhen(r.to) })" :em="[r.n]" /><template v-if="!(r.card && r.diff > 0)"><br><EmText :text="t('txw.a.gapCauses')" lead /></template></div>
         <div class="flex" style="gap:8px;margin-top:12px;flex-wrap:wrap">
           <button type="button" class="btn s" :data-tip="t('txw.a.gapAddTip')" @click="gapAdd(r)">{{ t("activity.r.gapAdd") }}</button>
           <button v-if="r.diff < 0" type="button" class="btn o s" :data-tip="t('activity.r.gapRecTip')" @click="gapCall(r.id, 'record', t('txw.a.recorded'))">{{ t("activity.r.gapRec") }}</button>

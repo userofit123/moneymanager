@@ -1,7 +1,7 @@
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 import { reset, pool, q } from "./helpers.js";
-import { pairTransfers, computeGap, recordSnapshot, explainGaps, suggestConversion, healGaps } from "../src/engine.js";
+import { pairTransfers, computeGap, recordSnapshot, explainGaps, suggestConversion, healGaps, healCardPayments } from "../src/engine.js";
 import { ingest } from "../src/sources/ingest.js";
 import { parseWiseCsv } from "../src/sources/csv.js";
 import { getState, putState, StaleError } from "../src/state.js";
@@ -26,7 +26,7 @@ test("transfer cost is what left minus what arrived", () => {
 
 test("gap maths: drop, rise, none", () => {
   assert.equal(computeGap(318.47, 268.47, 0), -50);
-  assert.equal(computeGap(318.47, 300, 0), 31.53);
+  assert.equal(computeGap(318.47, 350, 0), 31.53);
   assert.equal(computeGap(100, 150, 50), 0);
 });
 
@@ -268,9 +268,9 @@ test("suggested rules: specific names beat broad words, and adding them sorts ex
   const cat = (d) => (SUGGESTED_RULES.find(([k]) => d.toLowerCase().includes(k.toLowerCase())) || [])[1];
   assert.equal(cat("ביטוח לאומי גביה"), "Taxes & government");
   assert.equal(cat("הפניקס חברה לביטוח"), "Insurance");
-  assert.equal(cat("זיכוי מלאומי"), "Other income");
+  assert.equal(cat("זיכוי מלאומי 12"), "Other income");
   assert.equal(cat("זיכוי"), "Salary");
-  assert.equal(cat("פז YELLOW א.ת העיר"), "Car & fuel");
+  assert.equal(cat("פז YELLOW תחנה 4"), "Car & fuel");
   assert.equal(cat("GITHUB.COM SPONSORS"), "Software & hosting");
   assert.equal(cat("חיוב כרטיס אשראי"), undefined); // a card bill payment is not a spending category
 });
@@ -380,12 +380,12 @@ test("a balance gap closes by itself when a charge first listed at 0 gets its re
   const row = (amt) => ({ date: "2026-10-12", description: "Wolt", amount: amt, currency: "ILS", externalId: `9:ref1:2026-10-12:${amt}`, stableKey: "9:ref1:2026-10-12" });
   await ingest(acc, [row(0)]);
   await tx((c) => recordSnapshot(c, a, 1000, new Date("2026-10-11T10:00:00Z")));
-  await tx((c) => recordSnapshot(c, a, 566, new Date("2026-10-13T10:00:00Z")));
+  await tx((c) => recordSnapshot(c, a, 588, new Date("2026-10-13T10:00:00Z")));
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 1);
   await ingest(acc, [row(-412)]);
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 0);
   // and an already-updated charge closes the gap on the next sync
-  await tx((c) => recordSnapshot(c, a, 400, new Date("2026-10-14T10:00:00Z")));
+  await tx((c) => recordSnapshot(c, a, 422, new Date("2026-10-14T10:00:00Z")));
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 1);
   await q("INSERT INTO transactions (date,description,from_name,to_name,amount,source) VALUES ('2026-10-13','Late fill','Bank Hapoalim','Shop',-166,'manual')");
   await ingest(acc, []);
@@ -487,4 +487,58 @@ test("pending charges that were imported before the balance reading explain the 
   ]);
   await tx((c) => recordSnapshot(c, a, -236, new Date("2026-10-16T08:00:00Z"))); // the balance is read after the transactions
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 0);
+});
+
+// Made-up accounts and shops only: never real data in tests.
+const cardAndBank = async () => {
+  await reset();
+  await q("INSERT INTO accounts (name,currency,kind,source,subtitle,sort) VALUES ('Card','ILS','card','max','',60),('Bank','ILS','bank','hapoalim','',0) ON CONFLICT DO NOTHING");
+  return { card: (await q("SELECT * FROM accounts WHERE name='Card'")).rows[0], bank: (await q("SELECT * FROM accounts WHERE name='Bank'")).rows[0] };
+};
+const openGaps = async () => (await q("SELECT remaining::float AS r FROM balance_gaps WHERE status='open' ORDER BY id")).rows.map((g) => g.r);
+
+test("charges arriving together each explain the whole gap they caused, so the next gap is not left with a piece of one", async () => {
+  const { card } = await cardAndBank();
+  const acc = { name: "Card", currency: "ILS", source: "max" };
+  await tx((c) => recordSnapshot(c, card, 0, new Date("2026-10-17T08:00:00Z")));
+  await tx((c) => recordSnapshot(c, card, -152, new Date("2026-10-18T08:00:00Z")));
+  await tx((c) => recordSnapshot(c, card, -450.9, new Date("2026-10-18T20:00:00Z"))); // 201.30 + 97.60
+  await tx((c) => recordSnapshot(c, card, -584.11, new Date("2026-10-19T08:00:00Z")));
+  assert.deepEqual(await openGaps(), [-152, -298.9, -133.21]);
+  await ingest(acc, [ // the bank lists them days later, in its own order
+    { date: "2026-10-18", description: "Shop A", amount: -201.3, currency: "ILS", externalId: "c:a" },
+    { date: "2026-10-18", description: "Gym", amount: -152, currency: "ILS", externalId: "c:b" },
+    { date: "2026-10-18", description: "Pharmacy", amount: -97.6, currency: "ILS", externalId: "c:c" },
+    { date: "2026-10-19", description: "Online shop", amount: -133.21, currency: "ILS", externalId: "c:d" },
+  ]);
+  assert.deepEqual(await openGaps(), []);
+  await tx((c) => recordSnapshot(c, card, -838.49, new Date("2026-10-21T08:00:00Z"))); // a new purchase of 254.38, not listed yet
+  assert.deepEqual(await openGaps(), [-254.38]);
+  await ingest(acc, [{ date: "2026-10-21", description: "Supermarket", amount: -254.38, currency: "ILS", pending: true, externalId: "c:e" }]);
+  assert.deepEqual(await openGaps(), []);
+});
+
+test("older history imported now does not open a balance gap", async () => {
+  const { bank } = await cardAndBank();
+  await tx((c) => recordSnapshot(c, bank, 1000, new Date("2026-10-16T08:00:00Z")));
+  await ingest({ name: "Bank", currency: "ILS", source: "hapoalim" }, [{ date: "2025-12-19", description: "Old grant", amount: 87.3, currency: "ILS", externalId: "b:old" }]);
+  await tx((c) => recordSnapshot(c, bank, 1000, new Date("2026-10-16T14:00:00Z")));
+  assert.deepEqual(await openGaps(), []);
+});
+
+test("a card's debt that went down is explained by the card payment from the bank, and one payment explains one gap", async () => {
+  const { card, bank } = await cardAndBank();
+  await tx((c) => recordSnapshot(c, card, -31.5, new Date("2026-10-17T08:00:00Z")));
+  await tx((c) => recordSnapshot(c, card, 0, new Date("2026-10-18T08:00:00Z"))); // paid off: the card lists no payment
+  assert.deepEqual(await openGaps(), [31.5]);
+  await tx((c) => recordSnapshot(c, bank, 500, new Date("2026-10-17T08:00:00Z")));
+  await ingest({ name: "Bank", currency: "ILS", source: "hapoalim" }, [{ date: "2026-10-18", description: "Card company", amount: -31.5, currency: "ILS", externalId: "b:pay" }]);
+  await q("UPDATE transactions SET category='Loans & credit payments' WHERE description='Card company'");
+  await tx((c) => healCardPayments(c));
+  assert.deepEqual(await openGaps(), []);
+  // a second rise of the same amount does not reuse that payment
+  await tx((c) => recordSnapshot(c, card, -31.5, new Date("2026-10-19T08:00:00Z")));
+  await ingest({ name: "Card", currency: "ILS", source: "max" }, [{ date: "2026-10-19", description: "Music", amount: -31.5, currency: "ILS", externalId: "c:m" }]);
+  await tx((c) => recordSnapshot(c, card, 0, new Date("2026-10-20T08:00:00Z")));
+  assert.deepEqual(await openGaps(), [31.5]);
 });

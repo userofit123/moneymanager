@@ -81,10 +81,13 @@ export function computeGap(prevBalance, actual, importedSince) {
 }
 
 // Transactions on an account since a moment, in the account's currency, minus what already explained a gap.
+// Older history imported now (dated a month or more before) was in the balance long ago, so it does not count.
+export const OLD_DAYS = 30;
 async function importedSince(c, account, since) {
   const r = await c.query(
     `SELECT COALESCE(sum(COALESCE(orig_amount, amount) - gap_explained),0)::float AS s FROM transactions
-     WHERE NOT pending AND created_at > $2 AND ((amount<0 AND from_name=$1) OR (amount>0 AND to_name=$1))
+     WHERE NOT pending AND created_at > $2 AND date >= ($2::timestamptz - interval '${OLD_DAYS} days')::date
+       AND ((amount<0 AND from_name=$1) OR (amount>0 AND to_name=$1))
        AND COALESCE(orig_currency,'ILS')=$3`, [account.name, since, account.currency]);
   return r.rows[0].s;
 }
@@ -131,7 +134,7 @@ export async function explainGaps(c, txId, accountName, currency, signedAmount) 
 export async function healGaps(c, accountName, currency) {
   const gaps = (await c.query(
     `SELECT g.id,g.remaining,g.window_from,g.window_to FROM balance_gaps g JOIN accounts a ON a.id=g.account_id
-     WHERE a.name=$1 AND a.currency=$2 AND g.status='open'`, [accountName, currency])).rows;
+     WHERE a.name=$1 AND a.currency=$2 AND g.status='open' ORDER BY g.id`, [accountName, currency])).rows;
   let n = 0;
   for (const g of gaps) { // a charge the bank still lists as pending counts too: a card balance already includes it
     const rows = (await c.query(
@@ -145,6 +148,31 @@ export async function healGaps(c, accountName, currency) {
     for (const t of pick) await explainGaps(c, t.id, accountName, currency, t.amt);
     // a rounding difference of up to a shekel must not leave the gap open
     await c.query("UPDATE balance_gaps SET remaining=0, status='cleared' WHERE id=$1 AND status='open' AND abs(remaining) <= 1", [g.id]);
+    n++;
+  }
+  return n + await healCardPayments(c);
+}
+
+// A card's debt that went down is usually the card bill, paid from the bank: the bank lists the payment, the card does not.
+// A bank payment of the same amount near the gap (a card payment, not one counted as spending) explains it, and only that one gap.
+export async function healCardPayments(c) {
+  const gaps = (await c.query(
+    `SELECT g.id,g.remaining::float AS rem,g.window_from,g.window_to,a.name FROM balance_gaps g JOIN accounts a ON a.id=g.account_id
+     WHERE a.kind='card' AND a.currency='ILS' AND g.status='open' AND g.remaining>0 ORDER BY g.id`)).rows;
+  if (!gaps.length) return 0;
+  const ov = (await c.query("SELECT value FROM settings WHERE key='cc_override'")).rows[0]?.value || {};
+  let n = 0;
+  for (const g of gaps) {
+    const pays = (await c.query(
+      `SELECT t.id,t.from_name,t.category FROM transactions t JOIN accounts a ON a.name=t.from_name AND a.kind='bank'
+       WHERE t.amount<0 AND NOT t.pending AND abs(-t.amount - $1) <= 1
+         AND t.date >= ($2::timestamptz - interval '7 days')::date AND t.date <= ($3::timestamptz + interval '7 days')::date
+         AND NOT EXISTS (SELECT 1 FROM balance_gaps x WHERE x.paid_by=t.id)
+       ORDER BY abs(-t.amount - $1), t.id`, [g.rem, g.window_from, g.window_to])).rows;
+    const p = pays.find((t) => ov[t.id] != 1 && (ov[t.id] == 2 || t.category === "Loans & credit payments"));
+    if (!p) continue;
+    await c.query("UPDATE balance_gaps SET remaining=0, status='cleared', paid_by=$2 WHERE id=$1", [g.id, p.id]);
+    await audit(c, "Gap cleared", `${g.name} ILS: ${g.rem} explained by a card payment from ${p.from_name}`);
     n++;
   }
   return n;

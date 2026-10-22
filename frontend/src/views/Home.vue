@@ -75,7 +75,7 @@ function alertText(x) {
     case "xfer": return [tk("al.xferT" + (p.n == 1 ? "1" : ""), p), X("xfer")];
     case "dup": return [tk("al.dupT" + (p.n == 1 ? "1" : ""), p), X("dup")];
     case "gapBill": return [T("gapBill"), X("gapBill")];
-    case "gap": return [tk(p.down ? "al.gapDown" : "al.gapUp", p), t("al.gapX")];
+    case "gap": return [tk((p.card ? "al.card" : "al.gap") + (p.down ? "Down" : "Up"), p), t(p.card && !p.down ? "al.cardUpX" : "al.gapX")];
     case "pending": return [tk("al.pendingT" + (p.c == 1 ? "1" : ""), p), t("al.pendingX")];
     case "syncFail": return [t("al.syncFailT", p), p.msg === "Check the login" ? t("al.syncCheck") : p.msg];
     case "syncOld": return [t("al.syncOldT", p), t("al.syncLast", { when: (p.msg.match(/^Last synced (.*) \(over/) || [])[1] || "" })];
