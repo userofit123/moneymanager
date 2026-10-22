@@ -8,6 +8,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 
 ### App
 - **Fewer false "Needs review" items about balances.** A card whose debt went down because the bank paid it no longer shows as unexplained: the payment in the bank explains it. Old history brought in by Import history no longer looks like new money. When several purchases arrive at once, each one now explains the exact change it caused, so no odd leftover amount moves to the next item.
+- **The example on the name rules page uses a made-up employer name.**
 - **A card's balance is explained as what you owe.** Instead of "₪30 arrived in this account", it says "You owe ₪30 less on this card".
 - **The app has been rebuilt from the ground up.** It looks and works the same, with the same pages, words and settings in English and Hebrew, but it is now built in a modern way (Vue), so it is faster to improve and easier to keep working well. Your data, your look and your settings stay as they are.
 - **Undo for almost every change**, in the "Saved" message and in Settings → Change history, not only for a few kinds. Deleting transactions still has no Undo.

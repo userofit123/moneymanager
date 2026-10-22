@@ -1,0 +1,3 @@
+#!/bin/sh
+# Real bank data never goes into a commit (see scripts/privacy-check.mjs).
+exec node scripts/privacy-check.mjs

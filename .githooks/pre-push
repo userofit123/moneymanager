@@ -1,0 +1,8 @@
+#!/bin/sh
+# Real bank data never leaves this computer: check every commit about to be pushed (see scripts/privacy-check.mjs).
+z=0000000000000000000000000000000000000000
+while read -r lref lsha rref rsha; do
+  [ "$lsha" = "$z" ] && continue
+  if [ "$rsha" = "$z" ]; then range="origin/main..$lsha"; else range="$rsha..$lsha"; fi
+  node scripts/privacy-check.mjs "$range" || exit 1
+done
