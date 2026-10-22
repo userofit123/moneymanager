@@ -28,7 +28,7 @@ jobs:
     env: { DATABASE_URL: "postgres://money:money@localhost:5432/money_test" }
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with: { node-version: 22 }
       - run: npm ci
         working-directory: server
@@ -114,7 +114,7 @@ jobs:
       PUPPETEER_CACHE_DIR: ${{ github.workspace }}/desktop/chrome   # the scraper's browser is downloaded here and shipped inside the installer
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with: { node-version: 22 }
       - name: Build the app into frontend/dist (shipped inside the installer)
         run: npm ci && npm run build
@@ -165,7 +165,7 @@ jobs:
       PUPPETEER_CACHE_DIR: ${{ github.workspace }}/desktop/chrome   # the scraper's browser is downloaded here and shipped inside the packages
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with: { node-version: 22 }
       - name: Tools the .rpm and .deb builders need
         run: sudo apt-get update && sudo apt-get install -y rpm
