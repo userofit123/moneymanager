@@ -31,6 +31,7 @@ function protectedKey(dir) {
 }
 
 const Srv = require("./servers");
+const Shell = require("./shellserver");
 const { dict, fill } = require("./texts");
 
 // An AppImage is only a file: with no installer, nothing gives it an icon or a place in the app menu. So on each start (it is cheap) the app
@@ -75,7 +76,7 @@ function wireSession(ses, server) {
     lastBad.set(req.hostname, fp || ""); cb(-2);
   });
   // only the app's own page may use the camera (receipt photos)
-  ses.setPermissionRequestHandler((wc, perm, cb) => cb(perm === "media" && !!server && wc.getURL().startsWith(server.url)));
+  ses.setPermissionRequestHandler((wc, perm, cb) => { const u = wc.getURL(), mine = server && shells.get(server.id); cb(perm === "media" && !!server && (u.startsWith(server.url) || (!!mine && u.startsWith(mine.base)))); });
   return ses;
 }
 const sessionFor = (server) => (server ? wireSession(session.fromPartition("persist:server-" + server.id), server) : session.defaultSession);
@@ -84,6 +85,30 @@ async function startLocal() {
   backend = await startBackend({ dataDir: dataDir(), root, nodeBin: process.execPath, appKey: protectedKey(dataDir()) });
 }
 async function stopLocal() { const b = backend; backend = null; if (b) await b.stop(); }
+
+// The app's own screens for a server: a small web server on this computer serves them and passes the data requests on (shellserver.js). Only when the
+// server is the same version line as this app (its API then fits these screens); otherwise the window shows the server's own pages, as before.
+const shells = new Map();
+const portFor = (id) => 47900 + (parseInt(String(id).replace(/\D/g, "").slice(0, 6) || "0", 10) % 90);
+async function stopShells() { for (const [id, s] of shells) { try { s.srv.closeAllConnections(); s.srv.close(); } catch { /* already closed */ } shells.delete(id); } }
+async function shellFor(server) {
+  const have = shells.get(server.id);
+  if (have) return have.base;
+  const srv = Shell.createShellServer({ webDir: path.join(root, "web"), remote: server.url, trusted: () => (state.list.find((x) => x.id === server.id) || {}).trust || "" });
+  let port; try { port = await Shell.listen(srv, portFor(server.id)); } catch { port = await Shell.listen(Shell.createShellServer({ webDir: path.join(root, "web"), remote: server.url, trusted: () => "" }), 0).catch(() => 0); }
+  if (!port) return null;
+  shells.set(server.id, { srv, base: "http://127.0.0.1:" + port });
+  return "http://127.0.0.1:" + port;
+}
+let lastMismatch = "";
+// where the window should load a server from: this app's own screens (a local address) or, when the versions do not fit, the server's own address
+async function addressFor(server) {
+  await stopShells();
+  const v = await Shell.remoteVersion(server.url, { timeout: 5000 });
+  if (v && Shell.sameLine(v, app.getVersion())) { const b = await shellFor(server); if (b) return { base: b, own: true }; }
+  if (lastMismatch !== server.id + v) { lastMismatch = server.id + v; setTimeout(() => dialog.showMessageBox(win && !win.isDestroyed() ? win : undefined, { type: "info", title: "Money Manager", message: fill(v ? T.mismatch : T.mismatchOld, { s: v, a: app.getVersion() }), buttons: ["OK"], noLink: true }), 1500); }
+  return { base: server.url, own: false };
+}
 
 function closeWindow() { if (win && !win.isDestroyed()) { win.removeAllListeners("close"); win.destroy(); } win = null; }
 
@@ -111,10 +136,10 @@ ipcMain.on("frame:titlebar", (e, bg, fg) => {
 // GNOME has no system tray (unless an extension adds one): a window hidden there could never be brought back, so closing it quits instead
 const hasTray = () => process.platform !== "linux" || !/gnome|unity|pantheon|budgie/i.test(process.env.XDG_CURRENT_DESKTOP || "");
 
-function openWindow() {
-  const server = Srv.current(state), base = server ? server.url : backend.url;
-  // the desktop controls (updates, backup folder) are only for the app's own page; another server's page gets just the server list
-  win = new BrowserWindow({ width: 1280, height: 860, minWidth: 380, minHeight: 600, title: server ? "Money Manager · " + server.name : "Money Manager", icon: path.join(root, "web", "icon-512.png"), backgroundColor: "#f7f8fd", autoHideMenuBar: true, ...frameOptions(), webPreferences: { ...(server ? { sandbox: true, preload: path.join(__dirname, "remote-preload.js") } : { preload: path.join(__dirname, "preload.js") }), session: sessionFor(server), contextIsolation: true, nodeIntegration: false } });
+function openWindow(addr) {
+  const server = Srv.current(state), base = addr ? addr.base : server ? server.url : backend.url, own = !server || (addr && addr.own);
+  // the app's own screens (this computer's, or a server's data shown through them) get the desktop controls; another server's own pages get only the server list
+  win = new BrowserWindow({ width: 1280, height: 860, minWidth: 380, minHeight: 600, title: server ? "Money Manager · " + server.name : "Money Manager", icon: path.join(root, "web", "icon-512.png"), backgroundColor: "#f7f8fd", autoHideMenuBar: true, ...frameOptions(), webPreferences: { ...(!server ? { preload: path.join(__dirname, "preload.js") } : own ? { sandbox: true, preload: path.join(__dirname, "hybrid-preload.js") } : { sandbox: true, preload: path.join(__dirname, "remote-preload.js") }), session: sessionFor(server), contextIsolation: true, nodeIntegration: false } });
   win.loadURL(base);
   // links to other sites (a bank, a help page) open in the normal browser, never inside the app
   win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: "deny" }; });
@@ -122,7 +147,7 @@ function openWindow() {
   // a server that does not answer: try again, or pick another one
   let asking = false;
   win.webContents.on("did-fail-load", (_e, code, _d, _u, isMain) => {
-    if (!server || !isMain || code === -3 || asking) return;
+    if (!server || own || !isMain || code === -3 || asking) return;
     asking = true;
     const w = win, r = dialog.showMessageBoxSync(w, { type: "warning", title: T.failTitle, message: fill(T.failMsg, { name: server.name }), buttons: [T.retry, T.other, T.quit], defaultId: 0, cancelId: 2, noLink: true });
     asking = false;
@@ -136,13 +161,14 @@ function openWindow() {
 // Open the window for one entry. Moving away from "This computer" stops its backend (no syncing while another server is open); moving back starts it.
 async function show(id) {
   closeWindow();
+  await stopShells();
   try {
     if (id === Srv.LOCAL) { if (!backend) await startLocal(); } else await stopLocal();
   } catch (e) {
     dialog.showErrorBox("Money Manager", String((e && e.message) || e));
     openManager(); return;
   }
-  openWindow();
+  openWindow(id === Srv.LOCAL ? null : await addressFor(Srv.current(state)));
 }
 function switchTo(id) {
   if (id === state.active && win && !win.isDestroyed()) { win.show(); win.focus(); return; }

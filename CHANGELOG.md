@@ -12,6 +12,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 - **Windows and Linux apps: the window buttons match your server's colours,** also when the server is an older version. The buttons used to sit on a white box; now the app remembers the colours and draws the title strip itself when the server's page has none.
 - **Settings: the server list moved to its own page, Settings → Your data → Server** (desktop apps only). "Version and updates" is only about versions again.
 - **"Install on this device" only shows in a browser,** not in the installed app or the desktop app, and now also offers the **desktop app** for download (Windows, or Fedora/Ubuntu/AppImage on Linux) from GitHub.
+- **Desktop apps in "My server" mode now show the app's own screens with your server's data,** not the server's pages. So what you see is the version you installed, and it updates itself, while the data, your saved logins and the bank syncing stay on the server. It works when the app and the server have the same first two version numbers (for example 0.12.x with 0.12.x); otherwise the server's own pages are shown, with a note. The server's sign-in status now also reports its version.
 - **A new documentation site and a rewritten README,** with install guides for Windows, Linux, Docker and your phone, a tour of every screen, and new screenshots in light and dark, English and Hebrew.
 
 ### Linux app

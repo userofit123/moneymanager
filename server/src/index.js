@@ -52,7 +52,8 @@ const setCookie = (req, res, token) => res.cookie(auth.COOKIE, token, cookieOpts
 
 app.get("/api/auth/status", wrap(async (req, res) => {
   const u = await auth.getUser();
-  res.set("Cache-Control", "no-store").json({ setup: !u, authed: !!u && (await auth.sessionValid(auth.readCookie(req))), totp: !!u?.totp_enabled });
+  // version: the desktop app reads it to see whether its own screens fit this server
+  res.set("Cache-Control", "no-store").json({ setup: !u, authed: !!u && (await auth.sessionValid(auth.readCookie(req))), totp: !!u?.totp_enabled, version: versionOf(readChangelog()) });
 }));
 app.post("/api/auth/setup", json, wrap(async (req, res) => {
   if (await auth.getUser()) return res.status(409).json({ error: "Already set up" });

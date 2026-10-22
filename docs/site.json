@@ -1,0 +1,30 @@
+{
+  "title": "Money Manager",
+  "tagline": "All your money in one private place that only you can see.",
+  "repo": "https://github.com/userofit123/moneymanager",
+  "nav": [
+    { "title": "Home", "file": "index.md" },
+    { "group": "Install", "items": [
+      { "title": "Choose how to run it", "file": "install.md" },
+      { "title": "Windows", "file": "install-windows.md" },
+      { "title": "Linux", "file": "install-linux.md" },
+      { "title": "Docker (home server)", "file": "install-docker.md" },
+      { "title": "On your phone", "file": "install-phone.md" },
+      { "title": "Desktop app with your server", "file": "desktop-server.md" }
+    ] },
+    { "group": "Use it", "items": [
+      { "title": "Your first 15 minutes", "file": "getting-started.md" },
+      { "title": "A tour of every screen", "file": "tour.md" },
+      { "title": "Sorting that does itself", "file": "automatic-sorting.md" },
+      { "title": "Alerts and notifications", "file": "alerts-notifications.md" },
+      { "title": "Looks and languages", "file": "appearance-languages.md" }
+    ] },
+    { "group": "Reference", "items": [
+      { "title": "How it works", "file": "how-it-works.md" },
+      { "title": "Security", "file": "security.md" },
+      { "title": "Updating", "file": "updating.md" },
+      { "title": "Troubleshooting", "file": "troubleshooting.md" },
+      { "title": "For developers", "file": "developers.md" }
+    ] }
+  ]
+}

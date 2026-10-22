@@ -105,6 +105,7 @@ test("API refuses everything until you sign in; the page itself carries no data"
   assert.equal((await call("POST", "/api/sync")).status, 401);
   const st = await call("GET", "/api/auth/status");
   assert.deepEqual([st.body.setup, st.body.authed], [true, false]);
+  assert.equal(typeof st.body.version, "string"); // the desktop app reads it to see whether its own screens fit (empty when the changelog is not found)
   const page = await call("GET", "/");
   assert.equal(page.status, 200);
   assert.ok(page.headers.get("content-security-policy").includes("frame-ancestors 'self'"));

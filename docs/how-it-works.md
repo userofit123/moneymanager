@@ -1,6 +1,13 @@
+---
+title: How it works
+description: What Money Manager does behind the scenes: sync, duplicates, transfers, bills, budgets, jars, the forecast and your change history. The details behind the screens.
+---
+
 # How it works
 
-Details of how the app behaves. The short version is in the [README](../README.md).
+The details behind the screens. You do not need to read this to use the app. It is here for when you wonder *why* a number is what it is. The pages themselves also explain their numbers when you point at them.
+
+**The idea in one paragraph:** the app reads your accounts, keeps its own copy, and builds everything else (categories, bills, budgets, jars, the forecast) from that copy. It never writes anything to a bank. Because it does the sorting itself, it also tells you what it is unsure about, and every change it makes is written to a history you can read and mostly undo.
 
 ## Data flow
 - The app loads `GET /api/state` and saves edits with `PUT /api/state` a moment after each change. If a sync changed the data in between, the server answers 409 and the app takes the newer copy and asks you to repeat the change. Other open windows and devices get the change within a second (`/api/events`).
@@ -25,4 +32,4 @@ Light, dark or automatic; an atmosphere (built-in colour sets or your own colour
 **Glass** gives every block a blur of what is behind it (*Blur*), a colour boost (*Vibrance*) and a translucent fill (*Opacity*). It is the heaviest effect for the graphics card; if the app feels slow, switch the surface back to Solid.
 
 ## Updates
-The Windows app uses electron-updater against this repository's GitHub releases (public). The Docker app polls the GitHub API and shows the commands to run. See `desktop/README.md`.
+The Windows and Linux apps use electron-updater against this repository's GitHub releases (public). The Docker app polls the GitHub API and shows the commands to run. See [Updating](updating.md).

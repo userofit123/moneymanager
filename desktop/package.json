@@ -31,6 +31,8 @@
       "main.js",
       "launcher.js",
       "preload.js",
+      "shellserver.js",
+      "hybrid-preload.js",
       "remote-preload.js",
       "servers.js",
       "servers.html",

@@ -1,6 +1,32 @@
-# Security model
+---
+title: Security
+description: What protects your data in Money Manager and what does not: sign-in, encrypted bank logins, read-only design, network, backups, and every outbound connection.
+---
 
-What protects your data, and what does not.
+# Security
+
+What protects your data, and what does not. Plain version first, the full audit below.
+
+## In short
+
+- **It only reads.** There is no screen, no button and no code in the app that can start a transfer, a payment or an approval at a bank.
+- **Your bank logins are encrypted** on your own machine and are **write-only**: the app can save one but can never show it again, not even to you. They are removed from every log and error message.
+- **Nothing leaves your machine** except the requests to your own banks, to Wise, and to a free exchange-rate service (which only learns a currency and a date range). There is no tracking, no analytics and no account with us.
+- **Whoever can open your computer or server can use the app as you.** So use a strong password, turn on two-factor sign-in, lock your screen, and use disk encryption.
+- **For the strongest guarantee**, use a view-only login at your bank, if it offers one.
+
+## Where your data is, by way of running it
+
+| | Where | Saved logins are locked with |
+|---|---|---|
+| **Windows app** | `%APPDATA%\Money Manager` | Your Windows account (the key cannot be opened by another user or computer) |
+| **Linux app** | `~/.config/Money Manager` | The desktop keyring (GNOME Keyring, KDE Wallet) when there is one, otherwise a key file with strict permissions |
+| **Docker** | Docker volumes on your server | A key file in the app's volume (`/data/app.key`), not in the database. Save it in your password manager. |
+| **Desktop app in "My server" mode** | On your server. The desktop keeps nothing but the address and a saved copy for offline use | The server's key |
+
+---
+
+## The full audit
 
 ## Sign-in
 - One user. First visit asks you to choose a password (10+ characters). It is stored only as a scrypt hash.
