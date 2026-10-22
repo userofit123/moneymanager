@@ -1,18 +1,18 @@
-# Weekly update requests for the app's packages. Each one runs the tests before it can be merged.
+# Monthly update requests for the app's packages (grouped, so a few at a time). Each one runs the tests before it can be merged.
 # The bank scraper library (israeli-bank-scrapers) is pinned on purpose and updated by hand when a bank changes its site.
 version: 2
 updates:
   - package-ecosystem: npm
     directory: /frontend
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
     groups: { frontend: { patterns: ["*"] } }
   - package-ecosystem: npm
     directory: /server
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
     groups: { server: { patterns: ["*"] } }
   - package-ecosystem: npm
     directory: /scraper
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
     ignore: [{ dependency-name: israeli-bank-scrapers }]
   - package-ecosystem: npm
     directory: /desktop
@@ -23,3 +23,4 @@ updates:
   - package-ecosystem: docker
     directory: /server
     schedule: { interval: monthly }
+    ignore: [{ dependency-name: node, update-types: ["version-update:semver-major"] }]   # stay on the long-term-support Node
