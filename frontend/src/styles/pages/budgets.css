@@ -1,0 +1,18 @@
+/* The Budgets page. Loaded with the page (views/Budgets.vue imports it). */
+
+.bbin {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--s1);
+  border: 1px solid var(--ol);
+}
+
+.bbin .chn {
+  padding: 5px 0;
+  font-size: 13px;
+}
+
+.bbin .chn:first-of-type {
+  border-top: 0;
+}

@@ -1,0 +1,67 @@
+/* Rules of the Activity page that app-wide rules loaded after this file override (themes, phone sizes, windows),
+   so they load with the app-wide styles at this point instead of with the page (the rest is in pages/activity.css). */
+
+.ghead .gc {
+  display: inline-grid;
+  place-items: center;
+  vertical-align: -3px;
+  margin-inline-end: 6px;
+  transition: transform .2s;
+}
+
+.ghead .gc svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ghead.closed .gc {
+  transform: rotate(-90deg);
+}
+
+tr.ghead td {
+  padding: 11px 12px;
+  font-size: 14px;
+}
+
+.ghead .gh1 {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.ghead .gl {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+html.mob div.ghead {
+  margin: 10px -16px 2px;
+  border-radius: 0;
+  padding: 11px 16px;
+  border-block: 1px solid var(--ol);
+}
+
+.xfc {
+  border: 1px dashed color-mix(in srgb, var(--acc) 50%, var(--ol));
+  border-radius: 18px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  background: color-mix(in srgb, var(--acc) 6%, transparent);
+}
+
+.exo input:checked {
+  background: var(--acc);
+  border-color: var(--acc);
+}
+
+.excol .exd > summary {
+  padding: 16px 20px;
+}

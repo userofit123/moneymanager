@@ -1,0 +1,655 @@
+/* The Jars page. Loaded with the page (views/Jars.vue imports it). */
+
+.jin .fld input:disabled {
+  opacity: .7;
+}
+
+html.mob .jin .fld input {
+  font-size: 16px;
+}
+
+html.mob .jin .fld input,
+html.mob .jin .fld select {
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 15px;
+}
+
+.kh {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.jname {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 8px 0 2px;
+  overflow-wrap: anywhere;
+}
+
+.jpill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--ol);
+  border-radius: 99px;
+  background: var(--s1);
+  overflow: hidden;
+  height: 30px;
+  box-sizing: border-box;
+}
+
+.jpill > button {
+  border: 0;
+  background: none;
+  color: var(--tx2);
+  font: inherit;
+  font-size: 9px;
+  line-height: 1;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.jpill > button:disabled {
+  opacity: .3;
+  cursor: default;
+}
+
+.jstat3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  background: var(--s2);
+  border-radius: 14px;
+}
+
+.jstat3 span {
+  display: block;
+  font-size: 11px;
+  color: var(--tx2);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  margin-bottom: 2px;
+}
+
+.jtools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  margin-inline-start: auto;
+  align-self: flex-start;
+}
+
+.jpill > button {
+  display: grid;
+  place-items: center;
+  padding: 6px 7px;
+}
+
+.jin .jar {
+  flex-wrap: wrap;
+}
+
+.jin .jhl {
+  flex: 1 1 90px;
+  min-width: 0;
+}
+
+.jin .jname {
+  margin: 0 0 3px;
+  font-size: 18px;
+}
+
+.jin .jtools {
+  margin: 0;
+  align-self: flex-start;
+}
+
+.jbody {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 14px;
+}
+
+.jbody .ring {
+  width: 84px;
+  height: 84px;
+  flex: none;
+}
+
+.jbody .jstat3 {
+  flex: 1;
+  margin: 0;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px 14px;
+}
+
+.jin .jdesc {
+  margin-top: 10px;
+}
+
+.jin {
+  container-type: inline-size;
+}
+
+.jbody .jstat3.c3 {
+  grid-template-columns: 1fr 1fr !important;
+}
+
+@container (min-width: 350px) {
+  .jbody .jstat3.c3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+html.mob .jbody .ring {
+  width: 104px !important;
+  height: 104px !important;
+}
+
+.hist .hr {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  border-top: 1px solid var(--ol);
+  white-space: nowrap;
+}
+
+.hist .hr .hd {
+  color: var(--tx2);
+  flex: none;
+  min-width: 58px;
+}
+
+.hist .hr .hn {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hist .hr b {
+  flex: none;
+}
+
+.hist .he2 {
+  padding: 10px;
+  font-size: 13px;
+  color: var(--tx2);
+}
+
+.jwarn {
+  margin-top: 10px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--neg) 10%, transparent);
+  color: var(--neg);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.jstat3 {
+  grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)) !important;
+}
+
+.jhero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-radius: 26px;
+  overflow: hidden;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--acc) 16%, var(--s1)), color-mix(in srgb, var(--acc2) 10%, var(--s1)));
+  border: 1px solid color-mix(in srgb, var(--acc) 22%, var(--ol));
+}
+
+.jhero > div {
+  padding: 24px 28px;
+}
+
+.jhero .jh2 {
+  border-inline-start: 1px solid color-mix(in srgb, var(--acc) 20%, var(--ol));
+}
+
+.jhero .lbl {
+  text-transform: none;
+}
+
+.jhero .jh1 .val {
+  font-size: 46px;
+  margin: 10px 0 6px;
+}
+
+.jhero .jh2 .val {
+  font-size: 34px;
+  margin: 10px 0 0;
+}
+
+.jhero .jh2 .val .of {
+  font-size: 16px;
+}
+
+.jhero .jbar {
+  background: color-mix(in srgb, var(--tx) 10%, transparent);
+  margin: 14px 0 10px;
+}
+
+.jhero .jstats > div {
+  flex: 1;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0 14px;
+  border-inline-start: 1px solid color-mix(in srgb, var(--acc) 20%, var(--ol));
+}
+
+.jhero .jstats > div:first-child {
+  padding-inline-start: 0;
+  border: 0;
+}
+
+.jbufc {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px 28px;
+  flex-wrap: wrap;
+  padding: 16px 24px;
+}
+
+.jbufc .kt {
+  flex: 1 1 280px;
+}
+
+.jbufc .kchips {
+  margin: 0;
+}
+
+.jbufc .kin {
+  width: 150px;
+}
+
+html.mob .jhero {
+  grid-template-columns: 1fr;
+}
+
+html.mob .jhero .jh2 {
+  border-inline-start: 0;
+  border-top: 1px solid color-mix(in srgb, var(--acc) 20%, var(--ol));
+}
+
+html.mob .jhero .jh1 .val {
+  font-size: 40px;
+}
+
+html.mob .jbufc .kin {
+  width: 100%;
+}
+
+.jin .jtools {
+  gap: 4px;
+}
+
+.jk {
+  line-height: 1.7;
+}
+
+.kic {
+  width: 14px;
+  height: 14px;
+  vertical-align: -2px;
+  margin-inline-end: 5px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .75;
+  flex: none;
+}
+
+.jbody {
+  align-items: stretch !important;
+  gap: 16px !important;
+}
+
+.jbody .ring {
+  width: 116px !important;
+  height: 116px !important;
+  align-self: center;
+}
+
+.jbody .jstat3 {
+  align-content: center;
+  padding: 12px 14px;
+}
+
+.jbody .jstat3.c3 {
+  gap: 8px;
+}
+
+.jbody .jstat3.c3 b {
+  font-size: 15px;
+}
+
+.jbody .jstat3 span {
+  font-size: 10.5px;
+  letter-spacing: .4px;
+}
+
+.jin .jbtn:hover {
+  filter: brightness(.94);
+}
+
+.jin .jbtn svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.jbody .ring {
+  width: 142px !important;
+  height: 142px !important;
+}
+
+.jbody .jstat3 b {
+  white-space: nowrap;
+}
+
+html.mob .jbody .ring {
+  width: 118px !important;
+  height: 118px !important;
+}
+
+html.mob .jin .jtools {
+  gap: 3px;
+}
+
+html.mob .jin .jst {
+  padding: 0 6px 0 9px !important;
+}
+
+html.mob .jin .jpill > button {
+  padding: 6px 4px;
+}
+
+html.mob .jin .jpm {
+  padding: 5px 2px;
+}
+
+.jbody .jstat3 {
+  background: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  gap: 0 !important;
+  align-content: center;
+}
+
+.jbody .jstat3 > div {
+  padding: 2px 10px;
+  border-inline-start: 1px solid var(--ol);
+}
+
+.jbody .jstat3 > div:first-child {
+  border-inline-start: 0;
+  padding-inline-start: 0;
+}
+
+.jbody .jstat3:not(.c3) > div:nth-child(2n + 1) {
+  border-inline-start: 0;
+  padding-inline-start: 0;
+}
+
+.jbody .jstat3:not(.c3) > div:nth-child(n + 3) {
+  border-top: 1px solid var(--ol);
+  margin-top: 10px;
+  padding-top: 12px;
+}
+
+@container (max-width: 349px) {
+  .jbody .jstat3.c3 > div:nth-child(2n + 1) {
+    border-inline-start: 0;
+    padding-inline-start: 0;
+  }
+
+  .jbody .jstat3.c3 > div:nth-child(n + 3) {
+    border-top: 1px solid var(--ol);
+    margin-top: 10px;
+    padding-top: 12px;
+  }
+}
+
+.jover {
+  margin-top: 12px;
+  padding: 11px 13px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--neg) 10%, transparent);
+  color: var(--tx);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.jover b {
+  color: var(--neg);
+}
+
+.jin .jst {
+  height: 30px;
+  box-sizing: border-box;
+  border-radius: 99px;
+  padding: 0 9px 0 11px;
+  margin: 0;
+  vertical-align: baseline;
+}
+
+.jpm .pri {
+  width: 14px !important;
+  height: 14px !important;
+  opacity: .8;
+}
+
+.jin .jpill > button {
+  height: 100%;
+}
+
+.jbody .jstat3 > div {
+  position: relative;
+  padding: 2px 12px !important;
+  border: 0 !important;
+  margin: 0 !important;
+}
+
+.jbody .jstat3 > div:nth-child(2n + 1) {
+  padding-inline-start: 0 !important;
+}
+
+.jbody .jstat3 > div:nth-child(2n)::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: var(--ol);
+}
+
+.jbody .jstat3 > div:nth-child(n + 3) {
+  border-top: 1px solid var(--ol) !important;
+  margin-top: 10px !important;
+  padding-top: 12px !important;
+}
+
+.jbody .jstat3 > div:nth-child(2n)::before {
+  top: 0 !important;
+  bottom: 0 !important;
+}
+
+.jbody .jstat3 > div:nth-child(n + 3)::before {
+  top: 10px !important;
+}
+
+@container (min-width: 350px) {
+  .jbody .jstat3.c3 > div {
+    border-top: 0 !important;
+    margin-top: 0 !important;
+    padding: 2px 8px !important;
+  }
+
+  .jbody .jstat3.c3 > div:first-child {
+    padding-inline-start: 0 !important;
+  }
+
+  .jbody .jstat3.c3 > div::before {
+    display: none;
+  }
+
+  .jbody .jstat3.c3 > div:nth-child(n + 2)::before {
+    display: block;
+    content: "";
+    position: absolute;
+    inset-inline-start: 0;
+    top: 0 !important;
+    bottom: 0 !important;
+    width: 1px;
+    background: var(--ol);
+  }
+}
+
+.grow2 {
+  padding: 14px 0;
+  border-top: 1px solid var(--ol);
+}
+
+.grow2:first-child {
+  border-top: 0;
+  padding-top: 4px;
+}
+
+.grow2:last-child {
+  padding-bottom: 4px;
+}
+
+.gh {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hist .hr.hs {
+  cursor: pointer;
+}
+
+.hist .hr.hs:hover {
+  background: var(--s2);
+}
+
+.hist .hr .neg {
+  color: var(--neg);
+}
+
+.kin {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--s1);
+  border: 1px solid var(--ol);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.kin:focus-within {
+  border-color: var(--acc);
+}
+
+.kin .kc {
+  padding: 0 4px 0 14px;
+  color: var(--tx2);
+}
+
+.kin input {
+  border: 0;
+  background: transparent;
+  min-height: 40px;
+  flex: 1;
+  padding: 8px 14px 8px 4px;
+  border-radius: 0;
+}
+
+.kin input:focus {
+  outline: 0;
+}
+
+.jbar {
+  height: 10px;
+  background: var(--s2);
+  border-radius: 99px;
+  overflow: hidden;
+  margin: 14px 0 10px;
+}
+
+.jbar i {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--acc), var(--acc2));
+  transition: width .5s;
+}
+
+.jbar i.d {
+  background: var(--pos);
+}
+
+.jstats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.jstats > div {
+  background: var(--s1);
+  border: 1px solid var(--ol);
+  border-radius: 14px;
+  padding: 10px 12px;
+  min-width: 0;
+}
+
+.jstats span {
+  display: block;
+  font-size: 11px;
+  color: var(--tx2);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.jstats b {
+  display: block;
+  font-size: 15px;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html.he .kin input {
+  padding: 8px 4px 8px 14px;
+}
+
+html.he .kin .kc {
+  padding: 0 14px 0 4px;
+}
+
+.view > .gnote {
+  margin: 0 2px calc(var(--hg) - var(--spg));
+}

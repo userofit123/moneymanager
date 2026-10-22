@@ -1,0 +1,196 @@
+/* Buttons: .btn (filled, outline .o, red .r, small .s, running with a spinner), round icon buttons .ib and close buttons. */
+
+.ib {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--ol);
+  background: var(--s1);
+  color: var(--tx);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  position: relative;
+  flex: none;
+}
+
+.ib svg {
+  width: 21px;
+  height: 21px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ib .badge {
+  top: -3px;
+  right: -3px; /* fixed side */
+}
+
+.btn {
+  transition: transform .12s, filter .15s, background .2s, opacity .2s;
+}
+
+@keyframes sp {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent; /* fixed side */
+  border-radius: 50%;
+  animation: sp .8s linear infinite;
+  vertical-align: -2px;
+  margin-right: 8px; /* fixed side */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 3s;
+  }
+}
+
+.btn:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.btn.running:disabled {
+  opacity: 1;
+  cursor: progress;
+}
+
+#jobBar .spinner {
+  color: var(--acc);
+}
+
+.btn {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  border: 0;
+  border-radius: 99px;
+  padding: 10px 22px;
+  background: var(--acc);
+  color: var(--on);
+  cursor: pointer;
+  transition: .2s;
+  min-height: 42px;
+}
+
+.btn:hover {
+  filter: brightness(1.1);
+}
+
+.btn:disabled {
+  opacity: .35;
+  cursor: default;
+}
+
+.btn.o {
+  background: none;
+  border: 1px solid var(--ol);
+  color: var(--acc);
+}
+
+.btn.s {
+  padding: 5px 13px;
+  font-size: 12px;
+  min-height: 32px;
+}
+
+.btn.r {
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--neg) 40%, transparent);
+  color: var(--neg);
+}
+
+html.mob .btn {
+  min-height: 44px;
+}
+
+html.mob .btn.s {
+  min-height: 38px;
+}
+
+html.mob .ftools .btn {
+  grid-column: span 1;
+  padding: 0 8px;
+  min-height: 42px;
+  justify-content: center;
+}
+
+.cx {
+  border: 0;
+  background: none;
+  color: var(--tx2);
+  cursor: pointer;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 2px;
+  margin: 0 -2px 0 0;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: inline-grid;
+  place-items: center;
+  opacity: .7;
+}
+
+.cx:hover {
+  opacity: 1;
+  background: var(--s2);
+  color: var(--neg);
+}
+
+.jmore {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.jmore svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  fill: currentColor;
+}
+
+a.btn {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upl {
+  cursor: pointer;
+}
+
+.cls {
+  margin: 12px 0 4px;
+  font-size: 11px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: var(--tx2);
+}
+
+html.mob .btn {
+  border-radius: 99px;
+}
+
+html.mob .btn.s {
+  min-height: 40px;
+  padding: 0 16px;
+}

@@ -18,6 +18,7 @@ import RangeCal from "./RangeCal.vue";
 import { cmpEnd, block, merchants, sumBy, byAmount, totalOf, seriesN, trOptions, trSeries, nwSeries, monthCompare } from "../lib/reports.js";
 import { vTip } from "../core/tooltip.js";
 import { dcell } from "../dates.js";
+import "../styles/pages/reports.css"; // this page's own styles
 
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);

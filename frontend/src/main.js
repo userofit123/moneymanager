@@ -2,9 +2,7 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import { i18n, i18nReady } from "./i18n.js";
 import { startMobile } from "./mobile.js";
-import "./styles/tokens.css";
-import "./styles/app.css";
-import "./styles/base.css";
+import "./styles/index.css"; // every app-wide style; each page imports its own from styles/pages/
 
 import { startTooltips } from "./core/tooltip.js";
 import { startDropdowns } from "./core/dropdown.js";

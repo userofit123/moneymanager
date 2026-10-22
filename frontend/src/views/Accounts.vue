@@ -25,6 +25,7 @@ import PageHeader from "../components/PageHeader.vue";
 import BaseDialog from "../components/BaseDialog.vue";
 import LineChart from "../components/charts/LineChart.vue";
 import TxRows from "../components/TxRows.vue";
+import "../styles/pages/accounts.css"; // this page's own styles
 
 const { t, locale } = useI18n();
 const tk = (k, ...a) => t(k, ...a);

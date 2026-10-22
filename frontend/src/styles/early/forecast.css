@@ -1,0 +1,12 @@
+/* Rules of the Forecast page that app-wide rules loaded after this file override (themes, phone sizes, windows),
+   so they load with the app-wide styles at this point instead of with the page (the rest is in pages/forecast.css). */
+
+.jfw {
+  margin-top: 10px;
+  padding: 8px 11px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  background: color-mix(in srgb, #e68a00 14%, transparent);
+  color: var(--tx);
+}

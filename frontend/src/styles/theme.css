@@ -1,0 +1,373 @@
+/* The looks from Appearance: background, texture, surfaces (glass, outline, raised), corners, density, spacing, font and menu style.
+   core/theme.js sets them as data-* attributes on <html> and classes on <body>. */
+
+[data-mode=dark] .am2 {
+  color: #ffcc80;
+}
+
+html[data-den="compact"] .ssb.p {
+  padding-bottom: 16px;
+}
+
+html[data-den="roomy"] .ssb.p {
+  padding-bottom: 26px;
+}
+
+/* ===== appearance: backgrounds, surfaces, corners, density, fonts, navigation ===== */
+
+html[data-bg="mesh"]::before {
+  background: var(--bg-mesh);
+}
+
+html[data-bg="diagonal"]::before {
+  background: var(--bg-diagonal);
+}
+
+html[data-bg="spot"]::before {
+  background: var(--bg-spot);
+}
+
+html[data-bg="flat"]::before {
+  background: var(--bg-flat);
+}
+
+body.outline .card:not(.hero),
+body.outline table,
+body.outline .bgrp {
+  background: transparent;
+  border-width: 1.5px;
+}
+
+html[data-rad="soft"] {
+  --r: 14px;
+}
+
+html[data-rad="sharp"] {
+  --r: 5px;
+}
+
+html[data-rad="soft"] :is(.sheet,.pop,.bgrp,.toast,.jstats > div,.trstats > div,.phs > div,.inf,.bbin,.exo,.kin) {
+  border-radius: 12px;
+}
+
+html[data-rad="sharp"] :is(.sheet,.pop,.bgrp,.toast,.jstats > div,.trstats > div,.phs > div,.inf,.bbin,.exo,.kin) {
+  border-radius: 4px;
+}
+
+html[data-rad="soft"] :is(input,select,textarea,.btn,.seg,.seg button,.chip,.tag,.kchips button,.sw button,.sw .swp,.ib,.logo,.nb .ic) {
+  border-radius: 10px;
+}
+
+html[data-rad="sharp"] :is(input,select,textarea,.btn,.seg,.seg button,.chip,.tag,.kchips button,.sw button,.sw .swp,.ib,.logo,.nb .ic) {
+  border-radius: 3px;
+}
+
+html.mob[data-rad="soft"] .sheet {
+  border-radius: 14px 14px 0 0;
+}
+
+html.mob[data-rad="sharp"] .sheet {
+  border-radius: 5px 5px 0 0;
+}
+
+html[data-nsp="tight"] {
+  --nvg: 0px;
+  --nvp: 0px;
+}
+
+html[data-nsp="roomy"] {
+  --nvg: 12px;
+  --nvp: 5px;
+}
+
+html[data-den="compact"] .card {
+  padding: 12px 14px;
+}
+
+html[data-den="compact"] .row {
+  padding: 7px 0;
+}
+
+html[data-den="compact"] .val {
+  font-size: 26px;
+}
+
+html[data-den="compact"] .txi {
+  padding: 7px 4px;
+}
+
+html[data-den="compact"] td {
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+
+html[data-den="compact"] .ssh {
+  padding: 10px 16px;
+}
+
+html[data-den="compact"] .ssb {
+  padding: 2px 16px 12px;
+}
+
+html[data-den="compact"] .ssb.p {
+  padding-top: 10px;
+}
+
+html[data-den="compact"] .sr {
+  padding: 9px 0;
+}
+
+html[data-den="compact"] .sfoot {
+  padding: 9px 16px 11px;
+}
+
+html[data-den="compact"] .fld {
+  margin-bottom: 8px;
+}
+
+html[data-den="compact"] .bgh {
+  padding: 11px 16px;
+}
+
+html[data-den="compact"] .bgr {
+  padding: 0 16px;
+}
+
+html[data-den="compact"] .brow {
+  padding: 10px 0;
+}
+
+html[data-den="compact"] .jhero > div {
+  padding: 16px 20px;
+}
+
+html[data-den="compact"] .jbufc {
+  padding: 11px 16px;
+}
+
+html[data-den="compact"] .jstat3 {
+  padding: 8px 10px;
+}
+
+html[data-den="compact"] .ghead {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+html[data-den="roomy"] .card {
+  padding: 24px 26px;
+}
+
+html[data-den="roomy"] .row {
+  padding: 17px 0;
+}
+
+html[data-den="roomy"] .txi {
+  padding: 15px 6px;
+}
+
+html[data-den="roomy"] td {
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+html[data-den="roomy"] .ssh {
+  padding: 22px 26px;
+}
+
+html[data-den="roomy"] .ssb {
+  padding: 10px 26px 24px;
+}
+
+html[data-den="roomy"] .ssb.p {
+  padding-top: 22px;
+}
+
+html[data-den="roomy"] .sr {
+  padding: 20px 0;
+}
+
+html[data-den="roomy"] .sfoot {
+  padding: 16px 26px 20px;
+}
+
+html[data-den="roomy"] .fld {
+  margin-bottom: 16px;
+}
+
+html[data-den="roomy"] .bgh {
+  padding: 22px 26px;
+}
+
+html[data-den="roomy"] .bgr {
+  padding: 6px 26px;
+}
+
+html[data-den="roomy"] .brow {
+  padding: 22px 0;
+}
+
+html[data-den="roomy"] .jhero > div {
+  padding: 32px 36px;
+}
+
+html[data-den="roomy"] .jbufc {
+  padding: 22px 30px;
+}
+
+html[data-den="roomy"] .jstat3 {
+  padding: 16px 18px;
+}
+
+html[data-spc="tight"] {
+  --spg: 8px;
+}
+
+html[data-spc="loose"] {
+  --spg: 26px;
+}
+
+html[data-spc="wide"] {
+  --spg: 38px;
+}
+
+html[data-nav="mini"]:not(.mob) nav {
+  width: 68px;
+}
+
+html[data-nav="mini"]:not(.mob) .nb {
+  font-size: 0;
+  gap: 0;
+}
+
+html[data-nav="mini"]:not(.mob) .nb .ic {
+  width: 46px;
+}
+
+html[data-nav="mini"]:not(.mob) .syncb #sync {
+  display: none;
+}
+
+html[data-nav="mini"]:not(.mob) .pop {
+  left: 80px; /* fixed side */
+}
+
+html[data-nav="mini"]:not(.mob) .badge {
+  right: 10px; /* fixed side */
+}
+
+body.glass .rcal {
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  -webkit-backdrop-filter: blur(var(--gblur, 18px)) saturate(var(--gsat, 160%));
+  backdrop-filter: blur(var(--gblur, 18px)) saturate(var(--gsat, 160%));
+}
+
+html[data-tex="dots"] {
+  --texi: radial-gradient(color-mix(in srgb,var(--tx) 20%,transparent) 1.3px,transparent 1.9px);
+  --texs: calc(22px / var(--tsc)) calc(22px / var(--tsc));
+}
+
+html[data-tex="stripes"] {
+  --texi: repeating-linear-gradient(135deg,color-mix(in srgb,var(--tx) 7%,transparent) 0 2px,transparent 2px calc(16px / var(--tsc)));
+  --texs: auto;
+}
+
+html[data-tex="grid"] {
+  --texi: linear-gradient(color-mix(in srgb,var(--tx) 8%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--tx) 8%,transparent) 1px,transparent 1px);
+  --texs: calc(28px / var(--tsc)) calc(28px / var(--tsc)),calc(28px / var(--tsc)) calc(28px / var(--tsc));
+}
+
+html[data-tex="static"] {
+  --texi: var(--noiseT);
+  --texs: calc(160px / var(--tsc)) calc(160px / var(--tsc));
+}
+
+html:is([data-tex="dots"],[data-tex="stripes"],[data-tex="grid"],[data-tex="static"]) body::before {
+  display: block;
+  background-image: var(--texi);
+  background-size: var(--texs);
+  background-position: 0 0;
+}
+
+/* ===== surfaces ===== */
+
+body.outline :is(.card,table,.bgrp):not(.hero) {
+  background: transparent;
+  border-width: 1.5px;
+}
+
+/* raised: a soft edge light on top, a darker edge below, and a shadow that falls behind whatever is underneath */
+
+body.raised :is(.card,table,.bgrp,.jhero,.seg:not(.apseg),.ftools input,.ftools select) {
+  position: relative;
+}
+
+body.raised :is(.card,table,.bgrp):not(.hero) {
+  background: linear-gradient(180deg, color-mix(in srgb, #fff 7%, var(--s1)), var(--s1) 60%);
+  border-color: color-mix(in srgb, var(--tx) 9%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--tx) 17%, transparent);
+  box-shadow: 0 1px 1px color-mix(in srgb, #000 9%, transparent), 0 10px 20px -12px color-mix(in srgb, #000 40%, transparent);
+}
+
+body.raised .card.hero,
+body.raised .jhero {
+  border-bottom-color: color-mix(in srgb, var(--tx) 20%, transparent);
+  box-shadow: 0 1px 1px color-mix(in srgb, #000 10%, transparent), 0 12px 22px -12px color-mix(in srgb, var(--acc) 60%, #000);
+}
+
+body.raised .seg:not(.apseg),
+body.raised .ftools :is(input,select) {
+  box-shadow: 0 1px 1px color-mix(in srgb, #000 9%, transparent), 0 4px 10px -6px color-mix(in srgb, #000 35%, transparent);
+}
+
+html[data-mode=dark] body.raised :is(.card,table,.bgrp):not(.hero) {
+  background: linear-gradient(180deg, color-mix(in srgb, #fff 5%, var(--s1)), var(--s1) 60%);
+  box-shadow: 0 1px 1px #0006, 0 12px 22px -12px #000c;
+}
+
+/* glass, three user settings: Blur (backdrop blur), Vibrance (colour boost of what shows through) and Opacity (how solid the panel's own fill is) */
+
+body.glass :is(.card,table,.bgrp,.jhero,nav,.pop,.sheet,.ddm,.cmenu,.toast,.tip) {
+  -webkit-backdrop-filter: blur(var(--gblur, 18px)) saturate(var(--gsat, 160%));
+  backdrop-filter: blur(var(--gblur, 18px)) saturate(var(--gsat, 160%));
+}
+
+body.glass :is(.card,table,.bgrp,.jhero,nav) {
+  background-color: color-mix(in srgb, var(--bg) var(--gop, 45%), transparent);
+  background-image: var(--texi, none);
+  background-size: var(--texs, auto);
+  background-position: 0 0;
+  border-color: color-mix(in srgb, var(--tx) 14%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 35%, transparent), 0 8px 28px -16px color-mix(in srgb, #000 30%, transparent);
+}
+
+body.glass .card.hero {
+  color: var(--tx);
+  border-color: color-mix(in srgb, var(--acc) 40%, transparent);
+}
+
+body.glass .card.hero :is(.lbl,.sm) {
+  color: var(--tx2);
+}
+
+body.glass :is(.card,.bgrp) :is(.card,.bgrp,table) {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background-color: transparent;
+  background-image: none;
+  box-shadow: none;
+}
+
+body.glass :is(.pop,.sheet,.ddm,.cmenu) {
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+}
+
+body.glass :is(.toast,.tip) {
+  background: color-mix(in srgb, var(--s2) 80%, transparent);
+}
+
+body.glass .askb {
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(var(--gblur, 18px));
+  -webkit-backdrop-filter: blur(var(--gblur, 18px));
+}

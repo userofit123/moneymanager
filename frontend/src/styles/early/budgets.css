@@ -1,0 +1,7 @@
+/* Rules of the Budgets page that app-wide rules loaded after this file override (themes, phone sizes, windows),
+   so they load with the app-wide styles at this point instead of with the page (the rest is in pages/budgets.css). */
+
+.bbin .lbl {
+  display: block;
+  margin-bottom: 2px;
+}

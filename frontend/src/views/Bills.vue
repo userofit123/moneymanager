@@ -18,6 +18,7 @@ import { displayName } from "../lib/activity.js";
 import { vRich } from "../lib/richtip.js";
 import { billsModel, billState, flagBill, cancelBill, restoreBill, deleteBill, setBillType, sugYes, sugNo, typeOf, billKey, billIndex, cadText, freqText, evTipText, f0, fm } from "../lib/bills.js";
 import { goActivity } from "../core/shell.js";
+import "../styles/pages/bills.css"; // this page's own styles
 
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);

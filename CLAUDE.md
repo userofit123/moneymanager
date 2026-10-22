@@ -34,20 +34,13 @@ A finance app for people who are **not** financial and don't know financial term
 - **Today's date** comes from `core/clock.js` (`now`), never `new Date()` in a page, so tests can fix the day.
 - **Texts are never written in code.** Use `t("key")`; plurals as `"one | many"`. Numbers and money go through `format.js` and dates through `dates.js`.
 - **Reuse before adding:** windows are `BaseSheet`/`BaseDialog`, confirmations `ask()`, tooltips `data-tip`, menus `PopMenu`, amounts `MoneyInput`. Never copy a helper into a page.
-- **Styles:** use the shared classes and the color/size variables (`styles/tokens.css`); logical properties (start/end) only; a component's own styles live in its `<style>` block.
+- **Styles:** use the shared classes and the color/size variables (`styles/tokens.css`); logical properties (start/end) only (a fixed side only where it must be, marked `/* fixed side */`). `styles/index.css` imports the app-wide files in cascade order: `tokens`, `base`, `layout` (app frame), `theme` (Appearance looks), `components/*.css` (buttons, cards, chips, tabs, forms, windows, tooltips, toasts, drop-downs, lists, charts, and the shared windows). Each page imports its own `styles/pages/<page>.css`; `styles/early/<page>.css` holds the few page rules that app-wide rules must override, so they load with the app-wide files. The order in `index.css` matters: moving a file or a rule can change which rule wins.
 - **Tests** (`frontend/test`, Node's test runner): add one for every calculation in `lib/` and for bug fixes. Results that are long to write by hand are kept in `test/fixtures` (`matchesSaved()` in `test/golden.js`); after an intended change, rewrite them with `UPDATE_SAVED=1` and check the diff. `npm run lint` must pass.
 
 ## File and folder rules
 - Files: components and pages in PascalCase (`BudgetForm.vue`), modules in camelCase (`undoPatch.js`), tests `<topic>.test.js`.
 - A new page: a `views/<Name>.vue`, an entry in `routes.js`, its texts in `locales/pages/<name>.en.json` and `.he.json`, its help in `help/`.
 - Built or downloaded files are never committed (`frontend/dist`, `node_modules`). Secrets stay in `.env` (template: `.env.example`).
-
-## Working efficiently (tokens and time)
-- **Break big work into small steps**, each with its own clear goal and finish line (for example one page, one folder or one kind of change at a time), and commit after each step. Don't start a step that can't finish in one go.
-- **Helpers (subagents):** at most 3 at once. Give each a narrow task, the files it may touch, and a budget: a helper should finish in well under ~200k tokens and ~1 hour. If a task would need more, split it into several helpers run one after another. A helper that hits its budget stops, commits what works and reports what is left.
-- **Check enough, not everything:** use the existing tests, lint and the screenshot comparison. Add a new kind of check only when the change can't be verified otherwise, and keep it to the pages and states the change touches. Don't repeat a long check run unless something changed.
-- **Read only what is needed:** search for the relevant lines instead of reading whole large files; don't dump long outputs; reuse results already found instead of looking again.
-- **Report briefly:** what changed, how it was checked, what is left.
 
 ## Folder layout
 | Path | What |

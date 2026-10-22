@@ -1,0 +1,1159 @@
+/* The Activity page. Loaded with the page (views/Activity.vue imports it). */
+
+html.he .ghead.closed .gc {
+  transform: rotate(90deg);
+}
+
+.gbm {
+  overflow: hidden;
+}
+
+.ghead .gdot {
+  margin: 0 .55em;
+  color: var(--tx2);
+  font-weight: 700;
+}
+
+.ghead {
+  cursor: pointer;
+  background: color-mix(in srgb, var(--acc) 12%, transparent);
+  user-select: none;
+}
+
+.ghead .gtot {
+  float: inline-end;
+  margin-inline-start: 12px;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+}
+
+div.ghead {
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin: 12px 0 4px;
+  font-size: 14px;
+}
+
+.ghead .gl b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html.mob div.ghead:first-child {
+  margin-top: -16px;
+  border-top: 0;
+  border-radius: 20px 20px 0 0;
+}
+
+.exo {
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border: 1px solid var(--ol);
+  border-radius: 99px;
+  font-size: 13px;
+  cursor: pointer;
+  background: var(--s1);
+  color: var(--tx);
+  transition: border-color .2s, background .2s;
+  user-select: none;
+}
+
+.exname {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.exname input {
+  flex: 1;
+  min-width: 0;
+}
+
+.exo:hover {
+  border-color: var(--acc);
+}
+
+.exo:has(input:checked) {
+  border-color: var(--acc);
+  background: var(--accc);
+  color: var(--onc);
+}
+
+.exo input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  flex: none;
+  border-radius: 5px;
+  border: 1.5px solid var(--tx2);
+  background: transparent;
+  position: relative;
+  cursor: pointer;
+  transition: .15s;
+}
+
+.exo input:checked::after {
+  content: "";
+  position: absolute;
+  left: 4px; /* fixed side */
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--on);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.exo input:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+#exCats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 6px;
+}
+
+#exCats .exo {
+  margin: 0 !important;
+  border-radius: 12px;
+}
+
+html.he #exCats > * {
+  direction: rtl;
+}
+
+.exs {
+  margin-bottom: 18px;
+}
+
+.exh {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--tx2);
+  margin-bottom: 8px;
+}
+
+.exbox {
+  border: 1px solid var(--ol);
+  border-radius: 14px;
+  padding: 0 14px;
+  background: var(--s1);
+}
+
+.exbox .tg:first-child {
+  border-top: 0;
+}
+
+.exd {
+  border: 1px solid var(--ol);
+  border-radius: 14px;
+  background: var(--s1);
+  margin-bottom: 12px;
+}
+
+.exd > summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  list-style: none;
+}
+
+.exd > summary::-webkit-details-marker {
+  display: none;
+}
+
+.exd > summary::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border: solid var(--tx2);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  transition: transform .2s;
+  margin-inline-start: 4px;
+  flex: none;
+}
+
+.exd[open] > summary::after {
+  transform: rotate(-135deg);
+}
+
+.exd > summary span:first-child {
+  flex: 1;
+}
+
+.exdb {
+  padding: 2px 14px 14px;
+}
+
+.exhead h3 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -.3px;
+  margin: 0 0 4px;
+}
+
+.exlay {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: var(--spg);
+  align-items: start;
+}
+
+.excol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spg);
+  min-width: 0;
+}
+
+.exside {
+  position: sticky;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.excol .exd {
+  margin: 0;
+  border-radius: var(--r);
+}
+
+.excol .exdb {
+  padding: 2px 20px 18px;
+}
+
+.exsec .exh {
+  margin-bottom: 12px;
+}
+
+.exsec .exs,
+.exside .exs {
+  margin-bottom: 0;
+}
+
+.exsec .fld {
+  margin-bottom: 0;
+}
+
+.exsec .two + .fld {
+  margin-top: 10px;
+}
+
+.exsec .exdb .fld {
+  margin-bottom: 12px;
+}
+
+.exsec .exbox {
+  border-radius: 12px;
+}
+
+.exst {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.exst > div {
+  background: var(--s2);
+  border-radius: 12px;
+  padding: 12px 14px;
+  min-width: 0;
+}
+
+.exst b {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -.4px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.exst span {
+  display: block;
+  font-size: 12px;
+  color: var(--tx2);
+  margin-top: 2px;
+}
+
+.exst .pos {
+  color: var(--pos);
+}
+
+.exsamp {
+  overflow-x: auto;
+  border: 1px solid var(--ol);
+  border-radius: 12px;
+  background: var(--s1);
+}
+
+.exsamp table {
+  width: 100%;
+  font-size: 12px;
+  margin: 0;
+}
+
+.exsamp th,
+.exsamp td {
+  padding: 7px 8px;
+  white-space: nowrap;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.exside .exfoot {
+  position: static;
+  margin: 0;
+  padding: 0;
+  background: none;
+  flex-direction: row;
+  gap: 8px;
+}
+
+.exside .exfoot .btn {
+  flex: none;
+}
+
+.exside .exfoot .btn:not(.o) {
+  flex: 1;
+}
+
+.exside .exname {
+  min-width: 0;
+}
+
+.exside .exname input {
+  width: 100%;
+}
+
+html.mob .exst {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+html.mob .exst > div:first-child:not(:last-child) {
+  grid-column: 1/-1;
+}
+
+@media (max-width: 760px) {
+  .exlay {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .exside {
+    position: static;
+  }
+}
+
+#txTabs.seg {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  align-self: flex-start;
+}
+
+#txTabs.seg button {
+  flex: 0 0 auto;
+  padding-inline: 22px;
+}
+
+.exfoot {
+  position: sticky;
+  bottom: -22px;
+  margin: 8px -22px -22px;
+  padding: 14px 22px 22px;
+  background: linear-gradient(to top, var(--bg) 82%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 2;
+}
+
+.exprev {
+  margin: 0;
+  font-size: 13px;
+  color: var(--tx2);
+}
+
+.exprev b {
+  color: var(--tx);
+}
+
+html.mob .exfoot {
+  bottom: calc(-22px - var(--sb));
+  margin: 8px -18px calc(-22px - var(--sb));
+  padding: 14px 18px calc(22px + var(--sb));
+}
+
+#txMain > .ttool {
+  margin-bottom: calc(8px - var(--spg));
+}
+
+.txs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 14px;
+  margin: 0;
+  padding: 9px 14px;
+  border-top: 1px solid var(--ol);
+}
+
+.txs:empty {
+  display: none;
+}
+
+.txs-l {
+  display: flex;
+  align-items: center;
+}
+
+.txs-c {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: 99px;
+  border: 1px solid var(--ol);
+  background: var(--s1);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tx);
+  white-space: nowrap;
+}
+
+.txs-c svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: var(--acc);
+}
+
+.txs-c.mu {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-weight: 500;
+  color: var(--tx2);
+  gap: 7px;
+}
+
+.txs-c.mu .tinfo {
+  margin-inline-start: -3px;
+}
+
+.txs-c.mu {
+  white-space: normal;
+  flex-wrap: wrap;
+  row-gap: 2px;
+}
+
+.txs-c.mu b {
+  color: var(--tx);
+  font-weight: 700;
+}
+
+.txs-c.mu > span + span::before,
+.txs-c.mu > b + span::before {
+  content: "·";
+  margin-inline-end: 7px;
+}
+
+.txs-c.mu > b + span::before {
+  display: none;
+}
+
+.txs-c.mu svg {
+  color: var(--tx2);
+}
+
+.fcard {
+  border: 1px solid var(--ol);
+  border-radius: 18px;
+  background: var(--s1);
+  overflow: hidden;
+}
+
+.fbar {
+  display: flex;
+  align-items: stretch;
+}
+
+.fseg {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 48px;
+  padding: 0 14px;
+  border: 0;
+  border-inline-end: 1px solid var(--ol);
+  border-radius: 0;
+  background: transparent;
+  color: var(--tx);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.fseg:hover {
+  background: color-mix(in srgb, var(--acc) 7%, transparent);
+}
+
+.fseg > svg {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  fill: none;
+  stroke: var(--tx2);
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.fseg select,
+.fseg .rng select {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-overflow: ellipsis;
+  outline-offset: -3px;
+}
+
+.fseg .rng {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  align-items: center;
+  gap: 6px;
+}
+
+.fseg:not(.fclr)::after {
+  content: "";
+  flex: none;
+  width: 12px;
+  height: 12px;
+  margin-inline-start: auto;
+  pointer-events: none;
+  opacity: .75;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat center/12px;
+}
+
+.fseg.on {
+  background: color-mix(in srgb, var(--acc) 11%, transparent);
+  color: var(--acc);
+  font-weight: 600;
+}
+
+.fseg.on > svg {
+  stroke: var(--acc);
+}
+
+.fseg.fclr {
+  flex: 0 0 auto;
+  justify-content: center;
+  border-inline-end: 0;
+  padding: 0 20px;
+  color: var(--acc);
+  font-weight: 600;
+}
+
+.fseg.fclr.off {
+  color: var(--tx2);
+  font-weight: 500;
+  opacity: .55;
+  cursor: default;
+}
+
+.fseg.fclr.off:hover {
+  background: transparent;
+}
+
+.ttool {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.tsearch {
+  position: relative;
+  flex: 0 1 280px;
+  min-width: 180px;
+  display: block;
+}
+
+.tsearch > svg {
+  position: absolute;
+  inset-inline-start: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: var(--tx2);
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.tsearch input {
+  width: 100%;
+  padding-inline-start: 38px;
+}
+
+.ttool .vsels {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-inline-start: auto;
+}
+
+.vsel {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.vsel + .vsel {
+  margin-inline-start: 6px;
+}
+
+.vsel + .vsel::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -4px;
+  top: 7px;
+  bottom: 7px;
+  width: 1px;
+  background: var(--ol);
+}
+
+.vsel > svg {
+  position: absolute;
+  inset-inline-start: 10px;
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: var(--tx2);
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.vsel select {
+  appearance: none;
+  -webkit-appearance: none;
+  field-sizing: content;
+  width: auto;
+  min-height: 32px;
+  height: 32px;
+  padding: 0 26px 0 32px;
+  border: 0;
+  border-radius: 8px;
+  background-color: transparent;
+  box-shadow: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 12px;
+  transition: background-color .15s;
+}
+
+.vsel select:hover {
+  background-color: color-mix(in srgb, var(--tx) 7%, transparent);
+}
+
+.fseg select,
+.fseg .rng select,
+.vsel select {
+  outline: 0 !important;
+  box-shadow: none;
+}
+
+.fseg:focus-within:not(.fclr) {
+  background: color-mix(in srgb, var(--acc) 9%, transparent);
+}
+
+#txSent {
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+html.mob .fbar {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+html.mob .fbar::-webkit-scrollbar {
+  display: none;
+}
+
+html.mob .fseg {
+  flex: 0 0 auto;
+  min-width: 150px;
+}
+
+html.mob .fseg.fclr {
+  min-width: 0;
+}
+
+html.mob .tsearch {
+  flex: 1 1 100%;
+}
+
+html.mob .tsearch input {
+  min-height: 44px;
+}
+
+html.mob .ttool .vsels {
+  flex: 1 1 100%;
+  margin: 0;
+}
+
+html.mob .vsel {
+  flex: 1 1 0;
+}
+
+html.mob .vsel select {
+  width: 100%;
+  height: 38px;
+}
+
+.txs-g {
+  display: flex;
+  align-items: center;
+}
+
+.txs-g > div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 2px 0;
+  min-height: 22px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  white-space: nowrap;
+}
+
+.txs-g > div + div::before {
+  content: "·";
+  font-size: 13px;
+  margin-block: 0;
+  margin-inline: .55em calc(.55em - 8px);
+  color: var(--tx2);
+  font-weight: 700;
+  line-height: 1;
+  align-self: center;
+}
+
+.txs-g span {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--tx2);
+}
+
+.txs-g b {
+  font-size: 14px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+html:not(.mob) #txTab {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 2fr) minmax(0, 1.4fr) minmax(0, 1.4fr) minmax(0, 1fr) max-content max-content;
+  --hh: 41px;
+  overflow: clip;
+}
+
+#txTab thead {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1/-1;
+  position: sticky;
+  top: 0;
+  z-index: 6;
+}
+
+#txTab thead tr,
+#txTab tbody tr {
+  display: contents;
+}
+
+#txTab tbody {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1/-1;
+}
+
+#txTab tbody.grp {
+  overflow: clip;
+}
+
+#txTab tbody.grp.closed tr:not(.ghead) {
+  display: none;
+}
+
+#txTab td[colspan] {
+  grid-column: 1/-1;
+}
+
+#txTab th,
+#txTab td {
+  min-width: 0;
+}
+
+#txTab td {
+  align-content: center;
+}
+
+#txTab td.mer,
+#txTab td.ft {
+  max-width: none;
+  width: auto;
+}
+
+#txTab tr.ghead > td {
+  position: sticky;
+  top: var(--hh);
+  z-index: 4;
+  background: color-mix(in srgb, var(--acc) 12%, var(--s1));
+}
+
+#txTab tr.ghead:hover > td {
+  background: color-mix(in srgb, var(--acc) 16%, var(--s1));
+}
+
+#txMain > .dtab {
+  overflow: visible;
+}
+
+#txMain > .dtab thead th:first-child {
+  border-start-start-radius: calc(var(--r) - 1px);
+}
+
+#txMain > .dtab thead th:last-child {
+  border-start-end-radius: calc(var(--r) - 1px);
+}
+
+#txMain > .dtab tbody:last-of-type tr:last-child > td:first-child {
+  border-end-start-radius: calc(var(--r) - 1px);
+}
+
+#txMain > .dtab tbody:last-of-type tr:last-child > td:last-child {
+  border-end-end-radius: calc(var(--r) - 1px);
+}
+
+#txTab thead,
+#txTab thead th {
+  background: var(--s1);
+}
+
+#txTab thead {
+  border-start-start-radius: calc(var(--r) - 1px);
+  border-start-end-radius: calc(var(--r) - 1px);
+}
+
+#txTab tbody.grp.closed:last-of-type tr.ghead > td:first-child {
+  border-end-start-radius: calc(var(--r) - 1px);
+}
+
+#txTab tbody.grp.closed:last-of-type tr.ghead > td:last-child {
+  border-end-end-radius: calc(var(--r) - 1px);
+}
+
+#txMain > .dtab.stuck thead {
+  box-shadow: 0 1px 0 var(--ol), 0 10px 18px -12px #0008;
+}
+
+#txMain > .dtab.stuck thead,
+#txMain > .dtab.stuck thead th {
+  border-radius: 0;
+}
+
+html.mob .txs {
+  flex-direction: column;
+  align-items: stretch;
+  margin: 0;
+}
+
+html.mob .txs-g {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+
+html.mob .txs-g > div {
+  padding: 6px 8px;
+  justify-content: space-between;
+}
+
+html.mob .txs-g > div + div::before {
+  display: none;
+}
+
+html.mob .txs-l {
+  width: 100%;
+}
+
+html.mob .txs-c {
+  width: 100%;
+  justify-content: center;
+}
+
+html.mob .txs {
+  margin-top: 0;
+}
+
+/* export page */
+
+.exsec.exd {
+  padding: 0;
+  margin: 0;
+}
+
+.exsec.exd > summary {
+  padding: 18px 20px;
+}
+
+.exsec.exd .exdb {
+  padding: 0 20px 20px;
+}
+
+.exsec.exd .exh {
+  margin: 0;
+}
+
+.exgrp + .exgrp {
+  border-top: 1px solid var(--ol);
+  margin-top: 16px;
+  padding-top: 16px;
+}
+
+.exgh {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  min-height: 30px;
+}
+
+.exgh .exh span {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+
+.exgb {
+  display: flex;
+  gap: 6px;
+}
+
+.exgb .btn {
+  padding: 4px 12px;
+  min-height: 0;
+}
+
+.exfind {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.exgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 6px;
+}
+
+.exgrid .exo {
+  border-radius: 12px;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.exscroll {
+  max-height: 216px;
+  overflow: auto;
+  padding: 2px;
+}
+
+.exsec .exbox.exrows {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  padding: 0;
+}
+
+.exrows .tg {
+  border-top: 1px solid var(--ol);
+  padding-inline: 0;
+}
+
+.exrows .tg:first-child {
+  border-top: 1px solid var(--ol);
+}
+
+.exsamp {
+  overflow: hidden;
+}
+
+.exsamp .rt {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.exsamp .rt thead th:first-child,
+.exsamp .rt thead th:last-child {
+  border-radius: 0;
+}
+
+.exsamp {
+  overflow-x: auto;
+}
+
+.exside .exfoot {
+  justify-content: flex-end;
+}
+
+.exside .exfoot .btn,
+.exside .exfoot .btn:not(.o) {
+  flex: none;
+}
+
+.exside.card {
+  padding: 20px;
+}
+
+.excol > .card.exsec {
+  padding: 20px;
+}
+
+.excol > .card.exsec.exd {
+  padding: 0;
+}
+
+.exgrid {
+  grid-template-columns: repeat(auto-fill, minmax(172px, 1fr));
+}
+
+.exgrp > .two {
+  margin-bottom: 0;
+}
+
+html.he .exsamp td,
+html.he .exsamp th {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: right; /* fixed side */
+}
+
+/* the export page stays two columns (with a sticky preview) on any window wider than 760px, also when the app is in its compact mode */
+
+html body .exlay > aside.exside.card {
+  position: sticky;
+  top: 16px;
+}
+
+html.mob body .exlay > aside.exside.card {
+  top: 84px;
+}
+
+@media (max-width: 760px) {
+  .exlay {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  html body .exlay > aside.exside.card {
+    position: static;
+  }
+}
+
+.exside .exs + .exs {
+  border-top: 1px solid var(--ol);
+  margin-top: 2px;
+  padding-top: 16px;
+}
+
+.exside {
+  gap: 16px;
+}
+
+html.he .vsel > svg {
+  inset-inline-start: auto;
+  left: auto; /* fixed side */
+  right: 10px; /* fixed side */
+}
+
+html.he .vsel select {
+  padding: 0 34px 0 28px !important;
+  background-position: left 9px center !important;
+}
+
+html.he .vsel + .vsel::before {
+  inset-inline-start: auto;
+  left: auto; /* fixed side */
+  right: -4px; /* fixed side */
+}

@@ -1,0 +1,214 @@
+/* The add/edit jar window (JarForm). */
+
+.jtype {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.jt {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: start;
+  border: 1px solid var(--ol);
+  background: var(--s1);
+  color: var(--tx);
+  font: inherit;
+  padding: 11px 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+
+.jt b {
+  font-size: 14px;
+}
+
+.jt span {
+  font-size: 12px;
+  color: var(--tx2);
+  line-height: 1.3;
+}
+
+.jt:hover {
+  border-color: color-mix(in srgb, var(--acc) 50%, var(--ol));
+}
+
+.jt.on {
+  border-color: var(--acc);
+  background: var(--accc);
+  box-shadow: 0 0 0 1px var(--acc);
+}
+
+.jt.on b {
+  color: var(--onc);
+}
+
+html.mob .jtype {
+  grid-template-columns: 1fr;
+}
+
+.jcht {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  background: none;
+  padding: 6px 0;
+  font: inherit;
+  color: var(--tx);
+  cursor: pointer;
+  text-align: start;
+}
+
+.jcl2 {
+  flex: 1;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.jcv {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--tx2);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform .2s;
+}
+
+.jcht[aria-expanded=true] .jcv {
+  transform: rotate(180deg);
+}
+
+.jcq {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.jcl {
+  max-height: min(320px, 44vh);
+  overflow: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  gap: 14px;
+  padding: 2px;
+  margin: -2px;
+}
+
+.jcg h5 {
+  margin: 0 0 7px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: var(--tx2);
+}
+
+.jcg > div {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 8px;
+}
+
+.jct {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  text-align: start;
+  border: 1.5px solid var(--ol);
+  background: var(--s1);
+  color: var(--tx);
+  border-radius: 14px;
+  padding: 9px 11px;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+
+.jct:hover {
+  background: var(--s2);
+}
+
+.jct .dot {
+  flex: none;
+}
+
+.jct .jcn {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.jct .jcn b {
+  font-size: 13.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jct .jcn small {
+  font-size: 11.5px;
+  color: var(--tx2);
+  line-height: 1.3;
+}
+
+.jct .jcn .bd {
+  font-size: 10.5px;
+  padding: 0 7px;
+}
+
+.jck {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ol);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.jck svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.jct.on {
+  border-color: var(--acc);
+  background: var(--accc);
+  color: var(--onc);
+}
+
+.jct.on small {
+  color: inherit;
+  opacity: .8;
+}
+
+.jct.on .jck {
+  background: var(--acc);
+  border-color: var(--acc);
+  color: var(--on);
+}
+
+.jct.oth {
+  border-style: dashed;
+  background: transparent;
+}
+
+.pha .bd,
+.jct .jcn .bd {
+  height: auto;
+  line-height: normal;
+}

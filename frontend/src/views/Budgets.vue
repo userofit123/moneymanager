@@ -19,6 +19,7 @@ import { vRich } from "../lib/richtip.js";
 import { f0, fm } from "../lib/bills.js";
 import { acceptBudget, acceptAll, dismissSuggestion, laterReview, resetDismissed, applyBudget, removeBudget, changeBudget } from "../lib/budgets.js";
 import { tx } from "../core/heText.js";
+import "../styles/pages/budgets.css"; // this page's own styles
 
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);

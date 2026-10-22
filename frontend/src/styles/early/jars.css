@@ -1,0 +1,113 @@
+/* Rules of the Jars page that app-wide rules loaded after this file override (themes, phone sizes, windows),
+   so they load with the app-wide styles at this point instead of with the page (the rest is in pages/jars.css). */
+
+.jin .fld input {
+  padding: 8px 12px;
+  min-height: 38px;
+  font-size: 14px;
+}
+
+html.mob .jin .fld {
+  margin-bottom: 10px;
+}
+
+.kh b {
+  font-size: 14px;
+}
+
+.kh .sm {
+  font-size: 12px;
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+.jdesc {
+  margin: 12px 0 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--tx2);
+  overflow-wrap: anywhere;
+}
+
+.jpill > button:hover:not(:disabled) {
+  background: var(--accc);
+  color: var(--onc);
+}
+
+.jstat3 b {
+  font-size: 16px;
+}
+
+.jcats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: var(--tx2);
+}
+
+.jcats i {
+  font-style: normal;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: var(--s2);
+  color: var(--tx);
+  font-weight: 500;
+}
+
+.jin .jhead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.jin .jst {
+  vertical-align: 2px;
+  margin-inline-start: 6px;
+  font-size: 11px;
+}
+
+.jhero .jstats {
+  display: flex;
+  gap: 0;
+  margin-top: 16px;
+}
+
+.jbufc .kctl {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+html.mob .jhero > div {
+  padding: 20px 20px;
+}
+
+html.mob .jbufc {
+  padding: 16px 18px;
+}
+
+.jin .jbtn {
+  border: 0;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding-inline-end: 6px;
+  transition: filter .15s;
+}
+
+.gh b {
+  font-size: 15.5px;
+}
+
+.jbar i.w {
+  background: #e6a100;
+}

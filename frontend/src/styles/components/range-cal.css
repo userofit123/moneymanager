@@ -1,0 +1,201 @@
+/* The date range calendar (RangeCal). */
+
+.rcal {
+  position: fixed;
+  z-index: 310;
+  width: min(640px, calc(100vw - 16px));
+  background: var(--bg);
+  border: 1px solid var(--ol);
+  border-radius: 22px;
+  box-shadow: 0 26px 60px -20px rgba(0, 0, 0, .55);
+  padding: 16px;
+  opacity: 0;
+  transform: translateY(-6px) scale(.985);
+  transition: opacity .16s, transform .16s;
+}
+
+.rcal.in {
+  opacity: 1;
+  transform: none;
+}
+
+.rcn {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.rcn .ib {
+  flex: none;
+  margin-top: -2px;
+}
+
+.rcn .ib svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.rcms {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.rct {
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.rcw,
+.rcg {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  justify-items: center;
+}
+
+.rcw span {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tx2);
+  padding: 4px 0;
+}
+
+.rcg i {
+  height: 34px;
+}
+
+.rcg button {
+  width: 100%;
+  max-width: 38px;
+  height: 34px;
+  border: 0;
+  background: none;
+  color: var(--tx);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 0;
+  position: relative;
+}
+
+.rcg button:hover {
+  background: var(--s2);
+}
+
+.rcg button.t {
+  font-weight: 800;
+  color: var(--acc);
+}
+
+.rcg button.r {
+  background: var(--accc);
+  color: var(--onc);
+}
+
+.rcg button.s,
+.rcg button.e {
+  background: var(--acc);
+  color: var(--on);
+  font-weight: 700;
+}
+
+.rcg button.s {
+  border-radius: 99px 0 0 99px;
+}
+
+.rcg button.e {
+  border-radius: 0 99px 99px 0;
+}
+
+.rcg button.s.e {
+  border-radius: 99px;
+}
+
+.rcin {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.rcin label {
+  flex: 1;
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tx2);
+}
+
+.rcin input {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--tx);
+  padding: 9px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--ol);
+  background: var(--s1);
+  min-width: 0;
+  width: 100%;
+}
+
+.rcin input.bad {
+  border-color: var(--neg);
+  outline-color: var(--neg);
+}
+
+.rcin > span {
+  padding-bottom: 9px;
+  color: var(--tx2);
+}
+
+.rcq {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.rcf {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+html.mob .rcal {
+  left: 8px !important; /* fixed side */
+  right: 8px; /* fixed side */
+  top: auto !important;
+  bottom: calc(16px + var(--sb));
+  width: auto;
+}
+
+.rcg button.s {
+  border-radius: 0;
+  border-start-start-radius: 99px;
+  border-end-start-radius: 99px;
+}
+
+.rcg button.e {
+  border-radius: 0;
+  border-start-end-radius: 99px;
+  border-end-end-radius: 99px;
+}
+
+.rcg button.s.e {
+  border-radius: 99px;
+}
+
+html.he .rcn .ib svg {
+  transform: scaleX(-1);
+}

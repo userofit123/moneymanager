@@ -8,6 +8,7 @@ import { data } from "../stores/data.js";
 import PageHeader from "../components/PageHeader.vue";
 import { NAV, PANES } from "./settings/nav.js";
 import { settingsTab } from "./settings/tab.js";
+import "../styles/pages/settings.css"; // this page's own styles
 
 const { t } = useI18n();
 onMounted(() => { data.start(); });

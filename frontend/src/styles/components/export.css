@@ -1,0 +1,11 @@
+/* The export window (ExportPanel). */
+
+html.mob table.rt {
+  display: block;
+  overflow-x: auto;
+}
+
+html.he #exCats,
+html.he .tablewrap {
+  direction: ltr;
+}

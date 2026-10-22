@@ -1,0 +1,1082 @@
+/* The transaction window (TxWindow) and its small pop-ups (TxPops). */
+
+.up {
+  background: color-mix(in srgb, var(--neg) 16%, transparent);
+  color: var(--neg);
+}
+
+.dn {
+  background: color-mix(in srgb, var(--pos) 16%, transparent);
+  color: var(--pos);
+}
+
+.fl {
+  background: var(--s2);
+  color: var(--tx2);
+}
+
+.eq {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+
+html.mob .eq {
+  gap: 4px 8px;
+  flex-wrap: nowrap;
+}
+
+tr.tot td {
+  font-weight: 700;
+  background: var(--s2);
+}
+
+.av {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: inline-grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 14px;
+  margin-inline-end: 10px;
+  vertical-align: middle;
+  flex: none;
+}
+
+.txh {
+  margin-bottom: 10px;
+}
+
+.txh h3 {
+  margin-bottom: 3px;
+  word-break: break-word;
+}
+
+.txchips {
+  margin: -6px 0 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.txchips:empty {
+  display: none;
+}
+
+.hist {
+  display: grid;
+  gap: 4px;
+}
+
+.phs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.phs > div {
+  background: var(--s1);
+  border: 1px solid var(--ol);
+  border-radius: 14px;
+  padding: 10px 12px;
+  min-width: 0;
+}
+
+.phs span {
+  display: block;
+  font-size: 11px;
+  color: var(--tx2);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+}
+
+.phs b {
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}
+
+.phl .ph {
+  cursor: pointer;
+  gap: 10px;
+}
+
+.kv {
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.hist .hh {
+  padding: 4px 10px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  color: var(--tx2);
+}
+
+.txgrid2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr);
+  gap: 26px;
+  align-items: start;
+}
+
+.txmain,
+.txside {
+  min-width: 0;
+}
+
+.txside {
+  border-inline-start: 1px solid var(--ol);
+  padding-inline-start: 24px;
+}
+
+.txside .tiles {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 820px) {
+  .txgrid2 {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .txside {
+    border-inline-start: 0;
+    padding-inline-start: 0;
+  }
+}
+
+html.mob .txgrid2 {
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+html.mob .txside {
+  border-inline-start: 0;
+  padding-inline-start: 0;
+}
+
+.txp {
+  padding-bottom: 4px;
+}
+
+.txh2 {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.txh2 .av {
+  width: 50px;
+  height: 50px;
+  border-radius: 16px;
+  font-size: 20px;
+  flex: none;
+}
+
+.txh2 .tt {
+  flex: 1;
+  min-width: 0;
+}
+
+.txh2 h3 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.txh2 .sm {
+  margin-top: 3px;
+}
+
+.txam {
+  text-align: end;
+  flex: none;
+}
+
+.txam b {
+  font-size: 26px;
+  letter-spacing: -.5px;
+  white-space: nowrap;
+}
+
+.txam .sm {
+  margin-top: 2px;
+}
+
+.txchips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+  align-items: center;
+}
+
+.txchips .bd,
+.txchips .tag,
+.txchips .chip {
+  margin: 0;
+}
+
+.txchips .chip {
+  font-size: 12px;
+  padding: 4px 10px;
+}
+
+.tb {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 11px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--s2);
+  color: var(--tx2);
+}
+
+.tb.out {
+  background: color-mix(in srgb, var(--neg) 14%, transparent);
+  color: var(--neg);
+}
+
+.tb.in {
+  background: color-mix(in srgb, var(--pos) 16%, transparent);
+  color: var(--pos);
+}
+
+.tb.tf,
+.tb.cpm {
+  background: var(--accc);
+  color: var(--onc);
+}
+
+.kvc {
+  border: 1px solid var(--ol);
+  border-radius: 16px;
+  background: var(--s1);
+  padding: 2px 16px 4px;
+}
+
+.kvr {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  padding: 9px 0;
+  border-top: 1px solid var(--ol);
+  font-size: 14px;
+}
+
+.kv .kvr:first-child,
+.kvd .kvr.hd {
+  border-top: 0;
+}
+
+.kvr .k {
+  flex: 0 0 112px;
+  color: var(--tx2);
+  font-size: 12.5px;
+}
+
+.kvr .v {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.kvr .v.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12.5px;
+}
+
+.kvd {
+  border-top: 1px solid var(--ol);
+  padding: 10px 0 4px;
+}
+
+.kvd > summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--acc);
+  list-style: none;
+}
+
+.kvd > summary::-webkit-details-marker {
+  display: none;
+}
+
+.kvd > summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-inline-end: 7px;
+  transition: transform .15s;
+}
+
+.kvd[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.kvd .kvr {
+  padding: 6px 0;
+  font-size: 13px;
+}
+
+.kvd .kvr .k {
+  flex-basis: 150px;
+}
+
+.kvd .kvr.hd {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--tx2);
+}
+
+.kvd.hs {
+  border: 0;
+  margin-top: 14px;
+  padding: 0;
+}
+
+.kvn {
+  padding: 10px 0 8px;
+  font-size: 12.5px;
+  color: var(--tx2);
+  line-height: 1.5;
+  border-top: 1px solid var(--ol);
+}
+
+.rels {
+  display: grid;
+  gap: 8px;
+}
+
+.rel {
+  display: flex;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--s2);
+}
+
+.rel.amber {
+  background: color-mix(in srgb, var(--c2) 14%, transparent);
+}
+
+.ri {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: var(--accc);
+  color: var(--onc);
+}
+
+.ri svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.rel .rb {
+  flex: 1;
+  min-width: 0;
+}
+
+.rel .rb > b {
+  font-size: 14px;
+}
+
+.rel .ra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.atile {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  text-align: start;
+  border: 1px solid var(--ol);
+  background: var(--s1);
+  color: var(--tx);
+  font: inherit;
+  border-radius: 14px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+
+.atile:hover {
+  border-color: color-mix(in srgb, var(--acc) 55%, var(--ol));
+  background: var(--s2);
+}
+
+.atile.hot {
+  border-color: var(--acc);
+  background: var(--accc);
+}
+
+.atile .ri {
+  width: 32px;
+  height: 32px;
+  background: var(--s2);
+  color: var(--tx2);
+}
+
+.atile.hot .ri {
+  background: var(--acc);
+  color: var(--on);
+}
+
+.atile .at {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.atile b {
+  font-size: 13.5px;
+}
+
+.atile small {
+  font-size: 11.5px;
+  color: var(--tx2);
+  line-height: 1.3;
+}
+
+.docrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.docrow .dchip svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  margin-inline-end: 5px;
+  vertical-align: -2px;
+}
+
+.txfoot {
+  position: sticky;
+  bottom: -22px;
+  margin: 16px -22px -22px;
+  padding: 14px 22px 22px;
+  background: linear-gradient(to top, var(--bg) 78%, transparent);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 2;
+}
+
+html.mob .txfoot {
+  bottom: calc(-22px - var(--sb));
+  margin: 16px -18px calc(-22px - var(--sb));
+  padding: 14px 18px calc(22px + var(--sb));
+}
+
+html.mob .tiles {
+  grid-template-columns: 1fr;
+}
+
+html.mob .txam b {
+  font-size: 22px;
+}
+
+html.mob .kvr .k {
+  flex-basis: 96px;
+}
+
+html.mob .kvd .kvr .k {
+  flex-basis: 110px;
+}
+
+html.mob .txh2 .av {
+  width: 44px;
+  height: 44px;
+}
+
+.jhint {
+  background: var(--s2);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--tx2);
+  margin: 2px 0 12px;
+}
+
+.jhint b {
+  color: var(--tx);
+}
+
+.ci {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.ci > svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin-top: 2px;
+  fill: none;
+  stroke: var(--tx2);
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ci b {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.stk {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spg);
+}
+
+.stk > * {
+  margin: 0;
+}
+
+.stk > :empty {
+  display: none;
+}
+
+.stk > h2 {
+  margin: calc(var(--spg) * .75) 0 calc(var(--hg) - var(--spg));
+}
+
+.mname {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 46%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.phb {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 54px;
+  margin: 0 0 6px;
+  padding: 8px 10px 0;
+  background: var(--s1);
+  border: 1px solid var(--ol);
+  border-radius: 14px;
+}
+
+.phb i {
+  flex: 1 1 0;
+  min-width: 2px;
+  max-width: 18px;
+  border-radius: 3px 3px 1px 1px;
+  background: linear-gradient(180deg, var(--acc), var(--acc2));
+  opacity: .85;
+  margin: 0 auto;
+}
+
+.phb i:last-child {
+  opacity: 1;
+}
+
+.phr {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--tx2);
+  margin: 0 4px 12px;
+}
+
+.phr b {
+  color: var(--tx);
+  font-variant-numeric: tabular-nums;
+}
+
+.phl {
+  border: 1px solid var(--ol);
+  border-radius: 16px;
+  background: var(--s1);
+  max-height: min(46vh, 420px);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.phy {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  color: var(--tx2);
+  background: var(--s2);
+  border-bottom: 1px solid var(--ol);
+}
+
+.phi {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-top: 1px solid var(--ol);
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.phy + .phi {
+  border-top: 0;
+}
+
+.phi:hover {
+  background: var(--s2);
+}
+
+.phd {
+  flex: none;
+  width: 42px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--accc);
+  color: var(--onc);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.05;
+}
+
+.phd span {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  opacity: .8;
+}
+
+.phd b {
+  font-size: 17px;
+}
+
+.phm {
+  flex: 1;
+  min-width: 0;
+}
+
+.pht {
+  font-weight: 600;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pha {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  flex: none;
+}
+
+.pha b {
+  font-size: 15px;
+}
+
+.pha .bd {
+  font-size: 11px;
+  padding: 1px 7px;
+}
+
+html.he .trstats > div,
+html.he .jstats > div,
+html.he .phs > div {
+  text-align: right; /* fixed side */
+}
+
+/* entry window: details always shown, the bank's fields in the same style, side sections */
+
+.txside {
+  border-inline-start: 0;
+  padding-inline-start: 0;
+}
+
+.txside > .txs2:first-child {
+  margin-top: 0;
+}
+
+.txs2 {
+  border: 1px solid var(--ol);
+  border-radius: 16px;
+  background: var(--s1);
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.txs2 > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  font-weight: 700;
+  font-size: 14px;
+  transition: background .15s;
+}
+
+.txs2 > summary::-webkit-details-marker {
+  display: none;
+}
+
+.txs2 > summary:hover {
+  background: var(--s2);
+}
+
+.txs2 > summary .sct {
+  flex: 1;
+}
+
+.txs2 > summary em {
+  font-style: normal;
+  font-weight: 600;
+  font-size: 12px;
+  background: var(--s2);
+  color: var(--tx2);
+  padding: 1px 9px;
+  border-radius: 99px;
+}
+
+.txs2 > summary:hover em {
+  background: var(--bg);
+}
+
+.txs2 > summary .tfl {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c2);
+  flex: none;
+}
+
+.txs2 > summary::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid var(--tx2); /* fixed side */
+  border-bottom: 2px solid var(--tx2);
+  transform: rotate(45deg);
+  margin-top: -3px;
+  transition: transform .18s, margin .18s;
+  flex: none;
+}
+
+.txs2[open] > summary::after {
+  transform: rotate(-135deg);
+  margin-top: 3px;
+}
+
+details.closing.txs2 > summary::after {
+  transform: rotate(45deg);
+  margin-top: -3px;
+}
+
+.txs2[open] > summary {
+  border-bottom: 1px solid var(--ol);
+}
+
+.txs2 > .sbd {
+  padding: 14px 16px;
+}
+
+.txs2 .fld {
+  margin-bottom: 12px;
+}
+
+.txs2 .fld:last-child {
+  margin-bottom: 0;
+}
+
+.txs2 .rel {
+  background: var(--s2);
+}
+
+.txs2 .tiles {
+  grid-template-columns: 1fr;
+}
+
+.txs2 .docrow {
+  margin: 0;
+}
+
+.kvd {
+  margin: 0 -16px -4px;
+  padding: 0;
+  border-top: 1px solid var(--ol);
+}
+
+.kvd > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  background: var(--s2);
+  color: var(--tx);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+  border-radius: 0 0 15px 15px;
+}
+
+.kvd > summary::before {
+  display: none;
+}
+
+.kvd > summary span {
+  flex: 1;
+}
+
+.kvd > summary em {
+  font-style: normal;
+  font-weight: 600;
+  font-size: 12px;
+  background: var(--bg);
+  color: var(--tx2);
+  padding: 1px 9px;
+  border-radius: 99px;
+}
+
+.kvd > summary::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid var(--tx2); /* fixed side */
+  border-bottom: 2px solid var(--tx2);
+  transform: rotate(45deg);
+  margin-top: -3px;
+  transition: transform .18s, margin .18s;
+  flex: none;
+}
+
+.kvd[open] > summary::after {
+  transform: rotate(-135deg);
+  margin-top: 3px;
+}
+
+.kvd[open] > summary {
+  border-radius: 0;
+}
+
+.kvd .kvr {
+  padding: 9px 16px;
+  font-size: 14px;
+}
+
+.kvd .kvr .k {
+  flex-basis: 112px;
+  font-size: 12.5px;
+}
+
+.kvd .kvr .v {
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.kvd > .kvr:first-of-type {
+  border-top: 0;
+}
+
+.kvc,
+.kvc .kvr {
+  font-weight: 400;
+}
+
+.kvc .kvr .v {
+  font-weight: 500;
+}
+
+.txs2 .fld {
+  align-content: start;
+  grid-auto-rows: min-content;
+}
+
+.txs2 .fld select {
+  height: 46px;
+  min-height: 46px;
+}
+
+.txs2 .tcs {
+  min-height: 46px;
+}
+
+.txs2 .tin {
+  flex: 1 1 40px;
+  min-width: 40px;
+}
+
+.txfoot {
+  gap: 10px;
+  align-items: center;
+}
+
+.txfoot .upl svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  margin-inline-end: 6px;
+  vertical-align: -2px;
+}
+
+.txs2[data-s=hist] > .sbd {
+  padding: 0;
+}
+
+.txs2[data-s=note] .fld > label {
+  display: none;
+}
+
+.txs2[data-s=hist] > .sbd {
+  padding: 0;
+}
+
+.hlist {
+  display: grid;
+}
+
+.hrow {
+  padding: 11px 16px;
+  border-top: 1px solid var(--ol);
+}
+
+.hrow:first-child {
+  border-top: 0;
+}
+
+.hrow:hover {
+  background: var(--s2);
+}
+
+.hh {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.hh b {
+  font-size: 13.5px;
+}
+
+.hh .hw {
+  font-size: 12px;
+  color: var(--tx2);
+  white-space: nowrap;
+}
+
+.hdt {
+  margin-top: 3px;
+  font-size: 13px;
+  color: var(--tx2);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.txgrid2 {
+  gap: 0;
+  align-items: stretch;
+}
+
+.txmain {
+  padding-inline-end: 24px;
+}
+
+.txside {
+  border-inline-start: 1px solid var(--ol);
+  padding-inline-start: 24px;
+}
+
+@media (max-width: 820px) {
+  .txmain {
+    padding-inline-end: 0;
+  }
+
+  .txside {
+    border-inline-start: 0;
+    padding-inline-start: 0;
+  }
+}
+
+html.mob .txmain {
+  padding-inline-end: 0;
+}
+
+html.mob .txside {
+  border-inline-start: 0;
+  padding-inline-start: 0;
+}
+
+.txs2 > summary em,
+.kvd > summary em,
+.tsx > summary em,
+.txc > h4 em {
+  display: inline-block;
+  box-sizing: border-box;
+  height: 22px;
+  min-width: 22px;
+  line-height: 22px;
+  padding: 0 8px;
+  text-align: center;
+}
+
+.txfoot .upl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.txfoot .upl svg {
+  margin: 0;
+  vertical-align: baseline;
+}

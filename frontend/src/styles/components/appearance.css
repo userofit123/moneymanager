@@ -1,0 +1,475 @@
+/* The Appearance panel: colour sets, backgrounds, textures, surfaces and the other look options. */
+
+.rk.z {
+  display: grid;
+  grid-template-columns: 1fr 180px 1fr;
+  text-align: start;
+  align-items: center;
+}
+
+@media (max-width: 700px) {
+  .rk.z {
+    grid-template-columns: 76px 1fr;
+    column-gap: 14px;
+  }
+}
+
+.rk.z,
+.rkz > .zend {
+  position: relative;
+}
+
+details.closing.kvd > summary::before {
+  transform: none;
+}
+
+details.closing > *:not(summary) {
+  opacity: 0;
+}
+
+.aph {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--ol);
+  flex: none;
+}
+
+.aph b {
+  font-size: 17px;
+  letter-spacing: -.2px;
+}
+
+.apb {
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 0 18px 6px;
+  min-height: 0;
+}
+
+.aps {
+  padding: 15px 0 16px;
+  border-bottom: 1px solid var(--ol);
+}
+
+.aps:last-child {
+  border-bottom: 0;
+}
+
+.aps h4 {
+  margin: 0 0 11px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  color: var(--tx2);
+}
+
+.apseg {
+  margin: 0;
+}
+
+.apseg button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.apseg svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.apg {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.apg.c3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.apg.c4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.spv.sbv {
+  align-items: flex-start;
+  padding-inline-start: 12px;
+}
+
+.spv.sbv i {
+  width: 62%;
+  height: 5px;
+}
+
+.apg.c5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.apg.c5 .apt {
+  padding: 4px 3px 5px;
+}
+
+.apg.c5 .apl {
+  font-size: 10.5px;
+}
+
+.apg.c5 .apv {
+  height: 42px;
+}
+
+.apt {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 5px 5px 6px;
+  border: 1.5px solid transparent;
+  border-radius: 14px;
+  background: none;
+  color: var(--tx2);
+  font: inherit;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+}
+
+.apt:hover {
+  background: var(--s1);
+}
+
+.apt.on {
+  border-color: var(--acc);
+  background: color-mix(in srgb, var(--acc) 9%, transparent);
+  color: var(--tx);
+}
+
+.apt.on .apl {
+  font-weight: 700;
+}
+
+.apl {
+  font-size: 11.5px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.apv {
+  display: block;
+  position: relative;
+  height: 50px;
+  border-radius: 9px;
+  border: 1px solid var(--ol);
+  overflow: hidden;
+  background: var(--bg);
+  --ca: var(--acc);
+  --cb: var(--acc2);
+}
+
+.bg-glow {
+  background: var(--bg-glow);
+}
+
+.bg-mesh {
+  background: var(--bg-mesh);
+}
+
+.bg-diagonal {
+  background: var(--bg-diagonal);
+}
+
+.bg-spot {
+  background: var(--bg-spot);
+}
+
+.bg-flat {
+  background: var(--bg-flat);
+}
+
+.tx-none {
+  background: linear-gradient(to top right, transparent calc(50% - .6px), color-mix(in srgb, var(--tx) 30%, transparent) 50%, transparent calc(50% + .6px)), var(--bg);
+}
+
+.tx-dots {
+  background: radial-gradient(color-mix(in srgb, var(--tx) 38%, transparent) 1.1px, transparent 1.6px) 0 0/8px 8px, var(--bg);
+}
+
+.tx-stripes {
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--tx) 22%, transparent) 0 1.5px, transparent 1.5px 7px), var(--bg);
+}
+
+.tx-grid {
+  background: linear-gradient(color-mix(in srgb, var(--tx) 22%, transparent) 1px, transparent 1px) 0 0/10px 10px, linear-gradient(90deg, color-mix(in srgb, var(--tx) 22%, transparent) 1px, transparent 1px) 0 0/10px 10px, var(--bg);
+}
+
+.tx-static {
+  background: var(--noise) 0 0/70px, var(--bg);
+}
+
+.sfv {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--acc) 40%, var(--bg)), color-mix(in srgb, var(--acc2) 38%, var(--bg)));
+  display: grid;
+  place-items: center;
+}
+
+.sfv::before {
+  content: "";
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--acc2) 75%, transparent);
+  left: 14%; /* fixed side */
+  top: 46%;
+}
+
+.sfv i {
+  position: relative;
+  width: 64%;
+  height: 56%;
+  border-radius: 8px;
+  border: 1px solid var(--ol);
+  background: var(--s1);
+}
+
+.sf-solid i {
+  background: var(--bg);
+}
+
+.sf-glass i {
+  background: linear-gradient(135deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, .12));
+  border-color: rgba(255, 255, 255, .7);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.sf-outline i {
+  background: transparent;
+  border: 1.5px solid color-mix(in srgb, var(--tx) 45%, transparent);
+}
+
+.sf-raised i {
+  background: linear-gradient(180deg, color-mix(in srgb, #fff 12%, var(--bg)), var(--bg));
+  border-color: color-mix(in srgb, var(--tx) 10%, transparent);
+  box-shadow: 0 5px 8px -2px rgba(0, 0, 0, .35), 0 1px 1px rgba(0, 0, 0, .2);
+}
+
+.rv i {
+  position: absolute;
+  left: 16px; /* fixed side */
+  top: 14px;
+  right: -26px; /* fixed side */
+  bottom: -26px;
+  border: 2px solid color-mix(in srgb, var(--tx) 55%, transparent);
+  border-radius: 0;
+}
+
+.spv {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--g);
+}
+
+.spv i {
+  display: block;
+  width: 68%;
+  height: 9px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--tx) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tx) 30%, transparent);
+}
+
+.fv {
+  display: grid;
+  place-items: center;
+  font-size: 23px;
+  font-weight: 600;
+  color: var(--tx);
+}
+
+.apr {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  font-size: 12.5px;
+  color: var(--tx2);
+}
+
+.apr span {
+  flex: none;
+}
+
+.apr input[type=range] {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--acc);
+  height: 24px;
+}
+
+.apr output {
+  flex: none;
+  width: 42px;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+  color: var(--tx);
+  font-weight: 600;
+}
+
+.apr.off {
+  opacity: .45;
+  pointer-events: none;
+}
+
+.aphb {
+  display: flex;
+  gap: 6px;
+}
+
+.tpr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  border-top: 1px solid var(--ol);
+}
+
+.tpr:first-child {
+  border-top: 0;
+}
+
+.tpr b {
+  flex: 1;
+  min-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.tpd {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+}
+
+.tpa {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.tpa .btn {
+  padding: 4px 9px;
+  min-height: 0;
+}
+
+.tpa .btn.on {
+  background: var(--acc);
+  color: var(--on);
+  border-color: var(--acc);
+}
+
+.aptabs {
+  margin: 12px 18px 0;
+  flex: none;
+}
+
+.apbt {
+  display: none;
+}
+
+.apbt.on {
+  display: block;
+}
+
+.cust {
+  margin-top: 14px;
+}
+
+.cuh {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px 0 8px;
+  font-size: 12.5px;
+}
+
+.cgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 10px;
+}
+
+.crow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12.5px;
+  color: var(--tx2);
+  cursor: pointer;
+  min-width: 0;
+}
+
+.crow span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cust input[type=color] {
+  width: 30px;
+  height: 30px;
+  min-height: 0;
+  padding: 0;
+  border: 1px solid var(--ol);
+  border-radius: 50%;
+  background: none;
+  flex: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.cust input[type=color]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.cust input[type=color]::-webkit-color-swatch {
+  border: 0;
+  border-radius: 50%;
+}
+
+.cust input[type=color]::-moz-color-swatch {
+  border: 0;
+  border-radius: 50%;
+}
+
+.cch {
+  margin-top: 14px;
+}
+
+.cch summary {
+  cursor: pointer;
+  font-size: 12.5px;
+  color: var(--tx2);
+  margin-bottom: 10px;
+}
+
+details.closing.kvd > summary::after {
+  transform: rotate(45deg);
+  margin-top: -3px;
+}

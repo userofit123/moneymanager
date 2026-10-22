@@ -25,6 +25,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 - **Sidebar highlight:** when you switch pages, the highlight now stretches and glides smoothly to the new item. It no longer jumps to the side when it starts, or keeps moving after it lands.
 - **Change history in Hebrew:** changes to a jar (its name, goal, monthly amount, deadline and so on) now show in Hebrew too. The Hebrew for history lines and server messages is now a much smaller part of the app, so it loads faster; everything else looks the same.
 - **The app opens faster, mostly on phones.** It now downloads about a third less before it can start: the texts of the other language, the help guide and the pop-up windows come later, when they are needed. They are still kept on your device, so they also work without a connection.
+- **Each page loads only its own look.** The app's styles are now in small files, and each page brings its own when you open it; styles nothing used any more are gone. Nothing looks or moves differently.
 
 ### Windows app
 - Includes everything above.

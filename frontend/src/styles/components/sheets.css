@@ -1,0 +1,366 @@
+/* Windows: the pop-up window (#sheet, .sheet) with its backdrop (.scrim), dialogs and confirm boxes (AskPop). */
+
+.sheet.on {
+  animation: sin .24s cubic-bezier(.2, .8, .2, 1);
+}
+
+@keyframes sin {
+  from {
+    opacity: 0;
+    scale: .97;
+    translate: 0 10px;
+  }
+}
+
+.scrim.on {
+  animation: fadein .2s;
+}
+
+.scrim.out {
+  display: block;
+  pointer-events: none;
+  animation: fadeout .22s forwards;
+}
+
+@keyframes fadeout {
+  to {
+    opacity: 0;
+  }
+}
+
+.sheet.out {
+  display: block;
+  pointer-events: none;
+  animation: sheetOut .22s cubic-bezier(.4, 0, 1, 1) forwards;
+}
+
+@keyframes sheetOut {
+  to {
+    opacity: 0;
+    scale: .55;
+  }
+}
+
+.pop.out {
+  display: block;
+  pointer-events: none;
+  animation: popOut .18s forwards;
+}
+
+@keyframes popOut {
+  to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+}
+
+.rule {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  background: var(--s2);
+  border-radius: 16px;
+  padding: 11px 16px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.jar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 0;
+  border-top: 1px solid var(--ol);
+}
+
+.row:first-child {
+  border-top: 0;
+}
+
+.pop {
+  position: fixed;
+  left: 98px; /* fixed side */
+  bottom: 16px;
+  width: 310px;
+  background: var(--bg);
+  border: 1px solid var(--ol);
+  border-radius: 20px;
+  padding: 18px;
+  z-index: 60;
+  box-shadow: 0 24px 60px -20px #0008;
+  display: none;
+}
+
+.pop.on {
+  display: block;
+  animation: fi .2s;
+}
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: #0007;
+  z-index: 70;
+  display: none;
+}
+
+.scrim.on {
+  display: block;
+}
+
+.sheet {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  height: fit-content;
+  width: min(560px, 94vw);
+  max-height: 88vh;
+  overflow: auto;
+  background: var(--bg);
+  border: 1px solid var(--ol);
+  border-radius: 26px;
+  padding: 22px;
+  z-index: 80;
+  display: none;
+  box-shadow: 0 30px 80px -20px #000a;
+}
+
+.sheet.on {
+  display: block;
+  animation: sheetIn .24s cubic-bezier(.2, .8, .2, 1);
+}
+
+@keyframes sheetIn {
+  from {
+    opacity: 0;
+    scale: .55;
+  }
+}
+
+.sheet h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  letter-spacing: -.3px;
+}
+
+.sheet .grab {
+  display: none;
+}
+
+html.mob .pop {
+  inset-inline: 8px;
+  bottom: calc(76px + var(--sb));
+  width: auto;
+}
+
+html.mob .sheet {
+  inset-inline: 0;
+  bottom: 0;
+  top: auto;
+  transform: none;
+  margin: 0;
+  height: auto;
+  width: 100%;
+  max-height: 92vh;
+  border-radius: 26px 26px 0 0;
+  border-width: 1px 0 0;
+  overscroll-behavior: contain;
+  padding: 10px 18px calc(22px + var(--sb));
+}
+
+html.mob .sheet.on {
+  animation: up .25s;
+}
+
+html.mob .sheet .grab {
+  display: block;
+  width: 42px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--ol);
+  margin: 0 auto 14px;
+}
+
+@keyframes up {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+}
+
+@keyframes downOut {
+  to {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+}
+
+html.mob .sheet.out {
+  animation: downOut .22s forwards;
+}
+
+.sheet .tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sheet .tags .tag,
+.sheet .tags .chip {
+  margin: 0;
+}
+
+html.mob .row > div[style*="min-width:120px"] {
+  min-width: 0 !important;
+  flex: none;
+}
+
+html.he .pop {
+  left: auto; /* fixed side */
+  right: 98px; /* fixed side */
+}
+
+html.mob.he .pop {
+  inset-inline: 8px;
+}
+
+html.he .brow .ba,
+html.he .bgs,
+html.he .row > div[style*="text-align:end"] {
+  text-align: left !important; /* fixed side */
+}
+
+.rule {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.rule input,
+.rule select {
+  min-height: 38px;
+  padding: 6px 12px;
+  font-size: 14px;
+}
+
+.rule input[data-c="rulek"] {
+  flex: 1 1 160px;
+  min-width: 120px;
+}
+
+.rule select {
+  flex: 0 1 200px;
+}
+
+.rule input[data-c="rulet"] {
+  flex: 0 1 130px;
+  min-width: 90px;
+}
+
+.rule[hidden],
+.mrow[hidden] {
+  display: none !important;
+}
+
+.sheet.txw {
+  width: min(900px, 94vw);
+}
+
+.sheet.txw {
+  width: min(980px, 94vw);
+}
+
+.sheet.xw {
+  width: min(640px, 94vw);
+}
+
+/* ===== appearance panel ===== */
+
+.pop {
+  width: 372px;
+  max-height: calc(100vh - 32px);
+  padding: 0;
+  overflow: hidden;
+  flex-direction: column;
+}
+
+.pop.on,
+.pop.out {
+  display: flex;
+}
+
+html.mob .pop {
+  max-height: calc(100vh - 100px - var(--sb));
+}
+
+html.mob .pop {
+  bottom: calc(88px + var(--sb));
+}
+
+/* sheets: Material bottom sheet */
+
+html.mob .sheet {
+  border-radius: 28px 28px 0 0;
+  box-shadow: 0 -20px 60px -20px #0009;
+}
+
+html.mob .scrim {
+  backdrop-filter: blur(2px);
+}
+
+.askc {
+  position: fixed;
+  inset: 0;
+  z-index: 330;
+  display: grid;
+  place-items: center;
+  background: #0006;
+  opacity: 0;
+  transition: opacity .15s;
+  padding: 16px;
+}
+
+.askc.in {
+  opacity: 1;
+}
+
+.askb {
+  width: min(380px, 100%);
+  background: var(--bg);
+  border: 1px solid var(--ol);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 26px 60px -20px rgba(0, 0, 0, .6);
+  display: grid;
+  gap: 8px;
+}
+
+.askb > b {
+  font-size: 17px;
+}
+
+.askb .sm {
+  line-height: 1.5;
+}
+
+.askf {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}

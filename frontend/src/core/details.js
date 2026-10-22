@@ -1,5 +1,5 @@
 // Every <details> in the app slides open and closed instead of jumping.
-// The height is animated; "opening"/"closing" classes let styles/app.css turn the arrow and fade the content. data-noanim opts out.
+// The height is animated; "opening"/"closing" classes let the styles (each window's file in styles/components/) turn the arrow and fade the content. data-noanim opts out.
 let started = false;
 export function startDetails() {
   if (started || typeof document === "undefined") return; started = true;

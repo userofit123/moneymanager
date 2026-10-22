@@ -1,0 +1,525 @@
+/* The Reports page. Loaded with the page (views/Reports.vue imports it). */
+
+.bh {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cmprow.hd {
+  border-top: 0;
+  color: var(--tx2);
+  font-size: 12px;
+}
+
+.tpill.dn {
+  background: color-mix(in srgb, var(--pos) 15%, transparent);
+  color: var(--pos);
+}
+
+.trrt {
+  margin-inline-start: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.cmpx > div + div {
+  margin-top: 3px;
+}
+
+#nwc {
+  display: block;
+}
+
+#nwA {
+  width: 100%;
+  min-width: 0;
+}
+
+.trtop {
+  margin-bottom: 6px;
+}
+
+.trtip .tdot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-inline-end: 6px;
+}
+
+.trs {
+  display: block;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.trstats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.trstats > div {
+  background: var(--s1);
+  border: 1px solid var(--ol);
+  border-radius: 14px;
+  padding: 10px 12px;
+  min-width: 0;
+}
+
+.trstats span {
+  display: block;
+  font-size: 11px;
+  color: var(--tx2);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.trstats small {
+  color: var(--tx2);
+  font-size: 11px;
+}
+
+.trstats span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trstats span small {
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+html.mob .trstats {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+html.mob .trpick {
+  flex: 1 1 100%;
+}
+
+html.mob .trpick select {
+  width: 100%;
+}
+
+html.mob .trtop .trseg {
+  width: 100%;
+}
+
+html.mob .trtop .trseg button {
+  flex: 1;
+}
+
+.rctl {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+#lines .lgi {
+  transition: opacity .15s;
+}
+
+#lines.hv .lgi {
+  opacity: .4;
+}
+
+#lines.hv .lgi.on {
+  opacity: 1;
+  color: var(--acc);
+}
+
+#lines .lgi .catl:hover {
+  text-decoration: none;
+  color: var(--acc);
+}
+
+#lines .lgi {
+  cursor: default;
+}
+
+#lines.hv .lgi.on,
+#lines.hv .lgi.on .catl {
+  font-weight: 600;
+  color: var(--acc);
+}
+
+.trleg {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.trleg .lgi {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: var(--s1);
+  border: 1px solid var(--ol);
+  min-width: 0;
+  font-size: 13px;
+  transition: border-color .15s, background .15s;
+}
+
+.trleg .lgi:hover {
+  border-color: color-mix(in srgb, var(--acc) 45%, var(--ol));
+}
+
+.trleg .dot {
+  flex: none;
+  margin: 0;
+}
+
+.trleg .catl {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trleg b {
+  flex: none;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.card.cfill {
+  display: flex;
+  flex-direction: column;
+}
+
+.cfill #bars {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 250px;
+}
+
+.bcw {
+  position: relative;
+  flex: 1;
+  min-height: 210px;
+  margin-top: 6px;
+}
+
+.bcw svg {
+  position: absolute;
+  left: 0; /* fixed side */
+  top: 0;
+  display: block;
+}
+
+.mmain {
+  flex-wrap: nowrap;
+}
+
+#merch .mrow {
+  display: block;
+}
+
+#merch .mrow .bar {
+  margin: 8px 0 0;
+}
+
+.mpills {
+  display: flex;
+  gap: 6px;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.mpill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  padding: 1px 9px;
+  border-radius: 99px;
+  background: var(--s2);
+  color: var(--tx2);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.mpill .cd {
+  width: 7px;
+  height: 7px;
+  margin: 0;
+}
+
+.mpill.b {
+  background: color-mix(in srgb, var(--acc) 14%, transparent);
+  color: var(--acc);
+}
+
+.tpill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--acc) 13%, transparent);
+  color: var(--acc);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-inline-start: 8px;
+  white-space: nowrap;
+}
+
+.cmpb .bd {
+  white-space: nowrap;
+}
+
+.tpill .cd {
+  width: 8px;
+  height: 8px;
+  margin: 0;
+}
+
+.cmpb.prev .tpill,
+.tpill.g {
+  background: var(--s2);
+  color: var(--tx2);
+}
+
+.cmplg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.cmplg .tpill {
+  margin: 0;
+}
+
+.cmplg .tpill:not(.g) .cd {
+  background: var(--acc);
+}
+
+.cmplg .tpill.g .cd {
+  background: color-mix(in srgb, var(--tx) 35%, transparent);
+}
+
+.cmpsub {
+  margin-top: 3px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.cmpsub::first-letter {
+  text-transform: uppercase;
+}
+
+.cmpcol {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  align-self: stretch;
+  gap: 0;
+  flex: 0 0 310px;
+  min-width: min(280px, 100%);
+  padding-inline-end: 28px;
+  border-inline-end: 1px solid var(--ol);
+}
+
+.cmpb {
+  --c: var(--acc);
+  padding: 14px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.cmpb.cur {
+  padding-top: 0;
+}
+
+.cmpb.prev {
+  --c: color-mix(in srgb,var(--tx) 38%,transparent);
+  border-top: 1px solid var(--ol);
+  padding-bottom: 0;
+}
+
+.cmpb .lbl {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.cmpb .cd {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--c);
+  display: inline-block;
+  flex: none;
+}
+
+.cmpb .val {
+  margin: 6px 0 4px;
+}
+
+html.mob .cmpcol {
+  flex: 1 1 100%;
+  padding-inline-end: 0;
+  border-inline-end: 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--ol);
+}
+
+.trtop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+  flex-wrap: wrap;
+  margin: 0 0 12px;
+}
+
+.trtop .trseg {
+  margin: 0;
+}
+
+.trpick {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.trpick select {
+  width: auto;
+  min-width: 190px;
+  max-width: 100%;
+  min-height: 40px;
+  padding: 6px 14px;
+  font-size: 15.5px;
+  font-weight: 650;
+  border-radius: 12px;
+}
+
+.trhead {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+}
+
+.trhead .val {
+  margin: 2px 0 0;
+}
+
+.trdelta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.trtog {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  padding: 0 14px;
+  min-height: 36px;
+  border: 1px solid var(--ol);
+  border-radius: 99px;
+  background: var(--s1);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tx2);
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+
+.trtog:hover {
+  border-color: var(--acc);
+  color: var(--acc);
+}
+
+.trtog input[type=checkbox] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  margin: 0;
+  border: 0;
+  cursor: pointer;
+}
+
+.trtog:has(input:checked) {
+  background: var(--acc);
+  border-color: var(--acc);
+  color: var(--on);
+}
+
+.trtog:has(input:checked)::before {
+  content: "✓";
+  font-size: 12px;
+}
+
+.trtog.off {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.trtog.off:hover {
+  border-color: var(--ol);
+  color: var(--tx2);
+}
+
+.trtog.off input {
+  cursor: not-allowed;
+}
+
+.trtog:has(input:focus-visible) {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+.trtog input[type=checkbox] {
+  width: 38px;
+  height: 22px;
+}
+
+.trtog input[type=checkbox]::after {
+  width: 16px;
+  height: 16px;
+}
+
+.trtog input[type=checkbox]:checked::after {
+  transform: translateX(16px);
+}
+
+html:not(.mob) .trs,
+html:not(.mob) .gob {
+  cursor: pointer;
+}
+
+.gob:hover {
+  filter: brightness(1.12);
+}
+
+html.he .trtog input[type=checkbox]:checked::after {
+  transform: translateX(-16px);
+}

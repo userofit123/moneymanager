@@ -1,5 +1,5 @@
 <script setup>
-// The app's pop-up window (#scrim and #sheet), styled in styles/app.css:
+// The app's pop-up window (#scrim and #sheet), styled in styles/components/sheets.css:
 // a centred window on a computer that grows out of the button that opened it, a bottom sheet on a phone that can be swiped down.
 // Both fade out when closed. Escape, a click outside and the phone's Back button close it. Show it with v-if or v-model:open.
 // cls adds a size class: "xw" (wider) or "txw" (the wide entry window).

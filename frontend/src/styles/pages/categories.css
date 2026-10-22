@@ -1,0 +1,151 @@
+/* The Categories page. Loaded with the page (views/Categories.vue imports it). */
+
+.mgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 10px;
+}
+
+.mic {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  font-weight: 700;
+  font-size: 15px;
+  background: color-mix(in srgb, var(--mc) 20%, transparent);
+  color: var(--mc);
+}
+
+.mb {
+  border: 0;
+  background: none;
+  color: var(--tx2);
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1;
+  opacity: .85;
+  transition: .15s;
+}
+
+.mrow:hover .mb,
+.mb:focus-visible {
+  opacity: 1;
+}
+
+.mb:hover {
+  background: var(--s2);
+  color: var(--tx);
+}
+
+.rtool {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: var(--spg);
+}
+
+.rtool .rsearch {
+  flex: 1 1 260px;
+  min-width: 200px;
+}
+
+.rtool .rnew {
+  flex: 0 1 220px;
+  min-width: 160px;
+}
+
+#cats > [id^=set] > .rtool {
+  margin-bottom: 0;
+}
+
+.rsnone {
+  padding: 6px 4px;
+}
+
+#catTabs {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+#catTabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+#catTabs button svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tools.ssb input#ccr,
+.tools.ssb input#slr {
+  flex: 1 1 320px;
+  min-width: 200px;
+}
+
+.trex {
+  border: 1px solid var(--ol);
+  border-radius: 14px;
+  background: var(--s1);
+  overflow: hidden;
+}
+
+.trex > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-top: 1px solid var(--ol);
+  font-size: 13px;
+}
+
+.trex > div > span:first-child {
+  color: var(--tx2);
+  flex: none;
+  min-width: 84px;
+}
+
+.trex b {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.trex > .sm {
+  color: var(--tx2);
+}
+
+#catTabs button[data-t=rules] {
+  margin-inline-start: 12px;
+  position: relative;
+}
+
+#catTabs button[data-t=rules]::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -8px;
+  top: 20%;
+  bottom: 20%;
+  width: 1px;
+  background: var(--ol);
+}

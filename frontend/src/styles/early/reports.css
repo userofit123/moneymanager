@@ -1,0 +1,38 @@
+/* Rules of the Reports page that app-wide rules loaded after this file override (themes, phone sizes, windows),
+   so they load with the app-wide styles at this point instead of with the page (the rest is in pages/reports.css). */
+
+.rctl select,
+.rctl input {
+  font-size: 12px;
+  padding: 5px 10px;
+  min-height: 34px;
+  border-radius: 10px;
+}
+
+.cmprow {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 0;
+  border-top: 1px solid var(--ol);
+  font-size: 13px;
+}
+
+.tpill.up {
+  background: color-mix(in srgb, var(--neg) 15%, transparent);
+  color: var(--neg);
+}
+
+.tpill.eq {
+  background: var(--s2);
+  color: var(--tx2);
+}
+
+.trstats b {
+  display: block;
+  font-size: 16px;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

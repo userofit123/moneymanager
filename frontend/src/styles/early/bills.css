@@ -1,0 +1,73 @@
+/* Rules of the Bills page that app-wide rules loaded after this file override (themes, phone sizes, windows),
+   so they load with the app-wide styles at this point instead of with the page (the rest is in pages/bills.css). */
+
+.bsug {
+  flex: 1 0 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, #f5c518 18%, transparent);
+  font-size: 13px;
+}
+
+.bgi svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bgt > b {
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -.2px;
+}
+
+.bgt .cnt {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 21px;
+  margin-inline-start: 9px;
+  padding: 0 7px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--a) 22%, transparent);
+  color: var(--a);
+  font-size: 12px;
+  font-weight: 700;
+  vertical-align: 2px;
+}
+
+.bgt .sm {
+  margin-top: 3px;
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+
+.bgs b {
+  display: block;
+  font-size: 19px;
+  font-weight: 650;
+}
+
+html.mob .bgh {
+  padding: 14px 16px;
+  gap: 12px;
+}
+
+html.mob .bgr {
+  padding: 2px 16px;
+}
+
+html.mob .brow {
+  gap: 11px;
+  padding: 14px 0;
+  flex-wrap: wrap;
+}

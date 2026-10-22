@@ -25,6 +25,7 @@ import PopMenu from "../components/PopMenu.vue";
 import AvailWhy from "./AvailWhy.vue";
 import { jarCtx, releaseJars, markDone, deleteJar, jarHistory, jarFormOf, goalFix, moveJar, moveJarTo, reopenJar } from "../lib/jars.js";
 import { displayName } from "../lib/activity.js";
+import "../styles/pages/jars.css"; // this page's own styles
 
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);

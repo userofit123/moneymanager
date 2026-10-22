@@ -1,0 +1,215 @@
+/* The app frame's windows: Quick add, More, Sync, the welcome pop-ups, suggestions, what's new and the assistant. */
+
+.mrow .mh {
+  opacity: 0;
+  border: 0;
+  background: none;
+  color: var(--tx2);
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 8px;
+  transition: opacity .15s, background .15s;
+}
+
+.mrow:hover .mh,
+.mrow:focus-within .mh {
+  opacity: 1;
+}
+
+.mh:hover {
+  background: var(--s2);
+  color: var(--neg);
+}
+
+@media (hover: none) {
+  .mrow .mh {
+    opacity: .55;
+  }
+}
+
+.wnp {
+  position: fixed;
+  inset: 0;
+  z-index: 240;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(10, 12, 24, .45);
+  backdrop-filter: blur(3px);
+  animation: wnfa .2s ease-out;
+}
+
+.wnc {
+  width: min(520px, 100%);
+  max-height: min(640px, calc(100vh - 36px));
+  display: flex;
+  flex-direction: column;
+  background: var(--s1);
+  border: 1px solid var(--ol);
+  border-radius: 22px;
+  box-shadow: 0 30px 70px -20px rgba(0, 0, 0, .55);
+  animation: wnia .28s cubic-bezier(.2, .8, .2, 1);
+}
+
+.wnh {
+  padding: 24px 26px 12px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.wnh .wnu {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--acc), color-mix(in srgb, var(--acc) 55%, #a855f7));
+  color: var(--on);
+}
+
+.wnh .wnu svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.wnh h3 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.wnh .sm {
+  margin-top: 2px;
+}
+
+.wnb .wnv {
+  font-weight: 600;
+  margin: 14px 0 4px;
+  color: var(--tx2);
+  font-size: 12.5px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.wnb ul {
+  margin: 6px 0 0;
+  padding-inline-start: 20px;
+}
+
+.wnb li {
+  margin: 0 0 8px;
+}
+
+.wnf {
+  padding: 14px 26px 22px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+@keyframes wnfa {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes wnia {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(.97);
+  }
+}
+
+.sgi {
+  padding: 12px 0;
+  border-top: 1px solid var(--ol);
+}
+
+.sgi:first-of-type {
+  border-top: 0;
+}
+
+.mrow {
+  cursor: pointer;
+  min-height: 52px;
+  gap: 14px;
+}
+
+.mrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 10px 12px;
+  border: 1px solid var(--ol);
+  border-radius: 14px;
+  background: var(--s1);
+  min-width: 0;
+  transition: border-color .15s, background .15s;
+}
+
+.mrow:hover {
+  border-color: color-mix(in srgb, var(--mc) 45%, var(--ol));
+}
+
+.mrow .mt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.mrow .mt small {
+  font-size: 12px;
+  color: var(--tx2);
+}
+
+.ph {
+  display: inline;
+}
+
+@container (min-width: 470px) {
+  .ph {
+    display: none;
+  }
+}
+
+details.opening > *:not(summary) {
+  animation: dfade .26s ease-out;
+}
+
+@keyframes dfade {
+  from {
+    opacity: 0;
+  }
+}
+
+.clv {
+  margin: 16px 0 4px;
+  font-size: 16px;
+}
+
+.clv:first-child {
+  margin-top: 0;
+}
+
+.cll {
+  margin: 0 0 6px;
+  padding-inline-start: 20px;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.cll li {
+  margin: 3px 0;
+}

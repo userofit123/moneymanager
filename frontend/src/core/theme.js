@@ -1,6 +1,6 @@
 // The look of the app: light or dark, colour set, background, texture, surfaces, corners, density, font...
 // The choice lives in `theme` (saved as "moneyTheme") and is put on the page by applyTheme(): CSS variables and
-// data-* attributes on <html>, and classes on <body>. The rules that use them are in styles/app.css.
+// data-* attributes on <html>, and classes on <body>. The rules that use them are in styles/theme.css.
 import { reactive, ref, watch } from "vue";
 import { readJson, writeJson } from "./prefs.js";
 

@@ -1,0 +1,229 @@
+/* The Bills page. Loaded with the page (views/Bills.vue imports it). */
+
+.brow:has(.bsug) {
+  flex-wrap: wrap;
+}
+
+.bsug span {
+  flex: 1 1 200px;
+}
+
+.billbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 calc(var(--hg) - var(--spg));
+}
+
+html.he .brow .ba > b,
+html.he .bgs > b {
+  display: block;
+  text-align: left; /* fixed side */
+}
+
+html.he .brow .ba > b.num,
+html.he .bgs > b.num {
+  direction: ltr;
+}
+
+.bgrp {
+  --a: var(--acc);
+  background: var(--s1);
+  border: 1px solid var(--ol);
+  border-radius: 22px;
+  overflow: hidden;
+  margin: 0 0 var(--spg);
+}
+
+.bgrp:last-child {
+  margin-bottom: 0;
+}
+
+.bgrp.irr {
+  --a: var(--c2);
+}
+
+.bgrp.one {
+  --a: var(--c3);
+}
+
+.bgrp.ins {
+  --a: var(--c4);
+}
+
+.bgh {
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  background: linear-gradient(to right, color-mix(in srgb, var(--a) 14%, transparent), transparent 70%);
+  border-bottom: 1px solid var(--ol);
+}
+
+html.he .bgh {
+  background: linear-gradient(to left, color-mix(in srgb, var(--a) 14%, transparent), transparent 70%);
+}
+
+.bgi {
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: color-mix(in srgb, var(--a) 20%, transparent);
+  color: var(--a);
+}
+
+.bgt {
+  flex: 1;
+  min-width: 0;
+}
+
+.bgs {
+  text-align: end;
+  flex: none;
+}
+
+.bgs span {
+  font-size: 12px;
+  color: var(--tx2);
+}
+
+.bgr {
+  padding: 2px 20px;
+}
+
+html.mob .bgr .row > div[style*="min-width:120px"] > .sm:last-child {
+  display: none;
+}
+
+html.mob .bgr .row > div[style*="min-width:120px"] {
+  max-width: 38%;
+}
+
+html.mob .bgr .row .grow b {
+  font-size: 15px;
+}
+
+html.mob .bgi {
+  width: 36px;
+  height: 36px;
+}
+
+html.mob .bgs b {
+  font-size: 16px;
+}
+
+html.mob .bgs span {
+  display: none;
+}
+
+.brow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 0;
+  border-top: 1px solid var(--ol);
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.bgr .brow:first-child {
+  border-top: 0;
+}
+
+.brow .bm {
+  flex: 1;
+  min-width: 0;
+}
+
+.brow .bt {
+  font-size: 15.5px;
+  line-height: 1.3;
+}
+
+.brow .bt b {
+  font-weight: 650;
+}
+
+.bsub {
+  font-size: 12.5px;
+  color: var(--tx2);
+  line-height: 1.5;
+  margin-top: 1px;
+}
+
+.dsep {
+  opacity: .5;
+  margin: 0 3px;
+}
+
+.bq {
+  cursor: default;
+  margin-inline-start: 6px;
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 9px;
+  border-radius: 99px;
+  background: var(--s2);
+  color: var(--tx2);
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  vertical-align: 1px;
+  white-space: nowrap;
+}
+
+.brow .ba {
+  text-align: end;
+  flex: none;
+  min-width: 104px;
+}
+
+.brow .ba > b {
+  font-size: 17px;
+  font-weight: 650;
+  display: block;
+}
+
+.brow .ba .sm {
+  margin-top: 1px;
+  font-size: 12.5px;
+}
+
+.bfaint {
+  opacity: .7;
+}
+
+.bmore {
+  flex: none;
+  color: var(--tx2);
+}
+
+html.mob .brow .bm {
+  flex: 1 1 0;
+}
+
+html.mob .brow .ba {
+  order: 5;
+  flex: 1 0 100%;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-inline-start: 54px;
+  margin-top: -6px;
+  text-align: start;
+}
+
+html.mob .brow .ba > b {
+  display: inline;
+  font-size: 16px;
+}
+
+html.mob .brow .bs2,
+html.mob .brow .bfaint {
+  display: none;
+}

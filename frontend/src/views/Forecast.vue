@@ -17,6 +17,7 @@ import BaseCard from "../components/BaseCard.vue";
 import { vRich } from "../lib/richtip.js";
 import { categoryName } from "../catnames.js";
 import { forecastModel, periodTotal, direction, chartOf } from "../lib/forecast.js";
+import "../styles/pages/forecast.css"; // this page's own styles
 
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);

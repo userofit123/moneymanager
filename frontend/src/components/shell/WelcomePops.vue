@@ -1,6 +1,6 @@
 <script setup>
 // After signing in: the "has been updated" window with what is new since the last visit then, once, "Make it yours"
-// asking for the profile. Styled as .wnp in styles/app.css.
+// asking for the profile. Styled as .wnp in styles/components/app-windows.css.
 import { ref, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";

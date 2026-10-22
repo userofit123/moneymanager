@@ -1,0 +1,330 @@
+/* The Settings page. Loaded with the page (views/Settings.vue imports it). */
+
+.jobnote {
+  font-size: 13px;
+  color: var(--tx2);
+  margin-top: 8px;
+  min-height: 0;
+}
+
+.jobnote.act {
+  color: var(--acc);
+  font-weight: 600;
+}
+
+.relv > summary {
+  list-style: none;
+}
+
+.relv > summary::-webkit-details-marker {
+  display: none;
+}
+
+.relv > summary::after {
+  content: "▾";
+  margin-inline-start: auto;
+  color: var(--tx2);
+  transition: transform .2s;
+}
+
+.relv:not([open]) > summary::after {
+  transform: rotate(-90deg);
+}
+
+.ss .sr:first-child {
+  border-top: 0;
+}
+
+.sr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 15px 0;
+  border-top: 1px solid var(--ol);
+}
+
+.sr > .srt {
+  flex: 1;
+  min-width: 0;
+}
+
+.sr .srt > b {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.sr .srt .sm {
+  margin-top: 2px;
+  line-height: 1.45;
+}
+
+.sr .src select,
+.sr .src input:not([type=checkbox]) {
+  min-width: 190px;
+  width: auto;
+}
+
+.sr .src input[type=time] {
+  min-width: 130px;
+}
+
+html.mob .sr {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+html.mob .sr > .src {
+  justify-content: flex-start;
+}
+
+html.mob .sr .src select,
+html.mob .sr .src input:not([type=checkbox]) {
+  min-width: 0;
+  width: 100%;
+}
+
+html.mob .sr.inl {
+  flex-direction: row;
+  align-items: center;
+}
+
+/* settings: a list of sections on the side, the section on the right */
+
+.setwrap {
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  gap: var(--spg);
+  align-items: start;
+}
+
+.setmain {
+  min-width: 0;
+}
+
+.setnav {
+  position: sticky;
+  top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px;
+  background: var(--s1);
+  border: 1px solid var(--ol);
+  border-radius: var(--r);
+}
+
+.sng {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: var(--tx2);
+  padding: 14px 12px 4px;
+}
+
+.sng:first-child {
+  padding-top: 4px;
+}
+
+.setnav button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  color: var(--tx2);
+  padding: 9px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: start;
+  transition: background .15s, color .15s;
+}
+
+.setnav button svg {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.setnav button:hover {
+  background: var(--s2);
+  color: var(--tx);
+}
+
+.setnav button.on {
+  background: var(--accc);
+  color: var(--onc);
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .setwrap {
+    display: block;
+  }
+
+  .setnav {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 6px;
+    gap: 4px;
+    margin-bottom: var(--spg);
+    border-radius: 99px;
+  }
+
+  .sng {
+    display: block;
+    flex: none;
+    align-self: center;
+    white-space: nowrap;
+    padding: 0 4px 0 12px;
+    margin-inline-start: 4px;
+    border-inline-start: 1px solid var(--ol);
+  }
+
+  .sng:first-child {
+    border: 0;
+    margin: 0;
+    padding-inline-start: 6px;
+  }
+
+  .setnav button {
+    white-space: nowrap;
+    flex: none;
+    padding: 8px 14px;
+    border-radius: 99px;
+  }
+}
+
+html.mob .setwrap {
+  display: block;
+}
+
+html.mob .setnav {
+  position: static;
+  flex-direction: row;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 6px;
+  gap: 4px;
+  margin-bottom: var(--spg);
+  border-radius: 99px;
+}
+
+html.mob .sng {
+  display: block;
+  flex: none;
+  align-self: center;
+  white-space: nowrap;
+  padding: 0 4px 0 12px;
+  margin-inline-start: 4px;
+  border-inline-start: 1px solid var(--ol);
+}
+
+.sng:first-child {
+  border: 0;
+  margin: 0;
+  padding-inline-start: 6px;
+}
+
+html.mob .setnav button {
+  white-space: nowrap;
+  flex: none;
+  padding: 8px 14px;
+  border-radius: 99px;
+}
+
+.cnote span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cnote svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: var(--acc);
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.setmain > div:empty {
+  display: none;
+}
+
+.apg.c6 {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.apg.c6 .apt {
+  padding: 4px 2px 5px;
+}
+
+.apg.c6 .apl {
+  font-size: 10px;
+}
+
+.symv {
+  display: grid;
+  place-items: center;
+  height: 40px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--on);
+  background: linear-gradient(135deg, var(--acc), var(--acc2));
+  border: 0;
+}
+
+.symv svg {
+  width: 22px;
+  height: 22px;
+}
+
+.symv svg {
+  display: block;
+}
+
+html.mob .setnav {
+  margin-inline: -16px;
+  padding: 8px 16px;
+  border-radius: 0;
+  border-width: 0 0 1px;
+  background: transparent;
+  gap: 6px;
+  position: sticky;
+  top: calc(58px + var(--st));
+  z-index: 20;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+}
+
+html.mob .setnav button {
+  flex: none;
+  white-space: nowrap;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 99px;
+  background: var(--s2);
+  color: var(--tx);
+}
+
+html.mob .setnav button.on {
+  background: var(--accc);
+  color: var(--onc);
+  font-weight: 600;
+}

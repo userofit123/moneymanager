@@ -1,8 +1,366 @@
-/* The global styles (rules, dark/light, Hebrew, phone, print, animations) are in app.css.
-   This file only adds the few global rules that are not there. */
-/* Hebrew: <html> stays left to right (scrollbar on the right); only the content is right to left. Same rule as in app.css. */
-html.he body { direction: rtl; }
-#app { display: contents; }
+/* Base: fonts, the reset, html and body, text, links, icons, Hebrew right to left, motion settings and small helpers. */
+
+@font-face {
+  font-family: Inter;
+  src: url(/fonts/inter-latin.woff2) format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: Inter;
+  src: url(/fonts/inter-ils-400.woff2) format("woff2");
+  font-weight: 100 450;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+20AA;
+}
+
+@font-face {
+  font-family: Inter;
+  src: url(/fonts/inter-ils-500.woff2) format("woff2");
+  font-weight: 451 550;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+20AA;
+}
+
+@font-face {
+  font-family: Inter;
+  src: url(/fonts/inter-ils-600.woff2) format("woff2");
+  font-weight: 551 650;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+20AA;
+}
+
+@font-face {
+  font-family: Inter;
+  src: url(/fonts/inter-ils-700.woff2) format("woff2");
+  font-weight: 651 750;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+20AA;
+}
+
+@font-face {
+  font-family: Inter;
+  src: url(/fonts/inter-ils-800.woff2) format("woff2");
+  font-weight: 751 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+20AA;
+}
+
+html.boot body > *:not(#splash) {
+  visibility: hidden !important;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+html::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  background: var(--bg-glow);
+}
+
+body {
+  font-family: var(--font);
+  color: var(--tx);
+  min-height: 100vh;
+  display: flex;
+  -webkit-font-smoothing: antialiased;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.num,
+td.am,
+.val {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+svg {
+  max-width: 100%;
+}
+
+@property --vt-r {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+nav.pl .nb.on .ic {
+  background: none;
+}
+
+nav.pl .nb .ic {
+  position: relative;
+  z-index: 1;
+}
+
+h1 {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -.6px;
+}
+
+h2 {
+  font-size: 12px;
+  font-weight: 600;
+  margin: 28px 0 12px;
+  color: var(--tx2);
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .001ms !important;
+    animation-delay: 0s !important;
+    transition-duration: .001ms !important;
+  }
+}
+
+.qa .sm {
+  font-size: 12px;
+  display: block;
+}
+
+.sm {
+  font-size: 12.5px;
+  color: var(--tx2);
+}
+
+.pos {
+  color: var(--pos);
+}
+
+.neg {
+  color: var(--neg);
+}
+
+.flex {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+svg text {
+  font-family: inherit;
+  fill: var(--tx2);
+  font-size: 11px;
+}
+
+.row .grow {
+  flex: 1;
+  min-width: 0;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--tx) 28%, transparent) transparent;
+}
+
+.pl {
+  font-size: 12px;
+  color: var(--tx2);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+}
+
+/* ===== PHONE LAYOUT. Applied by a class set from JS (and by the media query as a backup) ===== */
+
+html.mob body {
+  display: block;
+}
+
+html.mob h1 {
+  font-size: 25px;
+}
+
+html.mob .flex {
+  gap: 14px;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: .28s;
+}
+
+.mrow .grow {
+  font-size: 16px;
+}
+
+html.mob h2 {
+  flex-wrap: wrap;
+}
+
+html.mob #kpis .sm,
+html.mob #billK .sm,
+html.mob #budK .sm,
+html.mob #fcK .sm {
+  font-size: 12px;
+}
+
+html.mob [id^="ctl-"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+html.mob .row > .grow[style*="min-width:160px"],
+html.mob .row > .grow[style*="min-width:200px"] {
+  min-width: 0 !important;
+  flex: 1 1 0 !important;
+}
+
+html.mob .row > .flex {
+  flex: 1 1 100%;
+  justify-content: flex-start;
+  padding-top: 2px;
+}
+
+/* ===== Hebrew: right to left. The page itself stays left-to-right so the scrollbar remains on the right; only the content is mirrored ===== */
+
+html.he body {
+  direction: rtl;
+}
+
+html.he svg {
+  direction: ltr;
+}
+
+html.he .num,
+html.he .val,
+html.he b.num {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.mx {
+  display: flex;
+  gap: 2px;
+  flex: none;
+}
+
+.gr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+details > .tsb,
+details > *:not(summary) {
+  transition: opacity .2s;
+}
+
+.rel .rb .sm {
+  margin-top: 2px;
+  line-height: 1.45;
+}
+
+.ci .sm {
+  margin-top: 2px;
+  line-height: 1.5;
+}
+
+.dim {
+  color: var(--tx2);
+  opacity: .5;
+}
+
+h2 {
+  margin: calc(var(--spg) * 1.75) 0 var(--hg);
+}
+
+.dt {
+  display: inline-block;
+  margin: 0 .3em;
+  opacity: .6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.hid {
+  display: none !important;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  display: none;
+}
+
+/* ===== MOBILE v2: Material-style phone layout. Everything is under html.mob, so desktop is untouched ===== */
+
+html.mob {
+  scroll-padding-top: 72px;
+}
+
+html.mob body {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* section rhythm */
+
+html.mob h2 {
+  margin: 24px 0 10px;
+  font-size: 12px;
+  letter-spacing: .9px;
+  min-height: 28px;
+}
+
+html.mob .al > .flex,
+html.mob .al > .btn {
+  margin-inline-start: 22px;
+}
+
+#app {
+  display: contents;
+}
+
 /* Anything with a tooltip uses the normal or pointer cursor, never the question mark. Zero weight (:where), so a button's own
-   pointer cursor from app.css (the ? and (i) buttons, chips...) still wins. */
-:where([title], [data-tip], abbr) { cursor: inherit; }
+   pointer cursor (the ? and (i) buttons, chips...) still wins. */
+
+:where([title], [data-tip], abbr) {
+  cursor: inherit;
+}

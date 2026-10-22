@@ -1,0 +1,162 @@
+/* The attachment viewer (DocViewer): pictures and PDF pages. */
+
+#docv {
+  position: fixed;
+  inset: 0;
+  z-index: 260;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  transition: opacity .2s;
+}
+
+#docv.on {
+  opacity: 1;
+}
+
+.dvback {
+  position: absolute;
+  inset: 0;
+  background: #000b;
+}
+
+.dvbox {
+  position: relative;
+  width: min(980px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  background: var(--bg);
+  border: 1px solid var(--ol);
+  border-radius: 22px;
+  padding: 18px;
+  box-shadow: 0 30px 80px -20px #000;
+  transform: scale(.97);
+  transition: transform .2s;
+}
+
+#docv.on .dvbox {
+  transform: none;
+}
+
+.dvhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.dvstage {
+  background: var(--s2);
+  border: 1px solid var(--ol);
+  border-radius: 14px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  min-height: 200px;
+}
+
+.dvstage img {
+  max-width: 100%;
+  max-height: 62vh;
+  display: block;
+  object-fit: contain;
+}
+
+.dvstage:has(.pdfv) {
+  display: block;
+  max-height: 62vh;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pdfv {
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+  justify-items: center;
+}
+
+.pdfv canvas {
+  width: 100%;
+  height: auto;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .25);
+}
+
+.dvempty {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  text-align: center;
+  padding: 34px 16px;
+}
+
+#dvList {
+  display: grid;
+  gap: 6px;
+}
+
+.dvitem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: start;
+  border: 1px solid var(--ol);
+  background: var(--s1);
+  color: var(--tx);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font: inherit;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+
+.dvitem:hover {
+  background: var(--s2);
+}
+
+.dvitem.on {
+  border-color: var(--acc);
+  background: var(--accc);
+  color: var(--onc);
+}
+
+.dvitem.on .sm {
+  color: inherit;
+}
+
+.dvic {
+  font-size: 20px;
+}
+
+.dvn {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dv {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--g);
+}
+
+.dv i {
+  display: block;
+  width: 62%;
+  height: 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--tx) 35%, transparent);
+}
+
+.dv i:first-child {
+  width: 44%;
+  background: var(--acc);
+}

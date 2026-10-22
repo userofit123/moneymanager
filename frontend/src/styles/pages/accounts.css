@@ -1,0 +1,201 @@
+/* The Accounts page. Loaded with the page (views/Accounts.vue imports it). */
+
+html.mob .ftools {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+html.mob .ftools .frow {
+  display: contents;
+}
+
+html.mob .ftools .frow > * {
+  min-width: 0 !important;
+  width: 100%;
+  margin: 0;
+}
+
+html.mob .ftools :is(#q,#accQ) {
+  grid-column: span 4;
+  padding-left: 42px; /* fixed side */
+  background: var(--s1) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") no-repeat 14px center/18px;
+}
+
+html.mob .ftools select,
+html.mob .ftools input {
+  min-height: 42px;
+  padding: 8px 12px;
+  font-size: 15px;
+  border-radius: 12px;
+}
+
+html.mob .ftools .f1 .btn {
+  order: 5;
+  grid-column: span 2;
+}
+
+html.mob .ftools .rng {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+html.mob .ftools .rng select {
+  width: 100%;
+}
+
+.accd {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.accH {
+  padding: 20px 22px;
+}
+
+.stg {
+  display: grid;
+  grid-template-columns: repeat(var(--sc, 4), minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.stl {
+  background: var(--s2);
+  border-radius: 14px;
+  padding: 11px 14px;
+  min-width: 0;
+}
+
+.stl span {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--tx2);
+  margin-bottom: 3px;
+}
+
+.stl b {
+  font-size: 19px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.stl i {
+  display: block;
+  font-style: normal;
+  font-size: 12px;
+  color: var(--tx2);
+  margin-top: 2px;
+}
+
+html.mob .stg {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid.ga {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+}
+
+#acc > .ftools {
+  margin-bottom: calc(var(--hg) - var(--spg));
+}
+
+.ftools {
+  display: grid;
+  gap: 10px;
+}
+
+.ftools .frow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.ftools .f1 :is(#q,#accQ) {
+  flex: 1 1 280px;
+  min-width: 200px;
+}
+
+html.mob .ftools {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+html.he.mob .ftools #q {
+  padding-left: 14px; /* fixed side */
+  padding-right: 42px; /* fixed side */
+  background-position: right 14px center;
+}
+
+/* Activity filters: search row, then one swipeable row of chips */
+
+html.mob .ftools {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin: 0 -16px 12px;
+  padding: 0 16px;
+}
+
+html.mob .ftools > .f1 {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+html.mob .ftools .f1 {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 8px;
+  align-items: center;
+}
+
+html.mob .ftools .f1 > input {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0 !important;
+}
+
+html.mob .ftools .f1 .btn {
+  order: 0;
+  width: auto;
+  grid-column: auto;
+  flex: none;
+  min-height: 44px;
+  padding: 0 14px;
+}
+
+html.mob .ftools .f1 .btn[data-a=exOpen] {
+  font-size: 0;
+  width: 44px;
+  padding: 0;
+  background: var(--s1) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4v11M7 11l5 5 5-5M5 20h14'/%3E%3C/svg%3E") no-repeat center/20px;
+}
+
+html.mob .ftools #q {
+  padding-inline-start: 38px;
+  font-size: 15px;
+  text-overflow: ellipsis;
+}
+
+html.mob .ftools .rng {
+  display: flex;
+  gap: 6px;
+}
+
+html.mob .ftools .rng input,
+html.mob .ftools .rng select {
+  min-height: 40px;
+  border-radius: 99px;
+  font-size: 14px;
+  width: auto;
+}

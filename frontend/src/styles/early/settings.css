@@ -1,0 +1,24 @@
+/* Rules of the Settings page that app-wide rules loaded after this file override (themes, phone sizes, windows),
+   so they load with the app-wide styles at this point instead of with the page (the rest is in pages/settings.css). */
+
+.relv .cll {
+  margin: 6px 0 0;
+}
+
+.sr > .src {
+  flex: none;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.cnote {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 14px;
+  font-size: 12.5px;
+  color: var(--tx2);
+}

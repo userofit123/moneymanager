@@ -1,0 +1,108 @@
+/* The Forecast page. Loaded with the page (views/Forecast.vue imports it). */
+
+.ctl {
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.ctl .seg {
+  margin: 6px 0 0;
+}
+
+html.mob .ctl {
+  gap: 6px;
+}
+
+html.mob .ctl > div {
+  width: 100%;
+}
+
+html.mob .ctl {
+  gap: 10px;
+  align-items: flex-end;
+}
+
+html.mob .ctl .seg {
+  margin: 4px 0 0;
+}
+
+html.mob .ctl select {
+  min-height: 38px;
+  padding: 6px 10px;
+  font-size: 14px;
+  width: auto;
+}
+
+.jfg {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: var(--spg);
+}
+
+.jf {
+  padding: 16px 18px;
+}
+
+.jfh {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.jfh b {
+  font-size: 15.5px;
+}
+
+.jfc {
+  margin: 10px 0 6px;
+  height: 74px;
+}
+
+.jfs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.jfs > div {
+  background: var(--s2);
+  border-radius: 10px;
+  padding: 7px 9px;
+  min-width: 0;
+}
+
+.jfs span {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--tx2);
+}
+
+.jfs b {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 650;
+  margin-top: 1px;
+  white-space: nowrap;
+}
+
+.jfs i {
+  display: block;
+  font-style: normal;
+  font-size: 11px;
+  color: var(--tx2);
+}
+
+.jfs i.pos {
+  color: var(--pos);
+}
+
+html.mob .jfs {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}

@@ -21,6 +21,7 @@ import { billTx0 } from "../lib/bills.js";
 import { jarCtx, releaseJars } from "../lib/jars.js";
 import { recapModel, recapParts, dayBarHeights, hasStart } from "../lib/recap.js";
 import BaseDialog from "../components/BaseDialog.vue";
+import "../styles/pages/recap.css"; // this page's own styles
 
 const { t, locale } = useI18n();
 const S = computed(() => data.state.value);

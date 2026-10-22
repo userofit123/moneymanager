@@ -1,0 +1,231 @@
+/* Toasts: the small messages at the top (Saved, Undo, errors, suggestions). */
+
+.sugg {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px dashed var(--acc);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--acc) 7%, transparent);
+}
+
+#toasts {
+  position: fixed;
+  top: 18px;
+  right: 18px; /* fixed side */
+  z-index: 160;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(380px, calc(100vw - 36px));
+  pointer-events: none;
+}
+
+html.mob #toasts {
+  top: calc(8px + var(--st));
+  inset-inline: 10px;
+  bottom: auto;
+  width: auto;
+  gap: 6px;
+}
+
+html.mob .toast {
+  padding: 8px 10px;
+  gap: 8px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+html.mob .toast .ti {
+  width: 20px;
+  height: 20px;
+}
+
+html.mob .toast .ti svg {
+  width: 12px;
+  height: 12px;
+}
+
+html.mob .toast .tm {
+  line-height: 1.25;
+}
+
+html.mob .toast .tm b {
+  font-size: 12px;
+}
+
+html.mob .toast .tacts {
+  margin-top: 2px;
+}
+
+html.mob .toast .tu {
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--s1);
+  border: 1px solid var(--ol);
+  border-inline-start: 4px solid var(--pos);
+  border-radius: 16px;
+  padding: 12px 14px;
+  box-shadow: 0 14px 34px -14px rgba(0, 0, 0, .4);
+  font-size: 14px;
+  animation: tin .22s ease-out;
+}
+
+.toast.err {
+  border-inline-start-color: var(--neg);
+}
+
+.toast.info {
+  border-inline-start-color: var(--acc);
+}
+
+.toast.sugg {
+  border-inline-start-color: #e68a00;
+}
+
+.toast.sugg .ti {
+  background: color-mix(in srgb, #e68a00 20%, transparent);
+  color: color-mix(in srgb, #e68a00 78%, var(--tx));
+}
+
+.toast.sugg .tm .tu {
+  color: color-mix(in srgb, #e68a00 70%, var(--tx));
+}
+
+.toast.alert {
+  border-inline-start-color: var(--neg);
+}
+
+.toast.alert .ti {
+  background: color-mix(in srgb, var(--neg) 18%, transparent);
+  color: var(--neg);
+}
+
+.toast .ti {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: color-mix(in srgb, var(--pos) 18%, transparent);
+  color: var(--pos);
+}
+
+.toast.err .ti {
+  background: color-mix(in srgb, var(--neg) 18%, transparent);
+  color: var(--neg);
+}
+
+.toast.info .ti {
+  background: var(--accc);
+  color: var(--onc);
+}
+
+.toast .ti svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.toast .tm {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.toast .tm b {
+  display: block;
+  font-size: 13px;
+}
+
+.toast .tm div {
+  color: var(--tx2);
+  word-break: break-word;
+}
+
+.toast .tacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 6px 0 0 -8px;
+}
+
+.toast .tm .tacts button {
+  white-space: nowrap;
+}
+
+.toast .tu {
+  border: 0;
+  background: none;
+  color: var(--acc);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 10px;
+}
+
+.toast .tu:hover {
+  background: var(--s2);
+}
+
+.toast .tx {
+  border: 0;
+  background: none;
+  color: var(--tx2);
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 6px;
+}
+
+.toast.out {
+  opacity: 0;
+  transform: translateX(12px);
+  transition: .25s;
+}
+
+@keyframes tin {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+}
+
+html.he #toasts {
+  right: auto; /* fixed side */
+  left: 18px; /* fixed side */
+}
+
+html.mob.he #toasts {
+  inset-inline: 10px;
+}
+
+html.he .toast.out {
+  transform: translateX(-12px);
+}
+
+html.mob .toast {
+  border-radius: 16px;
+}

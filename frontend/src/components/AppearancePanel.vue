@@ -1,6 +1,6 @@
 <script setup>
 // The Appearance panel: mode, colour set, background, texture, surface, corners, font, density, spacing,
-// navigation, and saved looks. Styled by the shared classes in styles/app.css.
+// navigation, and saved looks. Styled in styles/components/appearance.css.
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import { theme, ATM, ST0, CP, CUST, AKEYS, looks, lookFor, saveLooks, copy, isDark, atmOf, cpOf, custVal, lookPal, setTheme, themeSwap, PKEYS } from "../core/theme.js";

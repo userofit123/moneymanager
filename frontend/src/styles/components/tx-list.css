@@ -1,0 +1,250 @@
+/* Lists and tables of transactions (TxRows), group headers and row labels. */
+
+tr.fut > td {
+  background: color-mix(in srgb, var(--acc) 3%, transparent);
+}
+
+tr.fut > td:first-child {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--acc) 50%, transparent);
+}
+
+html.he tr.fut > td:first-child {
+  box-shadow: inset -3px 0 0 color-mix(in srgb, var(--acc) 50%, transparent);
+}
+
+tr.fut .mt,
+tr.fut .num,
+.txi.fut .mer {
+  font-style: italic;
+}
+
+.txi.fut {
+  background: color-mix(in srgb, var(--acc) 3%, transparent);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--acc) 50%, transparent);
+  border-radius: 8px;
+}
+
+html.he .txi.fut {
+  box-shadow: inset -3px 0 0 color-mix(in srgb, var(--acc) 50%, transparent);
+}
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--s1);
+  border: 1px solid var(--ol);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+
+th {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tx2);
+  text-align: start;
+  padding: 13px 14px;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  background: var(--s2);
+}
+
+td {
+  padding: 12px 14px;
+  font-size: 14px;
+  border-top: 1px solid var(--ol);
+  vertical-align: middle;
+}
+
+tbody tr {
+  transition: background .15s;
+}
+
+tbody tr:hover td {
+  background: var(--s2);
+}
+
+td.mer {
+  max-width: 0;
+  width: 46%;
+}
+
+.mc {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.mc .av {
+  flex: none;
+}
+
+.mc .mt {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc .bd,
+.mc .chip {
+  flex: none;
+}
+
+td.ft {
+  max-width: 0;
+  width: 24%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+td.am {
+  text-align: end;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mer {
+  font-weight: 600;
+}
+
+td select {
+  padding: 5px 10px;
+  font-size: 13px;
+  border-radius: 99px;
+  min-height: 34px;
+}
+
+.txl {
+  display: none;
+}
+
+.txi {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 4px;
+  border-top: 1px solid var(--ol);
+  cursor: pointer;
+}
+
+.txi:first-child,
+.ghead + .txi {
+  border-top: 0;
+}
+
+html.mob .dtab {
+  display: none;
+}
+
+html.mob .txl {
+  display: block;
+}
+
+td select {
+  padding-inline-end: 30px !important;
+  background-position: right 9px center;
+}
+
+.rule,
+.mrow,
+.txi {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 58px;
+}
+
+.p-mv {
+  --pc: #c026d3;
+}
+
+.p-pend {
+  --pc: #e07b00;
+}
+
+.p-exp {
+  --pc: #8b5cf6;
+}
+
+.p-bill {
+  --pc: #3b6fe0;
+}
+
+.p-up {
+  --pc: #0aa597;
+}
+
+.p-card {
+  --pc: #64748b;
+}
+
+.p-xf {
+  --pc: #0ea5d6;
+}
+
+.p-dup {
+  --pc: #dc3545;
+}
+
+.p-twin {
+  --pc: #e0457b;
+}
+
+.p-jar {
+  --pc: #2fa24f;
+}
+
+.p-inst {
+  --pc: #6366f1;
+}
+
+.p-ign {
+  --pc: #94a3b8;
+}
+
+.p-bal {
+  --pc: #a8863a;
+}
+
+.p-auto {
+  --pc: #8d8d99;
+}
+
+#txMain > .dtab,
+#txMain > .txl,
+#txMain > .txm,
+#acc > .dtab,
+#acc > .txl,
+#acc > .txm,
+#acc > .ftools + .dtab {
+  margin-top: 0;
+}
+
+#txMain > .txm,
+#acc > .txm {
+  margin-top: calc(var(--hg) - var(--spg));
+}
+
+.txm {
+  display: flex;
+  justify-content: center;
+  padding: 14px 0 4px;
+}
+
+html.he td.am {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: left; /* fixed side */
+}
+
+/* lists and rows */
+
+html.mob .txi,
+html.mob .row {
+  min-height: 56px;
+}
+
+.p-note {
+  --pc: #c98a00;
+}

@@ -1,0 +1,6 @@
+/* Rules of the Categories page that app-wide rules loaded after this file override (themes, phone sizes, windows),
+   so they load with the app-wide styles at this point instead of with the page (the rest is in pages/categories.css). */
+
+.trex > div:first-child {
+  border-top: 0;
+}

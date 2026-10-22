@@ -1,0 +1,59 @@
+/* Pop-up menus (PopMenu). */
+
+.cmenu {
+  position: fixed;
+  z-index: 200;
+  background: var(--s1);
+  border: 1px solid var(--ol);
+  border-radius: 14px;
+  box-shadow: 0 18px 40px -16px rgba(0, 0, 0, .45);
+  padding: 6px;
+  min-width: 176px;
+  animation: tin .14s ease-out;
+}
+
+.cmenu button {
+  display: flex;
+  width: 100%;
+  gap: 10px;
+  align-items: center;
+  border: 0;
+  background: none;
+  color: var(--tx);
+  font: inherit;
+  font-size: 14px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: start;
+}
+
+.cmenu button:hover {
+  background: var(--s2);
+}
+
+.cmenu .dz {
+  color: var(--neg);
+}
+
+.cmenu svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+
+.cmenu {
+  overflow-y: auto;
+}
+
+.cmenu.hist {
+  display: block;
+  width: min(370px, calc(100vw - 16px));
+  padding: 8px 6px;
+  overflow-x: hidden;
+}

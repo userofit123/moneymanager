@@ -30,8 +30,10 @@ test("styles use logical properties (start/end), never fixed left/right", () => 
   const dir = new URL("../src/", import.meta.url).pathname;
   const walk = (d) => readdirSync(d).flatMap((n) => { const p = join(d, n); return statSync(p).isDirectory() ? walk(p) : /\.(vue|css)$/.test(n) ? [p] : []; });
   const bad = [];
-  // app.css is the main stylesheet with its own Hebrew rules (html.he ...), so it is left out here (see app-css.test.js)
-  for (const f of walk(dir).filter((x) => !x.endsWith("app.css"))) {
+  // A few declarations keep a fixed side on purpose and say so with /* fixed side */: positions a script sets from a measured x
+  // (tab and menu highlights, tooltips), centering with left: 50%, spinner and arrow shapes, and sides that come with their own
+  // Hebrew rule (a .fab on the right with "html.he .fab" moving it to the left).
+  for (const f of walk(dir)) {
     // in a .vue file only the CSS counts: its <style> block and static style="…" (a tooltip placed at a measured x, or a "left" amount in a sentence, is not CSS)
     const src = readFileSync(f, "utf8"), css = f.endsWith(".css");
     let inStyle = false;
@@ -39,7 +41,7 @@ test("styles use logical properties (start/end), never fixed left/right", () => 
       if (/<style\b/.test(line)) inStyle = true;
       const text = css || inStyle ? line : (line.match(/(?<![:\w-])style="[^"]*"/g) || []).join(" ");
       if (/<\/style>/.test(line)) inStyle = false;
-      if (!text) return;
+      if (!text || /\/\* fixed side \*\//.test(text)) return;
       line = text;
       if (/(margin|padding|border)-(left|right)|text-align:\s*(left|right)|float:\s*(left|right)|(^|[\s;{])(left|right)\s*:/.test(line)) bad.push(`${f.slice(dir.length)}:${i + 1}: ${line.trim()}`);
     });

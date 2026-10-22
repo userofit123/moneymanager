@@ -1,6 +1,6 @@
 <script setup>
 // A row of choices where one is picked (like "This month / Last month"). Use v-model for the picked value.
-// options: [{ value, label }]. Markup uses the shared .seg classes (styled in styles/app.css).
+// options: [{ value, label }]. Markup uses the shared .seg classes (styled in styles/components/tabs.css).
 defineProps({ modelValue: { type: [String, Number], required: true }, options: { type: Array, required: true }, label: { type: String, required: true } });
 const emit = defineEmits(["update:modelValue"]);
 const move = (e, opts, i) => {

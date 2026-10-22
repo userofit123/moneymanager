@@ -1,0 +1,189 @@
+/* Cards: .card (hero, warn, clickable), the small title line .lbl, big values .val. */
+
+.card.click {
+  transition: transform .2s, border-color .2s, box-shadow .2s;
+}
+
+.card {
+  background: var(--s1);
+  border: 1px solid var(--ol);
+  border-radius: var(--r);
+  padding: 18px 20px;
+  transition: transform .2s, border-color .2s, box-shadow .2s;
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.card.click {
+  cursor: pointer;
+}
+
+.card.click:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--acc) 50%, var(--ol));
+  box-shadow: 0 14px 34px -16px var(--acc);
+}
+
+.card.hero {
+  background: linear-gradient(140deg, var(--accc), color-mix(in srgb, var(--accc) 55%, var(--s1)));
+  border-color: transparent;
+  color: var(--onc);
+}
+
+.card.hero .lbl,
+.card.hero .sm {
+  color: color-mix(in srgb, var(--onc) 75%, transparent);
+}
+
+.card.warn {
+  border-color: color-mix(in srgb, var(--neg) 45%, var(--ol));
+}
+
+.card.hero .bi {
+  background: color-mix(in srgb, var(--onc) 18%, transparent);
+  color: var(--onc);
+}
+
+.card.hero .hq:hover {
+  color: var(--onc);
+  background: color-mix(in srgb, var(--onc) 18%, transparent);
+}
+
+.lbl > .hq {
+  margin-inline-start: -6px;
+}
+
+.lbl {
+  font-size: 13px;
+  color: var(--tx2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.val {
+  font-size: 32px;
+  font-weight: 600;
+  margin: 8px 0 2px;
+  letter-spacing: -1px;
+}
+
+.val small {
+  font-size: .55em;
+  font-weight: 500;
+  opacity: .6;
+  margin-inline-end: 2px;
+}
+
+.flow {
+  padding: 22px 24px;
+}
+
+.flow > .sm {
+  margin-bottom: 18px;
+}
+
+html.mob .flow {
+  padding: 16px;
+}
+
+html.mob .val {
+  font-size: 27px;
+}
+
+html.mob .card {
+  padding: 16px;
+}
+
+.acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 6px;
+}
+
+html.mob .card {
+  padding: 16px;
+  border-radius: 20px;
+}
+
+html.mob #kpis .card,
+html.mob #billK .card,
+html.mob #budK .card,
+html.mob #fcK .card {
+  padding: 14px 15px;
+  border-radius: 18px;
+}
+
+html.mob #kpis .card.hero,
+html.mob #billK .card.hero,
+html.mob #budK .card.hero,
+html.mob #fcK .card.hero {
+  grid-column: 1/-1;
+}
+
+html.mob #kpis .val,
+html.mob #billK .val,
+html.mob #budK .val,
+html.mob #fcK .val {
+  font-size: 23px;
+  margin: 4px 0;
+}
+
+html.mob #kpis .lbl,
+html.mob #billK .lbl,
+html.mob #budK .lbl,
+html.mob #fcK .lbl {
+  font-size: 12px;
+}
+
+html.mob #kpis > .card:last-child:nth-child(even) {
+  grid-column: 1/-1;
+}
+
+html.mob #repCtl select,
+html.mob .card > .flex > select {
+  min-height: 38px;
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
+.card.acc .lbl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lbl .tinfo {
+  margin-inline-start: .2em;
+  vertical-align: middle;
+}
+
+html.he .val,
+html.he .big {
+  text-align: right; /* fixed side */
+}
+
+/* KPI tiles: sparkline sits under the text, never over it */
+
+html.mob #kpis .card:not(.hero) .spark,
+html.mob #billK .card:not(.hero) .spark,
+html.mob #budK .card:not(.hero) .spark,
+html.mob #fcK .card:not(.hero) .spark {
+  position: static;
+  display: block;
+  width: 100%;
+  height: 30px;
+  margin-top: 8px;
+}
+
+html.mob #kpis .card .sm {
+  padding-inline-end: 0;
+}
+
+html.mob .card .val {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.5px;
+}

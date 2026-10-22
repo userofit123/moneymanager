@@ -1,0 +1,275 @@
+/* Chips, tags, badges and small pills. */
+
+.badge {
+  position: absolute;
+  z-index: 2;
+  top: -2px;
+  right: 12px; /* fixed side */
+  min-width: 17px;
+  height: 17px;
+  border-radius: 9px;
+  background: var(--neg);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: none;
+  place-items: center;
+  padding: 0 4px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--ol);
+  border-radius: 10px;
+  padding: 5px 11px;
+  font-size: 12px;
+  color: var(--tx2);
+  background: var(--s1);
+}
+
+.chip.t {
+  background: var(--accc);
+  color: var(--onc);
+  border-color: transparent;
+  border-radius: 99px;
+}
+
+.live {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--pos);
+  display: inline-block;
+  flex: none;
+  position: relative;
+}
+
+.live.off,
+.live.bad {
+  background: var(--neg);
+  animation: none;
+}
+
+.live.warn {
+  background: #e6a100;
+  animation: none;
+}
+
+.bd.bill {
+  background: color-mix(in srgb, var(--acc) 16%, transparent);
+  color: var(--acc);
+  font-weight: 600;
+}
+
+.dchip {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  color: var(--tx2);
+}
+
+button.dchip {
+  background: var(--s1);
+}
+
+.dchip:hover {
+  background: var(--s2);
+  color: var(--tx);
+}
+
+.bd {
+  font-size: 12px;
+  padding: 2px 9px;
+  border-radius: 99px;
+  font-weight: 600;
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  white-space: nowrap;
+}
+
+i.live.spin {
+  width: 11px;
+  height: 11px;
+  margin: -2px;
+  animation: sp .8s linear infinite;
+  border-radius: 50%;
+  border: 2px solid var(--acc);
+  border-right-color: transparent; /* fixed side */
+  background: none;
+}
+
+.tag {
+  display: inline-block;
+  background: var(--accc);
+  color: var(--onc);
+  border-radius: 99px;
+  padding: 3px 10px;
+  font-size: 11px;
+  margin: 1px;
+  border: 0;
+  font-family: inherit;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 4px;
+  flex: none;
+  display: inline-block;
+}
+
+.sev {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 6px;
+  flex: none;
+}
+
+.sev.high {
+  background: var(--neg);
+}
+
+.sev.med {
+  background: #e68a00;
+}
+
+.sev.low {
+  background: var(--acc);
+}
+
+html.mob .badge {
+  right: calc(50% - 22px); /* fixed side */
+}
+
+.catl {
+  cursor: pointer;
+}
+
+.catl:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.tag.catl,
+.tchip .catl {
+  transition: background .15s, color .15s;
+}
+
+.tag.catl:hover {
+  text-decoration: none;
+  background: var(--acc);
+  color: var(--on);
+}
+
+html.he .badge {
+  right: auto; /* fixed side */
+  left: 12px; /* fixed side */
+}
+
+html.he .tag,
+html.he .chip {
+  direction: rtl;
+}
+
+html.mob.he .badge {
+  left: auto; /* fixed side */
+  right: calc(50% - 22px); /* fixed side */
+}
+
+.mrow .mt .catl {
+  font-weight: 600;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  align-self: flex-start;
+  max-width: 100%;
+}
+
+.bd.pc {
+  background: color-mix(in srgb, var(--pc) 17%, transparent);
+  color: color-mix(in srgb, var(--pc) 70%, var(--tx));
+}
+
+.tsug {
+  margin-top: 6px;
+  max-height: 176px;
+  overflow: auto;
+  border: 1px solid var(--ol);
+  border-radius: 14px;
+  background: var(--s2);
+  padding: 4px;
+}
+
+.tsug[hidden] {
+  display: none;
+}
+
+.live::after,
+.updb i::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: inherit;
+  opacity: 0;
+  animation: plr 2s infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes plr {
+  0% {
+    transform: scale(1);
+    opacity: .5;
+  }
+  70%, 100% {
+    transform: scale(2.7);
+    opacity: 0;
+  }
+}
+
+.tsug {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(100% + 4px);
+  z-index: 40;
+  margin-top: 0;
+  background: var(--bg);
+  box-shadow: 0 16px 36px -14px rgba(0, 0, 0, .45);
+}
+
+html.mob .badge {
+  top: 0;
+  right: calc(50% - 28px); /* fixed side */
+}
+
+html.mob .chip,
+html.mob .tag {
+  min-height: 30px;
+}
+
+.bd {
+  line-height: 16px;
+  height: 20px;
+  box-sizing: border-box;
+  padding: 0 9px;
+}
+
+.bd .pi {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+  margin-inline-end: 1px;
+}

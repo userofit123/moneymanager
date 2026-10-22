@@ -26,6 +26,7 @@ import { vTip, TP } from "../core/tooltip.js";
 import { dcell, dstr, titleCase } from "../dates.js";
 import { categoryName } from "../catnames.js";
 import { tx } from "../core/heText.js";
+import "../styles/pages/home.css"; // this page's own styles
 
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);

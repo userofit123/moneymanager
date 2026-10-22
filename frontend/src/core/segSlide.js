@@ -1,6 +1,6 @@
 // The sliding highlight of every row of tabs (.seg): when another tab is picked, the coloured pill stretches and glides over to it.
 // The pill is an <i class="segi"><b></b></i> put first in
-// the .seg, styled in styles/app.css (.segi, .seg.sl). It watches the page, so every tab row gets it without any code in the page.
+// the .seg, styled in styles/components/tabs.css (.segi, .seg.sl). It watches the page, so every tab row gets it without any code in the page.
 const st = new Map(), waiting = new Set();
 let raf = 0, started = false;
 const todo = new Set();

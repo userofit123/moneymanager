@@ -1,24 +1,100 @@
-/* The app's shared look: colors, spacing, corners and type (the default "Indigo" colour set; core/theme.js changes them at run time).
-   Components use these names only, never colors typed in by hand. The names are the ones app.css uses. */
+/* The app's shared look: colors, spacing, corners, type and the theme's variables (the default "Indigo" colour set;
+   core/theme.js changes them at run time). Components use these names only, never colors typed in by hand. */
+
 :root {
   color-scheme: light;
-  --acc: #4355b9; --accc: #dee0ff; --onc: #0b1550; --bg: #fbf8fd; --acc2: #7b4fb8; --on: #ffffff;
-  --tx: #1b1b22; --tx2: #5a5865; --pos: #1b7f4b; --neg: #c0392b; --warn: #e68a00;
-  --s1: color-mix(in srgb, var(--tx) 3%, var(--bg)); --s2: color-mix(in srgb, var(--tx) 7%, var(--bg)); --ol: color-mix(in srgb, var(--tx) 11%, transparent);
-  --c0: #4355b9; --c1: #c2185b; --c2: #e68a00; --c3: #00897b; --c4: #7cb342; --c5: #8e24aa; --c6: #546e7a;
+  --acc: #4355b9;
+  --accc: #dee0ff;
+  --onc: #0b1550;
+  --bg: #fbf8fd;
+  --acc2: #7b4fb8;
+  --on: #ffffff;
+  --tx: #1b1b22;
+  --tx2: #5a5865;
+  --pos: #1b7f4b;
+  --neg: #c0392b;
+  --warn: #e68a00;
+  --s1: color-mix(in srgb, var(--tx) 3%, var(--bg));
+  --s2: color-mix(in srgb, var(--tx) 7%, var(--bg));
+  --ol: color-mix(in srgb, var(--tx) 11%, transparent);
+  --c0: #4355b9;
+  --c1: #c2185b;
+  --c2: #e68a00;
+  --c3: #00897b;
+  --c4: #7cb342;
+  --c5: #8e24aa;
+  --c6: #546e7a;
   --font: Inter, "Segoe UI", Roboto, system-ui, sans-serif;
-  --r: 22px; --r-sm: 12px; --r-md: 16px; --r-sheet: 26px; --pill: 99px;
-  --fs-xs: 11px; --fs-sm: 12.5px; --fs: 14px; --fs-lg: 16px; --fs-h1: 30px; --fs-val: 32px;
-  --shadow-pop: 0 14px 34px -12px rgba(0, 0, 0, .5); --shadow-sheet: 0 30px 80px -20px #000a; --scrim: #0007;
+  --r: 22px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-sheet: 26px;
+  --pill: 99px;
+  --fs-xs: 11px;
+  --fs-sm: 12.5px;
+  --fs: 14px;
+  --fs-lg: 16px;
+  --fs-h1: 30px;
+  --fs-val: 32px;
+  --shadow-pop: 0 14px 34px -12px rgba(0, 0, 0, .5);
+  --shadow-sheet: 0 30px 80px -20px #000a;
+  --scrim: #0007;
   --ease: cubic-bezier(.2, .8, .2, 1);
-  --sb: env(safe-area-inset-bottom, 0px); --st: env(safe-area-inset-top, 0px);
+  --sb: env(safe-area-inset-bottom, 0px);
+  --st: env(safe-area-inset-top, 0px);
 }
+
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --acc: #b9c3ff; --accc: #2d3f9e; --onc: #dee0ff; --bg: #111218; --acc2: #c7a6ff; --on: #0b1550;
-    --tx: #e6e4ea; --tx2: #a9a7b3; --pos: #6fd69b; --neg: #ff9c8f;
-    --s1: color-mix(in srgb, var(--tx) 5%, var(--bg)); --s2: color-mix(in srgb, var(--tx) 10%, var(--bg)); --ol: color-mix(in srgb, var(--tx) 13%, transparent);
-    --c0: #9fb0ff; --c1: #f48fb1; --c2: #ffcc80; --c3: #80cbc4; --c4: #c5e1a5; --c5: #ce93d8; --c6: #b0bec5;
+    --acc: #b9c3ff;
+    --accc: #2d3f9e;
+    --onc: #dee0ff;
+    --bg: #111218;
+    --acc2: #c7a6ff;
+    --on: #0b1550;
+    --tx: #e6e4ea;
+    --tx2: #a9a7b3;
+    --pos: #6fd69b;
+    --neg: #ff9c8f;
+    --s1: color-mix(in srgb, var(--tx) 5%, var(--bg));
+    --s2: color-mix(in srgb, var(--tx) 10%, var(--bg));
+    --ol: color-mix(in srgb, var(--tx) 13%, transparent);
+    --c0: #9fb0ff;
+    --c1: #f48fb1;
+    --c2: #ffcc80;
+    --c3: #80cbc4;
+    --c4: #c5e1a5;
+    --c5: #ce93d8;
+    --c6: #b0bec5;
   }
+}
+
+:root {
+  --gi: 1;
+  --bg-glow: radial-gradient(70% 58% at 8% -8%,color-mix(in srgb,var(--acc) calc(20% * var(--gi)),transparent),transparent),radial-gradient(58% 58% at 100% 0,color-mix(in srgb,var(--acc2) calc(16% * var(--gi)),transparent),transparent),var(--bg);
+  --bg-mesh: radial-gradient(69% 67% at 0 0,color-mix(in srgb,var(--acc) calc(26% * var(--gi)),transparent),transparent 60%),radial-gradient(62% 67% at 100% 0,color-mix(in srgb,var(--acc2) calc(22% * var(--gi)),transparent),transparent 60%),radial-gradient(69% 78% at 100% 100%,color-mix(in srgb,var(--acc) calc(18% * var(--gi)),transparent),transparent 60%),radial-gradient(62% 67% at 0 100%,color-mix(in srgb,var(--acc2) calc(16% * var(--gi)),transparent),transparent 60%),var(--bg);
+  --bg-diagonal: linear-gradient(155deg,color-mix(in srgb,var(--acc) calc(22% * var(--gi)),var(--bg)) 0%,var(--bg) 42%,color-mix(in srgb,var(--acc2) calc(18% * var(--gi)),var(--bg)) 100%);
+  --bg-spot: radial-gradient(85% 72% at 50% -8%,color-mix(in srgb,var(--acc) calc(30% * var(--gi)),transparent),transparent 70%),var(--bg);
+  --bg-flat: var(--bg);
+}
+
+/* spacing: the gap between blocks and sections (density above is the space inside them) */
+
+html {
+  --spg: 16px;
+  --hg: 10px;
+}
+
+:root {
+  --inc: var(--acc);
+  --exp: color-mix(in srgb,var(--c1) 80%,var(--acc2));
+}
+
+/* ===== background textures: a layer of its own, with its own density ===== */
+
+:root {
+  --tsc: 1;
+  --noiseT: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1.4 0 0 0 -.2 1.4 0 0 0 -.2 1.4 0 0 0 -.2 0 0 0 0 .13'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1.4 0 0 0 -.2 1.4 0 0 0 -.2 1.4 0 0 0 -.2 0 0 0 0 .2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
