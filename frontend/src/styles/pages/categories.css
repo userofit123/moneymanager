@@ -1,11 +1,5 @@
 /* The Categories page. Loaded with the page (views/Categories.vue imports it). */
 
-.mgrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 10px;
-}
-
 .mic {
   width: 36px;
   height: 36px;
@@ -17,31 +11,6 @@
   font-size: 15px;
   background: color-mix(in srgb, var(--mc) 20%, transparent);
   color: var(--mc);
-}
-
-.mb {
-  border: 0;
-  background: none;
-  color: var(--tx2);
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
-  cursor: pointer;
-  font: inherit;
-  font-size: 16px;
-  line-height: 1;
-  opacity: .85;
-  transition: .15s;
-}
-
-.mrow:hover .mb,
-.mb:focus-visible {
-  opacity: 1;
-}
-
-.mb:hover {
-  background: var(--s2);
-  color: var(--tx);
 }
 
 .rtool .rnew {
@@ -60,6 +29,20 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+/* the tabs and the time looked at, side by side (one under the other when narrow) */
+.cstop {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cstop > .seg {
+  margin: 0;
 }
 
 #catTabs {
@@ -84,4 +67,340 @@
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+#catMonths button {
+  white-space: nowrap;
+}
+
+/* ---- the totals ---- */
+.cstot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.cstn {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cstn > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 14px;
+  border-radius: var(--r-sm);
+  background: var(--s2);
+  min-width: 96px;
+}
+
+.cstn span {
+  font-size: var(--fs-xs);
+  color: var(--tx2);
+}
+
+.cstn b {
+  font-size: var(--fs-lg);
+}
+
+.csempty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 2px 8px;
+}
+
+/* ---- the list: a table on wide screens, stacked rows when narrow ---- */
+.csl {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.csh,
+.csm {
+  display: grid;
+  grid-template-columns: 36px minmax(150px, 1.7fr) repeat(4, minmax(76px, .8fr)) minmax(140px, 1.3fr) 34px;
+  gap: 12px;
+  align-items: center;
+}
+
+.csh {
+  padding: 0 12px;
+  font-size: var(--fs-xs);
+  color: var(--tx2);
+  font-weight: 600;
+}
+
+.csh > span:nth-child(n+3):nth-child(-n+6),
+.csv {
+  text-align: end;
+}
+
+.mrow.csr {
+  display: block;
+  padding: 0;
+  min-height: 0;
+}
+
+.mrow.csr.open {
+  border-color: color-mix(in srgb, var(--mc) 45%, var(--ol));
+}
+
+.csm {
+  padding: 10px 12px;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.csm:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: -2px;
+}
+
+.csn {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.csnums {
+  display: contents;
+}
+
+.csv .cl {
+  display: none;
+}
+
+.csv b {
+  font-weight: 600;
+}
+
+.cslink {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--acc);
+  cursor: pointer;
+}
+
+.cslink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* the change against the months before: red for more spending (or less income), green for the other way */
+.csc {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--fs-sm);
+  color: var(--tx2);
+  line-height: 1.3;
+}
+
+.csc svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.csc svg.dn {
+  transform: rotate(180deg);
+}
+
+.csc.bad {
+  color: var(--neg);
+}
+
+.csc.good {
+  color: var(--pos);
+}
+
+.csm .jmore {
+  border: 0;
+  background: none;
+  color: var(--tx2);
+}
+
+.csm .jmore:hover,
+.csm .jmore[data-open] {
+  background: var(--s2);
+  color: var(--tx);
+}
+
+/* ---- the open row ---- */
+.csx {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 14px 24px;
+  padding: 14px 0;
+  border-top: 1px solid var(--ol);
+  margin: 0 12px;
+  cursor: default;
+}
+
+.csx .lbl {
+  margin-bottom: 6px;
+}
+
+.csre {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--tx);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.csre:hover:not(:disabled) {
+  background: var(--s2);
+}
+
+.csre:disabled {
+  cursor: default;
+  color: var(--tx);
+}
+
+.csen {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.csbars {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 120px;
+}
+
+.csb {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.csbw {
+  flex: 1;
+  width: 100%;
+  max-width: 34px;
+  display: flex;
+  align-items: flex-end;
+}
+
+.csbw i {
+  display: block;
+  width: 100%;
+  min-height: 2px;
+  border-radius: 6px 6px 2px 2px;
+  background: var(--mc);
+  opacity: .85;
+}
+
+.csb:hover .csbw i {
+  opacity: 1;
+}
+
+.csb small {
+  font-size: 10.5px;
+  color: var(--tx2);
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.csgo {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* narrow: the numbers go under the name, two by two */
+@container (max-width: 720px) {
+  .csh {
+    display: none;
+  }
+
+  .csm {
+    grid-template-columns: 36px minmax(0, 1fr) 34px;
+    row-gap: 8px;
+  }
+
+  .csnums {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 6px 12px;
+    padding-inline-start: 48px;
+  }
+
+  .csv {
+    text-align: start;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .csv .cl {
+    display: block;
+    font-size: var(--fs-xs);
+    color: var(--tx2);
+  }
+
+  .csc {
+    grid-column: 1 / -1;
+  }
+
+  .csx {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container (max-width: 380px) {
+  .csnums {
+    padding-inline-start: 0;
+  }
+}
+
+/* a row with nothing in the months looked at stays quieter */
+.mrow.csr.zero:not(.open) .csnums {
+  opacity: .55;
+}
+
+.csper > .seg {
+  margin: 0;
+}
+
+.mt small .nw {
+  white-space: nowrap;
 }

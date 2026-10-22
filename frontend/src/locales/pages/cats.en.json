@@ -17,26 +17,19 @@
   "typeName": "Type a name first",
   "c": {
     "title": "Categories",
-    "desc": "Click a category to see its activity. Deleting one never deletes transactions.",
-    "count": "{n} transaction | {n} transactions",
-    "renameAria": "Rename {k}",
-    "renameTip": "Rename this category",
-    "delAria": "Delete {k}",
-    "delTip": "Delete this category",
+    "desc": "What went out and came in for each category over the time you pick. Click a row to see more.",
     "renTitle": "Rename category",
     "renText": "Changes it on every transaction, rule, budget, bill and jar. If a category with the new name already exists, the two become one.",
     "reserved": "That name is reserved.",
     "mergeQ": "\"{ex}\" already exists. Merge \"{k}\" into it?",
     "renamed": "Renamed to {n}",
     "delQ": "Delete \"{k}\"? Its transactions become uncategorized, and its rules and budget are removed.",
-    "goRules": "Go to category rules"
+    "goRules": "Go to category rules",
+    "none": "No categories yet."
   },
   "g": {
     "title": "Tags",
-    "desc": "Click a tag to see its activity. Rename a tag to change it everywhere; renaming it to a tag that exists merges the two. Deleting a tag never deletes transactions.",
-    "byRule": "{n} transaction · added by a rule | {n} transactions · added by a rule",
-    "renameTip": "Rename this tag",
-    "delTip": "Delete this tag",
+    "desc": "What went out and came in for each tag over the time you pick. Click a row to see more.",
     "none": "No tags yet.",
     "appear": "Tags appear here once a transaction has one. Add tags when you open a transaction, or let a tag rule add them automatically.",
     "goRules": "Go to tag rules",
@@ -45,5 +38,58 @@
     "renamed": "Renamed to #{n}",
     "delQ": "Delete the tag \"{g}\"? It is removed from {n} transaction and from tag rules. The transactions stay. | Delete the tag \"{g}\"? It is removed from {n} transactions and from tag rules. The transactions stay."
   },
-  "rulesAt": "Rules that sort entries automatically are in Settings → Automatic sorting."
+  "rulesAt": "Rules that sort entries automatically are in Settings → Automatic sorting.",
+  "period": {
+    "label": "Time to look at",
+    "m3": "3 months",
+    "m6": "6 months",
+    "m12": "12 months",
+    "range": "Last {n} full months: {from} to {to}"
+  },
+  "tot": {
+    "out": "Money out",
+    "in": "Money in",
+    "net": "In minus out"
+  },
+  "col": {
+    "cat": "Category",
+    "tag": "Tag",
+    "out": "Money out",
+    "in": "Money in",
+    "net": "In minus out",
+    "avg": "Usual month",
+    "change": "Against the time before"
+  },
+  "row": {
+    "n": "{n} transaction | {n} transactions",
+    "last": "last on {d}",
+    "nothing": "Nothing in these months",
+    "budget": "Budget {amt} a month",
+    "rules": "{n} rule | {n} rules",
+    "rulesTip": "Rules that put transactions here. Click to see them in Settings.",
+    "avgTip": "The money out (for income: the money in) divided by the number of months."
+  },
+  "chg": {
+    "more": "{amt} more than the {n} months before",
+    "less": "{amt} less than the {n} months before",
+    "same": "About the same as the {n} months before",
+    "none": "Nothing before to compare with"
+  },
+  "open": {
+    "recent": "Latest transactions",
+    "byMonth": "Month by month",
+    "monthTip": "{m}: {out} out, {in} in. Click to see them in Activity.",
+    "seeAll": "See all in Activity",
+    "noTx": "No transactions yet.",
+    "budgets": "Go to Budgets"
+  },
+  "menu": {
+    "aria": "More for {k}",
+    "rename": "Rename or merge",
+    "del": "Delete"
+  },
+  "ai": {
+    "text": "An AI can suggest categories and tags from the names of your own transactions.",
+    "go": "Set up with an AI"
+  }
 }
