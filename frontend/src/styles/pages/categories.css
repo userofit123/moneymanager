@@ -243,6 +243,11 @@
   transform: translateY(-4.5px);
 }
 
+.cssort.asc svg,
+.cssort.desc svg {
+  translate: 0 1.5px; /* level with the middle of the letters, not the top of the line */
+}
+
 .csh .cscols {
   width: 34px;
   height: 34px;
