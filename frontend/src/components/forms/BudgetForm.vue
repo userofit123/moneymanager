@@ -1,5 +1,6 @@
 <script setup>
-// "Add a budget": a category and its monthly limit, with a suggested amount from past months. k: the category to start with.
+// "Add a budget": a category and its monthly limit, with a suggested amount from past months. k: the category to start with;
+// a: an amount to start with instead of the suggestion (the person can still change it).
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
@@ -9,13 +10,13 @@ import { categoryName } from "../../catnames.js";
 import { useFormSheet } from "../../core/useFormSheet.js";
 import BaseSheet from "../BaseSheet.vue";
 
-const props = defineProps({ k: { type: String, default: "" } });
+const props = defineProps({ k: { type: String, default: "" }, a: { type: [Number, String], default: "" } });
 const emit = defineEmits(["close"]);
 const { open, close } = useFormSheet(emit);
 const { t, locale } = useI18n();
 const M = budgets.value;
-const sug = formSuggestion(M, props.k || "");
-const f = ref({ k: props.k || formCategories(M, props.k || "")[0] || "", a: sug, sug: !!sug });
+const sug = props.a ? "" : formSuggestion(M, props.k || "");
+const f = ref({ k: props.k || formCategories(M, props.k || "")[0] || "", a: props.a || sug, sug: !!sug });
 const cats = computed(() => formCategories(budgets.value, f.value.k));
 function save() { const x = f.value; if (!x.k || !+x.a) return; close(); data.change((n) => setBudget(n, x.k, x.a)); }
 </script>

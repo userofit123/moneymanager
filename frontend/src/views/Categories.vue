@@ -15,10 +15,10 @@ import { openTx } from "../core/txwin.js";
 import { go } from "../router.js";
 import { catNames, catColor, catLabel } from "../core/cats.js";
 import { searches, useRowSearch } from "../core/rowSearch.js";
-import { fm } from "../format.js";
+import { fm, formatMoney } from "../format.js";
 import { dcell } from "../dates.js";
 import { displayName } from "../lib/activity.js";
-import { catStats, shownCols, toggleCol, colValue, CAT_COLS, CAT_COLS_START } from "../lib/catStats.js";
+import { catStats, shownCols, toggleCol, colValue, moneyCell, totalCell, CAT_COLS, CAT_COLS_START } from "../lib/catStats.js";
 import { nextSort, ariaSort, sortRows } from "../lib/sortRows.js";
 import { openForm } from "../core/forms.js";
 import PageHeader from "../components/PageHeader.vue";
@@ -56,7 +56,10 @@ const nM = computed(() => (MONTHS.includes(+months.value) ? +months.value : 6));
 const ST = computed(() => (S.value && home.value ? catStats(S.value, home.value.rows, now.value, nM.value) : null));
 const loc = computed(() => (locale.value === "he" ? "he-IL" : "en-GB"));
 const monthName = (m, o) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, o);
-const rangeText = computed(() => (ST.value ? t("cats.period.range", { n: nM.value, from: monthName(ST.value.from, { month: "short", year: "numeric" }), to: monthName(ST.value.to, { month: "short", year: "numeric" }) }) : ""));
+// the period in words, for the card's line and the column tips: { n: 6, from: "Apr 2026", to: "Sept 2026" }
+const periodWords = computed(() => (ST.value ? { n: nM.value, from: monthName(ST.value.from, { month: "short", year: "numeric" }), to: monthName(ST.value.to, { month: "short", year: "numeric" }) } : {}));
+// money with its sign: + in, − out (lib/catStats.js moneyCell says which and the colour)
+const signed = (v) => formatMoney(v, { sign: true });
 
 // ---- one row ----
 // The change against the months before, in plain words; more spending (or less income) shows in red.
@@ -99,8 +102,9 @@ const COLW = { change: "minmax(120px, 1.5fr)", budget: "minmax(104px, 1.1fr)", l
 // tags have no budget, so the Tags tab leaves that column out
 const colsOf = (tab) => (tab == "tags" ? cols.value.filter((c) => c != "budget") : cols.value);
 const grid = (tab) => ["36px", "minmax(140px, 1.6fr)", ...colsOf(tab).map((c) => COLW[c] || "minmax(68px, .8fr)"), "34px"].join(" ");
-const COLTIP = { thisM: "cats.row.thisTip", lastM: "cats.row.lastTip", avg: "cats.row.avgTip" };
-const colTip = (c) => (COLTIP[c] ? t(COLTIP[c]) : null);
+// a column's title and tip; the period columns name the months picked above
+const colHead = (c) => t("cats.col." + c, { n: nM.value });
+const colTip = (c) => t("cats.tip." + c, periodWords.value);
 // one sort per tab, not remembered; a column that is hidden is no longer sorted by
 const sorts = ref({ cats: null, tags: null });
 const sortBy = (tab, key) => { sorts.value[tab] = nextSort(sorts.value[tab], key); };
@@ -110,7 +114,8 @@ function sorted(tab) {
   return sortRows(L.L.rows, s, (r, c) => (c == "name" ? L.name(r.k) : colValue(r, c)), new Intl.Collator(loc.value, { sensitivity: "base", numeric: true }));
 }
 const sortIs = (tab, key) => { const s = sorts.value[tab]; return s && s.key == key ? s.ord : ""; };
-const setBudget = (k) => openForm("budget", { k });
+// a new budget starts at the row's usual month (rounded like suggested budgets); it can be changed before saving
+const setBudget = (r) => openForm("budget", { k: r.k, a: r.sugBudget });
 
 // ---- Categories ----
 const names = computed(() => (S.value ? catNames(S.value) : []));
@@ -177,21 +182,19 @@ const LISTS = computed(() => (ST.value ? {
           <div v-else class="rtool"><input v-model="searches.tags" class="rsearch" type="search" :placeholder="t('cats.search.tags')" :aria-label="t('cats.search.label')" autocomplete="off"><input id="ntg" v-model="newTag" @keydown.enter.prevent="tagAdd" class="rnew" :placeholder="t('cats.search.newTag')" maxlength="60" autocomplete="off"><button type="button" class="btn s" @click="tagAdd">{{ t("cats.search.addTag") }}</button></div>
           <div v-if="tab == 'cats' ? noneCats : noneTags" class="rsnone sm">{{ t("cats.search.none", { q: tab == "cats" ? noneCats : noneTags }) }}</div>
           <div class="card ss">
-            <SetHead icon="tag" :title="t(tab == 'cats' ? 'cats.c.title' : 'cats.g.title')" :desc="t(tab == 'cats' ? 'cats.c.desc' : 'cats.g.desc')" :count="LISTS[tab].L.rows.length" />
-            <div class="ssb p">
+            <SetHead class="cshd" icon="tag" :title="t(tab == 'cats' ? 'cats.c.title' : 'cats.g.title')" :desc="t(tab == 'cats' ? 'cats.c.desc' : 'cats.g.desc', periodWords)" :count="LISTS[tab].L.rows.length">
               <!-- the totals for the time looked at -->
-              <div class="cstot">
-                <div class="sm csrange">{{ rangeText }}</div>
-                <div class="cstn"><div><span>{{ t("cats.tot.out") }}</span><b class="num">{{ fm(LISTS[tab].L.totals.out) }}</b></div><div><span>{{ t("cats.tot.in") }}</span><b class="num">{{ fm(LISTS[tab].L.totals.in) }}</b></div><div><span>{{ t("cats.tot.net") }}</span><b class="num" :class="{ neg: LISTS[tab].L.totals.net < 0 }">{{ fm(LISTS[tab].L.totals.net) }}</b></div></div>
-              </div>
+              <div class="cstn"><div v-for="c in ['out', 'in', 'net']" :key="c"><span>{{ t("cats.tot." + c) }}</span><b class="num" :class="totalCell(LISTS[tab].L.totals, c).cls">{{ signed(totalCell(LISTS[tab].L.totals, c).v) }}</b></div></div>
+            </SetHead>
+            <div class="ssb p">
 
               <div v-if="tab == 'cats' ? noCats : !LISTS.tags.L.rows.length" class="csempty"><div class="sm">{{ tab == "cats" ? t("cats.c.none") : t("cats.g.none") }}</div><div v-if="tab == 'tags'" class="sm">{{ t("cats.g.appear") }}</div><div class="sm">{{ t("cats.ai.text") }}</div><button type="button" class="btn o s" @click="goRules('ai')">{{ t("cats.ai.go") }}</button></div>
 
               <div v-if="LISTS[tab].L.rows.length" class="csl" :style="{ '--csg': grid(tab) }">
                 <!-- the column titles: a click sorts by that column (small to large, large to small, the usual order) -->
                 <div role="table" class="cshw" :aria-label="t(tab == 'cats' ? 'cats.c.title' : 'cats.g.title')"><div role="row" class="csh">
-                  <span role="columnheader" class="c-name" :aria-sort="ariaSort(sorts[tab], 'name')"><button type="button" class="cssort" :class="sortIs(tab, 'name')" @click="sortBy(tab, 'name')">{{ LISTS[tab].head }}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" /></svg></button></span>
-                  <span v-for="c in colsOf(tab)" :key="c" role="columnheader" :aria-sort="ariaSort(sorts[tab], c)" :class="'c-' + c"><button type="button" class="cssort" :class="sortIs(tab, c)" :data-tip="colTip(c)" @click="sortBy(tab, c)">{{ t("cats.col." + c) }}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" /></svg></button></span>
+                  <span role="columnheader" class="c-name" :aria-sort="ariaSort(sorts[tab], 'name')"><button type="button" class="cssort" :class="sortIs(tab, 'name')" :data-tip="colTip(tab == 'cats' ? 'cat' : 'tag')" @click="sortBy(tab, 'name')">{{ LISTS[tab].head }}<svg viewBox="0 0 24 24" aria-hidden="true"><path class="su" d="M8 9.5l4-4 4 4" /><path class="sd" d="M8 14.5l4 4 4-4" /></svg></button></span>
+                  <span v-for="c in colsOf(tab)" :key="c" role="columnheader" :aria-sort="ariaSort(sorts[tab], c)" :class="'c-' + c"><button type="button" class="cssort" :class="sortIs(tab, c)" :data-tip="colTip(c)" @click="sortBy(tab, c)">{{ colHead(c) }}<svg viewBox="0 0 24 24" aria-hidden="true"><path class="su" d="M8 9.5l4-4 4 4" /><path class="sd" d="M8 14.5l4 4 4-4" /></svg></button></span>
                   <span><button type="button" class="ib jmore cscols" :aria-label="t('cats.cols.aria')" :data-tip="t('cats.cols.aria')" aria-haspopup="menu" @click="colMenu = colMenu ? null : $event.currentTarget"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2" /><path d="M10 5v14M15 5v14" /></svg></button></span>
                 </div></div>
                 <div v-for="r in sorted(tab)" :key="r.k" class="mrow csr" :class="{ open: open == tab + ':' + r.k, zero: !r.n }" :style="{ '--mc': LISTS[tab].color(r.k) }">
@@ -202,15 +205,15 @@ const LISTS = computed(() => (ST.value ? {
                       <div v-for="c in colsOf(tab)" :key="c" :class="c == 'change' ? ['csc', change(r).cls] : ['csv', 'c-' + c]">
                         <template v-if="c == 'change'"><svg v-if="change(r).cls == 'good' || change(r).cls == 'bad'" viewBox="0 0 24 24" aria-hidden="true" :class="{ dn: !change(r).up }"><path d="M12 19V5M6 11l6-6 6 6" /></svg><span>{{ change(r).text }}</span></template>
                         <template v-else>
-                          <span class="cl">{{ t("cats.col." + c) }}</span>
+                          <span class="cl">{{ colHead(c) }}</span>
                           <template v-if="c == 'budget'">
                             <template v-if="r.budget"><button type="button" class="cslink" v-tip="t('cats.bud.tip')" @click.stop="go('/budgets')">{{ t("cats.bud.amt", { amt: fm(r.budget) }) }}</button><small class="csbu">{{ t("cats.bud.used", { amt: fm(r.thisOut) }) }}</small></template>
-                            <button v-else-if="r.canBudget" type="button" class="cslink" @click.stop="setBudget(r.k)">{{ t("cats.bud.set") }}</button>
+                            <button v-else-if="r.canBudget" type="button" class="cslink" @click.stop="setBudget(r)">{{ t("cats.bud.set") }}</button>
                           </template>
                           <template v-else-if="c == 'rules'"><button v-if="r.rules" type="button" class="cslink" v-tip="t('cats.row.rulesTip')" @click.stop="goRules(LISTS[tab].rules)">{{ r.rules }}</button><b v-else class="num">0</b></template>
                           <b v-else-if="c == 'last'" class="num">{{ r.last ? dcell(r.last) : "" }}</b>
                           <b v-else-if="c == 'n'" class="num">{{ r.n }}</b>
-                          <b v-else class="num" :class="{ neg: c == 'net' && r.net < 0 }">{{ fm(r[c]) }}</b>
+                          <b v-else class="num" :class="moneyCell(r, c).cls">{{ signed(moneyCell(r, c).v) }}</b>
                         </template>
                       </div>
                     </div>
@@ -248,7 +251,7 @@ const LISTS = computed(() => (ST.value ? {
 
   <!-- which columns the list shows -->
   <PopMenu :at="colMenu" @close="colMenu = null">
-    <button v-for="c in CAT_COLS" :key="c" role="menuitemcheckbox" :aria-checked="cols.includes(c)" class="cscol" @click="flipCol(c)"><svg viewBox="0 0 24 24" aria-hidden="true"><path v-if="cols.includes(c)" d="M5 12l5 5 9-10" /></svg>{{ t("cats.col." + c) }}</button>
+    <button v-for="c in CAT_COLS" :key="c" role="menuitemcheckbox" :aria-checked="cols.includes(c)" class="cscol" @click="flipCol(c)"><svg viewBox="0 0 24 24" aria-hidden="true"><path v-if="cols.includes(c)" d="M5 12l5 5 9-10" /></svg>{{ colHead(c) }}</button>
   </PopMenu>
 
   <!-- Rename a category or a tag -->

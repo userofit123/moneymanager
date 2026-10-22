@@ -5,6 +5,7 @@
 // A payment moved to another month counts in that month (rdOf), like on Reports.
 import { addM, rdOf } from "./home.js";
 import { allTags, ruleTags } from "./activity.js";
+import { roundBudget } from "./budgets.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
 const CNC = new Intl.Collator(undefined, { sensitivity: "base" });
@@ -44,7 +45,8 @@ function build(names, rows, P, keyOf, mainOf, extra) {
   const n = P.keys.length, list = [...at.values()].map((r) => {
     const main = mainOf(r), now = main == "in" ? r.in : r.out, before = main == "in" ? r.prevIn : r.prevOut;
     const thisM = main == "in" ? r.thisIn : r.thisOut, lastM = main == "in" ? r.lastIn : r.lastOut;
-    return { ...r, main, net: r.in - r.out, avg: now / n, avgOut: r.out / n, avgIn: r.in / n, change: now - before, thisM, lastM, ...extra(r.k) };
+    const avg = now / n, high = (v) => main == "out" && v > 0 && v > avg; // spending above the usual month
+    return { ...r, main, net: r.in - r.out, avg, avgOut: r.out / n, avgIn: r.in / n, change: now - before, thisM, lastM, thisHigh: high(thisM), lastHigh: high(lastM), ...extra(r.k) };
   });
   return { rows: list, totals: { out: tot.out, in: tot.in, net: tot.in - tot.out } };
 }
@@ -62,8 +64,9 @@ export function catStats(S, rows, now, months = 6) {
 
   const C = build(Object.keys(cats), rows, P, (t) => [t.c || "Uncategorized"], mainOf,
     (k) => ({ inc: isInc(k), budget: budgets[k] || 0, canBudget: !isInc(k) && !NO_BUDGET.includes(k), rules: crules(k) }));
-  // no budget for money that comes in (an income category, or one with only money in)
-  for (const r of C.rows) if (r.main == "in") r.canBudget = false;
+  // no budget for money that comes in (an income category, or one with only money in);
+  // a new budget starts at the usual month, rounded like suggested budgets ("" when too small: the form suggests its own)
+  for (const r of C.rows) { if (r.main == "in") r.canBudget = false; r.sugBudget = roundBudget(r.avg) || ""; }
   // spending first (largest first), then income, Uncategorized last; names in order when the money is the same
   const rank = (r) => (r.k == "Uncategorized" ? 2 : r.main == "in" ? 1 : 0);
   C.rows.sort((a, b) => rank(a) - rank(b) || (a.main == "in" ? b.in - a.in : b.out - a.out) || CNC.compare(a.k, b.k));
@@ -89,3 +92,16 @@ export function colValue(r, c) {
   if (c == "budget") return r.budget || null;
   return r[c] ?? null;
 }
+
+// How a money cell shows: the amount with its sign (money in +, money out −) and its colour.
+// Money in is green; money out stays plain, except this month and last month when they are above the usual month (red).
+export function moneyCell(r, c) {
+  if (c == "out") return { v: -r.out, cls: "" };
+  if (c == "in") return { v: r.in, cls: r.in > 0 ? "pos" : "" };
+  if (c == "net") return { v: r.net, cls: r.net > 0 ? "pos" : r.net < 0 ? "neg" : "" };
+  const x = r[c] || 0;
+  if (r.main == "in") return { v: x, cls: x > 0 ? "pos" : "" };
+  return { v: -x, cls: (c == "thisM" && r.thisHigh) || (c == "lastM" && r.lastHigh) ? "neg" : "" };
+}
+// The totals boxes: out, in and in minus out, signed and coloured like the cells.
+export const totalCell = (T, c) => moneyCell({ out: T.out, in: T.in, net: T.net }, c);

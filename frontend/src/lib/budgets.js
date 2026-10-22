@@ -55,7 +55,9 @@ export function budgetsModel(S, now = new Date()) {
   return { ...st, DAYN, DIM, spend, hist, budMonths, M, info, fresh, review, billsIn, catJars, catNames, un, totL, totS, budgetNo, budgets, bills: BC };
 }
 // The suggested limit shown when adding a budget: the average of the last three months, to the nearest 50 (only for the biggest categories).
-export const formSuggestion = (m, k) => (m.hist.cat[k] ? Math.round(m.hist.cat[k].slice(2, 5).reduce((a, b) => a + b, 0) / 3 / 50) * 50 : "");
+// A monthly amount rounded the way suggested budgets are: to the nearest 50.
+export const roundBudget = (v) => Math.round(v / 50) * 50;
+export const formSuggestion = (m, k) => (m.hist.cat[k] ? roundBudget(m.hist.cat[k].slice(2, 5).reduce((a, b) => a + b, 0) / 3) : "");
 // The categories that can still get a budget, with the chosen one always present.
 export const formCategories = (m, k) => m.catNames.filter((c) => (!["Income", "Uncategorized"].includes(c) && !(c in m.budgets)) || c == k);
 

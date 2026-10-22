@@ -3,7 +3,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { homeModel } from "../src/lib/home.js";
-import { catStats, periodOf, shownCols, toggleCol, colValue, CAT_COLS } from "../src/lib/catStats.js";
+import { catStats, periodOf, shownCols, toggleCol, colValue, moneyCell, totalCell, CAT_COLS } from "../src/lib/catStats.js";
 
 const NOW = new Date(2026, 9, 17, 12);
 const tx = (id, d, desc, a, c = "", tags = [], o = {}) => ({ id, d, desc, from: "Bank", to: desc, a, c, tags, docs: [], note: "", ...o });
@@ -98,4 +98,25 @@ test("the columns shown: the first ones, the remembered ones in the list's order
 test("what a column sorts by: empty dates and budgets are nothing", () => {
   const R = run(), f = row(R.cats, "Food"), e = row(R.cats, "Empty");
   assert.deepEqual([colValue(f, "out"), colValue(f, "budget"), colValue(f, "last"), colValue(e, "budget"), colValue(e, "last"), colValue(e, "n")], [600, 1000, "2026-10-02", null, null, 0]);
+});
+
+test("spending above the usual month: this month and last month are flagged (never for money in)", () => {
+  const R = run(), f = row(R.cats, "Food"), u = row(R.cats, "Uncategorized"), s = row(R.cats, "Salary");
+  assert.deepEqual([f.thisHigh, f.lastHigh], [false, false]); // 70 and 100 against a usual 200
+  assert.deepEqual([u.thisHigh, u.lastHigh], [false, true]); // 40 last month against a usual 13
+  assert.deepEqual([s.thisHigh, s.lastHigh], [false, false]); // income is never red
+});
+
+test("money cells: money in is + and green, money out is − and red only when above the usual month", () => {
+  const R = run(), f = row(R.cats, "Food"), u = row(R.cats, "Uncategorized"), s = row(R.cats, "Salary");
+  assert.deepEqual(["thisM", "lastM", "avg", "out", "in", "net"].map((c) => moneyCell(f, c)),
+    [{ v: -70, cls: "" }, { v: -100, cls: "" }, { v: -200, cls: "" }, { v: -600, cls: "" }, { v: 50, cls: "pos" }, { v: -550, cls: "neg" }]);
+  assert.deepEqual(moneyCell(u, "lastM"), { v: -40, cls: "neg" });
+  assert.deepEqual([moneyCell(s, "lastM"), moneyCell(s, "thisM")], [{ v: 5000, cls: "pos" }, { v: 0, cls: "" }]);
+  assert.deepEqual(["out", "in", "net"].map((c) => totalCell(R.cats.totals, c)), [{ v: -720, cls: "" }, { v: 5150, cls: "pos" }, { v: 4430, cls: "pos" }]);
+});
+
+test("a new budget starts at the usual month, to the nearest 50", () => {
+  const R = run();
+  assert.deepEqual(["Food", "Fun", "Uncategorized"].map((k) => row(R.cats, k).sugBudget), [200, 50, ""]);
 });

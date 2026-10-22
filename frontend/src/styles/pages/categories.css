@@ -73,20 +73,44 @@
   white-space: nowrap;
 }
 
-/* ---- the totals ---- */
-.cstot {
-  display: flex;
+/* ---- the card's title line: the title and its line, then the totals at the end (under the title when narrow) ---- */
+.ssh.cshd {
   flex-wrap: wrap;
-  gap: 8px 20px;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
+  row-gap: 12px;
+}
+
+.ssh.cshd > div:not(.cstn) {
+  flex: 1 1 240px;
 }
 
 .cstn {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.ssh.cshd > .cstn {
+  flex: none;
+  margin-inline-start: auto;
+}
+
+/* a phone: the totals take their own line under the title, three side by side */
+@media (max-width: 560px) {
+  .ssh.cshd > .cstn {
+    flex: 1 1 100%;
+    margin-inline-start: 0;
+    flex-wrap: nowrap;
+  }
+
+  .ssh.cshd .cstn > div {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 8px 10px;
+  }
+
+  .ssh.cshd .cstn b {
+    font-size: 14px;
+  }
 }
 
 .cstn > div {
@@ -104,8 +128,9 @@
   color: var(--tx2);
 }
 
-.cstn b {
+.ssh .cstn b {
   font-size: var(--fs-lg);
+  font-weight: 650;
 }
 
 .csempty {
@@ -149,12 +174,12 @@
   grid-column: span 2;
 }
 
-.csh > span[class*="c-"]:not(.c-change):not(.c-name),
-.csv {
+.csh > span[class*="c-"]:not(.c-change):not(.c-name):not(.c-budget),
+.csv:not(.c-budget) {
   text-align: end;
 }
 
-/* a column title: a click sorts by it; the arrow shows on the sorted column only */
+/* a column title: a click sorts by it; a quiet up-and-down icon, only up or only down (in the accent colour) when sorted */
 .cssort {
   display: inline-flex;
   align-items: center;
@@ -168,10 +193,13 @@
   text-align: inherit;
 }
 
-.cssort:hover,
+.cssort:hover {
+  color: var(--tx);
+}
+
 .cssort.asc,
 .cssort.desc {
-  color: var(--tx);
+  color: var(--acc);
 }
 
 .cssort svg {
@@ -183,16 +211,17 @@
   stroke-width: 2.4;
   stroke-linecap: round;
   stroke-linejoin: round;
-  display: none;
+  opacity: .5;
 }
 
 .cssort.asc svg,
 .cssort.desc svg {
-  display: block;
+  opacity: 1;
 }
 
-.cssort.desc svg {
-  transform: rotate(180deg);
+.cssort.asc .sd,
+.cssort.desc .su {
+  display: none;
 }
 
 .csh .cscols {
@@ -210,7 +239,7 @@
 .csv.c-budget {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 1px;
 }
 
@@ -452,10 +481,6 @@
     margin-inline-start: auto;
   }
 
-  .csv.c-budget {
-    align-items: flex-start;
-  }
-
   .csm {
     grid-template-columns: 36px minmax(0, 1fr) 34px;
     row-gap: 8px;
@@ -470,7 +495,8 @@
     padding-inline-start: 48px;
   }
 
-  .csv {
+  .csv,
+  .csv:not(.c-budget) {
     text-align: start;
     display: flex;
     flex-direction: column;

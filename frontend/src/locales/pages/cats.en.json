@@ -19,7 +19,7 @@
   "typeName": "Type a name first",
   "c": {
     "title": "Categories",
-    "desc": "What went out and came in for each category over the time you pick. Click a row to see more.",
+    "desc": "Last {n} full months ({from} to {to}), per category. Click a row to see more.",
     "renTitle": "Rename category",
     "renText": "Changes it on every transaction, rule, budget, bill and jar. If a category with the new name already exists, the two become one.",
     "reserved": "That name is reserved.",
@@ -32,7 +32,7 @@
   },
   "g": {
     "title": "Tags",
-    "desc": "What went out and came in for each tag over the time you pick. Click a row to see more.",
+    "desc": "Last {n} full months ({from} to {to}), per tag. Click a row to see more.",
     "none": "No tags yet.",
     "appear": "Add a tag above, add tags when you open a transaction, or let a tag rule add them automatically.",
     "goRules": "Go to tag rules",
@@ -47,8 +47,7 @@
     "label": "Time to look at",
     "m3": "3 months",
     "m6": "6 months",
-    "m12": "12 months",
-    "range": "Last {n} full months: {from} to {to}"
+    "m12": "12 months"
   },
   "tot": {
     "out": "Money out",
@@ -61,9 +60,9 @@
     "thisM": "This month",
     "lastM": "Last month",
     "avg": "Usual month",
-    "out": "Money out",
-    "in": "Money in",
-    "net": "In minus out",
+    "out": "Out, {n} months",
+    "in": "In, {n} months",
+    "net": "In minus out, {n} months",
     "change": "Against the time before",
     "n": "Transactions",
     "last": "Last transaction",
@@ -71,10 +70,7 @@
     "rules": "Rules"
   },
   "row": {
-    "rulesTip": "Rules that put transactions here. Click to see them in Settings.",
-    "avgTip": "The money out (for income: the money in) divided by the number of months.",
-    "thisTip": "This month so far: the money out (for income: the money in).",
-    "lastTip": "The whole of last month: the money out (for income: the money in)."
+    "rulesTip": "Rules that put transactions here. Click to see them in Settings."
   },
   "chg": {
     "more": "{amt} more than the {n} months before",
@@ -107,5 +103,20 @@
   },
   "cols": {
     "aria": "Choose columns"
+  },
+  "tip": {
+    "cat": "The name of the category.",
+    "tag": "The name of the tag.",
+    "thisM": "This calendar month so far: the money out (for income: the money in). Not changed by the time picked above.",
+    "lastM": "The whole of last calendar month: the money out (for income: the money in). Not changed by the time picked above.",
+    "avg": "A usual month: the money out (for income: the money in) in the last {n} full months ({from} to {to}), divided by {n}. Based on the time picked above.",
+    "out": "Total money out in the last {n} full months ({from} to {to}), the time picked above.",
+    "in": "Total money in in the last {n} full months ({from} to {to}), the time picked above.",
+    "net": "Money in minus money out in the last {n} full months ({from} to {to}), the time picked above.",
+    "change": "The last {n} full months ({from} to {to}) against the {n} months before them. Based on the time picked above.",
+    "n": "How many transactions in the last {n} full months ({from} to {to}), the time picked above.",
+    "last": "The date of the latest transaction.",
+    "budget": "The most you plan to spend here each month, set in Budgets.",
+    "rules": "How many rules put transactions here automatically."
   }
 }
