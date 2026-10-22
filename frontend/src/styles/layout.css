@@ -732,6 +732,13 @@ html.mob .updb {
   height: 60%;
 }
 
+/* the app's own icon fills its tile */
+.logo svg.coin,
+#splash i svg.coin {
+  width: 100%;
+  height: 100%;
+}
+
 /* top app bar */
 
 html.mob main {
@@ -861,4 +868,51 @@ html.mob .sm {
   html.mob .nb {
     font-size: 11px;
   }
+}
+
+/* The desktop app has no system title bar: this strip in the page's colours takes its place (the window can be dragged by it), and the system's
+   window buttons sit on it at the end. core/theme.js adds html.dframe and tells the desktop shell the colours. */
+:root {
+  --tb: 0px;
+}
+
+html.dframe {
+  --tb: 38px;
+}
+
+#dragbar {
+  display: none;
+}
+
+html.dframe #dragbar {
+  display: block;
+  position: fixed;
+  inset: 0 0 auto;
+  height: var(--tb);
+  z-index: 400;
+  background: var(--bg);
+  border-bottom: 1px solid var(--ol);
+  -webkit-app-region: drag;
+}
+
+html.dframe body {
+  padding-top: var(--tb);
+  min-height: calc(100vh - var(--tb));
+}
+
+html.dframe:not(.mob) nav {
+  top: var(--tb);
+  height: calc(100vh - var(--tb));
+}
+
+html.dframe.mob main > header {
+  top: var(--tb);
+}
+
+html.dframe #jobBar {
+  top: calc(var(--tb) + 12px);
+}
+
+html.dframe .banner {
+  top: var(--tb);
 }

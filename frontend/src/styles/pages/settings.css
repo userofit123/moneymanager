@@ -298,6 +298,11 @@ html.mob .setnav button {
   display: block;
 }
 
+.symv svg.coin {
+  width: 34px;
+  height: 34px;
+}
+
 html.mob .setnav {
   margin-inline: -16px;
   padding: 8px 16px;

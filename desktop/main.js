@@ -1,7 +1,8 @@
 // Money Manager for Windows. The same app as the Docker version: this window opens it, and the database, bank scraper and server
 // run inside the installed program. Data is kept in the user's own folder (%APPDATA%\Money Manager on Windows, ~/.config/Money Manager on Linux) and nothing is sent anywhere.
-const { app, BrowserWindow, Menu, Tray, shell, dialog, session, safeStorage } = require("electron");
+const { app, BrowserWindow, Menu, Tray, shell, dialog, session, safeStorage, nativeTheme, ipcMain } = require("electron");
 const fs = require("node:fs");
+const os = require("node:os");
 const crypto = require("node:crypto");
 const path = require("node:path");
 const { startBackend } = require("./launcher");
@@ -31,6 +32,24 @@ function protectedKey(dir) {
 
 const Srv = require("./servers");
 const { dict, fill } = require("./texts");
+
+// An AppImage is only a file: with no installer, nothing gives it an icon or a place in the app menu. So on each start (it is cheap) the app
+// adds its own menu entry with the coin icon, pointing at wherever the file is now, and gives the file itself that icon in the file manager.
+function integrateAppImage() {
+  const img = process.env.APPIMAGE;
+  if (process.platform !== "linux" || !img) return;
+  try {
+    const share = process.env.XDG_DATA_HOME || path.join(os.homedir(), ".local", "share");
+    const iconDir = path.join(share, "icons", "hicolor", "512x512", "apps"), icon = path.join(iconDir, "money-manager.png");
+    fs.mkdirSync(iconDir, { recursive: true }); fs.copyFileSync(path.join(root, "web", "icon-512.png"), icon);
+    const dir = path.join(share, "applications"), file = path.join(dir, "money-manager.desktop");
+    const body = `[Desktop Entry]\nType=Application\nName=Money Manager\nComment=Your money in one private place\nExec="${img.replace(/"/g, '\\"')}" %U\nIcon=${icon}\nTerminal=false\nCategories=Office;Finance;\nStartupWMClass=Money Manager\n`;
+    fs.mkdirSync(dir, { recursive: true });
+    let cur = ""; try { cur = fs.readFileSync(file, "utf8"); } catch { /* not there yet */ }
+    if (cur !== body) fs.writeFileSync(file, body);
+    require("node:child_process").execFile("gio", ["set", img, "metadata::custom-icon", "file://" + icon], () => {}); // GNOME's file manager; harmless elsewhere
+  } catch { /* the app works without the menu entry */ }
+}
 
 let backend = null, win = null, manager = null, tray = null, quitting = false, state = { v: 1, active: null, list: [] }, T = dict("en");
 const dataDir = () => app.getPath("userData");
@@ -68,10 +87,19 @@ async function stopLocal() { const b = backend; backend = null; if (b) await b.s
 
 function closeWindow() { if (win && !win.isDestroyed()) { win.removeAllListeners("close"); win.destroy(); } win = null; }
 
+// The window has no system title bar: the page draws its own strip (in the app's colours) and the system's window buttons sit on it. The page tells
+// us its colours (frame:titlebar) so the buttons match; until then, the system's light or dark.
+const TB = 38, colour = (c) => /^(#[0-9a-f]{3,8}|rgba?\([\d\s.,%/]+\))$/i.test(String(c).trim());
+const frameOptions = () => (process.platform === "darwin" ? {} : { titleBarStyle: "hidden", titleBarOverlay: nativeTheme.shouldUseDarkColors ? { color: "#14161c", symbolColor: "#e6e4ea", height: TB } : { color: "#fbf8fd", symbolColor: "#1b1b22", height: TB } });
+ipcMain.on("frame:titlebar", (e, bg, fg) => {
+  const w = BrowserWindow.fromWebContents(e.sender);
+  if (w && w === win && typeof w.setTitleBarOverlay === "function" && colour(bg) && colour(fg)) { try { w.setTitleBarOverlay({ color: String(bg).trim(), symbolColor: String(fg).trim(), height: TB }); } catch { /* the buttons keep their colours */ } }
+});
+
 function openWindow() {
   const server = Srv.current(state), base = server ? server.url : backend.url;
   // the desktop controls (updates, backup folder) are only for the app's own page; another server's page gets just the server list
-  win = new BrowserWindow({ width: 1280, height: 860, minWidth: 380, minHeight: 600, title: server ? "Money Manager · " + server.name : "Money Manager", icon: path.join(root, "web", "icon-512.png"), backgroundColor: "#f7f8fd", autoHideMenuBar: true, webPreferences: { ...(server ? { sandbox: true, preload: path.join(__dirname, "remote-preload.js") } : { preload: path.join(__dirname, "preload.js") }), session: sessionFor(server), contextIsolation: true, nodeIntegration: false } });
+  win = new BrowserWindow({ width: 1280, height: 860, minWidth: 380, minHeight: 600, title: server ? "Money Manager · " + server.name : "Money Manager", icon: path.join(root, "web", "icon-512.png"), backgroundColor: "#f7f8fd", autoHideMenuBar: true, ...frameOptions(), webPreferences: { ...(server ? { sandbox: true, preload: path.join(__dirname, "remote-preload.js") } : { preload: path.join(__dirname, "preload.js") }), session: sessionFor(server), contextIsolation: true, nodeIntegration: false } });
   win.loadURL(base);
   // links to other sites (a bank, a help page) open in the normal browser, never inside the app
   win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: "deny" }; });
@@ -222,8 +250,9 @@ app.whenReady().then(async () => {
   state = Srv.load(dataDir());
   // an installed copy from before the list existed already has its data here: it stays on this computer, with no question asked
   if (state.active == null && !fs.existsSync(path.join(dataDir(), "servers.json")) && fs.existsSync(path.join(dataDir(), "database"))) { state = Srv.use(state, Srv.LOCAL); Srv.save(dataDir(), state); }
+  integrateAppImage();
   setupUpdates();
-  registerServerIpc(require("electron").ipcMain);
+  registerServerIpc(ipcMain);
   tray = new Tray(path.join(root, "web", "favicon.png"));
   tray.setToolTip("Money Manager");
   tray.on("click", () => { if (win && !win.isDestroyed()) { win.show(); win.focus(); } else openManager(); });

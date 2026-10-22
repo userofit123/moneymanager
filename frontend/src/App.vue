@@ -36,6 +36,7 @@ const DocViewer = defineAsyncComponent(() => import("./components/tx/DocViewer.v
 const AssistWindow = defineAsyncComponent(() => import("./views/settings/AssistWindow.vue"));
 
 const { t } = useI18n();
+const dframe = typeof window !== "undefined" && !!window.desktopFrame; // the desktop app: the page draws the title bar (see layout.css)
 startRouter();
 boot();
 const views = new Map(pages.filter((p) => p.component).map((p) => [p.name, defineAsyncComponent(p.component)]));
@@ -55,6 +56,7 @@ addEventListener("offline", () => (online.value = false));
 </script>
 
 <template>
+  <div v-if="dframe" id="dragbar" aria-hidden="true"></div>
   <AuthScreen v-if="app.phase === 'auth'" />
   <template v-else-if="app.phase !== 'start'">
     <JobBar />

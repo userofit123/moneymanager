@@ -50,6 +50,7 @@ The same app, built from the same code. Each release has three files:
 | `Money-Manager-x.y.z-linux-x64.deb` | Debian, Ubuntu, Mint | `sudo apt install ./file.deb` |
 | `Money-Manager-x.y.z-linux-x64.rpm` | Fedora, Red Hat, openSUSE | `sudo dnf install ./file.rpm` |
 
+- **Menu entry and icon:** the .deb and .rpm install them. The AppImage adds its own menu entry with the coin icon (and gives the file that icon in GNOME's file manager) each time it starts.
 - **Where your data is:** `~/.config/Money Manager`. Closing the window keeps the app in the tray so automatic sync continues (on a desktop with no tray, such as plain GNOME, start the app again to bring the window back).
 - **Saved logins:** locked with the desktop keyring (GNOME Keyring or KWallet) when there is one. Without a keyring the app keeps the key in a file in the data folder, as the Docker version does.
 - **Updates:** the AppImage, .deb and .rpm check the releases like the Windows app does; the .deb and .rpm ask for your password to install.

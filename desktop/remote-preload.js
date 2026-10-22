@@ -6,3 +6,5 @@ contextBridge.exposeInMainWorld("desktopServers", {
   use: (id) => ipcRenderer.invoke("servers:use", id),
   remove: (id) => ipcRenderer.invoke("servers:remove", id),
 });
+// The window frame: the app tells the shell its colours so the title bar matches the page
+contextBridge.exposeInMainWorld("desktopFrame", { setTitleBar: (bg, fg) => ipcRenderer.send("frame:titlebar", String(bg), String(fg)) });

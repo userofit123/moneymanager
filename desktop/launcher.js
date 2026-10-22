@@ -21,8 +21,35 @@ const freePort0 = () => new Promise((ok, no) => { const s = net.createServer(); 
 // The first time the app starts, they are put back under their real name. Renaming is instant and keeps the files where they are.
 function restoreModules(dir) {
   const want = path.join(dir, "node_modules"), have = path.join(dir, "app_modules");
-  if (fs.existsSync(want) || !fs.existsSync(have)) return;
-  try { fs.renameSync(have, want); } catch { fs.cpSync(have, want, { recursive: true }); }
+  if (fs.existsSync(want) || !fs.existsSync(have)) return true;
+  try { fs.renameSync(have, want); return true; } catch { /* a program folder that cannot be changed: see codeFolders */ }
+  return false;
+}
+
+// Where the server and the scraper run from. Normally the program folder itself; but an AppImage is a read-only disk image and the .deb/.rpm
+// install where a normal user cannot write, so the modules cannot be renamed there. Then they run from a copy in the data folder, made once per version.
+function codeFolders(root, dataDir, log = console.log) {
+  const here = { server: path.join(root, "server"), scraper: path.join(root, "scraper") };
+  if (restoreModules(here.server) && restoreModules(here.scraper)) return here;
+  let ver = "0"; try { ver = JSON.parse(fs.readFileSync(path.join(here.server, "package.json"), "utf8")).version || "0"; } catch { /* the copy is just named 0 */ }
+  const base = path.join(dataDir, "runtime"), dir = path.join(base, ver), mark = path.join(dir, ".ready");
+  if (!fs.existsSync(mark)) {
+    log("preparing a writable copy of the app code in", dir);
+    fs.rmSync(dir, { recursive: true, force: true });
+    for (const d of ["server", "scraper"]) { fs.cpSync(here[d], path.join(dir, d), { recursive: true }); fs.chmodSync(path.join(dir, d), 0o755); }
+    for (const d of ["server", "scraper"]) { makeWritable(path.join(dir, d)); restoreModules(path.join(dir, d)); }
+    fs.writeFileSync(mark, ver);
+    try { for (const e of fs.readdirSync(base)) if (e !== ver) fs.rmSync(path.join(base, e), { recursive: true, force: true }); } catch { /* old copies stay */ }
+  }
+  return { server: path.join(dir, "server"), scraper: path.join(dir, "scraper") };
+}
+// files copied out of a read-only image keep their read-only mode: give the owner write access
+function makeWritable(d) {
+  for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+    const f = path.join(d, e.name);
+    if (e.isSymbolicLink()) continue;
+    if (e.isDirectory()) { try { fs.chmodSync(f, 0o755); } catch {} makeWritable(f); } else { try { fs.chmodSync(f, fs.statSync(f).mode | 0o200); } catch {} }
+  }
 }
 
 function findChrome(dir) {
@@ -48,15 +75,15 @@ function findChrome(dir) {
 async function startBackend({ dataDir, root, nodeBin = process.execPath, appKey = null, log = console.log }) {
   fs.mkdirSync(dataDir, { recursive: true });
   fs.mkdirSync(dataDir, { recursive: true });
-  restoreModules(path.join(root, "server")); restoreModules(path.join(root, "scraper"));
+  const code = codeFolders(root, dataDir, log);
   // 1. the database: PostgreSQL running inside the app, kept as plain files in the data folder (no separate database program to install or start)
   const dbDir = path.join(dataDir, "database");
 
   // 2. the bank scraper (its own process: it drives a browser)
   const scraperPort = await freePort(), scraperKey = crypto.randomBytes(24).toString("hex");
   const chrome = findChrome(path.join(root, "chrome")) || process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
-  const scraper = spawn(nodeBin, [path.join(root, "scraper", "server.js")], {
-    cwd: path.join(root, "scraper"), stdio: ["ignore", "inherit", "inherit"], windowsHide: true,
+  const scraper = spawn(nodeBin, [path.join(code.scraper, "server.js")], {
+    cwd: code.scraper, stdio: ["ignore", "inherit", "inherit"], windowsHide: true,
     env: { ...process.env, ELECTRON_RUN_AS_NODE: "1", HOST: "127.0.0.1", PORT: String(scraperPort), SCRAPER_KEY: scraperKey, PROFILE_DIR: path.join(dataDir, "profiles"), ...(chrome ? { PUPPETEER_EXECUTABLE_PATH: chrome } : {}), PUPPETEER_SKIP_DOWNLOAD: "true" },
   });
   scraper.on("exit", (c) => log("scraper stopped", c));
@@ -69,7 +96,7 @@ async function startBackend({ dataDir, root, nodeBin = process.execPath, appKey 
     WEB_DIR: fs.existsSync(path.join(root, "web")) ? path.join(root, "web") : path.join(root, "frontend", "dist"), CHANGELOG_FILE: path.join(root, "CHANGELOG.md"), SCRAPER_URL: `http://127.0.0.1:${scraperPort}`, SCRAPER_KEY: scraperKey, HOST: "127.0.0.1", PORT: String(port), NODE_ENV: "production",
   });
   fs.mkdirSync(process.env.DOCS_DIR, { recursive: true });
-  const server = await import(pathToFileURL(path.join(root, "server", "src", "index.js")).href);
+  const server = await import(pathToFileURL(path.join(code.server, "src", "index.js")).href);
   await server.start();
   await new Promise((ok, no) => { const t0 = Date.now(), tick = () => { const c = net.connect(port, "127.0.0.1"); c.on("connect", () => { c.destroy(); ok(); }); c.on("error", () => (Date.now() - t0 > 30000 ? no(new Error("the app did not start")) : setTimeout(tick, 200))); }; tick(); });
 
@@ -78,4 +105,4 @@ async function startBackend({ dataDir, root, nodeBin = process.execPath, appKey 
     async stop() { try { scraper.kill(); } catch {} try { await server.stop(); } catch (e) { log("database stop:", e.message); } },
   };
 }
-module.exports = { startBackend, findChrome };
+module.exports = { startBackend, findChrome, codeFolders };

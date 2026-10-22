@@ -6,7 +6,7 @@ export const SYM_SVG = {
   "£": "<svg viewBox=\"0 0 24 24\" width=\"58%\" height=\"58%\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M16.5 7a4 4 0 0 0-7.5 1.5V17M6.5 12.5h8M6 18h11\"/></svg>",
   "¥": "<svg viewBox=\"0 0 24 24\" width=\"58%\" height=\"58%\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 5l6 7 6-7M12 12v8M7.5 13.5h9M7.5 17h9\"/></svg>",
 };
-export const COIN_SVG = "<svg viewBox=\"0 0 24 24\" width=\"60%\" height=\"60%\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"12\" r=\"2.6\"/><path d=\"M10 10L7 7M14 10l3-3M10 14l-3 3M14 14l3 3\"/></svg>";
+export const COIN_SVG = "<svg class='coin' viewBox='0 0 512 512'><defs><linearGradient id='cg' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#6f7cff'/><stop offset='1' stop-color='#c28bff'/></linearGradient></defs><rect width='512' height='512' rx='112' fill='url(#cg)'/><circle cx='256' cy='268' r='168' fill='#000' opacity='.16'/><circle cx='256' cy='256' r='168' fill='#fff'/><circle cx='256' cy='256' r='134' fill='none' stroke='#7b83ff' stroke-width='12' opacity='.55'/><g fill='none' stroke='#6f7cff' stroke-width='22' stroke-linecap='round'><circle cx='256' cy='256' r='42'/><path d='M226 226l-34-34M286 226l34-34M226 286l-34 34M286 286l34 34'/></g></svg>"; // the app's own icon (public/icon-source.svg), the same on every look
 
 // [value, text key] of the app icon tiles, in the order they show
 export const ICONS = [["coin", "coin"], ["₪", "shekel"], ["$", "dollar"], ["€", "euro"], ["£", "pound"], ["¥", "yen"]];
