@@ -33,7 +33,9 @@ const OWN = ["frontend/src/catnames.js", "server/src/categories.js", "server/src
   "frontend/src/core/heSaved.js", "frontend/src/brands.js", "frontend/src/locales/en.json", "frontend/src/locales/he.json"];
 const own = norm(OWN.map((f) => { try { return execFileSync("git", ["show", "HEAD:" + f], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }); } catch { return ""; } }).join("\n"));
 const builtIn = { has: (x) => own.includes(x) };
-const allow = new Set(lines0(".git/privacy-allow"));
+// The lists live in the repo's own .git folder, shared by every working copy (worktree) of it.
+const GITDIR = execFileSync("git", ["rev-parse", "--git-common-dir"], { encoding: "utf8" }).trim();
+const allow = new Set(lines0(GITDIR + "/privacy-allow"));
 let terms;
 try {
   terms = [...psql(LONG).map((x) => [x, 6]), ...psql(SHORT).map((x) => [x, 4])];
@@ -42,7 +44,7 @@ try {
   process.exit(0);
 }
 // .git/privacy-deny: anything else that must never appear (your name, email, phone, ID number, address), one per line. Never committed.
-terms.push(...lines0(".git/privacy-deny").map((x) => [x, 1]));
+terms.push(...lines0(GITDIR + "/privacy-deny").map((x) => [x, 1]));
 // Your bank logins (user names, ID numbers, card digits, passwords), read through the app only for this check and never written anywhere.
 try {
   const js = `import { q } from "./src/db.js"; import { getCreds } from "./src/connections.js";
