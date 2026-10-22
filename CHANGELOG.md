@@ -10,6 +10,8 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 - **Docker: optional automatic updates.** One extra file (`docker-compose.autoupdate.yml`) updates the app and the scraper by themselves every night when a new release is published. It is optional because it needs access to Docker.
 - **Windows and Linux apps: the Server menu shows the app's own version and has "Check for updates…".** It is the one place to see the app's version when the window is showing your own server, whose Settings show the server's version.
 - **Windows and Linux apps: the window buttons match your server's colours,** also when the server is an older version. The buttons used to sit on a white box; now the app remembers the colours and draws the title strip itself when the server's page has none.
+- **Settings: the server list moved to its own page, Settings → Your data → Server** (desktop apps only). "Version and updates" is only about versions again.
+- **"Install on this device" only shows in a browser,** not in the installed app or the desktop app, and now also offers the **desktop app** for download (Windows, or Fedora/Ubuntu/AppImage on Linux) from GitHub.
 - **A new documentation site and a rewritten README,** with install guides for Windows, Linux, Docker and your phone, a tour of every screen, and new screenshots in light and dark, English and Hebrew.
 
 ### Linux app

@@ -28,6 +28,7 @@
     "trules": "Tag rules",
     "nrules": "Display names",
     "cprules": "Card payments",
-    "srules": "Salary"
+    "srules": "Salary",
+    "server": "Server"
   }
 }

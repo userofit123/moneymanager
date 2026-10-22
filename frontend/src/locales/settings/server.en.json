@@ -1,0 +1,23 @@
+{
+  "title": "Server",
+  "desc": "Where this app keeps your money. Switching deletes nothing: each one keeps its own data.",
+  "local": "This computer",
+  "localD": "A private database inside this app. Works without internet. It collects your bank data only while it is the one open.",
+  "now": "Open now",
+  "open": "Open",
+  "remove": "Remove",
+  "removeAsk": "Remove “{name}” from this list?",
+  "removeText": "The server and its data are not touched.",
+  "addT": "Connect to my server",
+  "addD": "The address of your own Money Manager, for example money.home or https://money.example.com.",
+  "name": "Name (optional)",
+  "addr": "money.home",
+  "addrL": "Address",
+  "add": "Check and add",
+  "checking": "Checking…",
+  "err_badAddress": "That does not look like an address.",
+  "err_already": "This server is already in the list.",
+  "err_unreachable": "Could not reach that address. Check it, and that the server is on.",
+  "err_notMoney": "That address answered, but it is not a Money Manager server.",
+  "err_certNo": "The server's security certificate was not accepted."
+}

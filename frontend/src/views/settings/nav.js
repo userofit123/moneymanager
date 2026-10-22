@@ -1,5 +1,5 @@
 // The Settings side list (#setTabs): six groups, each with its sections and their icons.
-// "pane" is the file that draws the section (loaded when it is opened).
+// "pane" is the file that draws the section (loaded when it is opened). desktop: true = only in the desktop app (it needs the shell).
 export const NAV = [
   { group: "you", tabs: [
     { id: "prof", icon: "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7\"/>" },
@@ -20,6 +20,7 @@ export const NAV = [
     { id: "srules", icon: "<rect x=\"3\" y=\"7\" width=\"18\" height=\"13\" rx=\"2\"/><path d=\"M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18\"/>" },
   ] },
   { group: "data", tabs: [
+    { id: "server", desktop: true, icon: "<rect x=\"3\" y=\"4\" width=\"18\" height=\"7\" rx=\"2\"/><rect x=\"3\" y=\"13\" width=\"18\" height=\"7\" rx=\"2\"/><path d=\"M7 7.5h.01M7 16.5h.01\"/>" },
     { id: "data", icon: "<ellipse cx=\"12\" cy=\"6\" rx=\"8\" ry=\"3\"/><path d=\"M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3\"/>" },
     { id: "backup", icon: "<path d=\"M12 15V4M8 8l4-4 4 4M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5\"/>" },
     { id: "log", icon: "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>" },
@@ -48,6 +49,7 @@ export const PANES = {
   nrules: () => import("./NameRulesPane.vue"),
   cprules: () => import("./CardRulesPane.vue"),
   srules: () => import("./SalaryRulesPane.vue"),
+  server: () => import("./ServerPane.vue"),
   data: () => import("./DataPane.vue"),
   backup: () => import("./BackupPane.vue"),
   log: () => import("./HistoryPane.vue"),

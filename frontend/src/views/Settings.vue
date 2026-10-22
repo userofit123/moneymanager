@@ -14,7 +14,9 @@ const { t } = useI18n();
 onMounted(() => { data.start(); });
 
 const panes = Object.fromEntries(Object.entries(PANES).map(([id, load]) => [id, defineAsyncComponent(load)]));
-const pane = computed(() => panes[settingsTab.value] || panes.prof);
+const inDesktop = typeof window !== "undefined" && !!window.desktopServers; // the desktop app: sections that need its shell show
+const groups = NAV.map((g) => ({ ...g, tabs: g.tabs.filter((x) => !x.desktop || inDesktop) }));
+const pane = computed(() => (!inDesktop && NAV.some((g) => g.tabs.some((x) => x.desktop && x.id === settingsTab.value)) ? panes.prof : panes[settingsTab.value] || panes.prof));
 </script>
 
 <template>
@@ -22,7 +24,7 @@ const pane = computed(() => panes[settingsTab.value] || panes.prof);
   <section id="set" class="view on">
     <div class="setwrap">
       <div id="setTabs" class="setnav" role="navigation" :aria-label="t('settings.nav.aria')">
-        <template v-for="g in NAV" :key="g.group">
+        <template v-for="g in groups" :key="g.group">
           <div class="sng">{{ t("settings.nav.groups." + g.group) }}</div>
           <button v-for="tab in g.tabs" :key="tab.id" type="button" data-a="setTab" :data-t="tab.id" :class="{ on: settingsTab === tab.id }" @click="settingsTab = tab.id">
             <svg viewBox="0 0 24 24" v-html="tab.icon" /><span>{{ t("settings.nav.tabs." + tab.id) }}</span>
