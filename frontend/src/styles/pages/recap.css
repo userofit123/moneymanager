@@ -368,6 +368,7 @@ html.he a.rkl:hover i {
 /* "Today" sits in a small chip inside the chart, right under the moving dot */
 .rkpw {
   position: relative;
+  width: 100%;
   margin-top: 40px;
 }
 
