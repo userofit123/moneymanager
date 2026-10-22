@@ -71,19 +71,6 @@ export function txChips(S, x, c) {
   if (x.note) add("p-note", "", TP(t("txw.chip.note"), [], String(x.note).slice(0, 600)), "note");
   return out;
 }
-// For the lists: at most `max` labelled pills show, and the rest become one "+N" pill whose tooltip names them, so the row's
-// name always keeps its room. Icon-only pills (the note) always stay. The full set is still shown in the transaction window.
-export function fitChips(list, max = 2) {
-  if (list.filter((c) => c.label).length <= max) return list;
-  const out = [], rest = []; let shown = 0, at = -1;
-  list.forEach((c) => {
-    if (!c.label) out.push(c);
-    else if (shown < max) { shown++; out.push(c); at = out.length; }
-    else rest.push(c.label);
-  });
-  out.splice(at, 0, { cls: "p-more", label: "+" + rest.length, tip: rest.join(" · ") });
-  return out;
-}
 // "+₪1,250" / "−₪80" ("≈" in front of an expected bill); a balance update is "balance +₪500".
 export const amtText = (x) => (x.balUpd ? t("activity.balance") + " " + (x.a >= 0 ? "+" : "−") + "₪" + f0(x.a) : (x.upBill != null ? "≈ " : "") + (x.a > 0 ? "+" : "−") + "₪" + f0(x.a));
 export const SYM = { ILS: "₪", USD: "$", EUR: "€", GBP: "£", JPY: "¥" };

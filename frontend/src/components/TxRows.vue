@@ -13,7 +13,8 @@ import { tx } from "../core/heText.js";
 import { dcell } from "../dates.js";
 import { f0 } from "../format.js";
 import { kinds, displayName, duplicateIds } from "../lib/activity.js";
-import { txChips, fitChips, amtText, SYM, CHIP_ICON } from "../lib/txrows.js";
+import { fitChips } from "../lib/fitChips.js";
+import { txChips, amtText, SYM, CHIP_ICON } from "../lib/txrows.js";
 import { setField } from "../lib/txactions.js";
 
 defineProps({ rows: { type: Array, required: true }, empty: { type: String, default: "" } });
