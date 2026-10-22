@@ -1111,13 +1111,6 @@ a.rkbr,
   opacity: 1;
 }
 
-.rkfix p {
-  margin: 0 0 8px;
-  font-size: 14px;
-  color: var(--mut, inherit);
-  line-height: 1.45;
-}
-
 .rkup .r {
   background: var(--s1);
   box-shadow: inset 0 0 0 1px var(--ol), 0 10px 22px -16px color-mix(in srgb, var(--tx) 45%, transparent);
@@ -1306,6 +1299,10 @@ a.rkl:hover {
 
 .rk.z .rkch {
   margin: 10px 0 0;
+}
+
+a.rkch[data-a="jarRelease"] {
+  cursor: pointer;
 }
 
 a.rkch:focus-visible,

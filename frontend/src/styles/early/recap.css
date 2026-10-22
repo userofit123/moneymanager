@@ -277,16 +277,6 @@ a.rkbr:hover,
   display: block;
 }
 
-.rkfix {
-  margin-top: 10px;
-  display: block;
-}
-
-.rkfix .btn {
-  font-size: 15px;
-  padding: 10px 18px;
-}
-
 .rkup .dt {
   width: 56px;
   height: 56px;
