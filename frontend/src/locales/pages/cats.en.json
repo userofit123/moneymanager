@@ -63,7 +63,7 @@
     "out": "Out, {n} months",
     "in": "In, {n} months",
     "net": "In minus out, {n} months",
-    "change": "Against the time before",
+    "change": "Change",
     "n": "Transactions",
     "last": "Last transaction",
     "budget": "Budget",

@@ -98,7 +98,7 @@ const colPref = usePref("moneyCatCols", CAT_COLS_START);
 const cols = computed(() => shownCols(colPref.value));
 const colMenu = ref(null);
 const flipCol = (c) => { colPref.value = toggleCol(cols.value, c); };
-const COLW = { change: "minmax(120px, 1.5fr)", budget: "minmax(104px, 1.1fr)", last: "minmax(84px, .8fr)", n: "minmax(56px, .5fr)", rules: "minmax(56px, .5fr)" };
+const COLW = { change: "minmax(84px, .8fr)", budget: "minmax(104px, 1.1fr)", last: "minmax(84px, .8fr)", n: "minmax(56px, .5fr)", rules: "minmax(56px, .5fr)" };
 // tags have no budget, so the Tags tab leaves that column out
 const colsOf = (tab) => (tab == "tags" ? cols.value.filter((c) => c != "budget") : cols.value);
 const grid = (tab) => ["36px", "minmax(140px, 1.6fr)", ...colsOf(tab).map((c) => COLW[c] || "minmax(68px, .8fr)"), "34px"].join(" ");

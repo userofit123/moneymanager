@@ -178,8 +178,8 @@
   grid-column: span 2;
 }
 
-.csh > span[class*="c-"]:not(.c-name):not(.c-budget),
-.csv:not(.c-budget) {
+.csh > span[class*="c-"]:not(.c-name),
+.csv {
   text-align: end;
 }
 
@@ -204,23 +204,29 @@
 .cssort.asc,
 .cssort.desc {
   color: var(--acc);
+  font-weight: 800;
+  background: color-mix(in srgb, var(--acc) 12%, transparent);
+  border-radius: 999px;
+  padding-inline: 8px;
+  margin-inline: -8px; /* the tint does not move the title out of line */
 }
 
 .cssort svg {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   flex: none;
   fill: none;
   stroke: currentColor;
   stroke-width: 2.4;
   stroke-linecap: round;
   stroke-linejoin: round;
-  opacity: .5;
+  opacity: .35;
 }
 
 .cssort.asc svg,
 .cssort.desc svg {
   opacity: 1;
+  stroke-width: 3;
 }
 
 .cssort.asc .sd,
@@ -243,7 +249,7 @@
 .csv.c-budget {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: flex-end;
   gap: 1px;
 }
 
@@ -503,10 +509,11 @@
   }
 
   .csv,
-  .csv:not(.c-budget) {
+  .csv.c-budget {
     text-align: start;
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
   }
 
   .csv .cl {
