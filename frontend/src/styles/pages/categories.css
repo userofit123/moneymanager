@@ -234,6 +234,15 @@
   display: none;
 }
 
+/* the one chevron left moves to the middle, level with the title */
+.cssort.asc .su {
+  transform: translateY(4.5px);
+}
+
+.cssort.desc .sd {
+  transform: translateY(-4.5px);
+}
+
 .csh .cscols {
   width: 34px;
   height: 34px;
