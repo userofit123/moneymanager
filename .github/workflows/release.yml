@@ -34,6 +34,9 @@ jobs:
         working-directory: server
       - run: npm test
         working-directory: server
+      - name: The desktop app's server list - tests
+        run: node --test
+        working-directory: desktop
       - name: The app (frontend/) - tests and build
         run: npm ci && npm run lint && npm test && npm run build
         working-directory: frontend

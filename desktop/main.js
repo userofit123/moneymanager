@@ -29,19 +29,152 @@ function protectedKey(dir) {
   return key;
 }
 
-let backend = null, win = null, tray = null, quitting = false;
+const Srv = require("./servers");
+const { dict, fill } = require("./texts");
+
+let backend = null, win = null, manager = null, tray = null, quitting = false, state = { v: 1, active: null, list: [] }, T = dict("en");
+const dataDir = () => app.getPath("userData");
 
 if (!app.requestSingleInstanceLock()) app.quit();
-app.on("second-instance", () => { if (win) { win.show(); win.focus(); } });
+app.on("second-instance", () => { const w = win && !win.isDestroyed() ? win : manager; if (w && !w.isDestroyed()) { w.show(); w.focus(); } });
+
+// ---------- which server the window shows ----------
+// "This computer" runs the app's own database and bank scraper (the backend below). Any other entry is a Money Manager server somewhere else:
+// the window just opens its address, in its own session, so the logins and saved copies of one server never mix with another.
+const saveState = (s) => { state = s; Srv.save(dataDir(), s); buildMenus(); };
+const publicState = () => ({ active: state.active, list: state.list.map(({ id, name, url }) => ({ id, name, url })) });
+
+const wired = new Set(), lastBad = new Map(), tempTrust = new Set();
+// A certificate the computer does not know is accepted only when the user trusted that exact certificate for that server.
+function wireSession(ses, server) {
+  if (wired.has(ses)) return ses;
+  wired.add(ses);
+  ses.setCertificateVerifyProc((req, cb) => {
+    if (req.verificationResult === "net::OK") return cb(0);
+    const fp = req.certificate && req.certificate.fingerprint, cur = server && state.list.find((x) => x.id === server.id);
+    if (fp && ((cur && cur.trust === fp) || tempTrust.has(req.hostname + "|" + fp))) return cb(0);
+    lastBad.set(req.hostname, fp || ""); cb(-2);
+  });
+  // only the app's own page may use the camera (receipt photos)
+  ses.setPermissionRequestHandler((wc, perm, cb) => cb(perm === "media" && !!server && wc.getURL().startsWith(server.url)));
+  return ses;
+}
+const sessionFor = (server) => (server ? wireSession(session.fromPartition("persist:server-" + server.id), server) : session.defaultSession);
+
+async function startLocal() {
+  backend = await startBackend({ dataDir: dataDir(), root, nodeBin: process.execPath, appKey: protectedKey(dataDir()) });
+}
+async function stopLocal() { const b = backend; backend = null; if (b) await b.stop(); }
+
+function closeWindow() { if (win && !win.isDestroyed()) { win.removeAllListeners("close"); win.destroy(); } win = null; }
 
 function openWindow() {
-  win = new BrowserWindow({ width: 1280, height: 860, minWidth: 380, minHeight: 600, title: "Money Manager", icon: path.join(root, "web", "icon-512.png"), backgroundColor: "#f7f8fd", autoHideMenuBar: true, webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, nodeIntegration: false } });
-  win.loadURL(backend.url);
+  const server = Srv.current(state), base = server ? server.url : backend.url;
+  // the desktop controls (updates, backup folder) are only for the app's own page, never for another server's
+  win = new BrowserWindow({ width: 1280, height: 860, minWidth: 380, minHeight: 600, title: server ? "Money Manager · " + server.name : "Money Manager", icon: path.join(root, "web", "icon-512.png"), backgroundColor: "#f7f8fd", autoHideMenuBar: true, webPreferences: { ...(server ? { sandbox: true } : { preload: path.join(__dirname, "preload.js") }), session: sessionFor(server), contextIsolation: true, nodeIntegration: false } });
+  win.loadURL(base);
   // links to other sites (a bank, a help page) open in the normal browser, never inside the app
   win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: "deny" }; });
-  win.webContents.on("will-navigate", (e, url) => { if (!url.startsWith(backend.url)) { e.preventDefault(); shell.openExternal(url); } });
+  win.webContents.on("will-navigate", (e, url) => { if (!url.startsWith(base)) { e.preventDefault(); shell.openExternal(url); } });
+  // a server that does not answer: try again, or pick another one
+  let asking = false;
+  win.webContents.on("did-fail-load", (_e, code, _d, _u, isMain) => {
+    if (!server || !isMain || code === -3 || asking) return;
+    asking = true;
+    const w = win, r = dialog.showMessageBoxSync(w, { type: "warning", title: T.failTitle, message: fill(T.failMsg, { name: server.name }), buttons: [T.retry, T.other, T.quit], defaultId: 0, cancelId: 2, noLink: true });
+    asking = false;
+    if (!w || w.isDestroyed()) return;
+    if (r === 0) w.loadURL(base); else if (r === 1) openManager(); else { quitting = true; app.quit(); }
+  });
   // closing the window keeps the app (and its automatic sync) running in the tray
   win.on("close", (e) => { if (!quitting) { e.preventDefault(); win.hide(); } });
+}
+
+// Open the window for one entry. Moving away from "This computer" stops its backend (no syncing while another server is open); moving back starts it.
+async function show(id) {
+  closeWindow();
+  try {
+    if (id === Srv.LOCAL) { if (!backend) await startLocal(); } else await stopLocal();
+  } catch (e) {
+    dialog.showErrorBox("Money Manager", String((e && e.message) || e));
+    openManager(); return;
+  }
+  openWindow();
+}
+function switchTo(id) {
+  if (id === state.active && win && !win.isDestroyed()) { win.show(); win.focus(); return; }
+  saveState(Srv.use(state, id));
+  show(id);
+}
+
+// ---------- the server list window ----------
+function openManager() {
+  if (manager && !manager.isDestroyed()) { manager.show(); manager.focus(); return; }
+  manager = new BrowserWindow({ width: 600, height: 800, minWidth: 420, minHeight: 520, title: "Money Manager", icon: path.join(root, "web", "icon-512.png"), backgroundColor: "#fbf8fd", autoHideMenuBar: true, parent: win && !win.isDestroyed() && win.isVisible() ? win : undefined, webPreferences: { preload: path.join(__dirname, "servers-preload.js"), contextIsolation: true, nodeIntegration: false, sandbox: true } });
+  manager.loadFile(path.join(__dirname, "servers.html"));
+  manager.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  manager.on("closed", () => { manager = null; if (!win && !quitting) { quitting = true; app.quit(); } }); // closed before choosing anything on the first run
+}
+const closeManager = () => { if (manager && !manager.isDestroyed()) manager.close(); };
+
+// Can this address be reached, and is it a Money Manager? A certificate the computer does not know is offered to the user once, by its fingerprint.
+async function reach(url) {
+  const ses = wireSession(session.fromPartition("persist:server-test"), null);
+  try {
+    const r = await ses.fetch(url + "/api/auth/status", { signal: AbortSignal.timeout(8000) }), j = await r.json().catch(() => null);
+    return j && typeof j === "object" && "setup" in j ? "ok" : "notMoney";
+  } catch { return "unreachable"; }
+}
+function registerServerIpc(ipcMain) {
+  ipcMain.handle("servers:texts", () => T);
+  ipcMain.handle("servers:state", () => publicState());
+  ipcMain.handle("servers:add", async (_e, name, url) => {
+    let next;
+    try { next = Srv.add(state, { name, url }); } catch (e) { return { error: e.message }; }
+    const added = next.list[next.list.length - 1], host = new URL(added.url).hostname;
+    lastBad.delete(host);
+    let r = await reach(added.url), fp = "";
+    if (r === "unreachable" && lastBad.has(host)) {
+      fp = lastBad.get(host);
+      const yes = dialog.showMessageBoxSync(manager || undefined, { type: "warning", title: T.certTitle, message: fill(T.certMsg, { host, fp }), buttons: [T.certYes, T.certNoBtn], defaultId: 1, cancelId: 1, noLink: true }) === 0;
+      if (!yes) return { error: "certNo" };
+      tempTrust.add(host + "|" + fp); r = await reach(added.url);
+    }
+    if (r !== "ok") return { error: r };
+    saveState(fp ? Srv.trust(next, added.id, fp) : next);
+    return { ok: true, id: added.id, state: publicState() };
+  });
+  ipcMain.handle("servers:use", (_e, id) => { try { saveState(Srv.use(state, id)); } catch { return; } setImmediate(() => { closeManager(); show(id); }); });
+  ipcMain.handle("servers:remove", async (_e, id) => {
+    const wasOpen = state.active === id;
+    let next = Srv.remove(state, id);
+    if (wasOpen) next = Srv.use(next, Srv.LOCAL);
+    saveState(next);
+    try { await session.fromPartition("persist:server-" + id).clearStorageData(); } catch { /* nothing saved */ }
+    if (wasOpen) setImmediate(() => { closeManager(); show(Srv.LOCAL); });
+    return publicState();
+  });
+  ipcMain.handle("servers:close", () => closeManager());
+}
+
+// The Server menu (Alt on Windows and Linux) and the tray menu list the same choices.
+function switchItems() {
+  return [
+    { label: T.local, type: "radio", checked: state.active === Srv.LOCAL, click: () => switchTo(Srv.LOCAL) },
+    ...state.list.map((s) => ({ label: s.name, type: "radio", checked: state.active === s.id, click: () => switchTo(s.id) })),
+    { type: "separator" },
+    { label: T.manage, click: openManager },
+  ];
+}
+function buildMenus() {
+  Menu.setApplicationMenu(Menu.buildFromTemplate([{ label: T.serverMenu, submenu: switchItems() }]));
+  if (tray) tray.setContextMenu(Menu.buildFromTemplate([
+    { label: T.openApp, click: () => { if (win && !win.isDestroyed()) { win.show(); win.focus(); } else openManager(); } },
+    { label: T.switchTo, submenu: switchItems() },
+    { label: T.dataFolder, click: () => shell.openPath(dataDir()) },
+    { type: "separator" },
+    { label: T.quit, click: () => { quitting = true; app.quit(); } },
+  ]));
 }
 
 // Updates. The app checks this project's GitHub releases at start and every few hours. With "Update automatically" on (the default) a newer
@@ -85,26 +218,17 @@ function fail(e) { upd.status = "error"; upd.error = String(e && e.message || e)
 async function check() { if (!autoUpdater || ["downloading", "ready"].includes(upd.status)) return; try { await autoUpdater.checkForUpdates(); } catch (e) { fail(e); } }
 
 app.whenReady().then(async () => {
-  Menu.setApplicationMenu(null);
-  // only the app's own page may use the camera (receipt photos)
-  session.defaultSession.setPermissionRequestHandler((wc, perm, cb) => cb(perm === "media" && wc.getURL().startsWith("http://127.0.0.1")));
-  try {
-    backend = await startBackend({ dataDir: app.getPath("userData"), root, nodeBin: process.execPath, appKey: protectedKey(app.getPath("userData")) });
-  } catch (e) {
-    dialog.showErrorBox("Money Manager could not start", String(e && e.message || e));
-    app.exit(1); return;
-  }
+  T = dict(app.getLocale());
+  state = Srv.load(dataDir());
+  // an installed copy from before the list existed already has its data here: it stays on this computer, with no question asked
+  if (state.active == null && !fs.existsSync(path.join(dataDir(), "servers.json")) && fs.existsSync(path.join(dataDir(), "database"))) { state = Srv.use(state, Srv.LOCAL); Srv.save(dataDir(), state); }
   setupUpdates();
-  openWindow();
+  registerServerIpc(require("electron").ipcMain);
   tray = new Tray(path.join(root, "web", "favicon.png"));
   tray.setToolTip("Money Manager");
-  tray.setContextMenu(Menu.buildFromTemplate([
-    { label: "Open Money Manager", click: () => { win.show(); win.focus(); } },
-    { label: "Open data folder", click: () => shell.openPath(app.getPath("userData")) },
-    { type: "separator" },
-    { label: "Quit", click: () => { quitting = true; app.quit(); } },
-  ]));
-  tray.on("click", () => { win.show(); win.focus(); });
+  tray.on("click", () => { if (win && !win.isDestroyed()) { win.show(); win.focus(); } else openManager(); });
+  buildMenus();
+  if (state.active == null) openManager(); else await show(state.active);
 });
 
 app.on("before-quit", async (e) => {

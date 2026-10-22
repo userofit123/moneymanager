@@ -51,6 +51,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 
 ### Windows app
 - Includes everything above.
+- **Use your own server instead of this computer's database (also in the Linux app).** The first time you open the app on a new computer it asks where your money is kept: **This computer** (its own private database, works offline) or **My server** (the address of your Money Manager, for example `money.home`). You can keep several servers and switch from the **Server** menu (Alt) or the tray icon; nothing is deleted when you switch, each one keeps its own data, and its logins stay separate. A server with its own security certificate is accepted once you confirm its fingerprint. An installed app that already has data stays on this computer without being asked.
 
 ### Linux app
 - **New: Money Manager for Linux.** The same app as the Windows one, with its own database and bank scraper inside and nothing to set up. Three files on each release: an AppImage (any Linux), a .deb (Debian, Ubuntu, Mint) and an .rpm (Fedora, Red Hat, openSUSE). Your data is kept in `~/.config/Money Manager`. Saved bank logins are locked with the desktop's keyring when there is one, otherwise with a key file in the data folder.

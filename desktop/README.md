@@ -8,6 +8,22 @@ The same app as the Docker version, as one installer. Nothing to set up: install
 - **Updates:** the app checks this repository's GitHub releases, downloads a newer version quietly and installs it when you restart. An update replaces the installed app (same program, same data, one copy). Running a newer `Setup.exe` over an old install does the same. Uninstalling keeps your data.
 - **Docker version:** unchanged. It still uses a PostgreSQL server; this build sets `DB_DRIVER=pglite` to use the in-process one.
 
+## Local or remote server
+
+The window shows one Money Manager at a time. On the first run (a new computer) the app asks which:
+
+- **This computer:** the app's own database, scraper and server run inside it (everything above).
+- **My server:** the address of a Money Manager you run elsewhere (Docker on a home server, for example). The app then runs nothing itself and just opens that address.
+
+Change it any time from the **Server** menu (press Alt) or the tray icon → *Switch to*, or *Servers…* to add or remove one. Notes:
+
+- Switching deletes nothing. Each server keeps its own data. Moving data between them is the app's backup and restore.
+- Each remote server gets its own browser session, so logins and the offline copy never mix. The desktop-only controls (update, backup folder) are not given to a remote server's page.
+- Only one is open at a time. The local database and scraper run only while *This computer* is the open one, so automatic sync stops while a remote server is open.
+- A server whose certificate this computer does not know (a home server with its own) is accepted only after you confirm its fingerprint; that exact certificate is then remembered for that server.
+- Offline, a remote server shows the last saved copy read-only (needs https, as for the web app). If the server does not answer at start, the app offers to try again or pick another.
+- The list is `servers.json` in the data folder. An install that already has data (from before the list existed) stays on *This computer* without asking.
+
 ## Building it
 
 Needs Windows (or the GitHub workflow in `.github/workflows/release.yml`, which runs on a Windows machine at GitHub).

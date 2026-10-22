@@ -10,7 +10,8 @@
     "dist": "electron-builder --win --x64 --publish never",
     "release": "electron-builder --win --x64 --publish always",
     "dist:linux": "electron-builder --linux --x64 --publish never",
-    "release:linux": "electron-builder --linux --x64 --publish always"
+    "release:linux": "electron-builder --linux --x64 --publish always",
+    "test": "node --test"
   },
   "dependencies": {
     "electron-updater": "^6.6.0"
@@ -29,6 +30,10 @@
       "main.js",
       "launcher.js",
       "preload.js",
+      "servers.js",
+      "servers.html",
+      "servers-preload.js",
+      "texts.js",
       "package.json"
     ],
     "extraResources": [
