@@ -33,6 +33,11 @@ Recap tells you how the month is going in plain sentences, with a small graph ne
   <img alt="Recap: a month told in sentences with graphs: what came in, what was spent, what is left" src="screenshots/recap-light.webp">
 </picture>
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="screenshots/recap-scroll-dark.webp">
+  <img alt="Further down Recap: the ending balance, what you still have to pay, and how much is really yours to spend" src="screenshots/recap-scroll-light.webp">
+</picture>
+
 It starts with what was in your accounts at the beginning of the month, what came in, the biggest payment, and how you compare with the same day last month. Then **Since then, you have spent**, a bar for each day (hover a bar to see the day, click it to open it), and finally **After all that, you are left with**: what is in your accounts today, what is still to be paid this month, and how much of it is really yours to spend after your jars.
 
 ## Activity: every payment

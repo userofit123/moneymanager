@@ -21,3 +21,7 @@ coverage/
 Thumbs.db
 .claude/worktrees/
 .claude/settings.local.json
+
+# docs site: build output and its tools
+_site/
+scripts/site/node_modules/

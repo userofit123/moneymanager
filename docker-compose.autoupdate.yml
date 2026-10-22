@@ -1,0 +1,17 @@
+# Optional: the app and the scraper update by themselves, a few minutes after a new release is published (every night at 04:00 by default).
+#   docker compose -f docker-compose.yml -f docker-compose.autoupdate.yml up -d
+# Only the two Money Manager containers are touched (not the database), and your data stays in its volumes.
+# Note: the updater needs access to Docker itself (the socket below), which can control everything on this machine. Skip this file if you
+# prefer to update by hand (docker compose pull && docker compose up -d), from Docker Desktop, or from Portainer.
+services:
+  app:
+    labels: ["com.centurylinklabs.watchtower.enable=true"]
+  scraper:
+    labels: ["com.centurylinklabs.watchtower.enable=true"]
+  updater:
+    image: nickfedor/watchtower:latest
+    restart: unless-stopped
+    command: --label-enable --cleanup --schedule "${UPDATE_SCHEDULE:-0 0 4 * * *}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    security_opt: ["no-new-privileges:true"]
