@@ -2,6 +2,7 @@
 // categories, category rules, tag rules, display names, card payment texts and salary texts, and the file it gives back is
 // checked here and added. Nothing is overwritten.
 import { ruleHit, ruleTags, normTag, normD, transferIds } from "./activity.js";
+import { CAT_HE } from "../catnames.js";
 import { ruleExists, genCheck, addSalaryRule, salaryHit } from "./categories.js";
 
 export const LIMITS = { cats: 200, rules: 5000, tagRules: 5000, names: 2000, cards: 50, salary: 50, name: 40, text: 60, mine: 300 };
@@ -57,7 +58,8 @@ export function readAnswer(S, raw) {
   const j = readJson(raw), list = (v) => (Array.isArray(v) ? v : []);
   if (!j || typeof j != "object" || ![j.categories, j.rules, j.tagRules, j.displayNames, j.cardPayments, j.salary].some(Array.isArray)) return { error: "bad" };
   let skipped = 0;
-  const known = new Map(Object.keys(S.cats || {}).map((k) => [k.toLowerCase(), k]));
+  // A name the AI wrote in Hebrew for a category that exists under its English name (shown in Hebrew, e.g. "משכורת" for Salary) is that category.
+  const known = new Map(Object.keys(S.cats || {}).flatMap((k) => [[k.toLowerCase(), k], ...(CAT_HE[k] ? [[CAT_HE[k].toLowerCase(), k]] : [])]));
   const cats = [];
   for (const x of list(j.categories).slice(0, LIMITS.cats)) {
     const name = clean(x?.name);

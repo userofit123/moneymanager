@@ -126,3 +126,10 @@ test("the example answer the prompt shows is one the check accepts", () => {
   assert.deepEqual([r.plan.names.length, r.plan.cards, r.plan.salary], [1, ["isracard"], ["acme ltd"]]);
   assert.equal(r.skipped, 0);
 });
+
+test("a category the AI names in Hebrew is the existing one shown under that Hebrew name", () => {
+  const S = start(); S.cats.Salary = 99;
+  const r = readAnswer(S, JSON.stringify({ categories: [{ name: "משכורת", income: true }], rules: [{ contains: "acme pay", category: "משכורת" }] }));
+  assert.deepEqual(r.plan.cats, []);
+  assert.deepEqual(r.plan.rules.map((x) => x.c), ["Salary"]);
+});
