@@ -1,5 +1,5 @@
 # Step 1: build the app (frontend/) with Vite into frontend/dist
-FROM node:22-alpine AS frontend
+FROM node:25-alpine AS frontend
 WORKDIR /src/frontend
 COPY frontend/package*.json ./
 RUN npm ci
@@ -7,7 +7,7 @@ COPY frontend/ ./
 RUN npm run build
 
 # Step 2: the server, with the built app next to it in /app/web
-FROM node:22-alpine
+FROM node:25-alpine
 WORKDIR /app/server
 COPY server/package*.json ./
 RUN npm ci --omit=dev
