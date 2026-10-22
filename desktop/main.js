@@ -84,7 +84,6 @@ const sessionFor = (server) => (server ? wireSession(session.fromPartition("pers
 async function startLocal() {
   backend = await startBackend({ dataDir: dataDir(), root, nodeBin: process.execPath, appKey: protectedKey(dataDir()) });
 }
-async function stopLocal() { const b = backend; backend = null; if (b) await b.stop(); }
 
 // The app's own screens for a server: a small web server on this computer serves them and passes the data requests on (shellserver.js). Only when the
 // server is the same version line as this app (its API then fits these screens); otherwise the window shows the server's own pages, as before.
@@ -159,12 +158,13 @@ function openWindow(addr) {
   win.on("close", (e) => { if (quitting) return; if (hasTray()) { e.preventDefault(); win.hide(); } else { quitting = true; app.quit(); } });
 }
 
-// Open the window for one entry. Moving away from "This computer" stops its backend (no syncing while another server is open); moving back starts it.
+// Open the window for one entry. "This computer" starts its backend the first time it is opened.
 async function show(id) {
   closeWindow();
   await stopShells();
   try {
-    if (id === Srv.LOCAL) { if (!backend) await startLocal(); } else await stopLocal();
+    // the local backend, once started, keeps running while a server is shown (it keeps syncing; its database cannot be opened a second time in this process); it stops when the app quits
+    if (id === Srv.LOCAL && !backend) await startLocal();
   } catch (e) {
     dialog.showErrorBox("Money Manager", String((e && e.message) || e));
     openManager(); return;

@@ -47,7 +47,7 @@ You can open the server list from four places:
 
 - **Nothing is deleted.** Each one keeps its own data. Removing a server from the list never touches the server or its data. It only forgets the address and the saved sign-in in this app.
 - **Each server is separate.** You are signed in to each one on its own, and the app's saved copy (for offline use) is kept per server, so they never mix.
-- **This computer stops while a server is open.** The private database and the bank connector run only while **This computer** is the one that is open. Automatic syncing of *this computer's* banks pauses while you look at a server, and starts again when you switch back. (Your server keeps syncing, of course.)
+- **This computer keeps running in the background.** Once you have opened **This computer**, its private database and bank connector keep running, with automatic syncing, while you look at a server. They stop when you quit the app. (Your server keeps syncing on its own, of course.)
 
 ## Moving your data between them
 

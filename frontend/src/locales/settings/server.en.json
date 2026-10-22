@@ -2,7 +2,7 @@
   "title": "Server",
   "desc": "Where this app keeps your money. Switching deletes nothing: each one keeps its own data.",
   "local": "This computer",
-  "localD": "A private database inside this app. Works without internet. It collects your bank data only while it is the one open.",
+  "localD": "A private database inside this app. Works without internet. Once opened, it keeps collecting your bank data in the background until you quit the app.",
   "now": "Open now",
   "open": "Open",
   "remove": "Remove",
