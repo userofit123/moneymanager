@@ -190,8 +190,7 @@ const LISTS = computed(() => (ST.value ? {
               <div v-if="LISTS[tab].L.rows.length" class="csl" :style="{ '--csg': grid(tab) }">
                 <!-- the column titles: a click sorts by that column (small to large, large to small, the usual order) -->
                 <div role="table" class="cshw" :aria-label="t(tab == 'cats' ? 'cats.c.title' : 'cats.g.title')"><div role="row" class="csh">
-                  <span aria-hidden="true"></span>
-                  <span role="columnheader" :aria-sort="ariaSort(sorts[tab], 'name')"><button type="button" class="cssort" :class="sortIs(tab, 'name')" @click="sortBy(tab, 'name')">{{ LISTS[tab].head }}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" /></svg></button></span>
+                  <span role="columnheader" class="c-name" :aria-sort="ariaSort(sorts[tab], 'name')"><button type="button" class="cssort" :class="sortIs(tab, 'name')" @click="sortBy(tab, 'name')">{{ LISTS[tab].head }}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" /></svg></button></span>
                   <span v-for="c in colsOf(tab)" :key="c" role="columnheader" :aria-sort="ariaSort(sorts[tab], c)" :class="'c-' + c"><button type="button" class="cssort" :class="sortIs(tab, c)" :data-tip="colTip(c)" @click="sortBy(tab, c)">{{ t("cats.col." + c) }}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" /></svg></button></span>
                   <span><button type="button" class="ib jmore cscols" :aria-label="t('cats.cols.aria')" :data-tip="t('cats.cols.aria')" aria-haspopup="menu" @click="colMenu = colMenu ? null : $event.currentTarget"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2" /><path d="M10 5v14M15 5v14" /></svg></button></span>
                 </div></div>

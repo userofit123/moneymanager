@@ -228,7 +228,8 @@ export async function putState(S) {
     await put("tx_ignore", S.txIgnore && typeof S.txIgnore === "object" ? S.txIgnore : {});
     await put("budget_no", Array.isArray(S.budgetNo) ? S.budgetNo.map(String).slice(0, 200) : []);
     // tags added by hand that no transaction has yet (a tag in use is kept with its transactions)
-    await put("tag_list", Array.isArray(S.tagList) ? [...new Set(S.tagList.map((x) => String(x).trim().slice(0, 60)).filter(Boolean))].slice(0, 500) : []);
+    // an older app that does not know this list sends none: then the saved list stays as it is
+    if (Array.isArray(S.tagList)) await put("tag_list", [...new Set(S.tagList.map((x) => String(x).trim().slice(0, 60)).filter(Boolean))].slice(0, 500));
     await c.query("DELETE FROM dismissed_alerts");
     for (const id of Object.keys(S.dismissed || {})) await c.query("INSERT INTO dismissed_alerts (id) VALUES ($1) ON CONFLICT DO NOTHING", [id]);
 

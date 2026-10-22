@@ -144,7 +144,12 @@
   display: contents;
 }
 
-.csh > span[class*="c-"]:not(.c-change),
+/* the name title starts at the row's start, over the letter icon */
+.csh > .c-name {
+  grid-column: span 2;
+}
+
+.csh > span[class*="c-"]:not(.c-change):not(.c-name),
 .csv {
   text-align: end;
 }
@@ -430,9 +435,6 @@
     padding: 0;
   }
 
-  .csh > span[aria-hidden] {
-    display: none;
-  }
 
   .csh .cssort {
     padding: 4px 10px;
