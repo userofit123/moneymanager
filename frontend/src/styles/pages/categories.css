@@ -158,11 +158,15 @@
 }
 
 .csh {
-  padding: 0 12px;
+  padding: 8px 12px;
   border-inline: 1px solid transparent; /* the same edges as the rows, so every title starts where its column does */
   font-size: var(--fs-xs);
   color: var(--tx2);
   font-weight: 600;
+  position: sticky; /* the titles stay in view while the list scrolls */
+  top: 0;
+  z-index: 5;
+  background: var(--s1);
 }
 
 .cshw {
@@ -174,7 +178,7 @@
   grid-column: span 2;
 }
 
-.csh > span[class*="c-"]:not(.c-change):not(.c-name):not(.c-budget),
+.csh > span[class*="c-"]:not(.c-name):not(.c-budget),
 .csv:not(.c-budget) {
   text-align: end;
 }
@@ -308,6 +312,7 @@
 .csc {
   display: flex;
   align-items: center;
+  justify-content: flex-end; /* a number column: at the end, like the others */
   gap: 5px;
   font-size: var(--fs-sm);
   color: var(--tx2);
@@ -462,6 +467,8 @@
     align-items: center;
     gap: 6px;
     padding: 0;
+    position: static; /* on a phone the titles are sort buttons above the cards */
+    background: none;
   }
 
 
@@ -510,6 +517,7 @@
 
   .csc {
     grid-column: 1 / -1;
+    justify-content: flex-start;
   }
 
   .csx {
@@ -532,3 +540,8 @@
   margin: 0;
 }
 
+
+/* cards clip their corners with overflow: hidden, which stops sticky titles; clip does the same without that */
+#cats .card.ss {
+  overflow: clip;
+}

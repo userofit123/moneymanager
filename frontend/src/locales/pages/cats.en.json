@@ -73,9 +73,7 @@
     "rulesTip": "Rules that put transactions here. Click to see them in Settings."
   },
   "chg": {
-    "more": "{amt} more than the {n} months before",
-    "less": "{amt} less than the {n} months before",
-    "same": "About the same as the {n} months before",
+    "same": "About the same",
     "none": "Nothing before to compare with"
   },
   "open": {

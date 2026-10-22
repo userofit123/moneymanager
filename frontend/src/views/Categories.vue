@@ -62,14 +62,14 @@ const periodWords = computed(() => (ST.value ? { n: nM.value, from: monthName(ST
 const signed = (v) => formatMoney(v, { sign: true });
 
 // ---- one row ----
-// The change against the months before, in plain words; more spending (or less income) shows in red.
+// The change against the months before: an arrow and the amount; more spending (or less income) shows in red.
 function change(r) {
   if (!ST.value.hasPrev) return { text: t("cats.chg.none"), cls: "" };
   const before = r.main == "in" ? r.prevIn : r.prevOut, nowV = before + r.change;
   if (!before && !nowV) return { text: "", cls: "" };
-  if (Math.abs(r.change) < Math.max(1, before * 0.02)) return { text: t("cats.chg.same", { n: nM.value }), cls: "same" };
+  if (Math.abs(r.change) < Math.max(1, before * 0.02)) return { text: t("cats.chg.same"), cls: "same" };
   const good = r.main == "in" ? r.change > 0 : r.change < 0;
-  return { text: t(r.change > 0 ? "cats.chg.more" : "cats.chg.less", { amt: fm(Math.abs(r.change)), n: nM.value }), cls: good ? "good" : "bad", up: r.change > 0 };
+  return { text: fm(Math.abs(r.change)), cls: good ? "good" : "bad", up: r.change > 0 }; // the column title and its tip say what it is compared with
 }
 // The month-by-month bars of the open row: the money out (for income, the money in), the tallest bar full height.
 function bars(r) {
