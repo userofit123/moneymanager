@@ -386,6 +386,7 @@
     "parts": "Building blocks"
   },
   "shell": {
+    "appMenu": "App menu (servers, updates, quit)",
     "menu": "Pages",
     "more": "More",
     "appearance": "Appearance",

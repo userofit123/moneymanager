@@ -52,7 +52,7 @@ function integrateAppImage() {
   } catch { /* the app works without the menu entry */ }
 }
 
-let backend = null, win = null, manager = null, tray = null, quitting = false, state = { v: 1, active: null, list: [] }, T = dict("en");
+let appMenu = null, backend = null, win = null, manager = null, tray = null, quitting = false, state = { v: 1, active: null, list: [] }, T = dict("en");
 const dataDir = () => app.getPath("userData");
 
 if (!app.requestSingleInstanceLock()) app.quit();
@@ -136,6 +136,9 @@ const frameOptions = () => {
   const last = frameLast(), dark = nativeTheme.shouldUseDarkColors;
   return { titleBarStyle: "hidden", titleBarOverlay: { color: OVERLAY_BG, symbolColor: last ? last.fg : dark ? "#e6e4ea" : "#1b1b22", height: TB } };
 };
+// The window has no system menu bar (no title bar), so the Server menu is opened from the page (the ⋮ button in the strip) or with Alt, at the top left
+const popMenu = (x, y) => { if (appMenu && win && !win.isDestroyed()) appMenu.popup({ window: win, x: Math.max(0, x), y: Math.max(0, y) }); };
+ipcMain.on("frame:menu", (e, x, y) => { if (BrowserWindow.fromWebContents(e.sender) === win) popMenu(x, y); });
 ipcMain.on("frame:titlebar", (e, bg, fg) => {
   const w = BrowserWindow.fromWebContents(e.sender);
   if (w && w === win && typeof w.setTitleBarOverlay === "function" && colour(bg) && colour(fg)) {
@@ -165,6 +168,12 @@ function openWindow(addr) {
     asking = false;
     if (!w || w.isDestroyed()) return;
     if (r === 0) w.loadURL(base); else if (r === 1) openManager(); else { quitting = true; app.quit(); }
+  });
+  // Ctrl+Q quits, and Alt on its own opens the menu (there is no menu bar to show)
+  let altAlone = false;
+  win.webContents.on("before-input-event", (e, i) => {
+    if (i.type === "keyDown" && i.control && !i.alt && !i.meta && String(i.key).toLowerCase() === "q") { e.preventDefault(); quitting = true; app.quit(); return; }
+    if (i.key === "Alt") { if (i.type === "keyDown") altAlone = true; else if (altAlone) { altAlone = false; popMenu(8, TB); } } else if (i.type === "keyDown") altAlone = false;
   });
   // closing the window keeps the app (and its automatic sync) running in the tray; where there is no tray to bring it back from (plain GNOME), it quits
   win.on("close", (e) => { if (quitting) return; if (hasTray()) { e.preventDefault(); win.hide(); } else { quitting = true; app.quit(); } });
@@ -249,7 +258,8 @@ function switchItems() {
   ];
 }
 function buildMenus() {
-  Menu.setApplicationMenu(Menu.buildFromTemplate([{ label: T.serverMenu, submenu: [...switchItems(), { type: "separator" }, { type: "separator" }, { label: fill(T.thisApp, { v: app.getVersion() }), enabled: false }, { label: T.checkUpdates, click: checkNow }, { label: T.quit, accelerator: "CmdOrCtrl+Q", click: () => { quitting = true; app.quit(); } }] }]));
+  appMenu = Menu.buildFromTemplate([{ label: T.serverMenu, submenu: [...switchItems(), { type: "separator" }, { label: fill(T.thisApp, { v: app.getVersion() }), enabled: false }, { label: T.checkUpdates, click: checkNow }, { label: T.quit, accelerator: "CmdOrCtrl+Q", click: () => { quitting = true; app.quit(); } }] }]);
+  Menu.setApplicationMenu(appMenu);
   if (tray) tray.setContextMenu(Menu.buildFromTemplate([
     { label: T.openApp, click: () => { if (win && !win.isDestroyed()) { win.show(); win.focus(); } else openManager(); } },
     { label: T.switchTo, submenu: switchItems() },

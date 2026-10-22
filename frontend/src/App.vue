@@ -36,6 +36,7 @@ const DocViewer = defineAsyncComponent(() => import("./components/tx/DocViewer.v
 const AssistWindow = defineAsyncComponent(() => import("./views/settings/AssistWindow.vue"));
 
 const { t } = useI18n();
+const appMenu = (e) => { const r = e.currentTarget.getBoundingClientRect(); window.desktopFrame?.menu?.(r.left, r.bottom); }; // the Server menu, in the desktop app (there is no menu bar to show)
 const dframe = typeof window !== "undefined" && !!window.desktopFrame; // the desktop app: the page draws the title bar (see layout.css)
 startRouter();
 boot();
@@ -56,7 +57,7 @@ addEventListener("offline", () => (online.value = false));
 </script>
 
 <template>
-  <div v-if="dframe" id="dragbar" aria-hidden="true"></div>
+  <div v-if="dframe" id="dragbar"><button type="button" class="dmenu" :aria-label="t('shell.appMenu')" :title="t('shell.appMenu')" @click="appMenu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="12" cy="19" r="1.8" /></svg></button></div>
   <AuthScreen v-if="app.phase === 'auth'" />
   <template v-else-if="app.phase !== 'start'">
     <JobBar />
