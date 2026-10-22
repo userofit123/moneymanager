@@ -37,6 +37,13 @@ export function tagSuggest(all, cur, typed) {
 }
 
 // ---- categories ----
+// Checks a new category name: { err: "empty" | "dup" } or { n } (the name to add). "dup": one exists already, in any case.
+export function addCategoryCheck(S, name) {
+  const n = String(name || "").trim().slice(0, 60);
+  if (!n) return { err: "empty" };
+  if (Object.keys(S.cats || {}).some((x) => x.toLowerCase() == n.toLowerCase())) return { err: "dup", ex: Object.keys(S.cats).find((x) => x.toLowerCase() == n.toLowerCase()) };
+  return { n };
+}
 export function addCategory(S, name) {
   const n = String(name || "").trim();
   if (!n || S.cats[n]) return false;
@@ -74,17 +81,32 @@ export function deleteCategory(S, k) {
 }
 
 // ---- tags ----
+// Checks a new tag ("#trip" and "trip" are the same): { err: "empty" | "dup", ex } or { g } (the tag to add).
+export function addTagCheck(S, name) {
+  const g = String(name || "").trim().replace(/^#+/, "").trim().slice(0, 60);
+  if (!g) return { err: "empty" };
+  const ex = allTags(S).find(([x]) => x.toLowerCase() == g.toLowerCase());
+  return ex ? { err: "dup", ex: ex[0] } : { g };
+}
+// A tag kept in the tag list, so it shows (and can be picked) before any transaction has it.
+export function addTag(S, g) {
+  if (!g || addTagCheck(S, g).err) return false;
+  S.tagList = [...(S.tagList || []), g];
+  return [["Added tag", "#" + g]];
+}
 export const tagUses = (S, g) => S.tx.filter((t) => (t.tags || []).includes(g)).length;
 export function renameTag(S, g, n) {
   let c = 0;
   for (const t of S.tx) { const i = (t.tags || []).indexOf(g); if (i >= 0) { t.tags.splice(i, 1); if (!t.tags.includes(n)) t.tags.splice(i, 0, n); c++; } }
   for (const r of S.tagRules) { const L = ruleTags(r), i = L.indexOf(g); if (i >= 0) { L.splice(i, 1, n); r.t = [...new Set(L)].join(","); } }
+  if (S.tagList) S.tagList = [...new Set(S.tagList.map((x) => (x == g ? n : x)))];
   return [["Renamed tag", `#${g} → #${n} · ${pl(c, "transaction")}`]];
 }
 export function deleteTag(S, g) {
   for (const t of S.tx) if (t.tags) t.tags = t.tags.filter((x) => x != g);
   for (const r of S.tagRules) r.t = ruleTags(r).filter((x) => x != g).join(",");
   S.tagRules = S.tagRules.filter((r) => r.t);
+  if (S.tagList) S.tagList = S.tagList.filter((x) => x != g);
   return [["Deleted tag", "#" + g]];
 }
 

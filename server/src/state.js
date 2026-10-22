@@ -100,7 +100,7 @@ export async function getState() {
     ntfy: await setting("ntfy", ""),
     jarsTotal: await setting("jars_total", 0), jarsBuffer: await setting("jars_buffer", 0), jarsReserve: await setting("jars_reserve", 0),
     nwPension: await setting("nw_pension", false),
-    hiddenMerchants: await setting("hidden_merchants", []), ccOverride: await setting("cc_override", {}), cardRules: await setting("card_rules", []), salaryRules: await setting("salary_rules", []), txIgnore: await setting("tx_ignore", {}), budgetNo: await setting("budget_no", []),
+    hiddenMerchants: await setting("hidden_merchants", []), ccOverride: await setting("cc_override", {}), cardRules: await setting("card_rules", []), salaryRules: await setting("salary_rules", []), txIgnore: await setting("tx_ignore", {}), budgetNo: await setting("budget_no", []), tagList: await setting("tag_list", []),
     cfg,
     currencies: await configuredCurrencies(), fxCurrencies: await activeCurrencies(),
     accounts: accounts.rows.map((a) => ({
@@ -227,6 +227,8 @@ export async function putState(S) {
     await put("salary_rules", Array.isArray(S.salaryRules) ? S.salaryRules.map(String).slice(0, 200) : []);
     await put("tx_ignore", S.txIgnore && typeof S.txIgnore === "object" ? S.txIgnore : {});
     await put("budget_no", Array.isArray(S.budgetNo) ? S.budgetNo.map(String).slice(0, 200) : []);
+    // tags added by hand that no transaction has yet (a tag in use is kept with its transactions)
+    await put("tag_list", Array.isArray(S.tagList) ? [...new Set(S.tagList.map((x) => String(x).trim().slice(0, 60)).filter(Boolean))].slice(0, 500) : []);
     await c.query("DELETE FROM dismissed_alerts");
     for (const id of Object.keys(S.dismissed || {})) await c.query("INSERT INTO dismissed_alerts (id) VALUES ($1) ON CONFLICT DO NOTHING", [id]);
 

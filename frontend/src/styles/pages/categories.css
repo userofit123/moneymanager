@@ -127,21 +127,95 @@
 .csh,
 .csm {
   display: grid;
-  grid-template-columns: 36px minmax(150px, 1.7fr) repeat(4, minmax(76px, .8fr)) minmax(140px, 1.3fr) 34px;
+  grid-template-columns: var(--csg); /* the columns shown, set by the page */
   gap: 12px;
   align-items: center;
 }
 
 .csh {
   padding: 0 12px;
+  border-inline: 1px solid transparent; /* the same edges as the rows, so every title starts where its column does */
   font-size: var(--fs-xs);
   color: var(--tx2);
   font-weight: 600;
 }
 
-.csh > span:nth-child(n+3):nth-child(-n+6),
+.cshw {
+  display: contents;
+}
+
+.csh > span[class*="c-"]:not(.c-change),
 .csv {
   text-align: end;
+}
+
+/* a column title: a click sorts by it; the arrow shows on the sorted column only */
+.cssort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: none;
+  padding: 2px 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: inherit;
+}
+
+.cssort:hover,
+.cssort.asc,
+.cssort.desc {
+  color: var(--tx);
+}
+
+.cssort svg {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: none;
+}
+
+.cssort.asc svg,
+.cssort.desc svg {
+  display: block;
+}
+
+.cssort.desc svg {
+  transform: rotate(180deg);
+}
+
+.csh .cscols {
+  width: 34px;
+  height: 34px;
+}
+
+.csh .cscols svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linejoin: round;
+}
+
+.csv.c-budget {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.csbu {
+  font-size: var(--fs-xs);
+  color: var(--tx2);
+}
+
+.cmenu .cscol svg {
+  stroke-width: 2.4;
 }
 
 .mrow.csr {
@@ -347,8 +421,37 @@
 
 /* narrow: the numbers go under the name, two by two */
 @container (max-width: 720px) {
+  /* the column titles become a row of small buttons to sort by */
   .csh {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+  }
+
+  .csh > span[aria-hidden] {
     display: none;
+  }
+
+  .csh .cssort {
+    padding: 4px 10px;
+    border: 1px solid var(--ol);
+    border-radius: 999px;
+  }
+
+  .csh .cssort.asc,
+  .csh .cssort.desc {
+    border-color: var(--acc);
+    color: var(--acc);
+  }
+
+  .csh > span:last-child {
+    margin-inline-start: auto;
+  }
+
+  .csv.c-budget {
+    align-items: flex-start;
   }
 
   .csm {
@@ -401,6 +504,3 @@
   margin: 0;
 }
 
-.mt small .nw {
-  white-space: nowrap;
-}

@@ -3,7 +3,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { homeModel } from "../src/lib/home.js";
-import { catStats, periodOf } from "../src/lib/catStats.js";
+import { catStats, periodOf, shownCols, toggleCol, colValue, CAT_COLS } from "../src/lib/catStats.js";
 
 const NOW = new Date(2026, 9, 17, 12);
 const tx = (id, d, desc, a, c = "", tags = [], o = {}) => ({ id, d, desc, from: "Bank", to: desc, a, c, tags, docs: [], note: "", ...o });
@@ -33,7 +33,7 @@ const run = (months = 3, s = S()) => catStats(s, homeModel(s, NOW).rows, NOW, mo
 const row = (L, k) => L.rows.find((r) => r.k == k);
 
 test("the period is the last full months, and the one before it has the same length", () => {
-  assert.deepEqual(periodOf(NOW, 3), { keys: ["2026-07", "2026-08", "2026-09"], prev: ["2026-04", "2026-05", "2026-06"] });
+  assert.deepEqual(periodOf(NOW, 3), { keys: ["2026-07", "2026-08", "2026-09"], prev: ["2026-04", "2026-05", "2026-06"], now: "2026-10", last: "2026-09" });
   assert.equal(periodOf(NOW, 12).keys[0], "2025-10");
   assert.equal(periodOf(new Date(2026, 0, 5), 3).keys.join(), "2025-10,2025-11,2025-12");
 });
@@ -72,4 +72,30 @@ test("with no earlier entries there is nothing to compare with; no data gives em
   assert.equal(run(3, s).hasPrev, false);
   const E = catStats({}, [], NOW, 6);
   assert.deepEqual([E.cats.rows, E.tags.rows, E.cats.totals, E.months.length], [[], [], { out: 0, in: 0, net: 0 }, 6]);
+});
+
+test("this month so far and last month: money out, or money in for income", () => {
+  const R = run(), f = row(R.cats, "Food"), s = row(R.cats, "Salary");
+  assert.deepEqual([f.thisOut, f.thisM, f.lastOut, f.lastIn, f.lastM], [70, 70, 100, 50, 100]); // the entry still to come is left out
+  assert.deepEqual([s.thisM, s.lastM], [0, 5000]);
+  assert.deepEqual([row(R.tags, "home").lastM, row(R.tags, "home").thisM], [100, 0]);
+});
+
+test("a budget can be set for spending categories only (not income, nor money that only comes in)", () => {
+  const R = run();
+  assert.deepEqual(["Food", "Fun", "Salary", "Gifts", "Uncategorized"].map((k) => row(R.cats, k).canBudget), [true, true, false, false, false]);
+});
+
+test("the columns shown: the first ones, the remembered ones in the list's order, and switching one", () => {
+  assert.deepEqual(shownCols(undefined), ["thisM", "lastM", "avg", "out", "change", "budget"]);
+  assert.deepEqual(shownCols("rules,out,nope"), ["out", "rules"]);
+  assert.deepEqual(shownCols(""), []);
+  assert.equal(toggleCol(["out", "rules"], "thisM"), "thisM,out,rules");
+  assert.equal(toggleCol(["out", "rules"], "out"), "rules");
+  assert.deepEqual(CAT_COLS.length, 11);
+});
+
+test("what a column sorts by: empty dates and budgets are nothing", () => {
+  const R = run(), f = row(R.cats, "Food"), e = row(R.cats, "Empty");
+  assert.deepEqual([colValue(f, "out"), colValue(f, "budget"), colValue(f, "last"), colValue(e, "budget"), colValue(e, "last"), colValue(e, "n")], [600, 1000, "2026-10-02", null, null, 0]);
 });

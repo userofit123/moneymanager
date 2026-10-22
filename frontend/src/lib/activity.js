@@ -187,6 +187,8 @@ export function allTags(S) {
   const m = {};
   for (const t of S?.tx || []) if (!t.virtual) for (const g of t.tags || []) m[g] = (m[g] || 0) + 1;
   for (const r of S?.tagRules || []) for (const g of ruleTags(r)) if (!(g in m)) m[g] = 0;
+  // tags added on the Categories and tags page that no transaction has yet
+  for (const g of S?.tagList || []) if (!(g in m)) m[g] = 0;
   return Object.entries(m).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 }
 // "#food" and "Food" become the tag already in use, so the same tag is not made twice.

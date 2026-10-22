@@ -44,6 +44,20 @@ same("rename a tag into one that exists merges them", (N) => tagRename(N, "food"
 same("rename a tag used by a rule", (N) => tagRename(N, "tv", "fun"));
 same("delete a tag (and the rules left with no tag)", (N) => C.deleteTag(N, "health"));
 same("delete a tag on transactions", (N) => C.deleteTag(N, "food"));
+test("add a tag with no transactions yet: kept in the tag list, renamed and deleted with the others", () => {
+  const N = start();
+  assert.deepEqual([C.addTagCheck(N, " "), C.addTagCheck(N, "#FOOD"), C.addTagCheck(N, " #Pets ")], [{ err: "empty" }, { err: "dup", ex: "food" }, { g: "Pets" }]);
+  assert.deepEqual(C.addTag(N, "Pets"), [["Added tag", "#Pets"]]);
+  assert.equal(C.addTag(N, "pets"), false);
+  assert.deepEqual(C.allTags(N).find(([g]) => g == "Pets"), ["Pets", 0]);
+  assert.equal(C.normTag(N, "#pets"), "Pets");
+  C.renameTag(N, "Pets", "Animals"); assert.deepEqual(N.tagList, ["Animals"]);
+  C.deleteTag(N, "Animals"); assert.deepEqual(N.tagList, []);
+});
+test("a new category: empty or the same name in any case is refused", () => {
+  const N = start();
+  assert.deepEqual([C.addCategoryCheck(N, " "), C.addCategoryCheck(N, "food"), C.addCategoryCheck(N, " Pets ")], [{ err: "empty" }, { err: "dup", ex: "Food" }, { n: "Pets" }]);
+});
 same("add a category rule", (N) => C.addRule(N, " super ", "Food"));
 same("a rule for the same text is refused", (N) => C.addRule(N, "SHUFERSAL", "Food"));
 same("delete a category rule", (N) => C.deleteRule(N, 0));

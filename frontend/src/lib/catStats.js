@@ -9,18 +9,20 @@ import { allTags, ruleTags } from "./activity.js";
 const p2 = (n) => String(n).padStart(2, "0");
 const CNC = new Intl.Collator(undefined, { sensitivity: "base" });
 const RECENT = 5;
+const NO_BUDGET = ["Income", "Uncategorized"]; // like the add-budget form (lib/budgets.js formCategories)
 
 // The months of the period (the last n full months, oldest first) and of the n months before it.
 export function periodOf(now, n) {
   const MK = now.getFullYear() + "-" + p2(now.getMonth() + 1), keys = [], prev = [];
   for (let i = n; i >= 1; i--) keys.push(addM(MK, -i));
   for (let i = 2 * n; i > n; i--) prev.push(addM(MK, -i));
-  return { keys, prev };
+  return { keys, prev, now: MK, last: addM(MK, -1) };
 }
 
 // One list of rows (categories or tags). keyOf(t) gives the names an entry belongs to; mainOf(row) "out" or "in".
+// P.now / P.last: this calendar month (so far) and the one before it.
 function build(names, rows, P, keyOf, mainOf, extra) {
-  const blank = (k) => ({ k, out: 0, in: 0, prevOut: 0, prevIn: 0, n: 0, last: "", outM: P.keys.map(() => 0), inM: P.keys.map(() => 0), recent: [] });
+  const blank = (k) => ({ k, out: 0, in: 0, prevOut: 0, prevIn: 0, thisOut: 0, thisIn: 0, lastOut: 0, lastIn: 0, n: 0, last: "", outM: P.keys.map(() => 0), inM: P.keys.map(() => 0), recent: [] });
   const at = new Map(names.map((k) => [k, blank(k)]));
   const tot = { out: 0, in: 0 }, cur = new Set(P.keys), old = new Set(P.prev);
   // newest first, so the latest entries are the first ones met
@@ -34,13 +36,15 @@ function build(names, rows, P, keyOf, mainOf, extra) {
       if (!r) at.set(k, (r = blank(k)));
       if (!r.last) r.last = t.d;
       if (r.recent.length < RECENT) r.recent.push(t);
+      if (m == P.now) { r.thisOut += out; r.thisIn += inn; } else if (m == P.last) { r.lastOut += out; r.lastIn += inn; }
       if (cur.has(m)) { r.out += out; r.in += inn; r.n++; r.outM[i] += out; r.inM[i] += inn; }
       else if (old.has(m)) { r.prevOut += out; r.prevIn += inn; }
     }
   }
   const n = P.keys.length, list = [...at.values()].map((r) => {
     const main = mainOf(r), now = main == "in" ? r.in : r.out, before = main == "in" ? r.prevIn : r.prevOut;
-    return { ...r, main, net: r.in - r.out, avg: now / n, avgOut: r.out / n, avgIn: r.in / n, change: now - before, ...extra(r.k) };
+    const thisM = main == "in" ? r.thisIn : r.thisOut, lastM = main == "in" ? r.lastIn : r.lastOut;
+    return { ...r, main, net: r.in - r.out, avg: now / n, avgOut: r.out / n, avgIn: r.in / n, change: now - before, thisM, lastM, ...extra(r.k) };
   });
   return { rows: list, totals: { out: tot.out, in: tot.in, net: tot.in - tot.out } };
 }
@@ -57,7 +61,9 @@ export function catStats(S, rows, now, months = 6) {
   const trules = (g) => (S?.tagRules || []).filter((r) => ruleTags(r).includes(g)).length;
 
   const C = build(Object.keys(cats), rows, P, (t) => [t.c || "Uncategorized"], mainOf,
-    (k) => ({ inc: isInc(k), budget: budgets[k] || 0, rules: crules(k) }));
+    (k) => ({ inc: isInc(k), budget: budgets[k] || 0, canBudget: !isInc(k) && !NO_BUDGET.includes(k), rules: crules(k) }));
+  // no budget for money that comes in (an income category, or one with only money in)
+  for (const r of C.rows) if (r.main == "in") r.canBudget = false;
   // spending first (largest first), then income, Uncategorized last; names in order when the money is the same
   const rank = (r) => (r.k == "Uncategorized" ? 2 : r.main == "in" ? 1 : 0);
   C.rows.sort((a, b) => rank(a) - rank(b) || (a.main == "in" ? b.in - a.in : b.out - a.out) || CNC.compare(a.k, b.k));
@@ -67,4 +73,19 @@ export function catStats(S, rows, now, months = 6) {
   T.rows.sort((a, b) => b.out - a.out || b.in - a.in || CNC.compare(a.k, b.k));
 
   return { months: P.keys, from: P.keys[0], to: P.keys[P.keys.length - 1], hasPrev: rows.some((t) => old.has(rdOf(t).slice(0, 7))), cats: C, tags: T };
+}
+
+// ---- the columns of the list ----
+// Every column the person can show, in the order they appear, and the ones shown at first. Name and ⋯ are always shown.
+// thisM / lastM: this calendar month so far and last month (the money out; for income, the money in).
+export const CAT_COLS = ["thisM", "lastM", "avg", "out", "in", "net", "change", "n", "last", "budget", "rules"];
+export const CAT_COLS_START = "thisM,lastM,avg,out,change,budget";
+// The columns shown, from the remembered "thisM,avg,…" (unknown names left out, always in the list's order).
+export const shownCols = (v) => { const on = new Set(String(v ?? CAT_COLS_START).split(",")); return CAT_COLS.filter((c) => on.has(c)); };
+export const toggleCol = (cols, c) => CAT_COLS.filter((x) => (x == c ? !cols.includes(c) : cols.includes(x))).join(",");
+// What a column is sorted by: a number, a date text, or nothing (empty cells go last).
+export function colValue(r, c) {
+  if (c == "last") return r.last || null;
+  if (c == "budget") return r.budget || null;
+  return r[c] ?? null;
 }

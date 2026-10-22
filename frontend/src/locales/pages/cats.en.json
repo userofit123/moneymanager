@@ -9,7 +9,9 @@
     "label": "Search",
     "none": "Nothing matches “{q}”.",
     "newCat": "New category name",
-    "addCat": "+ Add category"
+    "addCat": "+ Add category",
+    "newTag": "New tag name",
+    "addTag": "+ Add tag"
   },
   "cancel": "Cancel",
   "rename": "Rename",
@@ -25,18 +27,20 @@
     "renamed": "Renamed to {n}",
     "delQ": "Delete \"{k}\"? Its transactions become uncategorized, and its rules and budget are removed.",
     "goRules": "Go to category rules",
-    "none": "No categories yet."
+    "none": "No categories yet.",
+    "dup": "There is already a category named \"{k}\"."
   },
   "g": {
     "title": "Tags",
     "desc": "What went out and came in for each tag over the time you pick. Click a row to see more.",
     "none": "No tags yet.",
-    "appear": "Tags appear here once a transaction has one. Add tags when you open a transaction, or let a tag rule add them automatically.",
+    "appear": "Add a tag above, add tags when you open a transaction, or let a tag rule add them automatically.",
     "goRules": "Go to tag rules",
     "renTitle": "Rename tag",
     "renText": "Changes it on every transaction and in every tag rule. If a tag with the new name already exists, they become one.",
     "renamed": "Renamed to #{n}",
-    "delQ": "Delete the tag \"{g}\"? It is removed from {n} transaction and from tag rules. The transactions stay. | Delete the tag \"{g}\"? It is removed from {n} transactions and from tag rules. The transactions stay."
+    "delQ": "Delete the tag \"{g}\"? It is removed from {n} transaction and from tag rules. The transactions stay. | Delete the tag \"{g}\"? It is removed from {n} transactions and from tag rules. The transactions stay.",
+    "dup": "There is already a tag named #{g}."
   },
   "rulesAt": "Rules that sort entries automatically are in Settings → Automatic sorting.",
   "period": {
@@ -54,20 +58,23 @@
   "col": {
     "cat": "Category",
     "tag": "Tag",
+    "thisM": "This month",
+    "lastM": "Last month",
+    "avg": "Usual month",
     "out": "Money out",
     "in": "Money in",
     "net": "In minus out",
-    "avg": "Usual month",
-    "change": "Against the time before"
+    "change": "Against the time before",
+    "n": "Transactions",
+    "last": "Last transaction",
+    "budget": "Budget",
+    "rules": "Rules"
   },
   "row": {
-    "n": "{n} transaction | {n} transactions",
-    "last": "last on {d}",
-    "nothing": "Nothing in these months",
-    "budget": "Budget {amt} a month",
-    "rules": "{n} rule | {n} rules",
     "rulesTip": "Rules that put transactions here. Click to see them in Settings.",
-    "avgTip": "The money out (for income: the money in) divided by the number of months."
+    "avgTip": "The money out (for income: the money in) divided by the number of months.",
+    "thisTip": "This month so far: the money out (for income: the money in).",
+    "lastTip": "The whole of last month: the money out (for income: the money in)."
   },
   "chg": {
     "more": "{amt} more than the {n} months before",
@@ -91,5 +98,14 @@
   "ai": {
     "text": "An AI can suggest categories and tags from the names of your own transactions.",
     "go": "Set up with an AI"
+  },
+  "bud": {
+    "amt": "{amt} a month",
+    "used": "{amt} used this month",
+    "set": "Set a budget",
+    "tip": "See it in Budgets"
+  },
+  "cols": {
+    "aria": "Choose columns"
   }
 }

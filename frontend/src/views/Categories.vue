@@ -18,7 +18,9 @@ import { searches, useRowSearch } from "../core/rowSearch.js";
 import { fm } from "../format.js";
 import { dcell } from "../dates.js";
 import { displayName } from "../lib/activity.js";
-import { catStats } from "../lib/catStats.js";
+import { catStats, shownCols, toggleCol, colValue, CAT_COLS, CAT_COLS_START } from "../lib/catStats.js";
+import { nextSort, ariaSort, sortRows } from "../lib/sortRows.js";
+import { openForm } from "../core/forms.js";
 import PageHeader from "../components/PageHeader.vue";
 import BaseSheet from "../components/BaseSheet.vue";
 import PopMenu from "../components/PopMenu.vue";
@@ -66,7 +68,6 @@ function change(r) {
   const good = r.main == "in" ? r.change > 0 : r.change < 0;
   return { text: t(r.change > 0 ? "cats.chg.more" : "cats.chg.less", { amt: fm(Math.abs(r.change)), n: nM.value }), cls: good ? "good" : "bad", up: r.change > 0 };
 }
-const meta = (r) => [r.n ? t("cats.row.n", { n: r.n }, r.n) : t("cats.row.nothing"), r.last ? t("cats.row.last", { d: "⁦" + dcell(r.last) + "⁩" }) : ""].filter(Boolean).join(" · ");
 // The month-by-month bars of the open row: the money out (for income, the money in), the tallest bar full height.
 function bars(r) {
   const v = r.main == "in" ? r.inM : r.outM, mx = Math.max(...v, 1);
@@ -89,11 +90,37 @@ const menuDel = () => { const m = menu.value; menu.value = null; if (m.kind == "
 const catBox = ref(null), tagBox = ref(null);
 const noneCats = useRowSearch(catBox, "cats"), noneTags = useRowSearch(tagBox, "tags");
 
+// ---- the columns: which are shown (remembered like the months), their widths, and the order of the rows ----
+const colPref = usePref("moneyCatCols", CAT_COLS_START);
+const cols = computed(() => shownCols(colPref.value));
+const colMenu = ref(null);
+const flipCol = (c) => { colPref.value = toggleCol(cols.value, c); };
+const COLW = { change: "minmax(120px, 1.5fr)", budget: "minmax(104px, 1.1fr)", last: "minmax(84px, .8fr)", n: "minmax(56px, .5fr)", rules: "minmax(56px, .5fr)" };
+// tags have no budget, so the Tags tab leaves that column out
+const colsOf = (tab) => (tab == "tags" ? cols.value.filter((c) => c != "budget") : cols.value);
+const grid = (tab) => ["36px", "minmax(140px, 1.6fr)", ...colsOf(tab).map((c) => COLW[c] || "minmax(68px, .8fr)"), "34px"].join(" ");
+const COLTIP = { thisM: "cats.row.thisTip", lastM: "cats.row.lastTip", avg: "cats.row.avgTip" };
+const colTip = (c) => (COLTIP[c] ? t(COLTIP[c]) : null);
+// one sort per tab, not remembered; a column that is hidden is no longer sorted by
+const sorts = ref({ cats: null, tags: null });
+const sortBy = (tab, key) => { sorts.value[tab] = nextSort(sorts.value[tab], key); };
+function sorted(tab) {
+  const s = sorts.value[tab], L = LISTS.value[tab];
+  if (s && s.key != "name" && !colsOf(tab).includes(s.key)) return L.L.rows;
+  return sortRows(L.L.rows, s, (r, c) => (c == "name" ? L.name(r.k) : colValue(r, c)), new Intl.Collator(loc.value, { sensitivity: "base", numeric: true }));
+}
+const sortIs = (tab, key) => { const s = sorts.value[tab]; return s && s.key == key ? s.ord : ""; };
+const setBudget = (k) => openForm("budget", { k });
+
 // ---- Categories ----
 const names = computed(() => (S.value ? catNames(S.value) : []));
 const noCats = computed(() => !S.value || !Object.keys(S.value.cats || {}).some((k) => k != "Uncategorized"));
 const newCat = ref("");
-function catAdd() { if (save((n) => C.addCategory(n, newCat.value))) newCat.value = ""; }
+function catAdd() {
+  const c = C.addCategoryCheck(S.value, newCat.value);
+  if (c.err) return err(c.err == "empty" ? t("cats.typeName") : t("cats.c.dup", { k: catLabel(c.ex) }));
+  if (save((n) => C.addCategory(n, c.n))) newCat.value = "";
+}
 // the category or tag in Activity; with a month ("2026-09"), only that month
 const span = (m) => (m ? { from: m + "-01", to: m + "-31" } : {});
 const goCat = (k, m) => goActivity({ cat: k, ...span(m) });
@@ -112,6 +139,12 @@ function renGo() {
 }
 function catDel(k) { askYes(t("cats.c.delQ", { k: catLabel(k) }), "", () => save((n) => C.deleteCategory(n, k)), { danger: true }); }
 // ---- Tags ----
+const newTag = ref("");
+function tagAdd() {
+  const c = C.addTagCheck(S.value, newTag.value);
+  if (c.err) return err(c.err == "empty" ? t("cats.typeName") : t("cats.g.dup", { g: c.ex }));
+  if (save((n) => C.addTag(n, c.g))) newTag.value = "";
+}
 const goTag = (g, m) => goActivity({ tag: g, ...span(m) });
 function tagRenameGo(g) {
   const n = C.normTag(S.value, renName.value);
@@ -141,7 +174,7 @@ const LISTS = computed(() => (ST.value ? {
       <template v-for="tab in ['cats', 'tags']" :key="tab">
         <div v-show="catTab == tab" :id="tab == 'cats' ? 'setCats' : 'setTags'" :ref="(e) => (tab == 'cats' ? (catBox = e) : (tagBox = e))">
           <div v-if="tab == 'cats'" class="rtool"><input v-model="searches.cats" class="rsearch" type="search" :placeholder="t('cats.search.cats')" :aria-label="t('cats.search.label')" autocomplete="off"><input id="nc" v-model="newCat" @keydown.enter.prevent="catAdd" class="rnew" :placeholder="t('cats.search.newCat')" maxlength="60" autocomplete="off"><button type="button" class="btn s" @click="catAdd">{{ t("cats.search.addCat") }}</button></div>
-          <div v-else class="rtool"><input v-model="searches.tags" class="rsearch" type="search" :placeholder="t('cats.search.tags')" :aria-label="t('cats.search.label')" autocomplete="off"></div>
+          <div v-else class="rtool"><input v-model="searches.tags" class="rsearch" type="search" :placeholder="t('cats.search.tags')" :aria-label="t('cats.search.label')" autocomplete="off"><input id="ntg" v-model="newTag" @keydown.enter.prevent="tagAdd" class="rnew" :placeholder="t('cats.search.newTag')" maxlength="60" autocomplete="off"><button type="button" class="btn s" @click="tagAdd">{{ t("cats.search.addTag") }}</button></div>
           <div v-if="tab == 'cats' ? noneCats : noneTags" class="rsnone sm">{{ t("cats.search.none", { q: tab == "cats" ? noneCats : noneTags }) }}</div>
           <div class="card ss">
             <SetHead icon="tag" :title="t(tab == 'cats' ? 'cats.c.title' : 'cats.g.title')" :desc="t(tab == 'cats' ? 'cats.c.desc' : 'cats.g.desc')" :count="LISTS[tab].L.rows.length" />
@@ -154,18 +187,33 @@ const LISTS = computed(() => (ST.value ? {
 
               <div v-if="tab == 'cats' ? noCats : !LISTS.tags.L.rows.length" class="csempty"><div class="sm">{{ tab == "cats" ? t("cats.c.none") : t("cats.g.none") }}</div><div v-if="tab == 'tags'" class="sm">{{ t("cats.g.appear") }}</div><div class="sm">{{ t("cats.ai.text") }}</div><button type="button" class="btn o s" @click="goRules('ai')">{{ t("cats.ai.go") }}</button></div>
 
-              <div v-if="LISTS[tab].L.rows.length" class="csl">
-                <div class="csh" aria-hidden="true"><span></span><span>{{ LISTS[tab].head }}</span><span>{{ t("cats.col.out") }}</span><span>{{ t("cats.col.in") }}</span><span>{{ t("cats.col.net") }}</span><span :data-tip="t('cats.row.avgTip')">{{ t("cats.col.avg") }}</span><span>{{ t("cats.col.change") }}</span><span></span></div>
-                <div v-for="r in LISTS[tab].L.rows" :key="r.k" class="mrow csr" :class="{ open: open == tab + ':' + r.k, zero: !r.n }" :style="{ '--mc': LISTS[tab].color(r.k) }">
+              <div v-if="LISTS[tab].L.rows.length" class="csl" :style="{ '--csg': grid(tab) }">
+                <!-- the column titles: a click sorts by that column (small to large, large to small, the usual order) -->
+                <div role="table" class="cshw" :aria-label="t(tab == 'cats' ? 'cats.c.title' : 'cats.g.title')"><div role="row" class="csh">
+                  <span aria-hidden="true"></span>
+                  <span role="columnheader" :aria-sort="ariaSort(sorts[tab], 'name')"><button type="button" class="cssort" :class="sortIs(tab, 'name')" @click="sortBy(tab, 'name')">{{ LISTS[tab].head }}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" /></svg></button></span>
+                  <span v-for="c in colsOf(tab)" :key="c" role="columnheader" :aria-sort="ariaSort(sorts[tab], c)" :class="'c-' + c"><button type="button" class="cssort" :class="sortIs(tab, c)" :data-tip="colTip(c)" @click="sortBy(tab, c)">{{ t("cats.col." + c) }}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" /></svg></button></span>
+                  <span><button type="button" class="ib jmore cscols" :aria-label="t('cats.cols.aria')" :data-tip="t('cats.cols.aria')" aria-haspopup="menu" @click="colMenu = colMenu ? null : $event.currentTarget"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2" /><path d="M10 5v14M15 5v14" /></svg></button></span>
+                </div></div>
+                <div v-for="r in sorted(tab)" :key="r.k" class="mrow csr" :class="{ open: open == tab + ':' + r.k, zero: !r.n }" :style="{ '--mc': LISTS[tab].color(r.k) }">
                   <div class="csm" role="button" tabindex="0" :aria-expanded="open == tab + ':' + r.k" @click="toggle(tab + ':' + r.k)" @keydown.enter.self.prevent="toggle(tab + ':' + r.k)" @keydown.space.self.prevent="toggle(tab + ':' + r.k)">
                     <span class="mic">{{ LISTS[tab].letter(r.k) }}</span>
-                    <div class="mt"><b class="csn"><bdi>{{ LISTS[tab].name(r.k) }}</bdi></b><small>{{ meta(r) }}<template v-if="r.budget"> · <span class="nw">{{ t("cats.row.budget", { amt: fm(r.budget) }) }}</span></template><template v-if="r.rules"> · <button type="button" class="cslink" v-tip="t('cats.row.rulesTip')" @click.stop="goRules(LISTS[tab].rules)">{{ t("cats.row.rules", { n: r.rules }, r.rules) }}</button></template></small></div>
+                    <div class="mt"><b class="csn"><bdi>{{ LISTS[tab].name(r.k) }}</bdi></b></div>
                     <div class="csnums">
-                      <div class="csv"><span class="cl">{{ t("cats.col.out") }}</span><b class="num">{{ fm(r.out) }}</b></div>
-                      <div class="csv"><span class="cl">{{ t("cats.col.in") }}</span><b class="num">{{ fm(r.in) }}</b></div>
-                      <div class="csv"><span class="cl">{{ t("cats.col.net") }}</span><b class="num" :class="{ neg: r.net < 0 }">{{ fm(r.net) }}</b></div>
-                      <div class="csv"><span class="cl" :data-tip="t('cats.row.avgTip')">{{ t("cats.col.avg") }}</span><b class="num">{{ fm(r.avg) }}</b></div>
-                      <div class="csc" :class="change(r).cls"><svg v-if="change(r).cls == 'good' || change(r).cls == 'bad'" viewBox="0 0 24 24" aria-hidden="true" :class="{ dn: !change(r).up }"><path d="M12 19V5M6 11l6-6 6 6" /></svg><span>{{ change(r).text }}</span></div>
+                      <div v-for="c in colsOf(tab)" :key="c" :class="c == 'change' ? ['csc', change(r).cls] : ['csv', 'c-' + c]">
+                        <template v-if="c == 'change'"><svg v-if="change(r).cls == 'good' || change(r).cls == 'bad'" viewBox="0 0 24 24" aria-hidden="true" :class="{ dn: !change(r).up }"><path d="M12 19V5M6 11l6-6 6 6" /></svg><span>{{ change(r).text }}</span></template>
+                        <template v-else>
+                          <span class="cl">{{ t("cats.col." + c) }}</span>
+                          <template v-if="c == 'budget'">
+                            <template v-if="r.budget"><button type="button" class="cslink" v-tip="t('cats.bud.tip')" @click.stop="go('/budgets')">{{ t("cats.bud.amt", { amt: fm(r.budget) }) }}</button><small class="csbu">{{ t("cats.bud.used", { amt: fm(r.thisOut) }) }}</small></template>
+                            <button v-else-if="r.canBudget" type="button" class="cslink" @click.stop="setBudget(r.k)">{{ t("cats.bud.set") }}</button>
+                          </template>
+                          <template v-else-if="c == 'rules'"><button v-if="r.rules" type="button" class="cslink" v-tip="t('cats.row.rulesTip')" @click.stop="goRules(LISTS[tab].rules)">{{ r.rules }}</button><b v-else class="num">0</b></template>
+                          <b v-else-if="c == 'last'" class="num">{{ r.last ? dcell(r.last) : "" }}</b>
+                          <b v-else-if="c == 'n'" class="num">{{ r.n }}</b>
+                          <b v-else class="num" :class="{ neg: c == 'net' && r.net < 0 }">{{ fm(r[c]) }}</b>
+                        </template>
+                      </div>
                     </div>
                     <button v-if="LISTS[tab].edit(r.k)" type="button" class="ib jmore" :aria-label="t('cats.menu.aria', { k: LISTS[tab].name(r.k) })" aria-haspopup="menu" @click.stop="toggleMenu(LISTS[tab].kind, r.k, $event)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" /></svg></button>
                     <span v-else></span>
@@ -197,6 +245,11 @@ const LISTS = computed(() => (ST.value ? {
       <button role="menuitem" @click="menuRename"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" /></svg>{{ t("cats.menu.rename") }}</button>
       <button role="menuitem" class="dz" @click="menuDel"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg>{{ t("cats.menu.del") }}</button>
     </template>
+  </PopMenu>
+
+  <!-- which columns the list shows -->
+  <PopMenu :at="colMenu" @close="colMenu = null">
+    <button v-for="c in CAT_COLS" :key="c" role="menuitemcheckbox" :aria-checked="cols.includes(c)" class="cscol" @click="flipCol(c)"><svg viewBox="0 0 24 24" aria-hidden="true"><path v-if="cols.includes(c)" d="M5 12l5 5 9-10" /></svg>{{ t("cats.col." + c) }}</button>
   </PopMenu>
 
   <!-- Rename a category or a tag -->
