@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- What software centres (GNOME Software, KDE Discover) show for the app: its name, icon and description. -->
+<component type="desktop-application">
+  <id>money-manager</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <name>Money Manager</name>
+  <summary>Your money in one private place</summary>
+  <description>
+    <p>Money Manager gathers your bank, card and cash accounts on your own computer, with nothing sent anywhere. It finds your bills, sorts your payments, and shows budgets, savings jars, reports and a forecast, in English and Hebrew.</p>
+    <p>It only reads: it can never move money or change anything at a bank.</p>
+  </description>
+  <launchable type="desktop-id">money-manager.desktop</launchable>
+  <icon type="stock">money-manager</icon>
+  <url type="homepage">https://github.com/userofit123/moneymanager</url>
+  <url type="bugtracker">https://github.com/userofit123/moneymanager/issues</url>
+  <categories>
+    <category>Office</category>
+    <category>Finance</category>
+  </categories>
+  <provides>
+    <binary>money-manager</binary>
+  </provides>
+  <content_rating type="oars-1.1"/>
+</component>

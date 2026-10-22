@@ -1,7 +1,7 @@
 {
   "name": "money-manager-desktop",
   "productName": "Money Manager",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "description": "Money Manager for Windows and Linux: the same app, with its own database and bank scraper built in",
   "private": true,
   "main": "main.js",
@@ -151,6 +151,14 @@
         "libatspi2.0-0",
         "libuuid1",
         "libsecret-1-0"
+      ],
+      "fpm": [
+        "build/money-manager.metainfo.xml=/usr/share/metainfo/money-manager.metainfo.xml"
+      ]
+    },
+    "rpm": {
+      "fpm": [
+        "build/money-manager.metainfo.xml=/usr/share/metainfo/money-manager.metainfo.xml"
       ]
     }
   },

@@ -90,11 +90,26 @@ function closeWindow() { if (win && !win.isDestroyed()) { win.removeAllListeners
 // The window has no system title bar: the page draws its own strip (in the app's colours) and the system's window buttons sit on it. The page tells
 // us its colours (frame:titlebar) so the buttons match; until then, the system's light or dark.
 const TB = 38, colour = (c) => /^(#[0-9a-f]{3,8}|rgba?\([\d\s.,%/]+\))$/i.test(String(c).trim());
-const frameOptions = () => (process.platform === "darwin" ? {} : { titleBarStyle: "hidden", titleBarOverlay: nativeTheme.shouldUseDarkColors ? { color: "#14161c", symbolColor: "#e6e4ea", height: TB } : { color: "#fbf8fd", symbolColor: "#1b1b22", height: TB } });
+// The colours the page last asked for are kept, so the next start already has the right ones (no white box before the page has loaded)
+const frameFile = () => path.join(app.getPath("userData"), "frame.json");
+let frameSaved = null;
+const frameLast = () => { if (frameSaved === null) { try { const j = JSON.parse(fs.readFileSync(frameFile(), "utf8")); frameSaved = colour(j.bg) && colour(j.fg) ? j : false; } catch { frameSaved = false; } } return frameSaved || null; };
+const frameOptions = () => {
+  if (process.platform === "darwin") return {};
+  const last = frameLast(), dark = nativeTheme.shouldUseDarkColors;
+  return { titleBarStyle: "hidden", titleBarOverlay: { color: last ? last.bg : dark ? "#14161c" : "#fbf8fd", symbolColor: last ? last.fg : dark ? "#e6e4ea" : "#1b1b22", height: TB } };
+};
 ipcMain.on("frame:titlebar", (e, bg, fg) => {
   const w = BrowserWindow.fromWebContents(e.sender);
-  if (w && w === win && typeof w.setTitleBarOverlay === "function" && colour(bg) && colour(fg)) { try { w.setTitleBarOverlay({ color: String(bg).trim(), symbolColor: String(fg).trim(), height: TB }); } catch { /* the buttons keep their colours */ } }
+  if (w && w === win && typeof w.setTitleBarOverlay === "function" && colour(bg) && colour(fg)) {
+    try { w.setTitleBarOverlay({ color: String(bg).trim(), symbolColor: String(fg).trim(), height: TB }); } catch { /* the buttons keep their colours */ }
+    const last = frameLast();
+    if (!last || last.bg !== String(bg).trim() || last.fg !== String(fg).trim()) { frameSaved = { bg: String(bg).trim(), fg: String(fg).trim() }; try { fs.writeFileSync(frameFile(), JSON.stringify(frameSaved)); } catch { /* not saved: next start uses the system's light or dark */ } }
+  }
 });
+
+// GNOME has no system tray (unless an extension adds one): a window hidden there could never be brought back, so closing it quits instead
+const hasTray = () => process.platform !== "linux" || !/gnome|unity|pantheon|budgie/i.test(process.env.XDG_CURRENT_DESKTOP || "");
 
 function openWindow() {
   const server = Srv.current(state), base = server ? server.url : backend.url;
@@ -114,8 +129,8 @@ function openWindow() {
     if (!w || w.isDestroyed()) return;
     if (r === 0) w.loadURL(base); else if (r === 1) openManager(); else { quitting = true; app.quit(); }
   });
-  // closing the window keeps the app (and its automatic sync) running in the tray
-  win.on("close", (e) => { if (!quitting) { e.preventDefault(); win.hide(); } });
+  // closing the window keeps the app (and its automatic sync) running in the tray; where there is no tray to bring it back from (plain GNOME), it quits
+  win.on("close", (e) => { if (quitting) return; if (hasTray()) { e.preventDefault(); win.hide(); } else { quitting = true; app.quit(); } });
 }
 
 // Open the window for one entry. Moving away from "This computer" stops its backend (no syncing while another server is open); moving back starts it.
@@ -195,7 +210,7 @@ function switchItems() {
   ];
 }
 function buildMenus() {
-  Menu.setApplicationMenu(Menu.buildFromTemplate([{ label: T.serverMenu, submenu: switchItems() }]));
+  Menu.setApplicationMenu(Menu.buildFromTemplate([{ label: T.serverMenu, submenu: [...switchItems(), { type: "separator" }, { type: "separator" }, { label: fill(T.thisApp, { v: app.getVersion() }), enabled: false }, { label: T.checkUpdates, click: checkNow }, { label: T.quit, accelerator: "CmdOrCtrl+Q", click: () => { quitting = true; app.quit(); } }] }]));
   if (tray) tray.setContextMenu(Menu.buildFromTemplate([
     { label: T.openApp, click: () => { if (win && !win.isDestroyed()) { win.show(); win.focus(); } else openManager(); } },
     { label: T.switchTo, submenu: switchItems() },
@@ -241,6 +256,13 @@ function setupUpdates() {
   autoUpdater.on("update-downloaded", (i) => { upd.status = "ready"; upd.version = i.version; upd.percent = 100; pushUpdate(); });
   autoUpdater.on("error", (e) => fail(e));
   setTimeout(check, 4000); setInterval(check, 6 * 60 * 60 * 1000);
+}
+// "Check for updates…" in the menu: the app's own version, which the page cannot show when it is another server's page
+async function checkNow() {
+  await check();
+  const w = win && !win.isDestroyed() ? win : undefined;
+  const msg = upd.status === "error" ? fill(T.updateError, { e: upd.error }) : ["available", "downloading", "ready"].includes(upd.status) ? fill(T.newVersion, { v: upd.version || "" }) : fill(T.upToDate, { v: app.getVersion() });
+  dialog.showMessageBox(w, { type: upd.status === "error" ? "warning" : "info", title: "Money Manager", message: msg, buttons: ["OK"], noLink: true });
 }
 function fail(e) { upd.status = "error"; upd.error = String(e && e.message || e).slice(0, 200); pushUpdate(); }
 async function check() { if (!autoUpdater || ["downloading", "ready"].includes(upd.status)) return; try { await autoUpdater.checkForUpdates(); } catch (e) { fail(e); } }

@@ -4,6 +4,18 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.12.1] - 2026-10-23
+
+### App
+- **Docker: optional automatic updates.** One extra file (`docker-compose.autoupdate.yml`) updates the app and the scraper by themselves every night when a new release is published. It is optional because it needs access to Docker.
+- **Windows and Linux apps: the Server menu shows the app's own version and has "Check for updates…".** It is the one place to see the app's version when the window is showing your own server, whose Settings show the server's version.
+- **Windows and Linux apps: the window buttons match your server's colours,** also when the server is an older version. The buttons used to sit on a white box; now the app remembers the colours and draws the title strip itself when the server's page has none.
+- **A new documentation site and a rewritten README,** with install guides for Windows, Linux, Docker and your phone, a tour of every screen, and new screenshots in light and dark, English and Hebrew.
+
+### Linux app
+- **On GNOME, closing the window quits the app** (GNOME has no tray to bring it back from, so it used to stay running out of sight). Everywhere there is now a **Quit** in the Server menu, and Ctrl+Q.
+- **Software centres (GNOME Software, Discover) show the app's name, description and coin icon** when you open the .rpm or .deb, instead of a gear and the package name.
+
 ## [0.12.0] - 2026-10-23
 
 ### App
