@@ -114,7 +114,8 @@ function closeWindow() { if (win && !win.isDestroyed()) { win.removeAllListeners
 
 // The window has no system title bar: the page draws its own strip (in the app's colours) and the system's window buttons sit on it. The page tells
 // us its colours (frame:titlebar) so the buttons match; until then, the system's light or dark.
-const TB = 38, colour = (c) => /^(#[0-9a-f]{3,8}|rgba?\([\d\s.,%/]+\))$/i.test(String(c).trim());
+// the window buttons sit on nothing (see-through), so the page's own background shows behind them; only their symbols take the page's text colour
+const OVERLAY_BG = "#00000000", TB = 38, colour = (c) => /^(#[0-9a-f]{3,8}|rgba?\([\d\s.,%/]+\))$/i.test(String(c).trim());
 // The colours the page last asked for are kept, so the next start already has the right ones (no white box before the page has loaded)
 const frameFile = () => path.join(app.getPath("userData"), "frame.json");
 let frameSaved = null;
@@ -122,12 +123,12 @@ const frameLast = () => { if (frameSaved === null) { try { const j = JSON.parse(
 const frameOptions = () => {
   if (process.platform === "darwin") return {};
   const last = frameLast(), dark = nativeTheme.shouldUseDarkColors;
-  return { titleBarStyle: "hidden", titleBarOverlay: { color: last ? last.bg : dark ? "#14161c" : "#fbf8fd", symbolColor: last ? last.fg : dark ? "#e6e4ea" : "#1b1b22", height: TB } };
+  return { titleBarStyle: "hidden", titleBarOverlay: { color: OVERLAY_BG, symbolColor: last ? last.fg : dark ? "#e6e4ea" : "#1b1b22", height: TB } };
 };
 ipcMain.on("frame:titlebar", (e, bg, fg) => {
   const w = BrowserWindow.fromWebContents(e.sender);
   if (w && w === win && typeof w.setTitleBarOverlay === "function" && colour(bg) && colour(fg)) {
-    try { w.setTitleBarOverlay({ color: String(bg).trim(), symbolColor: String(fg).trim(), height: TB }); } catch { /* the buttons keep their colours */ }
+    try { w.setTitleBarOverlay({ color: OVERLAY_BG, symbolColor: String(fg).trim(), height: TB }); } catch { /* the buttons keep their colours */ }
     const last = frameLast();
     if (!last || last.bg !== String(bg).trim() || last.fg !== String(fg).trim()) { frameSaved = { bg: String(bg).trim(), fg: String(fg).trim() }; try { fs.writeFileSync(frameFile(), JSON.stringify(frameSaved)); } catch { /* not saved: next start uses the system's light or dark */ } }
   }

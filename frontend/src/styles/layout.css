@@ -917,3 +917,20 @@ html.dframe #jobBar {
 html.dframe .banner {
   top: var(--tb);
 }
+
+/* in the desktop app, what slides in at the top (messages, the page guide, the attachment viewer) starts below the title strip, never under the window buttons */
+html.dframe #toasts {
+  top: calc(var(--tb) + 12px);
+}
+
+html.dframe.mob #toasts {
+  top: calc(var(--tb) + 8px);
+}
+
+html.dframe .help {
+  inset-block-start: var(--tb);
+}
+
+html.dframe #docv {
+  padding-top: calc(var(--tb) + 16px);
+}
