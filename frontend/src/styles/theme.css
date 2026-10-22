@@ -310,7 +310,7 @@ body.raised :is(.card,table,.bgrp):not(.hero) {
 }
 
 /* a table keeps one edge colour all round: its rows reach the corners, so a different colour below shows as a straight line that stops where the corner curves */
-body.raised table:not(.hero) {
+:root body.raised table:not(.hero) {
   border-bottom-color: color-mix(in srgb, var(--tx) 9%, transparent);
 }
 
