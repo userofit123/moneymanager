@@ -60,12 +60,12 @@ tbody tr {
   transition: background .15s;
 }
 
-/* the last row's cells follow the table's rounded corners (a table does not always clip its own corners) */
-tbody tr:last-child > td:first-child {
+/* the last row of the last group follows the table's rounded corners (a table does not always clip its own corners; a table in groups has one body per group) */
+tbody:last-of-type tr:last-child > td:first-child {
   border-end-start-radius: calc(var(--r) - 1px);
 }
 
-tbody tr:last-child > td:last-child {
+tbody:last-of-type tr:last-child > td:last-child {
   border-end-end-radius: calc(var(--r) - 1px);
 }
 
