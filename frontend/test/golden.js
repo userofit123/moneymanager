@@ -6,6 +6,8 @@
 // When a change is meant to alter the results, check the difference, then rewrite the files with:
 //   UPDATE_SAVED=1 node --test test/<file>.test.js
 // and look at the changes to the .json files in git before committing them.
+// The saved results were made in Israel: some hold times of day (a bill's next date at 09:00), so the tests always run in that time zone, whatever the computer's.
+process.env.TZ = "Asia/Jerusalem";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 

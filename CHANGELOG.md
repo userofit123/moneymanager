@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [0.12.0] - 2026-10-23
 
 ### App
+- Internal: the app's tests no longer depend on the computer's time zone.
 - **The app's own icon is always the coin.** The coin, drawn exactly like the installed app's icon, is now the default app icon (loading screen, sign-in); the shekel and other currency icons are still a choice in Settings → Preferences → App icon.
 - **Sign-in and first password screen: the icon is the general coin icon, next to the title** (it was the shekel tile above it, and it was hidden on phones).
 - **Activity lists: a row keeps the payment tags (instalment like 3/4, expected bill, upcoming, pending) and shows up to three tags next to its name (they all move under the name when they do not fit beside it); any others become one "+N" tag** that names them when you point at it, so the name is never squeezed out. The full set is still in the transaction window.
