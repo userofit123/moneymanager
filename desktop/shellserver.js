@@ -20,13 +20,15 @@ const localCookie = (c) => c.split(";").map((x) => x.trim()).filter((x) => x && 
 
 /**
  * webDir: the built app. remote: the server's address ("https://money.home"). trusted(): the fingerprint the user trusted for it, or "".
+ * request: how to reach the server, with the same call as http.request. Default is node's own; the desktop app passes the browser's network stack
+ * instead (so a certificate the computer trusts, for example a home network's own authority, is trusted here too).
  * Gives back a node http.Server (not listening yet).
  */
-function createShellServer({ webDir, remote, trusted = () => "" }) {
+function createShellServer({ webDir, remote, trusted = () => "", request = null }) {
   const target = new URL(remote), secure = target.protocol === "https:", lib = secure ? https : http;
   // A connection to a server whose certificate this computer does not know is handed over (so nothing is sent on it) only when it is exactly the
   // certificate the user trusted for this server.
-  const agent = secure ? new (class extends https.Agent {
+  const agent = secure && !request ? new (class extends https.Agent {
     createConnection(options, cb) {
       const sock = tls.connect({ ...options, rejectUnauthorized: false });
       sock.once("secureConnect", () => {
@@ -44,15 +46,15 @@ function createShellServer({ webDir, remote, trusted = () => "" }) {
     for (const k of Object.keys(headers)) if (HOP.has(k)) delete headers[k];
     if (headers.origin) headers.origin = target.origin;
     if (headers.referer) { try { headers.referer = target.origin + new URL(headers.referer).pathname; } catch { delete headers.referer; } }
-    const up = lib.request({ protocol: target.protocol, hostname: target.hostname, port: target.port || (secure ? 443 : 80), path: req.url, method: req.method, headers, ...(agent ? { agent } : {}) }, (r) => {
+    const up = (request || lib.request)({ protocol: target.protocol, hostname: target.hostname, port: target.port || (secure ? 443 : 80), path: req.url, method: req.method, headers, ...(agent ? { agent } : {}) }, (r) => {
       const out = {};
-      for (const [k, v] of Object.entries(r.headers)) { if (HOP.has(k)) continue; out[k] = k === "set-cookie" ? v.map(localCookie) : v; }
+      for (const [k, v] of Object.entries(r.headers)) { if (HOP.has(k)) continue; out[k] = k === "set-cookie" ? (Array.isArray(v) ? v.map(localCookie) : localCookie(String(v))) : v; }
       res.writeHead(r.statusCode || 502, out);
       r.pipe(res);
       r.on("error", () => res.destroy());
     });
     // a server that cannot be reached: the connection just fails (not an error page), so the app falls back to its saved copy, as offline
-    up.on("error", () => { if (!res.headersSent) req.socket.destroy(); else res.destroy(); });
+    up.on("error", (e) => { if (process.env.MM_DEBUG) console.error("shell proxy:", req.method, req.url, "-", e && e.message); if (!res.headersSent) req.socket.destroy(); else res.destroy(); });
     res.on("close", () => up.destroy());
     req.pipe(up);
   }

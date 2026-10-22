@@ -1,6 +1,6 @@
 // Money Manager for Windows. The same app as the Docker version: this window opens it, and the database, bank scraper and server
 // run inside the installed program. Data is kept in the user's own folder (%APPDATA%\Money Manager on Windows, ~/.config/Money Manager on Linux) and nothing is sent anywhere.
-const { app, BrowserWindow, Menu, Tray, shell, dialog, session, safeStorage, nativeTheme, ipcMain } = require("electron");
+const { app, BrowserWindow, Menu, Tray, shell, dialog, session, safeStorage, nativeTheme, ipcMain, net } = require("electron");
 const fs = require("node:fs");
 const os = require("node:os");
 const crypto = require("node:crypto");
@@ -88,13 +88,25 @@ async function startLocal() {
 // The app's own screens for a server: a small web server on this computer serves them and passes the data requests on (shellserver.js). Only when the
 // server is the same version line as this app (its API then fits these screens); otherwise the window shows the server's own pages, as before.
 const shells = new Map();
+// Reaching a server through the browser's own network stack (the session's), shaped like http.request: it trusts what the computer trusts, and the
+// certificate the user pinned (wireSession). The answer is made to look like node's: statusCode, headers (set-cookie as a list) and a stream.
+function netRequestFor(ses) {
+  return (opts, cb) => {
+    const req = net.request({ method: opts.method, url: `${opts.protocol}//${opts.hostname}${opts.port ? ":" + opts.port : ""}${opts.path}`, session: ses, useSessionCookies: false, redirect: "manual" });
+    for (const [k, v] of Object.entries(opts.headers || {})) { if (/^(host|content-length|connection|accept-encoding|upgrade-insecure-requests|sec-.*)$/i.test(k)) continue; /* the browser sets these itself (and refuses them from us) */ try { req.setHeader(k, v); } catch { /* a header the browser sets itself */ } }
+    req.on("response", (r) => { r.statusCode = r.statusCode || 502; cb(r); });
+    req.on("redirect", () => req.followRedirect());
+    if (!req.destroy) req.destroy = () => { try { req.abort(); } catch { /* already done */ } };
+    return req;
+  };
+}
 const portFor = (id) => 47900 + (parseInt(String(id).replace(/\D/g, "").slice(0, 6) || "0", 10) % 90);
 async function stopShells() { for (const [id, s] of shells) { try { s.srv.closeAllConnections(); s.srv.close(); } catch { /* already closed */ } shells.delete(id); } }
 async function shellFor(server) {
   const have = shells.get(server.id);
   if (have) return have.base;
-  const srv = Shell.createShellServer({ webDir: path.join(root, "web"), remote: server.url, trusted: () => (state.list.find((x) => x.id === server.id) || {}).trust || "" });
-  let port; try { port = await Shell.listen(srv, portFor(server.id)); } catch { port = await Shell.listen(Shell.createShellServer({ webDir: path.join(root, "web"), remote: server.url, trusted: () => "" }), 0).catch(() => 0); }
+  const make = () => Shell.createShellServer({ webDir: path.join(root, "web"), remote: server.url, request: netRequestFor(sessionFor(server)) });
+  let srv = make(), port; try { port = await Shell.listen(srv, portFor(server.id)); } catch { srv = make(); port = await Shell.listen(srv, 0).catch(() => 0); }
   if (!port) return null;
   shells.set(server.id, { srv, base: "http://127.0.0.1:" + port });
   return "http://127.0.0.1:" + port;
