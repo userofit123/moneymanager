@@ -1,11 +1,10 @@
 // The page guide and the small ? next to section names.
 // The guide text is in en.js / he.js, the little pictures in demo.js, the ? places in dots.js.
-import { ref } from "vue";
+// The ? places are here from the start; the guide and its pictures are big, so they are loaded when the panel first opens
+// (or soon after the app starts, see HelpPanel.vue).
+import { ref, shallowReactive } from "vue";
 import { readPref, writePref } from "../core/prefs.js";
-import EN from "./en.js";
-import HE from "./he.js";
 import DOTS from "./dots.js";
-import { HDEMO } from "./demo.js";
 import { vTip } from "../core/tooltip.js";
 
 // The guide's page key (its key in en.js / he.js) for each page of the app.
@@ -14,9 +13,21 @@ export const HELP_PAGE = { home: "dash", activity: "tx", accounts: "acc", jars: 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 export const hMd = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
 
+// The loaded parts of the guide: en (always, also used when a Hebrew page has no guide), he, and demo (the little pictures).
+const G = shallowReactive({ en: null, he: null, demo: null });
+const LOAD = { en: () => import("./en.js"), he: () => import("./he.js"), demo: () => import("./demo.js") };
+const asked = {};
+export const guideReady = (he) => !!(G.en && G.demo && (!he || G.he));
+export function loadGuide(he) {
+  return Promise.all(["en", "demo", ...(he ? ["he"] : [])].map((k) => (asked[k] ||= LOAD[k]().then((m) => { G[k] = m.default || m.HDEMO; }, (e) => { delete asked[k]; throw e; }))));
+}
+
 export const helpOpen = ref(false);
 helpOpen.value = readPref("moneyHelp") === "1";
-export function helpSet(on) {
+// Opening waits for the guide to be loaded, so the panel slides in with its text.
+export async function helpSet(on) {
+  const he = document.documentElement.classList.contains("he"); // the page language (direction.js)
+  if (on && !guideReady(he)) await loadGuide(he);
   helpOpen.value = on;
   document.documentElement.classList.toggle("help-on", on);
   writePref("moneyHelp", on ? "1" : "0");
@@ -24,7 +35,7 @@ export function helpSet(on) {
 
 // What the panel shows for a page: the same sentences, in the language of the page. Null when there is no guide for it.
 export function guideOf(page, he) {
-  const key = HELP_PAGE[page] || page, H = he ? HE : EN;
+  const key = HELP_PAGE[page] || page, EN = G.en || {}, H = (he && G.he) || EN;
   return H[key] || EN[key] || null;
 }
 // The little pictures are drawn in English; in Hebrew each text and box value goes through tx() (core/heSaved.js).
@@ -34,7 +45,7 @@ export function guideHtml(P, he, tr) { // tr: tx() from core/heText.js, for the 
   const B = P.blocks || [];
   return (P.lead ? `<div class="hlead">${hMd(P.lead)}</div>` : "")
     + (B.length > 3 ? `<div class="hjump">${B.map((b, i) => `<button data-a="helpJump" data-i="${i}">${esc(b.h)}</button>`).join("")}</div>` : "")
-    + B.map((b, i) => `<section class="hs" id="hs${i}"><h4>${esc(b.h)}</h4>${(b.p || []).map((t) => `<p>${hMd(t)}</p>`).join("")}${b.demo && HDEMO[b.demo] ? `<div class="hdemo" aria-hidden="true">${he && tr ? heDemo(HDEMO[b.demo](), tr) : HDEMO[b.demo]()}</div>` : ""}${b.ex ? `<div class="hex"><b>${he ? "דוגמה" : "Example"}</b>${hMd(b.ex)}</div>` : ""}${b.tip ? `<div class="htip"><b>${he ? "טיפ" : "Tip"}</b>${hMd(b.tip)}</div>` : ""}</section>`).join("");
+    + B.map((b, i) => `<section class="hs" id="hs${i}"><h4>${esc(b.h)}</h4>${(b.p || []).map((t) => `<p>${hMd(t)}</p>`).join("")}${b.demo && G.demo?.[b.demo] ? `<div class="hdemo" aria-hidden="true">${he && tr ? heDemo(G.demo[b.demo](), tr) : G.demo[b.demo]()}</div>` : ""}${b.ex ? `<div class="hex"><b>${he ? "דוגמה" : "Example"}</b>${hMd(b.ex)}</div>` : ""}${b.tip ? `<div class="htip"><b>${he ? "טיפ" : "Tip"}</b>${hMd(b.tip)}</div>` : ""}</section>`).join("");
 }
 
 // ---- the ? next to each section's name: it opens the panel at that section ----
@@ -62,11 +73,11 @@ export function helpDots(page, he, label, doc = document) {
 // Open the panel (if it is closed) and bring the section the ? belongs to into view.
 export function helpAt(k, block) {
   const go = () => {
-    const i = EN[k] ? (EN[k].blocks || []).findIndex((x) => x.h === block) : -1; if (i < 0) return;
+    const EN = G.en || {}, i = EN[k] ? (EN[k].blocks || []).findIndex((x) => x.h === block) : -1; if (i < 0) return;
     const e = document.getElementById("hs" + i); if (!e) return;
     e.scrollIntoView({ behavior: "smooth", block: "start" }); e.classList.remove("hflash"); void e.offsetWidth; e.classList.add("hflash");
   };
-  if (!helpOpen.value) { helpSet(true); setTimeout(go, 120); } else go();
+  if (!helpOpen.value) helpSet(true).then(() => setTimeout(go, 120)); else go();
 }
 // Keep the ?s in place while the page changes.
 export function watchDots(get) {

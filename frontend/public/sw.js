@@ -4,7 +4,11 @@
 // - The data (/api/state, /api/fx, /api/auth/status): the newest, or the last good copy when offline or very slow (the app then shows it read-only,
 //   marked with the x-offline-cache header). Signing out clears it. Nothing else from /api/ is ever saved.
 const V = "money-v4", D = "money-data", SHELL = ["/", "/manifest.webmanifest", "/icon-192.png", "/favicon.png"];
-self.addEventListener("install", (e) => { e.waitUntil(caches.open(V).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
+// The app's files that are loaded only later (the other language, the page guide, the windows), so they work offline even before
+// they were first used. Filled in by the build (vite.config.js); one that cannot be fetched is simply left for later.
+const LATER = [];
+const keepLater = (c) => Promise.all(LATER.map((u) => c.match(u).then((h) => h || c.add(u)).catch(() => {})));
+self.addEventListener("install", (e) => { e.waitUntil(caches.open(V).then((c) => c.addAll(SHELL).then(() => keepLater(c))).then(() => self.skipWaiting())); });
 self.addEventListener("activate", (e) => { e.waitUntil(caches.keys().then((k) => Promise.all(k.filter((x) => x !== V && x !== D).map((x) => caches.delete(x)))).then(() => self.clients.claim())); });
 
 const save = (cache, key, res) => { if (res.ok) { const c = res.clone(); caches.open(cache).then((ch) => ch.put(key, c)); } return res; };

@@ -24,6 +24,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 - **Smoother animations:** the Recap page and other animated numbers no longer slow the whole app down while they count up, so scrolling and movement feel smooth.
 - **Sidebar highlight:** when you switch pages, the highlight now stretches and glides smoothly to the new item. It no longer jumps to the side when it starts, or keeps moving after it lands.
 - **Change history in Hebrew:** changes to a jar (its name, goal, monthly amount, deadline and so on) now show in Hebrew too. The Hebrew for history lines and server messages is now a much smaller part of the app, so it loads faster; everything else looks the same.
+- **The app opens faster, mostly on phones.** It now downloads about a third less before it can start: the texts of the other language, the help guide and the pop-up windows come later, when they are needed. They are still kept on your device, so they also work without a connection.
 
 ### Windows app
 - Includes everything above.

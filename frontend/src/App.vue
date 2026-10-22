@@ -16,21 +16,24 @@ import HelpPanel from "./help/HelpPanel.vue";
 import { helpOpen, helpSet } from "./help/help.js";
 import ToastHost from "./components/ToastHost.vue";
 import AuthScreen from "./components/AuthScreen.vue";
-import AppearancePanel from "./components/AppearancePanel.vue";
 import AppNav from "./components/shell/AppNav.vue";
 import JobBar from "./components/shell/JobBar.vue";
 import MoreSheet from "./components/shell/MoreSheet.vue";
-import SyncSheet from "./components/shell/SyncSheet.vue";
-import WelcomePops from "./components/shell/WelcomePops.vue";
 import QuickSheet from "./components/shell/QuickSheet.vue";
 import FormHost from "./components/FormHost.vue";
-import Suggestions from "./components/shell/Suggestions.vue";
 import AskPop from "./components/AskPop.vue";
-import TxWindow from "./components/tx/TxWindow.vue";
-import TxPops from "./components/tx/TxPops.vue";
-import DocViewer from "./components/tx/DocViewer.vue";
-import AssistWindow from "./views/settings/AssistWindow.vue";
 import { suggestions, suggestOpen, bulbPop } from "./core/suggest.js";
+
+// Windows that open from a button or a link are loaded in files of their own, once the app has started (they are drawn
+// as soon as the app is shown, closed, so they are already here when first opened, and they open with the same animation).
+const AppearancePanel = defineAsyncComponent(() => import("./components/AppearancePanel.vue"));
+const SyncSheet = defineAsyncComponent(() => import("./components/shell/SyncSheet.vue"));
+const WelcomePops = defineAsyncComponent(() => import("./components/shell/WelcomePops.vue"));
+const Suggestions = defineAsyncComponent(() => import("./components/shell/Suggestions.vue"));
+const TxWindow = defineAsyncComponent(() => import("./components/tx/TxWindow.vue"));
+const TxPops = defineAsyncComponent(() => import("./components/tx/TxPops.vue"));
+const DocViewer = defineAsyncComponent(() => import("./components/tx/DocViewer.vue"));
+const AssistWindow = defineAsyncComponent(() => import("./views/settings/AssistWindow.vue"));
 
 const { t } = useI18n();
 startRouter();

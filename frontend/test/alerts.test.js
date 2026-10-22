@@ -56,7 +56,7 @@ async function load() {
   return (mods = { Alerts: Alerts.default, data: store.data, i18n: i18nMod.i18n, setLang: i18nMod.setLang, dstr: dates.dstr, categoryName: cn.categoryName });
 }
 async function ctxOf(lang) {
-  const m = await load(); m.setLang(lang);
+  const m = await load(); await m.setLang(lang);
   const t = (k, p) => m.i18n.global.t(k, p || {}), loc = lang === "he" ? "he-IL" : "en-GB";
   return { t, catName: (c) => (!c || c === "Uncategorized" ? t("home.uncategorizedCat") : m.categoryName(c, lang)), an: (n) => m.categoryName(n, lang), dstr: m.dstr, monthYear: (mm) => new Date(+mm.slice(0, 4), +mm.slice(5, 7) - 1, 1).toLocaleDateString(loc, { month: "short", year: "numeric" }), m };
 }

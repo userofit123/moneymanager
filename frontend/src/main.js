@@ -1,6 +1,6 @@
 import { createApp } from "vue";
 import App from "./App.vue";
-import { i18n } from "./i18n.js";
+import { i18n, i18nReady } from "./i18n.js";
 import { startMobile } from "./mobile.js";
 import "./styles/tokens.css";
 import "./styles/app.css";
@@ -14,9 +14,12 @@ import { startDetails } from "./core/details.js";
 import { withErrors } from "./core/errors.js";
 
 startMobile();
-withErrors(createApp(App)).use(i18n).mount("#app"); // page errors go to Settings → Error log (core/errors.js)
-startTooltips(i18n.global.t("shell.moreInfo"));
-startDropdowns();
-startPolish();
-startSegSlide();
-startDetails();
+// The app starts once the texts of the saved language are here (i18n.js).
+i18nReady.then(() => {
+  withErrors(createApp(App)).use(i18n).mount("#app"); // page errors go to Settings → Error log (core/errors.js)
+  startTooltips(i18n.global.t("shell.moreInfo"));
+  startDropdowns();
+  startPolish();
+  startSegSlide();
+  startDetails();
+});

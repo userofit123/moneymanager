@@ -38,7 +38,7 @@ async function load() {
 }
 async function page(S, lang = "en", ctl = {}) {
   LS.moneyRanges = JSON.stringify({ ...(ctl.RNG || {}), CMP: ctl.CMP || {} });
-  const m = await load(); m.setLang(lang); m.data.state.value = structuredClone(S); m.data.fx.value = { ...m.data.fx.value, fx: FX };
+  const m = await load(); await m.setLang(lang); m.data.state.value = structuredClone(S); m.data.fx.value = { ...m.data.fx.value, fx: FX };
   const app = createSSRApp({ render: () => h(m.Rep) }); app.use(m.i18n);
   const html = await renderToString(app), i = html.indexOf("<section");
   // the dots between parts (<span class="dt">·</span> in a <span>, made by vite-dots.js) are left out: only the words are compared

@@ -100,7 +100,7 @@ async function load() {
   return (mods = { Budgets: Budgets.default, data: store.data, i18n: i18nMod.i18n, setLang: i18nMod.setLang });
 }
 async function page(S, lang = "en") {
-  const m = await load(); m.setLang(lang); m.data.state.value = structuredClone(S);
+  const m = await load(); await m.setLang(lang); m.data.state.value = structuredClone(S);
   const app = createSSRApp({ render: () => h(m.Budgets) }); app.use(m.i18n);
   const html = await renderToString(app), i = html.indexOf("<section");
   // the dots between parts (<span class="dt">·</span> in a <span>, made by vite-dots.js) are left out: only blocks and words are compared

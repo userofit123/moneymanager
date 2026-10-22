@@ -3,7 +3,7 @@
 import { computed, ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import { current } from "../router.js";
-import { helpOpen, helpSet, guideOf, guideHtml, watchDots } from "./help.js";
+import { helpOpen, helpSet, guideOf, guideHtml, watchDots, guideReady, loadGuide } from "./help.js";
 import { escLayer } from "../core/layers.js";
 import { settingsTab } from "../views/settings/tab.js";
 import { tx } from "../core/heText.js";
@@ -14,9 +14,15 @@ const tk = (k) => t(k);
 const he = computed(() => locale.value === "he");
 // Settings has a guide for each section (helpKey: "set." + the open section).
 const page = computed(() => (current.value.name === "settings" ? "set." + settingsTab.value : current.value.name));
-const guide = computed(() => guideOf(page.value, he.value));
+// The guide text is loaded on its own (help.js): until the language's guide is here, the panel keeps what it showed.
+const ready = computed(() => guideReady(he.value));
+const guide = computed((prev) => (ready.value ? guideOf(page.value, he.value) : prev));
 const title = computed(() => (guide.value && guide.value.title) || tk("nav." + current.value.name));
-const body = computed(() => (guide.value ? guideHtml(guide.value, he.value, tx) : `<div class="hlead">${t("help.noGuide")}</div>`));
+const body = computed((prev) => (!ready.value ? prev || "" : guide.value ? guideHtml(guide.value, he.value, tx) : `<div class="hlead">${t("help.noGuide")}</div>`));
+// The guide is loaded when the panel opens (helpSet), right away when it was left open, and in the other language once the language changes.
+const load = () => loadGuide(he.value).catch(() => {});
+if (helpOpen.value) load();
+watch(he, () => { if (helpOpen.value || guideReady(false)) load(); });
 const panel = ref(null);
 const jump = (e) => {
   const b = e.target.closest && e.target.closest('[data-a="helpJump"]'); if (!b) return;

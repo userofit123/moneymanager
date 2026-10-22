@@ -113,9 +113,9 @@ async function load() {
   (await vite.ssrLoadModule("/src/core/clock.js")).setNow(NOW); // the page works out its numbers for a fixed day
   return (mods = { Bills: Bills.default, data: store.data, i18n: i18nMod.i18n, setLang: i18nMod.setLang });
 }
-async function i18n(lang) { const m = await load(); m.setLang(lang); return { t: (k, v, n) => (n == null ? m.i18n.global.t(k, v || {}) : m.i18n.global.t(k, v || {}, n)), ...m }; }
+async function i18n(lang) { const m = await load(); await m.setLang(lang); return { t: (k, v, n) => (n == null ? m.i18n.global.t(k, v || {}) : m.i18n.global.t(k, v || {}, n)), ...m }; }
 async function page(S, lang = "en") {
-  const m = await load(); m.setLang(lang); m.data.state.value = structuredClone(S);
+  const m = await load(); await m.setLang(lang); m.data.state.value = structuredClone(S);
   const app = createSSRApp({ render: () => h(m.Bills) }); app.use(m.i18n);
   const html = await renderToString(app), i = html.indexOf("<section");
   return html.slice(i).replace(/<!--[\s\S]*?-->/g, "");

@@ -15,7 +15,8 @@ import { HDEMO } from "../src/help/demo.js";
 process.on("unhandledRejection", () => {});
 const vite = await createServer({ root: new URL("..", import.meta.url).pathname, server: { middlewareMode: true, hmr: false, ws: false }, appType: "custom", logLevel: "silent" });
 after(() => vite.close());
-const { guideOf, guideHtml, HELP_PAGE } = await vite.ssrLoadModule("/src/help/help.js");
+const { guideOf, guideHtml, HELP_PAGE, loadGuide } = await vite.ssrLoadModule("/src/help/help.js");
+await loadGuide(true);
 const NOW = new Date(2026, 9, 17, 12);
 function demoState(o = {}) {
   const d = buildDemo(NOW); let id = 1;
@@ -56,7 +57,7 @@ const unesc = (x) => x.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quo
 const norm = (t) => String(t).replace(/\s+/g, " ").trim().toLowerCase();
 async function render(view, lang) {
   const [V, store, i18nMod] = await Promise.all([`/src/views/${view}.vue`, "/src/stores/data.js", "/src/i18n.js"].map((p) => vite.ssrLoadModule(p)));
-  i18nMod.setLang(lang); store.data.state.value = demoState();
+  await i18nMod.setLang(lang); store.data.state.value = demoState();
   const app = createSSRApp({ render: () => h(V.default) }); app.use(i18nMod.i18n);
   return (await renderToString(app)).replace(/<!--[\s\S]*?-->/g, "");
 }
