@@ -3,6 +3,7 @@
   "groups": {
     "you": "You and the app",
     "banks": "Banks and cards",
+    "sorting": "Automatic sorting",
     "data": "Your data",
     "alerts": "Alerts",
     "about": "About"
@@ -21,6 +22,12 @@
     "notify": "Notifications",
     "app": "Version and updates",
     "rel": "Change log",
-    "err": "Error log"
+    "err": "Error log",
+    "ai": "Set up with an AI",
+    "crules": "Category rules",
+    "trules": "Tag rules",
+    "nrules": "Display names",
+    "cprules": "Card payments",
+    "srules": "Salary"
   }
 }

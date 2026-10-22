@@ -477,3 +477,22 @@ html.he .tg input[type=checkbox]:checked::after {
 html.he select:not([multiple]) {
   background-position: left 13px center;
 }
+
+/* The search bar above a list (Categories page, Settings → Automatic sorting); core/rowSearch.js hides the rows */
+
+.rtool {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: var(--spg);
+}
+
+.rtool .rsearch {
+  flex: 1 1 260px;
+  min-width: 200px;
+}
+
+.rsnone {
+  padding: 6px 4px;
+}

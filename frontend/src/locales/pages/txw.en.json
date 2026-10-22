@@ -33,7 +33,7 @@
   "tagRuleDone0": "Rule created. It tags new transactions.",
   "tagRuleText": "You tagged {name} with {tags}. A rule does this automatically for similar transactions from now on.",
   "leftOut": "Left out of all totals",
-  "nrToast": "If {field} {how} “{k}” → “{name}”. {c} entry renamed. See it in Categories → Name rules. | If {field} {how} “{k}” → “{name}”. {c} entries renamed. See it in Categories → Name rules.",
+  "nrToast": "If {field} {how} “{k}” → “{name}”. {c} entry renamed. See it in Settings → Display names. | If {field} {how} “{k}” → “{name}”. {c} entries renamed. See it in Settings → Display names.",
   "nrContains": "contains",
   "nrIs": "is exactly",
   "chip": {

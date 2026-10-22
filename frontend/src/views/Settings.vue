@@ -1,6 +1,6 @@
 <script setup>
 // Settings: the list of
-// sections on one side (five groups) and the open section next to it. Each section is its own file in views/settings/.
+// sections on one side (six groups) and the open section next to it. Each section is its own file in views/settings/.
 // The open section is not part of the address.
 import { computed, defineAsyncComponent, onMounted } from "vue";
 import { useI18n } from "vue-i18n";

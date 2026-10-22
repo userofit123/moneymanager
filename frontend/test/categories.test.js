@@ -1,5 +1,5 @@
 // The Categories and tags page makes the agreed data changes, history lines and page on fixed data (saved in fixtures/, see golden.js):
-// lib/categories.js and views/Categories.vue run on the data and their results are compared with the saved ones.
+// lib/categories.js, views/Categories.vue and the Settings → Automatic sorting sections run on the data and their results are compared with the saved ones.
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "vite";
@@ -99,15 +99,18 @@ globalThis.document = { documentElement: { lang: "", classList: { toggle() {} } 
 let mods = null;
 async function load() {
   if (mods) return mods;
-  const [V, store, i18nMod] = await Promise.all(["/src/views/Categories.vue", "/src/stores/data.js", "/src/i18n.js"].map((p) => vite.ssrLoadModule(p)));
+  const [store, i18nMod] = await Promise.all(["/src/stores/data.js", "/src/i18n.js"].map((p) => vite.ssrLoadModule(p)));
   (await vite.ssrLoadModule("/src/core/clock.js")).setNow(NOW);
-  return (mods = { V: V.default, data: store.data, i18n: i18nMod.i18n, setLang: i18nMod.setLang });
+  return (mods = { data: store.data, i18n: i18nMod.i18n, setLang: i18nMod.setLang });
 }
-async function page(S, lang = "en") {
-  const m = await load(); await m.setLang(lang); m.data.state.value = structuredClone(S);
-  const app = createSSRApp({ render: () => h(m.V) }); app.use(m.i18n);
+// The Categories page, or one section of Settings → Automatic sorting (views/settings/<file>.vue).
+const VIEWS = ["/src/views/Categories.vue", ...["CatRulesPane", "TagRulesPane", "NameRulesPane", "CardRulesPane", "SalaryRulesPane", "AiPane"].map((f) => `/src/views/settings/${f}.vue`)];
+async function page(S, lang = "en", view = VIEWS[0]) {
+  const m = await load(), V = (await vite.ssrLoadModule(view)).default; await m.setLang(lang); m.data.state.value = structuredClone(S);
+  const app = createSSRApp({ render: () => h(V) }); app.use(m.i18n);
   return (await renderToString(app)).replace(/<!--[\s\S]*?-->/g, "");
 }
+async function all(S, lang) { let out = ""; for (const v of VIEWS) out += await page(S, lang, v); return out; }
 // The inside of <div id="…">, found by counting the divs.
 function inner(html, id) {
   const i = html.indexOf(`id="${id}"`), s = html.indexOf(">", i) + 1; let d = 1, j = s;
@@ -121,27 +124,27 @@ const tidy = (h) => h.replace(/<select([^>]*)>[\s\S]*?<\/select>/g, "<select$1><
 const text = (h) => unesc(tidy(h).replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim();
 const skeleton = (h) => [...tidy(h).matchAll(/<([a-z0-9]+)([^>]*)>/g)].map(([, tag, at]) => tag + "." + ((/(?:^|\s)class="([^"]*)"/.exec(at) || [])[1] || "").split(/\s+/).filter((c) => c && c != "hi").sort().join("."));
 const tips = (h) => [...h.matchAll(/data-tip="([^"]*)"/g)].map((m) => unesc(m[1]));
-const PANES = ["setCats", "setRules", "setTags", "setTagrules", "setNames", "setGen"];
+const PANES = ["setCats", "setTags", "aiSort", "setRules", "setTagrules", "setNames", "setCardRules", "setSalRules"];
 // The search bar at the top of each tab is checked on its own.
 const noBar = (h) => (h.startsWith('<div class="rtool">') ? h.slice(h.indexOf("</div>") + 6) : h);
 
 for (const [name, key, mk] of [["the test data", "data", () => start()], ["nothing at all", "empty", () => ({ ...start(), rules: [], tagRules: [], cardRules: [], salaryRules: [], cfg: { ...start().cfg, nameRules: [] }, tx: [] })]]) {
   test(`every tab has the agreed blocks, words and tips: ${name}`, async () => {
-    const S = mk(), html = await page(S, "en");
+    const S = mk(), html = await all(S, "en");
     for (const id of PANES) {
       const b = noBar(inner(html, id));
       matchesSaved(`categories#page-${key}-${id}`, { blocks: skeleton(b), text: text(b), tips: tips(b) }, id);
     }
   });
 }
-test("the search bars have their words, and Name rules has none", async () => {
-  const html = await page(start(), "en"), bar = (id) => (/<div class="rtool">([\s\S]*?)<\/div>/.exec(inner(html, id)) || [])[1] || "";
+test("the search bars have their words, and Display names has none", async () => {
+  const html = await all(start(), "en"), bar = (id) => (/<div class="rtool">([\s\S]*?)<\/div>/.exec(inner(html, id)) || [])[1] || "";
   assert.match(bar("setCats"), /placeholder="Search categories…"[\s\S]*placeholder="New category name"[\s\S]*\+ Add category/);
   assert.match(bar("setRules"), /Search rules by text or category…/); assert.match(bar("setTags"), /Search tags…/);
-  assert.match(bar("setTagrules"), /Search rules by text or tag…/); assert.match(bar("setGen"), /Search rules…/); assert.equal(bar("setNames"), "");
+  assert.match(bar("setTagrules"), /Search rules by text or tag…/); assert.match(bar("setCardRules"), /Search rules…/); assert.match(bar("setSalRules"), /Search rules…/); assert.equal(bar("setNames"), "");
 });
 test("the Hebrew page shows no English words from the app (only names from the data)", async () => {
-  const S = start(), b = text(await page(S, "he"));
+  const S = start(), b = text(await all(S, "he"));
   const names = new Set([...S.tx.flatMap((t) => [t.desc, t.to, t.from, ...t.tags]), ...S.rules.map((r) => r.k), ...S.tagRules.flatMap((r) => [r.k, ...r.t.split(",")]), ...S.cardRules, "wix", "Salary", "Isracard", "Visa", "Cal", "Max", "American", "Express", "Diners", "Leumi", "Card", "salary", "payroll", "netflix", "streaming", "Acme", "Ltd", "ChatGPT", "Claude", "Gemini", "JSON", "categories", "name", "income", "true", "false", "rules", "contains", "category", "tagRules", "tags", "Bills", "Food", "Dining", "Fun"].join(" ").toLowerCase().split(/[^a-z]+/));
   const left = (b.match(/[A-Za-z]{2,}/g) || []).filter((w) => !names.has(w.toLowerCase()));
   assert.deepEqual(left, [], "English left on the Hebrew page: " + left.join(", "));

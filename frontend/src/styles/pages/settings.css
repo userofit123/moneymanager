@@ -328,3 +328,61 @@ html.mob .setnav button.on {
   color: var(--onc);
   font-weight: 600;
 }
+
+/* Automatic sorting: the rule lists, the "tag earlier transactions" window and the AI setup */
+
+.setmain > div > .rtool {
+  margin-bottom: 0;
+}
+
+.tools.ssb input#ccr,
+.tools.ssb input#slr {
+  flex: 1 1 320px;
+  min-width: 200px;
+}
+
+.trex {
+  border: 1px solid var(--ol);
+  border-radius: 14px;
+  background: var(--s1);
+  overflow: hidden;
+}
+
+.trex > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-top: 1px solid var(--ol);
+  font-size: 13px;
+}
+
+.trex > div > span:first-child {
+  color: var(--tx2);
+  flex: none;
+  min-width: 84px;
+}
+
+.trex b {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.trex > .sm {
+  color: var(--tx2);
+}
+
+/* Set up with an AI: numbered steps, the instructions, the preview */
+#aiSort .aisteps { margin: 12px 0; padding: 0; list-style: none; display: grid; gap: 10px; counter-reset: aistep; }
+#aiSort .aisteps li { counter-increment: aistep; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+#aiSort .aisteps li > span { flex: 1 1 260px; }
+#aiSort .aisteps li::before { content: counter(aistep) "."; font-weight: 700; color: var(--acc); min-width: 1.2em; }
+#aiSort .aimore { margin-top: 8px; }
+#aiSort .aimore summary { cursor: pointer; color: var(--acc); font-weight: 600; }
+#aiSort .aimore pre { white-space: pre-wrap; unicode-bidi: plaintext; text-align: start; font-size: 12px; max-height: 260px; overflow: auto; padding: 10px; border-radius: var(--r); background: var(--s2); }
+#aiSort .aiprev { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--ol); display: grid; gap: 6px; }
+#aiSort .aiprev .chk { display: flex; gap: 8px; align-items: center; }

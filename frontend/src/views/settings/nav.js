@@ -1,4 +1,4 @@
-// The Settings side list (#setTabs): five groups, each with its sections and their icons.
+// The Settings side list (#setTabs): six groups, each with its sections and their icons.
 // "pane" is the file that draws the section (loaded when it is opened).
 export const NAV = [
   { group: "you", tabs: [
@@ -10,6 +10,14 @@ export const NAV = [
   { group: "banks", tabs: [
     { id: "conn", icon: "<path d=\"M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1\"/>" },
     { id: "sync", icon: "<path d=\"M20 11a8 8 0 0 0-14-4L4 9M4 4v5h5M4 13a8 8 0 0 0 14 4l2-2M20 20v-5h-5\"/>" },
+  ] },
+  { group: "sorting", tabs: [
+    { id: "ai", icon: "<path d=\"M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z\"/>" },
+    { id: "crules", icon: "<path d=\"M4 6h16M4 12h10M4 18h6\"/><path d=\"M17 15l3 3-3 3\"/>" },
+    { id: "trules", icon: "<path d=\"M3 12V5a1 1 0 0 1 1-1h7l9 9-7 7z\"/><path d=\"M7.5 8.5h.01M17 3v4M15 5h4\"/>" },
+    { id: "nrules", icon: "<path d=\"M4 20h4L19 9l-4-4L4 16zM13 7l4 4\"/>" },
+    { id: "cprules", icon: "<rect x=\"3\" y=\"6\" width=\"18\" height=\"12\" rx=\"2\"/><path d=\"M3 10h18M7 15h3\"/>" },
+    { id: "srules", icon: "<rect x=\"3\" y=\"7\" width=\"18\" height=\"13\" rx=\"2\"/><path d=\"M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18\"/>" },
   ] },
   { group: "data", tabs: [
     { id: "data", icon: "<ellipse cx=\"12\" cy=\"6\" rx=\"8\" ry=\"3\"/><path d=\"M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3\"/>" },
@@ -34,6 +42,12 @@ export const PANES = {
   cur: () => import("./CurrenciesPane.vue"),
   conn: () => import("./ConnectionsPane.vue"),
   sync: () => import("./SyncPane.vue"),
+  ai: () => import("./AiPane.vue"),
+  crules: () => import("./CatRulesPane.vue"),
+  trules: () => import("./TagRulesPane.vue"),
+  nrules: () => import("./NameRulesPane.vue"),
+  cprules: () => import("./CardRulesPane.vue"),
+  srules: () => import("./SalaryRulesPane.vue"),
   data: () => import("./DataPane.vue"),
   backup: () => import("./BackupPane.vue"),
   log: () => import("./HistoryPane.vue"),
