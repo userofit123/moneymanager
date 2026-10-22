@@ -4,6 +4,19 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.12.2] - 2026-10-23
+
+### App
+- **The title strip of the desktop apps blends with your background.** It is see-through (what scrolls under it is blurred), instead of a flat dark band across the top. The window buttons have no background of their own either.
+- **Messages, the page guide and the attachment viewer start below the title strip,** so the window buttons never cover them.
+- **"Check for updates" no longer shows an error while a new release is still being built.** It says you have the latest version until the files are ready.
+
+### Windows app
+- Includes everything above.
+
+### Linux app
+- Includes everything above.
+
 ## [0.12.1] - 2026-10-23
 
 ### App
