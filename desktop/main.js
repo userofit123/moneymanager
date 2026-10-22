@@ -290,7 +290,8 @@ async function checkNow() {
   const msg = upd.status === "error" ? fill(T.updateError, { e: upd.error }) : ["available", "downloading", "ready"].includes(upd.status) ? fill(T.newVersion, { v: upd.version || "" }) : fill(T.upToDate, { v: app.getVersion() });
   dialog.showMessageBox(w, { type: upd.status === "error" ? "warning" : "info", title: "Money Manager", message: msg, buttons: ["OK"], noLink: true });
 }
-function fail(e) { upd.status = "error"; upd.error = String(e && e.message || e).slice(0, 200); pushUpdate(); }
+// a release that is still being built (its files are added a few minutes after the release shows up) is not a failure: there is just nothing to install yet
+function fail(e) { if (/Cannot find latest.*\.yml|latest.*\.yml.*404/is.test(String((e && e.message) || e))) { upd.status = "uptodate"; upd.checkedAt = Date.now(); pushUpdate(); return; } upd.status = "error"; upd.error = String(e && e.message || e).slice(0, 200); pushUpdate(); }
 async function check() { if (!autoUpdater || ["downloading", "ready"].includes(upd.status)) return; try { await autoUpdater.checkForUpdates(); } catch (e) { fail(e); } }
 
 app.whenReady().then(async () => {
