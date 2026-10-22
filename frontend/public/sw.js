@@ -3,7 +3,7 @@
 // - /assets/*: files whose name changes with their content, so a saved copy is always right (saved on first use).
 // - The data (/api/state, /api/fx, /api/auth/status): the newest, or the last good copy when offline or very slow (the app then shows it read-only,
 //   marked with the x-offline-cache header). Signing out clears it. Nothing else from /api/ is ever saved.
-const V = "money-v4", D = "money-data", SHELL = ["/", "/manifest.webmanifest", "/icon-192.png", "/favicon.png"];
+const V = "money-v5", D = "money-data", SHELL = ["/", "/manifest.webmanifest", "/icon-192.png", "/favicon.png", "/badge-96.png"];
 // The app's files that are loaded only later (the other language, the page guide, the windows), so they work offline even before
 // they were first used. Filled in by the build (vite.config.js); one that cannot be fetched is simply left for later.
 const LATER = [];
@@ -34,7 +34,7 @@ self.addEventListener("fetch", (e) => {
   e.respondWith(fetch(r).then((x) => save(V, r, x)).catch(() => caches.match(r)));
 });
 
-const show = (d) => self.registration.showNotification(d.title || "Money", { body: d.body || "", icon: "/icon-192.png", badge: "/favicon.png", tag: d.tag || "money", data: { url: "/?view=alerts" } });
+const show = (d) => self.registration.showNotification(d.title || "Money", { body: d.body || "", icon: "/icon-192.png", badge: "/badge-96.png", tag: d.tag || "money", data: { url: "/?view=alerts" } });
 self.addEventListener("message", (e) => { if (e.data && e.data.type === "notify") show(e.data); });
 self.addEventListener("push", (e) => { let d = {}; try { d = e.data ? e.data.json() : {}; } catch { /* not JSON */ } e.waitUntil(show(d)); });
 self.addEventListener("notificationclick", (e) => {
