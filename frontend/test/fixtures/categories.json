@@ -1289,6 +1289,10 @@
    "b.",
    "span.cnt",
    "div.sm",
+   "div.ssb.tools",
+   "input.",
+   "select.",
+   "button.btn",
    "div.p.ssb",
    "div.rule",
    "span.",
@@ -1301,13 +1305,9 @@
    "input.",
    "span.",
    "select.",
-   "button.btn.o.s",
-   "div.ssb.tools",
-   "input.",
-   "select.",
-   "button.btn"
+   "button.btn.o.s"
   ],
-  "text": "Category rules 2 If a new transaction's description contains the text, it gets that category. The first matching rule wins, and a category you set by hand is never changed. If description contains → Delete If description contains → Delete Add rule",
+  "text": "Category rules 2 If a new transaction's description contains the text, it gets that category. The first matching rule wins, and a category you set by hand is never changed. Add rule If description contains → Delete If description contains → Delete",
   "tips": []
  },
  "page-data-setTags": {
@@ -1554,6 +1554,14 @@
    "b.",
    "span.cnt",
    "div.sm",
+   "div.ssb.tools",
+   "input.",
+   "div.",
+   "div.tbox",
+   "div.tcs",
+   "input.tin",
+   "div.tsug",
+   "button.btn",
    "div.p.ssb",
    "div.rule",
    "span.",
@@ -1581,17 +1589,9 @@
    "button.tx2",
    "input.tin",
    "div.tsug",
-   "button.btn.o.s",
-   "div.ssb.tools",
-   "input.",
-   "div.",
-   "div.tbox",
-   "div.tcs",
-   "input.tin",
-   "div.tsug",
-   "button.btn"
+   "button.btn.o.s"
   ],
-  "text": "Tag rules 2 If a new transaction's description contains the text, it gets these tags. Tags are added on top of the category, and a rule can add several. When you add a rule you can also tag the transactions you already have. If description contains → tv × fun × Delete If description contains → health × Delete Add rule",
+  "text": "Tag rules 2 If a new transaction's description contains the text, it gets these tags. Tags are added on top of the category, and a rule can add several. When you add a rule you can also tag the transactions you already have. Add rule If description contains → tv × fun × Delete If description contains → health × Delete",
   "tips": []
  },
  "page-data-setNames": {
@@ -1606,6 +1606,12 @@
    "b.",
    "span.cnt",
    "div.sm",
+   "div.ssb.tools",
+   "select.",
+   "select.",
+   "input.",
+   "input.",
+   "button.btn",
    "div.p.ssb",
    "div.rule",
    "span.",
@@ -1614,15 +1620,9 @@
    "input.",
    "span.",
    "input.",
-   "button.btn.o.s",
-   "div.ssb.tools",
-   "select.",
-   "select.",
-   "input.",
-   "input.",
-   "button.btn"
+   "button.btn.o.s"
   ],
-  "text": "Display names 1 Give entries a clearer display name. Only what you see changes: the bank's own text, your rules and your reports still use the original. The first matching rule wins, and a name you give one entry by hand always wins. To name one entry, open it and use Display name. If → Delete Add rule",
+  "text": "Display names 1 Give entries a clearer display name. Only what you see changes: the bank's own text, your rules and your reports still use the original. The first matching rule wins, and a name you give one entry by hand always wins. To name one entry, open it and use Display name. Add rule If → Delete",
   "tips": []
  },
  "page-empty-setCats": {
@@ -1891,14 +1891,14 @@
    "b.",
    "span.cnt",
    "div.sm",
-   "div.p.ssb",
-   "div.sm",
    "div.ssb.tools",
    "input.",
    "select.",
-   "button.btn"
+   "button.btn",
+   "div.p.ssb",
+   "div.sm"
   ],
-  "text": "Category rules 0 If a new transaction's description contains the text, it gets that category. The first matching rule wins, and a category you set by hand is never changed. No rules yet. Add one below, or let an AI make them in Set up with an AI. Add rule",
+  "text": "Category rules 0 If a new transaction's description contains the text, it gets that category. The first matching rule wins, and a category you set by hand is never changed. Add rule No rules yet. Add one below, or let an AI make them in Set up with an AI.",
   "tips": []
  },
  "page-empty-setTags": {
@@ -1948,8 +1948,6 @@
    "b.",
    "span.cnt",
    "div.sm",
-   "div.p.ssb",
-   "div.sm",
    "div.ssb.tools",
    "input.",
    "div.",
@@ -1957,9 +1955,11 @@
    "div.tcs",
    "input.tin",
    "div.tsug",
-   "button.btn"
+   "button.btn",
+   "div.p.ssb",
+   "div.sm"
   ],
-  "text": "Tag rules 0 If a new transaction's description contains the text, it gets these tags. Tags are added on top of the category, and a rule can add several. When you add a rule you can also tag the transactions you already have. No tag rules yet. Add one below. Example: “netflix” adds the tag “streaming”. Add rule",
+  "text": "Tag rules 0 If a new transaction's description contains the text, it gets these tags. Tags are added on top of the category, and a rule can add several. When you add a rule you can also tag the transactions you already have. Add rule No tag rules yet. Add one below. Example: “netflix” adds the tag “streaming”.",
   "tips": []
  },
  "page-empty-setNames": {
@@ -1974,16 +1974,16 @@
    "b.",
    "span.cnt",
    "div.sm",
-   "div.p.ssb",
-   "div.sm",
    "div.ssb.tools",
    "select.",
    "select.",
    "input.",
    "input.",
-   "button.btn"
+   "button.btn",
+   "div.p.ssb",
+   "div.sm"
   ],
-  "text": "Display names 0 Give entries a clearer display name. Only what you see changes: the bank's own text, your rules and your reports still use the original. The first matching rule wins, and a name you give one entry by hand always wins. To name one entry, open it and use Display name. No name rules yet. Example: if Memo contains “Acme Ltd” → Salary. Add rule",
+  "text": "Display names 0 Give entries a clearer display name. Only what you see changes: the bank's own text, your rules and your reports still use the original. The first matching rule wins, and a name you give one entry by hand always wins. To name one entry, open it and use Display name. Add rule No name rules yet. Example: if Memo contains “Acme Ltd” → Salary.",
   "tips": []
  },
  "page-data-aiSort": {
@@ -2033,6 +2033,9 @@
    "b.",
    "span.cnt",
    "div.sm",
+   "div.ssb.tools",
+   "input.",
+   "button.btn",
    "div.p.ssb",
    "div.rule",
    "span.",
@@ -2040,12 +2043,9 @@
    "span.",
    "b.",
    "button.btn.o.s",
-   "div.ssb.tools",
-   "input.",
-   "button.btn",
    "div.sm.ssb"
   ],
-  "text": "Card payments 1 If a payment from your bank contains the text, it is the bill of a credit card. It is not counted as spending, because each purchase is already counted on the card. If it contains max charge → Card payment Delete Add rule Recognised automatically, with no rule: Isracard · ישראכרט, Visa Cal · כ.א.ל · ויזה כאל, Max · מקס · מקס איט פי, American Express · אמריקן אקספרס, Diners · דיינרס, Leumi Card · לאומי קארד. Also any bank payment equal to what a card was charged on that day.",
+  "text": "Card payments 1 If a payment from your bank contains the text, it is the bill of a credit card. It is not counted as spending, because each purchase is already counted on the card. Add rule If it contains max charge → Card payment Delete Recognised automatically, with no rule: Isracard · ישראכרט, Visa Cal · כ.א.ל · ויזה כאל, Max · מקס · מקס איט פי, American Express · אמריקן אקספרס, Diners · דיינרס, Leumi Card · לאומי קארד. Also any bank payment equal to what a card was charged on that day.",
   "tips": []
  },
  "page-data-setSalRules": {
@@ -2060,14 +2060,14 @@
    "b.",
    "span.cnt",
    "div.sm",
-   "div.p.ssb",
-   "div.sm",
    "div.ssb.tools",
    "input.",
    "button.btn",
+   "div.p.ssb",
+   "div.sm",
    "div.sm.ssb"
   ],
-  "text": "Salary 0 If an income contains the text (in its description or the payer), it is marked as Salary when it has no category yet. No rules of your own yet. Add the name of your employer below. Add rule Recognised automatically, with no rule: income that says משכורת, שכר, salary or payroll, and the same payer paying a similar amount every month for three months or more.",
+  "text": "Salary 0 If an income contains the text (in its description or the payer), it is marked as Salary when it has no category yet. Add rule No rules of your own yet. Add the name of your employer below. Recognised automatically, with no rule: income that says משכורת, שכר, salary or payroll, and the same payer paying a similar amount every month for three months or more.",
   "tips": []
  },
  "page-empty-aiSort": {
@@ -2117,14 +2117,14 @@
    "b.",
    "span.cnt",
    "div.sm",
-   "div.p.ssb",
-   "div.sm",
    "div.ssb.tools",
    "input.",
    "button.btn",
+   "div.p.ssb",
+   "div.sm",
    "div.sm.ssb"
   ],
-  "text": "Card payments 0 If a payment from your bank contains the text, it is the bill of a credit card. It is not counted as spending, because each purchase is already counted on the card. No rules of your own yet. Mark one card payment in Activity and the app offers to create one for you, or add one below. Add rule Recognised automatically, with no rule: Isracard · ישראכרט, Visa Cal · כ.א.ל · ויזה כאל, Max · מקס · מקס איט פי, American Express · אמריקן אקספרס, Diners · דיינרס, Leumi Card · לאומי קארד. Also any bank payment equal to what a card was charged on that day.",
+  "text": "Card payments 0 If a payment from your bank contains the text, it is the bill of a credit card. It is not counted as spending, because each purchase is already counted on the card. Add rule No rules of your own yet. Mark one card payment in Activity and the app offers to create one for you, or add one below. Recognised automatically, with no rule: Isracard · ישראכרט, Visa Cal · כ.א.ל · ויזה כאל, Max · מקס · מקס איט פי, American Express · אמריקן אקספרס, Diners · דיינרס, Leumi Card · לאומי קארד. Also any bank payment equal to what a card was charged on that day.",
   "tips": []
  },
  "page-empty-setSalRules": {
@@ -2139,14 +2139,14 @@
    "b.",
    "span.cnt",
    "div.sm",
-   "div.p.ssb",
-   "div.sm",
    "div.ssb.tools",
    "input.",
    "button.btn",
+   "div.p.ssb",
+   "div.sm",
    "div.sm.ssb"
   ],
-  "text": "Salary 0 If an income contains the text (in its description or the payer), it is marked as Salary when it has no category yet. No rules of your own yet. Add the name of your employer below. Add rule Recognised automatically, with no rule: income that says משכורת, שכר, salary or payroll, and the same payer paying a similar amount every month for three months or more.",
+  "text": "Salary 0 If an income contains the text (in its description or the payer), it is marked as Salary when it has no category yet. Add rule No rules of your own yet. Add the name of your employer below. Recognised automatically, with no rule: income that says משכורת, שכר, salary or payroll, and the same payer paying a similar amount every month for three months or more.",
   "tips": []
  }
 }

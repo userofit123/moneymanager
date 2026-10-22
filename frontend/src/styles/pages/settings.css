@@ -335,6 +335,19 @@ html.mob .setnav button.on {
   margin-bottom: 0;
 }
 
+/* The new-rule form sits above the rules: full width, same space above and below it */
+.tools.ssb {
+  padding-top: 16px;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.tools.ssb > input,
+.tools.ssb > select {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
 .tools.ssb input#ccr,
 .tools.ssb input#slr {
   flex: 1 1 320px;

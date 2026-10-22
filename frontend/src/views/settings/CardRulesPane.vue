@@ -29,11 +29,11 @@ const ccDel = (i) => save((n) => C.deleteCardRule(n, i));
       <div v-if="none" class="rsnone sm">{{ t("cats.search.none", { q: none }) }}</div>
       <div class="card ss">
         <SetHead icon="card" :title="tk('gen.cardTitle')" :desc="tk('gen.cardDesc')" :count="(S.cardRules || []).length" />
+        <div class="tools ssb"><input id="ccr" v-model="ccr" @keydown.enter.prevent="ccAdd" :placeholder="tk('gen.cardPh')"><button type="button" class="btn" @click="ccAdd">{{ tk("addRule") }}</button></div>
         <div class="ssb p">
           <div v-for="(r, i) in S.cardRules || []" :key="i + r" class="rule"><span>{{ tk("gen.ifIn") }}</span><b class="gtxt">{{ r }}</b><span>→</span><b>{{ tk("gen.cardPay") }}</b><button type="button" class="btn o s" style="margin-inline-start:auto" @click="ccDel(i)">{{ tk("del") }}</button></div>
           <div v-if="!(S.cardRules || []).length" class="sm" style="padding:4px 2px 10px">{{ tk("gen.cardNone") }}</div>
         </div>
-        <div class="tools ssb" style="padding-top:0;margin-top:-6px"><input id="ccr" v-model="ccr" @keydown.enter.prevent="ccAdd" :placeholder="tk('gen.cardPh')"><button type="button" class="btn" @click="ccAdd">{{ tk("addRule") }}</button></div>
         <div class="sm ssb" style="padding-top:0;line-height:1.55">{{ tk("gen.cardAuto", { list: C.CARD_NAMES.join(", ") }) }}</div>
       </div>
     </template>

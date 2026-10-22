@@ -45,11 +45,11 @@ function rulePast(i, old) { const out = {}; if (save((n) => C.applyRulePast(n, i
       <div v-if="none" class="rsnone sm">{{ t("cats.search.none", { q: none }) }}</div>
       <div class="card ss">
         <SetHead icon="rules" :title="tk('r.title')" :desc="tk('r.desc')" :count="S.rules.length" />
+        <div class="tools ssb"><input id="rk" v-model="rk" @keydown.enter.prevent="ruleAdd" :placeholder="tk('ifDescPh')"><select id="rc" :value="newRuleCat" @change="rc = $event.target.value"><option v-for="c in names" :key="c" :value="c">{{ catLabel(c) }}</option></select><button type="button" class="btn" @click="ruleAdd">{{ tk("addRule") }}</button></div>
         <div class="ssb p">
           <div v-for="(r, i) in S.rules" :key="i + '|' + r.k" class="rule"><span>{{ tk("ifDesc") }}</span><input data-c="rulek" :data-i="i" :value="r.k" :aria-label="tk('text')" @change="ruleText(i, $event)"><span>→</span><select data-c="rulec" :data-i="i" :value="r.c" :aria-label="tk('r.cat')" @change="ruleCat(i, $event)"><option v-for="c in ruleOpts(r.c)" :key="c" :value="c">{{ catLabel(c) }}</option></select><button type="button" class="btn o s" style="margin-inline-start:auto" @click="ruleDel(i)">{{ tk("del") }}</button></div>
           <div v-if="!S.rules.length" class="sm" style="padding:4px 2px 10px">{{ tk("r.none") }}</div>
         </div>
-        <div class="tools ssb" style="padding-top:0;margin-top:-6px"><input id="rk" v-model="rk" @keydown.enter.prevent="ruleAdd" :placeholder="tk('ifDescPh')"><select id="rc" :value="newRuleCat" @change="rc = $event.target.value"><option v-for="c in names" :key="c" :value="c">{{ catLabel(c) }}</option></select><button type="button" class="btn" @click="ruleAdd">{{ tk("addRule") }}</button></div>
       </div>
     </template>
   </div>

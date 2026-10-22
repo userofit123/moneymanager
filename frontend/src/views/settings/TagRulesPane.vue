@@ -53,11 +53,11 @@ function trAdd() {
       <div v-if="none" class="rsnone sm">{{ t("cats.search.none", { q: none }) }}</div>
       <div class="card ss">
         <SetHead icon="tag" :title="tk('tr.title')" :desc="tk('tr.desc')" :count="S.tagRules.length" />
+        <div class="tools ssb"><input id="trk" v-model="trk" @keydown.enter.prevent="trAdd" :placeholder="tk('ifDescPh')"><div style="flex:1 1 240px;min-width:200px"><TagEditor ref="newEd" :tags="newRuleTags" :commit-on-blur="false" @add="newTagsAdd" @remove="newRuleTags.splice($event, 1)" @go="goTag" /></div><button type="button" class="btn" @click="trAdd">{{ tk("addRule") }}</button></div>
         <div class="ssb p">
           <div v-for="(r, i) in S.tagRules" :key="i + '|' + r.k" class="rule"><span>{{ tk("ifDesc") }}</span><input data-c="trk" :data-i="i" :value="r.k" :aria-label="tk('text')" @change="trText(i, $event)"><span>→</span><TagEditor :tags="C.ruleTags(r)" @add="trTagsAdd(i, $event)" @remove="trTagRemove(i, $event)" @go="goTag" /><button type="button" class="btn o s" style="margin-inline-start:auto" @click="trDel(i)">{{ tk("del") }}</button></div>
           <div v-if="!S.tagRules.length" class="sm" style="padding:4px 2px 10px">{{ tk("tr.none") }}</div>
         </div>
-        <div class="tools ssb" style="padding-top:0;margin-top:-6px"><input id="trk" v-model="trk" @keydown.enter.prevent="trAdd" :placeholder="tk('ifDescPh')"><div style="flex:1 1 240px;min-width:200px"><TagEditor ref="newEd" :tags="newRuleTags" :commit-on-blur="false" @add="newTagsAdd" @remove="newRuleTags.splice($event, 1)" @go="goTag" /></div><button type="button" class="btn" @click="trAdd">{{ tk("addRule") }}</button></div>
       </div>
     </template>
 

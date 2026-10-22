@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [Unreleased]
 
 ### App
+- **On every rules page, the form for a new rule is now above the list of rules.**
 - **Fixed: the Alerts settings button on the Alerts page now opens the alert settings.**
 - **Alert notifications show the app's symbol in the phone's top bar** instead of a white square.
 - **Categories and tags is now a page to read your money.** Each category and tag shows money out, money in, in minus out, a usual month and how it changed, for the last 3, 6 or 12 months. Open a row to see its latest payments and a month-by-month chart. Adding, renaming and deleting are in each row's ⋯ menu. Also shows this month and last month, a budget column (with "Set a budget" when there is none) and more; choose the columns you want, click a column title to sort, and add a tag even before any payment has it. Money in shows with + in green and money out with −; this month or last month turns red when it is above the usual month. Every column title explains itself when you point at it, and "Set a budget" starts at the usual month.
