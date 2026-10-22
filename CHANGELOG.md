@@ -4,6 +4,18 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.12.3] - 2026-10-23
+
+### App
+- **Fixed: "Cannot reach the server" in the desktop apps' "My server" mode** when the server's certificate comes from your own home network's authority. The app's own screens now reach the server the way a browser does, so they trust what your computer trusts.
+- **Fixed: going back to "This computer" after viewing a server no longer shows "PGlite is closed".** This computer's private database now keeps running in the background once opened (and keeps syncing) until you quit the app.
+
+### Windows app
+- Includes everything above.
+
+### Linux app
+- Includes everything above.
+
 ## [0.12.2] - 2026-10-23
 
 ### App
