@@ -5,7 +5,6 @@ import { ref, computed, watch, onMounted, onUpdated, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
 import { toast } from "../core/toast.js";
-import { tx } from "../core/heText.js";
 import { goActivity } from "../core/shell.js";
 import { catNames, catColor, catLabel } from "../core/cats.js";
 import { fm } from "../format.js";
@@ -15,6 +14,7 @@ import PageHeader from "../components/PageHeader.vue";
 import BaseSheet from "../components/BaseSheet.vue";
 import TagEditor from "../components/TagEditor.vue";
 import SetHead from "./settings/SetHead.vue";
+import AiSort from "./categories/AiSort.vue";
 import { catTab, searches, newRuleTags } from "./categories/state.js";
 import * as C from "../lib/categories.js";
 import { ask as askYes } from "../core/ask.js";
@@ -86,15 +86,6 @@ function renGo() {
   if (c.ex) askYes(t("cats.c.mergeQ", { ex: catLabel(c.ex), k: catLabel(k) }), "", doIt); else doIt();
 }
 function catDel(k) { askYes(t("cats.c.delQ", { k: catLabel(k) }), "", () => save((n) => C.deleteCategory(n, k)), { danger: true }); }
-async function catSuggest() {
-  try {
-    const r = await data.api("/api/categories/suggested", { method: "POST" });
-    await data.load();
-    if (r.categories || r.rules || r.applied) ok(r.applied ? t("cats.c.addedSorted", { c: r.categories, r: r.rules, n: r.applied }, r.applied) : t("cats.c.added", { c: r.categories, r: r.rules }));
-    else toast(t("cats.c.haveAll"), { kind: "info" }); // nothing went wrong, so not red
-  } catch (e) { err(tx(e.message)); }
-}
-
 // ---- Tags ----
 const tagRows = computed(() => (S.value ? C.tagTiles(S.value) : []));
 const goTag = (g) => goActivity({ tag: g });
@@ -207,8 +198,8 @@ const salDel = (i) => save((n) => C.deleteSalaryRule(n, i));
             <div v-for="x in tiles" :key="x.k" class="mrow" :style="{ '--mc': catColor(S, x.k) }"><span class="mic">{{ x.letter }}</span><div class="mt"><span class="catl" @click="goCat(x.k)">{{ catLabel(x.k) }}</span><small>{{ t("cats.c.count", { n: x.n }, x.n) }}</small></div>
               <div v-if="x.k != 'Uncategorized'" class="mx"><button type="button" class="mb" :aria-label="t('cats.c.renameAria', { k: catLabel(x.k) })" :data-tip="t('cats.c.renameTip')" @click="renOpen('cat', x.k)">✎</button><button type="button" class="mb" :aria-label="t('cats.c.delAria', { k: catLabel(x.k) })" :data-tip="t('cats.c.delTip')" @click="catDel(x.k)">×</button></div></div>
           </div></div>
-          <div class="sfoot" style="display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap"><span style="flex:1 1 320px">{{ t("cats.c.starter") }}</span><button type="button" class="btn o s" @click="catSuggest">{{ t("cats.c.suggest") }}</button></div>
         </div>
+        <AiSort />
       </div>
 
       <!-- Category rules -->

@@ -15,10 +15,7 @@ import { saveDoc, sendDoc } from "./docs.js";
 import { ingest } from "./sources/ingest.js";
 import { parseWiseCsv, parseBankCsv } from "./sources/csv.js";
 import { seedDemo } from "./seed.js";
-import { addSuggested } from "./categories.js";
 import { fillJars, readJars } from "./jars.js";
-import { bumpRev, tx } from "./db.js";
-import { applyRules } from "./engine.js";
 import { sendNtfy, sendNtfyOnly, ntfyProblem, ntfyUrl, channelStatus, saveChannel, removeChannel, sendChannel, pushKey, pushSubscribe, pushUnsubscribe, pushStatus, sendPush } from "./notify.js";
 import { listConnections, saveCreds, removeCreds, unlock, getCreds, markAssisted, FIELDS, PROVIDERS, baseOf, validId, nextId, setNickname } from "./connections.js";
 import * as auth from "./auth.js";
@@ -311,7 +308,6 @@ app.post("/api/gaps/:id/:action", json, wrap(async (req, res) => {
   res.json(r);
 }));
 app.post("/api/jars/fill", wrap(async (_req, res) => { const r = await fillJars(); res.json({ ...r, jars: await readJars({ query: q }) }); }));
-app.post("/api/categories/suggested", wrap(async (_req, res) => { const r = await addSuggested(); const applied = await tx((c) => applyRules(c)); if (r.categories || r.rules || applied) await bumpRev(); res.json({ ...r, applied }); }));
 // ---------- accounts you make yourself ----------
 const bad = (res, e) => res.status(400).json({ error: e.message });
 app.post("/api/accounts", json, wrap(async (req, res) => { try { res.json(await createAccount(req.body || {})); } catch (e) { bad(res, e); } }));

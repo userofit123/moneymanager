@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [Unreleased]
 
 ### App
+- **Let an AI make your categories.** The app no longer comes with a ready-made list of categories, rules and shop names. On the Categories page you download the names in your transactions (no amounts, dates or accounts), copy the instructions into any AI chat, and upload its answer. You see what it adds before anything changes, entries you sorted yourself keep their category, and Undo works. Your existing categories, rules and tags stay as they are.
 - **Fewer false "Needs review" items about balances.** A card whose debt went down because the bank paid it no longer shows as unexplained: the payment in the bank explains it. Old history brought in by Import history no longer looks like new money. When several purchases arrive at once, each one now explains the exact change it caused, so no odd leftover amount moves to the next item.
 - **The example on the name rules page uses a made-up employer name.**
 - **A card's balance is explained as what you owe.** Instead of "₪30 arrived in this account", it says "You owe ₪30 less on this card".

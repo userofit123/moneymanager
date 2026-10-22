@@ -80,6 +80,7 @@ test("two identical same-day purchases without ids both stay, and re-import adds
 });
 
 test("CSV row merges into a hand-entered transaction and keeps category, note and tags", async () => {
+  await q("INSERT INTO categories (name,color) VALUES ('Subscriptions',3),('Groceries',0),('Eating out',2) ON CONFLICT DO NOTHING"); // the person's own
   await q("INSERT INTO transactions (date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,source) VALUES ('2026-10-04','Figma sub','Wise','Figma',-152.75,'USD',-50,'Subscriptions','my note','manual')");
   const hand = (await q("SELECT id FROM transactions WHERE description='Figma sub'")).rows[0].id;
   await q("INSERT INTO tags (name) VALUES ('work') ON CONFLICT DO NOTHING");
@@ -158,15 +159,12 @@ test("rows imported by the older version under the bare bank id are recognised a
   assert.equal((await q("SELECT external_id FROM transactions WHERE date='2026-07-05' AND description='Gym'")).rows[0].external_id, "999:AB12:2026-07-05:-250");
 });
 
-test("suggested categories and rules are added without touching what exists", async () => {
-  const { addSuggested } = await import("../src/categories.js");
-  await q("DELETE FROM rules"); await q("INSERT INTO rules (keyword,category,tag) VALUES ('wolt','Groceries','')"); // the user's own choice
-  const r1 = await addSuggested();
-  assert.ok(r1.rules > 50);
-  assert.equal((await q("SELECT category FROM rules WHERE keyword='wolt'")).rows[0].category, "Groceries"); // not overwritten
-  for (const c of ["Bills & utilities", "Insurance", "Health & pharmacy", "Salary"]) assert.equal((await q("SELECT 1 FROM categories WHERE name=$1", [c])).rowCount, 1, c);
-  const r2 = await addSuggested();
-  assert.deepEqual([r2.categories, r2.rules], [0, 0]); // idempotent
+test("a fresh install has only the few categories the app relies on, and adding them again changes nothing", async () => {
+  const { addCore, CORE_CATEGORIES } = await import("../src/categories.js");
+  await q("DELETE FROM categories"); await q("INSERT INTO categories (name,color) VALUES ('Uncategorized',3)"); // already there, with its own colour
+  assert.equal(await addCore(), CORE_CATEGORIES.length - 1);
+  assert.equal((await q("SELECT color FROM categories WHERE name='Uncategorized'")).rows[0].color, 3); // not overwritten
+  assert.equal(await addCore(), 0);
 });
 
 test("currencies: chosen ones plus any in use are refreshed; ILS is never needed", async () => {
@@ -261,18 +259,6 @@ test("a Wise CSV row replaces the same payment that came from the activity list 
   assert.deepEqual([r.added, r.merged], [0, 1]);
   assert.equal((await q("SELECT count(*)::int n FROM transactions WHERE description LIKE 'Dropbox%'")).rows[0].n, 1);
   assert.equal((await q("SELECT external_id FROM transactions WHERE description='Dropbox Inc'")).rows[0].external_id, "CARD-77");
-});
-
-test("suggested rules: specific names beat broad words, and adding them sorts existing uncategorized rows", async () => {
-  const { SUGGESTED_RULES } = await import("../src/categories.js");
-  const cat = (d) => (SUGGESTED_RULES.find(([k]) => d.toLowerCase().includes(k.toLowerCase())) || [])[1];
-  assert.equal(cat("ביטוח לאומי גביה"), "Taxes & government");
-  assert.equal(cat("הפניקס חברה לביטוח"), "Insurance");
-  assert.equal(cat("זיכוי מלאומי 12"), "Other income");
-  assert.equal(cat("זיכוי"), "Salary");
-  assert.equal(cat("פז YELLOW תחנה 4"), "Car & fuel");
-  assert.equal(cat("GITHUB.COM SPONSORS"), "Software & hosting");
-  assert.equal(cat("חיוב כרטיס אשראי"), undefined); // a card bill payment is not a spending category
 });
 
 test("a Wise conversion has one line in each currency under the same reference: both are kept, a re-import adds nothing", async () => {

@@ -2,7 +2,7 @@
 import { q, tx, bumpRev } from "./db.js";
 import { explainGaps } from "./engine.js";
 import { listConnections, PROVIDERS } from "./connections.js";
-import { addSuggested } from "./categories.js";
+import { addCore } from "./categories.js";
 import { readJars, fillJarsTx, thisMonth } from "./jars.js";
 import { activeCurrencies, configuredCurrencies } from "./fx.js";
 
@@ -10,8 +10,6 @@ export const DEFAULT_CFG = {
   jars: 1, bills: 1, price: 1, budget: 1, card: 1, large: 1, xfer: 1, recon: 1, pending: 1, sync: 1, uncat: 1, forecast: 1, docs: 1,
   cardPct: 10, largeAmt: 5000, billDays: 3, budgetPct: 80, gapDays: 3,
 };
-export const DEFAULT_CATS = ["Groceries", "Rent & housing", "Eating out", "Subscriptions", "Transport", "Fees & FX costs", "Income", "Uncategorized"];
-const CAT_COLOR = { Groceries: 0, "Rent & housing": 1, "Eating out": 2, Subscriptions: 3, Transport: 4, "Fees & FX costs": 5, Income: 99, Uncategorized: 6 };
 
 const setting = async (key, dflt) => {
   const r = await q("SELECT value FROM settings WHERE key=$1", [key]);
@@ -20,7 +18,7 @@ const setting = async (key, dflt) => {
 
 export async function ensureDefaults({ demoAccounts = true } = {}) {
   const n = await q("SELECT count(*)::int AS n FROM categories");
-  if (n.rows[0].n === 0) await addSuggested(); // fresh install: a full set of categories and starter rules
+  if (n.rows[0].n === 0) await addCore(); // fresh install: only the few categories the app relies on
   const a = await q("SELECT count(*)::int AS n FROM accounts");
   if (a.rows[0].n === 0) {
     // Accounts appear when something is connected, imported or typed in. Only the hand-entered pension exists from the start.
