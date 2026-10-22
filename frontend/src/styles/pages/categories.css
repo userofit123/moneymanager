@@ -205,10 +205,6 @@
 .cssort.desc {
   color: var(--acc);
   font-weight: 800;
-  background: color-mix(in srgb, var(--acc) 12%, transparent);
-  border-radius: 999px;
-  padding-inline: 8px;
-  margin-inline: -8px; /* the tint does not move the title out of line */
 }
 
 .cssort svg {
@@ -245,7 +241,7 @@
 
 .cssort.asc svg,
 .cssort.desc svg {
-  translate: 0 1.5px; /* level with the middle of the letters, not the top of the line */
+  translate: 0 .75px; /* level with the middle of the letters */
 }
 
 .csh .cscols {
