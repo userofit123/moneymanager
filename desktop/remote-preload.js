@@ -15,7 +15,7 @@ window.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => {
     if (document.getElementById("dragbar")) return;
     const css = document.createElement("style");
-    css.textContent = "#mm-dragbar{position:fixed;inset:0 0 auto 0;height:38px;z-index:2147483000;-webkit-app-region:drag;background:var(--bg,#fff);border-bottom:1px solid var(--ol,#0002)}html.mm-frame body{padding-top:38px}";
+    css.textContent = "#mm-dragbar{position:fixed;inset:0 0 auto 0;height:38px;z-index:2147483000;-webkit-app-region:drag;background:color-mix(in srgb,var(--bg,#fff) 70%,transparent);backdrop-filter:blur(18px) saturate(1.4)}html.mm-frame body{padding-top:38px}";
     const bar = document.createElement("div"); bar.id = "mm-dragbar"; bar.setAttribute("aria-hidden", "true");
     document.head.append(css); document.documentElement.classList.add("mm-frame"); document.body.prepend(bar);
     let last = "";
