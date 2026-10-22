@@ -7,6 +7,7 @@ import { data } from "../stores/data.js";
 import { home, budgets } from "./derived.js";
 import { now } from "./clock.js";
 import { request, sendJson } from "./http.js";
+import { pickToNotify } from "../lib/alertNotify.js";
 import { alertsModel } from "../lib/alerts.js";
 import { alertTexts } from "../lib/alerttext.js";
 import { dstr } from "../dates.js";
@@ -37,7 +38,7 @@ watch(rows, (L) => {
   request("/api/alerts/seen", sendJson("POST", { alerts: L })).then(() => alertsReported.value++).catch(() => {});
 }, { immediate: true });
 
-// Up to two urgent alerts as phone notifications, once each time the app opens (only when notifications are allowed),
+// Up to two urgent alerts as phone notifications, each only once per device while it stays open (only when notifications are allowed),
 // in the language of the page.
 let notified = false;
 watch(rows, (L) => {
@@ -46,5 +47,9 @@ watch(rows, (L) => {
   const t = i18n.global.t, lc = i18n.global.locale.value, loc = lc === "he" ? "he-IL" : "en-GB";
   const ctx = { t, catName: (c) => (!c || c === "Uncategorized" ? t("home.uncategorizedCat") : categoryName(c, lc)), an: (n) => categoryName(n, lc), dstr, monthYear: (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(loc, { month: "short", year: "numeric" }) };
   const list = alertsModel(data.state.value, { ...home.value, budgets: budgets.value.info }, now.value, {}, makeFriendly(t));
-  list.filter((x) => x.sev == "high").slice(0, 2).forEach((x) => { const [title, body] = alertTexts(x, ctx); notify(title, body); });
+  // only the alerts this device was not told about before (kept in this browser, so a refresh does not repeat them)
+  let told = []; try { told = JSON.parse(localStorage.getItem("moneyNotified") || "[]"); } catch { /* starts empty */ }
+  const { fresh, keep } = pickToNotify(list, told);
+  try { localStorage.setItem("moneyNotified", JSON.stringify(keep)); } catch { /* not saved: the next open may repeat them */ }
+  fresh.forEach((x) => { const [title, body] = alertTexts(x, ctx); notify(title, body); });
 });
