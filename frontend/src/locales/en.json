@@ -1146,7 +1146,7 @@
     "nextNet": "Next month net: {v}",
     "diag": {
       "title": "What this is based on:",
-      "main": "income about {inc} a month and expenses about {exp} a month, from {span} ({months}). {cur} so far is not included. Positive amounts count as income and negative ones as expenses, whatever their category. Income that arrives in two or more months counts as recurring. It is estimated from the months it really arrived, including this month so far. Income that arrived in only one month (a one-off, like a refund or a single transfer) is left out, because it would not repeat.",
+      "main": "income about {inc} a month and expenses about {exp} a month, from {span} ({months}). {cur} so far is not included.",
       "span": "1 complete month | {n} complete months",
       "cards": "1 credit card bill payment from the bank is left out, because the purchases are already counted on the card. | {n} credit card bill payments from the bank are left out, because the purchases are already counted on the card.",
       "only": "Only 1 complete month of history exists, so that is what is used. | Only {n} complete months of history exist, so that is what is used.",
