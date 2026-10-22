@@ -1,15 +1,34 @@
 <script setup>
 // Settings → Version and updates: the installed version, new versions, and installing the app.
+import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { UP, upWeb } from "../../core/updates.js";
 import { installPrompt, install } from "../../core/pwa.js";
 import SetHead from "./SetHead.vue";
 import SetRow from "./SetRow.vue";
 import { openSettingsTab } from "./tab.js";
+import { ask } from "../../core/ask.js";
 
 const { t } = useI18n();
 const tk = (k, a) => t("settings.app." + k, a || {});
 const D = typeof window !== "undefined" ? window.desktop : null, desk = !!D;
+// The desktop app lets you choose which server it shows: this computer's own database or Money Manager servers elsewhere (the desktop shell does the work).
+const SV = typeof window !== "undefined" ? window.desktopServers : null;
+const srv = ref({ active: null, list: [] }), nm = ref(""), ad = ref(""), busy = ref(false), err = ref("");
+async function loadSrv() { if (SV) { try { srv.value = await SV.state(); } catch { /* the list stays empty */ } } }
+onMounted(loadSrv);
+const srvRows = computed(() => [{ id: "local", name: tk("srvLocal"), desc: tk("srvLocalD"), now: srv.value.active === "local" }, ...srv.value.list.map((s) => ({ id: s.id, name: s.name, desc: s.url, now: srv.value.active === s.id }))]);
+const srvUse = (id) => SV.use(id);
+const srvRemove = (r) => ask(tk("srvRemoveAsk", { name: r.name }), tk("srvRemoveText"), async () => { srv.value = await SV.remove(r.id); }, { danger: true });
+async function srvAdd() {
+  if (busy.value) return;
+  busy.value = true; err.value = "";
+  try {
+    const r = await SV.add(nm.value, ad.value);
+    if (r.error) err.value = tk("srvErr_" + r.error); else { srv.value = r.state; nm.value = ""; ad.value = ""; SV.use(r.id); }
+  } catch { err.value = tk("srvErr_unreachable"); }
+  busy.value = false;
+}
 const standalone = typeof matchMedia !== "undefined" && matchMedia("(display-mode: standalone)").matches;
 const v = () => (UP.latest ? "⁦" + UP.latest + "⁩" : "");
 const changelog = () => openSettingsTab("rel");
@@ -22,6 +41,23 @@ function setAuto(on) { if (!D) return; UP.auto = on; D.setAuto(on); }
 
 <template>
   <div id="setApp">
+    <div v-if="SV" id="srvCard" class="card ss">
+      <SetHead icon="link" :title="tk('srvT')" :desc="tk('srvD')" />
+      <div class="ssb">
+        <SetRow v-for="r in srvRows" :key="r.id" :title="r.name" :desc="r.desc">
+          <span v-if="r.now" class="bd fl">{{ tk("srvNow") }}</span>
+          <button v-else type="button" class="btn s" data-a="srvUse" @click="srvUse(r.id)">{{ tk("srvOpen") }}</button>
+          <button v-if="r.id != 'local'" type="button" class="btn o s" data-a="srvRemove" style="margin-inline-start:6px" @click="srvRemove(r)">{{ tk("srvRemove") }}</button>
+        </SetRow>
+        <SetRow :title="tk('srvAddT')" :desc="tk('srvAddD')" />
+        <div class="tools" style="margin-top:6px">
+          <input v-model="nm" :placeholder="tk('srvName')" :aria-label="tk('srvName')" autocomplete="off">
+          <input v-model="ad" dir="ltr" :placeholder="tk('srvAddr')" :aria-label="tk('srvAddrL')" autocomplete="off" spellcheck="false" @keydown.enter.prevent="srvAdd">
+          <button type="button" class="btn" data-a="srvAdd" :disabled="busy" @click="srvAdd">{{ busy ? tk("srvChecking") : tk("srvAdd") }}</button>
+        </div>
+        <div class="sm" style="color:var(--neg);min-height:18px" role="alert">{{ err }}</div>
+      </div>
+    </div>
     <div id="updCard" class="card ss">
       <SetHead icon="install" :title="tk('title')" :desc="desk ? tk('descDesk') : tk('descServer')" />
       <div class="ssb">

@@ -70,8 +70,8 @@ function closeWindow() { if (win && !win.isDestroyed()) { win.removeAllListeners
 
 function openWindow() {
   const server = Srv.current(state), base = server ? server.url : backend.url;
-  // the desktop controls (updates, backup folder) are only for the app's own page, never for another server's
-  win = new BrowserWindow({ width: 1280, height: 860, minWidth: 380, minHeight: 600, title: server ? "Money Manager · " + server.name : "Money Manager", icon: path.join(root, "web", "icon-512.png"), backgroundColor: "#f7f8fd", autoHideMenuBar: true, webPreferences: { ...(server ? { sandbox: true } : { preload: path.join(__dirname, "preload.js") }), session: sessionFor(server), contextIsolation: true, nodeIntegration: false } });
+  // the desktop controls (updates, backup folder) are only for the app's own page; another server's page gets just the server list
+  win = new BrowserWindow({ width: 1280, height: 860, minWidth: 380, minHeight: 600, title: server ? "Money Manager · " + server.name : "Money Manager", icon: path.join(root, "web", "icon-512.png"), backgroundColor: "#f7f8fd", autoHideMenuBar: true, webPreferences: { ...(server ? { sandbox: true, preload: path.join(__dirname, "remote-preload.js") } : { preload: path.join(__dirname, "preload.js") }), session: sessionFor(server), contextIsolation: true, nodeIntegration: false } });
   win.loadURL(base);
   // links to other sites (a bank, a help page) open in the normal browser, never inside the app
   win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: "deny" }; });

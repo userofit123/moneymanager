@@ -24,7 +24,7 @@ Midnight:{L:["#233a95","#d6deff","#000e47","#f7f8fd","#2790a5","#ffffff"],D:["#9
 Candy:{L:["#95235c","#ffd6eb","#470024","#fdf7fa","#2790a5","#ffffff"],D:["#f896c7","#6f2047","#fecde6","#170d12","#7be0f4","#440424"]}};
 export const FONTS = { sans: 'Inter,"Segoe UI",Roboto,system-ui,sans-serif', serif: '"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif', round: 'ui-rounded,"SF Pro Rounded",Nunito,"Varela Round","Segoe UI",system-ui,sans-serif', mono: 'ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace' };
 export const CP = { L: ["#4355b9", "#c2185b", "#e68a00", "#00897b", "#7cb342", "#8e24aa", "#546e7a"], D: ["#9fb0ff", "#f48fb1", "#ffcc80", "#80cbc4", "#c5e1a5", "#ce93d8", "#b0bec5"] };
-export const ST0 = { mode: "auto", atm: "Indigo", cc: "#4355b9", cu: { L: {}, D: {} }, cp: { L: {}, D: {} }, gi: 100, sym: "₪", surf: "solid", bg: "glow", tex: "none", tsc: 100, gbl: 18, gsat: 160, gop: 45, rad: "round", den: "cozy", spc: "standard", nsp: "standard", fnt: "sans", nav: "full" };
+export const ST0 = { mode: "auto", atm: "Indigo", cc: "#4355b9", cu: { L: {}, D: {} }, cp: { L: {}, D: {} }, gi: 100, sym: "coin", surf: "solid", bg: "glow", tex: "none", tsc: 100, gbl: 18, gsat: 160, gop: 45, rad: "round", den: "cozy", spc: "standard", nsp: "standard", fnt: "sans", nav: "full" };
 export const AKEYS = ["acc", "accc", "onc", "bg", "acc2", "on"];
 const XDEF = { L: { tx: "#1b1b22", pos: "#1b7f4b", neg: "#c0392b" }, D: { tx: "#e6e4ea", pos: "#6fd69b", neg: "#ff9c8f" } };
 // the colours that can be changed one by one in a custom colour set, with their English names (the Appearance panel translates them)

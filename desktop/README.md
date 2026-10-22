@@ -15,7 +15,7 @@ The window shows one Money Manager at a time. On the first run (a new computer) 
 - **This computer:** the app's own database, scraper and server run inside it (everything above).
 - **My server:** the address of a Money Manager you run elsewhere (Docker on a home server, for example). The app then runs nothing itself and just opens that address.
 
-Change it any time from the **Server** menu (press Alt) or the tray icon → *Switch to*, or *Servers…* to add or remove one. Notes:
+Change it any time from **Settings → App and data → Server** (list, open, remove, add), the **Server** menu (press Alt) or the tray icon → *Switch to*, or *Servers…* to add or remove one. Notes:
 
 - Switching deletes nothing. Each server keeps its own data. Moving data between them is the app's backup and restore.
 - Each remote server gets its own browser session, so logins and the offline copy never mix. The desktop-only controls (update, backup folder) are not given to a remote server's page.

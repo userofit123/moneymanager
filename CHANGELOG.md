@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [Unreleased]
 
 ### App
+- **The app's own icon is always the coin.** The coin is now the default app icon (loading screen, sign-in); the shekel and other currency icons are still a choice in Settings → Preferences → App icon.
 - **Sign-in and first password screen: the icon is the general coin icon, next to the title** (it was the shekel tile above it, and it was hidden on phones).
 - **Activity lists: a row keeps the payment tags (instalment like 3/4, expected bill, upcoming, pending) and shows up to three tags next to its name (they all move under the name when they do not fit beside it); any others become one "+N" tag** that names them when you point at it, so the name is never squeezed out. The full set is still in the transaction window.
 - **Fixed: urgent alerts were sent to your phone again every time you opened or refreshed the app.** The app now remembers, on each device, which alerts it has already told you about, and only tells you about new ones (an alert that goes away and comes back is announced again).
@@ -51,7 +52,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 
 ### Windows app
 - Includes everything above.
-- **Use your own server instead of this computer's database (also in the Linux app).** The first time you open the app on a new computer it asks where your money is kept: **This computer** (its own private database, works offline) or **My server** (the address of your Money Manager, for example `money.home`). You can keep several servers and switch from the **Server** menu (Alt) or the tray icon; nothing is deleted when you switch, each one keeps its own data, and its logins stay separate. A server with its own security certificate is accepted once you confirm its fingerprint. An installed app that already has data stays on this computer without being asked.
+- **Use your own server instead of this computer's database (also in the Linux app).** The first time you open the app on a new computer it asks where your money is kept: **This computer** (its own private database, works offline) or **My server** (the address of your Money Manager, for example `money.home`). You can keep several servers and switch from **Settings → App and data → Server**, the **Server** menu (Alt) or the tray icon; nothing is deleted when you switch, each one keeps its own data, and its logins stay separate. A server with its own security certificate is accepted once you confirm its fingerprint. An installed app that already has data stays on this computer without being asked.
 
 ### Linux app
 - **New: Money Manager for Linux.** The same app as the Windows one, with its own database and bank scraper inside and nothing to set up. Three files on each release: an AppImage (any Linux), a .deb (Debian, Ubuntu, Mint) and an .rpm (Fedora, Red Hat, openSUSE). Your data is kept in `~/.config/Money Manager`. Saved bank logins are locked with the desktop's keyring when there is one, otherwise with a key file in the data folder.

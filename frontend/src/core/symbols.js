@@ -9,5 +9,5 @@ export const SYM_SVG = {
 export const COIN_SVG = "<svg viewBox=\"0 0 24 24\" width=\"60%\" height=\"60%\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"12\" r=\"2.6\"/><path d=\"M10 10L7 7M14 10l3-3M10 14l-3 3M14 14l3 3\"/></svg>";
 
 // [value, text key] of the app icon tiles, in the order they show
-export const ICONS = [["₪", "shekel"], ["$", "dollar"], ["€", "euro"], ["£", "pound"], ["¥", "yen"], ["coin", "coin"]];
-export const iconSvg = (v) => (v === "coin" ? COIN_SVG : SYM_SVG[v] || SYM_SVG["₪"]);
+export const ICONS = [["coin", "coin"], ["₪", "shekel"], ["$", "dollar"], ["€", "euro"], ["£", "pound"], ["¥", "yen"]];
+export const iconSvg = (v) => (v === "coin" ? COIN_SVG : SYM_SVG[v] || COIN_SVG);

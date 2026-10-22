@@ -30,6 +30,7 @@
       "main.js",
       "launcher.js",
       "preload.js",
+      "remote-preload.js",
       "servers.js",
       "servers.html",
       "servers-preload.js",

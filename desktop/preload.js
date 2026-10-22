@@ -10,3 +10,10 @@ contextBridge.exposeInMainWorld("desktop", {
   setAuto: (on) => ipcRenderer.invoke("update:auto", !!on),
   onUpdate: (fn) => ipcRenderer.on("update:state", (_e, s) => fn(s)),
 });
+// The server list (Settings → App and data): the same for the app's own page and for a remote server's page
+contextBridge.exposeInMainWorld("desktopServers", {
+  state: () => ipcRenderer.invoke("servers:state"),
+  add: (name, url) => ipcRenderer.invoke("servers:add", name, url),
+  use: (id) => ipcRenderer.invoke("servers:use", id),
+  remove: (id) => ipcRenderer.invoke("servers:remove", id),
+});

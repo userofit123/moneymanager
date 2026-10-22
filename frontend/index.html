@@ -16,7 +16,7 @@
     <script>(function(){var m=function(){var w=Math.min(innerWidth,document.documentElement.clientWidth||innerWidth),touch=matchMedia("(pointer:coarse)").matches;document.documentElement.classList.toggle("mob",w<=860||(touch&&w<=1100))};m()})();</script>
   </head>
   <body>
-    <div id="splash"><i></i></div><script>try{var bb=JSON.parse(localStorage.getItem("moneyBoot")||"null"),si=document.querySelector("#splash i"),sy=(bb&&bb.sym)||"₪";si.innerHTML=sy=="coin"?window.COIN_SVG:(window.SYM_SVG[sy]||window.SYM_SVG["₪"])}catch(e){}</script>
+    <div id="splash"><i></i></div><script>try{var bb=JSON.parse(localStorage.getItem("moneyBoot")||"null"),si=document.querySelector("#splash i"),sy=(bb&&bb.sym)||"coin";si.innerHTML=sy=="coin"?window.COIN_SVG:(window.SYM_SVG[sy]||window.COIN_SVG)}catch(e){}</script>
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
   </body>
