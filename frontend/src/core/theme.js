@@ -95,7 +95,7 @@ export function applyTheme() {
   cpOf(k).forEach((c, i) => r.setProperty("--c" + i, c));
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", a[3]);
   // the phone app colours its status bar like the page
-  if (window.mmApp) { try { window.mmApp.setBars(a[3], d); } catch { /* the bars keep their colour */ } }
+  if (window.mmApp) { try { window.mmApp.setBars(a[3], d, a[0], a[5], getComputedStyle(h).getPropertyValue("--tx").trim()); } catch { /* the bars keep their colour */ } }
   // the desktop app draws its own title bar: it takes the page's colours (core: window.desktopFrame is given by the desktop shell)
   if (window.desktopFrame) { h.classList.add("dframe"); try { window.desktopFrame.setTitleBar(a[3], ex.tx || XDEF[k].tx); } catch { /* the bar keeps its colours */ } }
   ["glass", "outline", "raised"].forEach((c) => document.body?.classList.toggle(c, theme.surf == c));

@@ -222,13 +222,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     /** The status bar and the navigation bar take the page's colour (the page tells us). */
-    fun setBars(bg: String, dark: Boolean) {
+    fun setBars(bg: String, dark: Boolean, acc: String = "", on: String = "", tx: String = "") {
         val c = parseColor(bg) ?: return
         window.statusBarColor = c
         window.navigationBarColor = c
         val ctl = WindowInsetsControllerCompat(window, window.decorView)
         ctl.isAppearanceLightStatusBars = !dark
         ctl.isAppearanceLightNavigationBars = !dark
+        // the lock screen wears the same colours as the app
+        prefs.edit().putInt("lookBg", c).putInt("lookAcc", parseColor(acc) ?: Color.parseColor("#4355B9")).putInt("lookOn", parseColor(on) ?: Color.WHITE)
+            .putInt("lookTx", parseColor(tx) ?: if (dark) Color.WHITE else Color.parseColor("#1b1b1f")).apply()
+        overlay?.let { root.removeView(it); overlay = null }
     }
 
     private fun parseColor(s: String): Int? = try {
@@ -249,19 +253,29 @@ class MainActivity : AppCompatActivity() {
     private fun showLock() {
         applySecure()
         if (overlay == null) {
+            val bg = prefs.getInt("lookBg", Color.parseColor("#14161C"))
+            val acc = prefs.getInt("lookAcc", Color.parseColor("#4355B9"))
+            val on = prefs.getInt("lookOn", Color.WHITE)
+            val tx = prefs.getInt("lookTx", Color.WHITE)
+            val dp = resources.displayMetrics.density
             val box = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 gravity = Gravity.CENTER
-                setBackgroundColor(Color.parseColor("#14161C"))
+                setBackgroundColor(bg)
                 isClickable = true
-                val dp = resources.displayMetrics.density
-                addView(android.widget.ImageView(context).apply { setImageResource(R.mipmap.ic_launcher_round) }, LinearLayout.LayoutParams((72 * dp).toInt(), (72 * dp).toInt()))
-                addView(TextView(context).apply { text = texts["lockTitle"]; setTextColor(Color.WHITE); textSize = 20f; gravity = Gravity.CENTER; setPadding(0, (16 * dp).toInt(), 0, (24 * dp).toInt()) })
-                // the button to try again: the phone's own fingerprint window opens over it, so it is dark and quiet, not a white bar
+                addView(android.widget.ImageView(context).apply { setImageResource(R.mipmap.ic_launcher_round) }, LinearLayout.LayoutParams((84 * dp).toInt(), (84 * dp).toInt()))
+                addView(TextView(context).apply {
+                    text = texts["lockTitle"]; setTextColor(tx); textSize = 22f; gravity = Gravity.CENTER; typeface = android.graphics.Typeface.DEFAULT_BOLD
+                    setPadding(0, (20 * dp).toInt(), 0, (6 * dp).toInt())
+                })
+                addView(TextView(context).apply {
+                    text = texts["lockSub"]; setTextColor(tx); alpha = 0.68f; textSize = 15f; gravity = Gravity.CENTER
+                    setPadding((32 * dp).toInt(), 0, (32 * dp).toInt(), (28 * dp).toInt())
+                })
                 addView(Button(context).apply {
-                    text = texts["lockRetry"]; setTextColor(Color.WHITE); isAllCaps = false
-                    background = android.graphics.drawable.GradientDrawable().apply { setColor(Color.parseColor("#4355B9")); cornerRadius = 28 * dp }
-                    setPadding((32 * dp).toInt(), 0, (32 * dp).toInt(), 0)
+                    text = texts["lockRetry"]; setTextColor(on); isAllCaps = false; textSize = 16f; typeface = android.graphics.Typeface.DEFAULT_BOLD; stateListAnimator = null
+                    background = android.graphics.drawable.GradientDrawable().apply { setColor(acc); cornerRadius = 24 * dp }
+                    setPadding((36 * dp).toInt(), 0, (36 * dp).toInt(), 0)
                     setOnClickListener { askUnlock() }
                 }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, (48 * dp).toInt()))
             }

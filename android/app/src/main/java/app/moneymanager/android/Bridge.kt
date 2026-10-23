@@ -14,7 +14,7 @@ class Bridge(private val act: MainActivity) {
     fun version(): String = BuildConfig.VERSION_NAME
 
     @JavascriptInterface
-    fun setBars(bg: String, dark: Boolean) { if (act.isOwnPage()) act.runOnUiThread { act.setBars(bg, dark) } }
+    fun setBars(bg: String, dark: Boolean, acc: String, on: String, tx: String) { if (act.isOwnPage()) act.runOnUiThread { act.setBars(bg, dark, acc, on, tx) } }
 
     @JavascriptInterface
     fun open(url: String) { if (act.isOwnPage()) act.runOnUiThread { act.openExternal(url) } }
@@ -143,7 +143,7 @@ class Bridge(private val act: MainActivity) {
     notif: function () { return call("notif"); },
     setNotif: function (on) { return call("setNotif", !!on); },
     testNotif: function () { return call("testNotif"); },
-    setBars: function (bg, dark) { n.setBars(String(bg), !!dark); },
+    setBars: function (bg, dark, acc, on, tx) { n.setBars(String(bg), !!dark, String(acc || ""), String(on || ""), String(tx || "")); },
     open: function (url) { n.open(String(url)); }
   };
 })();
