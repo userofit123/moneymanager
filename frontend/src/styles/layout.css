@@ -870,10 +870,15 @@ html.mob .sm {
   }
 }
 
-/* The desktop app has no system title bar: this strip in the page's colours takes its place (the window can be dragged by it), and the system's
-   window buttons sit on it at the end. core/theme.js adds html.dframe and tells the desktop shell the colours. */
+/* The desktop app has no system title bar. The page runs right to the top of the window; an invisible strip over its empty top edge lets the window be
+   dragged, and the system's window buttons sit on the page at the end. core/theme.js adds html.dframe and tells the desktop shell the colours. */
 :root {
   --tb: 0px;
+  --navw: 88px;
+}
+
+html[data-nav="mini"] {
+  --navw: 68px;
 }
 
 html.dframe {
@@ -884,30 +889,30 @@ html.dframe {
   display: none;
 }
 
+/* it starts after the side menu (so the logo and the menu buttons stay clickable) and has no look of its own */
 html.dframe #dragbar {
   display: block;
   position: fixed;
-  inset: 0 0 auto;
+  top: 0;
+  left: var(--navw); /* fixed side */
+  right: 0; /* fixed side */
   height: var(--tb);
   z-index: 400;
-  background: transparent; /* the page's own background (glow, mesh, texture) shows through; what scrolls under it is blurred */
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
   -webkit-app-region: drag;
 }
 
-html.dframe body {
-  padding-top: var(--tb);
-  min-height: calc(100vh - var(--tb));
+html.dframe.mob #dragbar,
+html.dframe.he #dragbar {
+  left: 0; /* fixed side */
 }
 
-html.dframe:not(.mob) nav {
-  top: var(--tb);
-  height: calc(100vh - var(--tb));
+html.dframe.he:not(.mob) #dragbar {
+  right: var(--navw); /* fixed side */
 }
 
-html.dframe.mob main > header {
-  top: var(--tb);
+/* in Hebrew the side menu is at the end, where the window buttons are: its content starts below them */
+html.dframe.he:not(.mob) nav {
+  padding-top: calc(var(--tb) + 8px);
 }
 
 html.dframe #jobBar {
@@ -935,11 +940,16 @@ html.dframe #docv {
   padding-top: calc(var(--tb) + 16px);
 }
 
-/* the button that opens the desktop app's menu (servers, updates, quit), at the left end of the strip, away from the window buttons (they are at the other end) */
-#dragbar .dmenu {
-  position: absolute;
+/* the button that opens the desktop app's menu (servers, updates, quit): at the end of the free part of the top edge, just before the window buttons */
+#dmenu {
+  display: none;
+}
+
+html.dframe #dmenu {
+  position: fixed;
   top: 5px;
-  left: 10px; /* fixed side */
+  left: calc(env(titlebar-area-x, 0px) + env(titlebar-area-width, 100vw) - 34px); /* fixed side */
+  z-index: 401;
   width: 28px;
   height: 28px;
   display: grid;
@@ -952,12 +962,12 @@ html.dframe #docv {
   -webkit-app-region: no-drag;
 }
 
-#dragbar .dmenu:hover {
+html.dframe #dmenu:hover {
   background: color-mix(in srgb, var(--tx) 10%, transparent);
   color: var(--tx);
 }
 
-#dragbar .dmenu svg {
+html.dframe #dmenu svg {
   width: 18px;
   height: 18px;
   fill: currentColor;

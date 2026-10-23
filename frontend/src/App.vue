@@ -57,7 +57,8 @@ addEventListener("offline", () => (online.value = false));
 </script>
 
 <template>
-  <div v-if="dframe" id="dragbar"><button type="button" class="dmenu" :aria-label="t('shell.appMenu')" :title="t('shell.appMenu')" @click="appMenu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="12" cy="19" r="1.8" /></svg></button></div>
+  <div v-if="dframe" id="dragbar" aria-hidden="true"></div>
+  <button v-if="dframe" id="dmenu" type="button" :aria-label="t('shell.appMenu')" :title="t('shell.appMenu')" @click="appMenu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="12" cy="19" r="1.8" /></svg></button>
   <AuthScreen v-if="app.phase === 'auth'" />
   <template v-else-if="app.phase !== 'start'">
     <JobBar />
