@@ -153,7 +153,7 @@ Where your money goes, per category and per tag, for the last 3, 6 or 12 months:
 
 ## Settings
 
-Everything you can change, in six groups: *You and the app* (profile, security, preferences, currencies), *Banks and cards* (connections, sync), *Automatic sorting*, *Your data* (import and export, backup and restore, change history), *Alerts* and *About* (version and updates, change log, error log).
+Everything you can change, in six groups: *You and the app* (profile, preferences, currencies), *Banks and cards* (connections, sync), *Automatic sorting*, *Your data* (security, import and export, backup and restore, change history), *Alerts* and *About* (version and updates, change log, error log).
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="screenshots/settings-sorting-dark.webp">

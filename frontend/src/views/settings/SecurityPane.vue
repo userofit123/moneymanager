@@ -18,7 +18,7 @@ const lock = ref({ available: false, enabled: false, delay: 30 });
 onMounted(async () => { if (MM) { try { lock.value = await MM.lock(); } catch { /* no lock option */ } } });
 async function setLock(e) {
   const on = e.target.checked;
-  try { lock.value = await MM.setLock(on); } catch { e.target.checked = false; toast(tk("lockNone"), { kind: "err" }); }
+  try { lock.value = await MM.setLock(on); } catch (x) { e.target.checked = false; toast(String(x?.message || x).includes("lockNone") ? tk("lockNone") : tk("lockFail"), { kind: "err" }); }
 }
 async function setDelay(e) {
   try { lock.value = await MM.setLock(lock.value.enabled, +e.target.value); } catch { toast(tk("lockNone"), { kind: "err" }); }

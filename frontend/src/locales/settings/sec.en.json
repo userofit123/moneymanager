@@ -33,6 +33,7 @@
   "lockDesc": "Keeps your money private if someone picks up your phone.",
   "lockOn": "Ask to unlock when the app opens",
   "lockHow": "Uses your fingerprint, face or screen lock. It asks again when you come back after the time you choose below, and the app is hidden in the list of recent apps.",
+  "lockFail": "The lock could not be turned on. Try again.",
   "lockNone": "This phone has no fingerprint, face or screen lock set up. Set one up in the phone's settings first.",
   "lockWhen": "Ask again after",
   "lockWhenD": "How long you can be away from the app before it asks again.",

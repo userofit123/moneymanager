@@ -62,7 +62,7 @@ class Bridge(private val act: MainActivity) {
         "setLock" -> {
             val on = a.getBoolean(0)
             if (on && !act.lock.available()) throw IllegalStateException("lockNone")
-            if (a.length() > 1) act.lockDelay = a.getInt(1)
+            if (!a.isNull(1)) act.lockDelay = a.getInt(1)
             act.changeLock(on)
             JSONObject().put("available", act.lock.available()).put("enabled", act.lockEnabled).put("delay", act.lockDelay).toString()
         }

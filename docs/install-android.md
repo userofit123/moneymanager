@@ -32,7 +32,7 @@ Later, **Settings → Server** in the app lets you add, switch or remove servers
 
 ## Lock the app
 
-Open **Settings → Security → App lock**, turn it on and choose when it asks again: every time you leave, half a minute, 1 minute or 5 minutes. It uses whatever the phone has (fingerprint, face, PIN or pattern). The phone needs one of them set up first.
+Open **Settings → Security → App lock** (under *Your data*), turn it on and choose when it asks again: every time you leave, half a minute, 1 minute or 5 minutes. It uses whatever the phone has (fingerprint, face, PIN or pattern). The phone needs one of them set up first.
 
 ## What it does not do yet
 
