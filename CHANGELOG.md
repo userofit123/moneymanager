@@ -4,6 +4,17 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.12.7] - 2026-10-23
+
+### App
+- **Fixed: the Windows and Linux apps of 0.12.5 and 0.12.6 did not open** (nothing happened when you clicked the app). A file was missing from the package. Install this version over it; your data is not touched. A new test now stops this from happening again.
+
+### Windows app
+- Includes everything above.
+
+### Linux app
+- Includes everything above.
+
 ## [0.12.6] - 2026-10-23
 
 ### App
