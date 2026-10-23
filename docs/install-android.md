@@ -34,9 +34,12 @@ Later, **Settings → Server** in the app lets you add, switch or remove servers
 
 Open **Settings → Security → App lock** (under *Your data*), turn it on and choose when it asks again: every time you leave, half a minute, 1 minute or 5 minutes. It uses whatever the phone has (fingerprint, face, PIN or pattern). The phone needs one of them set up first.
 
+## Alerts as phone notifications
+
+Turn on **Settings → Notifications → Show alerts as notifications** and allow notifications when the phone asks. The app asks your server for new alerts about every 15 minutes, also when it is closed, and shows each one as a notification. **Send a test** shows one at once. This needs your server on 0.12.6 or newer, and it does not use Google or any outside service. For instant alerts you can also use ntfy, Telegram or a webhook ([Alerts and notifications](alerts-notifications.md)).
+
 ## What it does not do yet
 
-- **No phone notifications** from the app itself. Alerts reach the phone through ntfy, Telegram or a webhook ([Alerts and notifications](alerts-notifications.md)), or by adding the web page to the home screen.
 - **Saving a file** (an export) is not supported in the app yet. Use the web page for that.
 
 ## When the app and the server do not fit

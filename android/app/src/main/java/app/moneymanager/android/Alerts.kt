@@ -100,7 +100,7 @@ object Alerts {
     fun sendTest(ctx: Context): Boolean {
         val s = ServerStore(ctx).state.current() ?: return false
         return try {
-            client(ctx, s.trust).newCall(Request.Builder().url(s.url + "/api/inbox/test").post("{}".toRequestBody("application/json".toMediaType())).build()).execute().use { it.code == 200 }
+            client(ctx, s.trust).newCall(Request.Builder().url(s.url + "/api/inbox/test").header("X-Requested-With", "money").post("{}".toRequestBody("application/json".toMediaType())).build()).execute().use { it.code == 200 }
         } catch (e: Exception) {
             false
         }
