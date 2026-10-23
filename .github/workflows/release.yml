@@ -210,7 +210,8 @@ jobs:
         with: { node-version: 22 }
       - uses: actions/setup-java@v5
         with: { distribution: temurin, java-version: 17 }
-      - uses: android-actions/setup-android@v3
+      - name: Accept the Android SDK licences (the runner already has the SDK)
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
       - name: Build the app into frontend/dist (the phone app carries these screens)
         run: npm ci && npm run build
         working-directory: frontend
