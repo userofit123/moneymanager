@@ -22,8 +22,14 @@ const pushSt = ref(tk("checking"));
 const tg = ref({ token: "", chat: "" }), wh = ref("");
 onMounted(async () => { data.start(); pushRefresh(); await loadNch(); tg.value.chat = NCH.value.telegramChat || ""; });
 
-// The phone app cannot receive web push or show browser notifications: it points to the ways that do work
-const inApp = typeof window !== "undefined" && !!window.mmApp;
+// The phone app cannot receive web push: it asks its server for new alerts from time to time and shows them itself (window.mmApp)
+const MM = typeof window !== "undefined" ? window.mmApp : null, inApp = !!MM;
+const app = ref({ enabled: false, allowed: true });
+onMounted(async () => { if (MM) { try { app.value = await MM.notif(); } catch { /* old app */ } } });
+async function appSet(e) {
+  try { app.value = await MM.setNotif(e.target.checked); } catch (x) { e.target.checked = false; const m = String(x?.message || x); toast(tk(m.includes("notifBlocked") ? "appBlocked" : m.includes("notifServer") ? "appServer" : "appFail"), { kind: "err" }); }
+}
+async function appTest() { try { await MM.testNotif(); toast(tk("appSent")); } catch { toast(tk("appServer"), { kind: "err" }); } }
 // ---- this device ----
 async function notifOn() {
   if (typeof Notification === "undefined") { toast(tt("unsupported"), { kind: "err" }); return; }
@@ -88,6 +94,10 @@ async function nchDelGo(k) { try { await data.api("/api/notify/channels/" + k, {
   <div v-if="S" id="setNotify">
     <div v-if="inApp" class="card ss">
       <SetHead icon="phone" :title="tk('appT')" :desc="tk('appD')" />
+      <div class="ssb p">
+        <label class="tg"><span><b style="font-weight:600">{{ tk("appOn") }}</b><div class="sm">{{ tk("appHow") }}</div></span><input type="checkbox" data-a="appNotif" :checked="app.enabled" @change="appSet"></label>
+        <div v-if="app.enabled" class="flex" style="gap:8px;margin-top:10px"><button type="button" class="btn o s" data-a="appTest" @click="appTest">{{ tk("pushTest") }}</button></div>
+      </div>
     </div>
     <div v-if="!inApp" class="card ss">
       <SetHead icon="phone" :title="tk('deviceT')" :desc="tk('deviceD')" />

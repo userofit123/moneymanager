@@ -35,6 +35,8 @@ class Bridge(private val act: MainActivity) {
         }
     }
 
+    private fun notifJson(): String = JSONObject().put("enabled", Alerts.enabled(act)).put("allowed", Alerts.allowed(act)).toString()
+
     private fun stateJson(): String = JSONObject(act.store.state.publicJson()).put("noLocal", true).toString()
 
     private fun run(method: String, a: JSONArray): String = when (method) {
@@ -65,6 +67,19 @@ class Bridge(private val act: MainActivity) {
             if (!a.isNull(1)) act.lockDelay = a.getInt(1)
             act.changeLock(on)
             JSONObject().put("available", act.lock.available()).put("enabled", act.lockEnabled).put("delay", act.lockDelay).toString()
+        }
+        "notif" -> notifJson()
+        "setNotif" -> {
+            if (a.getBoolean(0)) {
+                if (!Alerts.allowed(act) && !act.requestNotifications()) throw IllegalStateException("notifBlocked")
+                if (!Alerts.enable(act)) throw IllegalStateException("notifServer")
+            } else Alerts.disable(act)
+            notifJson()
+        }
+        "testNotif" -> {
+            if (!Alerts.sendTest(act)) throw IllegalStateException("notifServer")
+            Alerts.checkNow(act)
+            "null"
         }
         else -> throw IllegalArgumentException("unknown")
     }
@@ -125,6 +140,9 @@ class Bridge(private val act: MainActivity) {
     version: n.version(),
     lock: function () { return call("lock"); },
     setLock: function (on, delay) { return call("setLock", !!on, delay); },
+    notif: function () { return call("notif"); },
+    setNotif: function (on) { return call("setNotif", !!on); },
+    testNotif: function () { return call("testNotif"); },
     setBars: function (bg, dark) { n.setBars(String(bg), !!dark); },
     open: function (url) { n.open(String(url)); }
   };

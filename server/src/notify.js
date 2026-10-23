@@ -91,10 +91,35 @@ export async function sendPush(title, body) {
   return ok;
 }
 
+// ---------- the phone app's inbox ----------
+// The Android app cannot receive web push, so it asks for what is new: every alert is also kept here (the last 50) and the app
+// fetches the ones after the last number it saw, from time to time. It counts as a delivery only when an app asked in the last 3 days.
+const INBOX = "app_inbox", INBOX_POLL = "app_inbox_poll", INBOX_KEEP = 50, INBOX_ALIVE_MS = 3 * 86400000;
+export async function inboxAdd(title, body, priority = "default") {
+  const box = await getSet(INBOX, { last: 0, items: [] });
+  const id = box.last + 1;
+  await putSet(INBOX, { last: id, items: [...box.items, { id, at: new Date().toISOString(), title, body, priority }].slice(-INBOX_KEEP) });
+  return id;
+}
+// since: the last number the app saw, or "latest" to only learn the current number (the first time, so old alerts do not all arrive at once)
+export async function inboxRead(since) {
+  await putSet(INBOX_POLL, new Date().toISOString());
+  const box = await getSet(INBOX, { last: 0, items: [] });
+  if (since === "latest") return { last: box.last, items: [] };
+  const n = parseInt(since, 10) || 0;
+  return { last: box.last, items: box.items.filter((i) => i.id > n) };
+}
+export async function inboxAlive() {
+  const at = await getSet(INBOX_POLL, null);
+  return !!at && Date.now() - Date.parse(at) < INBOX_ALIVE_MS;
+}
+
 // every alert goes to ntfy and to each channel that is set up
 export async function sendNtfy(title, body, priority = "default") {
+  const alive = await inboxAlive();
+  if (alive) await inboxAdd(title, body, priority);
   const res = await Promise.all([sendNtfyOnly(title, body, priority), sendChannel("telegram", title, body), sendChannel("webhook", title, body), sendPush(title, body)]);
-  return res.some(Boolean);
+  return alive || res.some(Boolean);
 }
 
 // Tell the user once per distinct problem, not at every sync.

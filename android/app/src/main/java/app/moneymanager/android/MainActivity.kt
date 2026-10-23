@@ -66,6 +66,17 @@ class MainActivity : AppCompatActivity() {
         chooser = null
     }
     private val askCamera = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    @Volatile private var notifWait: java.util.concurrent.CountDownLatch? = null
+    private val askNotif = registerForActivityResult(ActivityResultContracts.RequestPermission()) { notifWait?.countDown() }
+
+    /** Ask the phone to let the app show notifications; waits for the answer (called from a background thread). */
+    fun requestNotifications(): Boolean {
+        val l = java.util.concurrent.CountDownLatch(1)
+        notifWait = l
+        runOnUiThread { askNotif.launch(Manifest.permission.POST_NOTIFICATIONS) }
+        l.await(120, java.util.concurrent.TimeUnit.SECONDS)
+        return Alerts.allowed(this)
+    }
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,6 +85,7 @@ class MainActivity : AppCompatActivity() {
         store = ServerStore(this)
         net = Net(this)
         lock = AppLock(this, texts)
+        if (Alerts.enabled(this)) Alerts.schedule(this)
 
         web = WebView(this)
         root = FrameLayout(this).apply { addView(web, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)) }

@@ -17,7 +17,7 @@ import { ingest } from "./sources/ingest.js";
 import { parseWiseCsv, parseBankCsv } from "./sources/csv.js";
 import { seedDemo } from "./seed.js";
 import { fillJars, readJars } from "./jars.js";
-import { sendNtfy, sendNtfyOnly, ntfyProblem, ntfyUrl, channelStatus, saveChannel, removeChannel, sendChannel, pushKey, pushSubscribe, pushUnsubscribe, pushStatus, sendPush } from "./notify.js";
+import { sendNtfy, sendNtfyOnly, ntfyProblem, ntfyUrl, channelStatus, saveChannel, removeChannel, sendChannel, pushKey, pushSubscribe, pushUnsubscribe, pushStatus, sendPush, inboxAdd, inboxRead } from "./notify.js";
 import { listConnections, saveCreds, removeCreds, unlock, getCreds, markAssisted, FIELDS, PROVIDERS, baseOf, validId, nextId, setNickname } from "./connections.js";
 import * as auth from "./auth.js";
 import * as bk from "./backup.js";
@@ -252,6 +252,9 @@ app.get("/api/push/key", wrap(async (_req, res) => res.json({ key: await pushKey
 app.post("/api/push/status", json, wrap(async (req, res) => res.json(await pushStatus(req.body?.endpoint))));
 app.post("/api/push/subscribe", json, wrap(async (req, res) => { try { await pushSubscribe(req.body?.sub, req.body?.label); res.json({ ok: true }); } catch (e) { res.status(400).json({ error: e.message }); } }));
 app.post("/api/push/unsubscribe", json, wrap(async (req, res) => { await pushUnsubscribe(req.body?.endpoint); res.json({ ok: true }); }));
+// the Android app asks for new alerts (see notify.js): ?since=<last number seen> or ?since=latest
+app.get("/api/inbox", wrap(async (req, res) => res.json(await inboxRead(String(req.query.since ?? "latest")))));
+app.post("/api/inbox/test", wrap(async (_req, res) => { await inboxRead("latest"); await inboxAdd("Money", "Test alert: phone notifications work"); res.json({ ok: true }); }));
 app.post("/api/push/test", wrap(async (_req, res) => res.json({ ok: await sendPush("Money", "Test alert: phone notifications work") })));
 app.get("/api/sync/settings", wrap(async (_req, res) => res.json(await getSyncSettings())));
 app.put("/api/sync/settings", json, wrap(async (req, res) => res.json(await putSyncSettings(req.body || {}))));
