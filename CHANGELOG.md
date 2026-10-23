@@ -4,6 +4,22 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.12.9] - 2026-10-23
+
+### App
+- **The Notifications page now shows the real state.** "Allow notifications" only appears when notifications are not allowed yet, and "Send a test" only when they are. Phone push shows "Turn on for this device" when it is off and "Turn off" (with "Send a test") when it is on. If the computer or browser blocks notifications, it says where to allow them.
+- **Fixed: test notifications in the Windows and Linux apps said "Sent" but nothing appeared.** The app now shows the notification itself.
+- **The Android lock screen wears the app's own colours** (background, text and accent) instead of a plain grey bar, with the app icon and a rounded button.
+
+### Android app
+- Includes everything above.
+
+### Windows app
+- Includes everything above.
+
+### Linux app
+- Includes everything above.
+
 ## [0.12.8] - 2026-10-23
 
 ### App
