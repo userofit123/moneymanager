@@ -21,6 +21,7 @@ services:
       - ./CHANGELOG.he.md:/app/CHANGELOG.he.md:ro
   vite:
     image: node:22-alpine
+    restart: unless-stopped
     working_dir: /src/frontend
     environment:
       VITE_POLL: "1"   # notice every file change in the shared folder (see vite.config.js)
