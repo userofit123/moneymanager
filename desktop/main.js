@@ -102,6 +102,13 @@ function netRequestFor(ses) {
   };
 }
 const portFor = (id) => 47900 + (parseInt(String(id).replace(/\D/g, "").slice(0, 6) || "0", 10) % 90);
+// Installing an update closes the app and runs the installer (the .rpm and .deb ask for your password, and wait for it). While that waits the windows cannot answer,
+// and the desktop then offers "Force quit or wait". So the windows are hidden first: nothing is left to flag.
+function installNow() {
+  quitting = true;
+  for (const w of BrowserWindow.getAllWindows()) { try { w.hide(); } catch { /* already gone */ } }
+  setTimeout(() => autoUpdater.quitAndInstall(), 150);
+}
 async function stopShells() { for (const [id, s] of shells) { try { s.srv.closeAllConnections(); s.srv.close(); } catch { /* already closed */ } shells.delete(id); } }
 async function shellFor(server) {
   const have = shells.get(server.id);
@@ -263,7 +270,7 @@ function updateItems() {
   const v = upd.version || "";
   if (upd.status === "available" && autoUpdater) return [{ label: fill(T.updDownload, { v }), click: () => { upd.status = "downloading"; upd.percent = 0; pushUpdate(); autoUpdater.downloadUpdate().catch((e) => fail(e)); } }];
   if (upd.status === "downloading") return [{ label: fill(T.updDownloading, { v, p: upd.percent || 0 }), enabled: false }];
-  if (upd.status === "ready" && autoUpdater) return [{ label: fill(T.updRestart, { v }), click: () => { quitting = true; autoUpdater.quitAndInstall(); } }];
+  if (upd.status === "ready" && autoUpdater) return [{ label: fill(T.updRestart, { v }), click: () => { installNow(); } }];
   if (upd.status === "checking") return [{ label: T.updChecking, enabled: false }];
   return [{ label: T.checkUpdates, click: checkNow }];
 }
@@ -303,7 +310,7 @@ function setupUpdates() {
   ipcMain.handle("update:auto", (_e, on) => { upd.auto = !!on; saveSettings(); if (autoUpdater) autoUpdater.autoDownload = upd.auto; if (upd.auto && upd.status === "available") autoUpdater && autoUpdater.downloadUpdate().catch(() => {}); pushUpdate(); return { ...upd }; });
   ipcMain.handle("update:check", async () => { await check(); return { ...upd }; });
   ipcMain.handle("update:download", () => { if (autoUpdater && upd.status === "available") { upd.status = "downloading"; upd.percent = 0; pushUpdate(); autoUpdater.downloadUpdate().catch((e) => fail(e)); } return { ...upd }; });
-  ipcMain.handle("update:install", () => { if (autoUpdater && upd.status === "ready") { quitting = true; autoUpdater.quitAndInstall(); } });
+  ipcMain.handle("update:install", () => { if (autoUpdater && upd.status === "ready") { installNow(); } });
   loadSettings();
   if (!app.isPackaged) { upd.status = "dev"; return; } // updates only apply to the installed app
   try { ({ autoUpdater } = require("electron-updater")); } catch { upd.status = "dev"; return; }
@@ -345,6 +352,7 @@ app.whenReady().then(async () => {
 
 app.on("before-quit", async (e) => {
   quitting = true;
+  for (const w of BrowserWindow.getAllWindows()) { try { w.hide(); } catch { /* already gone */ } } // closing takes a moment: no window is left to be flagged as not answering
   // quitting never waits for ever: if the database or the connections do not close within a few seconds, the app goes on quitting
   if (backend) { e.preventDefault(); const b = backend; backend = null; await Promise.race([b.stop().catch(() => {}), new Promise((ok) => setTimeout(ok, 5000))]); app.exit(0); }
 });

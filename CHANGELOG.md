@@ -4,6 +4,17 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.12.10] - 2026-10-23
+
+### App
+- **Fixed: updating the Linux app (.rpm and .deb) no longer shows the "Force quit or wait" window.** The app now hides its windows before it closes to install the update, so the desktop has nothing to flag while it waits for your password and for the installer. It still closes and opens again by itself.
+
+### Windows app
+- Includes everything above.
+
+### Linux app
+- Includes everything above.
+
 ## [0.12.9] - 2026-10-23
 
 ### App
