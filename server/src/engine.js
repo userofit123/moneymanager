@@ -87,18 +87,23 @@ const GAP_MIN = 1;
 // Payments dated a month or more before the starting point were in the balance long ago: older history imported now explains nothing.
 export const OLD_DAYS = 30;
 
+// The database's own clock (not this program's), so a starting point and the time a payment was added are measured by the same clock.
+const dbNow = async (c) => (await c.query("SELECT clock_timestamp() AS t")).rows[0].t;
 const baseKey = (accountId) => `gapbase:${accountId}`;
 async function getBase(c, accountId) { return (await c.query("SELECT value FROM settings WHERE key=$1", [baseKey(accountId)])).rows[0]?.value || null; }
-async function putBase(c, accountId, balance, upto, from = upto) {
+// maxId: the newest payment number at that moment. A payment counts as added after the starting point when its number is higher, or (a payment whose amount was
+// filled in later) when it was changed after the moment: numbers do not depend on a clock, so two payments within the same millisecond are still told apart.
+async function putBase(c, accountId, balance, upto, from = upto, maxId) {
+  if (maxId === undefined) maxId = +(await c.query("SELECT COALESCE(max(id),0)::bigint AS m FROM transactions")).rows[0].m;
   await c.query("INSERT INTO settings (key,value) VALUES ($1,$2::jsonb) ON CONFLICT (key) DO UPDATE SET value=$2::jsonb",
-    [baseKey(accountId), JSON.stringify({ balance: +balance, upto: new Date(upto).toISOString(), from: new Date(from).toISOString() })]);
+    [baseKey(accountId), JSON.stringify({ balance: +balance, upto: new Date(upto).toISOString(), from: new Date(from).toISOString(), maxId })]);
 }
 const latestSnapshot = async (c, accountId) => (await c.query("SELECT balance::float AS balance,taken_at FROM balance_snapshots WHERE account_id=$1 ORDER BY taken_at DESC, id DESC LIMIT 1", [accountId])).rows[0];
 
 // Start counting again from the newest balance (after a gap was reviewed or recorded, or when the books add up).
 export async function resetGapBase(c, accountId) {
   const last = await latestSnapshot(c, accountId);
-  if (last) await putBase(c, accountId, last.balance, new Date(), last.taken_at);
+  if (last) await putBase(c, accountId, last.balance, await dbNow(c), last.taken_at);
 }
 
 // What the newest balance leaves unexplained, counting every payment added after the starting point. A charge the bank still lists as pending is
@@ -106,9 +111,9 @@ export async function resetGapBase(c, accountId) {
 async function leftOver(c, account, base, lastBalance) {
   const sum = async (pending) => (await c.query(
     `SELECT COALESCE(sum(CASE WHEN orig_amount IS NULL THEN amount ELSE abs(orig_amount) * sign(amount) END - COALESCE(gap_explained,0)),0)::float AS s FROM transactions
-     WHERE ($4 OR NOT pending) AND created_at > $2 AND date >= ($2::timestamptz - interval '${OLD_DAYS} days')::date
+     WHERE ($4 OR NOT pending) AND (created_at > $2 OR id > COALESCE($5::bigint, 9223372036854775807)) AND date >= ($2::timestamptz - interval '${OLD_DAYS} days')::date
        AND ((amount<0 AND from_name=$1) OR (amount>0 AND to_name=$1)) AND COALESCE(orig_currency,'ILS')=$3`,
-    [account.name, base.upto, account.currency, pending])).rows[0].s;
+    [account.name, base.upto, account.currency, pending, base.maxId ?? null])).rows[0].s;
   const a = computeGap(base.balance, lastBalance, await sum(false)), b = computeGap(base.balance, lastBalance, await sum(true));
   return Math.abs(a) <= Math.abs(b) ? a : b;
 }
@@ -127,17 +132,17 @@ export async function settleGaps(c, accountName, currency, prev = null) {
     if (s) base = { balance: s.balance, upto: s.taken_at, from: s.taken_at };
   }
   if (!base && prev) base = { balance: +prev.balance, upto: prev.taken_at, from: prev.taken_at };
-  if (!base) { await putBase(c, account.id, last.balance, new Date(), last.taken_at); return null; }
+  if (!base) { await putBase(c, account.id, last.balance, await dbNow(c), last.taken_at); return null; }
   const U = await leftOver(c, account, base, last.balance);
   if (Math.abs(U) < GAP_MIN) { // the books add up: everything open is explained, and counting starts again from here
     if (open.length) {
       await c.query("UPDATE balance_gaps SET remaining=0, status='cleared' WHERE account_id=$1 AND status='open'", [account.id]);
       await audit(c, "Gaps cleared", `${accountName} ${currency}: the balance adds up over the whole period, ${open.length} open gap${open.length > 1 ? "s" : ""} closed`);
     }
-    await putBase(c, account.id, last.balance, new Date(), last.taken_at);
+    await putBase(c, account.id, last.balance, await dbNow(c), last.taken_at);
     return null;
   }
-  await putBase(c, account.id, base.balance, base.upto, base.from || base.upto);
+  await putBase(c, account.id, base.balance, base.upto, base.from || base.upto, base.maxId ?? null);
   let opened = null;
   if (open.length) { // one gap per account: it grows or shrinks as the payments and balances come in
     await c.query("UPDATE balance_gaps SET amount=$2, remaining=$2, window_to=$3 WHERE id=$1", [open[0].id, U, last.taken_at]);
@@ -149,7 +154,7 @@ export async function settleGaps(c, accountName, currency, prev = null) {
   }
   if (await healCardPayments(c)) { // the card bill paid from the bank explains it
     const still = (await c.query("SELECT 1 FROM balance_gaps WHERE account_id=$1 AND status='open'", [account.id])).rowCount;
-    if (!still) await putBase(c, account.id, last.balance, new Date(), last.taken_at);
+    if (!still) await putBase(c, account.id, last.balance, await dbNow(c), last.taken_at);
   }
   return opened;
 }
