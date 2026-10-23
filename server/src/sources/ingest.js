@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 import { tx, audit, bumpRev } from "../db.js";
 import { rateOn, normCur } from "../fx.js";
 import { detectCardPayments, detectSalary } from "../autodetect.js";
-import { applyRules, applyTagRules, detectTransfers, explainGaps, healGaps, OLD_DAYS } from "../engine.js";
+import { applyRules, applyTagRules, detectTransfers, healGaps } from "../engine.js";
 
 const hash = (...p) => crypto.createHash("sha1").update(p.join("|")).digest("hex").slice(0, 20);
 
@@ -59,8 +59,11 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
         const esc = r.stableKey.replace(/[\\%_]/g, "\\$&");
         const prov = await c.query("SELECT id FROM transactions WHERE source=$1 AND external_id LIKE $2 AND (from_name=$3 OR to_name=$3) AND amount=0 ORDER BY id LIMIT 1", [account.source, esc + ":%", account.name]);
         if (prov.rowCount) {
-          await c.query("UPDATE transactions SET amount=$2,orig_currency=$3,orig_amount=$4,rate=$5,external_id=$6,pending=$7,details=$8 WHERE id=$1",
-            [prov.rows[0].id, ils, cur !== "ILS" ? cur : null, cur !== "ILS" ? r.amount : null, rate, ext, !!r.pending, r.details ? JSON.stringify(r.details) : null]);
+          // the real amount arrives now: the payment is counted from now (created_at), and sits on the right side of the account (out when negative)
+          await c.query(`UPDATE transactions SET amount=$2::numeric,orig_currency=$3,orig_amount=$4,rate=$5,external_id=$6,pending=$7,details=$8,created_at=now(),
+              from_name = CASE WHEN $2::numeric<0 THEN $9::text WHEN from_name=$9::text THEN to_name ELSE from_name END,
+              to_name = CASE WHEN $2::numeric<0 THEN (CASE WHEN from_name=$9::text THEN to_name ELSE from_name END) ELSE $9::text END WHERE id=$1`,
+            [prov.rows[0].id, ils, cur !== "ILS" ? cur : null, cur !== "ILS" ? r.amount : null, rate, ext, !!r.pending, r.details ? JSON.stringify(r.details) : null, account.name]);
           await audit(c, "Amount filled in", `${r.description}: the bank now reports the real charge`);
           if (!r.pending) late.push({ id: prov.rows[0].id, cur, amt: r.amount, date: r.date });
           updated++;
@@ -102,15 +105,8 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
     await applyTagRules(c, fresh);
     const pairs = await detectTransfers(c);
     const found = (await detectCardPayments(c)) + (await detectSalary(c));
-    // Whole charges that add up to a gap explain it first; only what is left then shrinks the open gaps in order, so no gap is left with
-    // a piece of another one's charge. History from a month or more back was in the balance long ago and explains nothing.
+    // Open gaps are checked again against the payments now in the app (a late or hand-added payment can explain one).
     const healed = await healGaps(c, account.name, normCur(account.currency));
-    const oldest = new Date(Date.now() - OLD_DAYS * 864e5).toISOString().slice(0, 10);
-    for (const t of late) {
-      if (t.date < oldest) continue;
-      const used = (await c.query("SELECT gap_explained::float AS g FROM transactions WHERE id=$1", [t.id])).rows[0]?.g;
-      if (!used) await explainGaps(c, t.id, account.name, t.cur, t.amt);
-    }
     if (added || merged || updated || pairs || healed || found) await bumpRev(c);
     return { added, merged, migrated, updated, transfers: pairs };
   });

@@ -1,6 +1,7 @@
 // Actions on a balance gap. There is no "ignore": a gap is explained, recorded as a charge, or marked reviewed with a note.
 import { tx, audit, bumpRev } from "./db.js";
 import { rateOn } from "./fx.js";
+import { resetGapBase } from "./engine.js";
 
 export async function recordGap(id, action, body) {
   return tx(async (c) => {
@@ -25,6 +26,7 @@ export async function recordGap(id, action, body) {
       await c.query("UPDATE balance_gaps SET remaining=0, status='cleared' WHERE id=$1", [id]);
       await audit(c, "Gap recorded as charge", `${g.name} ${g.currency}: ${amt} recorded as an unrecorded charge`, "You");
     } else throw new Error("unknown action");
+    await resetGapBase(c, g.account_id); // the next check counts from the newest balance
     await bumpRev(c);
     return { ok: true };
   });

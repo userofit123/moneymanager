@@ -1,6 +1,6 @@
 // Assembles the whole app state from the tables (the shape the UI works with) and writes UI edits back.
 import { q, tx, bumpRev } from "./db.js";
-import { explainGaps } from "./engine.js";
+import { healGaps } from "./engine.js";
 import { listConnections, PROVIDERS } from "./connections.js";
 import { addCore } from "./categories.js";
 import { readJars, fillJarsTx, thisMonth } from "./jars.js";
@@ -184,10 +184,7 @@ export async function putState(S) {
           `INSERT INTO transactions (id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,jar_id,jar_amount,jar_auto,jar_skip,report_month,source)
            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,(SELECT id FROM jars WHERE id=$12),$13,$14,$15,$16,'manual')
            ON CONFLICT (id) DO UPDATE SET date=$2,description=$3,from_name=$4,to_name=$5,amount=$6,orig_currency=$7,orig_amount=$8,category=$9,note=$10,dup_ok=$11,jar_id=(SELECT id FROM jars WHERE id=$12),jar_amount=$13,jar_auto=$14,jar_skip=$15,report_month=$16`, row);
-        if (isNew) { // a hand-entered transaction explains open balance gaps on its account
-          const acct = t.a < 0 ? t.from : t.to, cur = t.orig?.cur || "ILS", amt = t.orig?.amt != null ? t.orig.amt * Math.sign(t.a) : t.a;
-          await explainGaps(c, t.id, acct, cur, amt);
-        }
+        if (isNew) await healGaps(c, t.a < 0 ? t.from : t.to, t.orig?.cur || "ILS"); // a hand-entered payment may explain an open gap on its account
       }
       if (sig(haveTags[t.id] || []) !== sig(t.tags || [])) {
         await c.query("DELETE FROM transaction_tags WHERE transaction_id=$1", [t.id]);

@@ -9,6 +9,8 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ### App
 - **Fixed: the Windows and Linux apps of 0.12.5 and 0.12.6 did not open** (nothing happened when you clicked the app). A file was missing from the package. Install this version over it; your data is not touched. A new test now stops this from happening again.
 
+- **Fixed: "Needs review" balance gaps are now the same on every copy of the app.** A gap used to depend on exactly when each copy synced, so two copies with the same payments could show different gaps (or one could show a gap the other never did). Now the app compares the newest balance with an earlier balance plus every payment added since, which gives the same answer however often it synced. There is at most one open gap per account, it grows or shrinks as payments and balances come in, and it closes by itself when the balance adds up. Reviewing a gap, or recording it as a charge, starts counting again from the newest balance.
+
 ### Windows app
 - Includes everything above.
 

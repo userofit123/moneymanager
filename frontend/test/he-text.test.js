@@ -89,7 +89,7 @@ function historyActions() {
 test("every history action written by the app or the server has its Hebrew in core/heSaved.js", () => {
   const found = historyActions();
   assert.ok(found.size > 90, "the search finds the history actions (" + found.size + ")");
-  for (const a of ["Renamed category", "Changed budget", "Bill detected", "Hid a merchant", "Kept bill", "Gap reduced", "Jars filled", "Changed jar target", "Edited note"]) assert.ok(found.has(a), a);
+  for (const a of ["Renamed category", "Changed budget", "Bill detected", "Hid a merchant", "Kept bill", "Gaps cleared", "Jars filled", "Changed jar target", "Edited note"]) assert.ok(found.has(a), a);
   const missing = [...found].filter(([a]) => !/[א-ת]/.test(heSaved(a))).map(([a, f]) => a + " (" + f + ")");
   assert.deepEqual(missing, [], "history actions with no Hebrew: add them to HISTORY in src/core/heSaved.js");
 });

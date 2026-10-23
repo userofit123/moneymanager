@@ -1,7 +1,7 @@
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 import { reset, pool, q } from "./helpers.js";
-import { pairTransfers, computeGap, recordSnapshot, explainGaps, suggestConversion, healGaps, healCardPayments, reconcileGaps } from "../src/engine.js";
+import { pairTransfers, computeGap, recordSnapshot, suggestConversion, healGaps, healCardPayments, settleGaps } from "../src/engine.js";
 import { ingest } from "../src/sources/ingest.js";
 import { parseWiseCsv } from "../src/sources/csv.js";
 import { getState, putState, StaleError } from "../src/state.js";
@@ -490,7 +490,7 @@ test("charges arriving together each explain the whole gap they caused, so the n
   await tx((c) => recordSnapshot(c, card, -152, new Date("2026-10-18T08:00:00Z")));
   await tx((c) => recordSnapshot(c, card, -450.9, new Date("2026-10-18T20:00:00Z"))); // 201.30 + 97.60
   await tx((c) => recordSnapshot(c, card, -584.11, new Date("2026-10-19T08:00:00Z")));
-  assert.deepEqual(await openGaps(), [-152, -298.9, -133.21]);
+  assert.deepEqual(await openGaps(), [-584.11]); // one gap for the account, however often it synced
   await ingest(acc, [ // the bank lists them days later, in its own order
     { date: "2026-10-18", description: "Shop A", amount: -201.3, currency: "ILS", externalId: "c:a" },
     { date: "2026-10-18", description: "Gym", amount: -152, currency: "ILS", externalId: "c:b" },
@@ -543,6 +543,30 @@ test("gaps that do not add up over the whole period stay open", async () => {
   await tx((c) => recordSnapshot(c, bank, 1000, new Date("2026-10-20T06:00:00Z")));
   await tx((c) => recordSnapshot(c, bank, 851, new Date("2026-10-21T06:00:00Z")));
   await tx((c) => recordSnapshot(c, bank, 800, new Date("2026-10-22T06:00:00Z")));
-  assert.equal((await q("SELECT * FROM balance_gaps WHERE account_id=$1 AND status='open'", [bank.id])).rowCount, 2);
-  assert.equal(await tx((c) => reconcileGaps(c, bank.name, "ILS")), 0);
+  const open = (await q("SELECT amount::float AS a FROM balance_gaps WHERE account_id=$1 AND status='open'", [bank.id])).rows;
+  assert.deepEqual(open.map((g) => g.a), [-200]); // one gap for the whole period, not one per sync
+  assert.equal(await tx((c) => healGaps(c, bank.name, "ILS")), 0);
+});
+
+test("the same payments and balances give the same gaps whether the copy synced every day or once at the end", async () => {
+  const mk = async (name) => { const a = (await q("INSERT INTO accounts (name,kind,currency,source) VALUES ($1,'bank','ILS','hapoalim') RETURNING *", [name])).rows[0]; return { a, acc: { name, currency: "ILS", source: "hapoalim" } }; };
+  const day = (n) => new Date(Date.UTC(2026, 9, 10 + n, 6, 0, 0));
+  const open = async (id) => (await q("SELECT amount::float AS a FROM balance_gaps WHERE account_id=$1 AND status='open'", [id])).rows.map((g) => g.a);
+  // a balance that rises 149 with no payment, then payments of 273 arrive: 149 is left over, however it was looked at
+  const d = await mk("Daily A"), w = await mk("Weekly A");
+  for (const x of [d, w]) await tx((c) => recordSnapshot(c, x.a, 1000, day(0)));
+  await tx((c) => recordSnapshot(c, d.a, 1149, day(1)));
+  for (const x of [d, w]) await ingest(x.acc, [{ date: "2026-10-12", description: "Shop", amount: -273, currency: "ILS", externalId: "s:" + x.a.id }]);
+  await tx((c) => recordSnapshot(c, d.a, 876, day(2)));
+  await tx((c) => recordSnapshot(c, w.a, 876, day(2)));
+  assert.deepEqual(await open(d.a.id), [149]);
+  assert.deepEqual(await open(w.a.id), [149]);
+  // a drop and a rise that cancel out leave nothing, daily or not
+  const d2 = await mk("Daily B"), w2 = await mk("Weekly B");
+  for (const x of [d2, w2]) await tx((c) => recordSnapshot(c, x.a, 1000, day(3)));
+  await tx((c) => recordSnapshot(c, d2.a, 900, day(4)));
+  await tx((c) => recordSnapshot(c, d2.a, 1000, day(5)));
+  await tx((c) => recordSnapshot(c, w2.a, 1000, day(5)));
+  assert.deepEqual(await open(d2.a.id), []);
+  assert.deepEqual(await open(w2.a.id), []);
 });
