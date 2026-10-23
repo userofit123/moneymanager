@@ -2,12 +2,14 @@
 // the session cookie is always sent, changes carry the header the server asks for (it refuses them without it),
 // and a lost session shows the sign-in screen.
 import { ref } from "vue";
+import { device } from "./device.js";
 
 // True when the server said the session is gone (App.vue then shows the sign-in screen).
 export const signedOut = ref(false);
 
 export async function request(url, opt = {}) {
   const o = { ...opt, credentials: "same-origin" };
+  o.headers = { ...(o.headers || {}), "x-mm-client": device.kind }; // the server lists which device each sign-in is on (the Android and desktop apps add their version)
   const m = String(o.method || "GET").toUpperCase();
   if (m !== "GET" && m !== "HEAD") o.headers = { ...(o.headers || {}), "x-requested-with": "money" };
   const r = await fetch(url, o);

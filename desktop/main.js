@@ -106,7 +106,7 @@ async function stopShells() { for (const [id, s] of shells) { try { s.srv.closeA
 async function shellFor(server) {
   const have = shells.get(server.id);
   if (have) return have.base;
-  const make = () => Shell.createShellServer({ webDir: path.join(root, "web"), remote: server.url, request: netRequestFor(sessionFor(server)) });
+  const make = () => Shell.createShellServer({ webDir: path.join(root, "web"), remote: server.url, request: netRequestFor(sessionFor(server)), client: "desktop/" + app.getVersion() });
   let srv = make(), port; try { port = await Shell.listen(srv, portFor(server.id)); } catch { srv = make(); port = await Shell.listen(srv, 0).catch(() => 0); }
   if (!port) return null;
   shells.set(server.id, { srv, base: "http://127.0.0.1:" + port });

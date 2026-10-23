@@ -8,8 +8,16 @@ import { api, sendJson, toast, toastErr } from "./shared.js";
 import { request } from "../../core/http.js";
 import { signOut } from "../../core/boot.js";
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const tk = (k) => t("settings.sec." + k);
+// ---- where you are signed in ----
+const sessions = ref([]);
+const loadSessions = async () => { try { const r = await request("/api/sessions", { cache: "no-store" }); if (r.ok) sessions.value = await r.json(); } catch { /* the list stays as it was */ } };
+onMounted(loadSessions);
+const sWhen = (w) => new Date(w).toLocaleString(locale.value === "he" ? "he-IL" : "en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+const sName = (s) => tk("dev." + s.kind) + (s.version ? " ⁦" + s.version + "⁩" : "");
+const sWhere = (s) => [s.browser, s.os].filter(Boolean).join(" · ");
+async function endSession(s) { await request("/api/sessions/" + s.id + "/end", { method: "POST" }); toast(tk("ended")); loadSessions(); }
 const totp = ref(false);
 const start = ref(null); // { secret, uri } while two-factor is being set up
 // The phone app can ask for a fingerprint, face or screen lock when it opens (the app tells us whether the phone has one)
@@ -80,6 +88,10 @@ const logout = (all) => signOut(all);
     <div class="card ss">
       <SetHead icon="door" :title="tk('sessTitle')" :desc="tk('sessDesc')" />
       <div class="ssb">
+        <SetRow v-for="s in sessions" :key="s.id" :title="sName(s)" :desc="[sWhere(s), tk('lastUsed') + ' ' + sWhen(s.lastSeen)].filter(Boolean).join(' · ')">
+          <span v-if="s.current" class="bd dn">{{ tk("thisOne") }}</span>
+          <button v-else type="button" class="btn o s" data-a="endSession" @click="endSession(s)">{{ tk("signOut") }}</button>
+        </SetRow>
         <SetRow :title="tk('thisDevice')" :desc="tk('thisDeviceDesc')"><button type="button" class="btn o s" data-a="logout" @click="logout(false)">{{ tk("signOut") }}</button></SetRow>
         <SetRow :title="tk('everyDevice')" :desc="tk('everyDeviceDesc')"><button type="button" class="btn o s" data-a="logoutAll" @click="logout(true)">{{ tk("signOutAll") }}</button></SetRow>
       </div>

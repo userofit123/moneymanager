@@ -24,7 +24,7 @@ const localCookie = (c) => c.split(";").map((x) => x.trim()).filter((x) => x && 
  * instead (so a certificate the computer trusts, for example a home network's own authority, is trusted here too).
  * Gives back a node http.Server (not listening yet).
  */
-function createShellServer({ webDir, remote, trusted = () => "", request = null }) {
+function createShellServer({ webDir, remote, trusted = () => "", request = null, client = "" }) {
   const target = new URL(remote), secure = target.protocol === "https:", lib = secure ? https : http;
   // A connection to a server whose certificate this computer does not know is handed over (so nothing is sent on it) only when it is exactly the
   // certificate the user trusted for this server.
@@ -44,6 +44,7 @@ function createShellServer({ webDir, remote, trusted = () => "", request = null 
   function proxy(req, res) {
     const headers = { ...req.headers, host: target.host };
     for (const k of Object.keys(headers)) if (HOP.has(k)) delete headers[k];
+    if (client) headers["x-mm-client"] = client; // the server lists which device each sign-in is on
     if (headers.origin) headers.origin = target.origin;
     if (headers.referer) { try { headers.referer = target.origin + new URL(headers.referer).pathname; } catch { delete headers.referer; } }
     const up = (request || lib.request)({ protocol: target.protocol, hostname: target.hostname, port: target.port || (secure ? 443 : 80), path: req.url, method: req.method, headers, ...(agent ? { agent } : {}) }, (r) => {

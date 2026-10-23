@@ -65,16 +65,34 @@ export async function tooManyAttempts(ip) {
 export const noteAttempt = (ip, ok) => q("INSERT INTO login_attempts (ip,ok) VALUES ($1,$2)", [ip, ok]);
 
 // ---------- sessions ----------
-export async function startSession(ua = "") {
+export async function startSession(ua = "", client = "") {
   const token = crypto.randomBytes(32).toString("base64url");
-  await q("INSERT INTO sessions (token_hash,expires_at,user_agent) VALUES ($1, now() + ($2 || ' days')::interval, $3)", [sha(token), String(SESSION_DAYS), ua.slice(0, 200)]);
+  await q("INSERT INTO sessions (token_hash,expires_at,user_agent,client,last_seen) VALUES ($1, now() + ($2 || ' days')::interval, $3, $4, now())", [sha(token), String(SESSION_DAYS), ua.slice(0, 200), String(client || "").slice(0, 40)]);
   await q("DELETE FROM sessions WHERE expires_at < now()");
   return token;
 }
 export async function sessionValid(token) {
   if (!token) return false;
-  return (await q("SELECT 1 FROM sessions WHERE token_hash=$1 AND expires_at > now()", [sha(token)])).rowCount > 0;
+  const ok = (await q("SELECT 1 FROM sessions WHERE token_hash=$1 AND expires_at > now()", [sha(token)])).rowCount > 0;
+  if (ok) q("UPDATE sessions SET last_seen=now() WHERE token_hash=$1 AND (last_seen IS NULL OR last_seen < now() - interval '1 minute')", [sha(token)]).catch(() => {});
+  return ok;
 }
+
+// What a sign-in is on, from what the app said about itself (X-MM-Client: "apk/0.12.8", "desktop/0.12.8", "pwa", "web") and the browser's own description.
+export function deviceOf(client = "", ua = "") {
+  const [kind, version] = String(client).split("/");
+  const os = /Android/i.test(ua) ? "Android" : /iPhone|iPad|iPod/i.test(ua) ? "iPhone / iPad" : /Windows/i.test(ua) ? "Windows" : /Macintosh|Mac OS X/i.test(ua) ? "Mac" : /Linux|X11/i.test(ua) ? "Linux" : "";
+  const browser = /Edg\//.test(ua) ? "Edge" : /OPR\/|Opera/.test(ua) ? "Opera" : /Firefox\//.test(ua) ? "Firefox" : /Chrome\//.test(ua) ? "Chrome" : /Safari\//.test(ua) ? "Safari" : "";
+  if (kind === "apk" || /; wv\)/.test(ua)) return { kind: "apk", os: "Android", version: version || "" };
+  if (kind === "desktop" || /Electron\//.test(ua)) return { kind: "desktop", os, version: version || "" };
+  return { kind: kind === "pwa" ? "pwa" : "web", os, browser };
+}
+export async function listSessions(token) {
+  const mine = token ? sha(token) : "";
+  const rows = (await q("SELECT token_hash,created_at,last_seen,user_agent,client FROM sessions WHERE expires_at > now() ORDER BY COALESCE(last_seen, created_at) DESC")).rows;
+  return rows.map((r) => ({ id: r.token_hash.slice(0, 16), current: r.token_hash === mine, created: r.created_at, lastSeen: r.last_seen || r.created_at, ...deviceOf(r.client, r.user_agent) }));
+}
+export const endSessionById = (id) => /^[0-9a-f]{16}$/.test(id) ? q("DELETE FROM sessions WHERE token_hash LIKE $1", [id + "%"]) : null;
 export const endSession = (token) => token && q("DELETE FROM sessions WHERE token_hash=$1", [sha(token)]);
 export const cookieMaxAge = SESSION_DAYS * 86400;
 

@@ -6,7 +6,8 @@ import { data } from "../../stores/data.js";
 import { getJson, sendJson } from "../../core/http.js";
 import { toast } from "../../core/toast.js";
 import { tx } from "../../core/heText.js";
-import { notify } from "../../core/pwa.js";
+import { notify, notifyLocalOff, setNotifyLocalOff } from "../../core/pwa.js";
+import { device } from "../../core/device.js";
 import BaseSheet from "../../components/BaseSheet.vue";
 import SetHead from "./SetHead.vue";
 import { ask } from "../../core/ask.js";
@@ -31,18 +32,22 @@ async function appSet(e) {
 }
 async function appTest() { try { await MM.testNotif(); toast(tk("appSent")); } catch { toast(tk("appServer"), { kind: "err" }); } }
 // ---- this device ----
-async function notifOn() {
-  if (typeof Notification === "undefined") { toast(tt("unsupported"), { kind: "err" }); return; }
-  await Notification.requestPermission(); perm.value = Notification.permission;
-  toast(tt("permission", { p: tk("perm." + perm.value) }));
+const localOn = ref(perm.value == "granted" && !notifyLocalOff()); // the switch "Show alerts on this device"
+async function localSet(e) {
+  if (!e.target.checked) { setNotifyLocalOff(true); localOn.value = false; return; }
+  if (typeof Notification === "undefined") { e.target.checked = false; toast(tt("unsupported"), { kind: "err" }); return; }
+  if (Notification.permission == "default") await Notification.requestPermission();
+  perm.value = Notification.permission;
+  if (perm.value != "granted") { e.target.checked = false; toast(tk("deniedHelp"), { kind: "err" }); return; }
+  setNotifyLocalOff(false); localOn.value = true;
 }
-async function notifTest() { const ok = await notify(tx("Money"), tt("testText")); toast(ok ? tt("testSent") : tt("allowFirst"), { kind: ok ? "ok" : "err" }); }
+async function notifTest() { const ok = await notify(tx("Money"), tt("testText"), true); toast(ok ? tt("testSent") : tt("allowFirst"), { kind: ok ? "ok" : "err" }); }
 
 // ---- phone push (the service worker /sw.js holds the subscription) ----
 const b64u = (x) => { const p = "=".repeat((4 - (x.length % 4)) % 4), r = atob((x + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(r, (c) => c.charCodeAt(0)); };
 const pushReg = async () => navigator.serviceWorker && (await navigator.serviceWorker.getRegistration());
 async function pushRefresh() {
-  if (!("PushManager" in window) || !navigator.serviceWorker) { pushSt.value = window.isSecureContext ? tk("noSupport") : tk("needHttps"); return; }
+  if (!("PushManager" in window) || !navigator.serviceWorker) { pushOk.value = false; pushSt.value = window.isSecureContext ? tk("noSupport") : tk("needHttps"); return; }
   try {
     const reg = await pushReg(), sub = reg && (await reg.pushManager.getSubscription());
     const st = await data.api("/api/push/status", sendJson("POST", { endpoint: sub && sub.endpoint }));
@@ -50,6 +55,8 @@ async function pushRefresh() {
     pushSt.value = (st.here ? tk("hereOn") : tk("hereOff")) + " " + (st.devices == 1 ? tk("devOne") : tk("devMany", { n: st.devices }));
   } catch { pushSt.value = tk("couldNotCheck"); }
 }
+const pushOk = ref(true); // this browser can do push
+async function pushSet(e) { if (e.target.checked) { await pushOn(); } else { await pushOff(); } e.target.checked = pushHere.value; }
 async function pushOn() {
   try {
     if (!("PushManager" in window)) { toast(tt("needHttps"), { kind: "err" }); return; }
@@ -102,11 +109,17 @@ async function nchDelGo(k) { try { await data.api("/api/notify/channels/" + k, {
     </div>
     <div v-if="!inApp" class="card ss">
       <SetHead icon="phone" :title="tk('deviceT')" :desc="tk('deviceD')" />
-      <div class="ssb p"><div class="sm" style="margin-bottom:10px">{{ tk("permission") }} <b>{{ tk("perm." + perm) }}</b></div><div class="flex" style="gap:8px"><button v-if="perm != 'granted'" type="button" class="btn s" data-a="notifOn" @click="notifOn">{{ tk("allow") }}</button><button v-if="perm == 'granted'" type="button" class="btn o s" data-a="notifTest" @click="notifTest">{{ tk("test") }}</button></div><div v-if="perm == 'denied'" class="sm" style="margin-top:10px">{{ tk("deniedHelp") }}</div><div class="flex" style="gap:8px"></div></div>
+      <div class="ssb p">
+        <label class="tg"><span><b style="font-weight:600">{{ tk("localOn") }}</b><div class="sm">{{ perm == "denied" ? tk("deniedHelp") : tk("localHow") }}</div></span><input type="checkbox" data-a="notifLocal" :checked="localOn" :disabled="perm == 'denied' || perm == 'unsupported'" @change="localSet"></label>
+        <div v-if="localOn" class="flex" style="gap:8px;margin-top:10px"><button type="button" class="btn o s" data-a="notifTest" @click="notifTest">{{ tk("test") }}</button></div>
+      </div>
     </div>
-    <div v-if="!inApp" class="card ss">
+    <div v-if="device.inBrowser" class="card ss">
       <SetHead icon="phone" :title="tk('pushT')" :desc="tk('pushD')" />
-      <div class="ssb p"><div id="pushSt" class="sm" style="margin-bottom:10px">{{ pushSt }}</div><div class="flex" style="gap:8px"><button v-if="!pushHere" type="button" class="btn s" data-a="pushOn" @click="pushOn">{{ tk("pushOn") }}</button><button v-if="pushHere" type="button" class="btn o s" data-a="pushOff" @click="pushOff">{{ tk("pushOff") }}</button><button v-if="pushHere" type="button" class="btn o s" data-a="pushTest" @click="pushTest">{{ tk("pushTest") }}</button></div></div>
+      <div class="ssb p">
+        <label class="tg"><span><b style="font-weight:600">{{ tk("pushSwitch") }}</b><div id="pushSt" class="sm">{{ pushSt }}</div></span><input type="checkbox" data-a="pushSwitch" :checked="pushHere" :disabled="!pushOk" @change="pushSet"></label>
+        <div v-if="pushHere" class="flex" style="gap:8px;margin-top:10px"><button type="button" class="btn o s" data-a="pushTest" @click="pushTest">{{ tk("pushTest") }}</button></div>
+      </div>
     </div>
     <div class="card ss">
       <SetHead icon="bell" title="ntfy" :desc="tk('ntfyD')" />

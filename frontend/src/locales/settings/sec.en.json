@@ -40,5 +40,14 @@
   "lockD0": "Every time I leave",
   "lockD30": "Half a minute",
   "lockD60": "1 minute",
-  "lockD300": "5 minutes"
+  "lockD300": "5 minutes",
+  "dev": {
+    "apk": "Android app",
+    "desktop": "Desktop app",
+    "pwa": "Web app",
+    "web": "Browser"
+  },
+  "lastUsed": "Last used",
+  "thisOne": "This one",
+  "ended": "Signed out"
 }

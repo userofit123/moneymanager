@@ -7,16 +7,17 @@ import { installPrompt, install } from "../../core/pwa.js";
 import SetHead from "./SetHead.vue";
 import SetRow from "./SetRow.vue";
 import { openSettingsTab } from "./tab.js";
+import { device } from "../../core/device.js";
 
 const { t } = useI18n();
 const tk = (k, a) => t("settings.app." + k, a || {});
 const D = typeof window !== "undefined" ? window.desktop : null, desk = !!D;
-// "Install on this device" is for someone using the app in a browser: not in the installed phone app, and not in the desktop app (which is installed already,
-// also when its window shows another server, whose page has no desktop controls: desktopServers is there then).
-const inDesktop = typeof window !== "undefined" && !!window.desktopServers;
+// What the page offers follows what this copy is (core/device.js): the install and download cards are for a browser tab or the installed web app only.
 const standalone = typeof matchMedia !== "undefined" && matchMedia("(display-mode: standalone)").matches;
 const MM = typeof window !== "undefined" ? window.mmApp : null; // the phone app: its own version, and where to get a newer one
-const showInstall = !desk && !inDesktop && !standalone;
+const showGet = device.inBrowser; // a browser tab or the installed web app: it can offer the other apps
+const showInstall = showGet && !standalone; // "install this app" only from a browser tab
+const showAndroid = showGet && device.android;
 const RELEASES = "https://github.com/userofit123/moneymanager/releases/latest";
 const newer = (a, b) => { const x = String(a).split(".").map(Number), y = String(b).split(".").map(Number); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); return false; };
 const appNewer = computed(() => !!(MM && UP.latest && newer(UP.latest, String(MM.version).split("-")[0])));
@@ -78,10 +79,11 @@ function setAuto(on) { if (!D) return; UP.auto = on; D.setAuto(on); }
         <label v-if="desk && UP.status != 'dev'" class="tg"><span><b style="font-weight:600">{{ tk("auto") }}</b><div class="sm">{{ tk("autoD") }}</div></span><input type="checkbox" data-upd="auto" :checked="UP.auto" @change="setAuto($event.target.checked)"></label>
       </div>
     </div>
-    <div v-if="showInstall" id="instCard" class="card ss">
-      <SetHead icon="install" :title="tk('instT')" :desc="tk('instD')" />
+    <div v-if="showGet" id="instCard" class="card ss">
+      <SetHead icon="install" :title="showInstall ? tk('instT') : tk('getT')" :desc="showInstall ? tk('instD') : tk('getD')" />
       <div class="ssb">
-        <SetRow :title="tk('install')" :desc="installPrompt ? tk('instHint') : tk('instHow')"><button v-if="installPrompt" type="button" class="btn s" data-a="install" @click="install">{{ tk("installBtn") }}</button></SetRow>
+        <SetRow v-if="showInstall" :title="tk('install')" :desc="installPrompt ? tk('instHint') : tk('instHow')"><button v-if="installPrompt" type="button" class="btn s" data-a="install" @click="install">{{ tk("installBtn") }}</button></SetRow>
+        <SetRow v-if="showAndroid" :title="tk('androidT')" :desc="tk('androidD')"><a class="btn s" :href="RELEASES" target="_blank" rel="noopener" data-a="androidDl">{{ tk("androidBtn") }}</a></SetRow>
         <SetRow v-if="!phone" :title="tk('deskT')" :desc="tk('deskD')">
           <div class="flex" style="gap:6px;flex-wrap:wrap;justify-content:flex-end">
             <a v-for="d in downloads" :key="d.k" class="btn s" :class="{ o: !d.main }" :href="d.href" target="_blank" rel="noopener" data-a="deskDl">{{ tk(d.k) }}</a>

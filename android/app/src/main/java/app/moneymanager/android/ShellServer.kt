@@ -98,6 +98,7 @@ class ShellServer(port: Int, private val assets: AssetManager, private val remot
         val req = Request.Builder().url(t.url + Uri.encode(session.uri, "/") + query)
         for ((k, v) in session.headers) if (k !in skipRequest && !k.startsWith("sec-")) req.header(k, v)
         req.header("origin", t.url)
+        req.header("X-MM-Client", "apk/" + BuildConfig.VERSION_NAME)
         val method = session.method.name
         val data = if (method == "GET" || method == "HEAD") null else body(session)
         req.method(method, data?.toRequestBody(session.headers["content-type"]?.toMediaTypeOrNull()))

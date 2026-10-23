@@ -73,7 +73,7 @@ app.post("/api/auth/login", json, wrap(async (req, res) => {
     if (!auth.totpOk(auth.readTotpSecret(u), req.body.code)) { await auth.noteAttempt(ip, false); await new Promise((r) => setTimeout(r, 400)); return res.status(401).json({ error: "That code is not right.", need2fa: true }); }
   } else if (!okPw) { await auth.noteAttempt(ip, false); await new Promise((r) => setTimeout(r, 400)); return res.status(401).json({ error: "Wrong password." }); }
   await auth.noteAttempt(ip, true);
-  setCookie(req, res, await auth.startSession(req.get("user-agent")));
+  setCookie(req, res, await auth.startSession(req.get("user-agent"), req.get("x-mm-client")));
   res.json({ ok: true });
 }));
 
@@ -88,12 +88,14 @@ app.use("/api", (req, res, next) => {
 });
 
 app.post("/api/auth/logout", wrap(async (req, res) => { await auth.endSession(auth.readCookie(req)); res.clearCookie(auth.COOKIE, { path: "/" }).json({ ok: true }); }));
+app.get("/api/sessions", wrap(async (req, res) => res.json(await auth.listSessions(auth.readCookie(req)))));
+app.post("/api/sessions/:id/end", wrap(async (req, res) => { await auth.endSessionById(String(req.params.id)); res.json({ ok: true }); }));
 app.post("/api/auth/logout-all", wrap(async (_req, res) => { await q("DELETE FROM sessions"); res.clearCookie(auth.COOKIE, { path: "/" }).json({ ok: true }); }));
 app.post("/api/auth/password", json, wrap(async (req, res) => {
   const u = await auth.getUser();
   if (!auth.checkPassword(String(req.body?.current || ""), u.password_hash)) return res.status(400).json({ error: "Current password is wrong." });
   try { await auth.setPassword(req.body?.next); } catch (e) { return res.status(400).json({ error: e.message }); }
-  setCookie(req, res, await auth.startSession(req.get("user-agent"))); // other sessions were signed out
+  setCookie(req, res, await auth.startSession(req.get("user-agent"), req.get("x-mm-client"))); // other sessions were signed out
   res.json({ ok: true });
 }));
 app.post("/api/auth/2fa/start", wrap(async (_req, res) => {

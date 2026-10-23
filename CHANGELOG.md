@@ -9,6 +9,8 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ### App
 - **The Notifications page now shows the real state.** "Allow notifications" only appears when notifications are not allowed yet, and "Send a test" only when they are. Phone push shows "Turn on for this device" when it is off and "Turn off" (with "Send a test") when it is on. If the computer or browser blocks notifications, it says where to allow them.
 - **Fixed: test notifications in the Windows and Linux apps said "Sent" but nothing appeared.** The app now shows the notification itself.
+- **Settings now match the device you are using** (Android app, Windows or Linux app, the web app on your home screen, or a browser tab). Notifications show the switches that make sense there ("Show alerts on this device", and "Alerts when the app is closed" only in a browser), and Version and updates shows only the updates, installs and downloads that fit: the Android download link in a browser on an Android phone, the desktop downloads on a computer.
+- **Security → Sessions now lists every place you are signed in**: the Android app, the Windows or Linux app, the web app and each browser, with the system, the version and when it was last used. Sign out any of them from the list. Your server must be on 0.12.9 for the list to be complete.
 - **The Android lock screen wears the app's own colours** (background, text and accent) instead of a plain grey bar, with the app icon and a rounded button.
 
 ### Android app
