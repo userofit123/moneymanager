@@ -38,5 +38,12 @@
   "deskRpm": "Download .rpm (Fedora, Red Hat)",
   "deskDeb": ".deb (Ubuntu, Debian)",
   "deskApp": "AppImage (any Linux)",
-  "deskAll": "All downloads"
+  "deskAll": "All downloads",
+  "appT": "This app",
+  "appD": "The Money Manager app on this phone.",
+  "appNew": "Version {v} of the app is available",
+  "appGet": "Get the latest app",
+  "appGetD": "Download the newest file from GitHub and open it to update. Your server and your data are not touched.",
+  "appGetBtn": "Open downloads",
+  "srvVerT": "Your server's version"
 }

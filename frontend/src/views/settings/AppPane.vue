@@ -15,7 +15,11 @@ const D = typeof window !== "undefined" ? window.desktop : null, desk = !!D;
 // also when its window shows another server, whose page has no desktop controls: desktopServers is there then).
 const inDesktop = typeof window !== "undefined" && !!window.desktopServers;
 const standalone = typeof matchMedia !== "undefined" && matchMedia("(display-mode: standalone)").matches;
+const MM = typeof window !== "undefined" ? window.mmApp : null; // the phone app: its own version, and where to get a newer one
 const showInstall = !desk && !inDesktop && !standalone;
+const RELEASES = "https://github.com/userofit123/moneymanager/releases/latest";
+const newer = (a, b) => { const x = String(a).split(".").map(Number), y = String(b).split(".").map(Number); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); return false; };
+const appNewer = computed(() => !!(MM && UP.latest && newer(UP.latest, String(MM.version).split("-")[0])));
 // The desktop apps are on GitHub: the files for this computer first, then the page with all of them
 const REPO = "https://github.com/userofit123/moneymanager/releases", ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
 const phone = /Android|iPhone|iPad|iPod/i.test(ua), win = /Windows/i.test(ua), linux = /Linux/i.test(ua) && !phone;
@@ -37,8 +41,15 @@ function setAuto(on) { if (!D) return; UP.auto = on; D.setAuto(on); }
 
 <template>
   <div id="setApp">
+    <div v-if="MM" id="appCard" class="card ss">
+      <SetHead icon="phone" :title="tk('appT')" :desc="tk('appD')" />
+      <div class="ssb">
+        <SetRow :title="tk('installed')" :desc="'⁦v' + MM.version + '⁩'"><button type="button" class="btn o s" data-a="updNotes" @click="changelog">{{ tk("whatsNew") }}</button></SetRow>
+        <SetRow :title="appNewer ? tk('appNew', { v: v() }) : tk('appGet')" :desc="tk('appGetD')"><button type="button" class="btn s" :class="{ o: !appNewer }" data-a="appGet" @click="MM.open(RELEASES)">{{ tk("appGetBtn") }}</button></SetRow>
+      </div>
+    </div>
     <div id="updCard" class="card ss">
-      <SetHead icon="install" :title="tk('title')" :desc="desk ? tk('descDesk') : tk('descServer')" />
+      <SetHead icon="install" :title="MM ? tk('srvVerT') : tk('title')" :desc="desk ? tk('descDesk') : tk('descServer')" />
       <div class="ssb">
         <SetRow :title="tk('installed')" :desc="UP.cur ? '⁦v' + UP.cur + '⁩' : ''"><button type="button" class="btn o s" data-a="updNotes" @click="changelog">{{ tk("whatsNew") }}</button></SetRow>
         <div v-if="['uptodate', 'checking', 'available', 'downloading', 'installing', 'ready', 'error', 'dev'].includes(UP.status)" class="sinfo"><span>

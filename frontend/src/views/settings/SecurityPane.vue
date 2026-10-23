@@ -12,6 +12,14 @@ const { t } = useI18n();
 const tk = (k) => t("settings.sec." + k);
 const totp = ref(false);
 const start = ref(null); // { secret, uri } while two-factor is being set up
+// The phone app can ask for a fingerprint, face or screen lock when it opens (the app tells us whether the phone has one)
+const MM = typeof window !== "undefined" ? window.mmApp : null;
+const lock = ref({ available: false, enabled: false });
+onMounted(async () => { if (MM) { try { lock.value = await MM.lock(); } catch { /* no lock option */ } } });
+async function setLock(e) {
+  const on = e.target.checked;
+  try { lock.value = await MM.setLock(on); } catch { e.target.checked = false; toast(tk("lockNone"), { kind: "err" }); }
+}
 const pw = ref({ cur: "", next: "" }), code = ref(""), offPw = ref("");
 
 async function status() { try { totp.value = (await (await request("/api/auth/status", { cache: "no-store" })).json()).totp; } catch { /* keep what we had */ } }
@@ -34,6 +42,12 @@ const logout = (all) => signOut(all);
 
 <template>
   <div id="setSec">
+    <div v-if="MM" class="card ss">
+      <SetHead icon="lock" :title="tk('lockTitle')" :desc="tk('lockDesc')" />
+      <div class="ssb">
+        <label class="tg"><span><b style="font-weight:600">{{ tk("lockOn") }}</b><div class="sm">{{ lock.available ? tk("lockHow") : tk("lockNone") }}</div></span><input type="checkbox" data-a="appLock" :checked="lock.enabled" :disabled="!lock.available && !lock.enabled" @change="setLock"></label>
+      </div>
+    </div>
     <div class="card ss">
       <SetHead icon="key" :title="tk('pwTitle')" :desc="tk('pwDesc')" />
       <div class="ssb p">

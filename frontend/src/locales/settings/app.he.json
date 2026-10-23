@@ -38,5 +38,12 @@
   "deskRpm": "הורדת rpm‏ (Fedora, ‏Red Hat)",
   "deskDeb": "קובץ deb‏ (Ubuntu, ‏Debian)",
   "deskApp": "AppImage‏ (כל Linux)",
-  "deskAll": "כל ההורדות"
+  "deskAll": "כל ההורדות",
+  "appT": "האפליקציה הזאת",
+  "appD": "האפליקציה של Money Manager בטלפון הזה.",
+  "appNew": "גרסה {v} של האפליקציה זמינה",
+  "appGet": "קבלת האפליקציה העדכנית",
+  "appGetD": "מורידים את הקובץ החדש ביותר מ־GitHub ופותחים אותו כדי לעדכן. השרת והנתונים שלכם לא נפגעים.",
+  "appGetBtn": "פתיחת ההורדות",
+  "srvVerT": "הגרסה של השרת שלכם"
 }

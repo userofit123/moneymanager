@@ -24,7 +24,7 @@ self.addEventListener("fetch", (e) => {
       const hd = new Headers(h.headers); hd.set("x-offline-cache", "1");
       return h.blob().then((b) => new Response(b, { status: 200, headers: hd }));
     });
-    e.respondWith(Promise.race([fetch(r).then((x) => save(D, key, x)), new Promise((_, no) => setTimeout(() => no(new Error("slow")), 9000))]).catch(saved));
+    e.respondWith(Promise.race([fetch(r).then((x) => { if (x.status >= 502 && x.status <= 504) throw new Error("down"); return save(D, key, x); }), new Promise((_, no) => setTimeout(() => no(new Error("slow")), 9000))]).catch(saved));
     return;
   }
   if (u.pathname.startsWith("/api/")) return;
