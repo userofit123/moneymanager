@@ -18,7 +18,7 @@ const S = computed(() => data.state.value);
 const NCH = ref({ telegram: false, telegramChat: "", webhook: false });
 const loadNch = async () => { try { NCH.value = await getJson("/api/notify/channels"); } catch { /* keep */ } };
 const perm = ref(typeof Notification !== "undefined" ? Notification.permission : "unsupported");
-const pushSt = ref(tk("checking"));
+const pushSt = ref(tk("checking")), pushHere = ref(false); // pushHere: phone push is on for this device
 const tg = ref({ token: "", chat: "" }), wh = ref("");
 onMounted(async () => { data.start(); pushRefresh(); await loadNch(); tg.value.chat = NCH.value.telegramChat || ""; });
 
@@ -46,6 +46,7 @@ async function pushRefresh() {
   try {
     const reg = await pushReg(), sub = reg && (await reg.pushManager.getSubscription());
     const st = await data.api("/api/push/status", sendJson("POST", { endpoint: sub && sub.endpoint }));
+    pushHere.value = !!st.here;
     pushSt.value = (st.here ? tk("hereOn") : tk("hereOff")) + " " + (st.devices == 1 ? tk("devOne") : tk("devMany", { n: st.devices }));
   } catch { pushSt.value = tk("couldNotCheck"); }
 }
@@ -101,11 +102,11 @@ async function nchDelGo(k) { try { await data.api("/api/notify/channels/" + k, {
     </div>
     <div v-if="!inApp" class="card ss">
       <SetHead icon="phone" :title="tk('deviceT')" :desc="tk('deviceD')" />
-      <div class="ssb p"><div class="sm" style="margin-bottom:10px">{{ tk("permission") }} <b>{{ tk("perm." + perm) }}</b></div><div class="flex" style="gap:8px"><button type="button" class="btn s" data-a="notifOn" @click="notifOn">{{ tk("allow") }}</button><button type="button" class="btn o s" data-a="notifTest" @click="notifTest">{{ tk("test") }}</button></div></div>
+      <div class="ssb p"><div class="sm" style="margin-bottom:10px">{{ tk("permission") }} <b>{{ tk("perm." + perm) }}</b></div><div class="flex" style="gap:8px"><button v-if="perm != 'granted'" type="button" class="btn s" data-a="notifOn" @click="notifOn">{{ tk("allow") }}</button><button v-if="perm == 'granted'" type="button" class="btn o s" data-a="notifTest" @click="notifTest">{{ tk("test") }}</button></div><div v-if="perm == 'denied'" class="sm" style="margin-top:10px">{{ tk("deniedHelp") }}</div><div class="flex" style="gap:8px"></div></div>
     </div>
     <div v-if="!inApp" class="card ss">
       <SetHead icon="phone" :title="tk('pushT')" :desc="tk('pushD')" />
-      <div class="ssb p"><div id="pushSt" class="sm" style="margin-bottom:10px">{{ pushSt }}</div><div class="flex" style="gap:8px"><button type="button" class="btn s" data-a="pushOn" @click="pushOn">{{ tk("pushOn") }}</button><button type="button" class="btn o s" data-a="pushOff" @click="pushOff">{{ tk("pushOff") }}</button><button type="button" class="btn o s" data-a="pushTest" @click="pushTest">{{ tk("pushTest") }}</button></div></div>
+      <div class="ssb p"><div id="pushSt" class="sm" style="margin-bottom:10px">{{ pushSt }}</div><div class="flex" style="gap:8px"><button v-if="!pushHere" type="button" class="btn s" data-a="pushOn" @click="pushOn">{{ tk("pushOn") }}</button><button v-if="pushHere" type="button" class="btn o s" data-a="pushOff" @click="pushOff">{{ tk("pushOff") }}</button><button v-if="pushHere" type="button" class="btn o s" data-a="pushTest" @click="pushTest">{{ tk("pushTest") }}</button></div></div>
     </div>
     <div class="card ss">
       <SetHead icon="bell" title="ntfy" :desc="tk('ntfyD')" />

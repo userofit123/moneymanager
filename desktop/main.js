@@ -77,7 +77,7 @@ function wireSession(ses, server) {
     lastBad.set(req.hostname, fp || ""); cb(-2);
   });
   // only the app's own page may use the camera (receipt photos)
-  ses.setPermissionRequestHandler((wc, perm, cb) => { const u = wc.getURL(), mine = server && shells.get(server.id); cb(perm === "media" && !!server && (u.startsWith(server.url) || (!!mine && u.startsWith(mine.base)))); });
+  ses.setPermissionRequestHandler((wc, perm, cb) => { const u = wc.getURL(), mine = server && shells.get(server.id); cb(perm === "notifications" || (perm === "media" && !!server && (u.startsWith(server.url) || (!!mine && u.startsWith(mine.base))))); });
   return ses;
 }
 const sessionFor = (server) => (server ? wireSession(session.fromPartition("persist:server-" + server.id), server) : session.defaultSession);

@@ -18,6 +18,7 @@ export async function install() {
 export async function notify(title, body) {
   if (!("Notification" in window) || Notification.permission != "granted") return false;
   try {
+    if (window.desktop || window.desktopServers) { const n = new Notification(title, { body }); n.onclick = () => window.focus(); return true; } // the desktop app: the system shows it itself
     const reg = navigator.serviceWorker && (await navigator.serviceWorker.getRegistration());
     if (reg && reg.active) { reg.active.postMessage({ type: "notify", title, body }); return true; }
     new Notification(title, { body }); return true;
