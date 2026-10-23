@@ -398,7 +398,11 @@ if (process.env.VITE_DEV_URL) {
 
 let httpServer = null;
 // closes the web server and the database cleanly (the desktop app calls this when it quits)
-export async function stop() { await new Promise((ok) => (httpServer ? httpServer.close(() => ok()) : ok())); await pool.end(); }
+export async function stop() {
+  // an open page keeps its live connection (/api/events) to the server, which would hold the close forever: end them first
+  await new Promise((ok) => { if (!httpServer) return ok(); httpServer.closeAllConnections?.(); httpServer.close(() => ok()); });
+  await pool.end();
+}
 export async function start() {
   loadKey(); // fails early if the key is unusable
   await migrate();

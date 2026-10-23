@@ -334,6 +334,7 @@ app.whenReady().then(async () => {
 
 app.on("before-quit", async (e) => {
   quitting = true;
-  if (backend) { e.preventDefault(); const b = backend; backend = null; await b.stop(); app.exit(0); }
+  // quitting never waits for ever: if the database or the connections do not close within a few seconds, the app goes on quitting
+  if (backend) { e.preventDefault(); const b = backend; backend = null; await Promise.race([b.stop().catch(() => {}), new Promise((ok) => setTimeout(ok, 5000))]); app.exit(0); }
 });
 app.on("window-all-closed", () => {}); // stay in the tray
