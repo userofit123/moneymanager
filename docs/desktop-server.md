@@ -35,7 +35,7 @@ An app that was installed **before** this option existed keeps its data on **Thi
 You can open the server list from four places:
 
 1. **Settings → Your data → Server**. You see every server, with **Open** and **Remove**, and the form to add one.
-2. The **Server** menu at the top of the window (press **Alt** if you do not see it).
+2. The **⋮** button at the left end of the title strip (or press **Alt** on its own), which opens the **Server** menu.
 3. The **tray icon** (near the clock): **Switch to** lists them, **Servers…** opens the full list.
 
 <picture>

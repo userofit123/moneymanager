@@ -84,7 +84,7 @@ async function startBackend({ dataDir, root, nodeBin = process.execPath, appKey 
   const chrome = findChrome(path.join(root, "chrome")) || process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
   const scraper = spawn(nodeBin, [path.join(code.scraper, "server.js")], {
     cwd: code.scraper, stdio: ["ignore", "inherit", "inherit"], windowsHide: true,
-    env: { ...process.env, ELECTRON_RUN_AS_NODE: "1", HOST: "127.0.0.1", PORT: String(scraperPort), SCRAPER_KEY: scraperKey, PROFILE_DIR: path.join(dataDir, "profiles"), ...(chrome ? { PUPPETEER_EXECUTABLE_PATH: chrome } : {}), PUPPETEER_SKIP_DOWNLOAD: "true" },
+    env: { ...process.env, ELECTRON_RUN_AS_NODE: "1", PARENT_PID: String(process.pid), HOST: "127.0.0.1", PORT: String(scraperPort), SCRAPER_KEY: scraperKey, PROFILE_DIR: path.join(dataDir, "profiles"), ...(chrome ? { PUPPETEER_EXECUTABLE_PATH: chrome } : {}), PUPPETEER_SKIP_DOWNLOAD: "true" },
   });
   scraper.on("exit", (c) => log("scraper stopped", c));
 

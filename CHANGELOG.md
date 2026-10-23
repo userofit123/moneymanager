@@ -4,6 +4,20 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.12.4] - 2026-10-23
+
+### App
+- **Fixed, for real: "Cannot reach the server" in the desktop apps' "My server" mode.** Big answers from the server (your data) were damaged on the way when the server compressed them, so the app could sign in but not load your data. They now arrive intact.
+- **Fixed: closing the app no longer hangs** ("Force quit or wait", also when an update restarts it). The app closes its local server properly and never waits more than a few seconds.
+- **Fixed: the background bank connector no longer stays running after the desktop app was force-quit.** It now ends by itself when the app is gone.
+- **The desktop apps' menu is reachable again.** The window has no system menu bar, so there is a ⋮ button at the left end of the title strip that opens it (servers, version, check for updates, quit). Pressing Alt on its own opens it too, and Ctrl+Q quits.
+
+### Windows app
+- Includes everything above.
+
+### Linux app
+- Includes everything above.
+
 ## [0.12.3] - 2026-10-23
 
 ### App

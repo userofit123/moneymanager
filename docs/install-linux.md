@@ -68,7 +68,7 @@ In `~/.config/Money Manager`: the database, your receipts and the key that prote
 
 - **On GNOME (Fedora's default desktop, Ubuntu):** closing the window **quits** the app, because GNOME has no system tray to bring a hidden app back from. Automatic syncing runs only while the app is open.
 - **On KDE, XFCE, Cinnamon, MATE and others with a tray:** closing the window keeps the app running in the **system tray**, so automatic syncing continues. Right-click the tray icon for **Open Money Manager**, **Switch to…**, **Open data folder** and **Quit**.
-- **On any desktop** you can quit from the **Server** menu at the top of the window (press **Alt**), or with **Ctrl+Q**.
+- **On any desktop** you can quit from the **⋮** menu at the left end of the title strip (or press **Alt**), or with **Ctrl+Q**.
 
 > **Tip** Only one copy of the app runs at a time. If you start the app and an older copy is still running in the background, you will see the old one. Quit it first (tray icon, **Ctrl+Q**, or from a terminal: `pkill -f money-manager`).
 

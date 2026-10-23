@@ -305,3 +305,8 @@ http.createServer(async (req, res) => {
     finally { busy = false; }
   } catch (e) { send(e.code === 413 ? 413 : 500, { error: String(e.message).slice(0, 200) }); }
 }).listen(+process.env.PORT || 8080, process.env.HOST || undefined, () => console.log("scraper ready"));
+// Started by the desktop app, the scraper stops when that app is gone (also when it was force-quit), instead of staying behind for ever
+if (process.env.PARENT_PID) {
+  const parent = +process.env.PARENT_PID;
+  setInterval(() => { try { process.kill(parent, 0); } catch (e) { if (e.code === "ESRCH") process.exit(0); } }, 5000).unref();
+}

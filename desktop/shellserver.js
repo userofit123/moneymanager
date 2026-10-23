@@ -48,7 +48,7 @@ function createShellServer({ webDir, remote, trusted = () => "", request = null 
     if (headers.referer) { try { headers.referer = target.origin + new URL(headers.referer).pathname; } catch { delete headers.referer; } }
     const up = (request || lib.request)({ protocol: target.protocol, hostname: target.hostname, port: target.port || (secure ? 443 : 80), path: req.url, method: req.method, headers, ...(agent ? { agent } : {}) }, (r) => {
       const out = {};
-      for (const [k, v] of Object.entries(r.headers)) { if (HOP.has(k)) continue; out[k] = k === "set-cookie" ? (Array.isArray(v) ? v.map(localCookie) : localCookie(String(v))) : v; }
+      for (const [k, v] of Object.entries(r.headers)) { if (HOP.has(k) || (request && (k === "content-encoding" || k === "content-length"))) continue; /* a browser-side request has already unpacked the body: its size and packing no longer apply */ out[k] = k === "set-cookie" ? (Array.isArray(v) ? v.map(localCookie) : localCookie(String(v))) : v; }
       res.writeHead(r.statusCode || 502, out);
       r.pipe(res);
       r.on("error", () => res.destroy());
