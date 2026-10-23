@@ -55,6 +55,15 @@ npm run dist:linux    # AppImage, .deb and .rpm (on Linux; the .rpm needs `rpm` 
 
 The server and scraper dependencies ship under the name `app_modules`, because the package builder skips folders named `node_modules`. The app renames them on first start, or runs from a copy in the data folder when its own folder is read-only (an AppImage). The workflow does all of this on GitHub's machines. See `desktop/README.md`.
 
+## Keeping the app and the server compatible
+
+The desktop (and later phone) apps show their own screens with a server's data. They use the server only when they fit, by **API level** (not by version):
+
+- `server/src/apilevel.js`: `API_LEVEL` is what the server offers, `API_MIN` the oldest app level it still understands. Both are shown in `/api/auth/status`.
+- `desktop/compat.js`: `APP.level` is what the screens speak, `APP.minServer` the oldest server level they work with.
+
+**When you change what the screens ask of the server** (a new request they depend on, a changed answer), raise `API_LEVEL` in the server and `minServer` in the app, in the same change. **When the server stops accepting what older screens send**, raise `API_MIN`. Everything else (new fields the old side can ignore, fixes) needs no change. Servers 0.12.1 to 0.12.4 do not say their level: the apps treat them as level 1.
+
 ## Make a release
 
 Releases are automatic.

@@ -6,7 +6,8 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const crypto = require("node:crypto");
-const { createShellServer, listen, remoteVersion, sameLine, localCookie, fingerprint } = require("../shellserver.js");
+const { createShellServer, listen, remoteVersion, remoteInfo, sameLine, localCookie, fingerprint } = require("../shellserver.js");
+const { fits, legacyLevel } = require("../compat.js");
 
 const web = () => {
   const d = fs.mkdtempSync(path.join(os.tmpdir(), "mm-web-"));
@@ -21,7 +22,7 @@ const fake = async (opts = {}) => {
     req.on("end", () => {
       res.setHeader("set-cookie", ["sid=abc; Path=/; HttpOnly; Secure; SameSite=Strict; Domain=money.home"]);
       res.setHeader("content-type", "application/json");
-      res.end(JSON.stringify({ method: req.method, url: req.url, cookie: req.headers.cookie || "", host: req.headers.host, origin: req.headers.origin || "", body, version: "0.12.3", setup: false }));
+      res.end(JSON.stringify({ method: req.method, url: req.url, cookie: req.headers.cookie || "", host: req.headers.host, origin: req.headers.origin || "", body, version: "0.12.3", api: 1, apiMin: 1, setup: false }));
     });
   });
   const port = await listen(srv, 0);
@@ -81,4 +82,26 @@ test("the server's version is read from its sign-in status, and screens fit when
 
 test("a cookie keeps its other settings and loses Domain and Secure", () => {
   assert.equal(localCookie("a=b; Domain=x.y; Path=/; Secure; HttpOnly; SameSite=Lax"), "a=b; Path=/; HttpOnly; SameSite=Lax");
+});
+
+test("what the server says about itself is read, and a silent server is told apart from an unreachable one", async () => {
+  const f = await fake();
+  try { assert.deepEqual(await remoteInfo(`http://127.0.0.1:${f.port}`), { version: "0.12.3", api: 1, apiMin: 1 }); } finally { f.srv.close(); }
+  assert.equal(await remoteInfo("http://127.0.0.1:1", { timeout: 500 }), null);
+});
+
+test("screens fit a server by API level, not by version", () => {
+  const app = { level: 2, minServer: 1 };
+  assert.ok(fits({ version: "0.13.5", api: 1, apiMin: 1 }, app), "an older server the screens still work with");
+  assert.ok(fits({ version: "0.14.0", api: 3, apiMin: 1 }, app), "a newer server that still takes these screens");
+  assert.ok(!fits({ version: "0.14.0", api: 3, apiMin: 3 }, app), "a server that dropped these screens' level");
+  assert.ok(!fits({ version: "0.15.0", api: 0, apiMin: 1 }, { level: 2, minServer: 1 }), "a server below what the screens need");
+  assert.ok(!fits(null, app));
+});
+
+test("a server that does not say its level (0.12.1 to 0.12.4) is level 1 when of the 0.12 line, and unknown otherwise", () => {
+  assert.equal(legacyLevel("0.12.3"), 1); assert.equal(legacyLevel("0.13.0"), 0); assert.equal(legacyLevel(""), 0);
+  assert.ok(fits({ version: "0.12.3" }, { level: 1, minServer: 1 }));
+  assert.ok(!fits({ version: "" }, { level: 1, minServer: 1 }));
+  assert.ok(!fits({ version: "0.13.0" }, { level: 1, minServer: 1 }));
 });

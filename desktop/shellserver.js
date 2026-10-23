@@ -79,18 +79,19 @@ function createShellServer({ webDir, remote, trusted = () => "", request = null 
 
 const listen = (server, port) => new Promise((ok, no) => { server.once("error", no); server.listen(port, "127.0.0.1", () => ok(server.address().port)); });
 
-// The server's version, read from its sign-in status (a server older than 0.12.1 does not say, which counts as "not known").
-async function remoteVersion(remote, { timeout = 8000, agent } = {}) {
+// What the server says about itself in its sign-in status: { version, api, apiMin } (a server older than 0.12.1 says nothing: empty version), or null when it did not answer.
+async function remoteInfo(remote, { timeout = 8000 } = {}) {
   const u = new URL("/api/auth/status", remote), lib = u.protocol === "https:" ? https : http;
   return new Promise((ok) => {
-    const req = lib.get(u, { timeout, ...(u.protocol === "https:" ? { rejectUnauthorized: false } : {}), ...(agent ? { agent } : {}) }, (r) => {
+    const req = lib.get(u, { timeout, ...(u.protocol === "https:" ? { rejectUnauthorized: false } : {}) }, (r) => {
       let b = ""; r.setEncoding("utf8"); r.on("data", (d) => { b += d; if (b.length > 5000) req.destroy(); });
-      r.on("end", () => { try { ok(String(JSON.parse(b).version || "")); } catch { ok(""); } });
+      r.on("end", () => { try { const j = JSON.parse(b); ok({ version: String(j.version || ""), ...(typeof j.api === "number" ? { api: j.api } : {}), ...(typeof j.apiMin === "number" ? { apiMin: j.apiMin } : {}) }); } catch { ok(null); } });
     });
-    req.on("timeout", () => req.destroy()); req.on("error", () => ok(""));
+    req.on("timeout", () => req.destroy()); req.on("error", () => ok(null));
   });
 }
+const remoteVersion = async (remote, o) => ((await remoteInfo(remote, o)) || {}).version || "";
 // The screens fit a server when its version has the same first two numbers (0.12.x with 0.12.y): they change the server's API only with those.
 const sameLine = (a, b) => { const x = String(a).split("."), y = String(b).split("."); return x.length >= 2 && y.length >= 2 && x[0] === y[0] && x[1] === y[1]; };
 
-module.exports = { createShellServer, listen, remoteVersion, sameLine, fingerprint, localCookie };
+module.exports = { createShellServer, listen, remoteInfo, remoteVersion, sameLine, fingerprint, localCookie };

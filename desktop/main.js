@@ -32,6 +32,7 @@ function protectedKey(dir) {
 
 const Srv = require("./servers");
 const Shell = require("./shellserver");
+const Compat = require("./compat");
 const { dict, fill } = require("./texts");
 
 // An AppImage is only a file: with no installer, nothing gives it an icon or a place in the app menu. So on each start (it is cheap) the app
@@ -86,7 +87,7 @@ async function startLocal() {
 }
 
 // The app's own screens for a server: a small web server on this computer serves them and passes the data requests on (shellserver.js). Only when the
-// server is the same version line as this app (its API then fits these screens); otherwise the window shows the server's own pages, as before.
+// server fits these screens (compat.js: API levels); otherwise the window shows the server's own pages, as before.
 const shells = new Map();
 // Reaching a server through the browser's own network stack (the session's), shaped like http.request: it trusts what the computer trusts, and the
 // certificate the user pinned (wireSession). The answer is made to look like node's: statusCode, headers (set-cookie as a list) and a stream.
@@ -115,8 +116,8 @@ let lastMismatch = "";
 // where the window should load a server from: this app's own screens (a local address) or, when the versions do not fit, the server's own address
 async function addressFor(server) {
   await stopShells();
-  const v = await Shell.remoteVersion(server.url, { timeout: 5000 });
-  if (v && Shell.sameLine(v, app.getVersion())) { const b = await shellFor(server); if (b) return { base: b, own: true }; }
+  const info = await Shell.remoteInfo(server.url, { timeout: 5000 }), v = (info && info.version) || "";
+  if (Compat.fits(info)) { const b = await shellFor(server); if (b) return { base: b, own: true }; }
   if (lastMismatch !== server.id + v) { lastMismatch = server.id + v; setTimeout(() => dialog.showMessageBox(win && !win.isDestroyed() ? win : undefined, { type: "info", title: "Money Manager", message: fill(v ? T.mismatch : T.mismatchOld, { s: v, a: app.getVersion() }), buttons: ["OK"], noLink: true }), 1500); }
   return { base: server.url, own: false };
 }
