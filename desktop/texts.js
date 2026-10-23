@@ -1,5 +1,10 @@
 // The words of the desktop shell's own windows and menus (the app itself has its own texts). English and Hebrew; the system language picks.
 const en = {
+  firstSubApp: "Choose your server. You can change it any time in Settings → Server.",
+  manageSubApp: "Pick the one to open, or add another server. Nothing is deleted when you switch: each one keeps its own data.",
+  lockTitle: "Unlock Money Manager",
+  lockSub: "Use your fingerprint, face or screen lock",
+  lockRetry: "Unlock",
   title: "Where is your money kept?",
   firstSub: "Choose once. You can change it any time from the Server menu or the tray icon.",
   manageSub: "Pick the one to open, or add another server. Nothing is deleted when you switch: each one keeps its own data.",
@@ -51,6 +56,11 @@ const en = {
   other: "Choose another server",
 };
 const he = {
+  firstSubApp: "בחרו את השרת שלכם. אפשר לשנות בכל רגע בהגדרות ← שרת.",
+  manageSubApp: "בחרו את זה שיפתח, או הוסיפו שרת נוסף. שום דבר לא נמחק כשעוברים: לכל אחד יש נתונים משלו.",
+  lockTitle: "ביטול הנעילה של Money Manager",
+  lockSub: "אפשר להשתמש בטביעת אצבע, בזיהוי פנים או בנעילת המסך",
+  lockRetry: "ביטול נעילה",
   title: "איפה הכסף שלכם נשמר?",
   firstSub: "בוחרים פעם אחת. אפשר לשנות בכל רגע מהתפריט ״שרת״ או מסמל המגש.",
   manageSub: "בחרו את זה שיפתח, או הוסיפו שרת נוסף. שום דבר לא נמחק כשעוברים: לכל אחד יש נתונים משלו.",

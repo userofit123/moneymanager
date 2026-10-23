@@ -25,3 +25,10 @@ Thumbs.db
 # docs site: build output and its tools
 _site/
 scripts/site/node_modules/
+android/app/src/main/assets/
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+*.keystore
+*.jks

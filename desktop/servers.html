@@ -54,8 +54,8 @@ const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls)
 const fill = (s, v) => String(s).replace(/\{(\w+)\}/g, (_, k) => v[k] ?? "");
 
 function draw() {
-  const first = st.active == null;
-  $("ti").textContent = T.title; $("su").textContent = first ? T.firstSub : T.manageSub;
+  const first = st.active == null || (st.noLocal && !st.list.length);
+  $("ti").textContent = T.title; $("su").textContent = st.noLocal ? (first ? T.firstSubApp : T.manageSubApp) : (first ? T.firstSub : T.manageSub);
   $("cl").hidden = first; $("cl").textContent = T.close;
   const box = $("list"); box.textContent = "";
   const entry = (id, name, sub, tag, removable) => {
@@ -68,7 +68,7 @@ function draw() {
     if (isNow) b.disabled = true; else b.onclick = () => window.servers.use(id);
     c.append(b); box.append(c);
   };
-  entry("local", T.local, T.localDesc, "", false);
+  if (!st.noLocal) entry("local", T.local, T.localDesc, "", false); // the phone app has no private database of its own
   st.list.forEach((s) => entry(s.id, s.name, s.url, T.remoteTag, true));
   $("at").textContent = T.addTitle; $("as").textContent = T.addSub;
   $("lnm").textContent = T.name; $("nm").placeholder = T.namePh;

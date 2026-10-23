@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The app's own screens come from 127.0.0.1 inside the app (plain http, never leaves the phone). A server on a home network may be http too:
+     https is recommended, and the app only talks to the server the user added. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
