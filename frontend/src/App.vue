@@ -15,6 +15,7 @@ import "./core/alertReport.js"; // the open alerts go to the server's alert hist
 import HelpPanel from "./help/HelpPanel.vue";
 import { helpOpen, helpSet } from "./help/help.js";
 import ToastHost from "./components/ToastHost.vue";
+import { UP } from "./core/updates.js";
 import AuthScreen from "./components/AuthScreen.vue";
 import AppNav from "./components/shell/AppNav.vue";
 import JobBar from "./components/shell/JobBar.vue";
@@ -58,7 +59,7 @@ addEventListener("offline", () => (online.value = false));
 
 <template>
   <div v-if="dframe" id="dragbar" aria-hidden="true"></div>
-  <button v-if="dframe" id="dmenu" type="button" :aria-label="t('shell.appMenu')" :title="t('shell.appMenu')" @click="appMenu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="12" cy="19" r="1.8" /></svg></button>
+  <button v-if="dframe" id="dmenu" type="button" :class="{ upd: ['available', 'downloading', 'ready'].includes(UP.status) }" :aria-label="t('shell.appMenu')" :title="t('shell.appMenu')" @click="appMenu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="12" cy="19" r="1.8" /></svg></button>
   <AuthScreen v-if="app.phase === 'auth'" />
   <template v-else-if="app.phase !== 'start'">
     <JobBar />

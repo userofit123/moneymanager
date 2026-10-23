@@ -257,12 +257,22 @@ function switchItems() {
     { label: T.manage, click: openManager },
   ];
 }
+// The update line of the menus follows the update: check, download, restart. (The same steps as Settings → Version and updates.)
+function updateItems() {
+  const v = upd.version || "";
+  if (upd.status === "available" && autoUpdater) return [{ label: fill(T.updDownload, { v }), click: () => { upd.status = "downloading"; upd.percent = 0; pushUpdate(); autoUpdater.downloadUpdate().catch((e) => fail(e)); } }];
+  if (upd.status === "downloading") return [{ label: fill(T.updDownloading, { v, p: upd.percent || 0 }), enabled: false }];
+  if (upd.status === "ready" && autoUpdater) return [{ label: fill(T.updRestart, { v }), click: () => { quitting = true; autoUpdater.quitAndInstall(); } }];
+  if (upd.status === "checking") return [{ label: T.updChecking, enabled: false }];
+  return [{ label: T.checkUpdates, click: checkNow }];
+}
 function buildMenus() {
-  appMenu = Menu.buildFromTemplate([{ label: T.serverMenu, submenu: [...switchItems(), { type: "separator" }, { label: fill(T.thisApp, { v: app.getVersion() }), enabled: false }, { label: T.checkUpdates, click: checkNow }, { label: T.quit, accelerator: "CmdOrCtrl+Q", click: () => { quitting = true; app.quit(); } }] }]);
+  appMenu = Menu.buildFromTemplate([{ label: T.serverMenu, submenu: [...switchItems(), { type: "separator" }, { label: fill(T.thisApp, { v: app.getVersion() }), enabled: false }, ...updateItems(), { label: T.quit, accelerator: "CmdOrCtrl+Q", click: () => { quitting = true; app.quit(); } }] }]);
   Menu.setApplicationMenu(appMenu);
   if (tray) tray.setContextMenu(Menu.buildFromTemplate([
     { label: T.openApp, click: () => { if (win && !win.isDestroyed()) { win.show(); win.focus(); } else openManager(); } },
     { label: T.switchTo, submenu: switchItems() },
+    ...updateItems(),
     { label: T.dataFolder, click: () => shell.openPath(dataDir()) },
     { type: "separator" },
     { label: T.quit, click: () => { quitting = true; app.quit(); } },
@@ -277,7 +287,7 @@ const upd = { current: app.getVersion(), status: "idle", version: null, notes: "
 const settingsFile = () => path.join(app.getPath("userData"), "desktop-settings.json");
 function loadSettings() { try { upd.auto = JSON.parse(fs.readFileSync(settingsFile(), "utf8")).autoUpdate !== false; } catch { upd.auto = true; } }
 function saveSettings() { try { fs.writeFileSync(settingsFile(), JSON.stringify({ autoUpdate: upd.auto })); } catch {} }
-const pushUpdate = () => { if (win && !win.isDestroyed()) win.webContents.send("update:state", { ...upd }); };
+const pushUpdate = () => { if (win && !win.isDestroyed()) win.webContents.send("update:state", { ...upd }); if (appMenu) buildMenus(); }; // the menus show where the update has got to
 const notesText = (n) => Array.isArray(n) ? n.map((x) => x.note).join("\n") : String(n || "").replace(/<[^>]+>/g, "");
 
 function setupUpdates() {

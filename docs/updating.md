@@ -19,7 +19,7 @@ They update **themselves**:
 2. It installs the next time you close the app, or when you press **Restart and update**.
 3. Your data stays. The same program is replaced, never a second copy.
 
-Turn **Update automatically** off if you would rather press **Download and update** yourself. Details by system:
+The **⋮** menu in the desktop apps (and the tray icon) has an update line that follows the update: **Check for updates…**, then **Download update**, then **Restart and update**, and the **⋮** button shows a small dot while an update is waiting. Turn **Update automatically** off if you would rather press **Download and update** yourself. Details by system:
 
 - **Windows:** the installer updates the existing install. Running a newer `Setup.exe` over an old one does the same. **Uninstalling keeps your data.**
 - **Linux AppImage:** it replaces itself in place.
