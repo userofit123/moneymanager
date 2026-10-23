@@ -4,6 +4,22 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.12.8] - 2026-10-23
+
+### App
+- **Fixed: the Android app lock on older phones (Android 10 and older) said "no fingerprint" even when one was set up.** It now asks for the fingerprint or face, with the phone's screen lock as a second choice.
+- **The Android lock screen looks right:** the app's icon and a quiet "Unlock" button, instead of a white bar behind the fingerprint window.
+- **Android notifications show the app's icon in the status bar**, not a bell.
+
+### Android app
+- Includes everything above.
+
+### Windows app
+- Includes everything above.
+
+### Linux app
+- Includes everything above.
+
 ## [0.12.7] - 2026-10-23
 
 ### App

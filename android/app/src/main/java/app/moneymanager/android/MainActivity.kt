@@ -254,8 +254,16 @@ class MainActivity : AppCompatActivity() {
                 gravity = Gravity.CENTER
                 setBackgroundColor(Color.parseColor("#14161C"))
                 isClickable = true
-                addView(TextView(context).apply { text = texts["lockTitle"]; setTextColor(Color.WHITE); textSize = 20f; gravity = Gravity.CENTER })
-                addView(Button(context).apply { text = texts["lockRetry"]; setOnClickListener { askUnlock() } })
+                val dp = resources.displayMetrics.density
+                addView(android.widget.ImageView(context).apply { setImageResource(R.mipmap.ic_launcher_round) }, LinearLayout.LayoutParams((72 * dp).toInt(), (72 * dp).toInt()))
+                addView(TextView(context).apply { text = texts["lockTitle"]; setTextColor(Color.WHITE); textSize = 20f; gravity = Gravity.CENTER; setPadding(0, (16 * dp).toInt(), 0, (24 * dp).toInt()) })
+                // the button to try again: the phone's own fingerprint window opens over it, so it is dark and quiet, not a white bar
+                addView(Button(context).apply {
+                    text = texts["lockRetry"]; setTextColor(Color.WHITE); isAllCaps = false
+                    background = android.graphics.drawable.GradientDrawable().apply { setColor(Color.parseColor("#4355B9")); cornerRadius = 28 * dp }
+                    setPadding((32 * dp).toInt(), 0, (32 * dp).toInt(), 0)
+                    setOnClickListener { askUnlock() }
+                }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, (48 * dp).toInt()))
             }
             overlay = box
             root.addView(box, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
