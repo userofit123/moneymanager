@@ -150,7 +150,31 @@ export async function healGaps(c, accountName, currency) {
     await c.query("UPDATE balance_gaps SET remaining=0, status='cleared' WHERE id=$1 AND status='open' AND abs(remaining) <= 1", [g.id]);
     n++;
   }
-  return n + await healCardPayments(c);
+  return n + await healCardPayments(c) + await reconcileGaps(c, accountName, currency);
+}
+
+// Two readings a day apart can show a drop and a later rise that cancel out (a hold on a card, a charge that went away and came back).
+// Taken one by one they are two open gaps; over the whole span the balance adds up. So the open gaps of an account close together when,
+// from the reading where the oldest one began to the newest reading, the balance equals the earlier balance plus every transaction in between.
+// This does not depend on when each copy of the app happened to sync. A charge the bank still lists as pending counts too (a card balance includes it).
+export async function reconcileGaps(c, accountName, currency) {
+  const acc = (await c.query("SELECT id FROM accounts WHERE name=$1 AND currency=$2", [accountName, currency])).rows[0];
+  if (!acc) return 0;
+  const open = (await c.query("SELECT id,window_from FROM balance_gaps WHERE account_id=$1 AND status='open' ORDER BY window_from", [acc.id])).rows;
+  if (!open.length) return 0;
+  const from = open[0].window_from;
+  const prev = (await c.query("SELECT balance,taken_at FROM balance_snapshots WHERE account_id=$1 AND taken_at<=$2 ORDER BY taken_at DESC, id DESC LIMIT 1", [acc.id, from])).rows[0];
+  const last = (await c.query("SELECT balance,taken_at FROM balance_snapshots WHERE account_id=$1 ORDER BY taken_at DESC, id DESC LIMIT 1", [acc.id])).rows[0];
+  if (!prev || !last || last.taken_at <= prev.taken_at) return 0;
+  const sum = async (pending) => (await c.query(
+    `SELECT COALESCE(sum(COALESCE(orig_amount, amount)),0)::float AS s FROM transactions
+     WHERE ($4 OR NOT pending) AND created_at > $2 AND date >= ($2::timestamptz - interval '${OLD_DAYS} days')::date
+       AND ((amount<0 AND from_name=$1) OR (amount>0 AND to_name=$1)) AND COALESCE(orig_currency,'ILS')=$3`, [accountName, prev.taken_at, currency, pending])).rows[0].s;
+  const fits = async (pending) => Math.abs(computeGap(prev.balance, last.balance, await sum(pending))) <= 1;
+  if (!(await fits(false)) && !(await fits(true))) return 0;
+  await c.query("UPDATE balance_gaps SET remaining=0, status='cleared' WHERE account_id=$1 AND status='open'", [acc.id]);
+  await audit(c, "Gaps cleared", `${accountName} ${currency}: the balance adds up over the whole period, ${open.length} open gap${open.length > 1 ? "s" : ""} closed`);
+  return open.length;
 }
 
 // A card's debt that went down is usually the card bill, paid from the bank: the bank lists the payment, the card does not.

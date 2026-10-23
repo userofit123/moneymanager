@@ -1,7 +1,7 @@
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 import { reset, pool, q } from "./helpers.js";
-import { pairTransfers, computeGap, recordSnapshot, explainGaps, suggestConversion, healGaps, healCardPayments } from "../src/engine.js";
+import { pairTransfers, computeGap, recordSnapshot, explainGaps, suggestConversion, healGaps, healCardPayments, reconcileGaps } from "../src/engine.js";
 import { ingest } from "../src/sources/ingest.js";
 import { parseWiseCsv } from "../src/sources/csv.js";
 import { getState, putState, StaleError } from "../src/state.js";
@@ -527,4 +527,22 @@ test("a card's debt that went down is explained by the card payment from the ban
   await ingest({ name: "Card", currency: "ILS", source: "max" }, [{ date: "2026-10-19", description: "Music", amount: -31.5, currency: "ILS", externalId: "c:m" }]);
   await tx((c) => recordSnapshot(c, card, 0, new Date("2026-10-20T08:00:00Z")));
   assert.deepEqual(await openGaps(), [31.5]);
+});
+
+test("a drop and a later rise that cancel out close together, however often the copy synced", async () => {
+  const bank = (await q("INSERT INTO accounts (name,kind,currency) VALUES ('Hold Bank','bank','ILS') RETURNING *")).rows[0];
+  await tx((c) => recordSnapshot(c, bank, 1000, new Date("2026-10-20T06:00:00Z")));
+  await tx((c) => recordSnapshot(c, bank, 851, new Date("2026-10-21T06:00:00Z")));   // a hold takes 149
+  assert.equal((await q("SELECT * FROM balance_gaps WHERE account_id=$1 AND status='open'", [bank.id])).rowCount, 1);
+  await tx((c) => recordSnapshot(c, bank, 1000, new Date("2026-10-22T06:00:00Z")));  // and gives it back
+  assert.equal((await q("SELECT * FROM balance_gaps WHERE account_id=$1 AND status='open'", [bank.id])).rowCount, 0);
+});
+
+test("gaps that do not add up over the whole period stay open", async () => {
+  const bank = (await q("INSERT INTO accounts (name,kind,currency) VALUES ('Real Gap Bank','bank','ILS') RETURNING *")).rows[0];
+  await tx((c) => recordSnapshot(c, bank, 1000, new Date("2026-10-20T06:00:00Z")));
+  await tx((c) => recordSnapshot(c, bank, 851, new Date("2026-10-21T06:00:00Z")));
+  await tx((c) => recordSnapshot(c, bank, 800, new Date("2026-10-22T06:00:00Z")));
+  assert.equal((await q("SELECT * FROM balance_gaps WHERE account_id=$1 AND status='open'", [bank.id])).rowCount, 2);
+  assert.equal(await tx((c) => reconcileGaps(c, bank.name, "ILS")), 0);
 });

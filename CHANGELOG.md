@@ -4,6 +4,23 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.12.6] - 2026-10-23
+
+### App
+- **Fixed: turning on the Android app lock gave "This phone has no fingerprint…" even when one was set up.** It now turns on, and any other failure gets its own message.
+- **Settings → Security is now under "Your data"**, not "You and the app".
+- **Fixed: "Needs review" balance gaps now close by themselves when the balance adds up over the whole period.** Before, two copies of the app with the same payments could show different gaps, because each gap depended on exactly when that copy synced. A drop and a later rise that cancel out (a hold on a card, a charge that went away and came back) no longer stay open. Gaps that really do not add up still wait for you.
+- **The Android app's Notifications page says plainly that the app cannot show notifications itself yet**, and points to ntfy, Telegram, a webhook or phone push from the web page, instead of "Not supported in this browser".
+
+### Android app
+- Includes everything above.
+
+### Windows app
+- Includes everything above.
+
+### Linux app
+- Includes everything above.
+
 ## [0.12.5] - 2026-10-23
 
 ### App

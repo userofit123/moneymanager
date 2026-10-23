@@ -22,6 +22,8 @@ const pushSt = ref(tk("checking"));
 const tg = ref({ token: "", chat: "" }), wh = ref("");
 onMounted(async () => { data.start(); pushRefresh(); await loadNch(); tg.value.chat = NCH.value.telegramChat || ""; });
 
+// The phone app cannot receive web push or show browser notifications: it points to the ways that do work
+const inApp = typeof window !== "undefined" && !!window.mmApp;
 // ---- this device ----
 async function notifOn() {
   if (typeof Notification === "undefined") { toast(tt("unsupported"), { kind: "err" }); return; }
@@ -84,11 +86,14 @@ async function nchDelGo(k) { try { await data.api("/api/notify/channels/" + k, {
 
 <template>
   <div v-if="S" id="setNotify">
-    <div class="card ss">
+    <div v-if="inApp" class="card ss">
+      <SetHead icon="phone" :title="tk('appT')" :desc="tk('appD')" />
+    </div>
+    <div v-if="!inApp" class="card ss">
       <SetHead icon="phone" :title="tk('deviceT')" :desc="tk('deviceD')" />
       <div class="ssb p"><div class="sm" style="margin-bottom:10px">{{ tk("permission") }} <b>{{ tk("perm." + perm) }}</b></div><div class="flex" style="gap:8px"><button type="button" class="btn s" data-a="notifOn" @click="notifOn">{{ tk("allow") }}</button><button type="button" class="btn o s" data-a="notifTest" @click="notifTest">{{ tk("test") }}</button></div></div>
     </div>
-    <div class="card ss">
+    <div v-if="!inApp" class="card ss">
       <SetHead icon="phone" :title="tk('pushT')" :desc="tk('pushD')" />
       <div class="ssb p"><div id="pushSt" class="sm" style="margin-bottom:10px">{{ pushSt }}</div><div class="flex" style="gap:8px"><button type="button" class="btn s" data-a="pushOn" @click="pushOn">{{ tk("pushOn") }}</button><button type="button" class="btn o s" data-a="pushOff" @click="pushOff">{{ tk("pushOff") }}</button><button type="button" class="btn o s" data-a="pushTest" @click="pushTest">{{ tk("pushTest") }}</button></div></div>
     </div>
