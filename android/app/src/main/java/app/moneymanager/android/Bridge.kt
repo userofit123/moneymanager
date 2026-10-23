@@ -58,12 +58,13 @@ class Bridge(private val act: MainActivity) {
             act.runOnUiThread { act.route() }
             "null"
         }
-        "lock" -> JSONObject().put("available", act.lock.available()).put("enabled", act.lockEnabled).toString()
+        "lock" -> JSONObject().put("available", act.lock.available()).put("enabled", act.lockEnabled).put("delay", act.lockDelay).toString()
         "setLock" -> {
             val on = a.getBoolean(0)
             if (on && !act.lock.available()) throw IllegalStateException("lockNone")
+            if (a.length() > 1) act.lockDelay = a.getInt(1)
             act.changeLock(on)
-            JSONObject().put("available", act.lock.available()).put("enabled", act.lockEnabled).toString()
+            JSONObject().put("available", act.lock.available()).put("enabled", act.lockEnabled).put("delay", act.lockDelay).toString()
         }
         else -> throw IllegalArgumentException("unknown")
     }
@@ -123,7 +124,7 @@ class Bridge(private val act: MainActivity) {
   window.mmApp = {
     version: n.version(),
     lock: function () { return call("lock"); },
-    setLock: function (on) { return call("setLock", !!on); },
+    setLock: function (on, delay) { return call("setLock", !!on, delay); },
     setBars: function (bg, dark) { n.setBars(String(bg), !!dark); },
     open: function (url) { n.open(String(url)); }
   };

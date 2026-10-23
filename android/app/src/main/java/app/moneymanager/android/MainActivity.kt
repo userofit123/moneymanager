@@ -56,6 +56,10 @@ class MainActivity : AppCompatActivity() {
     var lockEnabled: Boolean
         get() = prefs.getBoolean("lock", false)
         private set(v) { prefs.edit().putBoolean("lock", v).apply() }
+    // how many seconds away before the app asks again (0 = every time you leave it)
+    var lockDelay: Int
+        get() = prefs.getInt("lockDelay", 30)
+        set(v) { prefs.edit().putInt("lockDelay", v).apply() }
 
     private val pickFile = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
         chooser?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(r.resultCode, r.data))
@@ -247,8 +251,8 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         applySecure()
-        // coming back after half a minute away asks again
-        if (lockEnabled && pausedAt != 0L && System.currentTimeMillis() - pausedAt > 30_000) showLock()
+        // coming back after the chosen time away asks again
+        if (lockEnabled && pausedAt != 0L && System.currentTimeMillis() - pausedAt >= lockDelay * 1000L) showLock()
     }
 
     override fun onDestroy() {
