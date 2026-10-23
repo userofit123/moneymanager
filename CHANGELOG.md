@@ -4,6 +4,25 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.12.5] - 2026-10-23
+
+### App
+- **New: the Android app.** A real app for your phone (an APK on the release page): its own screens, with the data from your own server, a list of servers, a check that the app and the server fit, and an **app lock** (fingerprint, face or the phone's screen lock) that you turn on in **Settings → Security**, with a choice of how long you can be away before it asks again. See "The Android app" in the guide.
+- **Apps and servers now fit by "API level", not by version number.** A newer server keeps working with an older app (and the other way round) until something they both depend on really changes. When they do not fit, the app says so in plain words. Servers 0.12.1 to 0.12.4 count as level 1.
+- **The desktop apps' menu has an update line** (**Check for updates…**, **Download update**, **Restart and update**), and the **⋮** button shows a small dot while an update is waiting.
+- **No gap at the top of the desktop apps' window.** The page runs up to the top edge, with an invisible area to drag the window and the **⋮** button on top of it.
+- **Settings → Version and updates** shows the phone app's own version and where to get a newer one.
+- **Fixed: the app opens with the last data it saw** also when a proxy in front of your server answers with an error while the server is down.
+
+### Android app
+- First version. Not in an app store: download **Money-Manager-x.y.z.apk** from the release page and install it. No phone notifications and no file saving (exports) from inside the app yet; use the web page for those.
+
+### Windows app
+- Includes everything above.
+
+### Linux app
+- Includes everything above.
+
 ## [0.12.4] - 2026-10-23
 
 ### App

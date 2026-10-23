@@ -65,7 +65,8 @@ Pick one. They look and work the same.
 | **[Windows app](docs/install-windows.md)** | One PC. The easiest. | Download **Money-Manager-Setup-x.y.z.exe** from the [latest release](../../releases/latest) and run it. Nothing else to set up. |
 | **[Linux app](docs/install-linux.md)** | One computer: Fedora, Ubuntu, Debian, anything | Download the **.rpm** (Fedora, Red Hat), **.deb** (Ubuntu, Debian, Mint) or **.AppImage** (any). |
 | **[Docker](docs/install-docker.md)** | A home server or NAS, always on, for all your devices | `git clone` + `./setup.sh` + `docker compose up -d` |
-| **[Your phone](docs/install-phone.md)** | Looking at it from anywhere | Open your server's address and **Add to Home Screen** |
+| **[Android app](docs/install-android.md)** | Your phone, with a fingerprint or screen lock | Download **Money-Manager-x.y.z.apk** from the [latest release](../../releases/latest), then add your server |
+| **[Your phone (web page)](docs/install-phone.md)** | Looking at it from anywhere | Open your server's address and **Add to Home Screen** |
 | **[Desktop app + your server](docs/desktop-server.md)** | The desktop app, using your home server's data | Choose **My server** the first time you open the app |
 
 **Docker in three lines:**

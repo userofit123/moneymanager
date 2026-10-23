@@ -1,6 +1,6 @@
 # Releases and builds, automatic.
 #  - A push to main runs the tests only when CHANGELOG.md changed (a release); other pushes do not start anything.
-#  - Merging to main with a NEW top version in CHANGELOG.md tags it, builds the Windows installer and the Linux packages (AppImage, .deb, .rpm), publishes the Docker images (ghcr.io) and publishes a GitHub release.
+#  - Merging to main with a NEW top version in CHANGELOG.md tags it, builds the Windows installer, the Linux packages (AppImage, .deb, .rpm) and the Android APK, publishes the Docker images (ghcr.io) and publishes a GitHub release.
 #    Installed apps (and the Docker version's "Check for updates") see that release.
 #  - Publishing a release by hand on GitHub also builds the installer and attaches it.
 #  - "Run workflow" builds an installer without publishing anything (to try it).
@@ -199,3 +199,42 @@ jobs:
             desktop/dist/*.deb
             desktop/dist/*.rpm
             desktop/dist/latest-linux.yml
+
+  android:
+    needs: [test, version, windows]   # after the Windows job, which creates the release the APK is added to
+    if: needs.version.outputs.build == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: 22 }
+      - uses: actions/setup-java@v5
+        with: { distribution: temurin, java-version: 17 }
+      - uses: android-actions/setup-android@v3
+      - name: Build the app into frontend/dist (the phone app carries these screens)
+        run: npm ci && npm run build
+        working-directory: frontend
+      - name: Copy the screens and texts into the Android project
+        run: node scripts/android-assets.mjs
+      - name: Signing key
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.jks"
+          echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+      - name: Tests and the signed APK
+        working-directory: android
+        run: ./gradlew --no-daemon testDebugUnitTest assembleRelease -PappVersion=${{ needs.version.outputs.version }}
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      - name: Name the file
+        run: cp android/app/build/outputs/apk/release/app-release.apk "Money-Manager-${{ needs.version.outputs.version }}.apk"
+      - name: Add it to the release
+        if: needs.version.outputs.publish == 'true' || github.event_name == 'release'
+        run: gh release upload "${{ needs.version.outputs.tag }}" "Money-Manager-${{ needs.version.outputs.version }}.apk" --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v5
+        with:
+          name: money-manager-android-${{ needs.version.outputs.version }}
+          path: Money-Manager-*.apk

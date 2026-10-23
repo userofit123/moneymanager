@@ -9,7 +9,8 @@
       { "title": "Windows", "file": "install-windows.md" },
       { "title": "Linux", "file": "install-linux.md" },
       { "title": "Docker (home server)", "file": "install-docker.md" },
-      { "title": "On your phone", "file": "install-phone.md" },
+      { "title": "The Android app", "file": "install-android.md" },
+      { "title": "On your phone (web page)", "file": "install-phone.md" },
       { "title": "Desktop app with your server", "file": "desktop-server.md" }
     ] },
     { "group": "Use it", "items": [

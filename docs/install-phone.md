@@ -7,6 +7,8 @@ description: Add Money Manager to your phone's home screen as an app, with phone
 
 There is no app to download from a store. Instead, you open your own Money Manager in the phone's browser and **add it to the home screen**. It then opens full screen with its own icon, like any other app, and it can send **notifications**.
 
+> **Tip** On Android there is also a real [Android app](install-android.md) with a fingerprint or screen lock.
+
 > **Note** The phone shows and edits the data that lives on **your server** ([Docker install](install-docker.md)). A phone cannot collect bank data by itself, so the server does that and the phone just looks at the result.
 
 ## Before you start

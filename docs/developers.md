@@ -14,6 +14,7 @@ Money Manager is open source. This page is for people who want to change it or b
 | `frontend/` | The app (Vue 3, Vite, vue-i18n): pages, texts in English and Hebrew (`src/locales`), PWA files (`public/`). Built into `frontend/dist`, which the server serves. |
 | `server/` | Node API, migrations, auth, encryption, scheduler, exchange rates, imports, tests |
 | `scraper/` | A separate service with Chromium and a pinned `israeli-bank-scrapers` |
+| `android/` | The Android app (Kotlin): the app's own screens in a web view, a local proxy to the server, the server list, the app lock |
 | `desktop/` | The Windows and Linux apps (Electron): the launcher, the server list and the packaging |
 | `docs/` | This documentation (and the original specs), screenshots |
 | `scripts/` | `bump.mjs` (new version), `screenshots.mjs` (the images), `build-site.mjs` (this site) |
@@ -29,6 +30,7 @@ DB_DRIVER=pglite PGLITE_DIR=memory:// npm test                    # server tests
 (cd scraper && npm ci && node --test)                              # needs a Chromium; uses a fake bank
 (cd frontend && npm ci && npm test && npm run build)               # the app: tests, then the build the server serves
 (cd desktop && node --test)                                        # the desktop shell's server list and launcher
+(cd android && ./gradlew testDebugUnitTest)                        # the Android app's server list and fit check (needs JDK 17 and the Android SDK)
 ```
 
 The frontend tests also check that **every text exists in Hebrew**. Saved expected results live in `frontend/test/fixtures`; after an intended change, rewrite them with `UPDATE_SAVED=1` and read the diff.
@@ -57,12 +59,22 @@ The server and scraper dependencies ship under the name `app_modules`, because t
 
 ## Keeping the app and the server compatible
 
-The desktop (and later phone) apps show their own screens with a server's data. They use the server only when they fit, by **API level** (not by version):
+The desktop and Android apps show their own screens with a server's data. They use the server only when they fit, by **API level** (not by version):
 
 - `server/src/apilevel.js`: `API_LEVEL` is what the server offers, `API_MIN` the oldest app level it still understands. Both are shown in `/api/auth/status`.
 - `desktop/compat.js`: `APP.level` is what the screens speak, `APP.minServer` the oldest server level they work with.
 
 **When you change what the screens ask of the server** (a new request they depend on, a changed answer), raise `API_LEVEL` in the server and `minServer` in the app, in the same change. **When the server stops accepting what older screens send**, raise `API_MIN`. Everything else (new fields the old side can ignore, fixes) needs no change. Servers 0.12.1 to 0.12.4 do not say their level: the apps treat them as level 1.
+
+## Build the Android app
+
+```sh
+(cd frontend && npm ci && npm run build)
+node scripts/android-assets.mjs        # copies the built screens and the texts into android/app/src/main/assets
+cd android && ./gradlew assembleDebug  # app/build/outputs/apk/debug/
+```
+
+A release build is signed with a key kept in four repository secrets (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`). **Keep a copy of the key file and its password somewhere safe: a phone only accepts an update signed with the same key.** `android/.../Compat.kt` holds the same API-level pair as `desktop/compat.js`; a test keeps them equal.
 
 ## Make a release
 
@@ -70,7 +82,7 @@ Releases are automatic.
 
 1. `node scripts/bump.mjs minor` (or `patch` or `major`). It adds a new section at the top of `CHANGELOG.md` and `CHANGELOG.he.md` and sets the version in `desktop/` and `server/`.
 2. Fill in both changelog sections, in plain words, in English **and** Hebrew.
-3. Merge to `main`. The **Release** workflow runs the tests, tags the version, builds the Windows installer and the Linux packages, publishes the Docker images and creates the GitHub release with the changelog as notes. Installed apps and the Docker version see it.
+3. Merge to `main`. The **Release** workflow runs the tests, tags the version, builds the Windows installer, the Linux packages and the Android APK, publishes the Docker images and creates the GitHub release with the changelog as notes. Installed apps and the Docker version see it.
 
 Running **Run workflow** by hand builds the installers without publishing anything, to try it.
 
