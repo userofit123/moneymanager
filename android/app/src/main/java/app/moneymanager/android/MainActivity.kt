@@ -65,6 +65,19 @@ class MainActivity : AppCompatActivity() {
         chooser?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(r.resultCode, r.data))
         chooser = null
     }
+    private var screenLockDone: Pair<() -> Unit, () -> Unit>? = null
+    private val confirmLock = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
+        val done = screenLockDone
+        screenLockDone = null
+        if (r.resultCode == RESULT_OK) done?.first?.invoke() else done?.second?.invoke()
+    }
+
+    /** The phone's own "confirm your PIN, pattern or password" window (for phones older than Android 11). */
+    fun confirmScreenLock(intent: Intent, onOk: () -> Unit, onFail: () -> Unit) {
+        screenLockDone = onOk to onFail
+        confirmLock.launch(intent)
+    }
+
     private val askCamera = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
     @Volatile private var notifWait: java.util.concurrent.CountDownLatch? = null
     private val askNotif = registerForActivityResult(ActivityResultContracts.RequestPermission()) { notifWait?.countDown() }
