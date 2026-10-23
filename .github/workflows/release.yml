@@ -27,7 +27,7 @@ jobs:
           --health-cmd "pg_isready -U money" --health-interval 5s --health-timeout 5s --health-retries 10
     env: { DATABASE_URL: "postgres://money:money@localhost:5432/money_test" }
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v5
         with: { node-version: 22 }
       - run: npm ci
@@ -49,7 +49,7 @@ jobs:
       publish: ${{ steps.v.outputs.publish }}
       build: ${{ steps.v.outputs.build }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
       - id: v
         run: |
@@ -75,7 +75,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: { contents: read, packages: write }
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
@@ -113,7 +113,7 @@ jobs:
     env:
       PUPPETEER_CACHE_DIR: ${{ github.workspace }}/desktop/chrome   # the scraper's browser is downloaded here and shipped inside the installer
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v5
         with: { node-version: 22 }
       - name: Build the app into frontend/dist (shipped inside the installer)
@@ -164,7 +164,7 @@ jobs:
     env:
       PUPPETEER_CACHE_DIR: ${{ github.workspace }}/desktop/chrome   # the scraper's browser is downloaded here and shipped inside the packages
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v5
         with: { node-version: 22 }
       - name: Tools the .rpm and .deb builders need
@@ -205,7 +205,7 @@ jobs:
     if: needs.version.outputs.build == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v5
         with: { node-version: 22 }
       - uses: actions/setup-java@v5
@@ -256,7 +256,7 @@ jobs:
     env:
       PUPPETEER_CACHE_DIR: ${{ github.workspace }}/desktop/chrome   # the scraper's browser is downloaded here and shipped inside the app
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v5
         with: { node-version: 22 }
       - name: Build the app into frontend/dist (shipped inside the app)
