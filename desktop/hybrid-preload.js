@@ -15,4 +15,4 @@ contextBridge.exposeInMainWorld("desktopServers", {
   use: (id) => ipcRenderer.invoke("servers:use", id),
   remove: (id) => ipcRenderer.invoke("servers:remove", id),
 });
-contextBridge.exposeInMainWorld("desktopFrame", { setTitleBar: (bg, fg) => ipcRenderer.send("frame:titlebar", String(bg), String(fg)), menu: (x, y) => ipcRenderer.send("frame:menu", Math.round(+x) || 0, Math.round(+y) || 0) });
+if (process.platform !== "darwin") contextBridge.exposeInMainWorld("desktopFrame", { setTitleBar: (bg, fg) => ipcRenderer.send("frame:titlebar", String(bg), String(fg)), menu: (x, y) => ipcRenderer.send("frame:menu", Math.round(+x) || 0, Math.round(+y) || 0) });

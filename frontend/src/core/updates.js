@@ -6,7 +6,7 @@ import { readPref, writePref } from "./prefs.js";
 import { i18n } from "../i18n.js";
 
 // status: idle | checking | uptodate | available | downloading | ready | installing | error. The desktop app reports its own.
-export const UP = reactive({ cur: "", latest: "", status: "idle", percent: 0, notes: "", url: "", err: "", none: false, auto: true });
+export const UP = reactive({ cur: "", latest: "", status: "idle", percent: 0, notes: "", url: "", err: "", none: false, auto: true, manual: false });
 
 export async function upWeb(force) {
   if (force) UP.status = "checking";
@@ -17,7 +17,7 @@ export async function upWeb(force) {
 }
 function fromDesk(s) {
   if (UP.status == "installing") return;
-  Object.assign(UP, { cur: s.current, status: s.status, latest: s.version, percent: s.percent || 0, notes: s.notes || "", auto: s.auto !== false, err: s.error || "" });
+  Object.assign(UP, { cur: s.current, status: s.status, latest: s.version, percent: s.percent || 0, notes: s.notes || "", auto: s.auto !== false, manual: !!s.manual, err: s.error || "" });
 }
 let started = false;
 export function startUpdates() {

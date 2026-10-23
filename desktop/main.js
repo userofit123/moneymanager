@@ -268,6 +268,7 @@ function switchItems() {
 // The update line of the menus follows the update: check, download, restart. (The same steps as Settings → Version and updates.)
 function updateItems() {
   const v = upd.version || "";
+  if (upd.status === "available" && MAC) return [{ label: fill(T.updDownload, { v }), click: () => shell.openExternal(RELEASE_PAGE) }];
   if (upd.status === "available" && autoUpdater) return [{ label: fill(T.updDownload, { v }), click: () => { upd.status = "downloading"; upd.percent = 0; pushUpdate(); autoUpdater.downloadUpdate().catch((e) => fail(e)); } }];
   if (upd.status === "downloading") return [{ label: fill(T.updDownloading, { v, p: upd.percent || 0 }), enabled: false }];
   if (upd.status === "ready" && autoUpdater) return [{ label: fill(T.updRestart, { v }), click: () => { installNow(); } }];
@@ -276,7 +277,7 @@ function updateItems() {
 }
 function buildMenus() {
   appMenu = Menu.buildFromTemplate([{ label: T.serverMenu, submenu: [...switchItems(), { type: "separator" }, { label: fill(T.thisApp, { v: app.getVersion() }), enabled: false }, ...updateItems(), { label: T.quit, accelerator: "CmdOrCtrl+Q", click: () => { quitting = true; app.quit(); } }] }]);
-  Menu.setApplicationMenu(appMenu);
+  Menu.setApplicationMenu(MAC ? Menu.buildFromTemplate([{ role: "appMenu" }, { label: T.serverMenu, submenu: [...switchItems(), { type: "separator" }, ...updateItems()] }, { role: "editMenu" }, { role: "windowMenu" }]) : appMenu);
   if (tray) tray.setContextMenu(Menu.buildFromTemplate([
     { label: T.openApp, click: () => { if (win && !win.isDestroyed()) { win.show(); win.focus(); } else openManager(); } },
     { label: T.switchTo, submenu: switchItems() },
@@ -291,9 +292,11 @@ function buildMenus() {
 // version downloads by itself and installs when the app is next closed (or when you press Restart). With it off, the sidebar only tells you
 // a newer version exists and you decide. Installing replaces this program (same app, same data); it never adds a second copy.
 let autoUpdater = null;
-const upd = { current: app.getVersion(), status: "idle", version: null, notes: "", percent: 0, error: "", auto: true, checkedAt: null };
+const MAC = process.platform === "darwin"; // an unsigned Mac app cannot replace itself: it only tells you a newer one is out, and opens the download page
+const RELEASE_PAGE = "https://github.com/userofit123/moneymanager/releases/latest";
+const upd = { current: app.getVersion(), status: "idle", version: null, notes: "", percent: 0, error: "", auto: !MAC, manual: MAC, checkedAt: null };
 const settingsFile = () => path.join(app.getPath("userData"), "desktop-settings.json");
-function loadSettings() { try { upd.auto = JSON.parse(fs.readFileSync(settingsFile(), "utf8")).autoUpdate !== false; } catch { upd.auto = true; } }
+function loadSettings() { try { upd.auto = !MAC && JSON.parse(fs.readFileSync(settingsFile(), "utf8")).autoUpdate !== false; } catch { upd.auto = !MAC; } }
 function saveSettings() { try { fs.writeFileSync(settingsFile(), JSON.stringify({ autoUpdate: upd.auto })); } catch {} }
 const pushUpdate = () => { if (win && !win.isDestroyed()) win.webContents.send("update:state", { ...upd }); if (appMenu) buildMenus(); }; // the menus show where the update has got to
 const notesText = (n) => Array.isArray(n) ? n.map((x) => x.note).join("\n") : String(n || "").replace(/<[^>]+>/g, "");
@@ -309,10 +312,11 @@ function setupUpdates() {
   ipcMain.handle("update:get", () => ({ ...upd }));
   ipcMain.handle("update:auto", (_e, on) => { upd.auto = !!on; saveSettings(); if (autoUpdater) autoUpdater.autoDownload = upd.auto; if (upd.auto && upd.status === "available") autoUpdater && autoUpdater.downloadUpdate().catch(() => {}); pushUpdate(); return { ...upd }; });
   ipcMain.handle("update:check", async () => { await check(); return { ...upd }; });
-  ipcMain.handle("update:download", () => { if (autoUpdater && upd.status === "available") { upd.status = "downloading"; upd.percent = 0; pushUpdate(); autoUpdater.downloadUpdate().catch((e) => fail(e)); } return { ...upd }; });
+  ipcMain.handle("update:download", () => { if (MAC && upd.status === "available") shell.openExternal(RELEASE_PAGE); if (autoUpdater && upd.status === "available") { upd.status = "downloading"; upd.percent = 0; pushUpdate(); autoUpdater.downloadUpdate().catch((e) => fail(e)); } return { ...upd }; });
   ipcMain.handle("update:install", () => { if (autoUpdater && upd.status === "ready") { installNow(); } });
   loadSettings();
   if (!app.isPackaged) { upd.status = "dev"; return; } // updates only apply to the installed app
+  if (MAC) { setTimeout(check, 4000); setInterval(check, 6 * 60 * 60 * 1000); return; }
   try { ({ autoUpdater } = require("electron-updater")); } catch { upd.status = "dev"; return; }
   autoUpdater.autoDownload = upd.auto;
   autoUpdater.autoInstallOnAppQuit = true;
@@ -333,7 +337,19 @@ async function checkNow() {
 }
 // a release that is still being built (its files are added a few minutes after the release shows up) is not a failure: there is just nothing to install yet
 function fail(e) { if (/Cannot find latest.*\.yml|latest.*\.yml.*404/is.test(String((e && e.message) || e))) { upd.status = "uptodate"; upd.checkedAt = Date.now(); pushUpdate(); return; } upd.status = "error"; upd.error = String(e && e.message || e).slice(0, 200); pushUpdate(); }
-async function check() { if (!autoUpdater || ["downloading", "ready"].includes(upd.status)) return; try { await autoUpdater.checkForUpdates(); } catch (e) { fail(e); } }
+const newerThan = (a, b) => { const x = String(a).split(".").map(Number), y = String(b).split(".").map(Number); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); return false; };
+async function checkMac() {
+  upd.status = "checking"; pushUpdate();
+  try {
+    const r = await net.fetch("https://api.github.com/repos/userofit123/moneymanager/releases/latest", { headers: { accept: "application/vnd.github+json" } });
+    if (!r.ok) throw new Error("GitHub answered HTTP " + r.status);
+    const j = await r.json(), v = String(j.tag_name || "").replace(/^v/, "");
+    upd.checkedAt = Date.now();
+    if (v && newerThan(v, app.getVersion())) { upd.status = "available"; upd.version = v; upd.notes = String(j.body || "").slice(0, 6000); } else upd.status = "uptodate";
+  } catch (e) { upd.status = "error"; upd.error = String((e && e.message) || e).slice(0, 200); }
+  pushUpdate();
+}
+async function check() { if (MAC) { if (upd.status !== "checking") await checkMac(); return; } if (!autoUpdater || ["downloading", "ready"].includes(upd.status)) return; try { await autoUpdater.checkForUpdates(); } catch (e) { fail(e); } }
 
 app.whenReady().then(async () => {
   T = dict(app.getLocale());
@@ -343,7 +359,8 @@ app.whenReady().then(async () => {
   integrateAppImage();
   setupUpdates();
   registerServerIpc(ipcMain);
-  tray = new Tray(path.join(root, "web", "favicon.png"));
+  const trayImg = path.join(root, "web", "favicon.png");
+  tray = new Tray(MAC ? require("electron").nativeImage.createFromPath(trayImg).resize({ width: 18, height: 18 }) : trayImg); // the Mac menu bar wants a small picture
   tray.setToolTip("Money Manager");
   tray.on("click", () => { if (win && !win.isDestroyed()) { win.show(); win.focus(); } else openManager(); });
   buildMenus();
@@ -356,4 +373,5 @@ app.on("before-quit", async (e) => {
   // quitting never waits for ever: if the database or the connections do not close within a few seconds, the app goes on quitting
   if (backend) { e.preventDefault(); const b = backend; backend = null; await Promise.race([b.stop().catch(() => {}), new Promise((ok) => setTimeout(ok, 5000))]); app.exit(0); }
 });
+app.on("activate", () => { if (win && !win.isDestroyed()) { win.show(); win.focus(); } else if (!manager) openManager(); }); // the Mac dock icon
 app.on("window-all-closed", () => {}); // stay in the tray

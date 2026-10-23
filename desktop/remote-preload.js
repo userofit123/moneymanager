@@ -7,7 +7,7 @@ contextBridge.exposeInMainWorld("desktopServers", {
   remove: (id) => ipcRenderer.invoke("servers:remove", id),
 });
 // The window frame: the app tells the shell its colours so the title bar matches the page
-contextBridge.exposeInMainWorld("desktopFrame", { setTitleBar: (bg, fg) => ipcRenderer.send("frame:titlebar", String(bg), String(fg)), menu: (x, y) => ipcRenderer.send("frame:menu", Math.round(+x) || 0, Math.round(+y) || 0) });
+if (process.platform !== "darwin") contextBridge.exposeInMainWorld("desktopFrame", { setTitleBar: (bg, fg) => ipcRenderer.send("frame:titlebar", String(bg), String(fg)), menu: (x, y) => ipcRenderer.send("frame:menu", Math.round(+x) || 0, Math.round(+y) || 0) });
 
 // A server that is older than this app has no title bar of its own in its page (and never tells us its colours). The window has no system title
 // bar, so draw a strip for it here, in the page's own colours, and keep the window buttons' colours the same. A newer page does all this itself.

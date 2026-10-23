@@ -53,6 +53,7 @@ This runs the app from your folder. Edits in `frontend/` show at once (hot reloa
 cd desktop && npm install
 npm run dist          # Windows installer (on Windows)
 npm run dist:linux    # AppImage, .deb and .rpm (on Linux; the .rpm needs `rpm` installed)
+npm run dist:mac      # .dmg (on a Mac; not signed: ad-hoc only, so each Mac approves it once)
 ```
 
 The server and scraper dependencies ship under the name `app_modules`, because the package builder skips folders named `node_modules`. The app renames them on first start, or runs from a copy in the data folder when its own folder is read-only (an AppImage). The workflow does all of this on GitHub's machines. See `desktop/README.md`.

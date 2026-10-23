@@ -8,6 +8,7 @@
       { "title": "Choose how to run it", "file": "install.md" },
       { "title": "Windows", "file": "install-windows.md" },
       { "title": "Linux", "file": "install-linux.md" },
+      { "title": "Mac", "file": "install-mac.md" },
       { "title": "Docker (home server)", "file": "install-docker.md" },
       { "title": "The Android app", "file": "install-android.md" },
       { "title": "On your phone (web page)", "file": "install-phone.md" },

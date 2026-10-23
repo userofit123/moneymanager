@@ -9,7 +9,7 @@ Money Manager is one app that you can run in a few ways. They all look and work 
 
 ## The short answer
 
-- **Just you, on one computer?** Use the [Windows](install-windows.md) or [Linux](install-linux.md) app. One file, nothing to set up. Your data stays on that computer.
+- **Just you, on one computer?** Use the [Windows](install-windows.md), [Linux](install-linux.md) or [Mac](install-mac.md) app. One file, nothing to set up. Your data stays on that computer.
 - **You have a home server or a NAS, and want to use it from several devices?** Use [Docker](install-docker.md). Then open it from any browser, add it to your [phone](install-phone.md), or use the desktop app in [My server mode](desktop-server.md).
 - **You only want to look around first?** Start the Docker version with made-up demo data. It takes two minutes. [See how](install-docker.md#just-want-to-look-around).
 

@@ -53,7 +53,7 @@ function makeWritable(d) {
 }
 
 function findChrome(dir) {
-  const want = process.platform === "win32" ? "chrome.exe" : "chrome";
+  const want = process.platform === "win32" ? "chrome.exe" : process.platform === "darwin" ? "Google Chrome for Testing" : "chrome";
   const walk = (d, depth) => {
     if (depth > 6 || !fs.existsSync(d)) return null;
     for (const e of fs.readdirSync(d, { withFileTypes: true })) {

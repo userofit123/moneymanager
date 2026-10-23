@@ -1,8 +1,8 @@
 {
   "name": "money-manager-desktop",
   "productName": "Money Manager",
-  "version": "0.12.10",
-  "description": "Money Manager for Windows and Linux: the same app, with its own database and bank scraper built in",
+  "version": "0.12.11",
+  "description": "Money Manager for Windows, Linux and Mac: the same app, with its own database and bank scraper built in",
   "private": true,
   "main": "main.js",
   "desktopName": "money-manager.desktop",
@@ -12,6 +12,7 @@
     "release": "electron-builder --win --x64 --publish always",
     "dist:linux": "electron-builder --linux --x64 --publish never",
     "release:linux": "electron-builder --linux --x64 --publish always",
+    "dist:mac": "electron-builder --mac --publish never",
     "test": "node --test"
   },
   "dependencies": {
@@ -107,6 +108,19 @@
     ],
     "releaseInfo": {
       "releaseNotesFile": "release-notes.md"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.finance",
+      "icon": "../frontend/public/icon-512.png",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "artifactName": "Money-Manager-${version}-mac-${arch}.${ext}"
+    },
+    "dmg": {
+      "sign": false
     },
     "linux": {
       "target": [

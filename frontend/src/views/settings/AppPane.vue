@@ -76,7 +76,7 @@ function setAuto(on) { if (!D) return; UP.auto = on; D.setAuto(on); }
             <button v-if="UP.status != 'checking'" type="button" class="btn o s" data-a="updCheck" @click="check">{{ tk("checkBtn") }}</button>
           </template>
         </div>
-        <label v-if="desk && UP.status != 'dev'" class="tg"><span><b style="font-weight:600">{{ tk("auto") }}</b><div class="sm">{{ tk("autoD") }}</div></span><input type="checkbox" data-upd="auto" :checked="UP.auto" @change="setAuto($event.target.checked)"></label>
+        <label v-if="desk && UP.status != 'dev' && !UP.manual" class="tg"><span><b style="font-weight:600">{{ tk("auto") }}</b><div class="sm">{{ tk("autoD") }}</div></span><input type="checkbox" data-upd="auto" :checked="UP.auto" @change="setAuto($event.target.checked)"></label>
       </div>
     </div>
     <div v-if="showGet" id="instCard" class="card ss">

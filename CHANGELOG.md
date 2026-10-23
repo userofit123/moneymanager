@@ -4,6 +4,20 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.12.11] - 2026-10-23
+
+### App
+- **New: the Mac app** (a .dmg for Apple-chip and Intel Macs, on the release page). It is not signed with a paid Apple account, so each Mac approves it once under System Settings → Privacy & Security → Open Anyway, and it cannot update itself: the app says when a newer one is out and opens the download page. See "The Mac app" in the guide. It has not been tried on a real Mac yet.
+
+### Mac app
+- First version.
+
+### Windows app
+- Includes everything above.
+
+### Linux app
+- Includes everything above.
+
 ## [0.12.10] - 2026-10-23
 
 ### App

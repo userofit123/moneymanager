@@ -11,6 +11,10 @@ description: How to update Money Manager on Windows, Linux and Docker, including
 
 The app checks for a new version by itself. When there is one, it shows **Update available** in the side menu. Open **Settings → Version and updates** to see the installed version, **What's new**, **Check for updates** and, in the desktop apps, **Update automatically**.
 
+## Mac app
+
+It cannot update itself (that needs Apple's paid signing). **Settings → Version and updates** says when a newer one is out and opens the download page. Download the new .dmg and drag the app into **Applications**, replacing the old one.
+
 ## Android app
 
 It does not update itself (it is not in a store). **Settings → Version and updates** shows when a newer one is ready, with a link to the download. Open the new file and install it over the old one: your servers and your lock stay.
