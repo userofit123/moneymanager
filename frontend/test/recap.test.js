@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { matchesSaved } from "./golden.js";
 import { buildDemo } from "../../server/src/seed.js";
 import { homeModel } from "../src/lib/home.js";
-import { recapModel, recapParts, dayBarHeights, roundParts, chargeOf, cardsDue, monthSteps } from "../src/lib/recap.js";
+import { recapModel, recapParts, dayBarHeights, roundParts, chargeOf, cardsDue, monthSteps, afterToday } from "../src/lib/recap.js";
 
 process.on("unhandledRejection", () => {});
 const FX = { USD: 3.62 };
@@ -71,4 +71,15 @@ test("Recap says what each card bill paid for, also an early one in the middle o
   const P2 = [P(10, "2026-10-02", -300), P(11, "2026-10-21", -204.4)], st2 = monthSteps({ A, S: { ...S, tx: P2 }, k: { isCp: (t) => !!t.cp }, MK: "2026-10", TODAY: "2026-10-25", CC: new Set(["Max"]), inc: 0, dn: (t) => t.to, start: 1000.6 });
   const i = st2.findIndex((x) => x.kind == "card" && x.from == "2026-10-21");
   assert.equal(st2[i].a, 204); assert.equal(st2[i - 1].due.find((o) => o.d == "2026-10-21").a, 204);
+});
+
+test("a regular income a few days later than usual still counts its usual amount this month", () => {
+  const I = (d, a) => ({ id: d, d, desc: "Salary Acme", from: "Acme Ltd", to: "Bank", a, c: "Income" });
+  const A = [I("2026-08-03", 10000), I("2026-09-03", 12000)], S = { tx: A };
+  const inc = (rows, day) => afterToday(S, rows, "2026-10", day, new Set()).inc.reduce((s, x) => s + x.a, 0);
+  assert.equal(inc(A, 5), 11000, "usually paid on the 3rd, not yet by the 5th: its usual amount is still to come");
+  assert.equal(inc(A, 2), 11000, "before its usual day too");
+  assert.equal(inc([...A, I("2026-10-04", 11000)], 5), 0, "once it came this month, nothing more");
+  const shop = { id: 1, d: "2026-08-10", desc: "Corner Shop", from: "Bank", to: "Corner Shop", a: -80, c: "Groceries" };
+  assert.equal(inc([shop, I("2026-09-03", 12000)], 5), 0, "an income paid in only one of the two months is not counted as coming");
 });

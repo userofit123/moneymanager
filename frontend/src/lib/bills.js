@@ -91,9 +91,10 @@ export function billInfo(b, idx, mt, NOW, fut = []) {
   const r4 = mt.slice(-4).map((t) => -t.a), nch = r4.slice(1).filter((x, i) => Math.abs(x - r4[i]) / r4[i] > 0.03).length, vari = r4.length >= 3 && nch >= 2, pred = vari ? mean : amt;
   const lp = last ? last.d : B.lastPaid, paid = lp && new Date(lp) >= new Date(pd - 4 * 864e5);
   // the bank already lists this payment for a later day (a few days after the due day): it is coming, so it is neither missing nor late
-  const sched = !paid && pd ? (fut.find((t) => { const g = (new Date(t.d) - pd) / 864e5; return g >= -4 && g <= 10; }) || {}).d || null : null;
+  // schedAmt: that listed payment's own amount (what Activity shows for it)
+  const st = !paid && pd ? fut.find((t) => { const g = (new Date(t.d) - pd) / 864e5; return g >= -4 && g <= 10; }) || null : null, sched = st ? st.d || null : null, schedAmt = st ? -st.a : null;
   const stt = paid ? "paid" : sched || NOW - pd <= 3 * 864e5 ? "pending" : "overdue";
-  return { ...B, idx, pd, nx, sched, days: Math.ceil((nx - NOW) / 864e5), lp, status: stt, amt, was, pred, vari, lo: rc.length ? Math.min(...rc) : amt, hi: rc.length ? Math.max(...rc) : amt, fresh: last ? (NOW - new Date(last.d)) / 864e5 <= 45 : false, mo: pred / B.every, n_tx: mt.length, ev };
+  return { ...B, idx, pd, nx, sched, schedAmt, days: Math.ceil((nx - NOW) / 864e5), lp, status: stt, amt, was, pred, vari, lo: rc.length ? Math.min(...rc) : amt, hi: rc.length ? Math.max(...rc) : amt, fresh: last ? (NOW - new Date(last.d)) / 864e5 <= 45 : false, mo: pred / B.every, n_tx: mt.length, ev };
 }
 
 // Everything about the bills for one moment: the saved bills plus the found ones, every bill's state, and the counted payments.

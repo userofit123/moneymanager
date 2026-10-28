@@ -158,7 +158,7 @@ export function jarProject(S, H, now, fcOpt = {}, M = 60, line = null) {
   // the free money today already has the rest of this month's planned spending (H.flow.R.total) and the card purchases not
   // paid yet (H.flow.cards) taken off, and the line's first month takes both off too (its end of this month), so they are
   // given back once to not take them off twice
-  const capOf = capOfAt(now), sur = forecastSurplus(S, H, now, fcOpt, line); let pool = H.flow.free - (H.flow.over || 0) + (H.flow.R ? H.flow.R.total : 0) + Math.max(0, H.flow.cards || 0);
+  const capOf = capOfAt(now), sur = forecastSurplus(S, H, now, fcOpt, line); let pool = (H.flow.cash || 0) - (H.flow.inJars || 0) - (H.flow.buffer || 0); // the money not in jars or the cushion
   const J = (S.jars || []).filter((j) => !j.done).sort((a, c) => a.p - c.p).map((j) => ({ ...j, b: +j.bal || 0, eta: null, ahead12: 0, series: [+j.bal || 0], plan: +j.bal || 0, planned: [+j.bal || 0] }));
   for (let k = 1; k <= M; k++) {
     pool = Math.max(0, pool + sur(k)); let took = 0;
@@ -224,7 +224,7 @@ export function jarsModel(S, now = new Date(), fx = {}, fcOpt = {}) {
   const R = F.R, bl = billLists(H), rb = R.rows.filter((r) => r.kind == "bill"), ro = R.rows.filter((r) => r.kind != "bill");
   const avail = { bills: sum(rb.map((r) => r.amt)), limits: sum(ro.map((r) => r.amt)), billRows: rb, otherRows: ro.map((r) => ({ ...r, bl: sum((r.bills || []).map((x) => x.amt)) })),
     covered: active.filter((j) => j.bill).map((j) => ({ jar: j.n, bills: isAll(j.bill) ? bl.all(j.bill) : bl.rec.filter((b) => b.match == j.bill) })).filter((x) => x.bills.length) };
-  return { F: { cash: F.cash, cards: F.cards || 0, inJars: F.inJars, buffer: F.buffer, reserve: F.R.total, free: F.free, over: F.over }, month, jars, goals, done, has: { any: active.length > 0 },
+  return { F: { cash: F.cash, cards: F.cards || 0, inJars: F.inJars, buffer: F.buffer, reserve: F.R.total, free: F.free, over: F.over, really: F.really, up: F.really != null ? Math.round(F.cash) - Math.round(Math.max(0, F.cards || 0)) - F.really : 0, aside: F.aside, toCome: F.toCome }, month, jars, goals, done, has: { any: active.length > 0 },
     avail, bills: bl, MK, today: H.today, monthsTo, spend: Object.fromEntries(H.spend) };
 }
 

@@ -43,3 +43,9 @@ test("without the listed charge the due bill is still 'not seen yet'", () => {
   const late = upBillRows(s, BC, now, "2026-10-27").filter((r) => r.late);
   assert.equal(late.length, 1); assert.equal(late[0].d, ymd(new Date(2026, 9, 27, 12)));
 });
+
+test("still to pay counts the listed payment's own amount, not the bill's usual one", () => {
+  const now = new Date(2026, 9, 27, 12), s = S(); s.tx[s.tx.length - 1].a = -181.37;
+  const up = homeModel(s, now).flow.up.find((x) => x.n == "Sunny Car Insurance");
+  assert.ok(up, "the bill is still to pay"); assert.equal(up.amt, 181.37);
+});

@@ -1,6 +1,6 @@
 // The Recap page's numbers: how the month is going, worked out from the Home numbers (lib/home.js homeModel),
 // and which parts show in which order. Nothing here changes the data.
-import { addM, rdOf, nameOf } from "./home.js";
+import { addM, rdOf, nameOf, flowSteps } from "./home.js";
 import { cardInfo, cardOf } from "./activity.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
@@ -30,7 +30,8 @@ export const incKey = (S, t) => {
 // the month, but never more than its usual month less what it was already paid this month, so a payment usually made later
 // that was already made earlier this month is not counted again (rule 2). A payee that is a known bill still due this month
 // (due: Recap's bill list) adds nothing here, as the bill is counted on its own. Incomes the same way: a salary that usually
-// comes later in the month and has not come yet counts as coming.
+// comes later in the month and has not come yet counts as coming; one paid in each of those months that has not come yet this
+// month counts its usual amount, whatever its usual day.
 // Pending rows count, the same way the Activity page counts them.
 // Gives the spending by category (out: { k, a, card }) and the incomes by name (inc: { k, a }).
 export function afterToday(S, A, MK, day, CC, due = []) {
@@ -45,7 +46,10 @@ export function afterToday(S, A, MK, day, CC, due = []) {
   const nb = had[0] + had[1], avg = (x) => (nb ? (x[0] + x[1]) / nb : 0), out = {}, inc = {};
   Object.values(P).forEach((p) => {
     if (!p.inc && dueN.has(p.nm)) return;
-    const a = Math.min(avg(p.late), Math.max(0, avg(p.tot) - p.now)); if (a < 0.005) return;
+    // an income paid in each of those months that has not come yet this month counts its usual amount until the month ends,
+    // even when it usually comes earlier in the month (it may just be a few days late)
+    const late = p.inc && p.now < 0.005 && B.every((_, i) => !had[i] || p.tot[i] > 0);
+    const a = late ? avg(p.tot) : Math.min(avg(p.late), Math.max(0, avg(p.tot) - p.now)); if (a < 0.005) return;
     if (p.inc) { inc[p.k] = (inc[p.k] || 0) + a; return; }
     const o = (out[p.k] = out[p.k] || { k: p.k, a: 0, card: 0 }), tt = p.tot[0] + p.tot[1];
     o.a += a; o.card += tt > 0 ? (a * (p.card[0] + p.card[1])) / tt : 0;
@@ -59,11 +63,13 @@ export function afterToday(S, A, MK, day, CC, due = []) {
 export function stillToPay({ S, A, k, CC, BI, R, TODAY, MK }) {
   const dn = (t) => nameOf(S, t), inA = new Set(A);
   const bills = []; R.rows.forEach((r) => (r.bills || []).forEach((b) => { const bi = BI.find((x) => x.n == b.n); bills.push({ n: b.n, amt: b.amt, nx: bi && bi.nx ? bi.nx : null, overdue: !!b.overdue, idx: bi ? bi.idx : null, cat: bi ? bi.cat : "", inR: true }); }));
+  // the bills a jar pays (or whose budget row a jar covers in full) still leave the bank: listed like any other unpaid bill
+  (R.due || []).filter((b) => !bills.some((x) => x.n == b.n)).forEach((b) => { const bi = BI.find((x) => x.n == b.n); bills.push({ n: b.n, amt: b.amt, nx: bi && bi.nx ? bi.nx : null, overdue: !!b.overdue, idx: bi ? bi.idx : null, cat: bi ? bi.cat : b.cat }); });
   // bills a budget pays for are not in R's bill rows; the ones still due this month are added, so "still to pay" lists every one
   BI.filter((b) => !b.once && !b.irregular && b.nx && b.nx.toISOString().slice(0, 7) == MK && b.nx.toISOString().slice(0, 10) >= TODAY && !bills.some((x) => x.n == b.n)).forEach((b) => bills.push({ n: b.n, amt: b.pred, nx: b.nx, overdue: false, idx: b.idx, cat: b.cat }));
   // a bill whose payment the bank or card company already lists for later this month (sched), and other payments listed
-  // for later this month, so the list matches the upcoming payments in Activity
-  BI.filter((b) => b.sched && b.sched.slice(0, 7) == MK && b.sched >= TODAY && !bills.some((x) => x.n == b.n)).forEach((b) => bills.push({ n: b.n, amt: b.pred, nx: new Date(b.sched + "T12:00:00"), overdue: false, idx: b.idx, cat: b.cat }));
+  // for later this month, so the list matches the upcoming payments in Activity (a listed payment counts its own amount)
+  BI.filter((b) => b.sched && b.sched.slice(0, 7) == MK && b.sched >= TODAY && !bills.some((x) => x.n == b.n)).forEach((b) => bills.push({ n: b.n, amt: b.schedAmt ?? b.pred, nx: new Date(b.sched + "T12:00:00"), overdue: false, idx: b.idx, cat: b.cat }));
   (S.tx || []).filter((t) => !t.virtual && t.a < 0 && String(t.d).slice(0, 7) == MK && String(t.d) > TODAY && !k.isCp(t) && !(CC.has(t.from) && inA.has(t)) && !bills.some((x) => x.n == dn(t)))
     .forEach((t) => bills.push({ n: dn(t), amt: -t.a, nx: new Date(String(t.d).slice(0, 10) + "T12:00:00"), overdue: false, id: t.id, cat: t.c }));
   // a payment whose category a jar pays for comes out of that jar (up to what it holds), so "Free to use" does not take it off
@@ -112,6 +118,14 @@ export function recapModel(M, now) {
   // (one shared sum, reallyYours, worked out once in homeModel: Home's "Current" money flow ends at the same number)
   const reallyNow = F.really ?? reallyYours(cash, cardsOwed, billsTot);
   const afterSure = Math.round(cash) - sure, end = afterSure - likelyBank + incLeft, toPay = sure, nextBill = Math.round(cardsNext) + likelyCard, afterNext = end - nextBill;
+  // end: the bank balance at the end of this month (before next month's card bills). endMonth: what is expected at the end of
+  // this month once this month's card purchases are paid too (the Forecast's end of this month): the number the pages show.
+  const endMonth = afterNext;
+  // Free to use and its parts, the same whole shekels as Home's money flow (homeModel's free; toComeRows: what is still to come
+  // in each budget or usual month, the money flow's rows)
+  const W = F.aside != null ? flowSteps(F, "left") : null;
+  const freeParts = { cards: Math.round(Math.max(0, F.cards || 0)), up: Math.round(billsTot), aside: F.aside ?? 0, toCome: F.toCome ?? 0, free: F.freeRaw ?? 0,
+    toComeRows: W ? W.src.filter((r) => r.left >= 0.5).sort((a, b) => b.left - a.left).map((r) => ({ k: r.k, amt: r.left, kind: r.kind })) : [] };
   // what jars still hold at the end, after paying their part of what is still to come
   const heldEnd = Math.max(0, F.inJars - jarCov) + F.buffer;
   const start = cash - inc + (ex - cardsU) + cardPaid;
@@ -136,7 +150,7 @@ export function recapModel(M, now) {
   const top = M.spend.filter(([c]) => !skip(c)).sort((a, b) => b[1] - a[1]).slice(0, 3);
   const steps = monthSteps({ A, S, k, MK, TODAY, CC, inc, dn, start });
   const phase = day <= 5 ? "start" : dim - day <= 6 ? "end" : "mid";
-  return { MK, today: TODAY, jarCov, rest, incRest: AT.inc, incLeft, daysLeft, day, dim, pm, nmk, cash, inc, ex, cardsU, cardsPrev, cardPaid, cardsThis, cardsNow, cardsNext, sureJar, sureOwn: sure - sureJar, jarsUsed, nextCards, bankSpent: ex - cardsU, cardsOwed, sure, likely, likelyBank, likelyCard, nextBill, afterNext, afterSure, reallyNow, same, incs, sal, bills, billsTot, limitsLeft, end, toPay, heldEnd, top, start, over, risk, okB, above, below, w1, w0, days, nextBills, phase, steps, inJars: F.inJars, buffer: F.buffer, jarsHeld: F.jarsHeld || [], planned: R.total, plannedRows: R.rows.map((r) => ({ k: r.k, amt: r.amt, kind: r.kind })), over0: F.over };
+  return { MK, today: TODAY, jarCov, rest, incRest: AT.inc, incLeft, daysLeft, day, dim, pm, nmk, cash, inc, ex, cardsU, cardsPrev, cardPaid, cardsThis, cardsNow, cardsNext, sureJar, sureOwn: sure - sureJar, jarsUsed, nextCards, bankSpent: ex - cardsU, cardsOwed, sure, likely, likelyBank, likelyCard, nextBill, afterNext, endMonth, freeParts, afterSure, reallyNow, same, incs, sal, bills, billsTot, limitsLeft, end, toPay, heldEnd, top, start, over, risk, okB, above, below, w1, w0, days, nextBills, phase, steps, inJars: F.inJars, buffer: F.buffer, jarsHeld: F.jarsHeld || [], planned: R.total, plannedRows: R.rows.map((r) => ({ k: r.k, amt: r.amt, kind: r.kind })), over0: F.over };
 }
 
 // The day a card purchase leaves the bank: the charge date the card company gave (t.ch), or else the card's usual charge day,
@@ -270,7 +284,7 @@ export function monthSteps({ A, S, k, MK, TODAY, CC, inc, dn, start }) {
 
 // What is really yours today: the money in your accounts, less the card purchases not paid yet and the payments still due
 // this month, each rounded once to whole shekels (as shown), so the sum adds up by eye. Home's "Current" money flow, Recap's
-// "Your remaining amount" and the Forecast's "Your amount now" all use this one sum.
+// "Your money after known payments" and the Forecast's "Your amount now" all use this one sum.
 export const reallyYours = (cash, cards, due) => Math.round(cash) - Math.round(Math.max(0, cards)) - Math.round(due);
 
 // Whole amounts for the parts of a total that add up to the rounded total (each part rounded alone can be off by one):

@@ -1,7 +1,7 @@
 // Where the small ? goes:
 // [help page, area on the page, element holding the name, start of its English text, title of the info block to open, how ("after" = next to the area), the same name in Hebrew].
 export default [
-  ["dash", "#kpis", ".lbl", "In your accounts", "The four big numbers", "", "בחשבונות שלכם"],
+  ["dash", "#kpis", ".lbl", "In your accounts", "The four big numbers", "", "בחשבונות שלך"],
   ["dash", "#sec-accts", "h2", "Accounts", "Accounts and credit cards", "", "חשבונות"],
   ["dash", "#sec-cards", "h2", "Credit cards", "Accounts and credit cards", "", "כרטיסי אשראי"],
   ["dash", "#sec-flow", "h2", "Money flow", "Money flow · ahead", "", "תזרים כספים"],
@@ -18,7 +18,7 @@ export default [
   ["acc", "#acc", "h2", "Credit cards", "Account cards", "", "כרטיסי אשראי"],
   ["acc", "#acc", "h2", "Wallets", "Account cards", "", "ארנקים"],
   ["acc", "#acc", "h2", "Other accounts", "Add your own account", "", "חשבונות אחרים"],
-  ["jars", "#jars", ".lbl", "Safe to put in jars", "Safe to put in jars", "", "אפשר להכניס לקופות"],
+  ["jars", "#jars", ".lbl", "Free to use", "Free to use", "", "פנוי לשימוש"],
   ["jars", "#jars", ".lbl", "Put into jars this month", "Put into jars this month", "", "נכנס לקופות החודש"],
   ["jars", "#jars", "h2", "Jars", "Your jars, in priority order", "", "קופות"],
   ["jars", "#jars", "h2", "Goals", "New jar and goals", "", "יעדים"],

@@ -442,10 +442,12 @@ const HELP = {
   "If it contains": "אם התיאור מכיל",
   "In accounts": "בחשבונות",
   "In jars": "בקופות",
+  "In your accounts": "בחשבונות שלך",
   "Large income: Salary": "הכנסה גדולה: משכורת",
   "Needs review": "לבדיקה",
   "Net worth": "שווי נקי",
   "Next sync:": "הסנכרון הבא:",
+  "Saved this month (in − out)": "נחסך החודש (נכנס פחות יצא)",
   "The thin line is today's date in the month.": "הקו הדק הוא התאריך של היום בחודש.",
   "Unassigned": "לא מוקצה",
 };

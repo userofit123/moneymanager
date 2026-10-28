@@ -22,18 +22,27 @@ export function loadGuide(he) {
   return Promise.all(["en", "demo", ...(he ? ["he"] : [])].map((k) => (asked[k] ||= LOAD[k]().then((m) => { G[k] = m.default || m.HDEMO; }, (e) => { delete asked[k]; throw e; }))));
 }
 
-export const helpOpen = ref(false);
-helpOpen.value = readPref("moneyHelp") === "1";
-// Opening waits for the guide to be loaded, so the panel slides in with its text.
-export async function helpSet(on) {
+// The panel is remembered open or closed, and what it showed: "1" the page guide, "nums" the key numbers, "0" closed.
+const saved = readPref("moneyHelp");
+export const helpOpen = ref(saved === "1" || saved === "nums");
+// What the side panel shows: the page guide ("guide") or the key numbers ("nums", the button above the help button).
+export const helpMode = ref(saved === "nums" ? "nums" : "guide");
+// left open: the page has room for it from the first paint, so nothing slides at start
+if (helpOpen.value && typeof document != "undefined") document.documentElement.classList.add("help-on");
+// Opening the guide waits for it to be loaded, so the panel slides in with its text.
+export async function helpSet(on, mode = "guide") {
   const he = document.documentElement.classList.contains("he"); // the page language (direction.js)
-  if (on && !guideReady(he)) await loadGuide(he);
+  if (on && mode === "guide" && !guideReady(he)) await loadGuide(he);
+  if (on) helpMode.value = mode;
   helpOpen.value = on;
   document.documentElement.classList.toggle("help-on", on);
-  writePref("moneyHelp", on ? "1" : "0");
+  writePref("moneyHelp", !on ? "0" : helpMode.value === "nums" ? "nums" : "1");
 }
 
 // What the panel shows for a page: the same sentences, in the language of the page. Null when there is no guide for it.
+// A panel button: opens the panel on its content, or closes it when it already shows that content.
+export const panelToggle = (mode) => helpSet(!(helpOpen.value && helpMode.value === mode), mode);
+
 export function guideOf(page, he) {
   const key = HELP_PAGE[page] || page, EN = G.en || {}, H = (he && G.he) || EN;
   return H[key] || EN[key] || null;
@@ -77,7 +86,7 @@ export function helpAt(k, block) {
     const e = document.getElementById("hs" + i); if (!e) return;
     e.scrollIntoView({ behavior: "smooth", block: "start" }); e.classList.remove("hflash"); void e.offsetWidth; e.classList.add("hflash");
   };
-  if (!helpOpen.value) helpSet(true).then(() => setTimeout(go, 120)); else go();
+  if (!helpOpen.value || helpMode.value !== "guide") helpSet(true).then(() => setTimeout(go, 120)); else go();
 }
 // Keep the ?s in place while the page changes.
 export function watchDots(get) {

@@ -161,7 +161,7 @@ html.mob #fcK {
   flex-direction: column;
   transform: translateX(100%);
   visibility: hidden;
-  transition: transform .28s cubic-bezier(.2, .8, .2, 1), visibility 0s .28s;
+  transition: transform .28s var(--ease), visibility 0s .28s;
   box-shadow: -18px 0 40px -28px rgba(0, 0, 0, .4);
 }
 
@@ -174,7 +174,7 @@ html.he .help {
 html.help-on .help {
   transform: none;
   visibility: visible;
-  transition: transform .28s cubic-bezier(.2, .8, .2, 1);
+  transition: transform .28s var(--ease);
 }
 
 .helph {
@@ -301,7 +301,76 @@ html.help-on .help {
   margin-bottom: 2px;
 }
 
+/* the key numbers in the side panel: one card per group, a name and its amount on each row */
+.knl {
+  border-radius: 14px;
+  background: var(--s1);
+  border: 1px solid var(--ol);
+  padding: 0 14px;
+}
+
+.knr {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+  padding: 10px 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.knr + .knr {
+  border-top: 1px solid var(--ol);
+}
+
+.knr > span {
+  color: var(--tx2);
+}
+
+.knr > b {
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+/* predictions: a dashed edge, like the parts that usually still come elsewhere */
+.knl.guess {
+  border-style: dashed;
+}
+
+/* rows that add up: "−" / "+" before a part, the result under a line, the group before's result first (muted) */
+.kno {
+  display: inline-block;
+  min-width: 1.1em;
+  color: var(--tx2);
+  font-weight: 600;
+}
+
+.knr.from > span,
+.knr.from > b {
+  color: var(--tx2);
+  font-weight: 500;
+}
+
+.knr.res {
+  border-top: 2px solid var(--ol);
+}
+
+.knr.res > span {
+  color: var(--tx);
+  font-weight: 650;
+}
+
+/* the page makes room for the panel: it slides to its new width with the panel (open and close) */
 @media (min-width: 1180px) {
+  body {
+    transition: padding-inline-end .28s var(--ease);
+  }
+
+  .fab,
+  .fabx {
+    transition: right .28s var(--ease), left .28s var(--ease); /* fixed side: they are placed by right / left */
+  }
+
   html.help-on body {
     padding-inline-end: 420px;
   }

@@ -35,10 +35,10 @@ function jarSuggest(S, X, XS, catJars, jarsS, t) {
 }
 const fmtWhen = (t) => new Date(t).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 // The connections list on Home's sync alerts.
+// Only the connections you set up: with none, the list is empty.
 function sources(S) {
-  const DEF = [["Bank Hapoalim", "hapoalim"], ["Max", "max"], ["Isracard", "isracard"], ["Wise", "wise"]];
   const L = Object.keys(S.connStatus || {}).filter((k) => S.connected?.[k]).map((k) => [S.connStatus[k].label || k, k]);
-  return (L.length ? L : DEF).map(([n, k]) => {
+  return L.map(([n, k]) => {
     const c = (S.connStatus || {})[k] || { key: "none", label: "No credentials", tone: "gray" }, when = c.since ? fmtWhen(c.since) : "never", state = c.tone == "green" ? "ok" : c.tone == "red" ? "bad" : "warn";
     return { n, k, failed: state == "bad", stale: c.key == "stale" ? 3 : 0, t: when, error: c.error, key: c.key };
   });

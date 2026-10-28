@@ -13,7 +13,7 @@ import "./core/notices.js";
 import "./core/upkeep.js";
 import "./core/alertReport.js"; // the open alerts go to the server's alert history from every page
 import HelpPanel from "./help/HelpPanel.vue";
-import { helpOpen, helpSet } from "./help/help.js";
+import { helpOpen, helpMode, panelToggle } from "./help/help.js";
 import ToastHost from "./components/ToastHost.vue";
 import { UP } from "./core/updates.js";
 import AuthScreen from "./components/AuthScreen.vue";
@@ -68,7 +68,8 @@ addEventListener("offline", () => (online.value = false));
     <AppearancePanel />
     <div class="fabx">
       <button id="suggBtn" type="button" class="sugb" :class="{ pop2: bulb }" :style="{ display: suggestions.length ? 'grid' : 'none' }" :aria-label="t('txw.suggA')" :data-tip="t('txw.suggTip')" @click="suggestOpen = true"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z" /></svg><i>{{ suggestions.length }}</i></button>
-      <button id="helpBtn" type="button" class="ib" :aria-label="t('shell.aboutPage')" :aria-expanded="helpOpen ? 'true' : 'false'" aria-controls="help" @click="helpSet(!helpOpen)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.5h.01" /></svg></button>
+      <button id="numsBtn" type="button" class="ib" :aria-label="t('num.title')" :data-tip="t('num.title')" :aria-expanded="helpOpen && helpMode === 'nums' ? 'true' : 'false'" aria-controls="help" @click="panelToggle('nums')"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M8.5 7h7M9 11h.01M12 11h.01M15 11h.01M9 14.5h.01M12 14.5h.01M15 14.5v3M9 17.5h.01M12 17.5h.01" /></svg></button>
+      <button id="helpBtn" type="button" class="ib" :aria-label="t('shell.aboutPage')" :aria-expanded="helpOpen && helpMode === 'guide' ? 'true' : 'false'" aria-controls="help" @click="panelToggle('guide')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.5h.01" /></svg></button>
       <a class="ib" :href="hrefOf(alertsPage)" :aria-label="t('shell.alerts')" @click="onLink"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0" /></svg><span class="badge" :style="{ display: alertList.length ? 'grid' : 'none' }">{{ alertList.length }}</span></a>
     </div>
     <button type="button" class="fab" :aria-label="t('shell.add')" @click="quickOpen = true">+</button>

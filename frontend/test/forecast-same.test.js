@@ -245,7 +245,8 @@ test("the end of this month: card = tile = chart, its parts add up, and today is
 });
 
 // The table "What drives the forecast": in every column (each month, the average, next month, the next 12 months, this month so
-// far and still to come) the lines shown add up exactly to the total shown, and the totals stay the chart's and Saved's numbers.
+// far, still due and usually still to come) the lines shown add up exactly to the total shown, and the totals stay the chart's
+// and Saved's numbers. This month, in every line and in the total: so far + still due + usually still to come = the month shown.
 test("the forecast table's lines add up exactly to the totals shown, in every column", () => {
   for (const day of [1, 9, 17, 24, 30]) for (const n of [3, 6, 12]) {
     const at = new Date(2026, 9, day, 12), M = forecastModel(demoState({}, at), at, FX, { n }), d = M.d, T = forecastTable(d, M.fc.h), last = d.last;
@@ -253,9 +254,28 @@ test("the forecast table's lines add up exactly to the totals shown, in every co
       const sh = shownLines(rows, d.W.length, M.fc.h, so, up), at0 = `day ${day}, ${n} months`, add = (f) => sh.rows.reduce((s, r) => s + f(r), 0);
       assert.equal(sh.total.next, i1, at0 + ": next month is the table's total"); assert.equal(sh.total.year, iH, at0 + ": the next 12 months are the table's total");
       assert.equal(sh.total.mean, Math.round(rows.reduce((s, r) => s + r.mean, 0)), at0);
-      for (const k of ["mean", "next", "year", "so", "up"]) assert.equal(add((r) => r[k]), sh.total[k], at0 + ": " + k);
-      d.W.forEach((_, i) => { assert.equal(sh.total.v[i], Math.round(rows.reduce((s, r) => s + r.v[i], 0)), at0); assert.equal(add((r) => r.v[i]), sh.total.v[i], at0 + ": month " + i); });
-      for (const r of sh.rows) assert.ok([r.mean, r.next, r.year, r.so, r.up, ...r.v].every(Number.isInteger), at0 + ": whole shekels");
+      for (const k of ["mean", "next", "year", "so", "up", "lk"]) assert.equal(add((r) => r[k]), sh.total[k], at0 + ": " + k);
+      const nv = d.W.length;
+      d.W.forEach((_, i) => { assert.equal(sh.total.v[i], Math.round(rows.reduce((s, r) => s + r.v[i], 0)), at0 + ": month " + i + " rounded in one go"); assert.equal(add((r) => r.v[i]), sh.total.v[i], at0 + ": month " + i); });
+      for (const x of [sh.total, ...sh.rows]) { assert.equal(x.so + x.up + x.lk, x.v[nv - 1], at0 + ": this month's parts add up"); assert.ok(x.lk >= 0, at0 + ": still to come is never below ₪0"); }
+      for (const r of sh.rows) assert.ok([r.mean, r.next, r.year, r.so, r.up, r.lk, ...r.v].every(Number.isInteger), at0 + ": whole shekels");
     }
+  }
+});
+
+// The forecast looks at real money only: a bill a jar pays still leaves the bank, so one due and not paid yet counts like
+// any other unpaid bill (once), and Home, Recap and the Forecast give the same numbers with or without the jar.
+test("a bill a jar pays counts like any other unpaid bill", () => {
+  const add = (s) => { [7, 8, 9].forEach((m, i) => s.tx.push({ id: 9100 + i, d: `2026-0${m}-10`, desc: "Gym Club", from: "Bank Hapoalim", to: "Gym Club", a: -319, c: "Sport", tags: [], docs: [], note: "" })); return s; };
+  for (const at of [new Date(2026, 9, 10, 12), new Date(2026, 9, 12, 12), NOW]) { // due today, then not paid after its day
+    const plain = add(demoState({}, at)), withJar = add(demoState({}, at));
+    withJar.jars.push({ id: 99, n: "Gym", p: 9, bal: 2000, got: 0, paid: 0, out: 0, cats: [{ c: "Sport" }], bill: "gym club" });
+    const run = (S) => { const H = homeModel(S, at, FX), R = recapModel(H, at), M = forecastModel(S, at, FX, {}, H); return { H, R, M }; };
+    const a = run(plain), b = run(withJar), msg = String(at.getDate());
+    assert.equal(b.H.flow.up.filter((x) => x.n == "Gym Club").length, 1, msg + ": listed once");
+    assert.equal(b.H.flow.up.find((x) => x.n == "Gym Club").amt, 319, msg);
+    assert.equal(r2(b.R.billsTot), r2(a.R.billsTot), msg + ": still to pay"); assert.equal(b.R.end, a.R.end, msg + ": Recap's end of this month");
+    assert.equal(b.H.flow.really, a.H.flow.really, msg + ": Home"); assert.equal(b.R.reallyNow, b.H.flow.really, msg + ": Home = Recap");
+    assert.deepEqual(b.M.d.eom, a.M.d.eom, msg + ": the end of this month"); assert.deepEqual(b.M.d.bal, a.M.d.bal, msg + ": every later point");
   }
 });

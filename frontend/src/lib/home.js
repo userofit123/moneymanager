@@ -1,7 +1,7 @@
 // The Home page's numbers, kept apart from the screen so they can be tested:
 // the totals, bills, budgets, jars and money flow.
 // Nothing here changes the data; bills the app finds by itself are only worked out, not saved.
-import { cardsDue, stillToPay, reallyYours } from "./recap.js";
+import { cardsDue, stillToPay, reallyYours, roundParts } from "./recap.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
 export const addM = (m, k) => { const d = new Date(+m.slice(0, 4), +m.slice(5, 7) - 1 + k, 1); return d.getFullYear() + "-" + p2(d.getMonth() + 1); };
@@ -55,8 +55,10 @@ export function homeModel(S, now = new Date(), fx = {}) {
   const accts = (S.accounts || []).filter((a) => a.kind != "card" && !a.hide);
   const accILS = (a) => a.v * rate(a.cur);
   const accCur = (a) => a.n + (a.cur != "ILS" || accts.some((x) => x !== a && (x.n == a.n || (x.src && x.src == a.src))) ? " (" + a.cur + ")" : "");
-  const cashAll = accts.filter((a) => a.inNW && (a.kind == "bank" || a.kind == "wallet")), cashAccts = cashAll.filter(hasRate), noRate = cashAll.filter((a) => !hasRate(a)).map((a) => a.n);
-  const cashNow = sum(cashAccts.map(accILS)), custNW = sum(accts.filter((a) => a.kind == "custom" && a.inNW).map(accILS));
+  // "In your accounts": bank and wallet accounts plus the hand-added ones marked to count (never pension). One number,
+  // shared by Home's tile, Recap, the Forecast start, Free to use and the Key numbers panel.
+  const cashAll = accts.filter((a) => a.inNW && (a.kind == "bank" || a.kind == "wallet" || a.kind == "custom")), cashAccts = cashAll.filter(hasRate), noRate = cashAll.filter((a) => !hasRate(a)).map((a) => a.n);
+  const cashNow = sum(cashAccts.map(accILS));
   const ALL = tx.concat(costRows);
   const monthSum = (m, sg) => sum(A.filter((t) => (sg > 0 ? t.a > 0 : t.a < 0) && rdOf(t).startsWith(m)).map((t) => Math.abs(t.a)));
   const spendM = {}; A.filter((t) => t.a < 0 && rdOf(t).startsWith(MK)).forEach((t) => { const c = t.c || "Uncategorized"; spendM[c] = (spendM[c] || 0) + Math.abs(t.a); });
@@ -102,7 +104,9 @@ export function homeModel(S, now = new Date(), fx = {}) {
   const catJars = {}; jarsS.forEach((j) => (j.cats || []).forEach((x) => { if (!catJars[x.c]) catJars[x.c] = { j, since: x.since }; }));
   const R = (() => {
     const linked = new Set(jarsS.map((j) => j.bill).filter(Boolean)), allB = linked.has("*") || linked.has("*a"), useAvg = cfg.reserveAvg !== false, bl0 = {}, cov = {};
-    activeBills.forEach((b) => { if (b.once || b.irregular || !b.nx) return; const unpaid = (b.status == "overdue" || b.status == "pending") && (NOW - b.pd) / 864e5 <= 45, comes = b.nx.toISOString().slice(0, 7) == MK; if (!unpaid && !comes) return; const kk = b.cat || "Other bills"; if (allB || linked.has(b.match)) { cov[kk] = (cov[kk] || 0) + b.pred; return; } (bl0[kk] = bl0[kk] || []).push({ n: b.n, amt: b.pred, overdue: b.status == "overdue" }); });
+    // due: every bill not paid yet this month, also the ones a jar pays (real money still leaves the bank for them)
+    const due = [];
+    activeBills.forEach((b) => { if (b.once || b.irregular || !b.nx) return; const unpaid = (b.status == "overdue" || b.status == "pending") && (NOW - b.pd) / 864e5 <= 45, comes = b.nx.toISOString().slice(0, 7) == MK; if (!unpaid && !comes) return; const kk = b.cat || "Other bills", x = { n: b.n, amt: b.schedAmt ?? b.pred, overdue: b.status == "overdue" }; const byJar = allB || linked.has(b.match); due.push({ ...x, cat: kk, byJar }); if (byJar) { cov[kk] = (cov[kk] || 0) + x.amt; return; } (bl0[kk] = bl0[kk] || []).push(x); });
     const keys = new Set([...Object.keys(budgets), ...Object.keys(bl0)]); if (useAvg && budMonths.length >= 2) Object.keys(monthlyByCat).forEach((kk) => { if (!RSKIP(S, kk)) keys.add(kk); });
     const cand = [], done = [];
     keys.forEach((kk) => { const bl = sum((bl0[kk] || []).map((x) => x.amt)), spent = spendM[kk] || 0; let base = 0, kind = "";
@@ -115,7 +119,7 @@ export function homeModel(S, now = new Date(), fx = {}) {
     cand.sort((a, b) => b.amt - a.amt).forEach((r) => { const c = catJars[r.k]; let amt = r.amt; if (c) { const take = Math.min(pool[c.j.id], amt); pool[c.j.id] -= take; amt -= take; if (take >= 1) jarCov.push({ k: r.k, jar: c.j.n, cov: take, of: r.amt }); } if (amt < 1) return; rows.push({ ...r, amt, jar: c ? c.j.n : "", jarCov: c ? r.amt - amt : 0 }); });
     rows.sort((a, b) => b.amt - a.amt);
     const total = sum(rows.map((r) => r.amt)), billsT = sum(rows.filter((r) => r.kind == "bill").map((r) => r.amt));
-    return { total, rows, bills: billsT, limits: total - billsT, jarCov, done };
+    return { total, rows, bills: billsT, limits: total - billsT, jarCov, done, due };
   })();
   // card purchases already made and not paid yet: the bank still holds that money, but the card bill will take it
   // (the same amount Recap and the Forecast take off)
@@ -125,7 +129,12 @@ export function homeModel(S, now = new Date(), fx = {}) {
   const up = stillToPay({ S, A, k, CC, BI: activeBills, R, TODAY, MK });
   // really yours today (accounts − card purchases not paid yet − payments still due): Home, Recap and the Forecast share it
   const really = reallyYours(cashNow, cardsOwed, sum(up.map((b) => b.amt)));
-  const inJars = sum(jarsS.map(heldOf)), buffer = Math.max(0, +S.jarsBuffer || 0), raw = cashNow - cardsOwed - inJars - buffer - R.total;
+  const inJars = sum(jarsS.map(heldOf)), buffer = Math.max(0, +S.jarsBuffer || 0);
+  const jarsHeld = jarsS.filter((j) => heldOf(j) > 0).sort((a, b) => heldOf(b) - heldOf(a)).map((j) => ({ n: j.n, v: heldOf(j) }));
+  // Free to use: worked out once, here, as the end of the Planned money flow (flowSteps): your money after known payments, less what is
+  // put aside (jars and the safety cushion) and what is still to come this month. Home, Recap and the Jars page all read it.
+  const flow0 = { cash: cashNow, cards: cardsOwed, up, really, inJars, buffer, R, jarsHeld, spend };
+  const W0 = flowSteps(flow0, "left"), aside = Math.round(W0.jarsA + buffer), toCome = Math.round(W0.leftTot), raw = really - aside - toCome;
   const free = Math.max(0, raw), over = -raw >= 1 ? Math.round(-raw) : 0;
   const monthsTo = (d) => Math.max(1, Math.ceil((new Date(d) - NOW) / (864e5 * 30.44)));
   const capOf = (j, got) => (j.cap == null ? null : j.auto && j.due && j.need > 0 ? Math.max(0, Math.ceil((j.need - (j.bal - (got || 0))) / Math.max(1, monthsTo(j.due)))) : j.cap);
@@ -142,11 +151,11 @@ export function homeModel(S, now = new Date(), fx = {}) {
 
   const inc = monthSum(MK, 1), ex = monthSum(MK, -1), pen = sum(accts.filter((a) => a.kind == "pension").map(accILS));
   const rd = new Set(cashAccts.filter((a) => a.at || a.v).map((a) => a.src).filter(Boolean));
-  const missing = cashAccts.filter((a) => !a.at && !a.v && !a.manual && !(a.src && rd.has(a.src))).map((a) => a.n);
+  const missing = cashAccts.filter((a) => a.kind != "custom" && !a.at && !a.v && !a.manual && !(a.src && rd.has(a.src))).map((a) => a.n);
   const recent = ALL.filter((t) => !k.isXf(t) && t.d >= MK && !k.isFut(t)).sort((a, b) => b.d.localeCompare(a.d)).slice(0, 5);
   const upcoming = activeBills.filter((b) => b.nx).sort((a, b) => (a.status == "overdue" ? -1e3 : 0) + a.days - ((b.status == "overdue" ? -1e3 : 0) + b.days)).slice(0, 4);
   const budgetsSorted = budgetInfo.sort((a, b) => b.pc - a.pc);
-  const cash = cashNow + custNW;
+  const cash = cashNow;
 
   const has = {
     flow: accts.some((a) => a.v != 0) && cashNow > 0,
@@ -159,9 +168,9 @@ export function homeModel(S, now = new Date(), fx = {}) {
 
   return {
     MK, pm, DAYN, DIM, today: TODAY, k,
-    kpi: { cash, pen, withPension: cash + pen, inc, ex, net: inc - ex, incLast: hist.inc[4], exLast: hist.exp[4], missing, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a), lbl: accCur(a) })), notCounted: accts.filter((a) => (a.kind == "bank" || a.kind == "wallet") && !a.inNW).map((a) => a.n), noRate, nwSpark: nwSpark.filter((v) => v > 0).length > 1 ? nwSpark : null, incSpark: hist.inc.some((v) => v > 0) ? hist.inc : null, exSpark: hist.exp.some((v) => v > 0) ? hist.exp : null },
+    kpi: { cash, pen, withPension: cash + pen, inc, ex, net: Math.round(inc) - Math.round(ex), incLast: hist.inc[4], exLast: hist.exp[4], missing, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a), lbl: accCur(a) })), notCounted: accts.filter((a) => (a.kind == "bank" || a.kind == "wallet") && !a.inNW).map((a) => a.n), noRate, nwSpark: nwSpark.filter((v) => v > 0).length > 1 ? nwSpark : null, incSpark: hist.inc.some((v) => v > 0) ? hist.inc : null, exSpark: hist.exp.some((v) => v > 0) ? hist.exp : null },
     groups, cards, recent, upcoming, budgets: budgetsSorted, jars, spend, rate,
-    flow: { cash: cashNow, cards: cardsOwed, up, really, inJars, buffer, saved: inJars + buffer, free, over, R, jarsHeld: jarsS.filter((j) => heldOf(j) > 0).sort((a, b) => heldOf(b) - heldOf(a)).map((j) => ({ n: j.n, v: heldOf(j) })), spend, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a), lbl: accCur(a) })) },
+    flow: { ...flow0, saved: inJars + buffer, aside, toCome, free, over, freeRaw: raw, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a), lbl: accCur(a) })) },
     has, any,
     // For the Jars page: bill names by their match text, and six months of income and spending (this one last).
     billNames: Object.fromEntries(BC.map((b) => [b.match, b.n])), hist,
@@ -178,7 +187,7 @@ import { billInfo, futTx, billFut, countedTx } from "./bills.js";
 // card purchases not paid yet (the card bill will take that money), the payments still to leave this month (F.up, Recap's
 // "You still have to pay"), what is put aside (jars, safety cushion) and, in mode "left" (Planned), what is still to come
 // this month (what is left in each budget or usual month, less its payments already in the upcoming step).
-// mode "actual": cards and upcoming payments only, so it ends at Recap's "Your remaining amount".
+// mode "actual": cards and upcoming payments only, so it ends at "Your money after known payments" (Recap's too).
 // What was spent so far this month is not a step (spentAll), it is shown on its own.
 export function flowSteps(F, mode = "left") {
   const ACT = mode == "actual", up = F.up || [], upTot = sum(up.map((b) => b.amt));
@@ -186,9 +195,11 @@ export function flowSteps(F, mode = "left") {
   // there); when a jar paid part of the row, that jar money pays those bills. Another upcoming payment in a row's category
   // (one listed for a later day) is part of what is left in that row too. What no row holds is paid by a jar when one pays
   // for its category (cov). Jar money that pays upcoming payments is not taken off again in the jars step (upJar).
+  // A bill a jar pays (byJar) already came off its row (bcov), so the row keeps its amount and the jar pays the whole bill.
   let upJar = 0;
+  const byJar = new Map((F.R.due || []).filter((b) => b.byJar).map((b) => [b.n, b.amt]));
   const src = F.R.rows.map((r) => { const bl = sum((r.bills || []).map((b) => b.amt)), upIn = Math.min(r.amt, bl); upJar += bl - upIn; return { ...r, upIn }; });
-  up.filter((b) => !b.inR).forEach((b) => { const r = src.find((x) => x.k == b.cat), x = r ? Math.min(r.amt - r.upIn, b.amt) : 0; if (r) r.upIn += x; upJar += Math.min(b.cov || 0, b.amt - x); });
+  up.filter((b) => !b.inR).forEach((b) => { if (byJar.has(b.n)) { upJar += byJar.get(b.n); return; } const r = src.find((x) => x.k == b.cat), x = r ? Math.min(r.amt - r.upIn, b.amt) : 0; if (r) r.upIn += x; upJar += Math.min(b.cov || 0, b.amt - x); });
   src.forEach((r) => { r.left = Math.max(0, r.amt - r.upIn); });
   const jarsA = Math.max(0, F.inJars - upJar);
   const spentAll = sum(F.spend.map((e) => e[1])), leftTot = sum(src.map((r) => r.left)), start = F.cash, scale = Math.max(start, 1);
@@ -203,12 +214,23 @@ export function flowSteps(F, mode = "left") {
   const room = 8 - fixed.length; // at most 8 steps between the first and the last bar
   if (items.length > room) { const top = items.slice(0, room - 1), rest = items.slice(room - 1); top.push({ k: "other", rest, a: sum(rest.map((x) => x.a)), plan: 1 }); items = top; }
   // Current ends at what is really yours (reallyYours, the same number as Recap and the Forecast)
-  const endAv = ACT && F.really != null ? F.really : F.cash - (F.cards || 0) - upTot - (ACT ? 0 : jarsA + F.buffer + leftTot), eOver = endAv <= -1 ? Math.round(-endAv) : 0, eFree = Math.max(0, endAv);
+  // Planned ends at Free to use: the same whole-shekel parts (your money after known payments, left in your budgets, put aside), so it adds up
+  const endAv = F.really != null ? (ACT ? F.really : F.really - Math.round(jarsA + F.buffer) - Math.round(leftTot)) : F.cash - (F.cards || 0) - upTot - (ACT ? 0 : jarsA + F.buffer + leftTot), eOver = endAv <= -1 ? Math.round(-endAv) : 0, eFree = Math.max(0, endAv);
   const pc = (v) => +((Math.max(0, v) / scale) * 100).toFixed(2);
-  let lvl = start;
+  // the bars in whole shekels (the same parts as Your money after known payments and Free to use), so each "What's left" is exact and
+  // the last one is the end amount
+  const RND = F.really != null;
+  if (RND) {
+    const R0 = Math.round, put = R0(jarsA + F.buffer), cush = Math.min(put, R0(F.buffer)), its = roundParts(items.map((x) => x.a), R0(leftTot));
+    fixed.forEach((x) => { x.a = x.k == "jars" ? put - cush : x.k == "cushion" ? cush : R0(x.a); });
+    items.forEach((x, i) => { x.a = its[i]; });
+  }
+  let lvl = RND ? Math.round(start) : start;
   const cols = [{ kind: "start", a: start, hi: start, lo: start, b: pc(start), h: 0, s: pc(start) }];
-  [...fixed, ...items].forEach((x) => { const hi = lvl, lo = Math.max(0, lvl - x.a); lvl -= x.a; cols.push({ ...x, rk: x.kind, kind: x.set ? "set" : "item", hi, lo, b: pc(lo), h: pc(hi - lo), s: pc(lo) }); });
+  // in order: what is known (cards, upcoming payments), then the plans: what is left in the budgets, then what is put aside
+  const known = fixed.filter((x) => x.k == "cards" || x.k == "up"), aside = fixed.filter((x) => x.k == "jars" || x.k == "cushion");
+  [...known, ...items, ...aside].forEach((x) => { const hi = lvl, lo = Math.max(0, lvl - x.a); lvl -= x.a; cols.push({ ...x, rk: x.kind, kind: x.set ? "set" : "item", hi, lo, b: pc(lo), h: pc(hi - lo), s: pc(lo) }); });
   cols.push({ kind: "end", tone: eOver > 0 ? "neg" : eFree > 0 ? "pos" : "none", a: 0, lo: Math.max(0, lvl), b: pc(Math.max(0, lvl)), h: 0, s: pc(Math.max(0, lvl)) });
-  // remain: the column after which "Your remaining amount" is left (the last of cards and upcoming payments)
+  // remain: the column after which "Your money after known payments" is left (the last of cards and upcoming payments)
   return { cols, src, spentAll, leftTot, start, eOver, eFree, ACT, upTot, upJar, jarsA, remain: upTot >= 1 ? "up" : "cards" };
 }

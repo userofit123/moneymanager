@@ -21,6 +21,8 @@ export function forecastModel(S, now = new Date(), fx = {}, fcOpt = {}, H = null
   // not paid yet and the bills due (Home's amounts), less the usual spending still to come, plus income still to come
   // (Recap's). Each part is whole shekels, rounded once, and they add up exactly to the end of this month (d.really).
   const F = H.flow, due = (F.up || []).reduce((s, b) => s + b.amt, 0);
+  // d.really here means the end of this month (endMonth), not Home's "Your money after known payments" (today)
+  d.endMonth = L.really;
   d.eom = { bank: Math.round(F.cash), cards: Math.round(Math.max(0, F.cards || 0)), due: Math.round(due), usual: L.R.likely, inc: L.R.incLeft, end: L.really };
 
   // How many bank payments of a card's bill, in the months it learns from, are left out of the numbers (the purchases are
@@ -38,7 +40,7 @@ export function forecastModel(S, now = new Date(), fx = {}, fcOpt = {}, H = null
 
   // What the jars will hold in the coming months: only really free money goes in, shared by priority (the same projection as the Jars page).
   const jars = { ...jarProject(S, H, now, fc, 60, L), net: d.nm };
-  return { fc, FH, MK, d, E: L.E, EC: L.EC, ER: L.ER, UP: L.UP, cardPays, wallet, jars, capOf: capOfAt(now), monthsTo: monthsToOf(now) };
+  return { fc, FH, MK, d, R: L.R, E: L.E, EC: L.EC, ER: L.ER, UP: L.UP, cardPays, wallet, jars, capOf: capOfAt(now), monthsTo: monthsToOf(now) };
 }
 
 // The table's bars for one row: one bar per month used (oldest first), each as a share of the row's biggest month, so its
@@ -67,7 +69,8 @@ export function forecastTable(d, h = 12) {
 // The table's lines as shown, in whole shekels: in every column they add up exactly to the total shown for the group
 // (roundParts: the lines rounded against the total, largest remainder first). The totals are the same numbers Saved, the
 // balance and the chart use: each month ahead rounded once (forecastTable's incAt / outAt), the next h months the sum of those.
-// rows: d.inc or d.ex; nv: the months used; so / up: each line's this month so far and still to come.
+// rows: d.inc or d.ex; nv: the months used (the last one is this month); so / up: each line's this month so far and its known
+// payments still due.
 export function shownLines(rows, nv, h, so = [], up = []) {
   const sum = (a) => a.reduce((s, x) => s + x, 0);
   // T: the total shown; when it is more than a shekel or so from the lines added up (the next h months, each month rounded on
@@ -87,14 +90,20 @@ export function shownLines(rows, nv, h, so = [], up = []) {
   }
   const Y = fit(rows.map((r) => periodTotal(r, h)), Array.from({ length: h }, (_, k) => Math.round(sum(ahead(k + 1)))).reduce((s, x) => s + x, 0));
   const S = fit(rows.map((r, i) => so[i] || 0)), U = fit(rows.map((r, i) => up[i] || 0));
+  // this month: so far + the known payments still due + what usually still comes after today (lk). The month's total stays
+  // the one rounded in one go (the same number as everywhere else); so far and still due are rounded once, and what usually
+  // still comes is the rest, so its parts add up exactly in every line and in the total
+  const L = fit(rows.map((r, i) => (r.v[nv - 1] || 0) - (so[i] || 0) - (up[i] || 0)), nv ? months[nv - 1].T - S.T - U.T : 0);
+  if (nv) months[nv - 1].p = rows.map((_, i) => S.p[i] + U.p[i] + L.p[i]);
   return {
-    total: { v: months.map((m) => m.T), so: S.T, up: U.T, mean: A.T, next: N.T, year: Y.T },
-    rows: rows.map((_, i) => ({ v: months.map((m) => m.p[i]), so: S.p[i], up: U.p[i], mean: A.p[i], next: N.p[i], year: Y.p[i] })),
+    total: { v: months.map((m) => m.T), so: S.T, up: U.T, lk: L.T, mean: A.T, next: N.T, year: Y.T },
+    rows: rows.map((_, i) => ({ v: months.map((m) => m.p[i]), so: S.p[i], up: U.p[i], lk: L.p[i], mean: A.p[i], next: N.p[i], year: Y.p[i] })),
   };
 }
 
 // Every forecast amount the pages show, rounded once (forecastModel's d.shown):
-// inc / out: the table's lines and totals (shownLines; so: this month so far, up: the known payments still due);
+// inc / out: the table's lines and totals (shownLines; so: this month so far, up: the known payments still due, lk: what
+// usually still comes this month);
 // next: next month step by step (Recap's "A look at …" and the strip): really yours at the end of this month, each income
 // and spending line as the table's "Expected" column, their totals and the end of next month (the chart's first month).
 export function shownOf(d, IR = {}, ER = {}, UP = {}, last = 12, h = 12) {

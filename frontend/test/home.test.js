@@ -176,3 +176,24 @@ test("transfers and the wallet's name come from your own accounts only", () => {
   assert.equal(forecastModel({ accounts: [accounts[0], { ...accounts[1], n: "" }], tx }, NOW, {}).wallet, true, "a wallet with no name");
   assert.equal(forecastModel({ accounts: [accounts[0]], tx }, NOW, {}).wallet, false, "no wallet");
 });
+
+test("a bill a jar pays lowers its budget row once, due later, today or late", () => {
+  // made-up rent of 2,000 paid from a jar, in a "Home" budget of 3,000 with 300 already spent this month
+  for (const [dom, when] of [[25, "later"], [17, "today"], [12, "late"]]) {
+    const S = base();
+    S.cats.Home = 1; S.budgets.Home = 3000;
+    S.jars.push({ id: 2, n: "Rent jar", p: 2, bal: 2500, need: 0, bill: "rent" });
+    S.bills = [{ n: "Rent", every: 1, dom, anchor: 1, match: "rent", cat: "Home", manual: true, mode: "rule", amt: 2000 }];
+    ["2026-08", "2026-09"].forEach((m, i) => S.tx.push({ id: 40 + i, d: `${m}-${String(dom).padStart(2, "0")}`, desc: "Rent", from: "Bank Hapoalim", to: "Rent", a: -2000, c: "Home" }));
+    S.tx.push({ id: 50, d: "2026-10-03", desc: "Paint", from: "Bank Hapoalim", to: "Paint shop", a: -300, c: "Home" });
+    const M = homeModel(S, NOW, {}), F = M.flow, left = flowSteps(F, "left");
+    assert.ok(F.up.some((b) => b.n === "Rent" && b.amt === 2000), when); // the rent still leaves the bank
+    const row = left.src.find((r) => r.k === "Home");
+    assert.equal(row.left, 3000 - 300 - 2000, when); // 700 still to come, the rent taken off once
+    assert.equal(row.upIn, 0, when);
+    assert.ok(left.upJar >= 2000, when); // the jar pays the rent, so it is not taken off again in the jars step
+    assert.ok(Math.abs(left.eFree - F.free) < 0.01 && left.eOver == F.over, when); // Free to use: the same as Home's number
+    const ks = left.cols.slice(1, -1).reduce((s, c) => s + c.a, 0);
+    assert.ok(Math.abs(F.cash - ks - left.eFree) < 0.01, when);
+  }
+});

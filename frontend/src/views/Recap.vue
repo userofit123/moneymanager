@@ -35,6 +35,8 @@ const SEED = (() => { let n = 1; try { n = (parseInt(readPref("moneyGreet"), 10)
 const H = () => locale.value === "he";
 const G = (s) => (H() ? gen(s) : s);
 const L = (k, p, n) => G(n == null ? t("recap." + k, p || {}) : t("recap." + k, p || {}, n));
+// the name of one of the app's key numbers (lib/keyNumbers.js), the same on every page
+const N = (k, p) => G(t("num." + k, p || {}));
 
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const mn = (n) => `<bdi class="rkc">${n < 0 ? "−" : ""}<small>₪</small><span class="cnt" data-v="${Math.round(Math.abs(n))}">${f0(n)}</span></bdi>`;
@@ -118,11 +120,11 @@ function dayBars(m) {
   for (let i = 0; i < n; i++) { const x = H() ? W - bw - i * (bw + gap) : i * (bw + gap); s += hs[i] != null ? `<rect x="${x}" y="${Hh - hs[i]}" width="${bw}" height="${hs[i]}" rx="${Math.min(4, bw / 2)}" class="${i == m.day - 1 ? "t" : "b"} gr" style="--i:${i}"/>` : `<rect x="${x}" y="${Hh - 2}" width="${bw}" height="2" rx="1" class="f"/>`; }
   return `<div class="rkbw"><svg class="rkv bars" viewBox="0 0 ${W} ${Hh}" preserveAspectRatio="none" role="img" aria-label="${esc(L("barsAria"))}">${s}</svg><div class="rktip" hidden></div></div>`;
 }
-const nowBar = (m) => { const set = m.inJars + m.buffer, out = m.sureOwn + m.limitsLeft, free = Math.max(0, m.cash - m.cardsNext - set - out); return segBar([[L("nextT"), m.cardsNext, "c4", "now"], [L("jarsSet"), set, "c3", "jars"], [L("planned"), out, "c2", "budg"], [L("free"), free, "c1", "now"]]); };
-const aheadBar = (m) => segBar([[L("cards"), m.cardsThis, "c1", "now"], [L("bills"), m.billsTot, "c2", "bills"]]);
+const nowBar = (m) => { const P = m.freeParts; return segBar([[N("cardsUnpaid"), P.cards, "c4", "now"], [N("upcomingS"), P.up, "c5", "ahead"], [N("leftBudgets"), P.toCome, "c2", "budg"], [N("putAside"), P.aside, "c3", "jars"], [N("free"), Math.max(0, P.free), "c1", "now"]]); };
+const aheadBar = (m) => segBar([[L("cards"), m.cardsThis, "c1", "now"], [N("upcomingS"), m.billsTot, "c2", "bills"]]);
 function pathChart(m) {
   const W = 600, Hh = 110, px = 18, top = 14, bot = 14, xs = [px, px + (W - 2 * px) * Math.min(1, Math.max(0.05, m.day / m.dim)), W - px];
-  const vals = [isFinite(m.start) ? m.start : m.cash, m.cash, m.end], lo = Math.min(...vals), hi = Math.max(...vals), span = Math.max(1, hi - lo), Y = (v) => Hh - bot - ((v - lo) / span) * (Hh - top - bot);
+  const vals = [isFinite(m.start) ? m.start : m.cash, m.cash, m.endMonth], lo = Math.min(...vals), hi = Math.max(...vals), span = Math.max(1, hi - lo), Y = (v) => Hh - bot - ((v - lo) / span) * (Hh - top - bot);
   const ys = vals.map(Y), a = `${xs[0]},${ys[0]} ${xs[1]},${ys[1]}`;
   return `<div class="rkpw"><svg class="rkv path" viewBox="0 0 ${W} ${Hh}" aria-hidden="true"><defs><linearGradient id="rkg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--acc)" stop-opacity=".28"/><stop offset="1" stop-color="var(--acc)" stop-opacity="0"/></linearGradient></defs><line x1="${px}" x2="${W - px}" y1="${Hh - bot + 8}" y2="${Hh - bot + 8}" class="ax"/><polygon points="${xs[0]},${Hh - bot + 8} ${a} ${xs[1]},${Hh - bot + 8}" fill="url(#rkg)" class="ar"/><polyline points="${a}" class="ln" pathLength="1"/><polyline points="${xs[1]},${ys[1]} ${xs[2]},${ys[2]}" class="ln d"/><circle cx="${xs[0]}" cy="${ys[0]}" r="5" class="dt"/><circle cx="${xs[1]}" cy="${ys[1]}" r="7" class="dn"/><circle cx="${xs[2]}" cy="${ys[2]}" r="5" class="dt e"/></svg><div class="rkpt" style="--x:${((xs[1] / W) * 100).toFixed(2)}%;--y:${((ys[1] / Hh) * 100).toFixed(2)}%"><span>${L("pToday")}</span><b>${mi(vals[1])}</b></div></div><div class="rkpl"><div><span>${L("pStart")}</span><b>${mi(vals[0])}</b></div><div><span>${L("pEnd")}</span><b>${mi(vals[2])}</b></div></div>`;
 }
@@ -150,7 +152,7 @@ function budRow(b) {
 const attnCard = (tone, name, tag, why, goK, extra) => `<a class="rkbr ${tone}" ${goK ? `data-a="recapGo" data-k="${esc(goK)}"` : ""}><div class="h"><b>${name}</b><span>${tag}</span></div><p>${why}</p>${extra || ""}</a>`;
 // what needs a look, each with its kind (b: a budget, j: the jars, c: a category above usual), at most 4
 function attnList(m) {
-  const out = [...m.over, ...m.risk].map((b) => ({ kind: "b", html: budRow(b) })), short = m.heldEnd - m.end;
+  const out = [...m.over, ...m.risk].map((b) => ({ kind: "b", html: budRow(b) })), short = m.heldEnd - m.endMonth;
   if (m.heldEnd >= 1 && short >= 1) out.push({ kind: "j", html: attnCard("w", L("jarsH"), L("short"), L("jarsShort", { a: mi(m.heldEnd), b: mi(short) }), "jars") });
   const a = m.above.find((x) => !m.over.concat(m.risk).some((b) => b.k == x.k));
   if (a) out.push({ kind: "c", k: a.k, html: attnCard("w", nm(catN(a.k)), L("aboveTag"), L("aboveX", { s: mi(a.s), u: mi(a.u) }), ck(a.k)) });
@@ -179,7 +181,7 @@ const PARTS = {
     const x = m.steps[i], had = hasStart(m), last = i == m.steps.length - 1, rg = `${x.from}@${x.to}`;
     // why "after card bills" is lower, in brackets after its name: what is due on each day (the first 3)
     const owedWhy = (x) => (x.due.length ? `${L("afterCards")} <span class="qd2">(${x.due.slice(0, 3).map((o) => L("dueOn", { a: mi(o.a), date: dshort(o.d) })).join(", ")}${x.due.length > 3 ? ", …" : ""})</span>` : L("afterCards"));
-    const ends = () => [last ? L("stillInToday") : L("stillIn"), x.b1, "", x.owed >= 1 ? [owedWhy(x), x.b1 - x.owed] : null];
+    const ends = () => [last ? N("inAccounts") : L("stillIn"), x.b1, "", x.owed >= 1 ? [owedWhy(x), x.b1 - x.owed] : null];
     // who paid (or which cards): one line each under the total when there are several, at most 5
     const parts = (L0, k) => {
       if (L0.length < 2) return [];
@@ -218,7 +220,7 @@ const PARTS = {
   },
   now: (m, zz) => {
     // what you have today, and what is yours once the card spending still to come leaves the accounts
-    const sum = m.cardsOwed >= 1 ? sumBox([L("leftNow"), m.cash, "now"], [{ k: "out", label: L("cardsLeave"), amt: m.cardsOwed, link: "now", note: L("cardsLeaveX") }], [L("yoursAfter"), m.cash - m.cardsOwed]) : "";
+    const P = m.freeParts, cash = Math.round(m.cash), sum = P.cards >= 1 ? sumBox([N("inAccounts"), cash, "now"], [{ k: "out", label: N("cardsUnpaid"), amt: P.cards, link: "now", note: L("cardsLeaveX") }], [L("yoursAfter"), cash - P.cards]) : "";
     // this month so far, compared with the same day last month (or the last 7 days with the 7 before), then each day's spending
     const d = m.same - m.ex, sp = mi(m.ex); let tone = "", txt = L("monthOnly", { a: sp });
     if (m.same >= 100 && m.ex >= 100) { if (Math.abs(d) < Math.max(100, m.same * 0.08)) txt = L("monthSame", { a: sp }); else if (d > 0) (txt = L("monthLess", { a: sp, b: mi(d) })), (tone = "good"); else (txt = L("monthMore", { a: sp, b: mi(-d) })), (tone = "warn"); }
@@ -228,36 +230,36 @@ const PARTS = {
   // how today's money is split, the same way as on the Jars page: your jars, the cushion, what is planned for the rest of this
   // month (bills and budgets), and what is free. Card purchases not paid yet are taken off too: the card bill will take that money.
   split: (m, zz) => {
-    // what you will probably still spend, biggest first: what is left in each budget, or a usual month's spending (top 4 and the rest)
+    // what is still to come this month, biggest first: what is left in each budget, or a usual month's spending (top 4 and the rest)
+    const P = m.freeParts, R0 = Math.round, free = P.free; // whole shekels (homeModel's Free to use), so the lines add up
     const likely = () => {
-      const L0 = m.plannedRows.filter((x) => x.kind != "bill"), top = L0.slice(0, 4), r = roundParts([...top.map((x) => x.amt), L0.slice(4).reduce((s, x) => s + x.amt, 0)], m.limitsLeft), rest = r.pop();
+      const L0 = P.toComeRows, top = L0.slice(0, 4), r = roundParts([...top.map((x) => x.amt), L0.slice(4).reduce((s, x) => s + x.amt, 0)], P.toCome), rest = r.pop();
       return [...top.map((x, i) => [`${catN(x.k)} · ${L("pk." + x.kind)}`, r[i], ck(x.k)]), ...(rest >= 1 ? [[L("otherCats"), rest, "budg"]] : [])];
     };
-    // the payments still due this month that no jar pays for (the rest is already in the jars)
-    const own = aheadRows(m).map((x) => ({ ...x, a: x.a - (x.cov || 0) })).filter((x) => x.a >= 0.5).sort(byDay);
-    const R0 = Math.round, free = R0(m.cash) - R0(m.cardsNext) - R0(m.inJars) - R0(m.buffer) - R0(m.sureOwn) - R0(m.limitsLeft); // whole shekels, so the lines add up
-    const jars = m.jarsHeld.length ? roundParts(m.jarsHeld.map((j) => j.v), m.inJars).map((v, i) => [nm(m.jarsHeld[i].n), v, "jars"]) : [];
-    // the fixed amounts first, the guess last: card purchases already made, the cushion, the jars, the payments still due,
-    // then what you will probably still spend
+    // the payments still due this month, by day (their whole amount: a jar that pays one is not counted again under Put aside)
+    const ups = m.bills.map((b) => ({ n: b.n, a: b.amt, d: ymd(b.nx), id: b.id })).sort(byDay);
+    // put aside: what the jars hold (less what they pay of the payments above) and the safety cushion
+    const cush = R0(m.buffer), aside = [...(P.aside - cush >= 1 ? [[t("home.inJars"), P.aside - cush, "jars"]] : []), ...(cush >= 1 ? [[L("cushion"), cush, "jars"]] : [])];
+    // the same parts, in the same order, as Home's money flow: card purchases not paid yet, the payments still due, what is
+    // left in your budgets, then what is put aside
     const groups = [
-      ...(m.cardsNext >= 1 ? [{ k: "out", label: L("nextT"), amt: R0(m.cardsNext), link: "now" }] : []),
-      ...(m.buffer >= 1 ? [{ k: "out", label: L("cushion"), amt: m.buffer, link: "jars" }] : []),
-      ...(m.inJars >= 1 ? [{ k: "out", label: L("jarsSet"), amt: m.inJars, link: "jars", note: m.sureJar >= 1 ? L("jarsInc", { a: mi(m.sureJar) }) : "", subs: jars }] : []),
-      ...(m.sureOwn >= 1 ? [{ k: "out", label: L("stillPay"), amt: R0(m.sureOwn), link: "ahead", subs: payRows(own, R0(m.sureOwn), "bills") }] : []),
-      ...(m.limitsLeft >= 1 ? [{ k: "out", label: L("planned"), amt: R0(m.limitsLeft), link: "budg", tip: L("plannedX"), subs: likely() }] : []),
+      ...(P.cards >= 1 ? [{ k: "out", label: N("cardsUnpaid"), amt: P.cards, link: "now" }] : []),
+      ...(P.up >= 1 ? [{ k: "out", label: N("upcoming"), amt: P.up, link: "ahead", subs: payRows(ups, P.up, "bills") }] : []),
+      ...(P.toCome >= 1 ? [{ k: "out", label: N("leftBudgets"), amt: P.toCome, link: "budg", tip: L("plannedX"), subs: likely() }] : []),
+      ...(P.aside >= 1 ? [{ k: "out", label: N("putAside"), amt: P.aside, link: "jars", subs: aside.length > 1 ? aside : [] }] : []),
     ];
-    return part(zz, "pie", free < 0 ? "tn" : "", L("splitT"), "jars", mn(free), L(free < 0 ? "splitShort" : "splitX"), nowBar(m) + sumBox([L("leftNow"), m.cash, "now"], groups, [L("free"), free]));
+    return part(zz, "pie", free < 0 ? "tn" : "", N("free"), "jars", mn(free), L(free < 0 ? "splitShort" : "splitX"), nowBar(m) + sumBox([N("inAccounts"), R0(m.cash), "now"], groups, [N("free"), free]));
   },
   ahead: (m, zz) => {
     // only what leaves the accounts this month: card charges due this month and the bills still due
     // the line says only what is there: card bills, other bills, or both, and the sum shows each
-    const cards = m.cardsThis >= 1, bills = m.billsTot >= 1, [ca, ba] = roundParts([m.cardsThis, m.billsTot], m.sure);
+    const cards = m.cardsThis >= 1, bills = m.billsTot >= 1, ba = m.freeParts.up, ca = m.sure - ba; // the upcoming payments: the same number as everywhere
     const AR = aheadRows(m), cardSubs = payRows(AR.filter((x) => x.card).sort(byDay), ca, "ahead"), billSubs = payRows(AR.filter((x) => !x.card).sort(byDay), ba, "bills");
     // the part a jar pays for, so it is clear why "Free to use" does not take it off again
     const jarLine = m.sureJar >= 1 ? " " + L(m.jarsUsed.length == 1 ? "fromJar" : "fromJars", { a: mi(m.sureJar), jar: nm(m.jarsUsed[0]) }) : "";
-    const groups = [...(cards ? [{ k: "out", label: L("cardBill", {}, 2), amt: ca, link: "ahead", subs: cardSubs }] : []), ...(bills ? [{ k: "out", label: L("bills"), amt: ba, link: "bills", subs: billSubs }] : [])];
+    const groups = [...(cards ? [{ k: "out", label: L("cardBill", {}, 2), amt: ca, link: "ahead", subs: cardSubs }] : []), ...(bills ? [{ k: "out", label: N("upcomingS"), amt: ba, link: "bills", subs: billSubs }] : [])];
     return part(zz, "ahead", "", L("stillPay"), "ahead", mn(m.sure), L(cards && bills ? "stillPayX" : cards ? "stillPayC" : "stillPayB") + jarLine,
-      aheadBar(m) + sumBox([L("leftNow"), m.cash, "now"], groups.length ? groups : [{ k: "out", label: L("toPay"), amt: m.sure, link: "ahead" }], [L("willLeft"), m.afterSure]) + upList(m));
+      aheadBar(m) + sumBox([N("inAccounts"), m.cash, "now"], groups.length ? groups : [{ k: "out", label: L("toPay"), amt: m.sure, link: "ahead" }], [L("willLeft"), m.afterSure]) + upList(m));
   },
   // the card purchases that leave the accounts next month, by card, with the day each card's bill comes
   nextcard: (m, zz) => {
@@ -265,21 +267,21 @@ const PARTS = {
     const subs = m.nextCards.map((c, i) => [`${nm(c.n)} · ${dshort(c.d)}`, amts[i], "now"]);
     // your balance now, the card bills, and what is really yours once they are paid
     const one = m.nextCards.length == 1, sameDay = m.nextCards.every((c) => c.d == first);
-    const sum = sumBox([L("leftNow"), m.cash, "now"], [{ k: "out", label: one ? nm(m.nextCards[0].n) : L("cardBill", {}, 2), amt: m.cardsNext, link: "now", subs: one ? [] : subs }], [L("reallyYours"), m.cash - m.cardsNext, "", null, L("reallyX", { date: dlong(first) })]);
+    const sum = sumBox([N("inAccounts"), m.cash, "now"], [{ k: "out", label: one ? nm(m.nextCards[0].n) : L("cardBill", {}, 2), amt: m.cardsNext, link: "now", subs: one ? [] : subs }], [L("yoursAfter"), m.cash - m.cardsNext, "", null, L("reallyX", { date: dlong(first) })]);
     return part(zz, "card", "", L("nextT"), "now", mn(m.cardsNext), one || !sameDay ? L("nextX", { date: dlong(first) }, m.nextCards.length) : L("nextXs", { date: dlong(first) }), sum);
   },
   attn: (m, zz) => {
     const it = attnList(m);
     if (!it.length) return part(zz, "check", "tp", L("attn"), "budg", `<span class="rkw">${L("allGood")}</span>`, L("allGoodX"));
-    const jarBtn = m.heldEnd - m.end >= 1 ? relBtn(m) : "", w = attnWords(it);
+    const jarBtn = m.heldEnd - m.endMonth >= 1 ? relBtn(m) : "", w = attnWords(it);
     return part(zz, "warn", it.length && m.over.length ? "tn" : "tw", w.head, w.link, `<span class="rkw">${w.big}</span>`, w.line + jarBtn, `<div class="rkbl">${it.map((o) => o.html).join("")}</div>`);
   },
   end: (m) => {
     // the summary of the page: what is in your accounts today and what is expected at the end of the month, small, side by side;
     // then the money you really have, big: today's balance less the card purchases already made and the payments already due
     const really = m.reallyNow;
-    const two = `<div class="rkst"><a data-a="recapGo" data-k="now"><span>${L("stToday")}</span><b>${mi(m.cash)}</b></a><a data-a="recapGo" data-k="ahead"><span>${L("stEnd")}</span><b>${mi(m.end)}</b></a></div>`;
-    return `<section class="rk rr${really < 0 ? " tn" : ""}">${tile("path", really < 0 ? "tn" : "")}<a class="rkl" data-a="recapGo" data-k="now">${L("statusT")}<i>${H() ? "←" : "→"}</i></a>${two}<div class="rkrl">${L("reallyYours")}</div><div class="rkn">${mn(really)}</div><div class="rkp">${L("stReallyX")}</div>${pathChart(m)}</section>`;
+    const two = `<div class="rkst"><a data-a="recapGo" data-k="now"><span>${N("inAccounts")}</span><b>${mi(m.cash)}</b></a><a data-a="recapGo" data-k="ahead"><span>${N("endMonth", { month: mname(m.MK) })}</span><b>${mi(m.endMonth)}</b></a></div>`;
+    return `<section class="rk rr${really < 0 ? " tn" : ""}">${tile("path", really < 0 ? "tn" : "")}<a class="rkl" data-a="recapGo" data-k="now">${L("statusT")}<i>${H() ? "←" : "→"}</i></a>${two}<div class="rkrl">${N("afterKnown")}</div><div class="rkn">${mn(really)}</div><div class="rkp">${L("stReallyX")}</div>${pathChart(m)}</section>`;
   },
   next: (m) => {
     // a prediction for next month, exactly the Forecast page's first month (forecastModel's d.month1): what is really yours
@@ -289,7 +291,7 @@ const PARTS = {
     const F = FC.value; if (!F) return "";
     // the amounts are the Forecast's own shown numbers (d.shown.next, whole shekels rounded once in forecast.js): each line is
     // the table's "Expected" amount, the totals and the end are the strip's, and they add up exactly
-    const m1 = F.d.shown.next, mon = mname(m.nmk), last = m.MK + "-" + p2(m.dim), dim1 = new Date(+m.nmk.slice(0, 4), +m.nmk.slice(5, 7), 0).getDate();
+    const m1 = F.d.shown.next, mon = mname(m.nmk), dim1 = new Date(+m.nmk.slice(0, 4), +m.nmk.slice(5, 7), 0).getDate();
     const inc = m1.inc, ex = m1.out, end = m1.end, iT = m1.incT, eT = m1.outT;
     const ia = inc.map((x) => x.a), eTop = ex.slice(0, 4), ea = eTop.map((x) => x.a), eRest = eT - ea.reduce((s, x) => s + x, 0);
     // the same income names as the Forecast page (the name you gave it, or its category), shown in Hebrew through tx()
@@ -300,7 +302,7 @@ const PARTS = {
       ...(eT >= 1 ? [{ k: "out", label: L("spendIn", { mon }), amt: eT, link: "fc", subs: [...eTop.map((x, i) => [catN(x.k), ea[i], "fc", "s"]), ...(eRest >= 1 ? [[L("otherCats"), eRest, "fc", "s"]] : [])] }] : []),
     ];
     const endD = dlong(`${m.nmk}-${p2(dim1)}`);
-    return `<section class="rk rr rknext${end < 0 ? " tn" : ""}"><a class="rkl" data-a="recapGo" data-k="fc">${L("nextMonT", { mon })}<i>${H() ? "←" : "→"}</i></a><div class="rkn">${mn(end)}</div><div class="rkp">${L("nextMonX", { mon, date: endD })}</div>${sumBox([L("reallyOn", { date: dlong(last) }), m1.really, "ahead"], groups, [L("reallyOn", { date: endD }), end])}</section>`;
+    return `<section class="rk rr rknext${end < 0 ? " tn" : ""}"><a class="rkl" data-a="recapGo" data-k="fc">${L("nextMonT", { mon })}<i>${H() ? "←" : "→"}</i></a><div class="rkn">${mn(end)}</div><div class="rkp">${L("nextMonX", { mon, date: endD })}</div>${sumBox([N("endMonth", { month: mname(m.MK) }), m1.really, "ahead"], groups, [N("endMonth", { month: mon }), end])}</section>`;
   },
 
 

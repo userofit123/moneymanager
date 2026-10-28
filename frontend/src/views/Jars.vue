@@ -111,7 +111,7 @@ const etaTip = (e) => TP(T("fullByT", { when: etaWhen(e) }), [[T("toSave"), fm(e
 const statTips = computed(() => { const m = M.value.month, F = M.value.F; return {
   putIn: TP(t("jars.putIn"), [[T("thisMonth"), fm(m.got)]], T("putInNote")),
   still: TP(t("jars.still"), [[T("needed"), fm(m.still)]], T("stillNote")),
-  avail: TP(t("jars.avail"), [[t("jars.av.cash"), fm(F.cash)], ...(F.cards >= 1 ? [[t("home.cardsUnpaid"), fm(F.cards)]] : []), [T("inJars"), fm(F.inJars)], ...(F.buffer ? [[t("jarp.kept"), fm(F.buffer)]] : []), [T("reserve"), fm(F.reserve)], "---", [T("freeIn"), fm(F.free)]], T("availNote")),
+  avail: TP(t("num.free"), [[t("num.inAccounts"), fm(F.cash)], ...(F.cards >= 1 ? [[t("num.cardsUnpaid"), fm(F.cards)]] : []), ...(F.up >= 1 ? [[t("num.upcoming"), fm(F.up)]] : []), ...(F.toCome >= 1 ? [[t("num.leftBudgets"), fm(F.toCome)]] : []), ...(F.aside >= 1 ? [[t("num.putAside"), fm(F.aside)]] : []), "---", [t("num.free"), fm(F.free)]], T("availNote")),
 }; });
 const lateText = (l) => (l.kind === "after" ? t("jars.lateAfter", { when: mlab(l.when), due: mlab(l.due), amount: fm(l.need) }) : t("jars.lateNever", { due: mlab(l.due) }));
 const ringText = (j) => (j.open ? "₪" + (j.bal >= 1e4 ? Math.round(j.bal / 1e3) + "k" : f0(j.bal)) : j.pc + "%");
@@ -141,7 +141,7 @@ const doneLine = (d) => [t("jars.doneOn", { date: dstr(d.done) }), d.need > 0 ? 
     <template v-else>
       <div class="jhero">
         <div class="jh1">
-          <div class="lbl">{{ t("jars.safe") }}</div>
+          <div class="lbl">{{ t("num.free") }}</div>
           <div class="val"><small>₪</small><span>{{ f0(M.F.free) }}</span></div>
           <div id="availSub" class="sm">
             <div class="sm">{{ t("jars.safeSub") }}</div>
@@ -157,7 +157,7 @@ const doneLine = (d) => [t("jars.doneOn", { date: dstr(d.done) }), d.need > 0 ? 
           <div class="jstats">
             <div v-tip="statTips.putIn"><span>{{ t("jars.putIn") }}</span><b class="num">{{ fm(M.month.got) }}</b></div>
             <div v-tip="statTips.still"><span>{{ t("jars.still") }}</span><b class="num">{{ fm(M.month.still) }}</b></div>
-            <div v-tip="statTips.avail"><span>{{ t("jars.avail") }}</span><b class="num" :class="{ neg: M.month.waiting }">{{ fm(M.F.free) }}</b></div>
+            <div v-tip="statTips.avail"><span>{{ t("num.free") }}</span><b class="num" :class="{ neg: M.month.waiting }">{{ fm(M.F.free) }}</b></div>
           </div>
         </div>
       </div>

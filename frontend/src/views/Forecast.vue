@@ -117,25 +117,30 @@ const moName = (j) => mshort(M.value.FH.keys[j]);
 const amt = (v) => (Math.abs(v) < 0.5 ? "₪0" : (v < 0 ? "−" : "") + "₪" + n0(v));
 // one row: v the months as counted (this month made whole), so: this month so far (the same as Activity), up: the known
 // payments still due this month (Activity's upcoming ones, already inside v), cv: the months after softening,
-// sh: the same amounts as shown (shownLines: whole shekels that add up exactly to the totals shown)
-const rowOf = (key, name, v, so, dr, cv = null, up = 0, sh = null) => ({
+// sh: the same amounts as shown (shownLines: whole shekels that add up exactly to the totals shown), lk: what usually still
+// comes this month (whole shekels; sh.lk when sh is given)
+const rowOf = (key, name, v, so, dr, cv = null, up = 0, sh = null, lk = 0) => ({
   key, name, dr, bars: barsOf(v, so),
   months: used.value.map((j, i) => {
     const now = j == last.value && Math.abs(so - v[i]) >= 0.5;
-    return { j, label: moName(j), v: sh ? sh.v[i] : v[i], so: now ? (sh ? sh.so : so) : null, up: now && Math.abs(up) >= 0.5 ? (sh ? sh.up : up) : null, counted: cv && Math.abs(cv[i] - v[i]) >= 0.5 ? cv[i] : null };
+    return { j, label: moName(j), v: sh ? sh.v[i] : v[i], so: now ? (sh ? sh.so : so) : null, up: now && Math.abs(up) >= 0.5 ? (sh ? sh.up : up) : null, lk: now && (sh ? sh.lk : lk) ? (sh ? sh.lk : lk) : null, counted: cv && Math.abs(cv[i] - v[i]) >= 0.5 ? cv[i] : null };
   }),
 });
 // the known payments still due: "₪497 still to come" (on Saved, where they are taken off: "₪497 still to go out")
 const upText = (up) => (up < 0 ? t("forecast.upcomingOut", { amt: amt(-up) }) : t("forecast.upcomingAmt", { amt: amt(up) }));
+// what usually still comes this month: "₪501 usually still to come" (on Saved, when it takes off: "… usually still to go out")
+const lkText = (lk) => (lk < 0 ? t("forecast.usualOut", { amt: amt(-lk) }) : t("forecast.usualAmt", { amt: amt(lk) }));
 // a bar's tip: the month, then its amount in green (money in) or red (money out; saved: by its sign);
 // this month: so far, still to come and the whole month
 const keep = (s) => (locale.value === "he" ? isolateNumbers(s) : s);
 const money = (key, v) => { const k = key[0] == "t" ? key[1] : key[0], good = k == "i" || (k == "l" && v >= 0); return keep(good ? "++" + amt(v) + "++" : "~~" + amt(v) + "~~"); };
 const still = (up) => t(up < 0 ? "forecast.bt.stillOut" : "forecast.bt.stillIn");
+// money out's total: the same number as the key number "Likely spending for the rest of …", so it has that name
+const usual = (lk, key) => (key == "to" ? t("num.likely", { month: thisMon.value }) : t(lk < 0 ? "forecast.bt.usualOut" : "forecast.bt.usualIn"));
 const barTip = (e, i) => {
   const x = e.x, m = x.months[i];
   if (m.so == null) return TP(m.label, [[e.label, money(x.key, m.v)]]);
-  return TP(t("forecast.bt.now", { mon: m.label }), [[t("forecast.bt.soFar"), money(x.key, m.so)], ...(m.up != null ? [[still(m.up), keep(amt(Math.abs(m.up)))]] : []), "---", [t("forecast.bt.whole"), money(x.key, m.v)]]);
+  return TP(t("forecast.bt.now", { mon: m.label }), [[t("forecast.bt.soFar"), money(x.key, m.so)], ...(m.up != null ? [[still(m.up), keep(amt(Math.abs(m.up)))]] : []), ...(m.lk != null ? [[usual(m.lk, x.key), keep(amt(Math.abs(m.lk)))]] : []), "---", [t("forecast.bt.whole"), money(x.key, m.v)]]);
 };
 const soOf = (o, k) => ((o[k] || [])[last.value] || 0);
 const upOf = (k) => (M.value.UP || {})[k] || 0;
@@ -162,8 +167,9 @@ const toggle = async (k) => {
 };
 // Saved: money in less money out, every column (spending counts in the month you buy, card purchases too), from the
 // rounded amounts shown above it, so the subtraction can be checked by eye
-// (this month: saved so far, the same as Activity's month, and the payments still to come taken off)
-const savedRow = computed(() => rowOf("tl", "", used.value.map((_, i) => Math.round(totIn.value.months[i].v) - Math.round(totOut.value.months[i].v)), Math.round(soAt(totIn.value)) - Math.round(soAt(totOut.value)), dirTot(d.value.inc, "in", d.value.ex), null, -(totOut.value.months.find((y) => y.j == last.value)?.up || 0)));
+// (this month: saved so far, the same as Activity's month, the payments still to come taken off, and what usually still comes in
+// less what usually still goes out)
+const savedRow = computed(() => rowOf("tl", "", used.value.map((_, i) => Math.round(totIn.value.months[i].v) - Math.round(totOut.value.months[i].v)), Math.round(soAt(totIn.value)) - Math.round(soAt(totOut.value)), dirTot(d.value.inc, "in", d.value.ex), null, -(totOut.value.months.find((y) => y.j == last.value)?.up || 0), null, shIn.value.total.lk - shOut.value.total.lk));
 // the table's rows in order: money in and its lines, money out and its lines, and what was saved
 const body = computed(() => [
   { tr: "grp in", label: t("forecast.in"), x: totIn.value, vals: [shIn.value.total.mean, TT.value.i1, TT.value.iH] },
@@ -186,22 +192,18 @@ const endLab = (k) => { const s = new Date(now.value.getFullYear(), now.value.ge
 // four equal tiles that read like a sum: today, then (after the rest of this month) its last day, + what next month saves
 // (with its money in and out, the table's numbers), = what is really yours on next month's last day
 const fmS = (v) => (Math.round(v) < 0 ? "−" : "+") + fm(Math.abs(Math.round(v)));
-// "in your bank", or "in your bank and …" with the wallet's own name (M.wallet), or "and your wallet" when it has none
-const walletT = (k, o = {}) => { const w = M.value.wallet; return !w ? t(k, o) : w === true ? t(k + "G", o) : t(k + "W", { ...o, w }); };
 // The end of this month, part by part (d.eom: whole shekels that add up exactly): the first card's and the "31 Oct" tile's tip.
 const eomTip = computed(() => {
-  const e = d.value.eom, dd = new Date(now.value.getFullYear(), now.value.getMonth() + 1, 0).getDate(), off = (v) => "~~−" + fm(v) + "~~";
-  const day = locale.value === "he" ? dd : dd + (dd == 31 ? "st" : "th"); // the last day of a month is the 28th to the 31st
-  const bank = walletT("fc.x.e.bank");
-  return TP(t("fc.x.endTitle", { month: thisMon.value }), [[bank, fm(e.bank)], [t("fc.x.e.cards"), off(e.cards)], [t("fc.x.e.due"), off(e.due)],
-    [t("fc.x.e.usual", { day }), off(e.usual)], ...(e.inc ? [[t("fc.x.e.inc"), "++" + fm(e.inc) + "++"]] : []), "---", ["=", fm(e.end)]]);
+  const e = d.value.eom, off = (v) => "~~−" + fm(v) + "~~";
+  return TP(t("num.endMonth", { month: thisMon.value }), [[t("num.inAccounts"), fm(e.bank)], [t("num.cardsUnpaid"), off(e.cards)], [t("num.upcoming"), off(e.due)],
+    [t("num.likely", { month: thisMon.value }), off(e.usual)], ...(e.inc ? [[t("fc.x.e.inc"), "++" + fm(e.inc) + "++"]] : []), "---", ["=", fm(e.end)]]);
 });
 const steps = computed(() => {
   // Every amount here is already whole shekels (rounded once in recap.js, jars.js and forecast.js), so the tiles, their
   // tips and the table add up exactly.
   const saved = m1.value.incT - m1.value.outT, e = d.value.eom;
   return [
-    { k: "now", label: t("forecast.how.today"), amt: fm(e.bank), sub: [["", walletT("fc.x.inBank")]], tip: t("fc.x.todayTip") },
+    { k: "now", label: t("forecast.how.today"), amt: fm(e.bank), sub: [["", t("num.inAccounts")]], tip: t("fc.x.todayTip") },
     { k: "cal", op: "go", label: lastDay(0), amt: fm(m1.value.really), sub: [["", t(e.inc ? "fc.x.afterInc" : "fc.x.after", { amt: fmS(e.end - e.bank) })]], tip: eomTip.value },
     { k: saved < 0 ? "out" : "in", op: "+", label: nextMon.value, amt: fmS(saved), tip: t("forecast.how.nextMonTip", { month: nextMon.value }),
       sub: [["io", t("forecast.how.inOut", { inc: fm(m1.value.incT), out: fm(m1.value.outT) })]] },
@@ -248,14 +250,14 @@ const jarCards = computed(() => M.value.jars.J.map((j) => {
 
       <div class="grid g4" id="fcK">
         <BaseCard v-for="[k, l] in CARDS" :key="k" :hero="k == H">
-          <div class="lbl"><span :data-tip="k ? null : eomTip">{{ k ? tk("forecast." + l) + " · " + endLab(k) : t("fc.x.endTitle", { month: thisMon }) }}</span></div>
+          <div class="lbl"><span :data-tip="k ? null : eomTip">{{ k ? tk("forecast." + l) + " · " + endLab(k) : t("num.endMonthS", { month: thisMon }) }}</span></div>
           <div class="val"><small>₪</small>{{ (k ? d.bal[k] : d.really) < 0 ? "−" : "" }}{{ n0(k ? d.bal[k] : d.really) }}</div>
           <template v-if="k">
             <div class="sm"><span class="bd" :class="gap(k) >= 0 ? 'dn' : 'up'">{{ gap(k) >= 0 ? "▲" : "▼" }} ₪{{ n0(gap(k)) }}</span> {{ t("forecast.vsEnd", { month: thisMon }) }}</div>
             <div class="sm" style="margin-top:6px">{{ t("forecast.range", { lo: sg(d.lo[k]), hi: sg(d.hi[k]) }) }}</div>
           </template>
           <template v-else>
-            <div class="sm">{{ walletT("fc.x.bankToday", { amt: fm(d.eom.bank) }) }}</div>
+            <div class="sm">{{ t("fc.x.bankToday", { amt: fm(d.eom.bank) }) }}</div>
           </template>
         </BaseCard>
       </div>
@@ -321,7 +323,7 @@ const jarCards = computed(() => M.value.jars.J.map((j) => {
               </tr>
               <!-- a row's months: one small cell each (month above amount), from the row's start; this month marked.
                    It opens and closes smoothly (the inner box grows from no height). -->
-              <tr v-if="seen.has(e.x.key)" class="fcx"><td colspan="6"><div class="fcxw" :class="{ on: open.has(e.x.key) }" :inert="!open.has(e.x.key)"><div class="fcxi"><ul class="fcml"><li v-for="m in e.x.months" :key="m.j" :class="{ now: m.j == last, more: m.so != null || m.counted != null, neg: m.v < 0 }"><span>{{ m.label }}</span><b class="num">{{ m.so != null ? t("forecast.soFarAmt", { amt: amt(m.so) }) : amt(m.v) }}</b><small v-if="m.up != null">{{ upText(m.up) }}</small><small v-if="m.so != null">{{ t("forecast.normallyAmt", { amt: amt(m.v) }) }}</small><small v-if="m.counted != null">{{ t("forecast.countedAt", { amt: amt(m.counted) }) }}</small></li></ul></div></div></td></tr>
+              <tr v-if="seen.has(e.x.key)" class="fcx"><td colspan="6"><div class="fcxw" :class="{ on: open.has(e.x.key) }" :inert="!open.has(e.x.key)"><div class="fcxi"><ul class="fcml"><li v-for="m in e.x.months" :key="m.j" :class="{ now: m.j == last, more: m.so != null || m.counted != null, neg: m.v < 0 }"><span>{{ m.label }}</span><b class="num">{{ m.so != null ? t("forecast.soFarAmt", { amt: amt(m.so) }) : amt(m.v) }}</b><small v-if="m.up != null">{{ upText(m.up) }}</small><small v-if="m.lk != null">{{ lkText(m.lk) }}</small><small v-if="m.so != null">{{ t("forecast.normallyAmt", { amt: amt(m.v) }) }}</small><small v-if="m.counted != null">{{ t("forecast.countedAt", { amt: amt(m.counted) }) }}</small></li></ul></div></div></td></tr>
             </template>
             <tr class="tot bal"><td><span class="tipd" :data-tip="t('forecast.endTip')">{{ t("forecast.endRow") }}</span></td><td class="mog" /><td /><td class="am">{{ sg(TT.end1) }}</td><td class="am">{{ sg(TT.endH) }}</td><td /></tr>
           </tbody>
