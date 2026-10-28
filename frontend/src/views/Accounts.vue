@@ -14,7 +14,7 @@ import { toast } from "../core/toast.js";
 import { tx } from "../core/heText.js";
 import { getJson } from "../core/http.js";
 import { fmtWhen } from "../core/sources.js";
-import { go } from "../router.js";
+import { go, query } from "../router.js";
 import { openSettingsTab } from "./settings/tab.js";
 import { SI } from "./settings/icons.js";
 import { dstr } from "../dates.js";
@@ -50,18 +50,28 @@ const sel = computed(() => (accSel.value && S.value && accByName(S.value, accSel
 const shown = ref(50), q = ref("");
 watch(accSel, () => { shown.value = 50; q.value = ""; });
 watch(q, () => { shown.value = 50; });
+// The open account lives in the address (/accounts?n=Name), so the browser's Back and Forward and a refresh work by themselves:
+// opening an account is a step to its address, Back is the step before it. accSel follows the address.
+const inAddress = computed(() => {
+  const p = new URLSearchParams(query.value), id = p.get("id"), n = p.get("n");
+  if (!id && !n) return null;
+  return (S.value?.accounts || []).find((x) => (id ? String(x.id) == id : x.n == n))?.n || null;
+});
+watch(inAddress, (n) => { accSel.value = n; }, { immediate: true });
+// an account opened from elsewhere in the app (the add window sets accSel) gets its address too
+watch(accSel, (n) => { if (n !== inAddress.value) go("/accounts" + (n ? "?n=" + encodeURIComponent(n) : "")); });
 const openAcc = (n) => { accSel.value = n; scrollTo(0, 0); };
+// The "All accounts" button always shows the list (a step forward, like a link); the browser's Back is separate
 const back = () => { accSel.value = null; scrollTo(0, 0); };
 onMounted(() => {
   data.start();
-  const p = new URLSearchParams(location.search), id = p.get("id"), n = p.get("n");
-  if (id || n) { const pick = () => { const a = (S.value?.accounts || []).find((x) => (id ? String(x.id) == id : x.n == n)); if (a) accSel.value = a.n; }; if (S.value) pick(); else { const w = watch(S, (s) => { if (s) { pick(); w(); } }); } }
+  const p = new URLSearchParams(location.search);
   if (p.get("add")) openForm("account");
 });
 
 // ---- the list ----
 const groups = computed(() => (S.value ? accGroupList(S.value) : []));
-const SECS = [["secBank", "", ["bank"]], ["secCard", "", ["card"]], ["secWallet", "", ["wallet"]], ["secOther", "byYou", ["pension", "custom"]]];
+const SECS = [["secBank", "", ["bank"]], ["secCard", "", ["card"]], ["secWallet", "", ["wallet"]], ["secOther", "", ["pension", "custom"]]];
 const sections = computed(() => SECS.map(([k, sub, kinds]) => ({ k, sub, L: groups.value.filter((g) => kinds.includes(g.L[0].kind)) })).filter((s) => s.L.length));
 const cards = computed(() => groups.value.map((g) => {
   const a = g.L[0], tot = g.L.reduce((s, x) => s + accILS(x, fx.value), 0), T = accTotals(S.value, g.n, today.value), mo = cardOf(g.n), tl = accTail(S.value, g.n);
@@ -80,7 +90,7 @@ const D = computed(() => {
   let chart = null;
   if (!card && !a.manual) { const h = accMonthly(S.value, name, today.value, fx.value); chart = { t: "balance", sub: "last12", note: "workedBack", vals: h.vals, labels: h.keys.map((k) => MSHORT(k) + " " + k.slice(2, 4)), full: h.keys.map(MNAME), color: "var(--acc)" }; }
   else if (a.manual && upd.length > 1) { const m = upd.slice().reverse(); chart = { t: "balHist", sub: "everyUpd", note: "", vals: m.map((u) => u.nu), labels: m.map((u) => new Date(u.at).toLocaleDateString(loc.value, { day: "numeric", month: "short" })), full: null, color: "var(--acc)" }; }
-  else if (card) { const h = cardMonthly(S.value, name, today.value); chart = { t: "purchases", sub: "last12", note: "purchasesNote", vals: h.vals, labels: h.keys.map(MSHORT), full: h.keys.map(MNAME), color: "var(--c1)" }; }
+  else if (card) { const h = cardMonthly(S.value, name, today.value); chart = { t: "purchases", sub: "lastN", n: h.keys.length, note: "purchasesNote", vals: h.vals, labels: h.keys.map((k) => (h.keys.length > 12 ? MSHORT(k) + " " + k.slice(2, 4) : MSHORT(k))), full: h.keys.map(MNAME), color: "var(--c1)" }; }
   const since = T.first != "9999-99-99" ? t("acc.since", { date: dstr(T.first) }) : "", latest = T.last ? dstr(T.last) : t("acc.none"), net = T.mIn - T.mOut;
   const tiles = card
     ? [["tChargedMonth", "₪" + f0(mo ? mo.now : 0), mo && mo.last ? t("acc.lastMonthAmt", { amount: "₪" + f0(mo.last) }) : ""], ["tLastMonth", "₪" + f0(mo ? mo.last : 0), t("acc.chargedFull")], ["tReported", fm(tot), a.at ? t("acc.updated", { when: when(a.at) }) : ""], ["tTx", String(T.n), since], ["tOutYear", "₪" + f0(T.yOut), "", "neg"], ["tLatest", latest, ""]]
@@ -134,7 +144,7 @@ onBeforeUnmount(() => ro && ro.disconnect());
     </template>
 
     <template v-else-if="D">
-      <div class="accd"><button type="button" class="btn o s" @click="back">{{ t("acc.back") }}</button><div class="flex" style="gap:8px;flex-wrap:wrap">
+      <div class="accd"><button type="button" class="btn o s" @click="back"><svg class="bkar" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6" /></svg>{{ t("acc.back") }}</button><div class="flex" style="gap:8px;flex-wrap:wrap">
         <template v-if="D.a.custom"><button type="button" class="btn o s" @click="openForm('balance', { id: D.a.id })">{{ t("acc.updBal") }}</button><button type="button" class="btn o s" @click="openForm('account', { id: D.a.id })">{{ t("acc.edit") }}</button><button type="button" class="btn r s" @click="delAsk = D.a.id">{{ t("acc.remove") }}</button></template>
         <button v-else-if="D.a.kind == 'pension'" type="button" class="btn o s" @click="openForm('pension')">{{ t("acc.updBal") }}</button>
         <button v-else-if="D.conn && D.conn.configured" type="button" class="btn o s" @click="goConn">{{ t("acc.goConn") }}</button>
@@ -143,7 +153,7 @@ onBeforeUnmount(() => ro && ro.disconnect());
       <div class="card accH"><div class="flex" style="justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap"><div><div class="lbl" style="margin:0">{{ D.lbl }}</div></div><span class="bd" :class="TONEC[D.st.tone]">{{ stLabel(D.st) }}</span></div>
         <div class="stg" :style="{ '--sc': tileCols(D.tiles.length) }"><div v-for="x in D.tiles" :key="x[0]" class="stl"><span>{{ tk("acc." + x[0]) }}</span><b class="num" :class="x[3] || ''" dir="ltr">{{ x[1] }}</b><i v-if="x[2]">{{ x[2] }}</i></div></div></div>
       <template v-if="D.chart">
-        <h2>{{ tk("acc." + D.chart.t) }}<span class="sm" style="text-transform:none;letter-spacing:0;font-weight:500">{{ tk("acc." + D.chart.sub) }}</span></h2>
+        <h2>{{ tk("acc." + D.chart.t) }}<span class="sm achsub">{{ tk("acc." + D.chart.sub, { n: D.chart.n }) }}</span></h2>
         <div class="card"><div v-if="D.chart.note" class="sm" style="margin-bottom:6px">{{ tk("acc." + D.chart.note) }}</div><LineChart :key="D.name + D.chart.t" :vals="D.chart.vals" :labels="D.chart.labels" :full="D.chart.full" :color="D.chart.color" :box="box" /></div>
       </template>
       <div class="card ss"><div class="ssh"><span class="ssi"><svg viewBox="0 0 24 24" v-html="SI[D.card ? 'card' : 'bank']" /></span><div><b>{{ t("acc.details") }}</b><div class="sm">{{ t("acc.detailsX") }}</div></div></div>

@@ -8,7 +8,10 @@
   max-width: min(320px, calc(100vw - 20px));
   padding: 10px 13px;
   border-radius: 12px;
-  background: var(--s2);
+  /* always frosted, whatever surface style is chosen: a tooltip is not a surface */
+  background: color-mix(in srgb, color-mix(in srgb, var(--tx) 8%, var(--bg)) 96%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(170%);
+  backdrop-filter: blur(14px) saturate(170%);
   color: var(--tx);
   border: 1px solid var(--ol);
   box-shadow: 0 14px 34px -12px rgba(0, 0, 0, .5);
@@ -87,6 +90,40 @@
   font-size: 12px;
   line-height: 1.45;
   margin-top: 2px;
+}
+
+/* bold lead words in a note, a list item, and money in (green) / out (red) inside any line */
+.tip .tn b {
+  color: var(--tx);
+  font-weight: 600;
+}
+
+.tip .tli {
+  position: relative;
+  padding-inline-start: 14px;
+}
+
+.tip .tli::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 3px;
+  inset-block-start: .62em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--tx2);
+}
+
+.tip .tin,
+.tip .tr .tin {
+  color: var(--pos);
+  font-weight: 600;
+}
+
+.tip .tout,
+.tip .tr .tout {
+  color: var(--neg);
+  font-weight: 600;
 }
 
 .tip.on {

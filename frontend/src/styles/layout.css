@@ -339,6 +339,11 @@ html.intro #dash .grid > .card {
   min-width: 0;
 }
 
+/* a tab's contents fade up when the tab is shown */
+.tabfade {
+  animation: fi .35s;
+}
+
 .view.on {
   display: flex;
   flex-direction: column;

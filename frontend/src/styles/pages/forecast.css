@@ -107,8 +107,658 @@ html.mob .jfs {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-/* the table's wrapper scrolls sideways on a narrow screen, which also clips its soft shadow: room below and at the sides keeps the shadow whole */
+/* the table's wrapper scrolls sideways only if a very narrow screen cannot fit it, which also clips its soft shadow: room below and at the sides keeps the shadow whole */
 #fcTab {
+  overflow-x: auto;
   padding: 0 24px 30px;
   margin: 0 -24px -30px;
 }
+
+/* The "what drives the forecast" table: a quiet head, a heading for money in and money out (its own colour on the edge and the words), plain rows, and one calm shade for every total */
+#fcTab th {
+  background: transparent;
+}
+
+#fcTab thead th:first-child {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+  color: var(--tx);
+}
+
+#fcTab td {
+  background: var(--s1);
+}
+
+#fcTab tr.grp td.am {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+#fcTab tr.grp td {
+  padding: 10px 14px;
+  border-top: 1px solid var(--ol);
+  background: color-mix(in srgb, var(--grp) 11%, var(--s1));
+  color: var(--grp);
+}
+
+#fcTab tr.grp td:first-child {
+  box-shadow: inset 4px 0 0 var(--grp);
+}
+
+html.he #fcTab tr.grp td:first-child {
+  box-shadow: inset -4px 0 0 var(--grp);
+}
+
+#fcTab tr.grp.in {
+  --grp: var(--pos);
+}
+
+#fcTab tr.grp.out {
+  --grp: var(--neg);
+}
+
+/* totals: bold, the same size as the other rows */
+#fcTab tr.tot td {
+  background: var(--s2);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* the lines under a heading: normal weight (only the heads, the headings and the totals are bold) */
+#fcTab tbody tr:not(.grp):not(.tot) td {
+  font-weight: 400;
+}
+
+/* every line and total is as tall as a line with its bars, also the last total, which has none */
+#fcTab tbody tr:not(.grp):not(.fcx) {
+  block-size: 46px;
+}
+
+#fcTab tbody tr:not(.grp):not(.tot):hover td {
+  background: var(--s2);
+}
+
+/* the saved line is green when money is left and red when it is not, across the full row */
+#fcTab tr.tot.net.good td {
+  background: color-mix(in srgb, var(--pos) 11%, var(--s1));
+}
+
+#fcTab tr.tot.net.bad td {
+  background: color-mix(in srgb, var(--neg) 11%, var(--s1));
+}
+
+#fcTab tr.tot.net.good td:first-child {
+  color: var(--pos);
+}
+
+#fcTab tr.tot.net.bad td:first-child {
+  color: var(--neg);
+}
+
+/* How next month is worked out: a card like the other sections with four equal tiles inside that read like a sum (right to
+   left in Hebrew), joined by round badges on the seams (a chevron, then + and =). Each tile has the gradient icon block of Recap's sum (.rkeq .qb); the result tile is
+   filled with the accent gradient. On a phone the tiles sit two by two with the badges on the joins. */
+.fchow {
+  container-type: inline-size;
+}
+
+.fcsum {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fcsum li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 6px;
+  min-inline-size: 0;
+  border-radius: 18px;
+  background: var(--bg);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--tx) 7%, transparent);
+}
+
+.fcsum li.s-now { --g1: color-mix(in srgb, var(--acc) 60%, #fff); --g2: var(--acc); }
+.fcsum li.s-cal, .fcsum li.s-out { --g1: color-mix(in srgb, var(--neg) 60%, #fff); --g2: var(--neg); }
+.fcsum li.s-in { --g1: color-mix(in srgb, var(--pos) 60%, #fff); --g2: var(--pos); }
+
+/* the icon block, like Recap's sum */
+.fcsum .qb {
+  display: grid;
+  place-items: center;
+  block-size: 100%;
+  min-block-size: 54px;
+  border-radius: 13px;
+  border-start-end-radius: 22px 46%;
+  border-end-end-radius: 22px 46%;
+  background: linear-gradient(165deg, var(--g1), var(--g2));
+  color: #fff;
+}
+
+html[data-mode=dark] .fcsum .qb {
+  color: #14152a;
+}
+
+.fcsum .qb svg {
+  inline-size: 20px;
+  block-size: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.fcsum .d {
+  display: grid;
+  gap: 1px;
+  padding-block: 6px;
+  min-inline-size: 0;
+}
+
+.fcsum .k {
+  font-size: 13px;
+  color: var(--tx2);
+  white-space: nowrap;
+}
+
+.fcsum .v {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--tx);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.fcsum .s {
+  font-size: 11.5px;
+  color: var(--tx2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* the end of this month: what is taken off on the way may take two lines */
+.fcsum li.s-cal .s {
+  white-space: normal;
+}
+
+/* money in − money out under next month: one line when it fits, else it breaks after the "−" */
+.fcsum .s.io {
+  white-space: normal;
+}
+
+.fcsum .s.io span {
+  white-space: nowrap;
+}
+
+.fcsum li.s-in .v {
+  color: var(--pos);
+}
+
+.fcsum li.s-out .v {
+  color: var(--neg);
+}
+
+/* the round badge on the seam before a tile */
+.fcsum .op {
+  position: absolute;
+  inset-inline-start: -17px;
+  inset-block-start: 50%;
+  translate: 0 -50%;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  inline-size: 28px;
+  block-size: 28px;
+  border-radius: 50%;
+  background: var(--bg);
+  box-shadow: 0 0 0 3px var(--s1);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--tx2);
+}
+
+.fcsum .op svg {
+  inline-size: 16px;
+  block-size: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* the chevron points the way the row reads */
+html.he .fcsum .op svg {
+  transform: scaleX(-1);
+}
+
+/* the result: filled with the accent gradient */
+.fcsum li.s-end {
+  background: linear-gradient(120deg, var(--acc), var(--acc2));
+  box-shadow: 0 12px 26px -14px var(--acc);
+}
+
+.fcsum li.s-end :is(.k, .v, .s),
+.fcsum li.s-end .qb {
+  color: var(--on);
+}
+
+.fcsum li.s-end :is(.k, .s) {
+  opacity: 0.8;
+}
+
+.fcsum li.s-end .qb {
+  background: color-mix(in srgb, var(--on) 17%, transparent);
+}
+
+.fcsum li.s-end .op {
+  color: var(--acc);
+}
+
+@container (max-width: 720px) {
+  .fcsum li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    padding: 10px 12px;
+  }
+
+  .fcsum .qb {
+    display: none;
+  }
+
+  .fcsum .v {
+    font-size: 18px;
+  }
+
+  .fcsum .d {
+    padding: 0;
+  }
+
+  /* room for the badge on the join below the first row */
+  .fcsum li:nth-child(-n+2) {
+    padding-block-end: 16px;
+  }
+
+  /* room for the badge on the side join */
+  .fcsum li:nth-child(even) {
+    padding-inline-start: 18px;
+  }
+
+  .fcsum {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* the second row's first badge sits on the join above it */
+  .fcsum li:nth-child(3) .op {
+    inset-inline-start: calc(50% - 14px);
+    inset-block-start: -17px;
+    translate: none;
+  }
+}
+
+/* direction chips on the group rows read like the others, not like the group's title */
+#fcTab tr.grp td .bd {
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 600;
+}
+
+/* The table's columns: the name takes the rest, the months group is one column of small bars, and the three forecast numbers
+   have the same width. On a phone everything gets narrower so the table fits without sideways scrolling. */
+#fcTab table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+#fcTab col.cb {
+  width: 11rem;
+}
+
+#fcTab col.cv {
+  width: 7.5rem;
+}
+
+#fcTab col.cd {
+  width: 8rem;
+}
+
+#fcTab th.vc,
+#fcTab th.dc {
+  text-align: end;
+}
+
+#fcTab td.dc {
+  text-align: end;
+}
+
+#fcTab th.dc .dhs {
+  display: none;
+  letter-spacing: 0;
+}
+
+/* the Trend head: bold, like the other heads */
+#fcTab th.dc .dhl,
+#fcTab th.dc .dhs {
+  color: var(--tx);
+  font-weight: 700;
+}
+
+/* the months the forecast learns from: their own light band, set apart from the forecast's columns */
+#fcTab .mog {
+  background: color-mix(in srgb, var(--acc) 6%, var(--s1));
+  border-inline: 1px solid color-mix(in srgb, var(--acc) 18%, var(--ol));
+}
+
+#fcTab th.mog {
+  text-align: center;
+  white-space: nowrap;
+  color: var(--tx);
+}
+
+#fcTab tr.grp td.mog,
+#fcTab tr.tot td.mog {
+  background: color-mix(in srgb, var(--acc) 6%, var(--s2));
+}
+
+/* the bars cell keeps little side room, so the bars get most of the group's width */
+#fcTab tbody tr td.fcbars {
+  padding-block: 6px;
+  padding-inline: 8px;
+}
+
+/* the bars: one per month, oldest first (right to left in Hebrew); tapping them lists the months with their amounts */
+#fcTab .fcbw {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  inline-size: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+#fcTab .fcb {
+  flex: 1;
+  display: flex;
+  gap: 2px;
+  block-size: 26px;
+  border-block-end: 1px solid color-mix(in srgb, var(--tx2) 35%, transparent);
+}
+
+/* the bars share the whole group width, so 3, 6 or 12 months fill the same space with no empty end */
+#fcTab .fcbar {
+  position: relative;
+  flex: 1;
+  min-inline-size: 3px;
+}
+
+#fcTab .fcbar i {
+  position: absolute;
+  inset-inline: 0;
+  border-radius: 3px 3px 0 0;
+  background: color-mix(in srgb, var(--acc) 70%, var(--s1));
+}
+
+#fcTab .fcbar:hover i {
+  background: var(--acc);
+}
+
+/* this month: the solid part is what happened so far, the striped part what usually still happens after today */
+#fcTab .fcbar.now i.ex {
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--acc) 45%, transparent) 0 2px, color-mix(in srgb, var(--acc) 14%, transparent) 2px 4px);
+}
+
+#fcTab .fcbar.now i.so {
+  background: var(--acc);
+}
+
+/* saved: below zero is drawn down from the middle, in red */
+#fcTab .fcbar.neg i {
+  border-radius: 0 0 3px 3px;
+  background: color-mix(in srgb, var(--neg) 75%, var(--s1));
+}
+
+#fcTab tr.net .fcbar:not(.neg) i.so,
+#fcTab tr.net .fcbar:not(.neg):not(.now) i {
+  background: color-mix(in srgb, var(--pos) 75%, var(--s1));
+}
+
+#fcTab tr.net .fcbar.now:not(.neg) i.ex {
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--pos) 45%, transparent) 0 2px, color-mix(in srgb, var(--pos) 14%, transparent) 2px 4px);
+}
+
+#fcTab .fccv {
+  flex: none;
+  inline-size: 14px;
+  block-size: 14px;
+  fill: none;
+  stroke: var(--tx2);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.15s;
+}
+
+#fcTab .fcbw[aria-expanded="true"] .fccv {
+  transform: rotate(180deg);
+}
+
+/* the three forecast heads: a bold word, and what it covers in small letters under it */
+#fcTab th .thl,
+#fcTab th .ths {
+  display: block;
+}
+
+#fcTab th .thl {
+  color: var(--tx);
+  font-weight: 700;
+}
+
+#fcTab th .ths {
+  margin-block-start: 2px;
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  line-height: 1.25;
+}
+
+/* a row's months, opened under it: one small cell per month (its name above its amount), from the row's start side,
+   this month marked */
+#fcTab tr.fcx td {
+  padding: 0;
+  border: 0;
+  background: color-mix(in srgb, var(--acc) 6%, var(--s1));
+}
+
+#fcTab tr.fcx .fcml {
+  border-block-start: 1px dashed color-mix(in srgb, var(--acc) 22%, var(--ol));
+}
+
+/* opening and closing: only the box slides (its height, about 250ms); the months inside keep their full size all along.
+   Closed, the box has no height and its months are hidden once it has slid shut. */
+#fcTab .fcxw {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 250ms ease;
+}
+
+#fcTab .fcxw.on {
+  grid-template-rows: 1fr;
+}
+
+#fcTab .fcxi {
+  min-block-size: 0;
+  overflow: hidden;
+  visibility: hidden;
+  transition: visibility 0s 250ms;
+}
+
+#fcTab .fcxw.on .fcxi {
+  visibility: visible;
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #fcTab .fcxw,
+  #fcTab .fcxi {
+    transition: none;
+  }
+}
+
+#fcTab .fcml {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.6rem, 6.5rem));
+  gap: 6px;
+  margin: 0;
+  padding: 8px 14px 10px;
+  list-style: none;
+}
+
+#fcTab .fcml li {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--s1);
+  border: 1px solid color-mix(in srgb, var(--tx2) 14%, transparent);
+  min-inline-size: 0;
+}
+
+#fcTab .fcml span {
+  font-size: 11.5px;
+  color: var(--tx2);
+}
+
+#fcTab .fcml b {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+#fcTab .fcml small {
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--tx2);
+}
+
+#fcTab .fcml li.neg b {
+  color: var(--neg);
+}
+
+/* a month with more to say (so far, still to come) takes two cells; this month is in the accent colour */
+#fcTab .fcml li.more {
+  grid-column: span 2;
+}
+
+#fcTab .fcml li.now {
+  background: color-mix(in srgb, var(--acc) 12%, var(--s1));
+  border-color: color-mix(in srgb, var(--acc) 45%, transparent);
+}
+
+#fcTab .fcml li.now span {
+  color: var(--acc);
+  font-weight: 600;
+}
+
+/* a phone: narrower columns so the table fits the screen; the direction shows only its sign */
+@media (max-width: 700px) {
+  /* the app's phone rule makes tables a scrolling block, which drops the fixed columns */
+  html.mob #fcTab table.rt {
+    display: table;
+  }
+
+  #fcTab col.cb {
+    width: 4rem;
+  }
+
+  #fcTab col.cv {
+    width: 4rem;
+  }
+
+  #fcTab col.cd {
+    width: 2.2rem;
+  }
+
+  #fcTab .fcb {
+    gap: 1px;
+  }
+
+  #fcTab tbody tr td.fcbars {
+    padding-inline: 4px;
+  }
+
+  #fcTab .fcbar {
+    min-inline-size: 2px;
+  }
+
+  /* the direction head shows only its signs */
+  #fcTab th.dc .dhl {
+    display: none;
+  }
+
+  #fcTab th.dc .dhs {
+    display: inline;
+  }
+
+  #fcTab th,
+  #fcTab td {
+    padding-inline: 4px;
+    font-size: 12px;
+  }
+
+  #fcTab tr.tot td,
+  #fcTab tr.grp td.am {
+    font-size: 12px;
+  }
+
+  #fcTab th.mog {
+    white-space: normal;
+  }
+
+  #fcTab th {
+    white-space: normal;
+    line-height: 1.25;
+  }
+
+  #fcTab .dw,
+  #fcTab .fccv {
+    display: none;
+  }
+
+  #fcTab .fcml {
+    grid-template-columns: repeat(auto-fill, minmax(3.9rem, 5.6rem));
+    gap: 4px;
+    padding: 6px 8px 8px;
+  }
+
+  #fcTab .fcml li {
+    padding: 5px 6px;
+  }
+
+  #fcTab .fcml b {
+    font-size: 12px;
+  }
+
+  #fcTab td.dc .bd {
+    padding-inline: 4px;
+  }
+}
+
+/* a row with money in only one month has no direction */
+#fcTab td.dc .fcnd {
+  color: var(--tx2);
+}
+

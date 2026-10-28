@@ -2,6 +2,7 @@
 // Activity: every transaction in one list, with search, filters, grouping, sorting, quick category changes, Needs review and Export.
 // The entry window is the shared one (components/tx/TxWindow.vue); other pages open this page with filters through goActivity().
 import { ref, computed, watch, onMounted, onBeforeUnmount, onUpdated, nextTick } from "vue";
+import { useHistoryStep } from "../core/historyStep.js";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
 import { tx } from "../core/heText.js";
@@ -44,6 +45,7 @@ const name = (x) => displayName(S.value, x);
 
 // ---- the filters ----
 const tab = ref("all");
+useHistoryStep("txTab", tab);
 const EMPTY = { q: "", src: "", cat: "", type: "", tag: "" };
 // The time frame is remembered in this browser ("moneyRanges", entry "tx").
 const savedRange = (() => { const r = readJson("moneyRanges", {}).tx; return r && (RANGES.includes(r.p) || r.p === "custom") ? r : null; })();
@@ -160,10 +162,11 @@ function openRow(x) {
     if (L.length) openTx(L[L.length - 1].id); else openPop("hist", { title: b.n, rows: [], sub: t("txw.chip.bill"), q: b.match });
     return;
   }
+  if (x.upInst) { openTx(x.upInst); return; }
   if (x.balUpd) { go("/accounts?n=" + encodeURIComponent(x.from)); return; }
   openTx(x.id);
 }
-const setCat = (x, c) => setCategory(x.id, c);
+const setCat = (x, c) => setCategory(x.upInst ?? x.id, c); // an expected instalment changes the payment it follows
 // The category of an expected bill: the bill and its latest payment get it (upcat).
 function setBillCat(x, v) {
   data.change((S2) => { const b = S2.bills[x.upBill]; if (!b) return false; b.cat = v || ""; const L = S2.tx.filter((y) => y.a < 0 && !y.virtual && (y.desc + " " + y.to).toLowerCase().includes(b.match)).sort((p, q) => p.d.localeCompare(q.d)), lt = L[L.length - 1]; if (lt && lt.c !== v) lt.c = v; return [["Changed bill category", b.n + " → " + (v || "Uncategorized")]]; });
@@ -267,7 +270,7 @@ onMounted(() => data.start());
                 <td class="mer" style="cursor:pointer" @click="openRow(x)"><div class="mc"><span class="av" :style="avStyle(x)">{{ (name(x) || "?")[0] }}</span><div class="mw"><span class="mt" :title="name(x)">{{ name(x) }}</span><div class="mp"><template v-for="c in chips(x)" :key="c.cls"><span class="bd pc" :class="c.cls" :data-tip="c.tip"><svg v-if="c.icon" class="pi" viewBox="0 0 24 24" v-html="CHIP_ICON[c.icon]"></svg>{{ c.label }}</span> </template></div></div></div></td>
                 <td class="sm ft" :title="nohtml(x.from) + ' → ' + nohtml(x.to)">{{ nohtml(x.from) }} → {{ nohtml(x.to) }}</td>
                 <td><select v-if="x.upBill != null" :value="x.c && x.c !== 'Uncategorized' ? x.c : ''" :aria-label="t('activity.category')" :data-tip="t('txw.a.upcatTip')" @change="setBillCat(x, $event.target.value)"><option value="">{{ t("activity.uncategorized") }}</option><option v-for="c in cats" :key="c" :value="c">{{ catLabel(c) }}</option></select>
-                  <span v-else-if="x.virtual || isXf(x)" class="sm">{{ x.c ? catLabel(x.c) : "—" }}</span>
+                  <span v-else-if="(x.virtual && !x.upInst) || isXf(x)" class="sm">{{ x.c ? catLabel(x.c) : "—" }}</span>
                   <select v-else :value="x.c && x.c !== 'Uncategorized' ? x.c : ''" :aria-label="t('activity.category')" @change="setCat(x, $event.target.value)"><option value="">{{ t("activity.uncategorized") }}</option><option v-for="c in cats" :key="c" :value="c">{{ catLabel(c) }}</option></select></td>
                 <td><span v-for="g2 in x.tags || []" :key="g2" class="tag catl" @click="goTag(g2)">{{ g2 }}</span></td>
                 <td class="am" :class="{ pos: isPos(x) }" dir="ltr"><span v-if="x.balUpd" class="sm" style="font-weight:500">{{ amtText(x) }}</span><template v-else>{{ amtText(x) }}</template><div v-if="x.orig" class="sm" style="font-weight:400">{{ SYM[x.orig.cur] }}{{ f0(x.orig.amt) }} {{ x.orig.cur }}</div></td>

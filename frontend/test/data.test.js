@@ -107,3 +107,17 @@ test("a change that returns false changes nothing and saves nothing", async () =
   assert.equal(s.state.value, before);
   assert.equal(sent.length, 0);
 });
+
+// The last exchange rates that loaded are kept in this browser and used until new ones load (or when they cannot load).
+test("the last exchange rates are used until new ones load", async () => {
+  const mem = {}; globalThis.localStorage = { getItem: (k) => (k in mem ? mem[k] : null), setItem: (k, v) => { mem[k] = String(v); }, removeItem: (k) => { delete mem[k]; } };
+  try {
+    const ok = createDataStore({ fetchJson: async (u) => (u === "/api/fx" ? { fx: { USD: 3.7 }, series: {}, asOf: "2026-10-27" } : { rev: 1, tx: [] }), connect: () => () => {} });
+    await ok.start(); assert.equal(ok.fx.value.fx.USD, 3.7);
+    let release; const slow = new Promise((r) => (release = r));
+    const next = createDataStore({ fetchJson: async (u) => { if (u === "/api/fx") { await slow; throw new Error("offline"); } return { rev: 1, tx: [] }; }, connect: () => () => {} });
+    assert.equal(next.fx.value.fx.USD, 3.7, "before the rates load: the last ones"); assert.ok(next.fx.value.stale);
+    const st = next.start(); release(); await st; await next.loadFx();
+    assert.equal(next.fx.value.fx.USD, 3.7, "they cannot load: the last ones stay");
+  } finally { delete globalThis.localStorage; }
+});

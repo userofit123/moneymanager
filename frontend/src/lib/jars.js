@@ -3,49 +3,147 @@
 // Nothing here changes the data.
 import { homeModel, addM, rdOf } from "./home.js";
 import { dstr } from "../dates.js";
+import { recapModel, incKey } from "./recap.js";
 
 const sum = (a) => a.reduce((t, x) => t + x, 0);
 
-// The name an income is grouped under: who sent it, or else its cleaned-up description.
-const incKey = (t) => { const f = String(t.from || "").trim(); if (f && !/^(bank transfer|other)$/i.test(f)) return f; const d = String(t.desc || "").replace(/[0-9/\\.,:;*#()\-_]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 40); return d || "Other income"; };
+export { incKey } from "./recap.js";
+
+// THE FORECAST'S RULES (the same words are in the page's help and in docs/how-it-works.md; test/forecast-rules.test.js
+// checks each one):
+// 1. Months: it learns from exactly N months (N = your choice: 3, the default, 6 or 12): this month and the N - 1 months
+//    before it, for every row (income and spending alike), on any day of the month. No other months are used.
+// 2. This month = what really happened up to today + what usually happens after today's date. If something usually paid
+//    later in the month was already paid earlier this month, it is not added again. An income that usually comes later in
+//    the month and has not come yet counts as coming.
+// 3. "What usually happens after today's date" is learned from the 2 full months before this month (always those 2), from
+//    the real payment dates, payee by payee (names compared without the numbers banks add), and from the known bills
+//    still due this month (recap.js afterToday).
+// 4. Average per month = the plain average of the N months (a month with nothing counts as ₪0). Income: every month ahead
+//    is exactly that average (no softening, no direction; its Trend is shown for information only). Spending: a very
+//    unusual month is first softened toward normal (est).
+// 5. Spending counts in the month you buy, card purchases too. The forecast starts from what is really yours at the end of
+//    this month: the bank balance expected then, less this month's card purchases not paid yet (made so far and expected
+//    until the end of the month). Each month after that = the month before + its income - its spending.
+// 6. Direction (spending only): a trend fades within a few months and stays within 20% of the average (est).
+// 7. A row (income or spending) with money in only one of the N months: every month ahead is its average, no direction.
+// 8. The Jars and the forecast alert use the same line, from the same chosen months (fcChoices, saved as "moneyFc").
+
 const medOf = (v) => { const x = [...v].sort((a, b) => a - b), h = x.length >> 1; return x.length % 2 ? x[h] : (x[h - 1] + x[h]) / 2; };
-// "Smart" estimate: one unusually large or small month is pulled back toward the typical month, and a trend counts only a little.
-function est(v, m, sl) {
-  const nn = v.length, avg = v.reduce((x, y) => x + y, 0) / nn;
-  if (m != "smart" || nn < 3) return { mean: avg, at: (k) => (m == "avg" || m == "smart" ? avg : Math.min(avg * 1.5, Math.max(avg * 0.5, avg + sl * ((nn - 1) / 2 + k)))) };
-  const med = medOf(v), lo = med > 0 ? med * 0.6 : med * 1.6, hi = med > 0 ? med * 1.6 : med * 0.6, mean = v.map((y) => Math.min(hi, Math.max(lo, y))).reduce((x, y) => x + y, 0) / nn;
-  return { mean, at: (k) => Math.min(mean * 1.3, Math.max(mean * 0.7, mean + sl * 0.5 * Math.min(k, 3))) };
+const avgOf = (v) => (v.length ? v.reduce((x, y) => x + y, 0) / v.length : 0);
+const slope = (v) => { const nn = v.length, mean = avgOf(v); let sl = 0; if (nn > 1) { const xm = (nn - 1) / 2; let num = 0, den = 0; v.forEach((y, i) => { num += (i - xm) * (y - mean); den += (i - xm) ** 2; }); sl = num / den; } return sl; };
+// A line whose change per month is less than this share of its average is "Steady" (forecast.js direction).
+export const STEADY = 0.02;
+// The estimate of a line, from its months v (oldest first).
+// Rule 4: a month far from the typical month (the middle one of the months that had money) is first pulled to within 0.6x
+// to 1.6x of it, so one unusual month counts less; a month with nothing stays ₪0. mean: the plain average after that.
+// Rule 6: sl is its change per month, the same one the direction shows. The direction carries on but fades: the next month
+// moves a full step from the last month, the one after half a step, then a quarter, and so on, and it never goes more than
+// 20% above or below the average. A line that moves less than 2% a month (STEADY) stays at its average. With fewer than 3 months there is no direction: every month is the average.
+// cv: each month as counted (after the pull).
+export function est(v, cap = true) {
+  const nn = v.length, nz = v.filter((y) => y > 0), med = nz.length ? medOf(nz) : 0;
+  const c = cap && med > 0 ? v.map((y) => (y > 0 ? Math.min(med * 1.6, Math.max(med * 0.6, y)) : y)) : v, mean = avgOf(c);
+  if (nn < 3) return { mean, sl: 0, cv: c, at: () => mean };
+  const sl = slope(c);
+  // a line that moves less than STEADY a month is shown as "Steady": every month ahead is exactly its average
+  if (!mean || Math.abs(sl / mean) < STEADY) return { mean, sl, cv: c, at: () => mean };
+  const lo = Math.min(mean * 0.8, mean * 1.2), hi = Math.max(mean * 0.8, mean * 1.2);
+  // the last month sits (nn - 1) / 2 steps after the middle of the months; month k adds 1 + 1/2 + … (k steps, each half the one before)
+  return { mean, sl, cv: c, at: (k) => Math.min(hi, Math.max(lo, mean + sl * ((nn - 1) / 2 + 2 * (1 - 0.5 ** k)))) };
 }
-const slope = (v) => { const nn = v.length, mean = v.reduce((x, y) => x + y, 0) / nn; let sl = 0; if (nn > 1) { const xm = (nn - 1) / 2; let num = 0, den = 0; v.forEach((y, i) => { num += (i - xm) * (y - mean); den += (i - xm) ** 2; }); sl = num / den; } return sl; };
-// One income source or spending category, carried forward. v: the months it is based on, sl: its change per month.
-export function proj(FH, a, n, m, inc) {
-  if (inc) {
-    const occ = []; for (let j = Math.max(FH.first || 0, FH.last - n); j <= FH.last; j++) if (a[j] > 0) occ.push(j);
-    if (occ.length >= 2) { const v = occ.map((j) => a[j]), sl = slope(v); return { v, nn: v.length, sl, recurring: true, ...est(v, m, sl), oneoff: false }; }
-    return { v: [0], mean: 0, sl: 0, nn: 1, oneoff: true, at: () => 0 };
-  }
-  let v = a.slice(Math.max(FH.last - n, FH.first || 0), FH.last); if (!v.length) v = [0];
-  const sl = slope(v); return { v, nn: v.length, sl, ...est(v, m, sl) };
+// Rule 1: the months a forecast learns from, as indexes into forecastHistory's months: this month and the n - 1 before it,
+// never a month before the history starts.
+export const learnIdx = (FH, n) => { const o = []; for (let j = Math.max(FH.first || 0, FH.last - n + 1); j <= FH.last; j++) o.push(j); return o; };
+// One income source or spending category over the months W (a: its months, this month made whole).
+// came / of: in how many of the months it had money. Spending: the part that usually goes on credit cards (share, from the
+// same months; cardA: the card part of each month).
+// Rule 4: income is its plain average every month (no softening, no direction); its direction is still worked out, for
+// the Trend column only. Rule 7: a row with money in only one of the months is its average every month.
+export function proj(W, a, inc, cardA = null, share0 = 0) {
+  const v = W.map((j) => a[j] || 0), came = v.filter((x) => x > 0).length, of = v.length, e = est(v.length ? v : [0], !inc);
+  if (inc || came <= 1) e.at = () => e.mean;
+  if (inc) return { v, W, nn: of, came, of, avg: came ? v.filter((x) => x > 0).reduce((s, x) => s + x, 0) / came : 0, ...e };
+  const tot = v.reduce((x, y) => x + y, 0), cardT = cardA ? W.reduce((s, j) => s + (cardA[j] || 0), 0) : 0;
+  const share = tot > 0 && cardA ? Math.min(1, Math.max(0, cardT / tot)) : share0;
+  return { v: v.length ? v : [0], W, nn: Math.max(1, of), came, of, share, ...e };
 }
-// The last 13 months (12 complete ones and this one) split into income sources and spending categories.
+// The last 13 months (12 complete ones and this one) split into income sources and spending categories, with the part of
+// each month's spending that went on credit cards (catCard, expCard), which leaves the bank a month later with the card bill.
+// first: the first month with transactions (the month after, when they start after the 10th).
 export function forecastHistory(S, H) {
-  const MK = H.MK, N = 13, ks = [];
+  const MK = H.MK, N = 13, ks = [], CC = new Set((S.accounts || []).filter((a) => a.kind == "card").map((a) => a.n));
   for (let i = N - 1; i >= 0; i--) ks.push(addM(MK, -i));
-  const inc = ks.map(() => 0), exp = ks.map(() => 0), cats2 = {}, incS2 = {}, sumA = (a) => a.reduce((x, y) => x + y, 0);
-  (H.rows || []).filter((t) => !t.pending).forEach((t) => { const i = ks.indexOf(rdOf(t).slice(0, 7)); if (i < 0) return; if (t.a > 0) { inc[i] += t.a; const k = incKey(t); (incS2[k] = incS2[k] || ks.map(() => 0))[i] += t.a; } else { exp[i] -= t.a; const k = t.c || "Uncategorized"; (cats2[k] = cats2[k] || ks.map(() => 0))[i] -= t.a; } });
+  const inc = ks.map(() => 0), exp = ks.map(() => 0), expCard = ks.map(() => 0), cats2 = {}, card2 = {}, incS2 = {}, sumA = (a) => a.reduce((x, y) => x + y, 0);
+  const add = (o, k, i, v) => ((o[k] = o[k] || ks.map(() => 0))[i] += v);
+  // pending rows count, the same way the Activity page counts them
+  (H.rows || []).forEach((t) => {
+    const i = ks.indexOf(rdOf(t).slice(0, 7)); if (i < 0) return;
+    if (t.a > 0) { inc[i] += t.a; add(incS2, incKey(S, t), i, t.a); return; }
+    const k = t.c || "Uncategorized"; exp[i] -= t.a; add(cats2, k, i, -t.a);
+    if (CC.has(t.from)) { expCard[i] -= t.a; add(card2, k, i, -t.a); }
+  });
   const f0 = (S.tx || []).filter((t) => !H.k.isFut(t) && !t.virtual).reduce((mm, t) => (t.d < mm ? t.d : mm), "9999-99-99");
   let fi = f0 == "9999-99-99" ? N - 1 : ks.indexOf(f0.slice(0, 7)); if (fi < 0) fi = f0.slice(0, 7) < ks[0] ? 0 : N - 1; if (f0 != "9999-99-99" && +f0.slice(8) > 10 && fi < N - 1) fi++; fi = Math.max(0, Math.min(N - 1, fi));
-  const cat = {}, incSrc = {}, ct = Object.entries(cats2).sort((a, b) => sumA(b[1]) - sumA(a[1])), it = Object.entries(incS2).sort((a, b) => sumA(b[1]) - sumA(a[1]));
-  ct.slice(0, 8).forEach(([k, v]) => (cat[k] = v)); it.slice(0, 6).forEach(([k, v]) => (incSrc[k] = v)); if (it.length > 6) incSrc["Other income"] = ks.map((_, i) => it.slice(6).reduce((s, [, v]) => s + v[i], 0));
-  return { keys: ks, last: N - 1, first: fi, inc, exp, cat, incSrc };
+  const cat = {}, catCard = {}, incSrc = {}, ct = Object.entries(cats2).sort((a, b) => sumA(b[1]) - sumA(a[1])), it = Object.entries(incS2).sort((a, b) => sumA(b[1]) - sumA(a[1]));
+  ct.slice(0, 8).forEach(([k, v]) => { cat[k] = v; catCard[k] = card2[k] || ks.map(() => 0); }); it.slice(0, 6).forEach(([k, v]) => (incSrc[k] = v)); if (it.length > 6) incSrc["Other income"] = ks.map((_, i) => it.slice(6).reduce((s, [, v]) => s + v[i], 0));
+  return { keys: ks, last: N - 1, first: fi, inc, exp, expCard, cat, catCard, incSrc };
 }
-// The money expected to be left in month k from now: expected income minus expected spending.
-export function forecastSurplus(S, H, now, fcOpt = {}) {
-  const n = [3, 6, 12].includes(+fcOpt.n) ? +fcOpt.n : 6, m = fcOpt.m || "smart", FH = forecastHistory(S, H);
-  const E = {}; Object.entries(FH.cat).forEach(([k, a]) => (E[k] = a.slice(0, FH.last))); E["Other / uncategorized"] = FH.exp.slice(0, FH.last).map((t, i) => t - Object.values(FH.cat).reduce((s, a) => s + a[i], 0));
-  const I = Object.values(FH.incSrc).map((a) => proj(FH, a, n, m, true)).filter((r) => !r.oneoff), X = Object.values(E).map((a) => proj(FH, a, n, m)).filter((r) => Math.abs(r.mean) >= 0.5);
-  const at = (k) => I.reduce((s, r) => s + r.at(k), 0) - X.reduce((s, r) => s + r.at(k), 0);
-  return (k) => at(Math.min(k, 12));
+// The forecast line, shared by the Forecast, Recap ("A look at …"), Jars and alerts, so they all show the same numbers
+// (the rules are at the top of this file). It counts money the day it leaves or reaches the bank:
+// - It starts from what is really yours at the end of this month (really, below). Today's amounts are kept for the
+//   pages (start: Recap's reallyNow, today's bank and wallet money less the card purchases already made and not paid yet and
+//   the payments already due; cash: the bank and wallet money itself). The end of this month as Recap works it out (endThis: today's
+//   money, less the card charges and bills still due this month and the usual spending after today not on cards, plus the
+//   income still to come). Really yours then (really): endThis less this month's card purchases not paid yet (Recap's
+//   nextBill), so every month after counts spending in the month you buy.
+// - Each month after that: the month before + its expected income - its expected spending (card purchases included).
+// - Every row's months (W): this month made whole (rules 2 and 3) and the n - 1 before it. ER / IR: the real months (this
+//   month so far), E / IA: the months as counted.
+// - The likely range (lo, hi) widens with the spread of the same months' money in less money out.
+export function forecastLine(S, H, now, fcOpt = {}) {
+  const n = [3, 6, 12].includes(+fcOpt.n) ? +fcOpt.n : 3, FH = forecastHistory(S, H), L = FH.last, W = learnIdx(FH, n), R = recapModel(H, now);
+  const cats = Object.keys(FH.cat), O = "Other / uncategorized", lineOf = (k) => (cats.includes(k) ? k : O), srcOf = (k) => (k in FH.incSrc ? k : "Other income");
+  // what usually happens after today (rule 3): the usual spending after today, by row, and the known bills still due
+  // UP: the known payments still due this month by row (expected bills and future-dated charges), which Activity lists as upcoming
+  const addOut = {}, addCard = {}, addIn = {}, UP = {}, put = (o, k, v) => (o[k] = (o[k] || 0) + v);
+  R.rest.forEach((x) => { put(addOut, lineOf(x.k), x.a); put(addCard, lineOf(x.k), x.card); });
+  R.bills.forEach((b) => { put(addOut, lineOf(b.cat), b.amt); put(UP, lineOf(b.cat), b.amt); });
+  R.incRest.forEach((x) => put(addIn, srcOf(x.k), x.a));
+  const whole = (a, v) => a.map((x, i) => (i == L ? x + (v || 0) : x));
+  const IR = {}, IA = {}; Object.keys(FH.incSrc).forEach((k) => { IR[k] = FH.incSrc[k]; IA[k] = whole(FH.incSrc[k], addIn[k]); });
+  // spending: the biggest categories, and the rest together
+  const E = {}, EC = {}, ER = {}, rest = (tot, part) => tot.map((t, i) => t - cats.reduce((s, k) => s + part[k][i], 0));
+  cats.forEach((k) => { ER[k] = FH.cat[k]; E[k] = whole(ER[k], addOut[k]); EC[k] = whole(FH.catCard[k], addCard[k]); });
+  ER[O] = rest(FH.exp, FH.cat); E[O] = whole(ER[O], addOut[O]); EC[O] = whole(rest(FH.expCard, FH.catCard), addCard[O]);
+  const sumOf = (o, j) => Object.values(o).reduce((s, a) => s + (a[j] || 0), 0), sumW = (o) => W.reduce((s, j) => s + sumOf(o, j), 0);
+  const share0 = sumW(E) > 0 ? sumW(EC) / sumW(E) : 0;
+  const inc = Object.entries(IA).map(([k, a]) => ({ k, ...proj(W, a, true) })).filter((r) => Math.abs(r.mean) >= 0.5);
+  const ex = Object.entries(E).map(([k, a]) => ({ k, ...proj(W, a, false, EC[k], share0) })).filter((r) => Math.abs(r.mean) >= 0.5);
+  // each month's money in and out in whole shekels, rounded once here: the balance, the table and the tiles all add these up
+  const incAt = (k) => Math.round(inc.reduce((s, r) => s + r.at(k), 0)), outAt = (k) => Math.round(ex.reduce((s, r) => s + r.at(k), 0));
+  const cash = H.flow.cash, start = R.reallyNow, endThis = R.end, really = endThis - R.nextBill;
+  // the spread of the same months, worked out the same way as the line (money in less money out)
+  const nets = W.map((j) => sumOf(IA, j) - sumOf(E, j));
+  const nm = nets.length ? nets.reduce((a, b) => a + b, 0) / nets.length : 0, sd = Math.sqrt(nets.reduce((s, x) => s + (x - nm) ** 2, 0) / Math.max(1, nets.length - 1));
+  // net[k]: the money month k saves (its income less its spending), from what is really yours at the end of this month
+  // bal[0] / lo[0] / hi[0]: the end of this month (the chart's first point), then the end of each month after it
+  const bal = [really], lo = [really], hi = [really], net = [0]; let b = really;
+  for (let k = 1; k <= 12; k++) { const c = incAt(k) - outAt(k); b += c; net.push(c); bal.push(b); const w = sd * Math.sqrt(k); lo.push(b - w); hi.push(b + w); }
+  // next month, step by step (for Recap's "A look at …"): really yours at the end of this month, each income, each spending row.
+  const month1 = {
+    endThis, really, cardBill: R.nextBill, cardsMade: R.cardsNext, cardsMore: R.likelyCard,
+    inc: inc.map((r) => ({ k: r.k, a: r.at(1), came: r.came, of: r.of, avg: r.avg })).filter((x) => x.a >= 0.5).sort((a, c) => c.a - a.a),
+    out: ex.map((r) => ({ k: r.k, a: r.at(1) })).filter((x) => x.a >= 0.5).sort((a, c) => c.a - a.a),
+    incT: incAt(1), outT: outAt(1), end: bal[1],
+  };
+  return { n, FH, W, WS: W, nEff: W.length, inc, ex, E, EC, ER, UP, IA, IR, start, cash, endThis, really, cardBill: R.nextBill, share0, bal, lo, hi, net, nm, sd, month1, R, incAt, outAt };
+}
+// The money the forecast line adds or takes away in month k from now (month 1 from today's bank money, so it includes the
+// rest of this month and this month's card purchases): today's bank money plus these adds up to the line.
+export function forecastSurplus(S, H, now, fcOpt = {}, line = null) {
+  const L = line || forecastLine(S, H, now, fcOpt);
+  return (k) => { const j = Math.min(k, 12); return L.bal[j] - (j == 1 ? L.cash : L.bal[j - 1]); };
 }
 
 // Whole months from now until a date (at least 1).
@@ -54,15 +152,22 @@ export const monthsToOf = (now) => (d) => Math.max(1, Math.ceil((new Date(d) - n
 export const capOfAt = (now) => { const monthsTo = monthsToOf(now); return (j, got, off = 0) => (j.cap == null ? null : j.auto && j.due && j.need > 0 ? Math.max(0, Math.ceil((j.need - (j.bal - (got || 0))) / Math.max(1, monthsTo(j.due) - off))) : j.cap); };
 // What each open jar will hold month by month (shared by the Jars and Forecast pages): the free money today
 // plus the money expected to be left each month, shared out in priority order. series: what it will hold, planned: what its monthly amount
-// alone would give, eta: the month (from now) it is full.
-export function jarProject(S, H, now, fcOpt = {}, M = 60) {
-  const capOf = capOfAt(now), sur = forecastSurplus(S, H, now, fcOpt); let pool = H.flow.free;
-  const J = (S.jars || []).filter((j) => !j.done).sort((a, c) => a.p - c.p).map((j) => ({ ...j, b: +j.bal || 0, eta: null, series: [+j.bal || 0], plan: +j.bal || 0, planned: [+j.bal || 0] }));
+// alone would give, eta: the month (from now) it is full. ahead12: what the jars before it took in the first 12 months
+// (so a jar that gets less than planned can say whether those jars or a lack of money is the reason).
+export function jarProject(S, H, now, fcOpt = {}, M = 60, line = null) {
+  // the free money today already has the rest of this month's planned spending (H.flow.R.total) and the card purchases not
+  // paid yet (H.flow.cards) taken off, and the line's first month takes both off too (its end of this month), so they are
+  // given back once to not take them off twice
+  const capOf = capOfAt(now), sur = forecastSurplus(S, H, now, fcOpt, line); let pool = H.flow.free - (H.flow.over || 0) + (H.flow.R ? H.flow.R.total : 0) + Math.max(0, H.flow.cards || 0);
+  const J = (S.jars || []).filter((j) => !j.done).sort((a, c) => a.p - c.p).map((j) => ({ ...j, b: +j.bal || 0, eta: null, ahead12: 0, series: [+j.bal || 0], plan: +j.bal || 0, planned: [+j.bal || 0] }));
   for (let k = 1; k <= M; k++) {
-    pool = Math.max(0, pool + sur(k));
+    pool = Math.max(0, pool + sur(k)); let took = 0;
     J.forEach((j) => {
-      const open = !(j.need > 0), full = j.cap == null && !open && j.bill;
-      if (!full && (open || j.b < j.need)) { const c = capOf({ ...j, bal: j.b }, 0, k - 1), want = c == null ? (open ? 0 : j.need - j.b) : Math.min(c, open ? 1e12 : j.need - j.b), g = Math.max(0, Math.min(pool, want)); pool -= g; j.b += g; if (!open && j.b >= j.need - 0.5 && j.eta == null) j.eta = k; }
+      if (k <= 12) j.ahead12 += took;
+      // a bill jar with no monthly amount is refilled to its target (what its bills need), the same as the Jars page:
+      // it takes what it lacks, then stays full (its bills are already in the spending)
+      const open = !(j.need > 0);
+      if (open || j.b < j.need) { const c = capOf({ ...j, bal: j.b }, 0, k - 1), want = c == null ? (open ? 0 : j.need - j.b) : Math.min(c, open ? 1e12 : j.need - j.b), g = Math.max(0, Math.min(pool, want)); pool -= g; j.b += g; took += g; if (!open && j.b >= j.need - 0.5 && j.eta == null) j.eta = k; }
       j.series.push(j.b); const cp = j.cap == null ? 0 : capOf({ ...j, bal: j.plan }, 0, k - 1); j.plan = open ? j.plan + (cp || 0) : Math.min(j.need, j.plan + (cp || 0)); j.planned.push(j.plan);
     });
   }
@@ -119,7 +224,7 @@ export function jarsModel(S, now = new Date(), fx = {}, fcOpt = {}) {
   const R = F.R, bl = billLists(H), rb = R.rows.filter((r) => r.kind == "bill"), ro = R.rows.filter((r) => r.kind != "bill");
   const avail = { bills: sum(rb.map((r) => r.amt)), limits: sum(ro.map((r) => r.amt)), billRows: rb, otherRows: ro.map((r) => ({ ...r, bl: sum((r.bills || []).map((x) => x.amt)) })),
     covered: active.filter((j) => j.bill).map((j) => ({ jar: j.n, bills: isAll(j.bill) ? bl.all(j.bill) : bl.rec.filter((b) => b.match == j.bill) })).filter((x) => x.bills.length) };
-  return { F: { cash: F.cash, inJars: F.inJars, buffer: F.buffer, reserve: F.R.total, free: F.free, over: F.over }, month, jars, goals, done, has: { any: active.length > 0 },
+  return { F: { cash: F.cash, cards: F.cards || 0, inJars: F.inJars, buffer: F.buffer, reserve: F.R.total, free: F.free, over: F.over }, month, jars, goals, done, has: { any: active.length > 0 },
     avail, bills: bl, MK, today: H.today, monthsTo, spend: Object.fromEntries(H.spend) };
 }
 

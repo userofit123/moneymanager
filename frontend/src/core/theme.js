@@ -22,21 +22,23 @@ Mocha:{L:["#7b5a3c","#f6eadf","#372210","#fbfaf8","#897743","#ffffff"],D:["#e2c5
 Mint:{L:["#2e895c","#dafbeb","#074024","#f8fcfa","#339990","#ffffff"],D:["#9feec7","#286747","#d2f9e6","#0e1612","#87e8e0","#0a3d24"]},
 Midnight:{L:["#233a95","#d6deff","#000e47","#f7f8fd","#2790a5","#ffffff"],D:["#96a9f8","#20306f","#cdd7fe","#0d0f17","#7be0f4","#041044"]},
 Candy:{L:["#95235c","#ffd6eb","#470024","#fdf7fa","#2790a5","#ffffff"],D:["#f896c7","#6f2047","#fecde6","#170d12","#7be0f4","#440424"]}};
-export const FONTS = { sans: 'Inter,"Segoe UI",Roboto,system-ui,sans-serif', serif: '"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif', round: 'ui-rounded,"SF Pro Rounded",Nunito,"Varela Round","Segoe UI",system-ui,sans-serif', mono: 'ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace' };
+export const FONTS = { sans: 'Inter,"Segoe UI",Roboto,system-ui,sans-serif', serif: '"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif', round: '"MM Rounded",Inter,ui-rounded,system-ui,sans-serif', mono: 'ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace' };
 export const CP = { L: ["#4355b9", "#c2185b", "#e68a00", "#00897b", "#7cb342", "#8e24aa", "#546e7a"], D: ["#9fb0ff", "#f48fb1", "#ffcc80", "#80cbc4", "#c5e1a5", "#ce93d8", "#b0bec5"] };
-export const ST0 = { mode: "auto", atm: "Indigo", cc: "#4355b9", cu: { L: {}, D: {} }, cp: { L: {}, D: {} }, gi: 100, sym: "coin", surf: "solid", bg: "glow", tex: "none", tsc: 100, gbl: 18, gsat: 160, gop: 45, rad: "round", den: "cozy", spc: "standard", nsp: "standard", fnt: "sans", nav: "full" };
+export const ST0 = { mode: "auto", atm: "Indigo", cc: "#4355b9", cu: { L: {}, D: {} }, cp: { L: {}, D: {} }, gi: 100, sym: "coin", surf: "solid", gbl: 50, gsat: 140, gop: 55, bg: "glow", tex: "none", tsc: 100, toa: 50, rad: "round", den: "cozy", spc: "standard", nsp: "standard", fnt: "sans", nav: "full" };
+// the background styles, in the order the Appearance panel shows them (their gradients are in styles/tokens.css and styles/theme.css)
+export const BGS = ["glow", "mesh", "diagonal", "spot", "aurora", "horizon", "duo", "corners", "sweep", "flat"];
 export const AKEYS = ["acc", "accc", "onc", "bg", "acc2", "on"];
 const XDEF = { L: { tx: "#1b1b22", pos: "#1b7f4b", neg: "#c0392b" }, D: { tx: "#e6e4ea", pos: "#6fd69b", neg: "#ff9c8f" } };
 // the colours that can be changed one by one in a custom colour set, with their English names (the Appearance panel translates them)
 export const CUST = [["acc", "Accent"], ["acc2", "Gradient colour"], ["bg", "Background"], ["tx", "Text"], ["accc", "Accent tint"], ["onc", "Text on tint"], ["on", "Text on accent"], ["pos", "Positive"], ["neg", "Negative"]];
 // what a saved look keeps
-export const PKEYS = ["atm", "cc", "cu", "cp", "gi", "surf", "bg", "tex", "tsc", "gbl", "gsat", "gop", "rad", "den", "spc", "nsp", "fnt", "nav"];
+export const PKEYS = ["atm", "cc", "cu", "cp", "gi", "surf", "gbl", "gsat", "gop", "bg", "tex", "tsc", "toa", "rad", "den", "spc", "nsp", "fnt", "nav"];
 
 // a plain copy (structuredClone cannot copy the reactive objects the look is kept in)
 export const copy = (v) => JSON.parse(JSON.stringify(v));
 const saved = readJson("moneyTheme", {}) || {};
 export const theme = reactive({ ...copy(ST0), ...saved });
-if (theme.surf == "static") theme.surf = "solid";
+if (theme.surf == "static") theme.surf = "solid"; // the static surface was taken out
 if (theme.bg == "dots" || theme.bg == "stripes") { theme.tex = theme.bg; theme.bg = "glow"; } // textures used to be backgrounds
 
 // Saved looks, and the look chosen for light and for dark mode.
@@ -86,9 +88,12 @@ export function applyTheme() {
   h.dataset.mode = d ? "dark" : "light";
   ["bg", "tex", "rad", "den", "spc", "nsp", "fnt", "nav"].forEach((x) => { h.dataset[x] = theme[x]; });
   r.setProperty("--tsc", String((+theme.tsc || 100) / 100));
+  r.setProperty("--toa", String((theme.toa == null ? 50 : +theme.toa) / 50));
   r.setProperty("--gi", String((theme.gi == null ? 100 : +theme.gi) / 100));
-  const n = (v, def, lo, hi) => Math.min(hi, Math.max(lo, Number.isFinite(+v) && v != null ? +v : def));
-  r.setProperty("--gblur", n(theme.gbl, 18, 0, 40) + "px"); r.setProperty("--gsat", n(theme.gsat, 160, 100, 250) + "%"); r.setProperty("--gop", n(theme.gop, 45, 0, 100) + "%");
+  // glass: how much the backdrop is blurred and how vivid its colours are behind the blocks, and how solid their colour is
+  r.setProperty("--gbl", ((theme.gbl == null ? 50 : +theme.gbl) * 0.06).toFixed(2) + "px"); // Blur is kept as 0-100%, which is 0-6px (more looks the same)
+  r.setProperty("--gsat", String((theme.gsat == null ? 140 : +theme.gsat) / 100));
+  r.setProperty("--gop", String((theme.gop == null ? 55 : +theme.gop) / 100));
   r.setProperty("--font", FONTS[theme.fnt] || FONTS.sans);
   [["--acc", a[0]], ["--accc", a[1]], ["--onc", a[2]], ["--bg", a[3]], ["--acc2", a[4]], ["--on", a[5]], ["--tx", ex.tx || XDEF[k].tx], ["--tx2", ex.tx ? "color-mix(in srgb,var(--tx) 68%,var(--bg))" : d ? "#a9a7b3" : "#5a5865"], ["--pos", ex.pos || XDEF[k].pos], ["--neg", ex.neg || XDEF[k].neg],
     ["--s1", "color-mix(in srgb,var(--tx) " + (d ? "5" : "3") + "%,var(--bg))"], ["--s2", "color-mix(in srgb,var(--tx) " + (d ? "10" : "7") + "%,var(--bg))"], ["--ol", "color-mix(in srgb,var(--tx) " + (d ? "13" : "11") + "%,transparent)"]].forEach(([p, v]) => r.setProperty(p, v));
@@ -98,7 +103,7 @@ export function applyTheme() {
   if (window.mmApp) { try { window.mmApp.setBars(a[3], d, a[0], a[5], getComputedStyle(h).getPropertyValue("--tx").trim()); } catch { /* the bars keep their colour */ } }
   // the desktop app draws its own title bar: it takes the page's colours (core: window.desktopFrame is given by the desktop shell)
   if (window.desktopFrame) { h.classList.add("dframe"); try { window.desktopFrame.setTitleBar(a[3], ex.tx || XDEF[k].tx); } catch { /* the bar keeps its colours */ } }
-  ["glass", "outline", "raised"].forEach((c) => document.body?.classList.toggle(c, theme.surf == c));
+  ["outline", "raised", "glass"].forEach((c) => document.body?.classList.toggle(c, theme.surf == c));
   writeJson("moneyTheme", theme);
   writeJson("moneyBoot", { bg: a[3], d, a1: a[0], a2: a[4], on: a[5], sym: theme.sym });
 }
@@ -122,7 +127,7 @@ export const setTheme = (o, from) => (from ? themeSwapFrom(from, () => Object.as
 // The logo's random look (case "shuffle")
 export function shuffle(el) {
   const pk = (L) => L[Math.floor(Math.random() * L.length)];
-  setTheme({ atm: pk(Object.keys(ATM).filter((x) => x != theme.atm)), bg: pk(["glow", "mesh", "diagonal", "spot", "dots", "stripes", "flat"].filter((x) => x != theme.bg)) }, el);
+  setTheme({ atm: pk(Object.keys(ATM).filter((x) => x != theme.atm)), bg: pk(BGS.filter((x) => x != theme.bg)) }, el);
 }
 
 // Applies the look now and after every change (the swap functions change `theme` inside the transition, so the page is redrawn there).

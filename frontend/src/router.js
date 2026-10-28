@@ -12,18 +12,21 @@ export const hrefOf = (page) => page.path;
 
 const path = ref(typeof location !== "undefined" ? location.pathname : "/");
 export const current = computed(() => matchPage(path.value));
+// the ?part of the address (a page can keep its open item there, like the open account); changes with every step
+export const query = ref(typeof location !== "undefined" ? location.search : "");
 
 export function go(to, { replace = false } = {}) {
   // the page that is already open: only back to its top
-  if (to === location.pathname) { window.scrollTo(0, 0); return; }
+  if (to.includes("?") ? to === location.pathname + location.search : to === location.pathname && !location.search) { window.scrollTo(0, 0); return; }
   history[replace ? "replaceState" : "pushState"]({}, "", to);
   path.value = location.pathname;
+  query.value = location.search;
   window.scrollTo(0, 0);
 }
 export function startRouter() {
   // Back and Forward to another page start at its top (the browser's own scroll memory is off)
   try { history.scrollRestoration = "manual"; } catch { /* old browsers */ }
-  addEventListener("popstate", () => { const was = current.value; path.value = location.pathname; if (current.value !== was) window.scrollTo(0, 0); });
+  addEventListener("popstate", () => { const was = current.value; path.value = location.pathname; query.value = location.search; if (current.value !== was) window.scrollTo(0, 0); });
   // a short or unknown address shows its page at the page's own address (the ?query and #hash stay, so links like ?add=1 still work)
   const pg = matchPage(location.pathname);
   if (pg.path !== location.pathname) { history.replaceState({}, "", hrefOf(pg) + location.search + location.hash); path.value = location.pathname; }

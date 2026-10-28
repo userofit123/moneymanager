@@ -2,7 +2,8 @@
 // Nothing here changes the data. S: the whole data, today: "YYYY-MM-DD", fx: { USD: 3.7 }.
 import { shallowRef } from "vue";
 import { kinds } from "./activity.js";
-import { withTransfers, addM } from "./home.js";
+import { withTransfers, addM, cardBuys } from "./home.js";
+import { countedTx } from "./bills.js";
 import { balRows, costRows } from "./txrows.js";
 import { CURS } from "../views/settings/currencies.js";
 
@@ -42,7 +43,7 @@ const ctx = (S, today) => { const S2 = withTransfers(S || {}); return { S: S2, k
 // how many transactions, the first and the latest date.
 export function accTotals(S, name, today) {
   const { k, tx, MK } = ctx(S, today), on = (t) => t.from == name || t.to == name;
-  const L = tx.filter((t) => !t.virtual && !t.pending && !k.isFut(t) && on(t) && !k.isXf(t) && !k.isCp(t));
+  const L = tx.filter((t) => !t.virtual && !k.isFut(t) && on(t) && !k.isXf(t) && !k.isCp(t));
   const month = L.filter((t) => t.d.startsWith(MK)), sum = (a, s) => a.filter((t) => t.a * s > 0).reduce((x, t) => x + Math.abs(t.a), 0), y = addM(MK, -11), yr = L.filter((t) => t.d.slice(0, 7) >= y);
   const all = tx.filter((t) => !t.virtual && on(t));
   return { n: all.length, mIn: sum(month, 1), mOut: sum(month, -1), yIn: sum(yr, 1), yOut: sum(yr, -1), first: all.reduce((m, t) => (t.d < m ? t.d : m), "9999-99-99"), last: all.filter((t) => !k.isFut(t)).reduce((m, t) => (t.d > m ? t.d : m), "") };
@@ -56,10 +57,14 @@ export function accMonthly(S, name, today, fx) {
   return { keys, vals };
 }
 
-// What was bought with a card in each of the last 12 months (this month so far).
+// What was bought with a card in each month since its first purchase (this month so far): at least 12 months, at most 36.
+// The same rows as Home's Cards box and the Activity page (pending ones too; transfers and rows you left out do not count).
 export function cardMonthly(S, name, today) {
-  const { k, tx, MK } = ctx(S, today), keys = Array.from({ length: 12 }, (_, i) => addM(MK, -(11 - i)));
-  return { keys, vals: keys.map((m) => Math.round(tx.filter((t) => !t.virtual && !t.pending && t.a < 0 && t.from == name && t.d.startsWith(m) && !k.isXf(t)).reduce((s, t) => s - t.a, 0))) };
+  const { S: S2, tx, MK } = ctx(S, today), first = tx.reduce((m, t) => (!t.virtual && t.a < 0 && t.from == name && t.d < m ? t.d : m), "9999-99-99").slice(0, 7);
+  let n = 12; while (n < 36 && addM(MK, -n) >= first) n++;
+  const keys = Array.from({ length: n }, (_, i) => addM(MK, -(n - 1 - i)));
+  const { A } = countedTx(S2, today), on = (t) => t.from == name;
+  return { keys, vals: keys.map((m) => Math.round(cardBuys(A, on, m))) };
 }
 
 // The balance updates typed by hand, as rows of the account's activity (balRows, shared with Activity).

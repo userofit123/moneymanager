@@ -3,7 +3,7 @@
 // navigation, and saved looks. Styled in styles/components/appearance.css.
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
-import { theme, ATM, ST0, CP, CUST, AKEYS, looks, lookFor, saveLooks, copy, isDark, atmOf, cpOf, custVal, lookPal, setTheme, themeSwap, PKEYS } from "../core/theme.js";
+import { theme, ATM, ST0, CP, AKEYS, BGS, FONTS, looks, lookFor, saveLooks, copy, isDark, atmOf, cpOf, custVal, lookPal, setTheme, themeSwap, PKEYS } from "../core/theme.js";
 import { toast } from "../core/toast.js";
 import { tx } from "../core/heText.js";
 import { appearanceOpen } from "../core/shell.js";
@@ -11,7 +11,7 @@ import { escLayer } from "../core/layers.js";
 
 const { t } = useI18n();
 const tab = ref("col");
-const TABS = { col: "ap.tCol", sty: "ap.tSty", lay: "ap.tLay", sav: "ap.tSav" };
+const TABS = { col: "ap.tCol", bg: "ap.tBg", sty: "ap.tSty", lay: "ap.tLay", sav: "ap.tSav" };
 const k = computed(() => (isDark() ? "D" : "L"));
 const dark = computed(() => k.value === "D");
 
@@ -25,14 +25,19 @@ const outside = (e) => { if (appearanceOpen.value && el.value && !el.value.conta
 onMounted(() => document.addEventListener("click", outside, true));
 onBeforeUnmount(() => document.removeEventListener("click", outside, true));
 
-const BG = [["glow", "glow"], ["mesh", "mesh"], ["diagonal", "diagonal"], ["spot", "spot"], ["flat", "flat"]];
+const BGL = { corners: "bgCorners" }; // the text key where it is not the style name
 const TEX = ["none", "dots", "stripes", "grid", "static"];
-const SURF = ["solid", "glass", "outline", "raised"];
+const SURF = ["solid", "outline", "raised", "glass"];
+// the glass sliders: setting, text key, lowest, highest, step, the value when none is saved, unit
+const GLASS = [["gbl", "gBlur", 0, 100, 5, 50, "%"], ["gsat", "gVib", 50, 250, 10, 140, "%"], ["gop", "gOp", 0, 100, 5, 55, "%"]];
+const gval = (g) => (theme[g[0]] == null ? g[5] : +theme[g[0]]);
 const RAD = [["round", 18], ["soft", 9], ["sharp", 2]];
-const FNT = [["sans", "Inter,system-ui,sans-serif", "sans"], ["serif", "Georgia,serif", "serif"], ["round", "ui-rounded,'SF Pro Rounded',Nunito,system-ui,sans-serif", "rounded"], ["mono", "ui-monospace,Menlo,Consolas,monospace", "mono"]];
+const FNT = [["sans", "sans"], ["serif", "serif"], ["round", "rounded"], ["mono", "mono"]];
 const DEN = [["compact", 3], ["cozy", 6], ["roomy", 10]];
 const SPC = [["tight", 2], ["standard", 5], ["loose", 9], ["wide", 13]];
 const NSP = [["tight", 2], ["standard", 5], ["roomy", 8]];
+// the custom colours in groups, with the text key of each group
+const CGROUPS = [["gBrand", ["acc", "acc2", "accc"]], ["gOn", ["on", "onc"]], ["gPage", ["bg", "tx"]], ["gMoney", ["pos", "neg"]]];
 const CKEY = { acc: "cAcc", acc2: "cAcc2", bg: "cBg", tx: "cTx", accc: "cAccc", onc: "cOnc", on: "cOn", pos: "cPos", neg: "cNeg" };
 
 const opt = (key, v) => setTheme({ [key]: v });
@@ -78,7 +83,7 @@ const lookDot = (x) => { const c = lookPal(x.v, k.value); return `background:lin
   <div id="pop" ref="el" class="pop" :class="{ on: appearanceOpen, out }" role="dialog" :aria-label="t('ap.title')">
     <div class="aph"><b>{{ t("ap.title") }}</b><span class="aphb"><button class="btn o s" @click="openSave">{{ t("ap.save") }}</button><button class="btn o s" @click="reset">{{ t("ap.reset") }}</button></span></div>
     <div id="apTabs" class="seg apseg aptabs">
-      <button v-for="x in ['col', 'sty', 'lay', 'sav']" :key="x" :class="{ on: tab === x }" @click="tab = x">{{ t(TABS[x]) }}</button>
+      <button v-for="x in Object.keys(TABS)" :key="x" :class="{ on: tab === x }" @click="tab = x">{{ t(TABS[x]) }}</button>
     </div>
     <div class="apb">
       <div class="apbt" :class="{ on: tab === 'col' }">
@@ -94,37 +99,47 @@ const lookDot = (x) => { const c = lookPal(x.v, k.value); return `background:lin
             <button v-for="(v, n) in ATM" :key="n" :class="{ on: theme.atm === n }" :aria-label="tx(n)" :title="tx(n)" @click="opt('atm', n)"><span class="swd" :style="{ background: swatch(n) }" /><span class="swn">{{ tx(n) }}</span></button>
             <button :class="{ on: theme.atm === 'Custom' }" :aria-label="t('ap.customA')" :title="t('ap.customA')" @click="opt('atm', 'Custom')"><span class="swd" :style="{ background: theme.atm === 'Custom' ? swatch('Custom') : 'conic-gradient(#f55,#fb3,#9d4,#3cb,#49f,#a6e,#f55)' }" /><span class="swn">{{ t("ap.custom") }}</span></button>
           </div>
-          <div v-if="theme.atm === 'Custom'" id="cust" class="cust">
-            <div class="apr"><span>{{ t("ap.from") }}</span><select @change="fromPreset"><option value="">{{ t("ap.fromPh") }}</option><option v-for="(v, n) in ATM" :key="n" :value="n">{{ tx(n) }}</option></select></div>
-            <div class="apr"><span>{{ t("ap.base") }}</span><input type="color" :value="theme.cc || '#4355b9'" :aria-label="t('ap.base')" @input="setBase($event.target.value)"><output>{{ (theme.cc || "").toUpperCase() }}</output></div>
-            <div class="cuh"><b>{{ dark ? t("ap.darkC") : t("ap.lightC") }}</b><button class="btn o s" @click="custReset">{{ t("ap.reset") }}</button></div>
-            <div class="cgrid"><label v-for="[n] in CUST" :key="n" class="crow"><input type="color" :value="custVal(n, k)" :aria-label="t('ap.' + CKEY[n])" @input="setCust(n, $event.target.value)"><span>{{ t("ap." + CKEY[n]) }}</span></label></div>
-            <details class="cch"><summary>{{ t("ap.charts") }}</summary><div class="cgrid"><label v-for="(c, i) in CP.L" :key="i" class="crow"><input type="color" :value="cpOf(k)[i]" :aria-label="t('ap.chartN', { n: i + 1 })" @input="setChart(i, $event.target.value)"><span>{{ t("ap.colourN", { n: i + 1 }) }}</span></label></div></details>
-          </div>
         </div>
+        <div v-if="theme.atm === 'Custom'" id="cust" class="aps cust">
+          <div class="cuh"><div><b>{{ t("ap.customT") }}</b><div class="sm">{{ t("ap.customX") }}</div></div><button class="btn o s" @click="custReset">{{ t("ap.reset") }}</button></div>
+          <div class="cbase">
+            <label class="cbc"><input type="color" :value="theme.cc || '#4355b9'" :aria-label="t('ap.base')" @input="setBase($event.target.value)"></label>
+            <div class="cbt"><b>{{ t("ap.base") }}</b><span dir="ltr">{{ (theme.cc || "").toUpperCase() }}</span></div>
+            <select :aria-label="t('ap.from')" @change="fromPreset"><option value="">{{ t("ap.fromPh") }}</option><option v-for="(v, n) in ATM" :key="n" :value="n">{{ tx(n) }}</option></select>
+          </div>
+          <div class="cmode"><span class="cmd" :class="{ d: dark }" />{{ dark ? t("ap.darkC") : t("ap.lightC") }}<span class="sm">{{ t("ap.editHint") }}</span></div>
+          <div v-for="[g, ns] in CGROUPS" :key="g" class="cgp">
+            <h5>{{ t("ap." + g) }}</h5>
+            <div class="cgrid"><label v-for="n in ns" :key="n" class="crow"><input type="color" :value="custVal(n, k)" :aria-label="t('ap.' + CKEY[n])" @input="setCust(n, $event.target.value)"><span>{{ t("ap." + CKEY[n]) }}</span><output dir="ltr">{{ custVal(n, k).toUpperCase() }}</output></label></div>
+          </div>
+          <details class="cch"><summary>{{ t("ap.charts") }}</summary><div class="cchips"><label v-for="(c, i) in CP.L" :key="i" class="cchip" :title="t('ap.chartN', { n: i + 1 })"><input type="color" :value="cpOf(k)[i]" :aria-label="t('ap.chartN', { n: i + 1 })" @input="setChart(i, $event.target.value)"></label></div></details>
+        </div>
+      </div>
+      <div class="apbt" :class="{ on: tab === 'bg' }">
         <div class="aps"><h4>{{ t("ap.bg") }}</h4>
-          <div class="apg c5"><button v-for="[v, l] in BG" :key="v" class="apt" :class="{ on: theme.bg === v }" @click="opt('bg', v)"><span class="apv bgv" :class="'bg-' + v" /><span class="apl">{{ t("ap." + l) }}</span></button></div>
+          <div class="apg c5"><button v-for="v in BGS" :key="v" class="apt" :class="{ on: theme.bg === v }" @click="opt('bg', v)"><span class="apv bgv" :class="'bg-' + v" /><span class="apl">{{ t("ap." + (BGL[v] || v)) }}</span></button></div>
           <div id="giRow" class="apr" :class="{ off: theme.bg === 'flat' }"><span>{{ t("ap.gi") }}</span><input type="range" min="0" max="200" step="5" :value="theme.gi == null ? 100 : theme.gi" :aria-label="t('ap.gi')" @input="range('gi', $event.target.value)"><output>{{ Math.round(theme.gi == null ? 100 : theme.gi) }}%</output></div>
         </div>
         <div class="aps"><h4>{{ t("ap.tex") }}</h4>
           <div class="apg c5"><button v-for="v in TEX" :key="v" class="apt" :class="{ on: theme.tex === v }" @click="opt('tex', v)"><span class="apv txv" :class="'tx-' + v" /><span class="apl">{{ t("ap." + v) }}</span></button></div>
-          <div v-if="theme.tex !== 'none'" id="texRow" class="apr"><span>{{ t("ap.texScale") }}</span><input type="range" min="40" max="240" step="10" :value="+theme.tsc || 100" :aria-label="t('ap.texScale')" @input="range('tsc', $event.target.value)"><output>{{ Math.round(+theme.tsc || 100) }}%</output></div>
+          <div id="texRow" class="apsub" :class="{ off: theme.tex === 'none' }">
+            <div class="apr"><span>{{ t("ap.texScale") }}</span><input type="range" min="40" max="240" step="10" :value="+theme.tsc || 100" :aria-label="t('ap.texScale')" @input="range('tsc', $event.target.value)"><output>{{ Math.round(+theme.tsc || 100) }}%</output></div>
+            <div class="apr"><span>{{ t("ap.texOp") }}</span><input type="range" min="5" max="100" step="5" :value="theme.toa == null ? 50 : theme.toa" :aria-label="t('ap.texOp')" @input="range('toa', $event.target.value)"><output>{{ Math.round(theme.toa == null ? 50 : theme.toa) }}%</output></div>
+          </div>
         </div>
       </div>
       <div class="apbt" :class="{ on: tab === 'sty' }">
         <div class="aps"><h4>{{ t("ap.surf") }}</h4>
           <div class="apg c5"><button v-for="v in SURF" :key="v" class="apt" :class="{ on: theme.surf === v }" @click="opt('surf', v)"><span class="apv sfv" :class="'sf-' + v"><i /></span><span class="apl">{{ t("ap." + v) }}</span></button></div>
-          <template v-if="theme.surf === 'glass'">
-            <div class="apr"><span>{{ t("ap.blur") }}</span><input type="range" min="0" max="40" step="1" :value="theme.gbl" :aria-label="t('ap.blurA')" @input="range('gbl', $event.target.value)"><output>{{ Math.round(theme.gbl) }}px</output></div>
-            <div class="apr"><span>{{ t("ap.vib") }}</span><input type="range" min="100" max="250" step="5" :value="theme.gsat" :aria-label="t('ap.vibA')" @input="range('gsat', $event.target.value)"><output>{{ Math.round(theme.gsat) }}%</output></div>
-            <div class="apr"><span>{{ t("ap.op") }}</span><input type="range" min="0" max="100" step="5" :value="theme.gop" :aria-label="t('ap.opA')" @input="range('gop', $event.target.value)"><output>{{ Math.round(theme.gop) }}%</output></div>
-          </template>
+          <div v-if="theme.surf === 'glass'" id="glassRow" class="apsub">
+            <div v-for="g in GLASS" :key="g[0]" class="apr"><span :data-tip="t('ap.' + g[1] + 'Tip')">{{ t("ap." + g[1]) }}</span><input type="range" :min="g[2]" :max="g[3]" :step="g[4]" :value="gval(g)" :aria-label="t('ap.' + g[1])" @input="range(g[0], $event.target.value)"><output>{{ Math.round(gval(g)) }}{{ g[6] }}</output></div>
+          </div>
         </div>
         <div class="aps"><h4>{{ t("ap.corners") }}</h4>
           <div class="apg"><button v-for="[v, r] in RAD" :key="v" class="apt" :class="{ on: theme.rad === v }" @click="opt('rad', v)"><span class="apv rv"><i :style="{ borderTopLeftRadius: r + 'px' }" /></span><span class="apl">{{ t("ap." + v) }}</span></button></div>
         </div>
         <div class="aps"><h4>{{ t("ap.font") }}</h4>
-          <div class="apg c4"><button v-for="[v, ff, l] in FNT" :key="v" class="apt" :class="{ on: theme.fnt === v }" @click="opt('fnt', v)"><span class="apv fv" :style="{ fontFamily: ff }">Aa</span><span class="apl">{{ t("ap." + l) }}</span></button></div>
+          <div class="apg c4"><button v-for="[v, l] in FNT" :key="v" class="apt" :class="{ on: theme.fnt === v }" @click="opt('fnt', v)"><span class="apv fv" :style="{ fontFamily: FONTS[v] }">Aa</span><span class="apl">{{ t("ap." + l) }}</span></button></div>
         </div>
       </div>
       <div class="apbt" :class="{ on: tab === 'lay' }">

@@ -42,9 +42,10 @@ export function settle(S, now = new Date(), fx = {}) {
   // 5. jars that pay for a category
   jarAuto(S, k, sys, now);
 
-  // 6. the money held back this month, kept for the server (it fills the jars from what is left)
+  // 6. the money held back this month, kept for the server (it fills the jars from what is left):
+  //    bills and planned spending, and the card purchases not paid yet (the card bill will take that money)
   H = homeModel(S, now, fx);
-  S.jarsReserve = Math.round(H.flow.R.total);
+  S.jarsReserve = Math.round(H.flow.R.total + (H.flow.cards || 0));
   return lines;
 }
 

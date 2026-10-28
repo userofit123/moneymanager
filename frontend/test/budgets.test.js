@@ -180,3 +180,11 @@ test("the add-a-budget sheet offers the categories with no budget and a starting
   assert.equal(formSuggestion(M, "Groceries"), 1500);
   assert.equal(formSuggestion(M, "Nothing here"), "");
 });
+
+test("pending payments count in the six months, the same as this month's spending", () => {
+  const S = fixture(), M0 = budgetsModel(structuredClone(S), NOW), k = Object.keys(M0.hist.cat)[0];
+  S.tx.push({ id: 99999, d: "2026-10-03", desc: "Pending", from: "Max", to: "Shop", a: -40, c: k, pending: true });
+  const M = budgetsModel(S, NOW);
+  assert.equal(Math.round(M.hist.cat[k][5] - M0.hist.cat[k][5]), 40);
+  assert.equal(Math.round((Object.fromEntries(M.spend)[k] || 0) - (Object.fromEntries(M0.spend)[k] || 0)), 40);
+});

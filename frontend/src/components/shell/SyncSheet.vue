@@ -1,11 +1,12 @@
 <script setup>
-// "Sources": every connection and how its last sync went, live while a sync runs, with Sync now.
+// "Sources": every connection and how its last sync went, live while a sync runs, with Sync now, and a Sync button on each connected one.
 import { useI18n } from "vue-i18n";
 import { syncOpen } from "../../core/shell.js";
 import { sources, syncNow, friendlyErr } from "../../core/sources.js";
 import { job, lastItems } from "../../core/jobs.js";
 import { go } from "../../router.js";
 import { openSettingsTab } from "../../views/settings/tab.js";
+import { connSync } from "../../views/settings/conn.js";
 import BaseSheet from "../BaseSheet.vue";
 import JobButton from "../JobButton.vue";
 
@@ -31,6 +32,7 @@ const goConn = () => { syncOpen.value = false; openSettingsTab("conn"); go("/set
         <i class="live" :class="row(s).dot" />
         <div class="grow"><b>{{ s.n }}</b><div class="sm">{{ row(s).msg }}</div></div>
         <button v-if="s.goConn && !job" type="button" class="btn o s" @click="goConn">{{ s.state == "bad" ? t("sync.fix") : t("sync.connect") }}</button>
+        <JobButton v-if="!s.goConn && s.k != 'pension'" class="btn o s" kind="sync" :source="s.k" @click="connSync(s.k)">{{ t("sync.sync") }}</JobButton>
       </div>
     </div>
     <div class="sm" style="margin-top:10px"><i class="live ok" /> {{ t("sync.legOk") }} &nbsp; <i class="live warn" /> {{ t("sync.legWarn") }} &nbsp; <i class="live bad" /> {{ t("sync.legBad") }}</div>

@@ -59,3 +59,19 @@ test("no data shows no jars", () => {
   assert.equal(M.has.any, false);
   assert.equal(M.goals.length, 0);
 });
+
+// jarProject on a made-up forecast line that saves 1,000 a month and nothing free today.
+test("a jar that gets nothing says whether the jars before it took the money", async () => {
+  const { jarProject } = await import("../src/lib/jars.js");
+  const line = { cash: 0, bal: Array.from({ length: 13 }, (_, k) => k * 1000) }, H = { flow: { free: 0, over: 0, R: { total: 0 } } };
+  const S = { jars: [{ id: 1, n: "Big goal", p: 1, bal: 0, need: 50000, cap: 2000 }, { id: 2, n: "Extras", p: 2, bal: 0, need: 0, cap: 500 }] };
+  const [big, extras] = jarProject(S, H, NOW, {}, 24, line).J;
+  assert.equal(big.series[12], 12000); // takes the whole 1,000 a month
+  assert.equal(extras.series[12], 0);
+  assert.equal(extras.ahead12, 12000);
+  assert.equal(big.ahead12, 0);
+  // with no jar before it, nothing taken by others: the reason is too little money
+  const [alone] = jarProject({ jars: [S.jars[1]] }, { flow: { free: 0, over: 0, R: { total: 0 } } }, NOW, {}, 24, { cash: 0, bal: Array(13).fill(0) }).J;
+  assert.equal(alone.series[12], 0);
+  assert.equal(alone.ahead12, 0);
+});

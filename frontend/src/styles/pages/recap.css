@@ -258,34 +258,6 @@ html.he a.rkl:hover i {
   white-space: nowrap;
 }
 
-.rkch {
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
-  margin: 8px 5px 0;
-  padding: 0;
-  border-radius: 99px;
-  font-size: 16px;
-  line-height: 1.35;
-  color: var(--tx);
-  background: var(--s1);
-  box-shadow: inset 0 0 0 1px var(--ol), 0 10px 22px -16px color-mix(in srgb, var(--tx) 45%, transparent);
-  --pc: var(--acc);
-  text-align: start;
-}
-
-.rkch span {
-  padding: 8px 20px 8px 10px;
-}
-
-.rkch.good {
-  --pc: var(--pos);
-}
-
-.rkch.warn {
-  --pc: var(--c2);
-}
-
 .rkv {
   display: block;
   width: 100%;
@@ -674,24 +646,21 @@ html.he .rkbr .bar i {
   z-index: 2;
 }
 
+/* room between the last circle and "Where you stand now" under it */
+.rkz > .zend > .rki {
+  margin-bottom: 88px;
+}
+
 .rkz > .zend {
   max-width: 760px;
   width: 100%;
   justify-self: center;
-  margin-top: 48px;
-}
-
-.rk.z.tozend .rkcn.cm {
-  display: none;
+  margin-top: 120px;
 }
 
 .rkds {
   max-width: 760px;
   margin-inline: auto;
-}
-
-.rkcn {
-  pointer-events: none;
 }
 
 .rkw0 > .rk:not(.z) {
@@ -704,6 +673,86 @@ html.he .rkbr .bar i {
   display: grid;
   gap: 40px;
   width: 100%;
+}
+
+/* the route: a dotted trail for the whole way, a solid line that fills it as you scroll, a glowing dot at its tip */
+.rkroute {
+  position: absolute;
+  left: 0; /* fixed side */ /* drawn from measured positions */
+  z-index: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.rkroute path {
+  fill: none;
+  stroke-width: 4px;
+  stroke-linecap: round;
+}
+
+/* a soft glow on both sides of the line */
+.rkroute .rkgl {
+  stroke-width: 14px;
+  opacity: .45;
+}
+
+.rkroute .tr {
+  stroke: color-mix(in srgb, var(--acc) 30%, transparent);
+  stroke-dasharray: 0 12;
+}
+
+/* the start icon under the first part, where the route starts */
+.rkw0 > .rk > .rki.rkstart {
+  margin: 36px 0 0;
+}
+
+.rkroute .rkhd {
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+
+.rkroute .rkhd.on {
+  opacity: 1;
+}
+
+.rkroute .rkhd .h {
+  opacity: .22;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: rkglow 1.8s ease-in-out infinite;
+}
+
+.rkroute .rkhd .c {
+  fill: var(--bg);
+  stroke-width: 3.5px;
+}
+
+@keyframes rkglow {
+  50% {
+    transform: scale(1.45);
+    opacity: .1;
+  }
+}
+
+/* a circle gives a small bounce when the line reaches it */
+.rk.z.hit:not(.st) .rkcir {
+  animation: rkhit .6s cubic-bezier(.3, 1.6, .5, 1);
+}
+
+@keyframes rkhit {
+  40% {
+    transform: scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rkroute .rkhd {
+    display: none;
+  }
+
+  .rk.z .rkcir {
+    animation: none;
+  }
 }
 
 .rk.z .rkni {
@@ -739,26 +788,6 @@ html.he .rkbr .bar i {
 
 .rkcir::before {
   content: none;
-}
-
-.rkcn {
-  position: absolute;
-  inset-inline: 0;
-  top: 104px;
-  height: 0;
-  width: 100%;
-  overflow: visible;
-}
-
-.rkcn path {
-  fill: none;
-  stroke-width: 6px;
-  stroke-linecap: round;
-  opacity: .9;
-}
-
-.rk.z:last-child .rkcn {
-  display: none;
 }
 
 .rk.z .rkb {
@@ -845,10 +874,6 @@ html.he .rkbr .bar i {
     justify-content: center;
   }
 
-  .rkcn {
-    top: 36px;
-  }
-
   .rkcir {
     width: 72px;
     height: 72px;
@@ -909,41 +934,6 @@ html.he .rkbr .bar i {
   justify-content: flex-start !important;
 }
 
-.rkeq {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 22px;
-  flex-wrap: nowrap;
-  max-width: 100%;
-}
-
-.rkeq i {
-  font-style: normal;
-  font-size: 22px;
-  color: var(--tx2);
-  font-weight: 500;
-}
-
-.rkeq > div,
-.rkeq > a {
-  flex: 1 1 0;
-  padding: 10px 14px;
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--tx) 6%, transparent);
-  min-width: 0;
-}
-
-.rkeq span {
-  display: block;
-  font-size: 13px;
-  color: var(--tx2);
-}
-
-.rkeq > :last-child {
-  background: color-mix(in srgb, var(--pos) 14%, transparent);
-}
-
 .rk.z .rkp {
   margin-top: 2px;
 }
@@ -972,40 +962,87 @@ html.he .rkbr .bar i {
   gap: 10px;
 }
 
-.rkup .t {
-  font-size: 15px;
-  font-weight: 650;
-  color: var(--tx2);
+/* an upcoming payment: the same card as the notes, with its date in the coloured block */
+.rkuc {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  overflow: hidden;
+  border: 1px solid var(--ol);
+  border-radius: 18px;
+  background: var(--s1);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--tx) 6%, transparent), 0 10px 24px -14px color-mix(in srgb, var(--tx) 30%, transparent);
+  text-align: start;
+  transition: box-shadow .16s, translate .16s;
 }
 
-.rkup .dt b {
-  display: block;
-  font-size: 21px;
+.rkuc[data-a] {
+  cursor: pointer;
+}
+
+.rkuc[data-a]:hover {
+  translate: 0 -1px;
+  box-shadow: 0 2px 4px color-mix(in srgb, var(--tx) 8%, transparent), 0 16px 30px -14px color-mix(in srgb, var(--acc) 55%, transparent);
+}
+
+.rkuc:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+.rkuc .ub {
+  flex: none;
+  display: grid;
+  place-content: center;
+  width: 54px;
+  min-height: 48px;
+  margin: 5px;
+  margin-inline-end: 0;
+  border-radius: 14px;
+  border-start-end-radius: 16px 45%;
+  border-end-end-radius: 16px 45%;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--acc) 72%, #fff), var(--acc));
+  color: var(--on);
+  text-align: center;
   line-height: 1.1;
 }
 
-.rkup .dt span {
-  font-size: 12px;
-  color: var(--tx2);
-  text-transform: uppercase;
+.rkuc .ub b {
+  font-size: 19px;
 }
 
-.rkup .n {
+.rkuc .ub span {
+  font-size: 11px;
+  text-transform: uppercase;
+  opacity: .85;
+}
+
+.rkuc .ux {
   flex: 1;
+  display: grid;
+  align-content: center;
   min-width: 0;
-  font-size: 17px;
+  padding-block: 8px;
+  font-size: 16px;
   font-weight: 600;
 }
 
-.rkup .n small {
-  display: block;
+.rkuc .ux small {
   font-size: 13px;
   font-weight: 400;
   color: var(--tx2);
 }
 
-.rkup .a {
-  font-size: 18px;
+.rkuc .ua {
+  align-self: center;
+  padding-inline-end: 18px;
+  font-size: 17px;
+}
+
+.rkup .t {
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--tx2);
 }
 
 .rr,
@@ -1028,24 +1065,6 @@ html.he .rk.za .rkb {
 
 html.he .rk.zb .rkb {
   transform-origin: 0 50%;
-}
-
-.rkz > .rkcn.rklead {
-  position: absolute;
-  inset-inline: auto;
-  left: 50%; /* fixed side */
-  margin-left: -90px; /* fixed side */
-  width: 180px;
-  z-index: 0;
-}
-
-.rkcn path {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-}
-
-.rkcn {
-  height: 0;
 }
 
 .rkbw {
@@ -1073,7 +1092,6 @@ html.he .rk.zb .rkb {
 a.rkch,
 a.rklk,
 a.rkbr,
-.rkup .r[data-a],
 .rkeq a,
 .rkleg a {
   text-decoration: none;
@@ -1109,34 +1127,6 @@ a.rkbr,
 
 .rkhl.hv .rkseg i.on {
   opacity: 1;
-}
-
-.rkup .r {
-  background: var(--s1);
-  box-shadow: inset 0 0 0 1px var(--ol), 0 10px 22px -16px color-mix(in srgb, var(--tx) 45%, transparent);
-  padding: 6px 18px 6px 6px;
-  border-radius: 99px;
-}
-
-.rkup .dt b {
-  font-size: 19px;
-  color: var(--on);
-}
-
-.rkup .dt span {
-  color: var(--on);
-  opacity: .85;
-  font-size: 11px;
-}
-
-.rkeq > div,
-.rkeq > a {
-  background: var(--s1);
-  box-shadow: inset 0 0 0 1px var(--ol);
-}
-
-.rkeq > :last-child {
-  background: color-mix(in srgb, var(--c4) 18%, var(--s1));
 }
 
 .rk.z .rkl {
@@ -1176,7 +1166,15 @@ html.mob .rkp {
 }
 
 html.mob .rkch {
-  font-size: 15px;
+  font-size: 14px;
+}
+
+html.mob .rkch .cp {
+  width: 42px;
+}
+
+html.mob .rkch .tx {
+  padding-inline: 12px 14px;
 }
 
 html.mob .rkpl b {
@@ -1212,15 +1210,6 @@ html.mob .rkpl b {
   background: none;
   box-shadow: none;
   color: var(--on);
-}
-
-.rkcn path {
-  opacity: .5;
-  stroke-width: 5px;
-}
-
-.rkz > .rkcn.rklead path {
-  stroke: var(--acc);
 }
 
 .rkl,
@@ -1264,29 +1253,98 @@ a.rkl:hover {
 
 /* pills: a solid cap over the full height of the pill, clipped by the pill, icon centred in white */
 
+/* notes: a card with a coloured block at the start holding the icon (set in from the edges, rounded outer corners, a soft
+   curve on its inner edge), then an optional label in the block's colour with a short line under it, and the sentence */
 .rkch {
+  --pc: var(--acc);
+  --ink: color-mix(in srgb, var(--pc) 80%, var(--tx));
   display: inline-flex;
   align-items: stretch;
-  gap: 0;
   margin: 10px 5px 0;
   padding: 0;
   overflow: hidden;
-  border-radius: 30px;
-  background: var(--rkbody);
-  box-shadow: var(--rksh);
+  border: 1px solid var(--ol);
+  border-radius: 18px;
+  background: var(--s1);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--tx) 6%, transparent), 0 10px 24px -14px color-mix(in srgb, var(--tx) 30%, transparent);
   color: var(--tx);
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.4;
-  --pc: var(--acc);
   max-width: 100%;
-  transition: transform .15s, box-shadow .15s;
+  text-align: start;
+  transition: box-shadow .16s, translate .16s;
 }
 
-.rkch span {
-  padding: 12px 22px 12px 14px;
-  padding-inline: 14px 22px;
-  align-self: center;
+.rkch .cp {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  min-height: 42px;
+  margin: 5px;
+  margin-inline-end: 0;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--pc) 72%, #fff), var(--pc));
+  border-radius: 14px;
+  border-start-end-radius: 16px 45%;
+  border-end-end-radius: 16px 45%;
+  color: var(--on);
+  font-style: normal;
+}
+
+.rkch .cp svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.rkch .tx {
+  display: grid;
+  align-content: center;
   min-width: 0;
+  padding-block: 10px;
+  padding-inline: 14px 18px;
+}
+
+.rkch .lb {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.rkch .lb .rkc {
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.rkch .lb::after {
+  content: "";
+  display: block;
+  width: 26px;
+  height: 2px;
+  margin: 4px 0 5px;
+  border-radius: 2px;
+  background: var(--pc);
+  opacity: .7;
+}
+
+.rkch .m {
+  font-weight: 500;
+}
+
+.rkch .m .rkc {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+a.rkch:hover {
+  translate: 0 -1px;
+  box-shadow: 0 2px 4px color-mix(in srgb, var(--tx) 8%, transparent), 0 16px 30px -14px color-mix(in srgb, var(--pc) 55%, transparent);
 }
 
 .rkch.good {
@@ -1307,7 +1365,6 @@ a.rkch[data-a="jarRelease"] {
 
 a.rkch:focus-visible,
 a.rkbr:focus-visible,
-.rkup .r:focus-visible,
 .rkeq a:focus-visible {
   outline: 2px solid var(--acc);
   outline-offset: 2px;
@@ -1315,10 +1372,7 @@ a.rkbr:focus-visible,
 
 /* links lift and glow underneath, the same as the clickable cards on the other pages */
 
-a.rkch,
-a.rkbr,
-.rkup .r,
-.rkeq > * {
+a.rkbr {
   position: relative;
   transition: transform .2s, box-shadow .2s;
 }
@@ -1336,18 +1390,6 @@ a.rkbr,
 
 /* calculation blocks and budget cards share the same soft card */
 
-.rkeq > div,
-.rkeq > a {
-  background: var(--rkbody);
-  box-shadow: var(--rksh);
-  border-radius: 18px;
-  padding: 11px 14px;
-}
-
-.rkeq > :last-child {
-  background: color-mix(in srgb, var(--acc) 12%, var(--rkbody));
-}
-
 .rkbr {
   background: var(--rkbody);
   box-shadow: var(--rksh);
@@ -1355,26 +1397,6 @@ a.rkbr,
 }
 
 /* coming up: the date is the cap */
-
-.rkup .r {
-  background: var(--rkbody);
-  padding: 0;
-  gap: 0;
-  overflow: hidden;
-  align-items: stretch;
-  border-radius: 30px;
-  box-shadow: var(--rksh);
-}
-
-.rkup .n {
-  align-self: center;
-  padding: 10px 14px;
-}
-
-.rkup .a {
-  align-self: center;
-  padding-inline-end: 22px;
-}
 
 html.mob .rki {
   border-radius: 50%;
@@ -1399,26 +1421,6 @@ html.mob .rki {
     padding: 0;
   }
 
-  .rkch .cp {
-    width: 54px;
-  }
-
-  .rkup .dt {
-    width: 58px;
-  }
-
-  .rkeq {
-    gap: 6px;
-  }
-
-  .rkeq > div,
-  .rkeq > a {
-    padding: 9px 10px;
-  }
-
-  .rkeq i {
-    font-size: 18px;
-  }
 }
 
 .chain summary {
@@ -1431,4 +1433,357 @@ html.mob .rki {
 
 .chain summary::-webkit-details-marker {
   display: none;
+}
+
+/* name-and-amount pills (who paid you, where the money went) */
+.rkpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.rkpi {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 16px;
+  border-radius: 99px;
+  background: var(--s1);
+  box-shadow: inset 0 0 0 1px var(--ol);
+  font-size: 15px;
+  color: var(--tx2);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.rkpi b {
+  color: var(--tx);
+  font-weight: 650;
+}
+
+.rkpi:hover {
+  box-shadow: inset 0 0 0 1.5px var(--acc);
+}
+
+.rkmore {
+  margin-top: 8px;
+  font-size: 15px;
+}
+
+/* the small note under the day bars */
+.rkcap {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--tx2);
+}
+
+/* a sum as a stack of small cards: "You had" as a plain line, then a card for each change (a gradient block with its icon,
+   the name in that colour with a short line under it, the signed amount, and its parts), and the result as the last card */
+.rkeq {
+  display: grid;
+  gap: 6px;
+  max-width: 440px;
+  margin-top: 20px;
+  padding: 8px;
+  border-radius: 24px;
+  background: var(--s1);
+  box-shadow: inset 0 0 0 1px var(--ol);
+  text-align: start;
+}
+
+/* in the centred parts (the end of the month) the sum is centred too */
+.rk:not(.z) .rkeq {
+  margin-inline: auto;
+}
+
+.rkeq .qh {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px 6px;
+  font-size: 15px;
+  color: var(--tx2);
+}
+
+.rkeq .qh b {
+  color: var(--tx);
+  font-weight: 650;
+}
+
+.rkeq .sq {
+  display: grid;
+  grid-template-columns: 46px 1fr;
+  gap: 12px;
+  padding: 5px;
+  border-radius: 18px;
+  background: var(--bg);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--tx) 7%, transparent);
+}
+
+.rkeq .qb {
+  display: grid;
+  place-items: center;
+  min-height: 46px;
+  border-radius: 13px;
+  border-start-end-radius: 22px 46%;
+  border-end-end-radius: 22px 46%;
+  background: linear-gradient(165deg, var(--g1), var(--g2));
+  color: #fff;
+}
+
+html[data-mode=dark] .rkeq .qb {
+  color: #14152a;
+}
+
+.rkeq .qb svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* the in and out arrows point the other way in Hebrew */
+html.he .rkeq :is(.qout,.qin) .qb svg {
+  transform: scaleX(-1);
+}
+
+.rkeq .qd {
+  display: grid;
+  align-content: center;
+  min-width: 0;
+  padding-block: 9px 8px;
+  padding-inline: 0 10px;
+}
+
+.rkeq .qt {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.rkeq .qt span {
+  color: var(--g1);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.rkeq .qt b {
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.rkeq .qout .qt b {
+  color: var(--neg);
+}
+
+.rkeq .qin .qt b {
+  color: var(--pos);
+}
+
+.rkeq .qcard .qt b {
+  color: var(--tx2);
+  font-weight: 600;
+}
+
+.rkeq .ql {
+  width: 22px;
+  height: 2.5px;
+  margin: 5px 0 8px;
+  border-radius: 2px;
+  background: var(--g1);
+  opacity: .8;
+}
+
+.rkeq .qp {
+  display: grid;
+  gap: 3px;
+}
+
+.rkeq .qs {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--tx2);
+}
+
+.rkeq .qs b {
+  font-weight: 500;
+}
+
+.rkeq a.qt:hover span:not(.qx),
+.rkeq a.qs:hover span {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* the credit card part: shown, not counted */
+.rkeq .sq.qcard {
+  background: color-mix(in srgb, var(--acc2) 5%, var(--bg));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--acc2) 30%, transparent);
+}
+
+.rkeq .qn {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin: -2px 0 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--tx2);
+}
+
+.rkeq .qt .qx,
+.rkeq .qx {
+  display: inline-block;
+  margin-inline-start: 6px;
+  vertical-align: 2px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--acc2) 13%, transparent);
+  color: var(--acc2);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* the result */
+.rkeq .sq.qend .qd {
+  padding-block: 12px;
+}
+
+.rkeq .sq.qend .qt span {
+  font-size: 16px;
+}
+
+.rkeq .sq.qend .qt b {
+  font-size: 23px;
+  font-weight: 780;
+  letter-spacing: -.01em;
+}
+
+.rkeq .sq.qend .ql {
+  margin-bottom: 0;
+}
+
+/* a line under the result: the same size and gap as "After card bills" */
+.rkeq .sq.qend .qn {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* under the result: the balance once the card bills come */
+.rkeq .qf {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--tx2);
+}
+
+.rkeq .qf .qd2 {
+  white-space: nowrap;
+}
+
+.rkeq .qf b {
+  color: var(--tx);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+
+/* one width for everything in a part (the description, notes, sums, bars, lists and graphs), so they line up */
+.rkw0 {
+  --rkw: 480px;
+}
+
+.rk :is(.rkp,.rkch,.rkeq,.rkhl,.rkup,.rkbl,.rkpw,.rkpl,.rkbw,.rkcap,.rkpis) {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--rkw);
+}
+
+.rk.z .rkch,
+.rk:not(.z) .rkch {
+  display: flex;
+  width: 100%;
+}
+
+.rk.z .rkvv {
+  width: 100%;
+  max-width: var(--rkw);
+}
+
+.rk:not(.z) :is(.rkp,.rkch,.rkeq,.rkhl,.rkup,.rkbl,.rkpw,.rkpl,.rkbw,.rkcap,.rkpis) {
+  margin-inline: auto;
+}
+
+/* a look at next month: under the end of the path, quieter than the parts on the path */
+.rkw0 > .rknext {
+  margin-top: 0;
+}
+
+/* the graph at the end of the path: the full width of the page, not the narrower width of the rest of the part */
+.rk.zend :is(.rkpw, .rkpl) {
+  max-width: 760px;
+}
+
+.rknext .rkn {
+  font-size: clamp(36px, 5vw, 58px);
+  letter-spacing: -1.8px;
+}
+
+.rknext .rkl {
+  font-size: 15px;
+}
+
+/* the summary at the end of the path: two small numbers side by side, then the money you really have, big */
+.rkst {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  max-width: var(--rkw);
+  margin: 22px auto 34px;
+}
+
+.rkst a {
+  display: grid;
+  gap: 4px;
+  align-content: space-between;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: var(--s1);
+  box-shadow: inset 0 0 0 1px var(--ol);
+  color: var(--tx2);
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.rkst a b {
+  color: var(--tx);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.rkst a:hover span {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.rkrl {
+  font-size: 16px;
+  font-weight: 650;
+  color: var(--acc);
 }

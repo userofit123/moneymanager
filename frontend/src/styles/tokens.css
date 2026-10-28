@@ -77,6 +77,11 @@
   --bg-diagonal: linear-gradient(155deg,color-mix(in srgb,var(--acc) calc(22% * var(--gi)),var(--bg)) 0%,var(--bg) 42%,color-mix(in srgb,var(--acc2) calc(18% * var(--gi)),var(--bg)) 100%);
   --bg-spot: radial-gradient(85% 72% at 50% -8%,color-mix(in srgb,var(--acc) calc(30% * var(--gi)),transparent),transparent 70%),var(--bg);
   --bg-flat: var(--bg);
+  --bg-aurora: radial-gradient(80% 38% at 18% 22%,color-mix(in srgb,var(--acc) calc(30% * var(--gi)),transparent),transparent 70%),radial-gradient(70% 34% at 82% 46%,color-mix(in srgb,var(--acc2) calc(26% * var(--gi)),transparent),transparent 70%),radial-gradient(90% 40% at 30% 88%,color-mix(in srgb,var(--acc) calc(22% * var(--gi)),transparent),transparent 70%),var(--bg);
+  --bg-horizon: radial-gradient(120% 62% at 50% 118%,color-mix(in srgb,var(--acc) calc(34% * var(--gi)),transparent),transparent 70%),radial-gradient(90% 40% at 50% 110%,color-mix(in srgb,var(--acc2) calc(26% * var(--gi)),transparent),transparent 70%),var(--bg);
+  --bg-duo: linear-gradient(180deg,color-mix(in srgb,var(--acc) calc(20% * var(--gi)),var(--bg)) 0%,var(--bg) 50%,color-mix(in srgb,var(--acc2) calc(20% * var(--gi)),var(--bg)) 100%);
+  --bg-corners: radial-gradient(55% 55% at 0 0,color-mix(in srgb,var(--acc) calc(32% * var(--gi)),transparent),transparent 70%),radial-gradient(55% 55% at 100% 100%,color-mix(in srgb,var(--acc2) calc(30% * var(--gi)),transparent),transparent 70%),var(--bg);
+  --bg-sweep: conic-gradient(from 200deg at 50% -10%,color-mix(in srgb,var(--acc) calc(30% * var(--gi)),transparent),transparent 22%,color-mix(in srgb,var(--acc2) calc(26% * var(--gi)),transparent) 50%,transparent 78%,color-mix(in srgb,var(--acc) calc(30% * var(--gi)),transparent)),var(--bg);
 }
 
 /* spacing: the gap between blocks and sections (density above is the space inside them) */
@@ -95,6 +100,7 @@ html {
 
 :root {
   --tsc: 1;
-  --noiseT: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1.4 0 0 0 -.2 1.4 0 0 0 -.2 1.4 0 0 0 -.2 0 0 0 0 .13'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  --toa: 1;
+  --noiseT: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1.4 0 0 0 -.2 1.4 0 0 0 -.2 1.4 0 0 0 -.2 0 0 0 0 .26'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
   --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1.4 0 0 0 -.2 1.4 0 0 0 -.2 1.4 0 0 0 -.2 0 0 0 0 .2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }

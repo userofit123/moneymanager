@@ -1,12 +1,13 @@
 // Every row the Activity list shows (transactions, expected bills and balance updates), and the labels after a row's name (chipsT).
-// Besides the transactions there are rows the app makes itself: the cost of moving money between your accounts, the bills expected in the
-// next 31 days (never counted, never saved), and the balances you changed by hand (a note, never income or spending).
+// Besides the transactions there are rows the app makes itself: the cost of moving money between your accounts, the bills expected through the
+// end of next month (never counted, never saved), and the balances you changed by hand (a note, never income or spending).
 import { i18n } from "../i18n.js";
 import { fm, f0 } from "../format.js";
 import { dcell, dstr } from "../dates.js";
 import { TP } from "../core/tooltip.js";
 import { rmOf, instOf, cardOf } from "./activity.js";
 import { billOf, refundTwin } from "./txactions.js";
+import { upInstRows } from "./bills.js";
 
 const t = (...a) => i18n.global.t(...a);
 const p2 = (n) => String(n).padStart(2, "0");
@@ -22,14 +23,21 @@ export function costRows(S) {
 }
 // Each balance typed by hand, as a note row.
 export const balRows = (S) => (S?.balUpdates || []).map((u) => ({ id: "bu" + u.id, balUpd: true, virtual: true, d: ymd(new Date(u.at)), desc: u.old == null ? u.acc + " started at " + fm(u.nu) : u.acc + " balance: " + fm(u.old) + " → " + fm(u.nu), from: u.acc, to: u.acc, a: u.nu - (u.old || 0), c: "Balance update", tags: [], docs: [], note: u.note || "" }));
-// Bills expected in the next 31 days, and the ones whose day has come but the bank has not listed yet ("not seen yet"). BC: home.billsAll.
+// Bills expected through the end of next month, and the ones whose day has come but the bank has not listed yet ("not seen yet";
+// not when the bank lists that payment for a later day: b.sched). BC: home.billsAll.
 export function upBillRows(S, BC, now, today) {
-  const lim = new Date(now.getTime() + 31 * 864e5), fut = (S.tx || []).filter((x) => String(x.d) > today && x.a < 0), ok = (b) => !b.once && !b.irregular && b.flag != "canceled";
+  const lim = new Date(now.getFullYear(), now.getMonth() + 2, 1), fut = (S.tx || []).filter((x) => String(x.d) > today && x.a < 0), ok = (b) => !b.once && !b.irregular && b.flag != "canceled";
   const row = (b, d, late) => ({ id: "ub" + b.idx + (late ? "l" : ""), upBill: b.idx, virtual: true, late: !!late, d, desc: b.n, from: b.src || "", to: b.n, a: -b.pred, c: b.cat || "", tags: [], docs: [], note: "" });
-  return BC.filter((b) => ok(b) && b.nx && b.nx > now && b.nx <= lim && !fut.some((x) => (x.desc + " " + x.to).toLowerCase().includes(b.match) && Math.abs((new Date(x.d) - b.nx) / 864e5) <= 6)).map((b) => row(b, ymd(b.nx)))
-    .concat(BC.filter((b) => ok(b) && b.status == "pending" && b.pd).map((b) => row(b, ymd(b.pd), true)));
+  return BC.filter((b) => ok(b) && b.nx && b.nx > now && b.nx < lim && !fut.some((x) => (x.desc + " " + x.to).toLowerCase().includes(b.match) && Math.abs((new Date(x.d) - b.nx) / 864e5) <= 6)).map((b) => row(b, ymd(b.nx)))
+    .concat(BC.filter((b) => ok(b) && b.status == "pending" && b.pd && !b.sched).map((b) => row(b, ymd(b.pd), true)));
 }
-export const allRows = (S, BC = [], now = new Date(), today = ymd(now)) => (S ? (S.tx || []).concat(costRows(S), upBillRows(S, BC, now, today), balRows(S)) : []);
+export function allRows(S, BC = [], now = new Date(), today = ymd(now)) {
+  if (!S) return [];
+  const ui = upInstRows(S, now, today), near = (r, u) => Math.abs((new Date(r.d) - new Date(u.d)) / 864e5) <= 6;
+  // an expected bill for the same purchase and month is replaced by the instalment row, which knows the payment number
+  const ub = upBillRows(S, BC, now, today).filter((u) => { const m = BC.find((b) => b.idx == u.upBill)?.match; return !(m && ui.some((r) => String(r.desc).toLowerCase().includes(m) && near(r, u))); });
+  return (S.tx || []).concat(costRows(S), ub, ui, balRows(S));
+}
 
 // ---- texts about a bill or an upcoming payment ----
 const SRCL = { hapoalim: "Bank Hapoalim", max: "Max", isracard: "Isracard", wise: "Wise" };
@@ -67,12 +75,12 @@ export function txChips(S, x, c) {
   { const b = billOf(x, BC); if (b) add("p-bill", b.once ? t("txw.chip.billOnce") : t("txw.chip.bill"), whyBill(b), !b.once && !b.irregular ? "rep" : ""); }
   if (K.isXf(x)) add("p-xf", t("activity.chip.xf"), t("activity.chip.xfTip"), "xf");
   if (dup && dup.has(x.id)) add("p-dup", t("activity.chip.dup"), t("activity.chip.dupTip"));
-  if (x.virtual && x.upBill == null) add("p-auto", t("activity.chip.auto"), t("activity.chip.autoTip"));
+  if (x.virtual && x.upBill == null && !x.upInst) add("p-auto", t("activity.chip.auto"), t("activity.chip.autoTip"));
   if (x.note) add("p-note", "", TP(t("txw.chip.note"), [], String(x.note).slice(0, 600)), "note");
   return out;
 }
 // "+₪1,250" / "−₪80" ("≈" in front of an expected bill); a balance update is "balance +₪500".
-export const amtText = (x) => (x.balUpd ? t("activity.balance") + " " + (x.a >= 0 ? "+" : "−") + "₪" + f0(x.a) : (x.upBill != null ? "≈ " : "") + (x.a > 0 ? "+" : "−") + "₪" + f0(x.a));
+export const amtText = (x) => (x.balUpd ? t("activity.balance") + " " + (x.a >= 0 ? "+" : "−") + "₪" + f0(x.a) : (x.upBill != null || x.upInst ? "≈ " : "") + (x.a > 0 ? "+" : "−") + "₪" + f0(x.a));
 export const SYM = { ILS: "₪", USD: "$", EUR: "€", GBP: "£", JPY: "¥" };
 // the small icons inside some labels
 export const CHIP_ICON = { xf: '<path d="M4 8h15M15 4l4 4-4 4M20 16H5M9 12l-4 4 4 4"/>', note: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>', rep: '<path d="M20 11a8 8 0 0 0-14-4L4 9M4 4v5h5M4 13a8 8 0 0 0 14 4l2-2M20 20v-5h-5"/>' };

@@ -27,8 +27,14 @@
 
 .card.hero {
   background: linear-gradient(140deg, var(--accc), color-mix(in srgb, var(--accc) 55%, var(--s1)));
-  border-color: transparent;
+  border-color: color-mix(in srgb, var(--onc) 14%, transparent);
   color: var(--onc);
+}
+
+/* the colour stops at the edge: under the see-through edge it would show the gradient's light start on one side and
+   its dark end on the other, so the two sides would look different (:root wins over every look's background) */
+:root .card.hero {
+  background-clip: padding-box;
 }
 
 .card.hero .lbl,

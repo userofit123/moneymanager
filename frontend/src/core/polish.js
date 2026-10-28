@@ -58,4 +58,5 @@ export function startPolish() {
 }
 // For Hebrew sentences made from translations: amounts and numbers in them stay left to right (vue-i18n postTranslation, see i18n.js).
 // (not digits that are part of a word, such as the name "10bis", which is translated as one word and stays as is)
-export const isolateNumbers = (s) => String(s).replace(/(?<![A-Za-z\d])[−+]?₪?\d[\d,]*(?:\.\d+)?%?(?![A-Za-z\d])/g, "⁦$&⁩");
+// (a "+" right after another "+" is the tooltip's green mark, ++amount++, not the amount's sign)
+export const isolateNumbers = (s) => String(s).replace(/(?<![A-Za-z\d])(?:(?<!\+)[−+])?₪?\d[\d,]*(?:\.\d+)?%?(?![A-Za-z\d])/g, "⁦$&⁩");

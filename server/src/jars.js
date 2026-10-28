@@ -1,6 +1,6 @@
 // Jars are informational (not linked to real accounts). Each month, in priority order, every jar takes what it is still
 // entitled to from the money that is really available: cash (bank + Wise) minus what is already in jars, minus a buffer,
-// minus what is still to be paid this month (unpaid bills and the unspent part of budgets).
+// minus what is still to be paid this month (unpaid bills, the unspent part of budgets and card purchases not paid yet).
 //   fixed jar:  up to its monthly amount in total this month, never beyond its target (a jar with no target just keeps going)
 //   bill jar:   topped up to its target
 // A fill that could not happen yet (not enough money) is retried on the next run, so a jar that did not get its money
@@ -42,7 +42,8 @@ export async function cashNow(c) {
 
 export async function fillJarsTx(c, month = thisMonth()) {
   const buffer = +((await c.query("SELECT value FROM settings WHERE key='jars_buffer'")).rows[0]?.value ?? 0);
-  // what the app has set aside for bills still to pay and the unspent part of budgets (worked out by the app, refreshed whenever it is open)
+  // what the app has set aside for bills still to pay, the unspent part of budgets and card purchases not paid yet
+  // (worked out by the app, refreshed whenever it is open)
   const reserve = Math.max(0, +((await c.query("SELECT value FROM settings WHERE key='jars_reserve'")).rows[0]?.value ?? 0));
   const jars = (await c.query("SELECT id,priority,target,cap,balance,outside,due,auto_cap FROM jars WHERE done_at IS NULL")).rows;
   if (!jars.length) return { applied: 0, total: 0 };

@@ -8,11 +8,15 @@
   ["cardsU",293],
   ["cardsPrev",4578],
   ["cardPaid",0],
-  ["cardLeft",4578],
+  ["cardsThis",4578],
+  ["cardsNext",293],
+  ["likelyBank",1250],
+  ["likelyCard",3174],
+  ["nextBill",3467],
   ["same",6120],
   ["billsTot",2718],
   ["limitsLeft",8431],
-  ["end",15378],
+  ["end",53066],
   ["start",36432],
   ["w1",6675],
   ["w0",1860],
@@ -80,5 +84,6 @@
   ["2026-10-30",0,0,[],[],[]],
   ["2026-10-31",0,0,[],[],[]]
  ],
- "parts": ["hero","start","in","now","ahead","out","budgets","end"]
+ "steps": [["spend","2026-10-01","2026-10-03",6152,36432,30573]],
+ "parts": ["hero","start","step:0","now","ahead","nextcard","split","attn","end","next"]
 }

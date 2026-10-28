@@ -4,7 +4,7 @@
 import { ref, computed, watch } from "vue";
 import { i18n } from "../i18n.js";
 import { data } from "../stores/data.js";
-import { home, budgets } from "./derived.js";
+import { home, budgets, fcSaved } from "./derived.js";
 import { now } from "./clock.js";
 import { request, sendJson } from "./http.js";
 import { pickToNotify } from "../lib/alertNotify.js";
@@ -26,7 +26,7 @@ const enCtx = { t: enT, catName: (c) => (!c || c === "Uncategorized" ? enT("home
 const rows = computed(() => {
   const S = data.state.value;
   if (!S || !home.value) return [];
-  return alertsModel(S, { ...home.value, budgets: budgets.value.info }, now.value, {}, friendly).map((x) => { const [title, text] = alertTexts(x, enCtx); return { key: String(x.id), title, detail: text, sev: x.sev }; });
+  return alertsModel(S, { ...home.value, budgets: budgets.value.info }, now.value, fcSaved.value, friendly).map((x) => { const [title, text] = alertTexts(x, enCtx); return { key: String(x.id), title, detail: text, sev: x.sev }; });
 });
 // goes up after each report, so an open History tab can load again
 export const alertsReported = ref(0);
@@ -46,7 +46,7 @@ watch(rows, (L) => {
   notified = true;
   const t = i18n.global.t, lc = i18n.global.locale.value, loc = lc === "he" ? "he-IL" : "en-GB";
   const ctx = { t, catName: (c) => (!c || c === "Uncategorized" ? t("home.uncategorizedCat") : categoryName(c, lc)), an: (n) => categoryName(n, lc), dstr, monthYear: (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(loc, { month: "short", year: "numeric" }) };
-  const list = alertsModel(data.state.value, { ...home.value, budgets: budgets.value.info }, now.value, {}, makeFriendly(t));
+  const list = alertsModel(data.state.value, { ...home.value, budgets: budgets.value.info }, now.value, fcSaved.value, makeFriendly(t));
   // only the alerts this device was not told about before (kept in this browser, so a refresh does not repeat them)
   let told = []; try { told = JSON.parse(localStorage.getItem("moneyNotified") || "[]"); } catch { /* starts empty */ }
   const { fresh, keep } = pickToNotify(list, told);

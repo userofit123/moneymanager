@@ -292,7 +292,7 @@ html.he .row > div[style*="text-align:end"] {
 /* ===== appearance panel ===== */
 
 .pop {
-  width: 372px;
+  width: 432px;
   max-height: calc(100vh - 32px);
   padding: 0;
   overflow: hidden;
@@ -306,6 +306,15 @@ html.he .row > div[style*="text-align:end"] {
 
 html.mob .pop {
   max-height: calc(100vh - 100px - var(--sb));
+}
+
+/* the Appearance panel keeps one height whichever tab is open, so switching tabs does not resize it (a resize redraws everything behind it) */
+#pop {
+  height: min(700px, calc(100vh - 32px));
+}
+
+html.mob #pop {
+  height: min(700px, calc(100vh - 100px - var(--sb)));
 }
 
 html.mob .pop {

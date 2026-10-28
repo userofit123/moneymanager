@@ -243,3 +243,10 @@ html.mob .wct {
 #row-bb {
   row-gap: calc(var(--spg) * 1.75);
 }
+
+.wct .wry {
+  flex-basis: 100%;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--tx2);
+}

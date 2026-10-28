@@ -1,5 +1,6 @@
 // The app's tooltips: any element with data-tip="text" (or v-tip="text") has one.
 // The text format: first line the title, "label\tvalue" lines are rows, "---" is a line, "!text" is a warning, other lines are notes.
+// Inside any line: **bold**, ++money in++ (green), ~~money out~~ (red). A line starting "• " is a list item.
 // A single line is a plain hint. Hovering shows it after a short pause, an (i) button (class "tinfo") shows it at once and keeps it until you tap elsewhere.
 
 let tipEl = null, host = null, pinned = null, timer = null, hideT = null, wired = false;
@@ -9,6 +10,17 @@ const ensure = () => {
   return tipEl;
 };
 const NS = "http://www.w3.org/2000/svg";
+// **bold**, ++money in++, ~~money out~~ inside a line (plain text stays text, never HTML)
+const MARK = /\*\*|\+\+|~~/;
+function marked(el, s) {
+  const re = /\*\*(.+?)\*\*|\+\+(.+?)\+\+|~~(.+?)~~/g; let at = 0, m;
+  while ((m = re.exec(s))) {
+    if (m.index > at) el.append(s.slice(at, m.index));
+    const x = document.createElement(m[1] != null ? "b" : "span"); if (m[1] == null) x.className = m[2] != null ? "tin" : "tout";
+    x.textContent = m[1] ?? m[2] ?? m[3]; el.appendChild(x); at = re.lastIndex;
+  }
+  if (at < s.length) el.append(s.slice(at));
+}
 function fill(text) {
   const t = ensure(), L = String(text).split("\n");
   t.textContent = ""; t.classList.toggle("rich", L.length > 1);
@@ -20,8 +32,10 @@ function fill(text) {
       d.className = "ta";
       const s = document.createElementNS(NS, "svg"); s.setAttribute("viewBox", "0 0 24 24"); const p = document.createElementNS(NS, "path"); p.setAttribute("d", "M12 3 2 20h20L12 3zM12 10v4M12 17.5v.01"); s.appendChild(p); d.appendChild(s);
       const m = document.createElement("span"); m.textContent = ln.slice(1); d.appendChild(m);
-    } else if (i === 0) { d.className = "tt"; d.textContent = ln; }
-    else if (ln.includes("\t")) { const [a, b] = ln.split("\t"); d.className = "tr"; const x = document.createElement("span"), y = document.createElement("b"); x.textContent = a; y.textContent = b; d.append(x, y); }
+    } else if (i === 0) { d.className = "tt"; marked(d, ln); }
+    else if (ln.includes("\t")) { const [a, b] = ln.split("\t"); d.className = "tr"; const x = document.createElement("span"), y = document.createElement("b"); marked(x, a); marked(y, b); d.append(x, y); }
+    else if (ln.startsWith("• ")) { d.className = "tn tli"; marked(d, ln.slice(2)); }
+    else if (MARK.test(ln)) { d.className = "tn"; marked(d, ln); }
     else { d.className = "tn"; const k = ln.indexOf(":"); if (k > 1 && k < 30 && /^[^\s:][^:]{1,26}: /.test(ln) && /^\p{Lu}/u.test(ln)) { const b = document.createElement("b"); b.textContent = ln.slice(0, k + 1); d.append(b, ln.slice(k + 1)); } else d.textContent = ln; }
     t.appendChild(d);
   });

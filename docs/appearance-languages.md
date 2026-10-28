@@ -22,7 +22,7 @@ Open **Appearance** from the menu. Every change shows right away. It is saved **
 | **Atmosphere** | The main colour: ten-plus colour sets, or **Custom** for any colour you pick |
 | **Background** | **Glow**, **Mesh**, **Diagonal**, **Spotlight** or **Flat** (no effect) |
 | **Texture** | A light pattern on top: **None**, **Dots**, **Stripes**, **Grid** or **Static**, with a density slider |
-| **Surface** | How cards look: **Solid**, **Glass**, **Outline**, **Raised** or **Static** |
+| **Surface** | How cards look: **Solid**, **Outline**, **Raised** or **Glass** |
 | **Corners** | **Round**, **Soft** or **Sharp** |
 | **Density** | The space *inside* cards and rows: **Compact**, **Cozy**, **Roomy** |
 | **Spacing** | The gap *between* cards and sections: **Tight**, **Standard**, **Loose**, **Wide** |
@@ -30,7 +30,7 @@ Open **Appearance** from the menu. Every change shows right away. It is saved **
 | **Navigation** | On a computer, side menu with **Labels** or **Icons only** |
 | **App icon** | The symbol in the round logo: the **coin** (the app's own icon), or a shekel, dollar, euro, pound or yen |
 
-**Glass** gives every card a blur of what is behind it. Three sliders appear: **Blur** (how frosted), **Vibrance** (how strong the colours behind it look) and **Opacity** (how see-through). It is the heaviest effect for your graphics card. If the app feels slow, switch the surface back to **Solid**.
+**Glass** lets the background show through every card, window and menu; the background itself does not change. Three sliders appear: **Blur** (how blurred the background looks through the cards), **Vibrance** (how bright and colourful it looks) and **Opacity** (how solid the card colour is: 100% hides the background, 0% shows it fully). It is the heaviest effect for your graphics card. If the app feels slow, switch the surface back to **Solid**.
 
 > **Tip** Click the logo at the top of the side menu for a random new look.
 

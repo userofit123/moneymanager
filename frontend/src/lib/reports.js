@@ -28,7 +28,8 @@ export const cmpEnd = (c) => (c.to.endsWith("-31") ? shiftDays(addM(c.to.slice(0
 
 // The name of an income source (who it came from).
 export const incKey = (t) => { const f = String(t.from || "").trim(); if (f && !/^(bank transfer|other)$/i.test(f)) return f; const d = String(t.desc || "").replace(/[0-9/\\.,:;*#()\-_]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 40); return d || "Other income"; };
-const counted = (M) => M.rows.filter((t) => !t.pending);
+// the rows Home counts: pending ones count, the same way the Activity page counts them
+const counted = (M) => M.rows;
 
 // Spending by category, merchant or tag for one time frame, and for the one it is compared with.
 export function block(M, r, cmpMode, now, ws) {

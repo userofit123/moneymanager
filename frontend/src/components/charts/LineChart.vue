@@ -11,7 +11,8 @@ const G = computed(() => {
   const mx = Math.max(1, ...v), mn = Math.min(0, ...v), x = (i) => Pl + (i * (W - Pl - Pr)) / Math.max(1, v.length - 1), y = (n) => H - Pb - ((n - mn) / (mx - mn || 1)) * (H - Pb - Pt);
   const grid = [0, 1, 2, 3].map((k) => { const n = mn + ((mx - mn) * k) / 3; return { y: y(n), t: Math.abs(n) >= 1000 ? (n / 1000).toFixed(Math.abs(n) >= 10000 ? 0 : 1) + "k" : Math.round(n) }; });
   const pts = v.map((n, i) => x(i) + "," + y(n)).join(" "), base = y(Math.max(0, mn));
-  return { W, H, Pl, Pr, Pt, Pb, x, y, grid, pts, area: `${x(0)},${base} ${pts} ${x(v.length - 1)},${base}`, xs: v.map((_, i) => x(i)) };
+  const step = Math.max(1, Math.ceil((v.length * 50) / (W - Pl - Pr)));
+  return { W, H, Pl, Pr, Pt, Pb, x, y, grid, step, pts, area: `${x(0)},${base} ${pts} ${x(v.length - 1)},${base}`, xs: v.map((_, i) => x(i)) };
 });
 const svg = ref(null), tip = ref(null), hv = ref(null);
 function show(e) {
@@ -35,7 +36,7 @@ const tipStyle = computed(() => {
       <polygon :fill="`url(#${gid})`" :points="G.area" />
       <polyline fill="none" :stroke="color" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" :points="G.pts" />
       <circle v-for="(v, i) in vals" :key="'c' + i" :cx="G.x(i)" :cy="G.y(v)" :r="i == vals.length - 1 ? 4.5 : 0" fill="var(--bg)" :stroke="color" stroke-width="2.4" />
-      <template v-for="(l, i) in labels" :key="'l' + i"><text v-if="i % 2 == 0 || vals.length < 8" :x="G.x(i)" :y="G.H - 6" text-anchor="middle">{{ l }}</text></template>
+      <template v-for="(l, i) in labels" :key="'l' + i"><text v-if="i % G.step == 0 || vals.length < 8" :x="G.x(i)" :y="G.H - 6" :text-anchor="i == labels.length - 1 ? 'end' : 'middle'">{{ l }}</text></template>
       <template v-if="hv"><line :x1="G.xs[hv.i]" :x2="G.xs[hv.i]" :y1="G.Pt" :y2="G.H - G.Pb" stroke="var(--tx)" stroke-opacity=".35" stroke-dasharray="3 3" style="pointer-events:none" /><circle :cx="G.xs[hv.i]" :cy="G.y(vals[hv.i])" r="5" :fill="color" stroke="var(--bg)" stroke-width="2" style="pointer-events:none" /></template>
     </svg>
     <div ref="tip" class="trtip" :style="hv ? { display: 'flex', ...tipStyle } : { display: 'none' }"><template v-if="hv"><b>{{ (full || labels)[hv.i] }}</b><span>{{ fm(vals[hv.i]) }}</span></template></div>

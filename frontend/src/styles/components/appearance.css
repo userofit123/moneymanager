@@ -32,7 +32,7 @@ details.closing > *:not(summary) {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 14px 18px;
+  padding: 16px 22px;
   border-bottom: 1px solid var(--ol);
   flex: none;
 }
@@ -45,8 +45,10 @@ details.closing > *:not(summary) {
 .apb {
   overflow: auto;
   overscroll-behavior: contain;
-  padding: 0 18px 6px;
+  padding: 0 22px 8px;
   min-height: 0;
+  flex: 1;
+  contain: layout paint;
 }
 
 .aps {
@@ -196,6 +198,26 @@ details.closing > *:not(summary) {
   background: var(--bg-flat);
 }
 
+.bg-aurora {
+  background: var(--bg-aurora);
+}
+
+.bg-horizon {
+  background: var(--bg-horizon);
+}
+
+.bg-duo {
+  background: var(--bg-duo);
+}
+
+.bg-corners {
+  background: var(--bg-corners);
+}
+
+.bg-sweep {
+  background: var(--bg-sweep);
+}
+
 .tx-none {
   background: linear-gradient(to top right, transparent calc(50% - .6px), color-mix(in srgb, var(--tx) 30%, transparent) 50%, transparent calc(50% + .6px)), var(--bg);
 }
@@ -246,13 +268,6 @@ details.closing > *:not(summary) {
   background: var(--bg);
 }
 
-.sf-glass i {
-  background: linear-gradient(135deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, .12));
-  border-color: rgba(255, 255, 255, .7);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-}
-
 .sf-outline i {
   background: transparent;
   border: 1.5px solid color-mix(in srgb, var(--tx) 45%, transparent);
@@ -262,6 +277,13 @@ details.closing > *:not(summary) {
   background: linear-gradient(180deg, color-mix(in srgb, #fff 12%, var(--bg)), var(--bg));
   border-color: color-mix(in srgb, var(--tx) 10%, transparent);
   box-shadow: 0 5px 8px -2px rgba(0, 0, 0, .35), 0 1px 1px rgba(0, 0, 0, .2);
+}
+
+.sf-glass i {
+  background: color-mix(in srgb, var(--bg) 35%, transparent);
+  border-color: color-mix(in srgb, #fff 35%, transparent);
+  -webkit-backdrop-filter: blur(6px) saturate(1.6);
+  backdrop-filter: blur(6px) saturate(1.6);
 }
 
 .rv i {
@@ -385,8 +407,17 @@ details.closing > *:not(summary) {
 }
 
 .aptabs {
-  margin: 12px 18px 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin: 14px 22px 4px;
   flex: none;
+  overflow: visible;
+}
+
+.aptabs button {
+  padding-inline: 4px;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .apbt {
@@ -395,53 +426,171 @@ details.closing > *:not(summary) {
 
 .apbt.on {
   display: block;
+  animation: apfade .15s ease-out;
 }
 
+@keyframes apfade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* a custom colour set: a base colour, then the colours in groups */
 .cust {
-  margin-top: 14px;
+  margin: 0 -6px;
+  padding: 14px 6px 16px;
+  border-bottom: 1px solid var(--ol);
 }
 
 .cuh {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  margin: 14px 0 8px;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.cuh .sm {
+  margin-top: 2px;
+}
+
+.cbase {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--s1);
+}
+
+.cbase select {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.cbc {
+  display: block;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px var(--ol);
+}
+
+.cbt {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  font-size: 13px;
+}
+
+.cbt span,
+.crow output {
+  font-size: 11.5px;
+  color: var(--tx2);
+  font-variant-numeric: tabular-nums;
+  text-align: start;
+}
+
+.cmode {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin: 16px 0 4px;
   font-size: 12.5px;
+  font-weight: 700;
+}
+
+.cmode .sm {
+  flex-basis: 100%;
+  font-weight: 500;
+}
+
+.cmd {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid var(--tx2);
+  background: linear-gradient(90deg, var(--tx2) 50%, transparent 50%); /* fixed side */
+}
+
+.cmd.d {
+  background: var(--tx2);
+}
+
+.cgp h5 {
+  margin: 14px 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  color: var(--tx2);
 }
 
 .cgrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px 10px;
+  gap: 6px;
 }
 
 .crow {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "c n" "c h";
   align-items: center;
-  gap: 9px;
+  column-gap: 10px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--ol);
   font-size: 12.5px;
-  color: var(--tx2);
   cursor: pointer;
   min-width: 0;
+  transition: background .15s;
+}
+
+.crow:hover {
+  background: var(--s1);
+}
+
+.crow input {
+  grid-area: c;
 }
 
 .crow span {
+  grid-area: n;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--tx);
+  font-weight: 600;
+}
+
+.crow output {
+  grid-area: h;
 }
 
 .cust input[type=color] {
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   min-height: 0;
   padding: 0;
   border: 1px solid var(--ol);
-  border-radius: 50%;
+  border-radius: 10px;
   background: none;
   flex: none;
   cursor: pointer;
   overflow: hidden;
+}
+
+.cbc input[type=color] {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 0;
 }
 
 .cust input[type=color]::-webkit-color-swatch-wrapper {
@@ -450,23 +599,61 @@ details.closing > *:not(summary) {
 
 .cust input[type=color]::-webkit-color-swatch {
   border: 0;
-  border-radius: 50%;
+  border-radius: 0;
 }
 
 .cust input[type=color]::-moz-color-swatch {
   border: 0;
-  border-radius: 50%;
+  border-radius: 0;
 }
 
 .cch {
-  margin-top: 14px;
+  margin-top: 16px;
 }
 
 .cch summary {
   cursor: pointer;
   font-size: 12.5px;
+  font-weight: 600;
   color: var(--tx2);
   margin-bottom: 10px;
+}
+
+.cchips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cchip input[type=color] {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+.cchip input[type=color]::-webkit-color-swatch {
+  border-radius: 50%;
+}
+
+.cchip input[type=color]::-moz-color-swatch {
+  border-radius: 50%;
+}
+
+/* extra settings that belong to the choice above them (texture and glass sliders) */
+.apsub {
+  margin-top: 12px;
+  padding: 2px 12px 12px;
+  border-radius: 14px;
+  background: var(--s1);
+}
+
+.apsub.off {
+  opacity: .45;
+  pointer-events: none;
+}
+
+.apsub .apr:first-child {
+  margin-top: 10px;
 }
 
 details.closing.kvd > summary::after {

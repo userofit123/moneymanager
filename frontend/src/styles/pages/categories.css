@@ -562,3 +562,26 @@
 #cats .card.ss {
   overflow: clip;
 }
+
+/* both tabs keep the same padding (the shared tab row stretches each button to the widest) */
+#catTabs button {
+  flex: none;
+  padding-inline: 18px;
+}
+
+/* the count after a card title is a dot and a plain number, not a pill */
+.ssh.cshd .cnt {
+  display: inline;
+  min-width: 0;
+  height: auto;
+  padding: 0;
+  margin-inline-start: 0;
+  background: none;
+  font-weight: 600;
+  vertical-align: baseline;
+}
+
+.ssh.cshd .cnt::before {
+  content: "·";
+  margin-inline: 8px;
+}

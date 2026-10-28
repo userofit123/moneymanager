@@ -199,3 +199,36 @@ html.mob .ftools .rng select {
   font-size: 14px;
   width: auto;
 }
+
+/* the small note after a chart title, set off by an evenly spaced dot; the title row keeps both together at the start, not pushed apart */
+h2:has(> .achsub) {
+  justify-content: flex-start;
+}
+
+.achsub {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+
+.achsub::before {
+  content: "·";
+  margin-inline: 8px;
+}
+
+/* the arrow of the "All accounts" button points to the start of the line (right in Hebrew) */
+.bkar {
+  width: 16px;
+  height: 16px;
+  margin-inline-end: 6px;
+  vertical-align: -3px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html.he .bkar {
+  transform: scaleX(-1);
+}

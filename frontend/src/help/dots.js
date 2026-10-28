@@ -1,8 +1,8 @@
 // Where the small ? goes:
 // [help page, area on the page, element holding the name, start of its English text, title of the info block to open, how ("after" = next to the area), the same name in Hebrew].
 export default [
-  ["dash", "#kpis", ".lbl", "Net worth", "The four big numbers", "", "שווי נקי"],
-  ["dash", "#sec-accts", "h2", "Accounts", "Accounts and credit cards", "", "חשבונות בנק"],
+  ["dash", "#kpis", ".lbl", "In your accounts", "The four big numbers", "", "בחשבונות שלכם"],
+  ["dash", "#sec-accts", "h2", "Accounts", "Accounts and credit cards", "", "חשבונות"],
   ["dash", "#sec-cards", "h2", "Credit cards", "Accounts and credit cards", "", "כרטיסי אשראי"],
   ["dash", "#sec-flow", "h2", "Money flow", "Money flow · ahead", "", "תזרים כספים"],
   ["dash", "#sec-donut", "h2", "Spending by category", "Spending and budgets", "", "הוצאות לפי קטגוריה"],
@@ -35,14 +35,10 @@ export default [
   ["rep", "#rep", ".lbl", "Category trend", "Category trend", "", "מגמה לפי קטגוריה"],
   ["rep", "#rep", ".lbl", "Top merchants", "Top merchants and tags", "", "בתי העסק המובילים"],
   ["rep", "#rep", ".lbl", "Spending by tag", "Top merchants and tags", "", "הוצאות לפי תגית"],
-  ["fc", "#fcK", ".lbl", "Now", "Four balance cards", "", "עכשיו"],
-  ["fc", "#fcCtl", ".pl", "Forecast horizon", "The three choices on top", "", "טווח התחזית"],
-  ["fc", "#fc", "h2", "Projected balance", "The chart", "", "היתרה הצפויה"],
+  ["fc", "#fc", "h2", "How much money you will really have", "The chart", "", "כמה כסף באמת יהיה לכם"],
   ["fc", "#fc", "h2", "What drives the forecast", "What drives the forecast", "", "מה משפיע על התחזית"],
   ["fc", "#fc", "h2", "Jar forecast", "Jar forecast", "", "תחזית הקופות"],
   ["alerts", "#alTabs", "", "", "Two tabs", "after", ""],
-  ["cats", "#setCats", ".ssh b", "Categories", "Categories", "", "קטגוריות"],
-  ["cats", "#setTags", ".ssh b", "Tags", "Tags", "", "תגיות"],
   ["set.ai", "#aiSort", ".ssh b", "Let an AI make your categories", "Let an AI make your categories", "", "תנו לבינה מלאכותית ליצור לכם קטגוריות"],
   ["set.crules", "#setRules", ".ssh b", "Category rules", "Category rules", "", "כללי קטגוריות"],
   ["set.trules", "#setTagrules", ".ssh b", "Tag rules", "Tag rules", "", "כללי תגיות"],

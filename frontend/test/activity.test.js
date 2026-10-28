@@ -1,6 +1,7 @@
 // The Activity list: what counts in In, Out and Net, filters, sorting and grouping.
 import test from "node:test";
 import assert from "node:assert/strict";
+import { upInstRows } from "../src/lib/bills.js";
 import { kinds, totals, leftOut, filterRows, sortRows, groupRows, normTag, allTags } from "../src/lib/activity.js";
 
 const S = {
@@ -108,4 +109,21 @@ test("transaction window facts and balance gaps", () => {
   assert.deepEqual(rows.map((r) => r.k), ["date", "account", "source", "amount", "entry"]);
   assert.ok(amountsFit([30, 20, 7], 50));
   assert.ok(!amountsFit([30, 25], 50));
+});
+
+test("the next instalment shows as expected: 9/10 paid this month adds 10/10 next month, 2/8 adds 3/8", () => {
+  const tx = (id, d, desc, n, total) => ({ id, d, desc, to: desc, from: "Card", a: -200, c: "Home", inst: [n, total], tags: [] });
+  const S = { tx: [tx("a", "2026-10-05", "Sofa shop", 9, 10), tx("b", "2026-10-10", "Phone shop", 2, 8), tx("c", "2026-10-03", "Desk shop", 10, 10)] };
+  const r = upInstRows(S, new Date(2026, 9, 24), "2026-10-24");
+  assert.deepEqual(r.map((x) => [x.desc, x.d, x.inst]).sort(), [["Phone shop", "2026-11-10", [3, 8]], ["Sofa shop", "2026-11-05", [10, 10]]]);
+});
+test("a payment late in next month still shows, and a plan whose month has not come yet shows both coming payments", () => {
+  const S = { tx: [{ id: "a", d: "2026-10-05", desc: "Sofa shop", to: "Sofa shop", from: "Card", a: -200, c: "Home", inst: [6, 10], tags: [] }, { id: "b", d: "2026-09-27", desc: "Desk shop", to: "Desk shop", from: "Card", a: -300, c: "Home", inst: [2, 6], tags: [] }] };
+  const r = upInstRows(S, new Date(2026, 9, 24), "2026-10-24");
+  assert.deepEqual(r.map((x) => [x.desc, x.d, x.inst]).sort(), [["Desk shop", "2026-10-27", [3, 6]], ["Desk shop", "2026-11-27", [4, 6]], ["Sofa shop", "2026-11-05", [7, 10]]]);
+});
+test("a payment the bank already lists for later this month still gets next month's payment after it", () => {
+  const S = { tx: [{ id: "a", d: "2026-10-28", desc: "Car insurance", to: "Car insurance", from: "Card", a: -200, c: "Home", inst: [6, 10], tags: [] }] };
+  const r = upInstRows(S, new Date(2026, 9, 24), "2026-10-24");
+  assert.deepEqual(r.map((x) => [x.d, x.inst]), [["2026-11-28", [7, 10]]]);
 });

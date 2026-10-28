@@ -7,7 +7,7 @@ import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { matchesSaved } from "./golden.js";
 import { buildDemo } from "../../server/src/seed.js";
-import { billState, billsModel, withDetected, addBill, flagBill, cancelBill, restoreBill, deleteBill, setBillType, sugYes, sugNo, payHistory, whyText, makeDstr, cadenceOf } from "../src/lib/bills.js";
+import { billState, billsModel, withDetected, addBill, flagBill, cancelBill, restoreBill, deleteBill, setBillType, sugYes, sugNo, payHistory, whyText, makeDstr, cadenceOf, priceMoved } from "../src/lib/bills.js";
 
 process.on("unhandledRejection", () => {});
 // The page is drawn on the server with the real Vue file (Vite), so no browser is needed.
@@ -209,4 +209,12 @@ test("the rhythm finder needs a steady gap and a steady amount", () => {
   assert.equal(cadenceOf(L(["2026-01-05", "2026-02-05", "2026-03-05"], [10])).every, 1);
   assert.equal(cadenceOf(L(["2026-01-05", "2026-02-05", "2026-03-05"], [10, 10, 20])), null, "the amount jumps");
   assert.equal(cadenceOf(L(["2025-03-01", "2026-03-02"], [100])).every, 12);
+});
+
+test("a price change counts only from 2% and ₪1", () => {
+  assert.equal(priceMoved({ was: 37.45, amt: 37.75 }), false, "a few agorot is not a change");
+  assert.equal(priceMoved({ was: 23, amt: 25 }), true);
+  assert.equal(priceMoved({ was: 500, amt: 505 }), false, "1% is not a change");
+  assert.equal(priceMoved({ was: 500, amt: 490 }), true, "a 2% drop is");
+  assert.equal(priceMoved({ was: 0, amt: 30 }), false);
 });

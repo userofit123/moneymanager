@@ -28,7 +28,7 @@ const cats = computed(() => catNames(S.value).filter((k) => k != "Uncategorized"
 const name = (x) => (x.virtual ? tx(displayName(S.value, x)) : displayName(S.value, x));
 const av = (x) => { const c = catColor(S.value, x.c || "Uncategorized"); return { background: `color-mix(in srgb,${c} 22%,transparent)`, color: c }; };
 const pos = (x) => x.a > 0 && !K.value.isXf(x);
-const canCat = (x) => !x.virtual && !K.value.isXf(x) && x.upBill == null;
+const canCat = (x) => !x.virtual && !K.value.isXf(x) && x.upBill == null && !x.upInst;
 // change the category through setField: it writes the history line, with its undo
 const setCat = (x, v) => data.change((n) => setField(n, x.id, "c", v).lines || false);
 </script>

@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { matchesSaved } from "./golden.js";
 import { buildDemo } from "../../server/src/seed.js";
 import { homeModel } from "../src/lib/home.js";
-import { recapModel, recapParts, dayBarHeights } from "../src/lib/recap.js";
+import { recapModel, recapParts, dayBarHeights, roundParts, chargeOf, cardsDue, monthSteps } from "../src/lib/recap.js";
 
 process.on("unhandledRejection", () => {});
 const FX = { USD: 3.62 };
@@ -20,7 +20,7 @@ function demoState(NOW, o = {}) {
 }
 const r0 = (n) => Math.round(n);
 const pick = (m) => ({
-  nums: ["day", "dim", "cash", "inc", "ex", "cardsU", "cardsPrev", "cardPaid", "cardLeft", "same", "billsTot", "limitsLeft", "end", "start", "w1", "w0", "nextBills", "inJars", "buffer"].map((k) => [k, r0(m[k])]),
+  nums: ["day", "dim", "cash", "inc", "ex", "cardsU", "cardsPrev", "cardPaid", "cardsThis", "cardsNext", "likelyBank", "likelyCard", "nextBill", "same", "billsTot", "limitsLeft", "end", "start", "w1", "w0", "nextBills", "inJars", "buffer"].map((k) => [k, r0(m[k])]),
   phase: m.phase, sal: m.sal && m.sal.id, incs: m.incs.map((t) => t.id), bills: m.bills.map((b) => [b.n, r0(b.amt)]),
   over: m.over.map((b) => b.k), risk: m.risk.map((b) => b.k), okB: m.okB.map((b) => b.k), above: m.above.map((x) => x.k), below: m.below.map((x) => x.k),
   days: m.days.map((D) => [D.d, r0(D.spent), r0(D.inc), D.ex.map((x) => r0(x[1])), D.inn.map((x) => r0(x[1])), D.up.map((x) => [x[0], r0(x[1])])]),
@@ -31,8 +31,44 @@ const JARCOV = (S) => { S.budgets = {}; S.jars[0].cats = [{ c: "Groceries", sinc
 for (const [label, key, day, mod, opt] of [["start of the month", "start", 3], ["middle of the month", "middle", 17], ["end of the month", "end", 28], ["middle, no budgets, a jar paying for groceries in full", "jarpays", 17, JARCOV]]) test("Recap works out the month and picks its parts: " + label, opt || {}, () => {
   const NOW = new Date(2026, 9, day, 12), S = demoState(NOW); if (mod) mod(S);
   const M = homeModel(structuredClone(S), NOW, FX), m = recapModel(M, NOW);
-  matchesSaved("recap." + key, { ...pick(m), parts: recapParts(m) });
+  matchesSaved("recap." + key, { ...pick(m), steps: m.steps.map((x) => [x.kind, x.from, x.to, r0(x.a), r0(x.b0), r0(x.b1)]), parts: recapParts(m) });
+  // the steps go from the start of the month to today's balance, in date order
+  if (m.steps.length) { assert.equal(r0(m.steps[0].b0), r0(m.start)); assert.equal(r0(m.steps.at(-1).b1), r0(m.cash)); m.steps.forEach((x, i) => i && assert.ok(x.from >= m.steps[i - 1].from)); }
+  // each step adds up in whole shekels, as the page shows it
+  m.steps.forEach((x) => assert.equal(x.b1 - x.b0, x.kind == "in" ? x.a : x.kind == "card" ? -x.a : x.small - x.bank - x.cps));
   assert.equal(dayBarHeights(m).length, m.dim);
   // the day's tooltip names the payee
   const D = m.days.find((x) => x.ex.length); if (D) assert.equal(typeof D.ex[0][0], "string");
+});
+
+test("Recap rounds the parts of a total so they add up to it", () => {
+  assert.deepEqual(roundParts([61.2, 14.6, 0], 75.8), [61, 15, 0]);
+  assert.deepEqual(roundParts([10, 20], 30), [10, 20]);
+  assert.equal(roundParts([33.3, 33.3, 33.4], 100).reduce((s, x) => s + x, 0), 100);
+});
+
+test("Recap knows when a card purchase leaves the bank: its charge date, or the card's usual day", () => {
+  const cd = { Max: { day: 2, lag: 1 } };
+  assert.equal(chargeOf({ d: "2026-10-20", from: "Max", ch: "2026-11-10" }, cd), "2026-11-10");
+  assert.equal(chargeOf({ d: "2026-10-20", from: "Max" }, cd), "2026-11-02");
+  assert.equal(chargeOf({ d: "2026-01-31", from: "Max" }, { Max: { day: 31, lag: 1 } }), "2026-02-28");
+  assert.equal(chargeOf({ d: "2026-10-20", from: "Other" }, cd), "2026-11-10");
+  // charged later this month counts now; charged next month waits for next month's card bill
+  const S = { tx: [] }, k = { isCp: () => false }, CC = new Set(["Max"]);
+  const A = [{ d: "2026-09-25", from: "Max", a: -100, ch: "2026-10-10" }, { d: "2026-10-03", from: "Max", a: -40, ch: "2026-11-10" }, { d: "2026-09-01", from: "Max", a: -70, ch: "2026-10-02" }, { d: "2026-10-04", from: "Bank", a: -500 }];
+  assert.deepEqual(cardsDue({ S, A, k, CC, TODAY: "2026-10-05", MK: "2026-10" }), { thisMonth: 100, later: 40, now: [{ n: "Max", a: 100, d: "2026-10-10" }], next: [{ n: "Max", a: 40, d: "2026-11-10" }] });
+});
+
+test("Recap says what each card bill paid for, also an early one in the middle of the month", () => {
+  const P = (id, d, a) => ({ id, d, a, cp: true, from: "Bank", to: "Card company" }), B = (id, d, a, ch, to) => ({ id, d, from: "Max", to, a, ch });
+  const A = [B(1, "2026-09-10", -300, "2026-10-02", "Shop A"), B(2, "2026-10-19", -45, "2026-10-21", "Shop B"), B(3, "2026-10-19", -159, "2026-10-21", "Shop C"), B(4, "2026-10-22", -80, "2026-11-02", "Shop D")];
+  const S = { tx: [P(10, "2026-10-02", -300), P(11, "2026-10-21", -204)], accounts: [] };
+  const steps = monthSteps({ A, S, k: { isCp: (t) => !!t.cp }, MK: "2026-10", TODAY: "2026-10-25", CC: new Set(["Max"]), inc: 0, dn: (t) => t.to, start: 1000 });
+  const cards = steps.filter((x) => x.kind == "card");
+  assert.deepEqual(cards.map((x) => [x.from, x.buys.n, x.buys.a, x.buys.first, x.buys.last]), [["2026-10-02", 1, 300, "2026-09-10", "2026-09-10"], ["2026-10-21", 2, 204, "2026-10-19", "2026-10-19"]]);
+  assert.deepEqual(cards[1].buys.list.map((x) => x[0]), ["Shop C", "Shop B"]);
+  // the bill is the same whole amount in its own step and in the "due" line of the step before it
+  const P2 = [P(10, "2026-10-02", -300), P(11, "2026-10-21", -204.4)], st2 = monthSteps({ A, S: { ...S, tx: P2 }, k: { isCp: (t) => !!t.cp }, MK: "2026-10", TODAY: "2026-10-25", CC: new Set(["Max"]), inc: 0, dn: (t) => t.to, start: 1000.6 });
+  const i = st2.findIndex((x) => x.kind == "card" && x.from == "2026-10-21");
+  assert.equal(st2[i].a, 204); assert.equal(st2[i - 1].due.find((o) => o.d == "2026-10-21").a, 204);
 });

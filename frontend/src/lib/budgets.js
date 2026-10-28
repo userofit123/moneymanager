@@ -22,7 +22,7 @@ export function budgetsModel(S, now = new Date()) {
   const ms = []; for (let i = 5; i >= 0; i--) ms.push(addM(MK, -i));
   const hist = { keys: ms, first: 0, cat: {} };
   { const first = (S.tx || []).filter((t) => !st.k.isFut(t) && !t.virtual).reduce((m, t) => (t.d < m ? t.d : m), "9999-99-99"); let fi = first == "9999-99-99" ? 5 : ms.indexOf(first.slice(0, 7)); if (fi < 0) fi = first.slice(0, 7) < ms[0] ? 0 : 5; if (first != "9999-99-99" && +first.slice(8) > 10 && fi < 5) fi++; hist.first = Math.max(0, Math.min(5, fi)); }
-  const cats = {}; A.filter((t) => !t.pending).forEach((t) => { const i = ms.indexOf(rdOf(t).slice(0, 7)); if (i < 0 || t.a > 0) return; const k = t.c || "Uncategorized"; (cats[k] = cats[k] || ms.map(() => 0))[i] -= t.a; });
+  const cats = {}; A.forEach((t) => { const i = ms.indexOf(rdOf(t).slice(0, 7)); if (i < 0 || t.a > 0) return; const k = t.c || "Uncategorized"; (cats[k] = cats[k] || ms.map(() => 0))[i] -= t.a; });
   Object.entries(cats).sort((a, b) => sum(b[1]) - sum(a[1])).slice(0, 5).forEach(([k, v]) => { hist.cat[k] = v; });
   const budMonths = [2, 3, 4].filter((i) => i >= (hist.first || 0)).map((i) => ms[i]);
   const M = {}; A.filter((t) => t.a < 0).forEach((t) => { const c = t.c || "Uncategorized", m = rdOf(t).slice(0, 7); (M[c] = M[c] || {})[m] = (M[c][m] || 0) - t.a; });

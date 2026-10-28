@@ -5,6 +5,7 @@ import { listConnections, PROVIDERS } from "./connections.js";
 import { addCore } from "./categories.js";
 import { readJars, fillJarsTx, thisMonth } from "./jars.js";
 import { activeCurrencies, configuredCurrencies } from "./fx.js";
+import { ilDate } from "./autodetect.js";
 
 export const DEFAULT_CFG = {
   jars: 1, bills: 1, price: 1, budget: 1, card: 1, large: 1, xfer: 1, recon: 1, pending: 1, sync: 1, uncat: 1, forecast: 1, docs: 1,
@@ -41,7 +42,7 @@ export async function getState() {
     q("SELECT name,color FROM categories ORDER BY sort"),
     q("SELECT keyword,category,tag FROM rules ORDER BY position,id"),
     q("SELECT keyword,tag FROM tag_rules ORDER BY position,id"),
-    q("SELECT id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,pending,source,inst_n,inst_total,jar_id,jar_amount,jar_auto,jar_skip,report_month,(details IS NOT NULL) AS has_det,NULLIF(details->>'memo','') AS memo,NULLIF(COALESCE(details->>'description',details->'details'->>'description'),'') AS bdesc,(source='wise' AND (details->>'type'='CARD_PAYMENT' OR details->'details'->>'type'='CARD')) AS wcard FROM transactions ORDER BY date DESC, id DESC"),
+    q("SELECT id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,pending,source,inst_n,inst_total,jar_id,jar_amount,jar_auto,jar_skip,report_month,details->>'processedDate' AS pdate,(details IS NOT NULL) AS has_det,NULLIF(details->>'memo','') AS memo,NULLIF(COALESCE(details->>'description',details->'details'->>'description'),'') AS bdesc,(source='wise' AND (details->>'type'='CARD_PAYMENT' OR details->'details'->>'type'='CARD')) AS wcard FROM transactions ORDER BY date DESC, id DESC"),
     q("SELECT transaction_id,tag FROM transaction_tags ORDER BY position"),
     q("SELECT id,transaction_id,filename,(path IS NOT NULL) AS has FROM documents ORDER BY id"),
     q("SELECT out_id,in_id,status FROM transfer_links"),
@@ -86,6 +87,7 @@ export async function getState() {
       ...(r.jar_skip ? { jarNo: r.jar_skip } : {}),
       ...(r.report_month ? { rm: r.report_month } : {}),
       ...(r.has_det ? { hasDet: true } : {}),
+      ...(r.pdate && ilDate(r.pdate) !== String(r.date).slice(0, 10) ? { ch: ilDate(r.pdate) } : {}), // the day a card purchase leaves the bank
       ...(r.wcard ? { wc: true } : {}), // a payment made with the Wise card
     })),
     budgets: Object.fromEntries(budgets.rows.map((b) => [b.category, b.monthly_limit])),

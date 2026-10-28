@@ -1,8 +1,9 @@
 // The alerts the app works out from the data (including the jar suggestions), in the order they show.
 // Each alert is { id, type, sev, key, p, go, ... }: key and p (the numbers and names) fill the English and Hebrew sentences in the language files.
-import { forecastSurplus } from "./jars.js";
+import { forecastLine } from "./jars.js";
 import { balanceGaps, gapBill, duplicateIds, transferIds, isIgnored, rn } from "./activity.js";
 import { addM } from "./home.js";
+import { priceMoved } from "./bills.js";
 
 const f = (n) => Math.abs(n).toLocaleString("en-IL", { maximumFractionDigits: 0 });
 export const fm = (n) => (n < 0 ? "−" : "") + "₪" + f(n);
@@ -43,7 +44,7 @@ function sources(S) {
   });
 }
 
-// M: homeModel(...). now: today's date. fc: the Forecast page's choices ({ n, m }). friendly: turns a bank's raw error text into plain words.
+// M: homeModel(...). now: today's date. fc: the Forecast page's choices (fcChoices of "moneyFc": n, the months it learns from; 3 when not given). friendly: turns a bank's raw error text into plain words.
 export function alertsModel(S, M, now = new Date(), fc = {}, friendly = (e) => e) {
   S = M.S || S; const c = S.cfg || {}, out = [], dism = S.dismissed || {};
   const add = (id, type, sev, key, p, go, x) => { if (c[type] && !dism[id]) out.push({ id, type, sev, key, p: p || {}, go, ...(x || {}) }); };
@@ -52,7 +53,7 @@ export function alertsModel(S, M, now = new Date(), fc = {}, friendly = (e) => e
   active.forEach((b) => {
     if (b.status == "overdue") add("ov-" + b.n + b.pd.toISOString().slice(0, 10), "bills", "high", "overdue", { n: b.n, date: b.pd, amt: fm(b.pred), src: b.src }, "bills");
     else if (b.nx && b.days <= c.billDays) add("due-" + b.n + b.nx.toISOString().slice(0, 10), "bills", "med", "due", { n: b.n, d: b.days, amt: fm(b.pred), src: b.src }, "bills");
-    if (b.fresh && !b.vari && Math.abs(b.amt - b.was) > b.was * 0.001) add("pr-" + b.n + b.amt, "price", "low", "price", { n: b.n, up: b.amt > b.was ? 1 : 0, was: fm(b.was), amt: fm(b.amt), pct: (b.amt > b.was ? "+" : "") + ((b.amt / b.was - 1) * 100).toFixed(0) + "%" }, "bills");
+    if (b.fresh && !b.vari && priceMoved(b)) add("pr-" + b.n + b.amt, "price", "low", "price", { n: b.n, up: b.amt > b.was ? 1 : 0, was: fm(b.was), amt: fm(b.amt), pct: (b.amt > b.was ? "+" : "") + ((b.amt / b.was - 1) * 100).toFixed(0) + "%" }, "bills");
   });
   // jars
   const jarsS = (S.jars || []).filter((j) => !j.done).sort((a, b) => a.p - b.p), catJars = {};
@@ -84,9 +85,10 @@ export function alertsModel(S, M, now = new Date(), fc = {}, friendly = (e) => e
   sources(S).filter((s) => s.failed || s.stale > 2).forEach((s) => add("sy-" + s.n + (s.t || ""), "sync", "low", s.failed ? "syncFail" : "syncOld", { n: s.n, d: Math.floor(s.stale), msg: s.failed ? friendly(s.error) || "Check the login" : s.key == "stale" ? "Last synced " + s.t + " (over 2 days ago)" : "" }, "set"));
   { const un = (S.tx || []).filter((t) => !t.c && !XS.has(t.id)); if (un.length) add("un-" + un.length, "uncat", "low", "uncat", { n: un.length }, "tx", { ids: un.map((t) => t.id) }); }
   try {
-    const sur = forecastSurplus(S, M, now, fc); let b = M.flow.cash, k = -1;
-    for (let i = 1; i <= 12; i++) { b += sur(i); if (b < 0) { k = i; break; } }
-    if (k > 0) add("fc-" + MK, "forecast", "high", "forecast", { when: addM(MK, k), n: [3, 6, 12].includes(+fc.n) ? +fc.n : 6 }, "fc");
+    // the Forecast page's own line, from the chosen months (fc: fcChoices of "moneyFc"): the end of this month (bal[0]),
+    // then the end of each of the next 12 months; the first one below zero is the alert's month
+    const L = forecastLine(S, M, now, fc), k = L.bal.findIndex((b) => b < 0);
+    if (k >= 0) add("fc-" + MK, "forecast", "high", "forecast", { when: addM(MK, k), n: L.n }, "fc");
   } catch { /* no forecast */ }
   M.rows.filter((t) => t.a > 0 && !(t.docs || []).length && !t.virtual).forEach((t) => add("dc-" + t.id, "docs", "low", "docs", { name: M.nameOf(t), amt: fm(t.a) }, "tx", { ids: [t.id] }));
   return out.sort((a, b) => ({ high: 0, med: 1, low: 2 }[a.sev] - { high: 0, med: 1, low: 2 }[b.sev]));

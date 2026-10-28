@@ -126,7 +126,7 @@
     "opening": "Opening the bank's page… this takes a few seconds"
   },
   "shotT": "{label} · where it stopped",
-  "shotD": "This is what the app's bank browser saw when the last login failed. A captcha, a notice or a blank page here tells us why. Every picture taken during each failed login is saved in the app's data folder, in profiles → _failed-logins (one folder per attempt, the newest 15 per bank are kept).",
+  "shotD": "This is what the app's bank browser saw when the last login failed. A captcha, a notice or a blank page here shows why. Every picture taken during each failed login is saved in the app's data folder, in profiles → _failed-logins (one folder per attempt, the newest 15 per bank are kept).",
   "shotAlt": "Screenshot of the bank page",
   "shotNone": "No screenshot yet. Press Test connection once and let it fail, then open this again.",
   "done": "Done",

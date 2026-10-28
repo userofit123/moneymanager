@@ -5,7 +5,7 @@
 // A pair is "auto" (found by the app, waiting for review), "ok" (confirmed) or "rej" (the user said it is not a transfer).
 export const transferIds = (S) => new Set((S?.xf || []).filter((x) => x.st !== "rej").flatMap((x) => [x.o, x.i]));
 export const isIgnored = (S, t) => !!(S?.txIgnore && S.txIgnore[t.id]);
-export const isFuture = (t, today) => t.upBill != null || (!t.virtual && String(t.d) > today);
+export const isFuture = (t, today) => t.upBill != null || t.upInst || (!t.virtual && String(t.d) > today);
 // Paying the credit card bill from the bank: the purchases are already counted on the card.
 // It counts as one when it comes from a bank account and its text names a card company,
 // one of the user's cards, or one of their card rules. ccOverride: 1 = counted as spending anyway, 2 = marked as a card payment by hand.

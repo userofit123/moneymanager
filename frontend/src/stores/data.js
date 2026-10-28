@@ -8,6 +8,7 @@ import { connectLive } from "../live.js";
 import { request, getJson, sendJson } from "../core/http.js";
 import { sampleOn, sampleState } from "./sample.js";
 import { makePatch, applyPatch } from "../core/undoPatch.js";
+import { readJson, writeJson } from "../core/prefs.js";
 
 const putState = async (S) => {
   const r = await request("/api/state", sendJson("PUT", S));
@@ -33,7 +34,10 @@ export function createDataStore({ fetchJson = getState, connect = connectLive, s
   const offline = ref(false);
   const saving = ref(false);
   // Exchange rates (GET /api/fx), loaded once with the data. fx.fx is { USD: 3.7, ... }.
-  const fx = shallowRef({ fx: {}, series: {}, asOf: null, stale: false, live: false });
+  // Until they load (or when they cannot load), the last rates that loaded in this browser are used ("moneyFxLast"), so
+  // money in another currency is never counted as 1 to 1; with none ever, Home leaves it out of the totals (lib/home.js).
+  const last = readJson("moneyFxLast", null);
+  const fx = shallowRef({ fx: (last && last.fx) || {}, series: {}, asOf: (last && last.asOf) || null, stale: !!last, live: false });
   let stop = null, listening = false, busy = null, dirty = false, timer = null, failed = false;
   const hooks = { settle, notify };
 
@@ -75,9 +79,11 @@ export function createDataStore({ fetchJson = getState, connect = connectLive, s
   async function loadFx() {
     try {
       const j = await fetchJson("/api/fx");
-      fx.value = { fx: j.fx || {}, series: j.series || {}, asOf: j.asOf, stale: !!j.stale, live: Object.values(j.series || {}).some((x) => x.length >= 2) };
+      const got = Object.keys(j.fx || {}).length ? j.fx : fx.value.fx; // no rates in the answer: keep the last ones
+      fx.value = { fx: got, series: j.series || {}, asOf: j.asOf || fx.value.asOf, stale: !!j.stale || got !== j.fx, live: Object.values(j.series || {}).some((x) => x.length >= 2) };
+      if (got === j.fx) writeJson("moneyFxLast", { fx: j.fx, asOf: j.asOf || null });
       resettle(); // the held-back amount counts foreign money at the new rates
-    } catch { /* no rates: foreign money counts at 1, and the pages say so */ }
+    } catch { /* no rates: the last saved ones stay; with none, foreign money is left out of the totals */ }
   }
   async function start() {
     if (stop) return;

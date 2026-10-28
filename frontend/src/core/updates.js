@@ -67,6 +67,6 @@ export async function whatsNew(hasData) {
   if (!seen && !hasData) { writePref("moneySeenV", cur); return null; }
   const secs = relPick(j).filter((r) => !seen || vNewer(r.v, seen)).filter((r) => !vNewer(r.v, cur));
   if (!secs.length) { writePref("moneySeenV", cur); return null; }
-  return { cur, secs: secs.map((r) => ({ v: r.v, html: mdLite(r.body.replace(/^### .*\n/gm, "")) })) };
+  return { cur, secs: secs.map((r) => ({ v: r.v, html: mdLite(r.body.replace(/^- (?:Includes everything above|כולל את כל האמור לעיל)\.?\s*$/gm, "").replace(/^### .*\n/gm, "")) })) };
 }
 export const markSeen = (v) => writePref("moneySeenV", v);

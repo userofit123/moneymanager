@@ -9,4 +9,20 @@
   line-height: 1.4;
   background: color-mix(in srgb, #e68a00 14%, transparent);
   color: var(--tx);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+/* the warning sign at the start side of the box */
+.jfw svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-block-start: 1px;
+  fill: none;
+  stroke: #e68a00;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }

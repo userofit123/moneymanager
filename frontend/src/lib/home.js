@@ -1,7 +1,7 @@
 // The Home page's numbers, kept apart from the screen so they can be tested:
 // the totals, bills, budgets, jars and money flow.
 // Nothing here changes the data; bills the app finds by itself are only worked out, not saved.
-import { kinds } from "./activity.js";
+import { cardsDue, stillToPay, reallyYours } from "./recap.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
 export const addM = (m, k) => { const d = new Date(+m.slice(0, 4), +m.slice(5, 7) - 1 + k, 1); return d.getFullYear() + "-" + p2(d.getMonth() + 1); };
@@ -22,7 +22,8 @@ import { cadenceOf } from "./bills.js";
 // This is done in memory only: a possible transfer waits for review ("auto") and is not counted as spending or income.
 export function withTransfers(S) {
   const tx = S.tx || [], xf = [...(S.xf || [])];
-  const own = [...new Set(["Bank Hapoalim", "Wise", ...(S.accounts || []).filter((a) => a.kind == "bank" || a.kind == "wallet" || a.kind == "custom").map((a) => a.n)])];
+  // your own accounts, from your accounts only (never a fixed bank name)
+  const own = [...new Set((S.accounts || []).filter((a) => a.kind == "bank" || a.kind == "wallet" || a.kind == "custom").map((a) => a.n))];
   tx.forEach((o) => {
     if (!(o.a < 0 && own.includes(o.from))) return;
     tx.forEach((i) => {
@@ -40,26 +41,22 @@ const rnm = (s) => String(s == null ? "" : s).toLowerCase().replace(/[0-9*#_/\\\
 // The name shown for a payment: the one you typed, a naming rule, or the bank's text.
 export const nameOf = (S, t) => { const c = S?.cfg || {}, o = c.renames && c.renames[t.id]; if (o) return o; if (c.nameRules) { const r = c.nameRules.find((x) => { const q = rnm(x.k); if (!q) return false; const v = rnm(nameField(t, x.f || "any")); return x.m == "eq" ? v == q : v.includes(q); }); if (r) return r.n; } return nohtml(t.desc); };
 
+// What was bought with a card in each month: the counted rows paid from it (the same on Home and Accounts).
+export const cardBuys = (A, isCard, m) => sum(A.filter((t) => t.a < 0 && isCard(t) && t.d.startsWith(m)).map((t) => -t.a));
+
 // Everything Home needs, worked out once per data load. now: today's date; fx: { USD: 3.7, ... }.
 export function homeModel(S, now = new Date(), fx = {}) {
   S = withTransfers(S || {});
   const NOW = now, MK = NOW.getFullYear() + "-" + p2(NOW.getMonth() + 1), TODAY = MK + "-" + p2(NOW.getDate()), DAYN = NOW.getDate(), DIM = new Date(NOW.getFullYear(), NOW.getMonth() + 1, 0).getDate();
-  const k = kinds(S, TODAY), tx = S.tx || [], jarsAll = S.jars || [], cfg = { budgetPct: 80, ...(S.cfg || {}) }, budgets = S.budgets || {};
-  const rate = (c) => (c === "ILS" ? 1 : fx[c] || 1);
+  const { A, k, costRows } = countedTx(S, TODAY), tx = S.tx || [], jarsAll = S.jars || [], cfg = { budgetPct: 80, ...(S.cfg || {}) }, budgets = S.budgets || {};
+  // the exchange rate of a currency (the last saved one when offline, core: data.js); with none at all, money in it is
+  // left out of the totals (rate 0) and its account is listed as not counted (noRate), never counted as 1 to 1
+  const rate = (c) => (c === "ILS" ? 1 : +fx[c] > 0 ? +fx[c] : 0), hasRate = (a) => rate(a.cur) > 0;
   const accts = (S.accounts || []).filter((a) => a.kind != "card" && !a.hide);
   const accILS = (a) => a.v * rate(a.cur);
   const accCur = (a) => a.n + (a.cur != "ILS" || accts.some((x) => x !== a && (x.n == a.n || (x.src && x.src == a.src))) ? " (" + a.cur + ")" : "");
-  const cashAccts = accts.filter((a) => a.inNW && (a.kind == "bank" || a.kind == "wallet"));
+  const cashAll = accts.filter((a) => a.inNW && (a.kind == "bank" || a.kind == "wallet")), cashAccts = cashAll.filter(hasRate), noRate = cashAll.filter((a) => !hasRate(a)).map((a) => a.n);
   const cashNow = sum(cashAccts.map(accILS)), custNW = sum(accts.filter((a) => a.kind == "custom" && a.inNW).map(accILS));
-  const NR = new Set((S.accounts || []).filter((a) => a.inR === false).map((a) => a.n));
-  const noRep = (t) => NR.size > 0 && (NR.has(t.from) || NR.has(t.to));
-  const byId = new Map(tx.map((t) => [t.id, t]));
-  // Fees lost when moving money between your own accounts count as spending.
-  const costRows = (S.xf || []).filter((x) => x.st != "rej").map((x) => {
-    const o = byId.get(x.o), i = byId.get(x.i); if (!o || !i) return null; const c = -o.a - i.a;
-    return c > 0.5 ? { id: "v" + x.o, virtual: true, d: o.d, desc: "Transfer cost · " + o.from + " → " + i.to, from: o.from, to: "Transfer fees / FX spread", a: -c, c: "Fees & FX costs" } : null;
-  }).filter(Boolean);
-  const A = tx.filter((t) => !k.isXf(t) && !k.isIgn(t) && !k.isFut(t) && !k.isCp(t) && !noRep(t)).concat(costRows);
   const ALL = tx.concat(costRows);
   const monthSum = (m, sg) => sum(A.filter((t) => (sg > 0 ? t.a > 0 : t.a < 0) && rdOf(t).startsWith(m)).map((t) => Math.abs(t.a)));
   const spendM = {}; A.filter((t) => t.a < 0 && rdOf(t).startsWith(MK)).forEach((t) => { const c = t.c || "Uncategorized"; spendM[c] = (spendM[c] || 0) + Math.abs(t.a); });
@@ -69,7 +66,7 @@ export function homeModel(S, now = new Date(), fx = {}) {
   const ms = []; for (let i = 5; i >= 0; i--) ms.push(addM(MK, -i));
   const hist = { keys: ms, inc: ms.map(() => 0), exp: ms.map(() => 0), first: 0 };
   { const first = tx.filter((t) => !k.isFut(t) && !t.virtual).reduce((m, t) => (t.d < m ? t.d : m), "9999-99-99"); let fi = first == "9999-99-99" ? 5 : ms.indexOf(first.slice(0, 7)); if (fi < 0) fi = first.slice(0, 7) < ms[0] ? 0 : 5; if (first != "9999-99-99" && +first.slice(8) > 10 && fi < 5) fi++; hist.first = Math.max(0, Math.min(5, fi)); }
-  A.filter((t) => !t.pending).forEach((t) => { const i = ms.indexOf(rdOf(t).slice(0, 7)); if (i < 0) return; if (t.a > 0) hist.inc[i] += t.a; else hist.exp[i] -= t.a; });
+  A.forEach((t) => { const i = ms.indexOf(rdOf(t).slice(0, 7)); if (i < 0) return; if (t.a > 0) hist.inc[i] += t.a; else hist.exp[i] -= t.a; });
   const budMonths = [2, 3, 4].filter((i) => i >= hist.first).map((i) => ms[i]);
   const monthlyByCat = {}; A.filter((t) => t.a < 0).forEach((t) => { const c = t.c || "Uncategorized", m = rdOf(t).slice(0, 7); (monthlyByCat[c] = monthlyByCat[c] || {})[m] = (monthlyByCat[c][m] || 0) - t.a; });
 
@@ -91,7 +88,7 @@ export function homeModel(S, now = new Date(), fx = {}) {
   { const g = {}; A.filter((t) => t.a < 0 && !t.virtual).forEach((t) => { const kk = String(t.to || t.desc).toLowerCase().trim(); (g[kk] = g[kk] || []).push(t); });
     Object.entries(g).forEach(([kk, L]) => { if (L.length < 2 || (S.ignoredBills || []).includes(kk) || bills.some((b) => b.mode != "once" && b.match == kk)) return; L.sort((a, b) => a.d.localeCompare(b.d)); const c = cadenceOf(L); if (!c) return; const last = L[L.length - 1]; bills.push({ n: last.to, every: c.every, anchor: c.anchor, dom: c.dom, src: last.from, match: kk, cat: last.c || "Subscriptions", manual: false, mode: "rule", rec: "recurring" }); }); }
   const billTx = (b) => (b.mode == "once" ? tx.filter((t) => (b.ids || []).includes(t.id)) : A.filter((t) => t.a < 0 && (t.desc + " " + t.to).toLowerCase().includes(b.match))).sort((a, b) => a.d.localeCompare(b.d));
-  const BC = bills.map((b, idx) => billInfo(b, idx, billTx(b), NOW)).map((b) => { const L = billTx(bills[b.idx]).filter((t) => t.c && t.c != "Uncategorized"), lc = L.length ? L[L.length - 1].c : null; return { ...b, cat: lc || (b.manual ? b.cat : "") || "" }; });
+  const F = futTx(S, k), BC = bills.map((b, idx) => billInfo(b, idx, billTx(b), NOW, billFut(b, F))).map((b) => { const L = billTx(bills[b.idx]).filter((t) => t.c && t.c != "Uncategorized"), lc = L.length ? L[L.length - 1].c : null; return { ...b, cat: lc || (b.manual ? b.cat : "") || "" }; });
   const activeBills = BC.filter((b) => b.flag != "canceled" && !b.ended);
 
   const budgetInfo = Object.entries(budgets).map(([kk, lim]) => {
@@ -120,16 +117,24 @@ export function homeModel(S, now = new Date(), fx = {}) {
     const total = sum(rows.map((r) => r.amt)), billsT = sum(rows.filter((r) => r.kind == "bill").map((r) => r.amt));
     return { total, rows, bills: billsT, limits: total - billsT, jarCov, done };
   })();
-  const inJars = sum(jarsS.map(heldOf)), buffer = Math.max(0, +S.jarsBuffer || 0), raw = cashNow - inJars - buffer - R.total;
+  // card purchases already made and not paid yet: the bank still holds that money, but the card bill will take it
+  // (the same amount Recap and the Forecast take off)
+  const CC = new Set((S.accounts || []).filter((a) => a.kind == "card").map((a) => a.n));
+  const owed = cardsDue({ S, A, k, CC, TODAY, MK }), cardsOwed = Math.max(0, owed.thisMonth + owed.later);
+  // the payments still to leave this month (the same list as Recap's "You still have to pay")
+  const up = stillToPay({ S, A, k, CC, BI: activeBills, R, TODAY, MK });
+  // really yours today (accounts − card purchases not paid yet − payments still due): Home, Recap and the Forecast share it
+  const really = reallyYours(cashNow, cardsOwed, sum(up.map((b) => b.amt)));
+  const inJars = sum(jarsS.map(heldOf)), buffer = Math.max(0, +S.jarsBuffer || 0), raw = cashNow - cardsOwed - inJars - buffer - R.total;
   const free = Math.max(0, raw), over = -raw >= 1 ? Math.round(-raw) : 0;
   const monthsTo = (d) => Math.max(1, Math.ceil((new Date(d) - NOW) / (864e5 * 30.44)));
   const capOf = (j, got) => (j.cap == null ? null : j.auto && j.due && j.need > 0 ? Math.max(0, Math.ceil((j.need - (j.bal - (got || 0))) / Math.max(1, monthsTo(j.due)))) : j.cap);
   const jars = (() => { let rem = free; return jarsS.map((j) => { const got = Math.min(+j.got || 0, Math.max(0, +j.bal || 0) + (+j.paid || 0)), open = !(j.need > 0), capE = capOf(j, got), need = open ? 0 : Math.max(0, j.need - j.bal), want = capE == null ? need : Math.max(0, Math.min(capE - got, open ? 1e12 : need)); rem -= Math.max(0, Math.min(rem, want)); return { id: j.id, n: j.n, p: j.p, bal: +j.bal || 0, need: +j.need || 0, got, want, open, pc: open ? 0 : Math.round(((+j.bal || 0) / j.need) * 100) }; }); })();
 
-  // Cards: this month's charges against last month's.
+  // Cards: this month's charges against last month's (the counted rows, the same as the card chart on Accounts).
   const pm = addM(MK, -1);
-  const cards = (S.accounts || []).filter((a) => a.kind == "card").map((a) => { const mine = tx.filter((t) => t.a < 0 && t.from == a.n && !k.isXf(t)); return { n: a.n, acc: a, now: sum(mine.filter((t) => t.d.startsWith(MK)).map((t) => -t.a)), last: sum(mine.filter((t) => t.d.startsWith(pm)).map((t) => -t.a)) }; });
-  { const w = tx.filter((t) => t.wc && t.a < 0 && !k.isXf(t)); if (w.length) cards.push({ n: "Wise card", wise: true, now: sum(w.filter((t) => t.d.startsWith(MK)).map((t) => -t.a)), last: sum(w.filter((t) => t.d.startsWith(pm)).map((t) => -t.a)) }); }
+  const cards = (S.accounts || []).filter((a) => a.kind == "card").map((a) => { const on = (t) => t.from == a.n; return { n: a.n, acc: a, now: cardBuys(A, on, MK), last: cardBuys(A, on, pm) }; });
+  { const on = (t) => t.wc; if (A.some((t) => t.wc && t.a < 0)) cards.push({ n: "Wise card", wise: true, now: cardBuys(A, on, MK), last: cardBuys(A, on, pm) }); }
 
   // Accounts grouped by name (one bank with several currencies is one card).
   const groups = []; accts.filter((a) => !(a.kind == "pension" && !(+a.v > 0))).forEach((a) => { let g = groups.find((x) => x.n == a.n); if (!g) groups.push((g = { n: a.n, L: [] })); g.L.push(a); });
@@ -154,9 +159,9 @@ export function homeModel(S, now = new Date(), fx = {}) {
 
   return {
     MK, pm, DAYN, DIM, today: TODAY, k,
-    kpi: { cash, pen, withPension: cash + pen, inc, ex, net: inc - ex, incLast: hist.inc[4], exLast: hist.exp[4], missing, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a), lbl: accCur(a) })), notCounted: accts.filter((a) => (a.kind == "bank" || a.kind == "wallet") && !a.inNW).map((a) => a.n), nwSpark: nwSpark.filter((v) => v > 0).length > 1 ? nwSpark : null, incSpark: hist.inc.some((v) => v > 0) ? hist.inc : null, exSpark: hist.exp.some((v) => v > 0) ? hist.exp : null },
+    kpi: { cash, pen, withPension: cash + pen, inc, ex, net: inc - ex, incLast: hist.inc[4], exLast: hist.exp[4], missing, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a), lbl: accCur(a) })), notCounted: accts.filter((a) => (a.kind == "bank" || a.kind == "wallet") && !a.inNW).map((a) => a.n), noRate, nwSpark: nwSpark.filter((v) => v > 0).length > 1 ? nwSpark : null, incSpark: hist.inc.some((v) => v > 0) ? hist.inc : null, exSpark: hist.exp.some((v) => v > 0) ? hist.exp : null },
     groups, cards, recent, upcoming, budgets: budgetsSorted, jars, spend, rate,
-    flow: { cash: cashNow, inJars, buffer, saved: inJars + buffer, free, over, R, jarsHeld: jarsS.filter((j) => heldOf(j) > 0).sort((a, b) => heldOf(b) - heldOf(a)).map((j) => ({ n: j.n, v: heldOf(j) })), spend, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a), lbl: accCur(a) })) },
+    flow: { cash: cashNow, cards: cardsOwed, up, really, inJars, buffer, saved: inJars + buffer, free, over, R, jarsHeld: jarsS.filter((j) => heldOf(j) > 0).sort((a, b) => heldOf(b) - heldOf(a)).map((j) => ({ n: j.n, v: heldOf(j) })), spend, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a), lbl: accCur(a) })) },
     has, any,
     // For the Jars page: bill names by their match text, and six months of income and spending (this one last).
     billNames: Object.fromEntries(BC.map((b) => [b.match, b.n])), hist,
@@ -167,26 +172,43 @@ export function homeModel(S, now = new Date(), fx = {}) {
 
 // One bill's state (billsInfo0): the shared one in lib/bills.js.
 export { billInfo } from "./bills.js";
-import { billInfo } from "./bills.js";
+import { billInfo, futTx, billFut, countedTx } from "./bills.js";
 
-// The money flow (waterfall): from what you had before spending, step by step down to what is free.
-// mode "left" (Planned): each item takes off its full budget or usual month. "actual": what you really spent.
+// The money flow (waterfall): from what is in your accounts, step by step down to what is free. Every step is a real amount:
+// card purchases not paid yet (the card bill will take that money), the payments still to leave this month (F.up, Recap's
+// "You still have to pay"), what is put aside (jars, safety cushion) and, in mode "left" (Planned), what is still to come
+// this month (what is left in each budget or usual month, less its payments already in the upcoming step).
+// mode "actual": cards and upcoming payments only, so it ends at Recap's "Your remaining amount".
+// What was spent so far this month is not a step (spentAll), it is shown on its own.
 export function flowSteps(F, mode = "left") {
-  const ACT = mode == "actual", src = [...F.R.rows.map((r) => ({ ...r, left: r.amt })), ...(F.R.done || []).map((d) => ({ ...d, left: 0, bills: [] }))];
-  const extra = Math.round((sum(F.spend.map((e) => e[1])) - sum(src.map((r) => r.spent || 0))) * 100) / 100;
-  if (extra >= 1) src.push({ k: "Unplanned spending", unplanned: true, kind: "other", cats: F.spend.filter((e) => !src.some((r) => r.k == e[0]) && e[1] >= 1), left: 0, spent: extra, base: 0, bills: [] });
-  let items = [];
-  if (F.inJars >= 1) items.push({ k: "jars", set: 1, a: F.inJars, n: F.jarsHeld.length });
-  if (F.buffer >= 1) items.push({ k: "cushion", set: 1, a: F.buffer });
-  src.forEach((r) => items.push({ ...r, a: ACT ? r.spent : r.spent + r.left, plan: 1, over: !!r.over }));
-  items = items.filter((x) => x.a >= 1).sort((a, b) => b.a - a.a);
-  if (items.length > 8) { const top = items.slice(0, 7), rest = items.slice(7), pl = rest.filter((x) => x.plan); top.push({ k: "other", rest, a: sum(rest.map((x) => x.a)), base: sum(pl.map((x) => x.base || 0)), spent: sum(pl.map((x) => x.spent)), plan: pl.length == rest.length ? 1 : 0 }); items = top; }
-  const spentAll = sum(src.map((r) => r.spent || 0)), leftTot = sum(F.R.rows.map((r) => r.amt)), start = F.cash + spentAll, scale = Math.max(start, 1);
-  const endAv = F.cash - F.saved, eOver = ACT ? Math.max(0, -endAv) : F.over, eFree = ACT ? Math.max(0, endAv) : F.free;
+  const ACT = mode == "actual", up = F.up || [], upTot = sum(up.map((b) => b.amt));
+  // Nothing is taken off twice. A row's bills are in the upcoming step, so the row keeps only the rest (upIn: the part already
+  // there); when a jar paid part of the row, that jar money pays those bills. Another upcoming payment in a row's category
+  // (one listed for a later day) is part of what is left in that row too. What no row holds is paid by a jar when one pays
+  // for its category (cov). Jar money that pays upcoming payments is not taken off again in the jars step (upJar).
+  let upJar = 0;
+  const src = F.R.rows.map((r) => { const bl = sum((r.bills || []).map((b) => b.amt)), upIn = Math.min(r.amt, bl); upJar += bl - upIn; return { ...r, upIn }; });
+  up.filter((b) => !b.inR).forEach((b) => { const r = src.find((x) => x.k == b.cat), x = r ? Math.min(r.amt - r.upIn, b.amt) : 0; if (r) r.upIn += x; upJar += Math.min(b.cov || 0, b.amt - x); });
+  src.forEach((r) => { r.left = Math.max(0, r.amt - r.upIn); });
+  const jarsA = Math.max(0, F.inJars - upJar);
+  const spentAll = sum(F.spend.map((e) => e[1])), leftTot = sum(src.map((r) => r.left)), start = F.cash, scale = Math.max(start, 1);
+  const fixed = [];
+  if (F.cards >= 1) fixed.push({ k: "cards", set: 1, a: F.cards });
+  if (upTot >= 1) fixed.push({ k: "up", set: 1, a: upTot, list: up });
+  // Real money (actual) takes off only the card purchases not paid yet and the payments still due; jars, the cushion and
+  // what is still to come are plans
+  if (!ACT && jarsA >= 1) fixed.push({ k: "jars", set: 1, a: jarsA, n: F.jarsHeld.length });
+  if (!ACT && F.buffer >= 1) fixed.push({ k: "cushion", set: 1, a: F.buffer });
+  let items = ACT ? [] : src.map((r) => ({ ...r, a: r.left, plan: 1 })).filter((x) => x.a >= 1).sort((a, b) => b.a - a.a);
+  const room = 8 - fixed.length; // at most 8 steps between the first and the last bar
+  if (items.length > room) { const top = items.slice(0, room - 1), rest = items.slice(room - 1); top.push({ k: "other", rest, a: sum(rest.map((x) => x.a)), plan: 1 }); items = top; }
+  // Current ends at what is really yours (reallyYours, the same number as Recap and the Forecast)
+  const endAv = ACT && F.really != null ? F.really : F.cash - (F.cards || 0) - upTot - (ACT ? 0 : jarsA + F.buffer + leftTot), eOver = endAv <= -1 ? Math.round(-endAv) : 0, eFree = Math.max(0, endAv);
   const pc = (v) => +((Math.max(0, v) / scale) * 100).toFixed(2);
   let lvl = start;
   const cols = [{ kind: "start", a: start, hi: start, lo: start, b: pc(start), h: 0, s: pc(start) }];
-  items.forEach((x) => { const hi = lvl, lo = Math.max(0, lvl - x.a); lvl -= x.a; cols.push({ ...x, rk: x.kind, kind: x.set ? "set" : "item", hi, lo, b: pc(lo), h: pc(hi - lo), s: pc(lo) }); });
+  [...fixed, ...items].forEach((x) => { const hi = lvl, lo = Math.max(0, lvl - x.a); lvl -= x.a; cols.push({ ...x, rk: x.kind, kind: x.set ? "set" : "item", hi, lo, b: pc(lo), h: pc(hi - lo), s: pc(lo) }); });
   cols.push({ kind: "end", tone: eOver > 0 ? "neg" : eFree > 0 ? "pos" : "none", a: 0, lo: Math.max(0, lvl), b: pc(Math.max(0, lvl)), h: 0, s: pc(Math.max(0, lvl)) });
-  return { cols, src, spentAll, leftTot, start, eOver, eFree, ACT };
+  // remain: the column after which "Your remaining amount" is left (the last of cards and upcoming payments)
+  return { cols, src, spentAll, leftTot, start, eOver, eFree, ACT, upTot, upJar, jarsA, remain: upTot >= 1 ? "up" : "cards" };
 }

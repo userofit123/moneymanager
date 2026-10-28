@@ -1,9 +1,27 @@
 {
   "x": {
-    "ctl3": "Last 3 months: follows recent changes quickly. Months before your first transaction are never counted.",
-    "ctl6": "Last 6 months: a steady middle ground. Months before your first transaction are never counted.",
-    "ctl12": "Last 12 months: includes yearly costs (holidays, annual insurance), but is slow to notice a change in income. Months before your first transaction are never counted.",
-    "chartTitle": "Projected balance · bank + Wise"
+    "ctlTip": "How many months the forecast learns from:\n• **3 months:** follows your newest habits\n• **6 months:** a balance of both\n• **12 months:** steadiest, slow to notice change\nThis month is one of them.",
+    "chartTitle": "How much money you will really have, after all expenses",
+    "chartTitleBank": "How much money you will really have, after all expenses",
+    "endTitle": "End of {month}",
+    "bankToday": "{amt} in your bank today",
+    "bankTodayW": "{amt} in your bank and {w} today",
+    "bankTodayG": "{amt} in your bank and your wallet today",
+    "inBank": "in your bank",
+    "inBankW": "in your bank and {w}",
+    "inBankG": "in your bank and your wallet",
+    "todayTip": "Today\nThe money in your accounts now.\nThe same as Home's **In your accounts**.",
+    "after": "After card purchases, bills due and usual spending ({amt})",
+    "afterInc": "After card purchases, bills due, usual spending and income still to come ({amt})",
+    "e": {
+      "bank": "In your bank today",
+      "bankW": "In your bank and {w} today",
+      "bankG": "In your bank and your wallet today",
+      "cards": "Card purchases not paid yet",
+      "due": "Bills due this month",
+      "usual": "Usual spending until the {day}",
+      "inc": "Income still to come"
+    }
   },
   "j": {
     "fullLate": "Full {when} · after the deadline",

@@ -16,7 +16,7 @@ import BaseSheet from "../components/BaseSheet.vue";
 import PopMenu from "../components/PopMenu.vue";
 import { displayName } from "../lib/activity.js";
 import { vRich } from "../lib/richtip.js";
-import { billsModel, billState, flagBill, cancelBill, restoreBill, deleteBill, setBillType, sugYes, sugNo, typeOf, billKey, billIndex, cadText, freqText, evTipText, f0, fm } from "../lib/bills.js";
+import { billsModel, billState, flagBill, cancelBill, restoreBill, deleteBill, setBillType, sugYes, sugNo, typeOf, billKey, billIndex, cadText, freqText, evTipText, priceMoved, f0, fm } from "../lib/bills.js";
 import { goActivity } from "../core/shell.js";
 import "../styles/pages/bills.css"; // this page's own styles
 
@@ -62,7 +62,7 @@ const groups = computed(() => {
   return [["rec", m.rec], ["irr", m.irr], ["ins", m.inst], ["one", m.one]].filter(([, L]) => L.length).map(([k, L]) => ({ k, L, total: m.tot[k] }));
 });
 const dueText = (b) => b.status == "overdue" ? "" : b.days <= 7 ? t("bills.dueIn", { n: b.days }, b.days) : t("bills.nextCharge", { date: dstr(b.nx) });
-const priceChange = (b) => { const d = b.amt - b.was; return b.fresh && !b.vari && Math.abs(d) > b.was * 0.001 ? d : 0; };
+const priceChange = (b) => (b.fresh && !b.vari && priceMoved(b) ? b.amt - b.was : 0);
 const lastLine = (b) => (b.n_tx ? t("bills.lastCharge", { amount: fm(b.amt), date: dstr(b.lp) }) : t("bills.noCharge"));
 
 const evTip = (b) => evTipText(b, t, dstr);

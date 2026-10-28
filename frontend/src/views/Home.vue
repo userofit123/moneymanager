@@ -9,7 +9,7 @@ import { openAlert as openAlertFrom, goActivity } from "../core/shell.js";
 import { openForm } from "../core/forms.js";
 import { amtText } from "../lib/txrows.js";
 import { openSettingsTab } from "./settings/tab.js";
-import { home } from "../core/derived.js";
+import { home, fcSaved } from "../core/derived.js";
 import { now } from "../core/clock.js";
 import { readPref, writePref } from "../core/prefs.js";
 import { pages } from "../routes.js";
@@ -61,7 +61,7 @@ const friendly = (e) => {
   if (/fetchPostWithinPage|fetchGetWithinPage|Unexpected end of JSON/i.test(e)) { const st = (e.match(/reqName=([A-Za-z_0-9]+)/) || [])[1] || ""; return /^(ValidateIdData|performLogonI)$/.test(st) ? t("al.feLogon") : t("al.feNoData") + (st ? t("al.feStep", { st }) : ""); }
   return /^OTP_REQUIRED/.test(e) ? t("al.feOtp") : e;
 };
-const alertList = computed(() => (S.value && M.value ? alertsModel(S.value, M.value, now.value, {}, friendly) : []));
+const alertList = computed(() => (S.value && M.value ? alertsModel(S.value, M.value, now.value, fcSaved.value, friendly) : []));
 const monthYear = (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, { month: "short", year: "numeric" });
 function alertText(x) {
   const p = { ...x.p }; if (p.k) p.k = catName(p.k); if (p.n && x.key === "card") p.n = an(p.n); if (p.date && /^\d{4}-/.test(String(p.date)) || p.date instanceof Date) p.date = dstr(p.date);
@@ -97,13 +97,13 @@ const goConn = () => { openSettingsTab("conn"); go("/settings"); };
 const kpis = computed(() => {
   const K = M.value.kpi, pm = M.value.pm, inc = K.inc, ex = K.ex, net = K.net;
   const sub0 = (K.pen > 0 ? t("home.withPension", { amount: fm(K.withPension) }) : K.missing.length ? "" : t("home.worthSub")) + (K.missing.length ? (K.pen > 0 ? " · " : "") + t("home.notRead", { names: K.missing.map(an).join(", ") }) : "");
-  const tipWorth = TP(t("home.worth"), [...K.cashAccts.map((a) => [lblOf(a), fm(a.ils)]), "---", [t("tip.total"), fm(K.cash)], ...(K.pen > 0 ? [[t("tip.withPension"), fm(K.withPension)]] : []), ...K.notCounted.map((n) => [an(n), t("tip.notCounted")]), ...K.missing.map((n) => [an(n), t("tip.notRead")])],
+  const tipWorth = TP(t("home.worth"), [...K.cashAccts.map((a) => [lblOf(a), fm(a.ils)]), "---", [t("tip.total"), fm(K.cash)], ...(K.pen > 0 ? [[t("tip.withPension"), fm(K.withPension)]] : []), ...K.notCounted.map((n) => [an(n), t("tip.notCounted")]), ...(K.noRate || []).map((n) => [an(n), t("tip.noRate")]), ...K.missing.map((n) => [an(n), t("tip.notRead")])],
     t("tip.worthNote") + (K.pen > 0 ? t("tip.pensionNote") : "") + (K.missing.length ? t("tip.missingNote") : ""));
   return [
     { key: "worth", hero: true, label: t("home.worth"), v: K.cash, sub: sub0, spark: K.nwSpark, col: "var(--onc)", tip: tipWorth },
     { key: "income", label: t("home.income"), v: inc, sub: t("home.vsLast", { amount: fm(K.incLast), month: monthName(pm) }), spark: K.incSpark, col: "var(--pos)", tip: TP(t("tip.income"), [[t("tip.soFarMonth"), fm(inc)], [t("tip.lastMonth"), fm(K.incLast)]], t("tip.incomeNote")) },
     { key: "expense", label: t("home.expenses"), v: ex, sub: t("home.lastMonthAmount", { amount: fm(K.exLast) }), spark: K.exSpark, col: "var(--neg)", tip: TP(t("tip.expenses"), [[t("tip.soFarMonth"), fm(ex)], [t("tip.lastMonth"), fm(K.exLast)]], t("tip.expensesNote")) },
-    { key: "net", label: t("home.net"), v: net, sub: t("home.netSub"), spark: null, tip: TP(t("tip.net"), [[t("tip.income"), fm(inc)], [t("tip.expenses"), fm(ex)], "---", [t("tip.net"), fm(net)]], t("tip.netNote")) },
+    { key: "net", label: t("home.net"), v: net, sub: t("home.netSub"), spark: null, tip: TP(t("tip.netTitle"), [[t("tip.income"), fm(inc)], [t("tip.expenses"), fm(ex)], "---", [t("tip.net"), fm(net)]], t("tip.netNote")) },
   ];
 });
 const sparkPath = (a) => {
@@ -129,36 +129,38 @@ const cardRows = computed(() => M.value.cards.map((c) => {
 const FLOWKEY = "moneyFlow";
 const flowMode = ref((() => { try { return readPref(FLOWKEY) === "actual" ? "actual" : "left"; } catch { return "left"; } })());
 watch(flowMode, (v) => { try { writePref(FLOWKEY, v); } catch { /* not remembered */ } });
-const flowOpts = computed(() => [{ value: "left", label: t("home.planned") }, { value: "actual", label: t("home.actual") }]);
+const flowOpts = computed(() => [{ value: "actual", label: t("home.actual") }, { value: "left", label: t("home.planned") }]);
 const W = computed(() => flowSteps(M.value.flow, flowMode.value));
-const colName = (c) => c.kind === "start" ? t("home.beforeSpending") : c.kind === "end" ? (W.value.eOver > 0 ? t("home.short") : W.value.ACT ? t("home.availableNow") : t("home.freeToUse"))
-  : c.k === "jars" ? t("home.inNJars", { n: c.n }, c.n) : c.k === "cushion" ? t("home.cushion") : c.k === "other" ? t("home.otherN", { n: c.rest.length }) : c.unplanned ? t("home.unplanned") : catName(c.k);
+const colName = (c) => c.kind === "start" ? t("home.inAccounts") : c.kind === "end" ? (W.value.eOver > 0 ? t("home.short") : W.value.ACT ? t("home.reallyYours") : t("home.freeToUse"))
+  : c.k === "cards" ? t("home.cardsUnpaid") : c.k === "up" ? t("home.upcoming") : c.k === "jars" ? t("home.inNJars", { n: c.n }, c.n) : c.k === "cushion" ? t("home.cushion") : c.k === "other" ? t("home.otherN", { n: c.rest.length }) : catName(c.k);
 const cols = computed(() => W.value.cols.map((c) => ({ ...c, name: colName(c) })));
 const six = (rows, extra) => [...rows.slice(0, 6), ...(rows.length > 6 ? [[t("tip.more", { n: rows.length - 6 }), ""]] : [])];
-const startTip = (step) => TP(t("tip.beforeTitle"), [...M.value.flow.cashAccts.map((a) => [lblOf(a), fm(a.ils)]), [t("tip.spentMonthRow"), fm(W.value.spentAll)], "---", [t("tip.beforeTitle"), fm(W.value.start)]], tk("tip." + (step ? "startStep" : "startBar") + (W.value.ACT ? "Act" : "Plan")));
+const startTip = (step) => TP(t("home.inAccounts"), [...M.value.flow.cashAccts.map((a) => [lblOf(a), fm(a.ils)]), "---", [t("tip.total"), fm(W.value.start)]], tk("tip." + (step ? "startStep" : "startBar") + (W.value.ACT ? "Act" : "Plan")));
+const cardsTip = computed(() => { const F = M.value.flow; return TP(t("home.cardsUnpaid"), [[t("tip.rowAccounts"), fm(F.cash)], [t("home.cardsUnpaid"), "−" + fm(F.cards)], "---", [W.value.upTot >= 1 ? t("home.whatsLeft") : t("home.reallyYours"), fm(F.cash - F.cards)]], t("tip.cardsOwedNote")); });
+const upTip = computed(() => { const w = W.value; return TP(t("home.upcoming"), [...six([...M.value.flow.up].sort((a, b) => b.amt - a.amt).map((b) => [b.n, fm(b.amt)])), "---", [t("tip.total"), fm(w.upTot)]], t("tip.upNote")); });
 const endTip = computed(() => {
   const F = M.value.flow, w = W.value;
-  if (w.ACT) return TP(w.eOver > 0 ? t("tip.shortTitle") : t("tip.availTitle"), [[t("tip.rowAccounts"), fm(F.cash)], [t("tip.rowAside"), fm(F.saved)], "---", [w.eOver > 0 ? t("tip.shortBy") : t("tip.availTitle"), fm(w.eOver > 0 ? w.eOver : w.eFree)]], t("tip.availNote1") + "\n" + t("tip.availNote2"));
-  return TP(F.over > 0 ? t("tip.shortTitle") : t("tip.freeTitle"), [[t("tip.rowAccounts"), fm(F.cash)], [t("tip.rowAside"), fm(F.saved)], [t("tip.rowStill"), fm(w.leftTot)], "---", [F.over > 0 ? t("tip.shortBy") : t("tip.freeTitle"), fm(F.over > 0 ? F.over : F.free)]], F.over > 0 ? "!" + t("tip.shortNote") : t("tip.freeNote1") + "\n" + t("tip.freeNote2"));
+  if (w.ACT) return TP(w.eOver > 0 ? t("tip.shortTitle") : t("home.reallyYours"), [[t("tip.rowAccounts"), fm(F.cash)], ...(F.cards >= 1 ? [[t("home.cardsUnpaid"), fm(F.cards)]] : []), ...(w.upTot >= 1 ? [[t("home.upcoming"), fm(w.upTot)]] : []), "---", [w.eOver > 0 ? t("tip.shortBy") : t("home.reallyYours"), fm(w.eOver > 0 ? w.eOver : w.eFree)]], t("tip.availNote1") + "\n" + t("tip.availNote2"));
+  return TP(w.eOver > 0 ? t("tip.shortTitle") : t("tip.freeTitle"), [[t("tip.rowAccounts"), fm(F.cash)], ...(F.cards >= 1 ? [[t("home.cardsUnpaid"), fm(F.cards)]] : []), ...(w.upTot >= 1 ? [[t("home.upcoming"), fm(w.upTot)]] : []), [t("tip.rowAside"), fm(w.jarsA + F.buffer)], [t("tip.rowStill"), fm(w.leftTot)], "---", [w.eOver > 0 ? t("tip.shortBy") : t("tip.freeTitle"), fm(w.eOver > 0 ? w.eOver : w.eFree)]], w.eOver > 0 ? "!" + t("tip.shortNote") : t("tip.freeNote1") + "\n" + t("tip.freeNote2"));
 });
 const colTip = (c) => {
   const F = M.value.flow;
   if (c.kind === "start") return startTip(false);
   if (c.kind === "end") return endTip.value;
-  if (c.k === "jars") return TP(t("tip.jarsTitle"), [...six(F.jarsHeld.map((j) => [j.n, fm(j.v)])), "---", [t("tip.total"), fm(F.inJars)]], t("tip.jarsNote"));
+  if (c.k === "cards") return cardsTip.value;
+  if (c.k === "up") return upTip.value;
+  if (c.k === "jars") return TP(t("tip.jarsTitle"), [...six(F.jarsHeld.map((j) => [j.n, fm(j.v)])), ...(W.value.upJar >= 1 ? [[t("tip.jarsPayUp"), "−" + fm(W.value.upJar)]] : []), "---", [t("tip.total"), fm(W.value.jarsA)]], t("tip.jarsNote"));
   if (c.k === "cushion") return TP(t("tip.keptTitle"), [[t("tip.cushionRow"), fm(F.buffer)]], t("tip.cushionNote"));
   if (c.k === "other") return TP(t("tip.otherTitle"), c.rest.map((x) => [colName(x), fm(x.a)]), t("tip.otherNote"));
-  if (c.unplanned) return TP(colName(c), [...six((c.cats || []).map((e) => [catName(e[0]), fm(e[1])])), "---", [t("tip.spentRow"), fm(c.spent)]], t("tip.unplannedNote"));
   const bud = c.rk === "budget", bill = c.rk === "bill"; // the column's own kind (kind is its place in the chart)
   const note = [...(c.over || (bud && c.base > 0 && c.spent > c.base) ? ["!" + t("tip.overBy", { amt: fm(Math.round(c.spent - c.base)) })] : []), tk(bud ? "tip.noteBudget" : bill ? "tip.noteBill" : "tip.noteUsual")]
     .concat(c.bcov > 0 || c.jarCov > 0 ? [t("tip.jarNoRecount")] : [], (c.bills || []).length ? [t("tip.includesBills", { list: c.bills.map((b) => b.n).join(", ") })] : []).join("\n");
-  return TP(catName(c.k), [[tk(bud ? "tip.budgetRow" : bill ? "tip.billsRow" : "tip.usualRow"), fm(Math.round(c.base))], [t("tip.spentRow"), fm(c.spent)], ...(c.bcov > 0 ? [[t("tip.jarPaysBills"), fm(c.bcov)]] : []), ...(c.jarCov > 0 ? [[t("tip.paidByJar", { j: c.jar }), fm(c.jarCov)]] : []), "---", [tk(bud ? "tip.leftBudget" : bill ? "tip.leftPay" : "tip.leftUsual"), fm(c.left)]], note);
+  return TP(catName(c.k), [[tk(bud ? "tip.budgetRow" : bill ? "tip.billsRow" : "tip.usualRow"), fm(Math.round(c.base))], [t("tip.spentRow"), fm(c.spent)], ...(c.bcov > 0 ? [[t("tip.jarPaysBills"), fm(c.bcov)]] : []), ...(c.jarCov > 0 ? [[t("tip.paidByJar", { j: c.jar }), fm(c.jarCov)]] : []), ...(c.upIn >= 1 ? [[t("tip.inUpcoming"), fm(c.upIn)]] : []), "---", [tk(bud ? "tip.leftBudget" : bill ? "tip.leftPay" : "tip.leftUsual"), fm(c.left)]], note);
 };
-const asideTip = computed(() => { const F = M.value.flow; return TP(t("tip.asideTitle"), [[t("tip.jarsTitle"), fm(F.inJars)], [t("home.cushion"), fm(F.buffer)], "---", [t("tip.total"), fm(F.saved)]], t("tip.asideNote")); });
+const asideTip = computed(() => { const F = M.value.flow, w = W.value; return TP(t("tip.asideTitle"), [[t("tip.jarsTitle"), fm(F.inJars)], ...(w.upJar >= 1 ? [[t("tip.jarsPayUp"), "−" + fm(w.upJar)]] : []), [t("home.cushion"), fm(F.buffer)], "---", [t("tip.total"), fm(w.jarsA + F.buffer)]], t("tip.asideNote")); });
 const tileTip = computed(() => {
   const w = W.value, src = [...w.src];
-  return w.ACT ? TP(t("home.spentMonth"), [...src.filter((r) => r.spent >= 1).sort((x, y) => y.spent - x.spent).slice(0, 6).map((r) => [catName(r.k), fm(r.spent)]), "---", [t("tip.total"), fm(w.spentAll)]], t("tip.spentTileNote"))
-    : TP(t("home.budgetsBills"), [...src.sort((x, y) => y.spent + y.left - (x.spent + x.left)).slice(0, 6).map((r) => [catName(r.k), fm(r.spent + r.left)]), "---", [t("tip.total"), fm(w.spentAll + w.leftTot)]], t("tip.plannedTileNote"));
+  return TP(t("home.stillToCome"), [...six(src.sort((x, y) => y.left - x.left).map((r) => [catName(r.k), fm(r.left)])), "---", [t("tip.total"), fm(w.leftTot)]], t("tip.plannedTileNote"));
 });
 const leftOf = (c) => (c.kind === "end" ? (W.value.eOver > 0 ? "−" + fm(W.value.eOver) : fm(W.value.eFree)) : fm(c.lo));
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -244,7 +246,7 @@ const openBill = (b) => { const bl = M.value.billsAll[b.idx]; const last = bl &&
         <div v-if="M.has.accts" id="sec-accts">
           <h2>{{ t("home.accounts") }}<a class="sm hl" :href="link('accounts')" @click="onLink">{{ t("home.all") }}</a></h2>
           <div id="accts" class="grid g3">
-            <div v-for="g in M.groups" :key="g.n" class="card click" :style="g.manual ? 'opacity:.85' : ''" role="button" tabindex="0" @click="accGo(g.n)">
+            <div v-for="g in M.groups" :key="g.n" class="card click" role="button" tabindex="0" @click="accGo(g.n)">
               <div class="lbl"><span class="gi" v-html="brandIcon(g.n, g.L[0].src, g.L[0].kind, g.L[0].ck)" /><span>{{ an(g.n) }}</span><span v-if="accSub(g).chips" class="chip" style="margin-inline-start:auto;padding:1px 9px">{{ accSub(g).chips }}</span></div>
               <div class="val"><small>₪</small>{{ n0(g.total) }}</div>
               <div class="sm">
@@ -271,25 +273,28 @@ const openBill = (b) => { const bl = M.value.billsAll[b.idx]; const last = bl &&
         </div>
 
         <div v-if="M.has.flow" id="sec-flow">
-          <h2><span id="flowTitle">{{ flowMode === "actual" ? t("home.flowSoFar") : t("home.flowAhead") }}</span><span class="h2r"><BaseTabs id="flowSeg" v-model="flowMode" :options="flowOpts" :label="t('home.flowMode')" /><a class="sm hl" href="#" @click.prevent="avail = true">{{ t("home.fullBreakdown") }}</a></span></h2>
+          <h2><span id="flowTitle">{{ t("home.flowTitle") }}</span><span class="h2r"><BaseTabs id="flowSeg" v-model="flowMode" :options="flowOpts" :label="t('home.flowMode')" /><a class="sm hl" href="#" @click.prevent="avail = true">{{ t("home.fullBreakdown") }}</a></span></h2>
           <div id="flowHome" class="card flow">
             <div class="fs"><div class="fsr">
-              <div class="fst" v-tip="startTip(true)"><span>{{ t("home.beforeSpending") }}</span><b class="num">{{ fm(W.start) }}</b><small><span>{{ t("home.inAccounts") }}</span> {{ fm(M.flow.cash) }}<br><span>{{ t("home.spentSoFar") }}</span> {{ fm(W.spentAll) }}</small></div>
-              <i>−</i>
-              <div class="fst" v-tip="asideTip"><span>{{ t("home.putAside") }}</span><b class="num">{{ fm(M.flow.saved) }}</b><small><span>{{ t("home.inJars") }}</span> {{ fm(M.flow.inJars) }}<br><span>{{ t("home.cushion") }}</span> {{ fm(M.flow.buffer) }}</small></div>
-              <i>−</i>
-              <div v-if="W.ACT" class="fst" v-tip="tileTip"><span>{{ t("home.spentMonth") }}</span><b class="num">{{ fm(W.spentAll) }}</b><small>{{ cap(t("home.whatYouSpent")) }}</small></div>
-              <div v-else class="fst" v-tip="tileTip"><span>{{ t("home.budgetsBills") }}</span><b class="num">{{ fm(W.spentAll + W.leftTot) }}</b><small><span>{{ t("home.spentSoFar") }}</span> {{ fm(W.spentAll) }}<br><span>{{ t("home.stillToCome") }}</span> {{ fm(W.leftTot) }}</small></div>
+              <div class="fst" v-tip="startTip(true)"><span>{{ t("home.inAccounts") }}</span><b class="num">{{ fm(W.start) }}</b></div>
+              <template v-if="M.flow.cards >= 1"><i>−</i>
+              <div class="fst" v-tip="cardsTip"><span>{{ t("home.cardsUnpaid") }}</span><b class="num">{{ fm(M.flow.cards) }}</b></div></template>
+              <template v-if="W.upTot >= 1"><i>−</i>
+              <div class="fst" v-tip="upTip"><span>{{ t("home.upcoming") }}</span><b class="num">{{ fm(W.upTot) }}</b></div></template>
+              <template v-if="!W.ACT"><i>−</i>
+              <div class="fst" v-tip="asideTip"><span>{{ t("home.putAside") }}</span><b class="num">{{ fm(W.jarsA + M.flow.buffer) }}</b><small><span>{{ t("home.inJars") }}</span> {{ fm(W.jarsA) }}<br><span>{{ t("home.cushion") }}</span> {{ fm(M.flow.buffer) }}</small></div></template>
+              <template v-if="!W.ACT"><i>−</i>
+              <div class="fst" v-tip="tileTip"><span>{{ t("home.stillToCome") }}</span><b class="num">{{ fm(W.leftTot) }}</b></div></template>
               <i>=</i>
-              <div class="fst key end" :class="{ neg: W.eOver > 0 }" v-tip="endTip"><span>{{ W.eOver > 0 ? t("home.shortBy") : W.ACT ? t("home.availableNow") : t("home.freeToUse") }}</span><b class="num" :class="{ neg: W.eOver > 0 }">{{ W.eOver > 0 ? "−₪" + n0(W.eOver) : fm(W.eFree) }}</b><small>{{ cap(W.ACT ? t("home.notPutAside") : W.eOver > 0 ? t("home.morePlanned") : t("home.afterPlanned")) }}</small></div>
+              <div class="fst key end" :class="{ neg: W.eOver > 0 }" v-tip="endTip"><span>{{ W.eOver > 0 ? t("home.shortBy") : W.ACT ? t("home.reallyYours") : t("home.freeToUse") }}</span><b class="num" :class="{ neg: W.eOver > 0 }">{{ W.eOver > 0 ? "−₪" + n0(W.eOver) : fm(W.eFree) }}</b><small v-if="!W.ACT">{{ cap(W.eOver > 0 ? t("home.morePlanned") : t("home.afterPlanned")) }}</small></div>
             </div></div>
             <div class="wf2" :style="{ '--n': cols.length }">
-              <div class="wrl w1" style="grid-row:1">{{ W.ACT ? t("home.spentSoFar") : t("home.budgetOrUsual") }}</div>
+              <div class="wrl w1" style="grid-row:1">{{ t("home.stepAmount") }}</div>
               <div class="wrl wnb" style="grid-row:3">{{ t("home.whatsLeft") }}</div>
               <div v-for="(c, i) in cols" :key="i" class="wc" :class="c.kind === 'end' ? 'end ' + c.tone : c.kind === 'item' ? '' : c.kind" :style="{ '--c': i + 2 }" v-tip="colTip(c)">
-                <div class="wca num" :data-l="W.ACT ? t('home.spentSoFar') : t('home.budgetOrUsual')"><span v-if="c.kind === 'end'" class="dim">–</span><template v-else><small>₪</small>{{ n0(c.a) }}</template></div>
+                <div class="wca num" :data-l="t('home.stillToCome')"><span v-if="c.kind === 'end'" class="dim">–</span><template v-else><small>₪</small>{{ n0(c.a) }}</template></div>
                 <div class="wcp"><i class="wcg" :style="{ '--b': c.b, '--h': c.h }" /><i class="wcs" :class="[c.kind === 'end' ? 'end ' + c.tone : c.kind === 'item' ? '' : c.kind, c.kind === 'start' || c.kind === 'end' ? '' : 'jn']" :style="{ '--h': c.s }" /></div>
-                <div class="wct" :data-l="t('home.whatsLeft')"><span v-if="c.kind === 'end' && W.eOver > 0" class="neg">−{{ fm(W.eOver) }}</span><template v-else>{{ leftOf(c) }}</template></div>
+                <div class="wct" :data-l="t('home.whatsLeft')"><span v-if="c.kind === 'end' && W.eOver > 0" class="neg">−{{ fm(W.eOver) }}</span><template v-else>{{ leftOf(c) }}</template><small v-if="c.k === W.remain" class="wry">{{ t("home.reallyYours") }}</small></div>
                 <div class="wcn"><b>{{ c.name }}</b></div>
               </div>
             </div>

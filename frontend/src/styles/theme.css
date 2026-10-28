@@ -1,4 +1,4 @@
-/* The looks from Appearance: background, texture, surfaces (glass, outline, raised), corners, density, spacing, font and menu style.
+/* The looks from Appearance: background, texture, surfaces (outline, raised, glass), corners, density, spacing, font and menu style.
    core/theme.js sets them as data-* attributes on <html> and classes on <body>. */
 
 [data-mode=dark] .am2 {
@@ -25,6 +25,26 @@ html[data-bg="diagonal"]::before {
 
 html[data-bg="spot"]::before {
   background: var(--bg-spot);
+}
+
+html[data-bg="aurora"]::before {
+  background: var(--bg-aurora);
+}
+
+html[data-bg="horizon"]::before {
+  background: var(--bg-horizon);
+}
+
+html[data-bg="duo"]::before {
+  background: var(--bg-duo);
+}
+
+html[data-bg="corners"]::before {
+  background: var(--bg-corners);
+}
+
+html[data-bg="sweep"]::before {
+  background: var(--bg-sweep);
 }
 
 html[data-bg="flat"]::before {
@@ -256,24 +276,18 @@ html[data-nav="mini"]:not(.mob) .badge {
   right: 10px; /* fixed side */
 }
 
-body.glass .rcal {
-  background: color-mix(in srgb, var(--bg) 86%, transparent);
-  -webkit-backdrop-filter: blur(var(--gblur, 18px)) saturate(var(--gsat, 160%));
-  backdrop-filter: blur(var(--gblur, 18px)) saturate(var(--gsat, 160%));
-}
-
 html[data-tex="dots"] {
-  --texi: radial-gradient(color-mix(in srgb,var(--tx) 20%,transparent) 1.3px,transparent 1.9px);
+  --texi: radial-gradient(color-mix(in srgb,var(--tx) calc(20% * var(--toa)),transparent) 1.3px,transparent 1.9px);
   --texs: calc(22px / var(--tsc)) calc(22px / var(--tsc));
 }
 
 html[data-tex="stripes"] {
-  --texi: repeating-linear-gradient(135deg,color-mix(in srgb,var(--tx) 7%,transparent) 0 2px,transparent 2px calc(16px / var(--tsc)));
+  --texi: repeating-linear-gradient(135deg,color-mix(in srgb,var(--tx) calc(7% * var(--toa)),transparent) 0 2px,transparent 2px calc(16px / var(--tsc)));
   --texs: auto;
 }
 
 html[data-tex="grid"] {
-  --texi: linear-gradient(color-mix(in srgb,var(--tx) 8%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--tx) 8%,transparent) 1px,transparent 1px);
+  --texi: linear-gradient(color-mix(in srgb,var(--tx) calc(8% * var(--toa)),transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--tx) calc(8% * var(--toa)),transparent) 1px,transparent 1px);
   --texs: calc(28px / var(--tsc)) calc(28px / var(--tsc)),calc(28px / var(--tsc)) calc(28px / var(--tsc));
 }
 
@@ -287,6 +301,11 @@ html:is([data-tex="dots"],[data-tex="stripes"],[data-tex="grid"],[data-tex="stat
   background-image: var(--texi);
   background-size: var(--texs);
   background-position: 0 0;
+}
+
+/* the static texture is one picture, so its strength is the layer's opacity (the picture holds twice the old alpha, so 100% looks as before) */
+html[data-tex="static"] body::before {
+  opacity: min(1, calc(var(--toa) * .5));
 }
 
 /* ===== surfaces ===== */
@@ -330,49 +349,134 @@ html[data-mode=dark] body.raised :is(.card,table,.bgrp):not(.hero) {
   box-shadow: 0 1px 1px #0006, 0 12px 22px -12px #000c;
 }
 
-/* glass, three user settings: Blur (backdrop blur), Vibrance (colour boost of what shows through) and Opacity (how solid the panel's own fill is) */
+/* glass: the blocks keep their colour, made see-through by Opacity (100% = solid, 0% = clear), and the backdrop behind them
+   is blurred and made more vivid (Blur, Vibrance). Only the blocks change: the page backdrop and its texture stay as they are.
+   core/theme.js sets --gbl (blur), --gsat (vibrance) and --gop (opacity). */
 
-body.glass :is(.card,table,.bgrp,.jhero,nav,.pop,.sheet,.ddm,.cmenu,.toast,.tip) {
-  -webkit-backdrop-filter: blur(var(--gblur, 18px)) saturate(var(--gsat, 160%));
-  backdrop-filter: blur(var(--gblur, 18px)) saturate(var(--gsat, 160%));
+body.glass {
+  --gop100: calc(var(--gop) * 100%);
+  --gs1: color-mix(in srgb, var(--tx) 3%, var(--bg));
+  --gs2: color-mix(in srgb, var(--tx) 7%, var(--bg));
+  --gfx: blur(var(--gbl)) saturate(var(--gsat));
+  /* the surface colours every block and element uses, see-through; the second step stays a light tint even when clear */
+  --s1: color-mix(in srgb, var(--gs1) var(--gop100), transparent);
+  --s2: color-mix(in srgb, var(--gs2) var(--gop100), color-mix(in srgb, var(--tx) 7%, transparent));
+  --gbg: color-mix(in srgb, var(--bg) var(--gop100), transparent);
+  /* windows, menus and tips stay frosted but nearly solid (95% when Opacity is 0, solid at 100%), with a strong blur,
+     so the text behind them never shows through */
+  --gpop100: calc((.95 + var(--gop) * .05) * 100%);
+  --gpfx: blur(calc(var(--gbl) + 14px)) saturate(var(--gsat));
+  --gpbg: color-mix(in srgb, var(--bg) var(--gpop100), transparent);
+  --gp1: color-mix(in srgb, var(--gs1) var(--gpop100), transparent);
 }
 
-body.glass :is(.card,table,.bgrp,.jhero,nav) {
-  background-color: color-mix(in srgb, var(--bg) var(--gop, 45%), transparent);
-  background-image: var(--texi, none);
-  background-size: var(--texs, auto);
-  background-position: 0 0;
-  border-color: color-mix(in srgb, var(--tx) 14%, transparent);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 35%, transparent), 0 8px 28px -16px color-mix(in srgb, #000 30%, transparent);
+html[data-mode=dark] body.glass {
+  --gs1: color-mix(in srgb, var(--tx) 5%, var(--bg));
+  --gs2: color-mix(in srgb, var(--tx) 10%, var(--bg));
+  --s2: color-mix(in srgb, var(--gs2) var(--gop100), color-mix(in srgb, var(--tx) 10%, transparent));
 }
 
+/* blocks in the page: the blurred backdrop sits just behind the block's own colour (a layer, so windows and menus inside still open
+   where they should) */
+body.glass :is(.card,table,.bgrp,.jhero,.fcard,.rkeq) {
+  position: relative;
+}
+
+body.glass :is(.card,table,.bgrp,.jhero,.fcard,.setnav,.rkeq)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-backdrop-filter: var(--gfx);
+  backdrop-filter: var(--gfx);
+}
+
+/* windows, menus and pop-ups: nearly solid, with their colour on the box itself so it stays behind every line when they
+   scroll. The small menus and lists blur what is behind them; windows do not (a blur would trap the menus that open inside them) */
+body.glass :is(.sheet,.pop,.askb,.help,.rcal,.dvbox) {
+  background: var(--gpbg);
+}
+
+body.glass :is(.tsug,.ddm,.cmenu,.toast,.sugb) {
+  background: var(--gp1);
+  -webkit-backdrop-filter: var(--gpfx);
+  backdrop-filter: var(--gpfx);
+}
+
+/* buttons, chips and pills are not surfaces: they stay solid on a see-through block */
+body.glass :is(.btn,.ib,.chip,.dchip,.tag,.tchip,.tpick,.jpill,.mpill,.tpill,.kchips button,.qa button,.seg:not(.apseg),.rkch,.rkpi) {
+  --s1: var(--gs1);
+  --s2: var(--gs2);
+}
+
+/* the Recap day tip and the chart tips float like the other tips: frosted, nearly solid */
+body.glass :is(.rktip,.trtip) {
+  --s1: var(--gp1);
+  --s2: var(--gp1);
+  -webkit-backdrop-filter: var(--gpfx);
+  backdrop-filter: var(--gpfx);
+}
+
+/* filled parts that stand on the page by themselves (tab rows, round buttons, fields) blur what is behind them directly;
+   inside a block they need not,
+   the block already does */
+body.glass :is(.rkbr,.inf,.exo,.exbox,.exd,.exsamp,.txs-c,.jstat3,.stl,.phs > div,.trstats > div,.jstats > div,.exst > div,.cstn > div,.jfs > div,.wct,.bq,.sinfo,.trex,.trtog,.trleg .lgi,.tcs,.hdemo,.jt,.jct,.kvc,.atile,.phb,.phl,.txs2,.rule,.wnc,input:not([type=checkbox],[type=radio],[type=range],[type=color]),textarea,.ftools select):not(:is(.card,table,.bgrp,.jhero,.fcard,.setnav,.rkeq,.sheet,.pop,.askb,.help,.rcal,.dvbox,.tsug,.ddm,.cmenu,.toast,.sugb) *) {
+  -webkit-backdrop-filter: var(--gfx);
+  backdrop-filter: var(--gfx);
+}
+
+/* the bar that shows a running job, and the phone's top bar and bottom menu (on a computer the menu is part of the backdrop) */
+body.glass #jobBar,
+html.mob body.glass :is(main > header,nav) {
+  background: var(--gbg);
+  -webkit-backdrop-filter: var(--gfx);
+  backdrop-filter: var(--gfx);
+}
+
+/* coloured blocks keep their tint, see-through like the rest */
 body.glass .card.hero {
-  color: var(--tx);
-  border-color: color-mix(in srgb, var(--acc) 40%, transparent);
+  background: linear-gradient(140deg, color-mix(in srgb, var(--accc) var(--gop100), transparent), color-mix(in srgb, color-mix(in srgb, var(--accc) 55%, var(--gs1)) var(--gop100), transparent));
 }
 
-body.glass .card.hero :is(.lbl,.sm) {
-  color: var(--tx2);
+body.glass .jhero {
+  background: linear-gradient(135deg, color-mix(in srgb, color-mix(in srgb, var(--acc) 16%, var(--gs1)) var(--gop100), transparent), color-mix(in srgb, color-mix(in srgb, var(--acc2) 10%, var(--gs1)) var(--gop100), transparent));
 }
 
-body.glass :is(.card,.bgrp) :is(.card,.bgrp,table) {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  background-color: transparent;
-  background-image: none;
-  box-shadow: none;
+/* the edge is the same quiet line the other surfaces have (no white rim) */
+body.glass :is(.card,table,.bgrp,.jhero,.fcard,.setnav,.rkeq):not(.hero) {
+  border-color: var(--ol);
+  box-shadow: 0 1px 1px color-mix(in srgb, #000 6%, transparent), 0 10px 24px -14px color-mix(in srgb, #000 35%, transparent);
 }
 
-body.glass :is(.pop,.sheet,.ddm,.cmenu) {
-  background: color-mix(in srgb, var(--bg) 86%, transparent);
+html[data-mode=dark] body.glass :is(.card,table,.bgrp,.jhero,.fcard,.setnav,.rkeq):not(.hero) {
+  border-color: var(--ol);
+  box-shadow: 0 1px 1px #0005, 0 12px 26px -14px #000b;
 }
 
-body.glass :is(.toast,.tip) {
-  background: color-mix(in srgb, var(--s2) 80%, transparent);
+/* the Recap graph's "Today" label floats on its own (and uses ::before for its pointer), so it blurs directly */
+body.glass .rkpt {
+  -webkit-backdrop-filter: var(--gfx);
+  backdrop-filter: var(--gfx);
 }
 
-body.glass .askb {
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(var(--gblur, 18px));
-  -webkit-backdrop-filter: blur(var(--gblur, 18px));
+/* the pointer keeps only the half that sticks out above the label, so the two see-through fills do not add up */
+body.glass .rkpt::before {
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+  -webkit-backdrop-filter: var(--gfx);
+  backdrop-filter: var(--gfx);
+}
+
+/* the fade under a window's buttons, and the small counts on its sections, use the window's see-through colour */
+body.glass .txfoot {
+  background: linear-gradient(to top, var(--gpbg) 78%, transparent);
+}
+
+body.glass .exfoot {
+  background: linear-gradient(to top, var(--gpbg) 82%, transparent);
+}
+
+body.glass :is(.txs2 > summary:hover em,.kvd > summary em) {
+  background: var(--s2);
 }

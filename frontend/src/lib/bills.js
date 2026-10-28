@@ -9,6 +9,8 @@ export const med = (a) => { const s = [...a].sort((x, y) => x - y), m = s.length
 export { f0, fm } from "../format.js";
 import { fm } from "../format.js";
 const byDate = (a, b) => a.d.localeCompare(b.d);
+// A real price change: at least 2% and at least ₪1, so a few agorot of drift is ignored.
+export const priceMoved = (b) => b.was > 0 && Math.abs(b.amt - b.was) >= Math.max(1, b.was * 0.02);
 
 // How often does this store charge you? Returns null when there is no regular rhythm.
 export function cadenceOf(L) {
@@ -25,6 +27,7 @@ export function cadenceOf(L) {
 }
 
 // The payments that count (no transfers, card payments, future or left-out ones), plus the cost of moving money.
+// Pending ones count, the same way the Activity page counts them. Home, Accounts and Reports use the same rows.
 export function countedTx(S, today) {
   const k = kinds(S, today), tx = S.tx || [];
   const NR = new Set((S.accounts || []).filter((a) => a.inR === false).map((a) => a.n));
@@ -35,7 +38,7 @@ export function countedTx(S, today) {
     return c > 0.5 ? { id: "v" + x.o, virtual: true, d: o.d, desc: "Transfer cost · " + o.from + " → " + i.to, from: o.from, to: "Transfer fees / FX spread", a: -c, c: "Fees & FX costs" } : null;
   }).filter(Boolean);
   const A = tx.filter((t) => !k.isXf(t) && !k.isIgn(t) && !k.isFut(t) && !k.isCp(t) && !noRep(t)).concat(costRows);
-  return { A, k };
+  return { A, k, costRows };
 }
 
 // A store that charges again and again is a bill. Returns the bills to add; the saved ones and the ignored ones are skipped.
@@ -54,10 +57,15 @@ export function detectNew(S, A) {
 }
 
 export const billTx0 = (b, A, tx) => (b.mode == "once" ? (tx || []).filter((t) => (b.ids || []).includes(t.id)).sort(byDate) : A.filter((t) => t.a < 0 && (t.desc + " " + t.to).toLowerCase().includes(b.match)).sort(byDate));
+// The charges the bank already lists for a later day (scheduled or pending), the ones that can be a bill's coming payment. k: kinds().
+export const futTx = (S, k) => (S.tx || []).filter((t) => !t.virtual && t.a < 0 && k.isFut(t) && !k.isXf(t) && !k.isIgn(t) && !k.isCp(t));
+// A bill's charges among them (none for a one-off bill), by date.
+export const billFut = (b, F) => (b.mode == "once" ? [] : billTx0(b, F));
 
 // One bill's state: when it is next due, if it was paid, what it usually costs.
 // Three kinds: recurring (a rhythm is known: predicted and tracked), irregular (every payment still counts) and one-off.
-export function billInfo(b, idx, mt, NOW) {
+// fut: the bill's charges the bank lists for a later day; one near the due day means that payment is on its way, not missing.
+export function billInfo(b, idx, mt, NOW, fut = []) {
   const last = mt[mt.length - 1], prev = mt[mt.length - 2], ev = mt.slice(-6).map((t) => [t.d, -t.a]);
   let cad = null, ended = false;
   if (b.mode != "once") {
@@ -67,7 +75,7 @@ export function billInfo(b, idx, mt, NOW) {
   if (cad && !b.manual && last) { // an automatic bill stops being predicted once a cycle passes without it, or when its last instalment was paid
     const li = instOf(last), oc0 = [];
     for (let y = NOW.getFullYear() - 2; y <= NOW.getFullYear() + 1; y++) for (let m = 1; m <= 12; m++) if ((((m - cad.anchor) % cad.every) + cad.every) % cad.every == 0) { const d = new Date(y, m - 1, Math.min(cad.dom, 28), 9); if (d <= NOW) oc0.push(d); }
-    const pd0 = oc0[oc0.length - 1], pd1 = oc0[oc0.length - 2], ld = new Date(last.d);
+    const pd0 = oc0[oc0.length - 1], pd1 = oc0[oc0.length - 2], fl = fut.length ? fut[fut.length - 1].d : "", ld = new Date(fl > last.d ? fl : last.d);
     const missed = (pd1 && ld < new Date(pd1 - 4 * 864e5)) || (pd0 && ld < new Date(pd0 - 4 * 864e5) && NOW - pd0 > 10 * 864e5); // a whole cycle went by without it, or the latest one is more than 10 days late
     if (missed || (li && li.n >= li.total)) { cad = null; ended = true; }
   }
@@ -81,8 +89,11 @@ export function billInfo(b, idx, mt, NOW) {
   let pd = null, nx = null; oc.forEach((d) => { if (d <= NOW) pd = d; else if (!nx) nx = d; });
   const amt = last ? -last.a : B.amt || 0, was = prev ? -prev.a : amt, rc = mt.slice(-3).map((t) => -t.a), mean = rc.length ? sum(rc) / rc.length : amt;
   const r4 = mt.slice(-4).map((t) => -t.a), nch = r4.slice(1).filter((x, i) => Math.abs(x - r4[i]) / r4[i] > 0.03).length, vari = r4.length >= 3 && nch >= 2, pred = vari ? mean : amt;
-  const lp = last ? last.d : B.lastPaid, paid = lp && new Date(lp) >= new Date(pd - 4 * 864e5), stt = paid ? "paid" : NOW - pd <= 3 * 864e5 ? "pending" : "overdue";
-  return { ...B, idx, pd, nx, days: Math.ceil((nx - NOW) / 864e5), lp, status: stt, amt, was, pred, vari, lo: rc.length ? Math.min(...rc) : amt, hi: rc.length ? Math.max(...rc) : amt, fresh: last ? (NOW - new Date(last.d)) / 864e5 <= 45 : false, mo: pred / B.every, n_tx: mt.length, ev };
+  const lp = last ? last.d : B.lastPaid, paid = lp && new Date(lp) >= new Date(pd - 4 * 864e5);
+  // the bank already lists this payment for a later day (a few days after the due day): it is coming, so it is neither missing nor late
+  const sched = !paid && pd ? (fut.find((t) => { const g = (new Date(t.d) - pd) / 864e5; return g >= -4 && g <= 10; }) || {}).d || null : null;
+  const stt = paid ? "paid" : sched || NOW - pd <= 3 * 864e5 ? "pending" : "overdue";
+  return { ...B, idx, pd, nx, sched, days: Math.ceil((nx - NOW) / 864e5), lp, status: stt, amt, was, pred, vari, lo: rc.length ? Math.min(...rc) : amt, hi: rc.length ? Math.max(...rc) : amt, fresh: last ? (NOW - new Date(last.d)) / 864e5 <= 45 : false, mo: pred / B.every, n_tx: mt.length, ev };
 }
 
 // Everything about the bills for one moment: the saved bills plus the found ones, every bill's state, and the counted payments.
@@ -90,10 +101,10 @@ export function billInfo(b, idx, mt, NOW) {
 export function billState(S, now = new Date()) {
   S = S || {};
   const NOW = now, MK = NOW.getFullYear() + "-" + p2(NOW.getMonth() + 1), TODAY = MK + "-" + p2(NOW.getDate());
-  const { A, k } = countedTx(S, TODAY), found = detectNew(S, A), bills = [...(S.bills || []), ...found.map((x) => x.b)];
+  const { A, k } = countedTx(S, TODAY), F = futTx(S, k), found = detectNew(S, A), bills = [...(S.bills || []), ...found.map((x) => x.b)];
   const cache = new Map();
   const billTx = (b) => { if (b.mode == "once") return billTx0(b, A, S.tx); let r = cache.get(b.match); if (!r) { r = billTx0(b, A, S.tx); cache.set(b.match, r); } return r; };
-  const all = bills.map((b, idx) => billInfo(b, idx, billTx(b), NOW)).map((b) => { const L = billTx(bills[b.idx]).filter((t) => t.c && t.c != "Uncategorized"), lc = L.length ? L[L.length - 1].c : null; return { ...b, cat: lc || (b.manual ? b.cat : "") || "" }; });
+  const all = bills.map((b, idx) => billInfo(b, idx, billTx(b), NOW, billFut(b, F))).map((b) => { const L = billTx(bills[b.idx]).filter((t) => t.c && t.c != "Uncategorized"), lc = L.length ? L[L.length - 1].c : null; return { ...b, cat: lc || (b.manual ? b.cat : "") || "" }; });
   const info = (every) => (every ? all : all.filter((b) => b.flag != "canceled" && !b.ended));
   return { NOW, MK, TODAY, A, k, bills, found, billTx, all, info };
 }
@@ -117,7 +128,7 @@ export function instSeries(S, NOW) {
 export function billsModel(S, now = new Date()) {
   const st = billState(S, now), bs = st.info(false);
   const rec = bs.filter((b) => !b.irregular && !b.once), irr = bs.filter((b) => b.irregular), one = bs.filter((b) => b.once).sort((x, y) => (y.lp || "").localeCompare(x.lp || ""));
-  const mo = sum(bs.map((b) => b.mo)), soon = rec.filter((b) => b.days <= 14), soonT = sum(soon.map((b) => b.pred)), ch = rec.filter((b) => b.fresh && !b.vari && Math.abs(b.amt - b.was) > b.was * 0.001);
+  const mo = sum(bs.map((b) => b.mo)), soon = rec.filter((b) => b.days <= 14), soonT = sum(soon.map((b) => b.pred)), ch = rec.filter((b) => b.fresh && !b.vari && priceMoved(b));
   const chT = ch.reduce((s, b) => s + ((b.amt - b.was) * 12) / b.every, 0);
   rec.sort((a, b) => (a.status == "overdue" ? -1e4 : 0) + a.days - ((b.status == "overdue" ? -1e4 : 0) + b.days));
   const inst = instSeries(S, st.NOW), canceled = st.info(true).filter((b) => b.flag == "canceled");
@@ -200,4 +211,20 @@ export function evTipText(b, t, dstr) {
 export function makeDstr(df = "dmy") {
   const dnum = (y, m, d) => { const p = (n) => String(n).padStart(2, "0"); return df === "mdy" ? p(m) + "/" + p(d) + "/" + y : p(d) + "/" + p(m) + "/" + y; };
   return (d) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(d)); if (m) return dnum(m[1], m[2], m[3]); const x = new Date(d); return isNaN(x) ? String(d) : dnum(x.getFullYear(), x.getMonth() + 1, x.getDate()); };
+}
+
+// The next payment of each purchase paid in instalments (if 9/10 was paid, the 10/10 a month later), when it falls in the next 31 days.
+// A payment the bank already lists is a real row, so a plan whose latest payment is still ahead adds nothing.
+export function upInstRows(S, now, today) {
+  const ymd = (d) => d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate()), lim = ymd(new Date(now.getFullYear(), now.getMonth() + 2, 0)); // through the end of next month
+  const out = [];
+  for (const x of instSeries(S, now)) {
+    const [y, m, d] = x.last.d.split("-").map(Number);
+    for (let k = 1; k <= x.left; k++) {
+      const nd = ymd(new Date(y, m - 1 + k, Math.min(d, new Date(y, m + k, 0).getDate())));
+      if (nd > lim) break;
+      if (nd > today) out.push({ id: "ui" + x.last.id + "_" + k, upInst: x.last.id, virtual: true, d: nd, desc: x.name, from: x.last.from || "", to: x.name, a: -x.amt, c: x.last.c || "", inst: [x.paid + k, x.total], tags: [], docs: [], note: "" });
+    }
+  }
+  return out;
 }

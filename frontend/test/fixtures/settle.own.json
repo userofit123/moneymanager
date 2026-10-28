@@ -170,7 +170,7 @@
    "rec": "recurring"
   }
  ],
- "jarsReserve": 6042,
+ "jarsReserve": 8597,
  "tx": [
   {"id":1,"c":"Eating out","jar":null,"jarNo":null},
   {"id":2,"c":"Eating out","jar":null,"jarNo":null},
