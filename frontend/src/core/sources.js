@@ -7,8 +7,11 @@ import { toast } from "./toast.js";
 import { runJob, lastItems } from "./jobs.js";
 import { tx } from "./heText.js";
 
-const SRCDEF = [["Bank Hapoalim", "hapoalim"], ["Max", "max"], ["Isracard", "isracard"], ["Wise", "wise"]];
-export const SRCN = { hapoalim: "Bank Hapoalim", max: "Max", isracard: "Isracard", wise: "Wise" };
+import { SRC_NAMES } from "../catnames.js";
+
+// The standard connections ([name, key]) shown before any is connected, and their names (one list: catnames.js).
+const SRCDEF = Object.entries(SRC_NAMES).map(([k, n]) => [n, k]);
+export const SRCN = SRC_NAMES;
 const t = (...a) => i18n.global.t(...a);
 const loc = () => (i18n.global.locale.value === "he" ? "he-IL" : "en-GB");
 export const fmtWhen = (w) => new Date(w).toLocaleString(loc(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });

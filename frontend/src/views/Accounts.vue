@@ -20,7 +20,7 @@ import { SI } from "./settings/icons.js";
 import { dstr } from "../dates.js";
 import { f0, fm } from "../format.js";
 import { withTransfers } from "../lib/home.js";
-import { TONEC, typeKey, accILS, accByName, accName, accTail, accState, accGroupList, accTotals, accMonthly, cardMonthly, accRows, tileCols, accSel } from "../lib/accounts.js";
+import { TONEC, typeKey, accILS, hasRate, accByName, accName, accTail, accState, accGroupList, accTotals, accMonthly, cardMonthly, accRows, tileCols, accSel } from "../lib/accounts.js";
 import PageHeader from "../components/PageHeader.vue";
 import BaseDialog from "../components/BaseDialog.vue";
 import LineChart from "../components/charts/LineChart.vue";
@@ -38,6 +38,9 @@ const mon = (k, o) => new Date(+k.slice(0, 4), +k.slice(5, 7) - 1, 1).toLocaleDa
 const MSHORT = (k) => mon(k, { month: "short" }), MNAME = (k) => mon(k, { month: "long" });
 const money = (v) => (v < 0 ? "−" : "") + "₪" + f0(v);
 const curList = (L) => L.map((x) => (x.cur == "ILS" ? "₪" : x.cur + " ") + f0(x.v)).join(" · ");
+// A currency with no exchange rate yet is not counted in shekels (the same as Home): its amounts, then "not counted yet".
+const noRate = (L) => L.some((x) => !hasRate(x, fx.value));
+const curSub = (L) => curList(L) + (noRate(L) ? " · " + t("tip.noRate") : "");
 const typeOf = (a) => tk("acc." + typeKey(a));
 const stLabel = (st) => (st.key in { manual: 1, notConnected: 1, none: 1, untested: 1, tested: 1, connected: 1, stale: 1, failed: 1, locked: 1, otp: 1 } ? tk("acc.conn." + st.key) : st.key);
 // a date and time; the time is kept left to right inside Hebrew text
@@ -94,7 +97,7 @@ const D = computed(() => {
   const since = T.first != "9999-99-99" ? t("acc.since", { date: dstr(T.first) }) : "", latest = T.last ? dstr(T.last) : t("acc.none"), net = T.mIn - T.mOut;
   const tiles = card
     ? [["tChargedMonth", "₪" + f0(mo ? mo.now : 0), mo && mo.last ? t("acc.lastMonthAmt", { amount: "₪" + f0(mo.last) }) : ""], ["tLastMonth", "₪" + f0(mo ? mo.last : 0), t("acc.chargedFull")], ["tReported", fm(tot), a.at ? t("acc.updated", { when: when(a.at) }) : ""], ["tTx", String(T.n), since], ["tOutYear", "₪" + f0(T.yOut), "", "neg"], ["tLatest", latest, ""]]
-    : [["tBalance", money(tot), L.some((x) => x.cur != "ILS") ? curList(L) : a.at ? t("acc.updated", { when: when(a.at) }) : "", tot < 0 ? "neg" : ""], ["tInMonth", "₪" + f0(T.mIn), "", "pos"], ["tOutMonth", "₪" + f0(T.mOut), "", "neg"], ["tNetMonth", money(net), "", net < 0 ? "neg" : "pos"], ["tInYear", "₪" + f0(T.yIn), "", "pos"], ["tOutYear", "₪" + f0(T.yOut), "", "neg"], ["tTx", String(T.n), since], ["tLatest", latest, ""]];
+    : [["tBalance", L.some((x) => hasRate(x, fx.value)) ? money(tot) : "—", L.some((x) => x.cur != "ILS") ? curSub(L) : a.at ? t("acc.updated", { when: when(a.at) }) : "", tot < 0 ? "neg" : ""], ["tInMonth", "₪" + f0(T.mIn), "", "pos"], ["tOutMonth", "₪" + f0(T.mOut), "", "neg"], ["tNetMonth", money(net), "", net < 0 ? "neg" : "pos"], ["tInYear", "₪" + f0(T.yIn), "", "pos"], ["tOutYear", "₪" + f0(T.yOut), "", "neg"], ["tTx", String(T.n), since], ["tLatest", latest, ""]];
   const yn = (v) => t(v ? "acc.yes" : "acc.no");
   const rows = [["rType", typeOf(a)], ["rCur", L.map((x) => x.cur).join(" + ")], ["rProvider", conn ? tx(conn.providerLabel || conn.label) : a.manual ? t("acc.byHand") : ""], ...(conn && conn.nickname ? [["rNick", conn.nickname]] : []),
     ...(a.manual ? [] : [["rSync", stLabel(st), t("acc.rSyncTip")]]), ...(a.manual || !st.since ? [] : [["rLastSync", whenT(st.since)]]), ["rBalUpd", a.at ? when(a.at) : t("acc.never")], ...(tail ? [["rNumber", t("acc.ending", { tail })]] : []),
@@ -134,7 +137,7 @@ onBeforeUnmount(() => ro && ro.disconnect());
             <div v-for="c in s.L.map(cardFor)" :key="c.g.n" class="card click acc" role="button" tabindex="0" @click="openAcc(c.g.n)" @keydown.enter="openAcc(c.g.n)">
               <div class="lbl"><span>{{ an(c.lbl.name) }}<template v-if="c.lbl.tail">{{ " " }}<span class="sm" dir="ltr" style="font-weight:500;opacity:.8;unicode-bidi:isolate">·· {{ c.lbl.tail }}</span></template></span><span class="chip" style="margin-inline-start:auto;padding:1px 9px">{{ typeOf(c.a) }}</span></div>
               <template v-if="c.card"><div class="val"><small>₪</small>{{ f0(c.mo ? c.mo.now : 0) }}</div><div class="sm">{{ t("acc.chargedMonth") }}<template v-if="c.mo && c.mo.last"> · {{ t("acc.lastMonthAmt", { amount: "₪" + f0(c.mo.last) }) }}</template></div></template>
-              <template v-else><div class="val"><small>₪</small>{{ c.tot < 0 ? "−" : "" }}{{ f0(c.tot) }}</div><div class="sm">{{ c.g.L.some((x) => x.cur != "ILS") ? curList(c.g.L) : an(c.a.s || "") }}</div></template>
+              <template v-else><div class="val"><template v-if="c.g.L.some((x) => hasRate(x, fx))"><small>₪</small>{{ c.tot < 0 ? "−" : "" }}{{ f0(c.tot) }}</template><template v-else>—</template></div><div class="sm">{{ c.g.L.some((x) => x.cur != "ILS") ? curSub(c.g.L) : an(c.a.s || "") }}</div></template>
               <div class="flex" style="gap:8px;margin-top:12px;justify-content:space-between;align-items:center"><span class="bd" :class="TONEC[c.st.tone]">{{ stLabel(c.st) }}</span><span class="sm">{{ c.foot }}</span></div>
             </div>
           </div>

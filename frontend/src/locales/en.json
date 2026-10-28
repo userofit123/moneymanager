@@ -259,15 +259,15 @@
       "ignored": "Left out by you: transactions you chose to count out."
     },
     "g": {
-      "expIn": "Expected in",
-      "expOut": "Expected out",
+      "expIn": "Likely in",
+      "expOut": "Likely out",
       "outSoFar": "Out so far",
       "title": "Still to come in this group",
       "stillOut": "Still to come out",
       "totalOut": "Total out when paid",
       "stillIn": "Still to come in",
       "netDone": "Net when all is done",
-      "note": "The numbers in this header count only what has already happened. Expected items, such as a bill that has not been charged yet, are shown in the table but are not included until they happen."
+      "note": "The numbers in this header count only what has already happened. Likely items, such as a bill that has not been charged yet, are shown in the table but are not included until they happen."
     },
     "chip": {
       "bal": "balance update",
@@ -546,7 +546,7 @@
     "fullBy": "Full by",
     "over5": "Over 5 years",
     "lateAfter": "At this pace it is full in {when}, after your deadline ({due}). Put in {amount} a month to make it.",
-    "lateNever": "At the free money expected, this jar will not be full by your deadline ({due}).",
+    "lateNever": "With the free money you'll likely have, this jar will not be full by your deadline ({due}).",
     "goals": "Goals",
     "newGoal": "+ New goal",
     "goalsNote": "Jars with a goal amount are listed here. Monthly-saving and bill jars are not goals.",
@@ -561,10 +561,10 @@
     "markDone": "Mark as done",
     "reachedLine": "You have saved it all. Mark it as done once you have used it.",
     "dueLine": "Deadline {due} · 1 month left · needs {req} a month · you put in {c} | Deadline {due} · {m} months left · needs {req} a month · you put in {c}",
-    "dueShort": "but the free money expected is not enough",
+    "dueShort": "but the free money you'll likely have is not enough",
     "raise": "Raise to {amount} a month",
     "savingLine": "No deadline · {c} a month · full in 1 month ({when}), if there is free money each month | No deadline · {c} a month · full in {k} months ({when}), if there is free money each month",
-    "savingNever": "No deadline · {c} a month · not full within 5 years at the free money expected",
+    "savingNever": "No deadline · {c} a month · not full within 5 years with the free money you'll likely have",
     "noneLine": "No deadline and no monthly amount, so nothing is added by itself.",
     "noGoals": "No goals yet. A goal is a jar with an amount to reach, for example ₪20,000 for a trip. Press + New goal. A deadline is optional.",
     "completed": "Completed jars",
@@ -789,8 +789,8 @@
     "plannedTileNote": "What is still left to spend in each budget this month.\nCategories without a budget: what you usually spend in a month."
   },
   "al": {
-    "overdueT": "{n}: payment expected but not seen",
-    "overdueX": "Expected around {date}, about {amt} from {src}. Nothing like it has been paid since. If it is only late, do nothing. If you stopped it, open the bill and cancel it.",
+    "overdueT": "{n}: likely payment not seen yet",
+    "overdueX": "Likely due around {date}, about {amt} from {src}. Nothing like it has been paid since. If it is only late, do nothing. If you stopped it, open the bill and cancel it.",
     "dueToday": "{n} is due today",
     "dueT": "{n} is due in {d} days",
     "dueX": "About {amt} from {src}. A prediction from your past payments, not a charge yet.",
@@ -816,7 +816,7 @@
     "dupT": "{n} possible duplicates",
     "dupX": "Two entries with the same amount, store and day. Open them to delete one or keep both.",
     "gapBillT": "{n}: {amt} left, probably {bill}",
-    "gapBillX": "{bill} (about {bamt}) was expected around {date} and the bank has not listed it yet. This closes by itself when the transaction appears. If it does not, open it in Needs review.",
+    "gapBillX": "{bill} (about {bamt}) was likely due around {date} and the bank has not listed it yet. This closes by itself when the transaction appears. If it does not, open it in Needs review.",
     "gapDown": "{n}: balance went down by {amt} with no matching transaction",
     "gapUp": "{n}: balance went up by {amt} with no matching transaction",
     "gapX": "The bank balance changed but no transaction explains it. Usually the bank has not listed the transaction yet, and this closes by itself when it appears. Otherwise add it, or dismiss it with a note.",
@@ -861,7 +861,7 @@
     "g": {
       "rec": {
         "title": "Regular",
-        "desc": "The same business or person charges you on a regular schedule. Shows the last charge and the next expected one.",
+        "desc": "The same business or person charges you on a regular schedule. Shows the last charge and the next likely one.",
         "unit": "a month"
       },
       "irr": {
@@ -1151,16 +1151,16 @@
       "today": "today",
       "mo3": "3 mo",
       "mo6": "6 mo",
-      "short": "You planned {planned} a month, but the money expected to be left after spending only allows about {avg} a month on average.",
-      "shortNone": "You planned {planned} a month, but no money is expected to be left after spending, so this jar gets nothing in the next year.",
-      "shortAhead": "You planned {planned} a month, but jars with a higher priority come first and take most of the money expected to be left, so this jar gets only about {avg} a month on average.",
-      "shortAheadNone": "You planned {planned} a month, but jars with a higher priority come first and take all the money expected to be left each month, so this jar gets nothing in the next year."
+      "short": "You planned {planned} a month, but the money likely left after spending only allows about {avg} a month on average.",
+      "shortNone": "You planned {planned} a month, but no money is likely to be left after spending, so this jar gets nothing in the next year.",
+      "shortAhead": "You planned {planned} a month, but jars with a higher priority come first and take most of the money likely left, so this jar gets only about {avg} a month on average.",
+      "shortAheadNone": "You planned {planned} a month, but jars with a higher priority come first and take all the money likely left each month, so this jar gets nothing in the next year."
     },
     "tipCame": "It came in {came} of the last {of} months, so it counts as {pc}% of its usual amount ({avg}) every month.",
     "th": {
       "usually": "Average per month\nThe months in the bars, averaged.\nA month with nothing counts as ₪0.\nSpending: a very unusual month is first pulled toward normal, so one big month does not throw it off.",
       "next": "Likely next month\n• **Income:** its average, every month\n• **Spending:** the average, moved by its trend\n• **Only in one month:** its average, every month",
-      "year": "Total for the next 12 months\nThe 12 expected months added up.",
+      "year": "Total for the next 12 months\nThe likely amounts of the next 12 months, added up.",
       "dir": "Trend\n• **Going up** or **going down:** the row is changing\n• **Steady:** about the same each month\nSpending: a change fades within a few months and never goes more than 20% from the average.\nIncome: shown only, it does not change what is expected."
     },
     "how": {

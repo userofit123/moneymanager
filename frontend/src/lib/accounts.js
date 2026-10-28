@@ -2,7 +2,7 @@
 // Nothing here changes the data. S: the whole data, today: "YYYY-MM-DD", fx: { USD: 3.7 }.
 import { shallowRef } from "vue";
 import { kinds } from "./activity.js";
-import { withTransfers, addM, cardBuys } from "./home.js";
+import { withTransfers, addM, cardBuys, fxRate } from "./home.js";
 import { countedTx } from "./bills.js";
 import { balRows, costRows } from "./txrows.js";
 import { CURS } from "../views/settings/currencies.js";
@@ -12,8 +12,9 @@ export const CK = ["cash", "savings", "investment", "loan", "other"];
 export const TONEC = { green: "dn", yellow: "am2", red: "up", gray: "fl" };
 export const typeKey = (a) => (a.custom ? (CK.includes(a.ck) ? "ck." + a.ck : "ck.account") : "kind." + a.kind);
 
-const rate = (fx, c) => (c === "ILS" ? 1 : (fx || {})[c] || 1);
-export const accILS = (a, fx) => a.v * rate(fx, a.cur);
+// The same rate rule as Home (fxRate): with no rate at all the account is left out and shown as not counted yet.
+export const hasRate = (a, fx) => fxRate(fx, a.cur) > 0;
+export const accILS = (a, fx) => a.v * fxRate(fx, a.cur);
 export const accByName = (S, n) => (S?.accounts || []).filter((a) => a.n == n && !a.hide);
 const penEmpty = (a) => a.kind == "pension" && !(+a.v > 0);
 

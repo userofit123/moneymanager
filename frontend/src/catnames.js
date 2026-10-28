@@ -55,3 +55,5 @@ export const CAT_HE = {
   "Balance update": "עדכון יתרה",
 };
 export const categoryName = (c, lang) => (lang === "he" && CAT_HE[c]) || c;
+// The built-in name of each standard connection (its key), used when a connection has no name of its own. In Hebrew through CAT_HE.
+export const SRC_NAMES = { hapoalim: "Bank Hapoalim", max: "Max", isracard: "Isracard", wise: "Wise" };

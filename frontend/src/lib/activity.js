@@ -1,5 +1,6 @@
 // The Activity list's rules, kept apart from the screen so they can be tested: which rows show, in what order,
 // how they are grouped, and how In, Out and Net are counted.
+import { SRC_NAMES } from "../catnames.js";
 
 // Money moved between the user's own accounts (confirmed or guessed). Not income or spending.
 // A pair is "auto" (found by the app, waiting for review), "ok" (confirmed) or "rej" (the user said it is not a transfer).
@@ -295,7 +296,7 @@ export function flat(o, pre = "", out = []) {
   for (const [k, v] of Object.entries(o)) { if (v == null || v === "") continue; const key = pre ? pre + "." + k : k; if (typeof v === "object") flat(v, key, out); else out.push([key, String(v)]); }
   return out;
 }
-const SRCL = { hapoalim: "Bank Hapoalim", max: "Max", isracard: "Isracard", wise: "Wise", demo: "The sample data" };
+const SRCL = { ...SRC_NAMES, demo: "The sample data" };
 const SYMS = { ILS: "₪", USD: "$", EUR: "€", GBP: "£", JPY: "¥" };
 const n0 = (v) => Math.abs(v).toLocaleString("en-IL", { maximumFractionDigits: 0 });
 const sym = (c) => SYMS[c] || c + " ";

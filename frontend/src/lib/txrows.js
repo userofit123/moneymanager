@@ -8,6 +8,7 @@ import { TP } from "../core/tooltip.js";
 import { rmOf, instOf, cardOf } from "./activity.js";
 import { billOf, refundTwin } from "./txactions.js";
 import { upInstRows } from "./bills.js";
+import { SRC_NAMES } from "../catnames.js";
 
 const t = (...a) => i18n.global.t(...a);
 const p2 = (n) => String(n).padStart(2, "0");
@@ -40,9 +41,8 @@ export function allRows(S, BC = [], now = new Date(), today = ymd(now)) {
 }
 
 // ---- texts about a bill or an upcoming payment ----
-const SRCL = { hapoalim: "Bank Hapoalim", max: "Max", isracard: "Isracard", wise: "Wise" };
 // Who reported an upcoming payment: the connection's name, "You (added by hand)", or "The bank".
-export const srcLabel = (S, src) => S?.connStatus?.[src]?.label || SRCL[src] || (src == "manual" ? t("txw.chip.byHand") : src == "demo" ? t("txw.chip.sample") : t("txw.chip.theBank"));
+export const srcLabel = (S, src) => S?.connStatus?.[src]?.label || SRC_NAMES[src] || (src == "manual" ? t("txw.chip.byHand") : src == "demo" ? t("txw.chip.sample") : t("txw.chip.theBank"));
 const cadT = (n) => (n == 1 || n == 2 || n == 12 ? t("bills.cad." + n) : t("txw.why.everyN", { n }));
 // Why a payment counts as a bill (whyBill).
 export function whyBill(b) {

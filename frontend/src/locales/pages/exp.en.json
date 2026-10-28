@@ -14,7 +14,7 @@
   "cp": "Credit card bill payments from the bank",
   "cpTip": "The bank side of a card bill. Left out by default because the purchases are already listed on the card.",
   "fut": "Upcoming payments and bills that have not happened yet",
-  "futTip": "Items the bank listed ahead of time, or bills the app expects. They are not real transactions yet, so they are left out unless you switch this on.",
+  "futTip": "Items the bank listed ahead of time, or bills that will likely come. They are not real transactions yet, so they are left out unless you switch this on.",
   "moreF": "More filters",
   "active": "{n} active",
   "textC": "Text contains",

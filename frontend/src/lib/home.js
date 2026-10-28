@@ -44,14 +44,17 @@ export const nameOf = (S, t) => { const c = S?.cfg || {}, o = c.renames && c.ren
 // What was bought with a card in each month: the counted rows paid from it (the same on Home and Accounts).
 export const cardBuys = (A, isCard, m) => sum(A.filter((t) => t.a < 0 && isCard(t) && t.d.startsWith(m)).map((t) => -t.a));
 
+// The exchange rate of a currency in fx (the last saved one when offline, core: data.js). With none at all it is 0:
+// money in it is left out and its account shown as not counted yet, never counted as 1 to 1 (Home and Accounts).
+export const fxRate = (fx, c) => (c === "ILS" ? 1 : +(fx || {})[c] > 0 ? +fx[c] : 0);
+
 // Everything Home needs, worked out once per data load. now: today's date; fx: { USD: 3.7, ... }.
 export function homeModel(S, now = new Date(), fx = {}) {
   S = withTransfers(S || {});
   const NOW = now, MK = NOW.getFullYear() + "-" + p2(NOW.getMonth() + 1), TODAY = MK + "-" + p2(NOW.getDate()), DAYN = NOW.getDate(), DIM = new Date(NOW.getFullYear(), NOW.getMonth() + 1, 0).getDate();
   const { A, k, costRows } = countedTx(S, TODAY), tx = S.tx || [], jarsAll = S.jars || [], cfg = { budgetPct: 80, ...(S.cfg || {}) }, budgets = S.budgets || {};
-  // the exchange rate of a currency (the last saved one when offline, core: data.js); with none at all, money in it is
-  // left out of the totals (rate 0) and its account is listed as not counted (noRate), never counted as 1 to 1
-  const rate = (c) => (c === "ILS" ? 1 : +fx[c] > 0 ? +fx[c] : 0), hasRate = (a) => rate(a.cur) > 0;
+  // the exchange rate of a currency (fxRate); with none at all, its account is listed as not counted (noRate)
+  const rate = (c) => fxRate(fx, c), hasRate = (a) => rate(a.cur) > 0;
   const accts = (S.accounts || []).filter((a) => a.kind != "card" && !a.hide);
   const accILS = (a) => a.v * rate(a.cur);
   const accCur = (a) => a.n + (a.cur != "ILS" || accts.some((x) => x !== a && (x.n == a.n || (x.src && x.src == a.src))) ? " (" + a.cur + ")" : "");

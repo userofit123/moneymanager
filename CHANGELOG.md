@@ -7,6 +7,10 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [0.12.12] - 2026-10-24
 
 ### App
+- **Predictions say "likely" everywhere.** Bills the app guesses are now **likely bill** / **Likely on** in Activity, **Likely in** / **Likely out** in Activity's header, **Likely** on Recap's calendar, and alerts say a payment was **likely due**. The jar texts talk about the free money **you'll likely have**. "If you expected income…" and a bill's **Expected amount** (a number you type) stay as they were.
+- **Help uses today's names.** The Forecast guide names the table's columns **Average**, **Likely**, **Total** and **Trend** and its rows **Saved each month (money in − money out)** and **Money you'll likely have at month's end**; Recap's guide says **Likely end**.
+- **Fixed: Accounts no longer counts another currency 1 to 1.** Without an exchange rate it uses the last saved one, the same as Home; with none ever, the account shows its own amount and **not counted yet** instead of a wrong shekel amount.
+- **Bank names come from one list.** Activity, the transaction window and Sync read the built-in bank and card names from one place. Nothing changes on screen.
 - **Home: the money in and money out tiles use the key numbers' names.** **Income** is now **Money in** and **Expenses** is **Money out** (same amounts); their tips say **Money in so far** and **Money out so far**, and the help uses the new names.
 - **Free to use window shows only its lines.** "How is this worked out?" now lists only the lines that add up to **Free to use**; the older lists of bills and planned spending under them are gone.
 - **Key numbers button.** A new round button above the help button opens a side panel with the key numbers: **Known now**, **Your plans**, **This month so far**, **Likely: this month** and **Likely: next month**, each with its name and amount (the same amounts as Home, Recap and the Forecast). Each row has a short tip. Press it again, Escape or × to close.
