@@ -7,7 +7,8 @@
 const SKIP = /^(SCRIPT|STYLE|TEXTAREA|INPUT|OPTION|SELECT|TITLE)$/;
 const CAPS = ".bd,.chip:not(.t):not(.dchip),.lbl,.pl,.badge-l";
 const isHe = () => document.documentElement.classList.contains("he");
-const MONEY = /[−+-]?\s?[₪$€£¥]\s?\d[\d,]*(?:\.\d+)?%?/g;
+// (not the space before it, a comma after it, or the "-" of a Hebrew word joined to it, as in "מ-₪30,000")
+export const MONEY = /(?:(?:−|(?<![\u0590-\u05FF])[+-])\s?)?[₪$€£¥]\s?\d+(?:,\d{3})*(?:\.\d+)?%?/g;
 
 function dots(el) {
   const n = el.firstChild;

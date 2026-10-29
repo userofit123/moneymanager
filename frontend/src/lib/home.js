@@ -47,6 +47,8 @@ export const cardBuys = (A, isCard, m) => sum(A.filter((t) => t.a < 0 && isCard(
 // The exchange rate of a currency in fx (the last saved one when offline, core: data.js). With none at all it is 0:
 // money in it is left out and its account shown as not counted yet, never counted as 1 to 1 (Home and Accounts).
 export const fxRate = (fx, c) => (c === "ILS" ? 1 : +(fx || {})[c] > 0 ? +fx[c] : 0);
+// An account's balance in shekels, or null when its currency has never had a rate (then shown in its own currency, not counted).
+export const inILS = (a, fx) => { const r = fxRate(fx, a.cur); return r > 0 ? a.v * r : null; };
 
 // Everything Home needs, worked out once per data load. now: today's date; fx: { USD: 3.7, ... }.
 export function homeModel(S, now = new Date(), fx = {}) {

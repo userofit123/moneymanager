@@ -18,7 +18,7 @@ import { go, query } from "../router.js";
 import { openSettingsTab } from "./settings/tab.js";
 import { SI } from "./settings/icons.js";
 import { dstr } from "../dates.js";
-import { f0, fm } from "../format.js";
+import { f0, fm, fmCur } from "../format.js";
 import { withTransfers } from "../lib/home.js";
 import { TONEC, typeKey, accILS, hasRate, accByName, accName, accTail, accState, accGroupList, accTotals, accMonthly, cardMonthly, accRows, tileCols, accSel } from "../lib/accounts.js";
 import PageHeader from "../components/PageHeader.vue";
@@ -37,7 +37,7 @@ const loc = computed(() => (locale.value === "he" ? "he-IL" : "en-GB"));
 const mon = (k, o) => new Date(+k.slice(0, 4), +k.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, o);
 const MSHORT = (k) => mon(k, { month: "short" }), MNAME = (k) => mon(k, { month: "long" });
 const money = (v) => (v < 0 ? "−" : "") + "₪" + f0(v);
-const curList = (L) => L.map((x) => (x.cur == "ILS" ? "₪" : x.cur + " ") + f0(x.v)).join(" · ");
+const curList = (L) => L.map((x) => fmCur(x.v, x.cur)).join(" · ");
 // A currency with no exchange rate yet is not counted in shekels (the same as Home): its amounts, then "not counted yet".
 const noRate = (L) => L.some((x) => !hasRate(x, fx.value));
 const curSub = (L) => curList(L) + (noRate(L) ? " · " + t("tip.noRate") : "");

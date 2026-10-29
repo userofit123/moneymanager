@@ -11,3 +11,5 @@ export const clampPercent = (value, max) => (max > 0 ? Math.max(0, Math.min(100,
 // Short forms: f0(1250.4) → "1,250", fm(-80) → "−₪80".
 export const f0 = (n) => Math.abs(n).toLocaleString("en-IL", { maximumFractionDigits: 0 });
 export const fm = (n) => (n < 0 ? "−" : "") + "₪" + f0(n);
+// An amount in its own currency, as Accounts shows it: fmCur(1200, "USD") → "USD 1,200", fmCur(-80, "ILS") → "−₪80".
+export const fmCur = (n, cur) => (n < 0 ? "−" : "") + (cur == "ILS" ? "₪" : cur + " ") + f0(n);

@@ -22,3 +22,16 @@ test("Accounts uses the same rate rule as Home", () => {
   assert.match(src, /accILS = \(a, fx\) => a\.v \* fxRate\(fx, a\.cur\)/);
   assert.match(src, /hasRate = \(a, fx\) => fxRate\(fx, a\.cur\) > 0/);
 });
+
+test("Update balance: with no rate ever, the balance stays in its own currency (never ₪0)", async () => {
+  const { inILS } = await import("../src/lib/home.js");
+  const { fmCur } = await import("../src/format.js");
+  assert.equal(inILS({ v: 100, cur: "USD" }, { USD: 3.5 }), 350);
+  assert.equal(inILS({ v: 100, cur: "USD" }, {}), null);
+  assert.equal(inILS({ v: 100, cur: "ILS" }, {}), 100);
+  assert.equal(fmCur(1200, "USD"), "USD 1,200");
+  assert.equal(fmCur(-80, "ILS"), "−₪80");
+  const src = readFileSync(new URL("../src/components/forms/BalanceForm.vue", import.meta.url), "utf8");
+  assert.match(src, /inILS\(a\.value, data\.fx\.value\.fx\)/);
+  assert.doesNotMatch(src, /accILS/);
+});
