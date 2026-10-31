@@ -21,7 +21,7 @@ const k = kinds(S, "2026-10-17");
 
 test("In, Out and Net leave out transfers, card payments, upcoming and ignored rows", () => {
   assert.deepEqual(totals(S.tx, k), { inc: 5000, out: 100, back: 0, net: 4900 });
-  assert.deepEqual(leftOut(S.tx, k), { transfers: 2, cardPays: 1, upcoming: 1, balance: 0, ignored: 1 });
+  assert.deepEqual(leftOut(S.tx, k), { transfers: 2, cardPays: 1, upcoming: 1, balance: 0, ignored: 1, own: 0, twin: 0 });
 });
 
 test("filters: search, type, category, tag", () => {
@@ -29,6 +29,8 @@ test("filters: search, type, category, tag", () => {
   assert.deepEqual(ids({ q: "shuf" }), ["a"]);
   assert.deepEqual(ids({ type: "transfer" }), ["x1", "x2"]);
   assert.deepEqual(ids({ type: "income" }), ["b"]);
+  assert.deepEqual(ids({ type: "earned" }), ["b"]);
+  assert.deepEqual(ids({ type: "back" }), []);
   assert.deepEqual(ids({ type: "cardpay" }), ["cp"]);
   assert.deepEqual(ids({ tag: "home" }), ["a"]);
   assert.ok(!ids({ cat: "Uncategorized" }).includes("x1"), "transfers are never 'uncategorized'");
@@ -53,9 +55,11 @@ test("Activity's Type filter and group by type count exactly the rows In, Out an
   // Expenses: the counted spending and the upcoming one, never a row left out, a card payment or a not-counted account
   assert.deepEqual(ids({ type: "expense" }), ["a", "fu"]);
   assert.deepEqual(ids({ type: "income" }), ["b"]);
+  assert.deepEqual(ids({ type: "earned" }), ["b"]);
+  assert.deepEqual(ids({ type: "back" }), []);
   // grouping by type: card payments and rows left out get their own groups
   const g = Object.fromEntries(groupRows(S2.tx, "type", "new", k2).map((x) => [x.key, x.rows.map((t) => t.id).sort()]));
-  assert.deepEqual(g, { expenses: ["a", "fu"], income: ["b"], transfers: ["x1", "x2"], ignored: ["ig", "nr", "nr2"], cardpay: ["cp"] });
+  assert.deepEqual(g, { expenses: ["a", "fu"], earned: ["b"], transfers: ["x1", "x2"], ignored: ["ig", "nr", "nr2"], cardpay: ["cp"] });
 });
 
 test("tags: the tag already in use is reused, rule tags are offered too", () => {

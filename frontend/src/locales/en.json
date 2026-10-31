@@ -25,14 +25,6 @@
     "none": "No transactions yet",
     "noMatch": "No transactions match your filters",
     "count": "{n} transaction | {n} transactions",
-    "leftOut": "Left out of In, Out and Net: {list}",
-    "lo": {
-      "transfers": "{n} transfer | {n} transfers",
-      "cardPays": "{n} card payment | {n} card payments",
-      "upcoming": "{n} upcoming | {n} upcoming",
-      "balance": "{n} balance update | {n} balance updates",
-      "ignored": "{n} left out by you"
-    },
     "in": "In",
     "out": "Out",
     "net": "Net",
@@ -71,7 +63,12 @@
     },
     "type": {
       "all": "All types",
-      "income": "Income",
+      "income": "Money in",
+      "earned": "Earned",
+      "back": "Money back",
+      "people": "From people",
+      "own": "Your own money",
+      "other": "Other income",
       "expense": "Expenses",
       "transfer": "Transfers",
       "bill": "Bills",
@@ -240,7 +237,6 @@
     },
     "nothing": "Nothing matches",
     "balance": "balance",
-    "sumTitle": "How In, Out and Net are counted",
     "sumIncluded": "Included in In, Out and Net",
     "lot": {
       "transfers": "Transfers",
@@ -251,13 +247,6 @@
     },
     "sumAll": "The totals cover all your activity, not only the rows loaded below.",
     "sumFilt": "The totals follow your filters and cover every match, not only the rows loaded below.",
-    "sumWhy": {
-      "transfers": "Transfers: money you moved between your own accounts. It is not income or spending.",
-      "cardPays": "Card payments: paying your credit card bill from the bank. The purchases are already counted on the card, so counting the payment too would count the same money twice.",
-      "upcoming": "Upcoming: payments or income expected on a later date. They count once they happen.",
-      "balance": "Balance updates: a balance you changed by hand. It is a note, not income or spending.",
-      "ignored": "Left out by you: transactions you chose to count out, and those of accounts you set not to count in reports."
-    },
     "g": {
       "expIn": "Likely in",
       "expOut": "Likely out",
@@ -368,6 +357,17 @@
       "hTo": "{a} to {b}",
       "hShow": "Show in Activity",
       "hNone": "No payments found"
+    },
+    "notIn": "1 not in the totals | {n} not in the totals",
+    "notInT": "Not in the totals",
+    "notWhy": {
+      "transfers": "**Transfers between your accounts: {n}**. Your own money moving.",
+      "cardPays": "**Card bill payments: {n}**. The purchases are already counted.",
+      "upcoming": "**Still to come: {n}**. They count once they happen.",
+      "balance": "**Balance updates: {n}**. A note, not money in or out.",
+      "ignored": "**Left out by you: {n}**. You chose not to count them.",
+      "own": "**Your own money put in: {n}**. For example cash. Not income.",
+      "twin": "**Same refund twice: {n}**. Counted once, on the card."
     }
   },
   "nav": {

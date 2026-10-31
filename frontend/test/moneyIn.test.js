@@ -110,7 +110,8 @@ test("9. a salary: its words, your salary texts, or the same payer at about the 
   const wild = [IN("2026-07-01", 2000, "Gig", "Gig"), IN("2026-08-01", 9000, "Gig", "Gig"), IN("2026-09-01", 4000, "Gig", "Gig")];
   assert.equal(run(wild).get(wild[0].id).why, "rest");
   // an earned choice gets the salary mark when it looks like one
-  assert.deepEqual(one(IN("2026-10-01", 7000, "Salary", "Acme", { mk: "earned" })), { kind: "earned", sub: "salary", why: "chosen" });
+  assert.deepEqual(one(IN("2026-10-01", 7000, "Salary", "Acme", { mk: "earned" })), { kind: "earned", why: "chosen" }); // chose Earned, not Salary
+  assert.deepEqual(one(IN("2026-10-01", 7000, "Salary", "Acme", { mk: "salary" })), { kind: "earned", sub: "salary", why: "chosen" });
 });
 
 test("10. interest and dividends, and anything else, are other", () => {

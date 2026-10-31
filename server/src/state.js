@@ -102,7 +102,7 @@ export async function getState() {
     ntfy: await setting("ntfy", ""),
     jarsTotal: await setting("jars_total", 0), jarsBuffer: await setting("jars_buffer", 0), jarsReserve: await setting("jars_reserve", 0),
     nwPension: await setting("nw_pension", false),
-    hiddenMerchants: await setting("hidden_merchants", []), ccOverride: await setting("cc_override", {}), cardRules: await setting("card_rules", []), salaryRules: await setting("salary_rules", []), txIgnore: await setting("tx_ignore", {}), budgetNo: await setting("budget_no", []), tagList: await setting("tag_list", []),
+    hiddenMerchants: await setting("hidden_merchants", []), ccOverride: await setting("cc_override", {}), cardRules: await setting("card_rules", []), salaryRules: await setting("salary_rules", []), txIgnore: await setting("tx_ignore", {}), inMark: await setting("in_mark", {}), budgetNo: await setting("budget_no", []), tagList: await setting("tag_list", []),
     cfg,
     currencies: await configuredCurrencies(), fxCurrencies: await activeCurrencies(),
     accounts: accounts.rows.map((a) => ({
@@ -225,6 +225,10 @@ export async function putState(S) {
     await put("card_rules", Array.isArray(S.cardRules) ? S.cardRules.map(String).slice(0, 200) : []);
     await put("salary_rules", Array.isArray(S.salaryRules) ? S.salaryRules.map(String).slice(0, 200) : []);
     await put("tx_ignore", S.txIgnore && typeof S.txIgnore === "object" ? S.txIgnore : {});
+    // what a money coming in is, when the person chose it (id → earned, salary, back, people, own or other);
+    // an older app that does not know this sends none: then the saved choices stay as they are
+    const MK = ["earned", "salary", "back", "people", "own", "other"];
+    if (S.inMark && typeof S.inMark === "object") await put("in_mark", Object.fromEntries(Object.entries(S.inMark).filter(([, v]) => MK.includes(v))));
     await put("budget_no", Array.isArray(S.budgetNo) ? S.budgetNo.map(String).slice(0, 200) : []);
     // tags added by hand that no transaction has yet (a tag in use is kept with its transactions)
     // an older app that does not know this list sends none: then the saved list stays as it is

@@ -186,5 +186,57 @@
     "stillIn": "Still to come in",
     "netDone": "Net when all is done",
     "stillNote": "The numbers in this header count only what has already happened. Likely items, such as a bill that has not been charged yet, are shown in the table but are not included until they happen."
+  },
+  "mi": {
+    "title": "What is this money?",
+    "auto": "Automatic",
+    "autoTip": "Let the app decide again ({k})",
+    "forText": "It is money back for {n} ({d}, {amt}).",
+    "openBuy": "Open that purchase",
+    "k": {
+      "earned": "Earned",
+      "salary": "Salary",
+      "back": "Money back",
+      "people": "From a person",
+      "own": "Your own money",
+      "other": "Other income"
+    },
+    "chip": {
+      "earned": "earned",
+      "salary": "salary",
+      "back": "money back",
+      "backFor": "money back · for {n}",
+      "people": "from a person",
+      "own": "your own money",
+      "other": "other income",
+      "twinOnce": "same refund · counted once",
+      "twinOnceTip": "The same refund also shows on your card ({d}). It counts once, on the card, so this bank entry is not counted."
+    },
+    "tip": {
+      "earned": "Pay for your work. Counted as money in.",
+      "salary": "Your salary. Counted as money in.",
+      "back": "Money returned for something you bought. It lowers your spending; it is not counted as money in.",
+      "people": "Money a person sent you, for example through Bit or PayBox. Counted as money in.",
+      "own": "Your own money put in, for example cash you deposited. Not counted as money in.",
+      "other": "Other money that came in, for example interest. Counted as money in."
+    },
+    "why": {
+      "chosen": "You chose this.",
+      "rule": "One of your money coming in rules says so.",
+      "transfer": "It came from another of your own accounts.",
+      "card": "It came in on a credit card.",
+      "purchase": "It came from the same place as an earlier purchase.",
+      "twin": "It is the bank copy of a refund on your card.",
+      "refund": "Its text says it is a refund.",
+      "cash": "Its text says it is a cash deposit.",
+      "app": "It came through Bit or PayBox.",
+      "salary": "Its text says it is a salary.",
+      "regular": "The same payer pays about this amount every month.",
+      "interest": "Its text says it is interest or dividends.",
+      "rest": "Nothing else fits."
+    },
+    "twinT": "Same refund as the card credit",
+    "twin": "The same {amt} refund shows {w1} on {d1} and {w2} on {d2} ({name}). It counts once, on the card.",
+    "for": "For"
   }
 }

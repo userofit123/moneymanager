@@ -73,6 +73,10 @@ export function kinds(S, today) {
 }
 // A row In, Out and Net count (the same rows as countedTx in lib/bills.js): not a transfer, card payment, upcoming item,
 // balance note, row left out by you, or row of an account not counted in reports.
+// What a money coming in is, for the Type filter and grouping: earned (salary too), back, people, own or other.
+export const inType = (k, t) => (k.inOf && k.inOf(t)?.kind) || "other";
+// How it counts (lib/moneyIn.js partOf): "in", "back" or null.
+const inPart = (k, t) => (k.inOf ? partOf(k.inOf(t)) : "in");
 export const counts = (t, k) => !(t.balUpd || k.isXf(t) || k.isIgn(t) || k.isFut(t) || k.isCp(t) || k.isOff(t));
 
 // Only real income and spending count. Transfers, card payments, upcoming items, balance notes and rows the user left out do not.
@@ -82,7 +86,7 @@ export function totals(list, k) {
   for (const t of list) {
     if (!counts(t, k)) continue;
     if (t.a < 0) { out -= t.a; continue; }
-    const p = k.inOf ? partOf(k.inOf(t)) : "in";
+    const p = inPart(k, t);
     if (p == "in") inc += t.a; else if (p == "back") back += t.a;
   }
   out -= back;
@@ -97,6 +101,9 @@ export function leftOut(list, k) {
     balance: list.filter((t) => t.balUpd).length,
     // left out by you: rows you left out, and rows of accounts you set not to count in reports
     ignored: list.filter((t) => (k.isIgn(t) || k.isOff(t)) && !k.isXf(t) && !k.isFut(t) && !k.isCp(t) && !t.balUpd).length,
+    // money in that In does not count (lib/moneyIn.js): your own money put in, and the bank copy of a card refund
+    own: list.filter((t) => t.a > 0 && counts(t, k) && k.inOf && !k.inOf(t)?.twin && inPart(k, t) === null).length,
+    twin: list.filter((t) => t.a > 0 && counts(t, k) && k.inOf && !!k.inOf(t)?.twin).length,
   };
 }
 
@@ -149,9 +156,13 @@ export function filterRows(S, rows, f, k) {
       if (f.type === "transfer") return k.isXf(t);
       if (f.type === "cardpay") return k.isCp(t);
       if (f.type === "bill") return !!(f.billOf && f.billOf(t)); // the bill a payment belongs to (billOf, passed in by the page)
-      // income and expenses: the rows In and Out count, and upcoming ones (shown as still to come)
+      // money in by kind, and expenses: the rows In and Out count, and upcoming ones (shown as still to come).
+      // "income" (from Reports and Recap) is the money in that In counts: earned, from people and other.
       const up = k.isFut(t) && !t.balUpd && !k.isXf(t) && !k.isIgn(t) && !k.isCp(t) && !k.isOff(t);
-      return (counts(t, k) || up) && (f.type === "income") === (t.a > 0);
+      if (!(counts(t, k) || up)) return false;
+      if (f.type === "expense") return t.a < 0;
+      if (!(t.a > 0)) return false;
+      return f.type === "income" ? inPart(k, t) == "in" : inType(k, t) === f.type;
     }
     return true;
   });
@@ -178,7 +189,7 @@ export function groupOf(t, mode, k, ws) {
     case "month": { const r = rdOf(t); return [r.slice(0, 7), { month: r.slice(0, 7) }, true]; }
     case "cat": return [t.c || "Uncategorized", { cat: t.c || "Uncategorized" }];
     // the same kinds as the Type filter; balance notes and rows left out by you get their own groups
-    case "type": { const x = k.isXf(t) ? "transfers" : k.isCp(t) ? "cardpay" : t.balUpd ? "balance" : k.isIgn(t) || k.isOff(t) ? "ignored" : t.a > 0 ? "income" : "expenses"; return [x, { type: x }]; }
+    case "type": { const x = k.isXf(t) ? "transfers" : k.isCp(t) ? "cardpay" : t.balUpd ? "balance" : k.isIgn(t) || k.isOff(t) ? "ignored" : t.a > 0 ? inType(k, t) : "expenses"; return [x, { type: x }]; }
     case "acct": { const x = (t.a < 0 ? t.from : t.to) || ""; return [x, { name: x }]; }
     case "merchant": { const x = (t.a < 0 ? t.to : t.from) || ""; return [x, { name: x }]; }
     case "tag": { const x = (t.tags || [])[0] || ""; return [x, { tag: x }]; }
@@ -194,9 +205,10 @@ export function groupRows(rows, mode, sort, k, ws) {
   }
   const size = (g) => Math.abs(g.T.out) + Math.abs(g.T.inc);
   const last = (g) => g.rows.reduce((m, t) => (t.d > m ? t.d : m), "");
-  // P: upcoming spending in the group, which the header shows as "still to come"; E: upcoming income.
+  // P: upcoming spending in the group, which the header shows as "still to come"; E: upcoming money in (not money back
+  // or your own money, which In does not count either).
   const ok = (t) => !t.balUpd && !k.isXf(t) && !k.isIgn(t) && !k.isCp(t) && !k.isOff(t) && k.isFut(t);
-  return [...gs.values()].map((g) => ({ ...g, T: totals(g.rows, k), P: g.rows.filter((t) => ok(t) && t.a < 0).reduce((x, t) => x - t.a, 0), E: g.rows.filter((t) => ok(t) && t.a > 0).reduce((x, t) => x + t.a, 0), allFut: g.rows.every(k.isFut) })).sort((a, b) => {
+  return [...gs.values()].map((g) => ({ ...g, T: totals(g.rows, k), P: g.rows.filter((t) => ok(t) && t.a < 0).reduce((x, t) => x - t.a, 0), E: g.rows.filter((t) => ok(t) && t.a > 0 && inPart(k, t) == "in").reduce((x, t) => x + t.a, 0), allFut: g.rows.every(k.isFut) })).sort((a, b) => {
     if (a.chrono) return sort === "old" ? a.key.localeCompare(b.key) : b.key.localeCompare(a.key);
     return sort === "big" ? size(b) - size(a) : sort === "small" ? size(a) - size(b) : sort === "old" ? last(a).localeCompare(last(b)) : last(b).localeCompare(last(a));
   });

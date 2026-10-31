@@ -32,8 +32,8 @@ const kindOf = (k) => (k == "salary" ? { kind: "earned", sub: "salary" } : KINDS
 // The kind of every money coming in (a > 0) in S.tx, as a Map of entry id → { kind, sub?, link?, twin?, why }.
 // sub: "salary" for a salary. link: the id of the purchase money back is for. twin: the card entry a bank deposit repeats
 // (the same refund, to be counted once). why: the rule that decided it:
-//   "chosen" the entry's own choice (t.mk) · "rule" a money coming in rule (S.moneyInRules [{ k, kind }]) · "transfer" ·
-//   "card" came in on a credit card · "purchase" same shop as an earlier purchase · "twin" · "refund" refund words ·
+//   "chosen" the entry's own choice (t.mk, or S.inMark[id], where the app saves it) · "rule" a money coming in rule (S.moneyInRules [{ k, kind }]) · "transfer" ·
+//   "card" came in on a credit card · "twin" the bank copy of a card refund · "purchase" same shop as an earlier purchase · "refund" refund words ·
 //   "cash" · "app" Bit or PayBox · "salary" salary words or your salary texts · "regular" the same payer every month ·
 //   "interest" · "rest" nothing else matched.
 // The rules are tried in this order, the first that matches wins. t.mk and a rule's kind are one of KINDS, or "salary".
@@ -76,21 +76,22 @@ export function moneyIn(S) {
     const W = words(textOf(t)), txt = W.join(" "), sw = salaryWhy(t, W, txt);
     const set = (o, why) => {
       const r = { ...o, why };
-      if (r.kind == "earned" && !r.sub && sw) r.sub = "salary";
+      if (r.kind == "earned" && !r.sub && sw && why != "chosen") r.sub = "salary";
       if (r.kind == "back" && r.link === undefined) { const l = purchaseOf(t); if (l != null) r.link = l; }
       out.set(t.id, r);
     };
     // 1. your own choice on the entry, or a money coming in rule
-    const own = kindOf(t.mk); if (own) { set(own, "chosen"); continue; }
+    const own = kindOf(t.mk || S1.inMark?.[t.id]); if (own) { set(own, "chosen"); continue; }
     const rule = (S1.moneyInRules || []).find((r) => kindOf(r.kind) && ruleHit(t, r.k)); if (rule) { set(kindOf(rule.kind), "rule"); continue; }
     // 2. moved between your own accounts
     if (xs.has(t.id)) { set({ kind: "own" }, "transfer"); continue; }
     // 3. came in on a credit card: money back, which lowers that card's bill
     if (onCard(t)) { set({ kind: "back" }, "card"); continue; }
-    // 4. the same shop as a purchase in the last months, and not more than it
-    const p = purchaseOf(t); if (p != null) { set({ kind: "back", link: p }, "purchase"); continue; }
-    // 5. a bank deposit that repeats a refund on a card: the same money back, counted once (on the card)
+    // 4. a bank deposit that repeats a refund on a card: the same money back, counted once (on the card). Before the
+    //    shop match, so a bank copy that names the shop is not counted a second time.
     const tw = refundTwin(S1, t); if (tw && onCard(tw)) { set({ kind: "back", twin: tw.id, link: purchaseOf(tw) ?? undefined }, "twin"); continue; }
+    // 5. the same shop as a purchase in the last months, and not more than it
+    const p = purchaseOf(t); if (p != null) { set({ kind: "back", link: p }, "purchase"); continue; }
     // 6. refund words (a salary that a bank calls "זיכוי" stays a salary)
     if (!sw && (hasWord(BACK_W, W) || hasPhrase(txt, BACK_P))) { set({ kind: "back", link: null }, "refund"); continue; }
     // 7. cash you put in (a cheque someone gave you is not your own money)
@@ -111,7 +112,7 @@ export function moneyIn(S) {
 // makes new entries, so a change always works it out again).
 const memo = new WeakMap(), NONE = [];
 export function inKinds(S) {
-  const tx = S?.tx || NONE, key = [S?.accounts, S?.xf?.length, S?.salaryRules, S?.moneyInRules], m = memo.get(tx);
+  const tx = S?.tx || NONE, key = [S?.accounts, S?.xf?.length, S?.salaryRules, S?.moneyInRules, S?.inMark], m = memo.get(tx);
   if (m && m.key.every((x, i) => x === key[i])) return m.out;
   const out = moneyIn(S); memo.set(tx, { key, out }); return out;
 }
@@ -143,4 +144,31 @@ export function splitIn(rows, on = () => true) {
     o.in += t.a; o[KINDS.includes(t.ik) && t.ik != "own" ? t.ik : "other"] += t.a; if (t.sal) o.salary += t.a;
   }
   return o;
+}
+
+// The choices in "What is this money?" (the transaction window), in their order: salary is earned money that is a salary.
+export const MARKS = ["earned", "salary", "back", "people", "own", "other"];
+// The choices in English, for the change history (shown in Hebrew through core/heSaved.js).
+export const MARK_EN = { earned: "Earned", salary: "Salary", back: "Money back", people: "From a person", own: "Your own money", other: "Other income" };
+// The choice that shows as picked for one entry's moneyIn entry r.
+export const markOf = (r) => (!r ? "other" : r.kind == "earned" && r.sub == "salary" ? "salary" : r.kind);
+// The person's own choice saved for an entry, or "" when the app decides.
+export const chosenMark = (S, t) => { const v = t?.mk || S?.inMark?.[t?.id]; return MARKS.includes(v) ? v : ""; };
+// Saves (or clears, with "") the person's choice on a copy of the data. Returns false when nothing changed.
+export function setMark(S, t, v) {
+  if (chosenMark(S, t) == (v || "")) return false;
+  S.inMark = { ...(S.inMark || {}) };
+  if (v && MARKS.includes(v)) S.inMark[t.id] = v; else delete S.inMark[t.id];
+  return true;
+}
+
+// A refund that shows on a card and again as a deposit in a bank (refundTwin): whether it already counts once.
+// Returns null when there is no such pair, else { tw: the other entry, once: true when the bank one is not counted
+// (moneyIn gave it twin), mine: true when this entry is the one not counted }.
+export function twinState(S, t, inOf) {
+  const tw = refundTwin(S, t); if (!tw) return null;
+  const a = inOf(t), b = inOf(tw);
+  if (a && a.twin == tw.id) return { tw, once: true, mine: true };
+  if (b && b.twin == t.id) return { tw, once: true, mine: false };
+  return { tw, once: false, mine: false };
 }

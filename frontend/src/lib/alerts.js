@@ -4,6 +4,7 @@ import { forecastLine } from "./jars.js";
 import { balanceGaps, gapBill, duplicateIds, transferIds, isIgnored, rn } from "./activity.js";
 import { addM } from "./home.js";
 import { priceMoved } from "./bills.js";
+import { isIn } from "./moneyIn.js";
 
 const f = (n) => Math.abs(n).toLocaleString("en-IL", { maximumFractionDigits: 0 });
 export const fm = (n) => (n < 0 ? "−" : "") + "₪" + f(n);
@@ -90,6 +91,7 @@ export function alertsModel(S, M, now = new Date(), fc = {}, friendly = (e) => e
     const L = forecastLine(S, M, now, fc), k = L.bal.findIndex((b) => b < 0);
     if (k >= 0) add("fc-" + MK, "forecast", "high", "forecast", { when: addM(MK, k), n: L.n }, "fc");
   } catch { /* no forecast */ }
-  M.rows.filter((t) => t.a > 0 && !(t.docs || []).length && !t.virtual).forEach((t) => add("dc-" + t.id, "docs", "low", "docs", { name: M.nameOf(t), amt: fm(t.a) }, "tx", { ids: [t.id] }));
+  // money in that may need an invoice or receipt for your books (not money back: that is a refund, not income)
+  M.rows.filter((t) => isIn(t) && !(t.docs || []).length && !t.virtual).forEach((t) => add("dc-" + t.id, "docs", "low", "docs", { name: M.nameOf(t), amt: fm(t.a) }, "tx", { ids: [t.id] }));
   return out.sort((a, b) => ({ high: 0, med: 1, low: 2 }[a.sev] - { high: 0, med: 1, low: 2 }[b.sev]));
 }

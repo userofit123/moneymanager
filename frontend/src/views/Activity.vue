@@ -107,7 +107,8 @@ function calApply(r) { f.value = { ...f.value, p: "custom", from: r.from, to: r.
 function calCancel() { const a = cal.value?.anchor; cal.value = null; if (a) a.value = f.value.p; }
 const groupOpts = computed(() => GROUPS.map((g) => opt(g, tk("activity.group." + g))));
 const sortOpts = computed(() => ["new", "old", "big", "small"].map((s) => opt(s, tk("activity.sort." + s))));
-const typeOpts = computed(() => [opt("", t("activity.type.all")), ...["income", "expense", "transfer", "bill", "cardpay"].map((x) => opt(x, tk("activity.type." + x)))]);
+// money in by kind (lib/moneyIn.js); "income" (all money in that counts) only shows when a link from Reports or Recap set it
+const typeOpts = computed(() => [opt("", t("activity.type.all")), ...[...(f.value.type === "income" ? ["income"] : []), "earned", "back", "people", "own", "other", "expense", "transfer", "bill", "cardpay"].map((x) => opt(x, tk("activity.type." + x)))]);
 const cats = computed(() => catNames(S.value).filter((k) => k != "Uncategorized"));
 // the filter lists: your accounts, every category with Uncategorized among them, tags in use with their count
 const catOpts = computed(() => [opt("", t("activity.allCats")), ...[...new Set([...catNames(S.value), "Uncategorized"])].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })).map((c) => opt(c, catLabel(c)))]);
@@ -175,11 +176,13 @@ const goTag = (g) => reset({ tag: g });
 const goCat = (c) => reset({ cat: c || "Uncategorized" });
 
 // ---- the totals line and the group headers ----
+// The rows the totals leave out, and why (a tooltip on "84 not in the totals"): one reason per line.
+const LO_KEYS = ["transfers", "cardPays", "upcoming", "balance", "ignored", "own", "twin"];
+const loN = computed(() => LO_KEYS.reduce((n, key) => n + (lo.value[key] || 0), 0));
 const sumTip = computed(() => {
-  const L = rows.value, o = lo.value, k = K.value, cnt = L.filter((x) => counts(x, k)).length, ks = ["transfers", "cardPays", "upcoming", "balance", "ignored"];
-  return TP(t("activity.sumTitle"), [[t("activity.sumIncluded"), String(cnt)], ...ks.filter((key) => o[key]).map((key) => [tk("activity.lot." + key), String(o[key])])], [t(filtered.value ? "activity.sumFilt" : "activity.sumAll"), ...ks.filter((key) => o[key]).map((key) => tk("activity.sumWhy." + key))].join("\n"));
+  const o = lo.value, k = K.value, cnt = rows.value.filter((x) => counts(x, k)).length;
+  return TP(t("activity.notInT"), [[t("activity.sumIncluded"), String(cnt)]], [...LO_KEYS.filter((key) => o[key]).map((key) => "• " + t("activity.notWhy." + key, { n: o[key] })), t(filtered.value ? "activity.sumFilt" : "activity.sumAll")].join("\n"));
 });
-const loText = computed(() => { const o = lo.value; return [o.transfers && t("activity.lo.transfers", { n: o.transfers }, o.transfers), o.cardPays && t("activity.lo.cardPays", { n: o.cardPays }, o.cardPays), o.upcoming && t("activity.lo.upcoming", { n: o.upcoming }, o.upcoming), o.balance && t("activity.lo.balance", { n: o.balance }, o.balance), o.ignored && t("activity.lo.ignored", { n: o.ignored })].filter(Boolean).join(", "); });
 // A group that is all upcoming shows what is expected; one with bills still to come says "Out so far".
 function grpParts(g) {
   if (g.rows.length && g.allFut) return [...(g.E > 0 ? [{ l: t("activity.g.expIn"), v: fm(g.E) }] : []), { l: t("activity.g.expOut"), v: fm(g.P) }, ...(g.E > 0 ? [{ l: t("activity.net"), v: fm(g.E - g.P), neg: g.E - g.P < 0 }] : [])];
@@ -237,7 +240,7 @@ onMounted(() => data.start());
           <button type="button" class="fseg fclr" :class="{ off: !filtered }" @click="clear">{{ t("activity.clear") }}</button>
         </div>
         <div class="txs">
-          <div class="txs-l"><span class="txs-c mu" :data-tip="sumTip"><svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-6z" /></svg><template v-if="!rows.length">{{ filtered ? t("activity.noMatch") : t("activity.none") }}</template><template v-else><b>{{ filtered ? t("activity.results") : t("activity.all") }}</b><span>{{ t("activity.count", { n: rows.length }, rows.length) }}</span><span v-if="loText" class="txs-x">{{ t("activity.leftOut", { list: loText }) }}</span></template></span></div>
+          <div class="txs-l"><span class="txs-c mu"><svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-6z" /></svg><template v-if="!rows.length">{{ filtered ? t("activity.noMatch") : t("activity.none") }}</template><template v-else><b>{{ filtered ? t("activity.results") : t("activity.all") }}</b><span>{{ t("activity.count", { n: rows.length }, rows.length) }}</span><span v-if="loN" class="txs-x" :data-tip="sumTip">{{ t("activity.notIn", { n: loN }, loN) }}</span></template></span></div>
           <div class="txs-g">
             <div :data-tip="t('activity.inTip')"><span>{{ t("activity.in") }}</span><b class="num" dir="ltr">{{ fm(T.inc) }}</b></div>
             <div :data-tip="t('activity.outTip')"><span>{{ t("activity.out") }}</span><b class="num" dir="ltr">{{ fm(T.out) }}</b></div>

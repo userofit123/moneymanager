@@ -52,6 +52,8 @@ const RULES = [
   [/^scraper HTTP (\d+)$/, (a) => "שגיאת שרת הקריאה מהבנק (" + a + ")"],
   [/^GitHub answered HTTP (\d+)$/, (a) => "GitHub החזיר שגיאה " + a],
   [/^no exchange rate for (\w+) on (\S+); run a rates refresh first$/, (c, d) => "אין שער חליפין ל‑" + c + " ב‑" + d + ". רעננו קודם את השערים"],
+  // "What is this money?" in the transaction window: "<name> → Money back"
+  [/^(.+) → (Earned|Salary|Money back|From a person|Your own money|Other income|Automatic)$/, (a, k) => a + " ← " + ({ Earned: "הכנסה מעבודה", Salary: "משכורת", "Money back": "החזר כספי", "From a person": "מאדם", "Your own money": "הכסף שלכם", "Other income": "הכנסה אחרת", Automatic: "אוטומטי" })[k]],
   // history details written by the server
   [/^(.+): matched your hand-entered transaction$/, (a) => a + ": הותאם לתנועה שהזנתם ידנית"],
   [/^(.+): browser profile saved for later automatic logins$/, (a) => a + ": פרופיל הדפדפן נשמר להתחברויות אוטומטיות בהמשך"],
@@ -180,6 +182,7 @@ const HISTORY = {
   "Marked as a card payment": "סומן כתשלום כרטיס",
   "Marked bill as canceled": "תשלום קבוע סומן כמבוטל",
   "Marked every payment as a bill": "כל התשלומים סומנו כתשלום קבוע",
+  "Marked money in": "סומן מה הכסף שנכנס",
   "Marked to cancel": "סומן לביטול",
   "Merged with import": "אוחד עם הייבוא",
   "monthly": "חודשי",

@@ -12,11 +12,12 @@ import { ask } from "../../core/ask.js";
 import { tx as heTx } from "../../core/heText.js";
 import { catNames, catColor, catLabel } from "../../core/cats.js";
 import { goActivity } from "../../core/shell.js";
-import { txOpenId, closeTx, openPop } from "../../core/txwin.js";
+import { txOpenId, closeTx, openPop, openTx } from "../../core/txwin.js";
 import { openDocs } from "../../core/docs.js";
 import { run, setCategory, addTags as addTagsAct, cpMark as cpMarkAct, ignOn as ignOnAct } from "../../core/txact.js";
 import * as A from "../../lib/txactions.js";
-import { allRows, costRows, txChips, amtText, SYM, CHIP_ICON, whyBill, futureTip } from "../../lib/txrows.js";
+import { allRows, costRows, txChips, amtText, SYM, CHIP_ICON, whyBill, futureTip, inWhy, inLink } from "../../lib/txrows.js";
+import { MARKS, MARK_EN, markOf, chosenMark, setMark, twinState } from "../../lib/moneyIn.js";
 import { kinds, displayName, duplicateIds, rmOf, instOf, cardOf, detailRows, flat, prettyKey } from "../../lib/activity.js";
 import { catJarsOf } from "../../lib/jars.js";
 import { fm, f0 } from "../../format.js";
@@ -43,8 +44,10 @@ const nohtml = (s) => String(s ?? "").replace(/<[^>]*>/g, "").replace(/&nbsp;/g,
 const avStyle = (x) => ({ background: `color-mix(in srgb,${catColor(S.value, x.c || "Uncategorized")} 22%,transparent)`, color: catColor(S.value, x.c || "Uncategorized") });
 const isXf = (x) => K.value.isXf(x);
 const isPos = (x) => x.a > 0 && !isXf(x);
-const chips = (x) => txChips(S.value, x, { K: K.value, dup: dup.value, BC: BC.value });
+// the kind of money in shows in the window's first label, so the row's own kind label is left out here
+const chips = (x) => txChips(S.value, x, { K: K.value, dup: dup.value, BC: BC.value, noKind: true });
 const kindOf = (x) => (isXf(x) ? "transfer" : K.value.isCp(x) ? "cardpay" : x.a > 0 ? "income" : "expense");
+const kindText = (x) => (mi.value ? t("txw.mi.k." + markOf(mi.value.r)) : tk("activity.d.kind." + kindOf(x)));
 const kindCls = (x) => (isXf(x) ? "tf" : K.value.isCp(x) ? "cpm" : x.a > 0 ? "in" : "out");
 const cats = computed(() => catNames(S.value).filter((k) => k != "Uncategorized"));
 const close = () => closeTx();
@@ -87,6 +90,18 @@ const setNote = (x, v) => run(A.setField, x.id, "note", v);
 const addTags = (x, list) => { const add = list.filter((g) => g && !(x.tags || []).includes(g)); if (add.length) addTagsAct(x.id, add); };
 const removeTag = (x, g) => run(A.removeTag, x.id, g);
 
+// ---- "What is this money?": the kind of a money coming in (lib/moneyIn.js), which the person can choose ----
+const mi = computed(() => {
+  const x = cur.value; if (!x || !(x.a > 0) || x.virtual || x.balUpd || isXf(x) || K.value.isIgn(x)) return null;
+  const r = K.value.inOf(x); if (!r) return null;
+  return { r, mark: markOf(r), chosen: chosenMark(S.value, x), link: inLink(S.value, r) };
+});
+// what the app would decide without the person's choice (shown on "Automatic")
+const autoMark = computed(() => { const x = cur.value; if (!mi.value?.chosen) return ""; const S2 = { ...S.value, inMark: { ...(S.value.inMark || {}) }, tx: S.value.tx.map((y) => (y.id == x.id ? { ...y, mk: undefined } : y)) }; delete S2.inMark[x.id]; return markOf(kinds(S2, today.value).inOf(x)); });
+function markIn(x, v) {
+  data.change((S2) => { const t2 = S2.tx.find((y) => y.id == x.id); if (!t2) return false; if (t2.mk) delete t2.mk; if (!setMark(S2, t2, v)) return false; return [["Marked money in", x.desc + " → " + (v ? MARK_EN[v] : "Automatic")]]; });
+}
+
 // ---- "How it's counted" and "Actions" (relH and tiles in openTx) ----
 const TIC = { hist: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', bill: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/>', rep: '<path d="M20 11a8 8 0 0 0-14-4L4 9M4 4v5h5M4 13a8 8 0 0 0 14 4l2-2M20 20v-5h-5"/>', jar: '<path d="M8 3h8M9 3v3M15 3v3M6 6h12v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/>', card: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 15h3"/>', off: '<path d="M3 3l18 18M10.6 6.2A9.5 9.5 0 0 1 12 6c6 0 10 6 10 6a17 17 0 0 1-3.2 3.7M6.3 6.3C3.8 8 2 12 2 12s4 6 10 6a9 9 0 0 0 3.5-.7"/>', swap: '<path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/>', warn: '<path d="M12 3l10 18H2zM12 10v5M12 18v.01"/>', cal: '<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>', clip: '<path d="M20 11l-8.5 8.5a5 5 0 0 1-7-7L13 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L14 7"/>', inst: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h4M7 14h2"/>', twin: '<path d="M4 7h16M4 12h10M4 17h7"/><path d="M17 14l3 3-3 3"/>' };
 const sameStore = (x) => { const key = String(x.desc || "").trim().toLowerCase(); return key ? (S.value?.tx || []).filter((y) => !y.virtual && (y.a < 0) === (x.a < 0) && String(y.desc || "").trim().toLowerCase() === key) : []; };
@@ -110,8 +125,10 @@ const rels = computed(() => {
   if (k.isFut(x)) add("cal", t("activity.upcoming"), futureTip(S.value, x));
   if (rmOf(x) && real) add("cal", t("activity.w.movedTitle"), t("activity.w.movedText", { d: dstr(x.d), m: mk(rmOf(x)) }), [{ label: t("activity.w.mChange"), run: () => openPop("month", { id: x.id }) }, { label: t("activity.w.mResetBtn"), run: () => confirmDo(t("activity.w.mResetQ"), t("activity.w.mResetText"), () => { close(); if (!run(A.moReset, x.id).err) toast(t("activity.w.mBack")); }) }], "amber");
   if (ign) add("off", t("activity.d.ignTitle"), t("activity.d.ignText"), [{ label: t("activity.d.ignOff"), run: () => confirmDo(t("activity.d.ignOffQ"), t("activity.d.ignOffText"), () => { close(); run(A.ignOff, x.id); }) }]);
-  if (tw) { const card = S.value.accounts.find((a) => a.n == x.to)?.kind == "card", w1 = card ? t("txw.w.onCard") : t("txw.w.inBank"), w2 = card ? t("txw.w.inBank") : t("txw.w.onCard");
-    add("twin", t("txw.w.twinT"), t("txw.w.twin", { amt: fm(x.a), w1, d1: dstr(x.d), w2, d2: dstr(tw.d), name: name(tw) }), [{ label: t("txw.w.ignCard"), cls: "f", run: () => confirmDo(t("txw.w.ignCardQ"), t("activity.d.ignOnText"), () => { close(); ignOnAct(card ? x.id : tw.id); }) }, { label: t("txw.w.ignBank"), run: () => confirmDo(t("txw.w.ignBankQ"), t("activity.d.ignOnText"), () => { close(); ignOnAct(card ? tw.id : x.id); }) }], "amber"); }
+  if (tw) { const card = S.value.accounts.find((a) => a.n == x.to)?.kind == "card", w1 = card ? t("txw.w.onCard") : t("txw.w.inBank"), w2 = card ? t("txw.w.inBank") : t("txw.w.onCard"), ts = twinState(S.value, x, k.inOf);
+    // the same refund on the card and in the bank: counted once already (a note), or still twice (choose which to leave out)
+    if (ts?.once) add("twin", t("txw.mi.twinT"), t("txw.mi.twin", { amt: fm(x.a), w1, d1: dstr(x.d), w2, d2: dstr(tw.d), name: name(tw) }));
+    else add("twin", t("txw.w.twinT"), t("txw.w.twin", { amt: fm(x.a), w1, d1: dstr(x.d), w2, d2: dstr(tw.d), name: name(tw) }), [{ label: t("txw.w.ignCard"), cls: "f", run: () => confirmDo(t("txw.w.ignCardQ"), t("activity.d.ignOnText"), () => { close(); ignOnAct(card ? x.id : tw.id); }) }, { label: t("txw.w.ignBank"), run: () => confirmDo(t("txw.w.ignBankQ"), t("activity.d.ignOnText"), () => { close(); ignOnAct(card ? tw.id : x.id); }) }], "amber"); }
   if (cp) add("card", t("activity.type.cardpay"), cardOf(x, k.ci) ? t("activity.d.cpText", { card: cardOf(x, k.ci) }) : t("activity.d.cpTextAny"), [{ label: t("activity.d.cpCount"), run: () => confirmDo(t("activity.d.cpCountQ"), t("activity.d.cpCountText"), () => { close(); run(A.cpCount, x.id); }) }]);
   else if (ov) add("card", t("activity.d.counted1"), t("activity.d.counted1Text"), [{ label: t("activity.d.cpUncount"), run: () => confirmDo(t("activity.d.cpUncountQ"), t("activity.d.cpUncountText"), () => { close(); run(A.cpUncount, x.id); }) }]);
   if (pair) { const cx = costRows(S.value).find((r) => r.id == "v" + pair.o); add("swap", t("activity.type.transfer"), t("activity.w.xfText", { cost: cx ? t("activity.w.xfCost", { amt: fm(cx.cost) }) : t("activity.w.xfNoCost") }), [{ label: t("activity.r.notXf"), run: () => confirmDo(t("activity.d.xfNoQ"), t("activity.d.xfNoText"), () => { close(); run(A.xfNo, pair.o); }) }]); }
@@ -167,7 +184,7 @@ function copyDetails() {
             <div class="tt"><h3>{{ name(cur) }}</h3><div class="sm">{{ dstr(cur.d) }}{{ cur.from && cur.to ? " · " + nohtml(cur.from) + " → " + nohtml(cur.to) : cur.from || cur.to ? " · " + nohtml(cur.from || cur.to) : "" }}</div></div>
             <div class="txam"><b class="num" :class="{ pos: isPos(cur) }" dir="ltr">{{ amtText(cur) }}</b><div v-if="cur.orig" class="sm" dir="ltr">{{ SYM[cur.orig.cur] || "" }}{{ f0(cur.orig.amt) }} {{ cur.orig.cur }}</div></div>
           </div>
-          <div class="txchips"><span class="tb" :class="kindCls(cur)">{{ tk("activity.d.kind." + kindOf(cur)) }}</span>
+          <div class="txchips"><span class="tb" :class="kindCls(cur)">{{ kindText(cur) }}</span>
             <span v-if="!cur.virtual && !isXf(cur) && cur.c" class="chip catl" @click="goCat(cur.c)"><span class="dot" :style="{ background: catColor(S, cur.c) }"></span>{{ catLabel(cur.c) }}</span>
             <template v-for="c in chips(cur)" :key="c.cls"><span class="bd pc" :class="c.cls" :data-tip="c.tip"><svg v-if="c.icon" class="pi" viewBox="0 0 24 24" v-html="CHIP_ICON[c.icon]"></svg>{{ c.label }}</span> </template>
             <span v-for="g in cur.tags || []" :key="g" class="tag catl" @click="goTag(g)">{{ g }}</span></div>
@@ -179,6 +196,12 @@ function copyDetails() {
           </div>
         </div>
         <aside class="txside">
+          <details v-if="mi" class="txs2" data-s="mi" :open="!!sec.mi" @toggle="toggleSec('mi', $event)"><summary><span class="sct">{{ t("txw.mi.title") }}</span><em>{{ t("txw.mi.k." + mi.mark) }}</em></summary><div class="sbd">
+            <div class="sm">{{ t("txw.mi.tip." + mi.mark) }}</div>
+            <div class="sm" style="margin-top:4px"><b>{{ mi.chosen ? t("txw.mi.why.chosen") : inWhy(mi.r) }}</b></div>
+            <div v-if="mi.link" class="sm" style="margin-top:6px">{{ t("txw.mi.forText", { n: name(mi.link), d: dstr(mi.link.d), amt: fm(-mi.link.a) }) }} <button type="button" class="btn o s" @click="openTx(mi.link.id)">{{ t("txw.mi.openBuy") }}</button></div>
+            <div class="kchips" role="radiogroup" :aria-label="t('txw.mi.title')"><button v-for="m in MARKS" :key="m" type="button" role="radio" :aria-checked="mi.mark === m" :class="{ on: mi.mark === m }" @click="markIn(cur, m)">{{ t("txw.mi.k." + m) }}</button><button v-if="mi.chosen" type="button" :data-tip="t('txw.mi.autoTip', { k: t('txw.mi.k.' + autoMark) })" @click="markIn(cur, '')">{{ t("txw.mi.auto") }}</button></div>
+          </div></details>
           <details v-if="!cur.virtual && !isXf(cur)" class="txs2" data-s="org" :open="!!sec.org" @toggle="toggleSec('org', $event)"><summary><span class="sct">{{ t("activity.d.organise") }}</span></summary><div class="sbd">
             <div class="fld"><label>{{ t("activity.d.displayName") }}</label><div style="display:flex;gap:6px"><input :value="S.cfg?.renames?.[cur.id] || ''" :placeholder="name(cur)" maxlength="80" style="flex:1;min-width:0" @change="setName(cur, $event.target.value)" /><button type="button" class="btn o s" @click="openPop('nameRule', { id: cur.id })">{{ t("activity.w.nrRule") }}</button></div></div>
             <div class="two"><div class="fld"><label>{{ t("activity.category") }}</label><select :value="cur.c && cur.c !== 'Uncategorized' ? cur.c : ''" @change="setCat(cur, $event.target.value)"><option value="">{{ t("activity.uncategorized") }}</option><option v-for="c in cats" :key="c" :value="c">{{ catLabel(c) }}</option></select></div>

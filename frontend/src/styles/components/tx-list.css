@@ -230,6 +230,27 @@ td select {
   --pc: #2fa24f;
 }
 
+/* what a money coming in is (earned, salary, money back, from a person, your own money, other income) */
+.p-mi:is(.p-earned, .p-salary) {
+  --pc: var(--pos);
+}
+
+.p-mi.p-back {
+  --pc: #0891b2;
+}
+
+.p-mi.p-people {
+  --pc: #7c3aed;
+}
+
+.p-mi.p-own {
+  --pc: #64748b;
+}
+
+.p-mi.p-other {
+  --pc: #b7791f;
+}
+
 .p-inst {
   --pc: #6366f1;
 }
