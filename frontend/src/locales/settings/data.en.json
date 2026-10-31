@@ -15,7 +15,10 @@
     "acctAria": "Account",
     "btn": "Choose CSV file"
   },
-  "pos": "Charges are shown as positive numbers (cards)",
+  "pos": {
+    "t": "Charges are positive numbers",
+    "d": "For a card file where spending has no minus sign."
+  },
   "pension": {
     "t": "Pension balance",
     "d": "The pension is entered by hand.",

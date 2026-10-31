@@ -1,13 +1,13 @@
 <script setup>
 // Settings → Backup and restore: the daily copy, its password, and restoring a copy.
-import { ref, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
 import { getJson, request, sendJson } from "../../core/http.js";
 import { toast } from "../../core/toast.js";
 import { tx } from "../../core/heText.js";
 import BaseSheet from "../../components/BaseSheet.vue";
-import SetHead from "./SetHead.vue";
+import SetSection from "./SetSection.vue";
 import SetRow from "./SetRow.vue";
 import { ask as askYes } from "../../core/ask.js";
 
@@ -66,6 +66,9 @@ async function upload(e) {
     if (x && x.encrypted) askPw(j.name, ""); else inspect(j.name);
   } catch (x) { err(x); }
 }
+// the first line of "Your backups": when the last one was made, or why it failed
+const lastText = computed(() => { const l = BK.value?.last; if (!l) return tk("last.none"); return l.ok ? bkWhen(l.at) : tk("last.fail") + " " + tx(l.error || ""); });
+const fileDesc = (f) => [fmtSize(f.size), f.encrypted && tk("file.enc"), f.safety && tk("file.safety"), f.imported && tk("file.imported")].filter(Boolean).join(" · ");
 const ROWS = ["transactions", "accounts", "categories", "rules", "budgets", "jars"];
 const KEEP = [[3, "d3"], [7, "w1"], [14, "w2"], [30, "d30"], [60, "d60"], [90, "d90"], [365, "y1"]];
 </script>
@@ -74,69 +77,58 @@ const KEEP = [[3, "d3"], [7, "w1"], [14, "w2"], [30, "d30"], [60, "d60"], [90, "
   <div id="setBackup">
     <div v-if="!BK || !BK.files" class="card sm">{{ tk("loading") }}</div>
     <template v-else>
-      <div class="card ss">
-        <SetHead icon="data" :title="tk('auto.t')" :desc="tk('auto.d')" />
-        <div class="ssb">
-          <div class="tg"><span>{{ tk("daily") }}</span><input type="checkbox" data-c="bkset" data-k="on" :checked="BK.on" @change="put({ on: $event.target.checked })"></div>
-          <SetRow v-if="BK.on" :title="tk('time.t')" :desc="tk('time.d')"><input type="time" data-c="bkset" data-k="at" :value="BK.at" :aria-label="tk('time.aria')" @change="put({ at: $event.target.value })"></SetRow>
-          <SetRow :title="tk('keep.t')" :desc="tk('keep.d')"><select data-c="bkset" data-k="keep" :aria-label="tk('keep.aria')" :value="String(BK.keep)" @change="put({ keep: +$event.target.value })"><option v-for="[v, l] in KEEP" :key="v" :value="String(v)">{{ tk("keep." + l) }}</option></select></SetRow>
-          <SetRow :title="tk('folder.t')">
-            <template #desc><b style="word-break:break-all">{{ BK.dir }}</b><div v-if="!desk" style="margin-top:4px"><span>{{ tk("folder.tip") }}</span></div></template>
-            <div v-if="desk" class="flex" style="gap:8px;flex-wrap:wrap;justify-content:flex-end"><button type="button" class="btn o s" data-a="bkChoose" @click="choose">{{ tk("folder.change") }}</button><button type="button" class="btn o s" data-a="bkOpen" @click="openDir">{{ tk("folder.open") }}</button><button v-if="BK.custom" type="button" class="btn o s" data-a="bkDirDefault" @click="put({ dir: '' })">{{ tk("folder.default") }}</button></div>
-            <div v-else class="flex" style="gap:8px;flex-wrap:wrap;justify-content:flex-end"><input type="text" data-c="bkset" data-k="dir" :value="BK.custom ? BK.dir : ''" :placeholder="BK.defaultDir" :aria-label="tk('folder.aria')" style="min-width:220px" @change="put({ dir: $event.target.value })"><button v-if="BK.custom" type="button" class="btn o s" data-a="bkDirDefault" @click="put({ dir: '' })">{{ tk("folder.default") }}</button></div>
-          </SetRow>
-          <SetRow :title="tk('pw.t')" :desc="BK.hasPassword ? tk('pw.on') : tk('pw.off')">
-            <div class="flex" style="gap:8px;flex-wrap:wrap;justify-content:flex-end"><button type="button" class="btn o s" data-a="bkPw" @click="pw1 = ''; pw2 = ''; win = 'pw'">{{ BK.hasPassword ? tk("pw.change") : tk("pw.set") }}</button><button v-if="BK.hasPassword" type="button" class="btn o s" data-a="bkPwOff" @click="pwOff">{{ tk("pw.turnOff") }}</button></div>
-          </SetRow>
-          <div class="tg"><span>{{ tk("docs") }}</span><input type="checkbox" data-c="bkset" data-k="withDocs" :checked="BK.withDocs" @change="put({ withDocs: $event.target.checked })"></div>
-          <div class="sinfo">
-            <span v-if="BK.last && BK.last.ok">{{ tk("last.ok") }} <b>{{ bkWhen(BK.last.at) }}</b>.</span>
-            <span v-else-if="BK.last"><b>{{ tk("last.fail") }}</b> {{ tx(BK.last.error || "") }}</span>
-            <span v-else><b>{{ tk("last.none") }}</b></span>
-          </div>
-        </div>
-      </div>
-      <div class="card ss">
-        <SetHead icon="data" :title="tk('contains.t')" />
-        <div class="ssb"><div class="sm" style="padding:2px 0 8px;line-height:1.55"><span>{{ tk("contains.inc") }}</span></div><div class="sm" style="padding:0 0 4px;line-height:1.55"><span>{{ tk("contains.never") }}</span></div></div>
-      </div>
-      <div class="card ss">
-        <SetHead icon="data" :title="tk('list.t')" :desc="tk('list.d')" :count="BK.files.length" />
-        <div class="ssb">
-          <div class="sr"><div class="srt"><b>{{ tk("list.now") }}</b></div><div class="src"><div class="flex" style="gap:8px;flex-wrap:wrap;justify-content:flex-end"><button type="button" class="btn s" data-a="bkRun" @click="run">{{ tk("list.now") }}</button><button type="button" class="btn o s" data-a="bkFind" @click="file.click()">{{ tk("list.find") }}</button></div></div></div>
-          <div v-for="f in BK.files" :key="f.name" class="sr">
-            <div class="srt"><b>{{ bkWhen(f.at) }}</b><div class="sm">{{ fmtSize(f.size) }}<template v-if="f.encrypted"> · <span>{{ tk("file.enc") }}</span></template><template v-if="f.safety"> · <span>{{ tk("file.safety") }}</span></template><template v-if="f.imported"> · <span>{{ tk("file.imported") }}</span></template></div></div>
-            <div class="src"><div class="flex" style="gap:8px;flex-wrap:wrap;justify-content:flex-end"><button type="button" class="btn s" data-a="bkRestore" :data-n="f.name" @click="restore(f)">{{ tk("file.restore") }}</button><a class="btn o s" :href="'/api/backup/file/' + encodeURIComponent(f.name)" :download="f.name" @click="toast(tk('toast.downloading'))">{{ tk("file.download") }}</a><button type="button" class="btn o s" data-a="bkDel" :data-n="f.name" :aria-label="tk('file.del')" @click="del(f.name)">×</button></div></div>
-          </div>
-          <div v-if="!BK.files.length" class="sm" style="padding:10px 0"><span>{{ tk("list.empty") }}</span></div>
-          <input id="bkFile" ref="file" type="file" accept=".mmbackup" style="display:none" @change="upload">
-        </div>
-      </div>
+      <SetSection icon="backup" :title="tk('auto.t')" :desc="tk('auto.d')">
+        <SetRow toggle data-c="bkset" data-k="on" :title="tk('daily')" :model-value="BK.on" @update:model-value="put({ on: $event })" />
+        <SetRow v-if="BK.on" :title="tk('time.t')" :desc="tk('time.d')"><input type="time" data-c="bkset" data-k="at" :value="BK.at" :aria-label="tk('time.aria')" @change="put({ at: $event.target.value })"></SetRow>
+        <SetRow :title="tk('keep.t')" :desc="tk('keep.d')"><select data-c="bkset" data-k="keep" :aria-label="tk('keep.aria')" :value="String(BK.keep)" @change="put({ keep: +$event.target.value })"><option v-for="[v, l] in KEEP" :key="v" :value="String(v)">{{ tk("keep." + l) }}</option></select></SetRow>
+        <SetRow v-if="desk" stack :title="tk('folder.t')">
+          <template #desc><bdi class="bkdir" dir="ltr">{{ BK.dir }}</bdi></template>
+          <button type="button" class="btn o s" data-a="bkChoose" @click="choose">{{ tk("folder.change") }}</button><button type="button" class="btn o s" data-a="bkOpen" @click="openDir">{{ tk("folder.open") }}</button><button v-if="BK.custom" type="button" class="btn o s" data-a="bkDirDefault" @click="put({ dir: '' })">{{ tk("folder.default") }}</button>
+        </SetRow>
+        <SetRow v-else stack :title="tk('folder.t')" :desc="tk('folder.tip')">
+          <input type="text" dir="ltr" data-c="bkset" data-k="dir" :value="BK.custom ? BK.dir : ''" :placeholder="BK.defaultDir" :aria-label="tk('folder.aria')" @change="put({ dir: $event.target.value })"><button v-if="BK.custom" type="button" class="btn o s" data-a="bkDirDefault" @click="put({ dir: '' })">{{ tk("folder.default") }}</button>
+        </SetRow>
+        <SetRow :title="tk('pw.t')" :desc="BK.hasPassword ? tk('pw.on') : tk('pw.off')" :badge="BK.hasPassword">
+          <button type="button" class="btn o s" data-a="bkPw" @click="pw1 = ''; pw2 = ''; win = 'pw'">{{ BK.hasPassword ? tk("pw.change") : tk("pw.set") }}</button><button v-if="BK.hasPassword" type="button" class="btn o s" data-a="bkPwOff" @click="pwOff">{{ tk("pw.turnOff") }}</button>
+        </SetRow>
+        <SetRow toggle data-c="bkset" data-k="withDocs" :title="tk('docs')" :model-value="BK.withDocs" @update:model-value="put({ withDocs: $event })" />
+        <template #foot><p class="bkfoot">{{ tk("contains.inc") }}</p><p class="bkfoot">{{ tk("contains.never") }}</p></template>
+      </SetSection>
+      <SetSection icon="file" :title="tk('list.t')" :desc="tk('list.d')" :count="BK.files.length">
+        <SetRow :title="tk('last.t')" :desc="lastText" :cls="BK.last && !BK.last.ok ? 'bkfail' : ''">
+          <button type="button" class="btn s" data-a="bkRun" @click="run">{{ tk("list.now") }}</button><button type="button" class="btn o s" data-a="bkFind" @click="file.click()">{{ tk("list.find") }}</button>
+        </SetRow>
+        <SetRow v-for="f in BK.files" :key="f.name" :title="bkWhen(f.at)" :desc="fileDesc(f)">
+          <button type="button" class="btn s" data-a="bkRestore" :data-n="f.name" @click="restore(f)">{{ tk("file.restore") }}</button><a class="btn o s" :href="'/api/backup/file/' + encodeURIComponent(f.name)" :download="f.name" @click="toast(tk('toast.downloading'))">{{ tk("file.download") }}</a><button type="button" class="btn o s" data-a="bkDel" :data-n="f.name" :aria-label="tk('file.del')" :data-tip="tk('file.del')" @click="del(f.name)">×</button>
+        </SetRow>
+        <div v-if="!BK.files.length" class="rlnone sm">{{ tk("list.empty") }}</div>
+        <input id="bkFile" ref="file" type="file" accept=".mmbackup" hidden @change="upload">
+      </SetSection>
     </template>
 
     <BaseSheet :open="win == 'pw'" @close="close">
       <h3>{{ tk("setpw.t") }}</h3>
-      <div class="sm" style="margin-bottom:12px;line-height:1.5"><span>{{ tk("setpw.text") }}</span></div>
+      <p class="sm bktext">{{ tk("setpw.text") }}</p>
       <div class="fld"><label for="bkPw1">{{ tk("setpw.p1") }}</label><input id="bkPw1" v-model="pw1" type="password" autocomplete="new-password"></div>
       <div class="fld"><label for="bkPw2">{{ tk("setpw.p2") }}</label><input id="bkPw2" v-model="pw2" type="password" autocomplete="new-password"></div>
-      <div class="flex" style="justify-content:flex-end;gap:10px"><button type="button" class="btn o" @click="close">{{ tk("setpw.cancel") }}</button><button type="button" class="btn" data-a="bkPwGo" @click="pwGo">{{ tk("setpw.save") }}</button></div>
+      <div class="cend"><button type="button" class="btn o" @click="close">{{ tk("setpw.cancel") }}</button><button type="button" class="btn" data-a="bkPwGo" @click="pwGo">{{ tk("setpw.save") }}</button></div>
     </BaseSheet>
     <BaseSheet :open="win == 'ask'" @close="close">
       <h3>{{ tk("ask.t") }}</h3>
-      <div class="fld"><label for="bkAskIn">{{ tk("ask.label") }}</label><input id="bkAskIn" ref="askIn" v-model="ask.pw" type="password" autocomplete="off" @keydown.enter="askGo"><div v-if="ask.err" class="sm" style="color:var(--bad);margin-top:6px">{{ ask.err }}</div></div>
-      <div class="flex" style="justify-content:flex-end;gap:10px"><button type="button" class="btn o" @click="close">{{ tk("ask.cancel") }}</button><button type="button" class="btn" data-a="bkAskGo" @click="askGo">{{ tk("ask.go") }}</button></div>
+      <div class="fld"><label for="bkAskIn">{{ tk("ask.label") }}</label><input id="bkAskIn" ref="askIn" v-model="ask.pw" type="password" autocomplete="off" @keydown.enter="askGo"><div v-if="ask.err" class="sm bkerr">{{ ask.err }}</div></div>
+      <div class="cend"><button type="button" class="btn o" @click="close">{{ tk("ask.cancel") }}</button><button type="button" class="btn" data-a="bkAskGo" @click="askGo">{{ tk("ask.go") }}</button></div>
     </BaseSheet>
     <BaseSheet :open="win == 'restore'" @close="close">
       <template v-if="info">
         <h3>{{ tk("rs.t") }}</h3>
-        <div class="sm" style="margin-bottom:10px"><span>{{ tk("rs.made") }}</span> <b>{{ bkWhen(info.j.created) }}</b></div>
+        <div class="sm bkmade"><span>{{ tk("rs.made") }}</span> <b>{{ bkWhen(info.j.created) }}</b></div>
         <template v-for="k in ROWS" :key="k">
-          <div class="row"><b class="num" style="min-width:56px">{{ info.j[k] }}</b><div class="grow"><span>{{ tk("rs." + k) }}</span></div></div>
-          <div v-if="k == 'transactions' && info.j.from" class="sm" style="margin-block:-4px 6px;margin-inline-start:68px"><span>{{ tk("rs.from") }}</span> {{ info.j.from }} <span>{{ tk("rs.to") }}</span> {{ info.j.to }}</div>
+          <div class="row"><b class="num bkn">{{ info.j[k] }}</b><div class="grow"><span>{{ tk("rs." + k) }}</span></div></div>
+          <div v-if="k == 'transactions' && info.j.from" class="sm bkrange"><span>{{ tk("rs.from") }}</span> {{ info.j.from }} <span>{{ tk("rs.to") }}</span> {{ info.j.to }}</div>
         </template>
-        <div v-if="info.j.newerApp" class="sm" style="margin-top:10px;color:var(--bad)"><span>{{ tk("rs.newer") }}</span></div>
-        <div v-else class="sm" style="margin:12px 0;line-height:1.55"><span>{{ tk("rs.text") }}</span></div>
-        <div class="flex" style="justify-content:flex-end;gap:10px"><button type="button" class="btn o" @click="close">{{ tk("rs.cancel") }}</button><button v-if="!info.j.newerApp" type="button" class="btn" data-a="bkRestoreGo" @click="restoreGo">{{ tk("rs.go") }}</button></div>
+        <p v-if="info.j.newerApp" class="sm bkerr">{{ tk("rs.newer") }}</p>
+        <p v-else class="sm bktext">{{ tk("rs.text") }}</p>
+        <div class="cend"><button type="button" class="btn o" @click="close">{{ tk("rs.cancel") }}</button><button v-if="!info.j.newerApp" type="button" class="btn" data-a="bkRestoreGo" @click="restoreGo">{{ tk("rs.go") }}</button></div>
       </template>
     </BaseSheet>
   </div>

@@ -7,7 +7,7 @@ import { toast } from "../../core/toast.js";
 import { tx } from "../../core/heText.js";
 import { openForm } from "../../core/forms.js";
 import { goActivity } from "../../core/shell.js";
-import SetHead from "./SetHead.vue";
+import SetSection from "./SetSection.vue";
 import SetRow from "./SetRow.vue";
 import { openSettingsTab } from "./tab.js";
 
@@ -41,26 +41,20 @@ function exportJson() {
 
 <template>
   <div v-if="S" id="setData">
-    <div class="card ss">
-      <SetHead icon="imp" :title="tk('imp.t')" :desc="tk('imp.d')" />
-      <div class="ssb">
-        <SetRow :title="tk('wise.t')" :desc="tk('wise.d')"><button type="button" class="btn o s" data-a="importCsv" @click="wiseF.click()">{{ tk("wise.btn") }}</button></SetRow>
-        <SetRow :title="tk('bank.t')" :desc="tk('bank.d')">
-          <div class="flex" style="gap:8px;flex-wrap:wrap;justify-content:flex-end"><select id="bankAcc" v-model="acc" :aria-label="tk('bank.acctAria')"><option value="">{{ tk("bank.acct") }}</option><option v-for="n in accNames" :key="n" :value="n">{{ n }}</option></select><button type="button" class="btn o s" data-a="bankCsv" @click="bankPick">{{ tk("bank.btn") }}</button></div>
-        </SetRow>
-        <label class="sm" style="display:flex;gap:8px;align-items:center;padding:0 0 4px"><input id="bankPos" v-model="pos" type="checkbox"> {{ tk("pos") }}</label>
-        <SetRow :title="tk('pension.t')" :desc="tk('pension.d')"><button type="button" class="btn o s" data-a="pensionSet" @click="openForm('pension')">{{ tk("pension.btn") }}</button></SetRow>
-        <input id="csvFile" ref="wiseF" type="file" accept=".csv,text/csv" style="display:none" @change="wise">
-        <input id="bankCsvFile" ref="bankF" type="file" accept=".csv,text/csv" style="display:none" @change="bank">
-      </div>
-    </div>
-    <div class="card ss">
-      <SetHead icon="data" :title="tk('your.t')" :desc="tk('your.d')" />
-      <div class="ssb">
-        <SetRow :title="tk('export.t')" :desc="tk('export.d')"><button type="button" class="btn s" data-a="exOpen" @click="goActivity({ tab: 'exp', from: 'settings' })">{{ tk("export.btn") }}</button></SetRow>
-        <SetRow :title="tk('full.t')" :desc="tk('full.d')"><button type="button" class="btn o s" data-a="exportJson" @click="exportJson">{{ tk("full.btn") }}</button></SetRow>
-        <SetRow :title="tk('restore.t')" :desc="tk('restore.d')"><button type="button" class="btn o s" data-a="setTab" data-t="backup" @click="openSettingsTab('backup')">{{ tk("restore.btn") }}</button></SetRow>
-      </div>
-    </div>
+    <SetSection icon="imp" :title="tk('imp.t')" :desc="tk('imp.d')">
+      <SetRow :title="tk('wise.t')" :desc="tk('wise.d')"><button type="button" class="btn o s" data-a="importCsv" @click="wiseF.click()">{{ tk("wise.btn") }}</button></SetRow>
+      <SetRow :title="tk('bank.t')" :desc="tk('bank.d')">
+        <select id="bankAcc" v-model="acc" :aria-label="tk('bank.acctAria')"><option value="">{{ tk("bank.acct") }}</option><option v-for="n in accNames" :key="n" :value="n">{{ n }}</option></select><button type="button" class="btn o s" data-a="bankCsv" @click="bankPick">{{ tk("bank.btn") }}</button>
+      </SetRow>
+      <SetRow id="bankPos" v-model="pos" toggle :title="tk('pos.t')" :desc="tk('pos.d')" />
+      <SetRow :title="tk('pension.t')" :desc="tk('pension.d')"><button type="button" class="btn o s" data-a="pensionSet" @click="openForm('pension')">{{ tk("pension.btn") }}</button></SetRow>
+      <input id="csvFile" ref="wiseF" type="file" accept=".csv,text/csv" hidden @change="wise">
+      <input id="bankCsvFile" ref="bankF" type="file" accept=".csv,text/csv" hidden @change="bank">
+    </SetSection>
+    <SetSection icon="data" :title="tk('your.t')" :desc="tk('your.d')">
+      <SetRow :title="tk('export.t')" :desc="tk('export.d')"><button type="button" class="btn s" data-a="exOpen" @click="goActivity({ tab: 'exp', from: 'settings' })">{{ tk("export.btn") }}</button></SetRow>
+      <SetRow :title="tk('full.t')" :desc="tk('full.d')"><button type="button" class="btn o s" data-a="exportJson" @click="exportJson">{{ tk("full.btn") }}</button></SetRow>
+      <SetRow :title="tk('restore.t')" :desc="tk('restore.d')"><button type="button" class="btn o s" data-a="setTab" data-t="backup" @click="openSettingsTab('backup')">{{ tk("restore.btn") }}</button></SetRow>
+    </SetSection>
   </div>
 </template>

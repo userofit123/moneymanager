@@ -40,12 +40,11 @@
   },
   "docs": "Include receipts and documents",
   "last": {
-    "ok": "Last backup:",
-    "fail": "The last backup failed:",
-    "none": "No backup yet."
+    "t": "Last backup",
+    "fail": "Did not work:",
+    "none": "None yet."
   },
   "contains": {
-    "t": "What a backup contains",
     "inc": "Included: all your activity, accounts and balances, categories, tags, rules, budgets, jars, bills and your settings.",
     "never": "Never included: bank logins, the Wise token, the app password and notification links. After a restore, your connections stay as they are, or you add them again, and the app will not import anything twice."
   },

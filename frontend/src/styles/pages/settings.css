@@ -774,3 +774,66 @@ html.mob .rladd > .btn {
   font-size: var(--fs-sm);
   word-break: break-all;
 }
+
+/* Backup and restore: the folder path breaks anywhere, a failed last backup in red, the "what a backup contains" note, the windows */
+.bkdir {
+  display: block;
+  word-break: break-all;
+  color: var(--tx);
+}
+
+.sr.bkfail .srt .sm {
+  color: var(--bad);
+}
+
+.bkfoot {
+  margin: 0;
+}
+
+.bkfoot + .bkfoot {
+  margin-top: 6px;
+}
+
+.bktext {
+  margin-block: 0 12px;
+  line-height: 1.55;
+}
+
+.bkerr {
+  color: var(--bad);
+  margin-block: 6px 0;
+}
+
+.bkmade {
+  margin-bottom: 10px;
+}
+
+.bkn {
+  min-width: 56px;
+}
+
+.bkrange {
+  margin-block: -4px 6px;
+  margin-inline-start: 68px;
+}
+
+/* Change history: the detail breaks long words; who and when on their own line, lighter; "Show more" under the list */
+.sr.logr .logd {
+  display: block;
+  word-break: break-word;
+}
+
+.sr.logr .logw {
+  display: block;
+  opacity: .75;
+}
+
+.logmore {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ol);
+}

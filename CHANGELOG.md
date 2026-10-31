@@ -90,6 +90,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 - **Fixed: pending payments now count everywhere the same way as on the Activity page:** Home's six months and last month, Reports, Accounts (money in and out, and the card chart), Budgets and the Jars page.
 - **Fixed: a card shows the same amount in Home's Cards box and in its chart on Accounts.** Both now count the same payments: not the ones you left out, and not money moved from the card to your own accounts.
 - **Home: clearer names on the top cards.** "Net worth" is now **In your accounts**, and "Net" is now **Saved this month (in − out)**, with "Transfers between your accounts not counted" under it.
+- **Settings: the Your data pages tidied.** Backup and restore, Import and export and Change history use the same cards and lines as the other sections. What a backup contains is a short note at the bottom of the Automatic backup card; **Last backup** sits next to **Back up now**; the backup folder box is full width on a phone; **Charges are positive numbers** is a switch with a short explanation.
 
 ### Windows app
 - Includes everything above.
