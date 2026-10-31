@@ -233,7 +233,7 @@ app.post("/api/assist/credential", json, wrap(async (req, res) => {
 app.post("/api/assist/stop", wrap(async (_req, res) => {
   const j = assistJob();
   try { await scraperAssist("stop", {}); } catch {}
-  if (j) { releaseJob("assist"); await unlock(j.source); await markAssisted(j.source); await audit(null, "Device verified", `${j.source}: browser profile saved for later automatic logins`, "You"); }
+  if (j) { releaseJob("assist"); await unlock(j.source); await markAssisted(j.source); await audit(null, "Login verified", `${j.source}: browser profile saved for later automatic logins`, "You"); }
   res.json({ ok: true });
 }));
 

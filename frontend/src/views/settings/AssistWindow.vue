@@ -1,5 +1,5 @@
 <script setup>
-// "Verify this device": the bank's page in the app's own browser, shown live over the whole page (#assist).
+// "Verify login": the bank's page in the app's own browser, shown live over the whole page (#assist).
 // Clicking the picture clicks the page,
 // the wheel scrolls it, and "Type my…" fills a saved login without it ever reaching this page.
 import { ref, watch } from "vue";

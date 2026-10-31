@@ -15,7 +15,7 @@ import puppeteer from "puppeteer";
 import { createScraper, CompanyTypes } from "israeli-bank-scrapers";
 
 const KEY = process.env.SCRAPER_KEY || "";
-// company -> [scraper id, the login fields it needs, its login page (for "Verify this device")]
+// company -> [scraper id, the login fields it needs, its login page (for "Verify login")]
 const SUPPORTED = {
   hapoalim: ["hapoalim", ["userCode", "password"], "https://login.bankhapoalim.co.il/ng-portals/auth/he/"],
   leumi: ["leumi", ["username", "password"], "https://hb2.bankleumi.co.il/H/Login.html"],
@@ -35,7 +35,7 @@ const SUPPORTED = {
 const COMPANIES = Object.fromEntries(Object.entries(SUPPORTED).map(([k, [id]]) => [k, CompanyTypes[id]]));
 const NEED = Object.fromEntries(Object.entries(SUPPORTED).map(([k, v]) => [k, v[1]]));
 const LOGIN_URL = Object.fromEntries(Object.entries(SUPPORTED).map(([k, v]) => [k, v[2]]));
-// "Verify this device" may only stay on the bank's own websites. Extra domains are banks' known sign-in / sister sites.
+// "Verify login" may only stay on the bank's own websites. Extra domains are banks' known sign-in / sister sites.
 const EXTRA_DOMAINS = { leumi: ["leumi.co.il"], discount: ["discountbank.co.il"], mercantile: ["discountbank.co.il"], mizrahi: ["mizrahi-tefahot.co.il"], max: ["max.co.il"], visaCal: ["cal-online.co.il", "cal.co.il"], isracard: ["isracard.co.il"], amex: ["americanexpress.co.il"], hapoalim: ["bankhapoalim.co.il"] };
 const regDomain = (h) => { const p = h.split("."); return p.slice(-(h.endsWith(".co.il") ? 3 : 2)).join("."); };
 function allowedHosts(company) {
@@ -147,7 +147,7 @@ function watchNet(p, log) {
 }
 const netNote = (log, page) => { const k = [...new Set(log.key || [])].slice(-8), u = [...new Set(log.filter((x) => !(log.key || []).includes(x)))].slice(-3); let where = ""; try { if (page) where = shortUrl(page.url()); } catch { /* closed */ } const all = [...k, ...u]; return (all.length ? " · " + all.join("; ") : "") + (where ? " · stopped on: " + where : ""); };
 
-// A profile that is still signed in to American Express (an earlier login, or "Verify this device") makes the bank send the login page straight on to the signed-in site.
+// A profile that is still signed in to American Express (an earlier login, or "Verify login") makes the bank send the login page straight on to the signed-in site.
 // The library then posts its first request (ValidateIdData) from a page that has moved to another address, and it fails as "Failed to fetch".
 // So when the login page does not stay on the login page, the sign-in is dropped (first only the cookies that end with the browser, then, if needed, the cookies of the signed-in site) and the login page is loaded again.
 const CARD_SITES = new Set(["amex"]);
@@ -204,7 +204,7 @@ async function scrapeOnce(company, credentials, startDate, profile) {
     if (page && (await asksForCode(page))) {
       clearInterval(snapTimer);
       if (DEBUG) { try { await page.screenshot({ path: `/debug/${company}.png` }); } catch {} }
-      throw new Error("OTP_REQUIRED: the bank asked for a one-time code. Use \"Verify this device\" once so the bank remembers this browser");
+      throw new Error("OTP_REQUIRED: the bank asked for a one-time code. Use \"Verify login\" once so the bank remembers this app");
     }
     // where it got stuck (a captcha, a notice, a changed page): kept in memory so the app can show it, never written to disk
     clearInterval(snapTimer);

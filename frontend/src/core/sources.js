@@ -15,6 +15,8 @@ export const SRCN = SRC_NAMES;
 const t = (...a) => i18n.global.t(...a);
 const loc = () => (i18n.global.locale.value === "he" ? "he-IL" : "en-GB");
 export const fmtWhen = (w) => new Date(w).toLocaleString(loc(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+// The day only: "3 Oct" / "3 באוק׳"
+export const fmtDay = (w) => new Date(w).toLocaleDateString(loc(), { day: "numeric", month: "short" });
 // A source's display name: its nickname if it has one.
 export const srcName = (k) => { const c = data.state.value?.connStatus?.[k]; return (c && c.label) || SRCN[k] || (k == "all" ? t("sync.all") : k); };
 

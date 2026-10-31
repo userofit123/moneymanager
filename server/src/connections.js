@@ -3,7 +3,7 @@
 import { q, tx } from "./db.js";
 import { encrypt, decrypt, scrub } from "./secrets.js";
 
-// Every source the app can connect to. kind: what the account is (bank, card, wallet). `url` is the login page used by "Verify this device".
+// Every source the app can connect to. kind: what the account is (bank, card, wallet). `url` is the login page used by "Verify login".
 const F = {
   userCode: { k: "userCode", label: "User code" }, username: { k: "username", label: "Username" }, password: { k: "password", label: "Password" },
   id: { k: "id", label: "ID number" }, num: { k: "num", label: "Account code (מספר סימון)" }, nationalID: { k: "nationalID", label: "ID number" },
@@ -131,21 +131,21 @@ export function connectionStatus({ configured, locked, failures, lastError, save
 export async function listConnections() {
   const [c, st, sy] = await Promise.all([
     q("SELECT source,updated_at FROM credentials"), q("SELECT * FROM source_state"),
-    q("SELECT source, max(finished_at) AS at FROM sync_runs WHERE ok GROUP BY source"),
+    q("SELECT source, max(finished_at) AS at, min(finished_at) AS first FROM sync_runs WHERE ok GROUP BY source"),
   ]);
   // every provider once (so it can be added), plus each extra login that has saved credentials
   const extras = c.rows.map((r) => r.source).filter((x) => x.includes("~") && validId(x)).sort((a, b) => baseOf(a).localeCompare(baseOf(b)) || +a.split("~")[1] - +b.split("~")[1]);
   const ids = Object.keys(FIELDS).flatMap((p) => [p, ...extras.filter((x) => baseOf(x) === p)]);
   return ids.map((s) => {
-    const b = baseOf(s);
+    const b = baseOf(s), ran = sy.rows.find((r) => r.source === s);
     const has = c.rows.find((r) => r.source === s) || (s === "wise" && process.env.WISE_TOKEN ? { updated_at: null } : null);
     const state = st.rows.find((r) => r.source === s);
     const info = {
       configured: !!has, locked: !!state?.locked, failures: state?.consecutive_failures || 0, lastError: state?.last_error || "",
-      savedAt: has?.updated_at || null, testedAt: state?.tested_at || null, syncedAt: sy.rows.find((r) => r.source === s)?.at || null,
+      savedAt: has?.updated_at || null, testedAt: state?.tested_at || null, syncedAt: ran?.at || null,
     };
     return {
-      source: s, provider: b, nickname: state?.nickname || "", extra: s.includes("~"), label: connLabel(s, state?.nickname || ""), providerLabel: LABELS[b], kind: KINDS[b], fields: FIELDS[b], ...info, lastOk: state?.last_ok_at || null, assistedAt: state?.assisted_at || null, status: connectionStatus(info),
+      source: s, provider: b, nickname: state?.nickname || "", extra: s.includes("~"), label: connLabel(s, state?.nickname || ""), providerLabel: LABELS[b], kind: KINDS[b], fields: FIELDS[b], ...info, lastOk: state?.last_ok_at || null, assistedAt: state?.assisted_at || null, firstOk: ran?.first || null, status: connectionStatus(info),
     };
   });
 }

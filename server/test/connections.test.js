@@ -28,6 +28,16 @@ test("ids: first login is the provider, extras are provider~N", async () => {
   assert.equal(l.find((c) => c.source === "wise").label, "Wise");
 });
 
+test("firstOk is the first sync that worked, so a device that synced fine counts as verified", async () => {
+  await reset();
+  await saveCreds("max", { username: "made-up", password: "made-up-123" });
+  assert.equal((await listConnections()).find((c) => c.source === "max").firstOk, null);
+  await q("INSERT INTO sync_runs (source,origin,started_at,finished_at,ok) VALUES ('max','manual','2026-09-01T12:00:00Z','2026-09-01T12:00:00Z',false),('max','manual','2026-09-02T12:00:00Z','2026-09-02T12:00:00Z',true),('max','manual','2026-09-05T12:00:00Z','2026-09-05T12:00:00Z',true)");
+  const c = (await listConnections()).find((x) => x.source === "max");
+  assert.equal(new Date(c.firstOk).toISOString().slice(0, 10), "2026-09-02");
+  assert.equal(c.assistedAt, null);
+});
+
 test("two cards under one login become two accounts, each with its own balance", async () => {
   await reset();
   await saveCreds("max", { username: "u-max", password: "pw-max" });

@@ -832,7 +832,7 @@
     "feLogon": "The bank gave no answer to the login request, so the app could not log in. This is usually the bank’s bot protection blocking the app’s browser, or a short block after several tries. Wait an hour, then press Test connection once. Press “See where it stopped” to see what the app’s browser saw. Until then, use the CSV export (Settings → Import and export).",
     "feNoData": "The bank accepted the login but sent back no data. Usually the bank wants something first: a code, a new-device check, a new password, or a notice. Or it blocks automatic access. Log in on the bank's website yourself to see what it asks for. If it asks nothing, press “See where it stopped” on the connection to see what the app’s browser saw. Until then, use the CSV export (Settings → Import and export).",
     "feStep": " (Step: {st})",
-    "feOtp": "The bank asked for a one-time code by SMS, so automatic sync is paused. Press Verify this device once. Log in in the live window, enter the code, and tick “remember this device”. Banks usually only ask on a device they do not know. (Or use a CSV export: Settings → Import and export.)",
+    "feOtp": "The bank asked for a one-time code by SMS, so automatic sync is paused. Press Verify login once (Settings → Connections). Log in in the live window, enter the code, and tick “remember this device”. After that the bank knows this app, so it usually does not ask again. (Or use a CSV export: Settings → Import and export.)",
     "uncatT": "{n} transactions need a category",
     "uncatX": "Give them a category, or make a rule so it happens by itself.",
     "fcT": "Forecast: balance turns negative in {when}",

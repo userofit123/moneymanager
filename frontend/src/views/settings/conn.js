@@ -1,5 +1,5 @@
 // Settings → Connections and Sync: the connected banks, cards and wallets, the automatic sync settings, and the live
-// "Verify this device" window.
+// "Verify login" window.
 // Kept outside the page so the Sync section, the verification window and the page all share one copy.
 import { nextTick, ref, shallowRef, computed, reactive } from "vue";
 import { i18n } from "../../i18n.js";
@@ -125,7 +125,7 @@ export async function syncSet(k, v) {
   } catch (e) { toast(tx(e.message), { kind: "err" }); }
 }
 
-// ---- "Verify this device": the bank's page in the app's own browser, shown live (#assist) ----
+// ---- "Verify login": the bank's page in the app's own browser, shown live (#assist) ----
 // AS = { src, label, fields, w, h }; the picture is fetched every 800 ms while it is open.
 export const AS = shallowRef(null);
 export const shot = ref(""); // the current picture (an object URL)

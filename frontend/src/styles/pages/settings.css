@@ -720,25 +720,86 @@ html.mob .cempty {
   margin-inline-start: auto;
 }
 
-/* how far back Sync reads: a small drop-down beside Sync, the same height as the buttons */
-.cbtns select {
+/* how far back Sync reads and Sync itself: one joined control (the drop-down first, Sync attached at its end) */
+.csplit {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--ol);
+  border-radius: 99px;
+  background: var(--s1);
+}
+
+.csplit select {
   min-height: 32px;
   padding-block: 5px;
-  padding-inline-start: 12px;
+  padding-inline-start: 13px;
+  border: 0;
+  border-radius: 0;
+  border-start-start-radius: 99px;
+  border-end-start-radius: 99px;
+  background-color: transparent;
   font-size: 12px;
-  border-radius: 99px;
   background-position-x: right 10px; /* fixed side: the arrow, flipped for Hebrew below */
 }
 
-html.he .cbtns select {
+html.he .csplit select {
   background-position-x: left 10px; /* fixed side */
 }
 
-/* the (i) that explains the drop-down sits right after it */
-.cbtns .chtip {
+html.mob .csplit select {
+  font-size: 13px;
+}
+
+.csplit select:focus {
+  box-shadow: none;
+}
+
+.csplit:focus-within {
+  border-color: var(--acc);
+}
+
+.csplit .btn {
+  margin: -1px;
+  margin-inline-start: 0;
+  border-radius: 0;
+  border-start-end-radius: 99px;
+  border-end-end-radius: 99px;
+  border-inline-start: 1px solid var(--ol);
+  white-space: nowrap;
+}
+
+/* Accounts found: "Name · amount", side by side with a thin line between (the shared .accs) */
+.ccard .accs.cacc .sm {
+  display: inline;
+}
+
+.ccard .accs.cacc .ctail {
+  display: inline;
+  margin: 0;
+  margin-inline-start: .35em;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: 0;
+  color: inherit;
+}
+
+.ccard .cdt b > .dt,
+.ccard .accs.cacc .dt {
+  display: inline-block;
+  margin: 0 .35em;
+  font-size: inherit;
+  letter-spacing: 0;
+  color: var(--tx2);
+}
+
+/* the connection's state: the last pill in its header, the same size as the small buttons beside it */
+.cbtns .bd.cst {
   display: inline-flex;
   align-items: center;
-  margin-inline-start: -4px;
+  gap: 6px;
+  min-height: 32px;
+  padding: 5px 13px;
+  font-size: 12px;
 }
 
 /* Phone: Sync and its drop-down stay clear of the round buttons at the end of the screen */
