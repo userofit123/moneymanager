@@ -107,8 +107,8 @@ function calApply(r) { f.value = { ...f.value, p: "custom", from: r.from, to: r.
 function calCancel() { const a = cal.value?.anchor; cal.value = null; if (a) a.value = f.value.p; }
 const groupOpts = computed(() => GROUPS.map((g) => opt(g, tk("activity.group." + g))));
 const sortOpts = computed(() => ["new", "old", "big", "small"].map((s) => opt(s, tk("activity.sort." + s))));
-// money in by kind (lib/moneyIn.js); "income" (all money in that counts) only shows when a link from Reports or Recap set it
-const typeOpts = computed(() => [opt("", t("activity.type.all")), ...[...(f.value.type === "income" ? ["income"] : []), "earned", "back", "people", "own", "other", "expense", "transfer", "bill", "cardpay"].map((x) => opt(x, tk("activity.type." + x)))]);
+// money in, its salary part and money back (lib/moneyIn.js), then the rest
+const typeOpts = computed(() => [opt("", t("activity.type.all")), ...["income", "salary", "back", "expense", "transfer", "cardpay", "bill"].map((x) => opt(x, tk("activity.type." + x)))]);
 const cats = computed(() => catNames(S.value).filter((k) => k != "Uncategorized"));
 // the filter lists: your accounts, every category with Uncategorized among them, tags in use with their count
 const catOpts = computed(() => [opt("", t("activity.allCats")), ...[...new Set([...catNames(S.value), "Uncategorized"])].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })).map((c) => opt(c, catLabel(c)))]);
@@ -177,7 +177,7 @@ const goCat = (c) => reset({ cat: c || "Uncategorized" });
 
 // ---- the totals line and the group headers ----
 // The rows the totals leave out, and why (a tooltip on "84 not in the totals"): one reason per line.
-const LO_KEYS = ["transfers", "cardPays", "upcoming", "balance", "ignored", "own", "twin"];
+const LO_KEYS = ["transfers", "cardPays", "upcoming", "balance", "ignored"];
 const loN = computed(() => LO_KEYS.reduce((n, key) => n + (lo.value[key] || 0), 0));
 const sumTip = computed(() => {
   const o = lo.value, k = K.value, cnt = rows.value.filter((x) => counts(x, k)).length;
@@ -245,6 +245,7 @@ onMounted(() => data.start());
             <div :data-tip="t('activity.inTip')"><span>{{ t("activity.in") }}</span><b class="num" dir="ltr">{{ fm(T.inc) }}</b></div>
             <div :data-tip="t('activity.outTip')"><span>{{ t("activity.out") }}</span><b class="num" dir="ltr">{{ fm(T.out) }}</b></div>
             <div :data-tip="t('activity.netTip')"><span>{{ t("activity.net") }}</span><b class="num" :class="{ neg: T.net < 0 }" dir="ltr">{{ fm(T.net) }}</b></div>
+            <div v-if="T.back >= 1" :data-tip="t('activity.backTip')"><span>{{ t("activity.backT") }}</span><b class="num" dir="ltr">{{ fm(T.back) }}</b></div>
           </div>
         </div>
       </div>

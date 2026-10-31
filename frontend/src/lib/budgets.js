@@ -1,7 +1,6 @@
 // Budgets: a monthly limit for a category. Shared budget logic: each budget's pace, suggested budgets, the bills in a budget, and the changes.
 // Nothing here touches the screen. Suggestions are only worked out; nothing is created until the user accepts.
 import { rdOf } from "./activity.js";
-import { isOut } from "./moneyIn.js";
 import { billState, fm } from "./bills.js";
 import { addM } from "./home.js";
 import { catJarsOf } from "./jars.js";
@@ -17,20 +16,19 @@ export function budgetsModel(S, now = new Date()) {
   const DAYN = NOW.getDate(), DIM = new Date(NOW.getFullYear(), NOW.getMonth() + 1, 0).getDate();
   const budgets = S.budgets || {}, budgetNo = S.budgetNo || [], cfg = { budgetPct: 80, ...(S.cfg || {}) };
   // this month's spending by category, biggest first
-  // money back lowers its category's spending (lib/moneyIn.js isOut); a category with more back than spent is not listed
-  const sp0 = {}; A.filter((t) => isOut(t) && rdOf(t).startsWith(MK)).forEach((t) => { const c = t.c || "Uncategorized"; sp0[c] = (sp0[c] || 0) - t.a; });
-  const spend = Object.entries(sp0).filter((x) => x[1] > 0.005).sort((a, b) => b[1] - a[1]);
+  const sp0 = {}; A.filter((t) => t.a < 0 && rdOf(t).startsWith(MK)).forEach((t) => { const c = t.c || "Uncategorized"; sp0[c] = (sp0[c] || 0) + Math.abs(t.a); });
+  const spend = Object.entries(sp0).sort((a, b) => b[1] - a[1]);
   // the last six months, the first one with data, and the biggest categories
   const ms = []; for (let i = 5; i >= 0; i--) ms.push(addM(MK, -i));
   const hist = { keys: ms, first: 0, cat: {} };
   { const first = (S.tx || []).filter((t) => !st.k.isFut(t) && !t.virtual).reduce((m, t) => (t.d < m ? t.d : m), "9999-99-99"); let fi = first == "9999-99-99" ? 5 : ms.indexOf(first.slice(0, 7)); if (fi < 0) fi = first.slice(0, 7) < ms[0] ? 0 : 5; if (first != "9999-99-99" && +first.slice(8) > 10 && fi < 5) fi++; hist.first = Math.max(0, Math.min(5, fi)); }
-  const cats = {}; A.forEach((t) => { const i = ms.indexOf(rdOf(t).slice(0, 7)); if (i < 0 || !isOut(t)) return; const k = t.c || "Uncategorized"; (cats[k] = cats[k] || ms.map(() => 0))[i] -= t.a; });
+  const cats = {}; A.forEach((t) => { const i = ms.indexOf(rdOf(t).slice(0, 7)); if (i < 0 || t.a > 0) return; const k = t.c || "Uncategorized"; (cats[k] = cats[k] || ms.map(() => 0))[i] -= t.a; });
   Object.entries(cats).sort((a, b) => sum(b[1]) - sum(a[1])).slice(0, 5).forEach(([k, v]) => { hist.cat[k] = v; });
   const budMonths = [2, 3, 4].filter((i) => i >= (hist.first || 0)).map((i) => ms[i]);
-  const M = {}; A.filter(isOut).forEach((t) => { const c = t.c || "Uncategorized", m = rdOf(t).slice(0, 7); (M[c] = M[c] || {})[m] = (M[c][m] || 0) - t.a; });
+  const M = {}; A.filter((t) => t.a < 0).forEach((t) => { const c = t.c || "Uncategorized", m = rdOf(t).slice(0, 7); (M[c] = M[c] || {})[m] = (M[c][m] || 0) - t.a; });
   // each budget: spent, left, the pace, and how it is going
   const info = Object.entries(budgets).map(([k, lim]) => {
-    const s = Math.max(0, sp0[k] || 0), pc = lim ? (s / lim) * 100 : 0, B = BC.filter((b) => !b.once && !b.irregular && b.flag != "canceled" && b.cat == k);
+    const s = sp0[k] || 0, pc = lim ? (s / lim) * 100 : 0, B = BC.filter((b) => !b.once && !b.irregular && b.flag != "canceled" && b.cat == k);
     const paid = Math.min(s, sum(B.filter((b) => b.lp && b.lp.startsWith(MK)).map((b) => b.pred))), due = sum(B.filter((b) => !(b.lp && b.lp.startsWith(MK)) && b.nx && b.nx.toISOString().slice(0, 7) == MK).map((b) => b.pred)), pace = paid + due + ((s - paid) / DAYN) * DIM;
     return { k, lim, s, pace, pc, left: lim - s, perDay: Math.max(0, (lim - s) / Math.max(1, DIM - DAYN)), st: s > lim ? "over" : pc >= cfg.budgetPct ? "warn" : pace > lim ? "pace" : "ok" };
   });

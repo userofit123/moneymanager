@@ -102,7 +102,7 @@ const kpis = computed(() => {
     t("tip.worthNote") + (K.pen > 0 ? t("tip.pensionNote") : "") + (K.missing.length ? t("tip.missingNote") : ""));
   return [
     { key: "worth", hero: true, label: t("num.inAccounts"), v: K.cash, sub: sub0, spark: K.nwSpark, col: "var(--onc)", tip: tipWorth },
-    { key: "income", label: t(numText("moneyIn").short), v: inc, sub: t("home.vsLast", { amount: fm(K.incLast), month: monthName(pm) }), spark: K.incSpark, col: "var(--pos)", tip: TP(t(numText("moneyIn").name), [[t("tip.soFarMonth"), fm(inc)], [t("tip.lastMonth"), fm(K.incLast)], ...(K.back >= 1 ? ["---", [t("tip.moneyBack"), fm(K.back)]] : [])], t("tip.incomeNote")) },
+    { key: "income", label: t(numText("moneyIn").short), v: inc, sub: t("home.vsLast", { amount: fm(K.incLast), month: monthName(pm) }), spark: K.incSpark, col: "var(--pos)", tip: TP(t(numText("moneyIn").name), [[t("tip.soFarMonth"), fm(inc)], ...(K.sal >= 1 ? [[t("tip.salaryPart"), fm(K.sal)]] : []), [t("tip.lastMonth"), fm(K.incLast)], ...(K.back >= 1 ? ["---", [t("tip.moneyBack"), fm(K.back)]] : [])], t("tip.incomeNote")) },
     { key: "expense", label: t(numText("moneyOut").short), v: ex, sub: t("home.lastMonthAmount", { amount: fm(K.exLast) }), spark: K.exSpark, col: "var(--neg)", tip: TP(t(numText("moneyOut").name), [[t("tip.soFarMonth"), fm(ex)], [t("tip.lastMonth"), fm(K.exLast)]], t("tip.expensesNote")) },
     { key: "net", label: t("num.saved"), v: net, sub: t("home.netSub"), spark: null, tip: TP(t("tip.netTitle"), [[t(numText("moneyIn").name), fm(inc)], [t(numText("moneyOut").name), fm(ex)], "---", [t("num.savedS"), fm(net)]], t("tip.netNote")) },
   ];

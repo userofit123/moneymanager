@@ -101,21 +101,21 @@ test("rows can be unchecked one by one or a whole kind at once; a rule goes with
   assert.equal(planSize(choose(plan, flip(off, "salary", ["pay one"], false))), planSize(p) - 1);
 });
 
-test("adding adds every kind, marks matching income with no category as Salary, and writes one history line", () => {
+test("adding adds every kind (salary texts as Salary rules, no category given), and writes one history line", () => {
   const S = start(), pay = S.tx.find((t) => !t.virtual && t.a > 0 && !t.c && /salary/i.test(t.desc));
   assert.ok(pay, "the made-up data has unsorted salary income");
   const { plan } = readAnswer(S, JSON.stringify({
     displayNames: [{ contains: "SPRM 0042", name: "Super-Pharm" }], cardPayments: ["visa cal charge"], salary: [pay.desc],
   }));
-  assert.ok(wouldSort(S, plan) >= 1);
+  assert.equal(wouldSort(S, plan), 0); // salary texts sort nothing: salary is not a category
   const n0 = S.cfg.nameRules.length, lines = addAnswer(S, plan);
   assert.deepEqual(S.cfg.nameRules.at(-1), { k: "SPRM 0042", n: "Super-Pharm", f: "any", m: "in" });
   assert.equal(S.cfg.nameRules.length, n0 + 1);
   assert.ok(S.cardRules.includes("visa cal charge"));
   assert.ok(S.moneyInRules.some((r) => r.k == plan.salary[0] && r.kind == "salary")); // Settings → Money coming in, as Salary
-  assert.equal(S.tx.find((t) => t.id == pay.id).c, "Salary");
+  assert.ok(!S.tx.find((t) => t.id == pay.id).c);
   assert.equal(lines.length, 1);
-  assert.match(lines[0][1], /^0 categories, 0 rules, 0 tag rules, 1 display names, 1 card payment rules, 1 salary rules, [1-9]\d* sorted$/);
+  assert.match(lines[0][1], /^0 categories, 0 rules, 0 tag rules, 1 display names, 1 card payment rules, 1 salary rules, 0 sorted$/);
 });
 
 test("the example answer the prompt shows is one the check accepts", () => {

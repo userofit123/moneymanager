@@ -1,9 +1,9 @@
 // Sorting with an AI chat: the person downloads the texts of their own transactions, an AI of their choice turns them into
 // categories, category rules, tag rules, display names, card payment texts and salary texts, and the file it gives back is
 // checked here and added. Nothing is overwritten.
-import { ruleHit, ruleTags, normTag, normD, transferIds } from "./activity.js";
+import { ruleHit, ruleTags, normTag, normD } from "./activity.js";
 import { CAT_HE } from "../catnames.js";
-import { ruleExists, genCheck, addInRule, salaryHit } from "./categories.js";
+import { ruleExists, genCheck, addInRule } from "./categories.js";
 import { inRules } from "./moneyIn.js";
 
 export const LIMITS = { cats: 200, rules: 5000, tagRules: 5000, names: 2000, cards: 50, salary: 50, name: 40, text: 60, mine: 300 };
@@ -137,15 +137,15 @@ export function choose(plan, off) {
   return out;
 }
 
-// How many entries with no category it would sort: the new rules (the first matching rule wins, as everywhere), then the salary texts.
+// How many entries with no category it would sort: the new rules (the first matching rule wins, as everywhere).
+// Salary texts sort nothing: salary is not a category (lib/moneyIn.js reads them).
 export function wouldSort(S, plan) {
-  const xs = transferIds(S), sal = plan.salary || [];
-  return (S.tx || []).filter((t) => !t.virtual && ((!t.c && plan.rules.some((r) => ruleHit(t, r.k))) || sal.some((v) => salaryHit(t, v, xs)))).length;
+  return (S.tx || []).filter((t) => !t.virtual && !t.c && plan.rules.some((r) => ruleHit(t, r.k))).length;
 }
 
-// Adds the plan: categories, rules after the person's own, tag rules, display names, card payment and salary texts; then sorts
-// the entries that have no category yet, adds the new tags to the entries that match, and marks matching income with no category
-// as Salary (as adding a salary text by hand does). Entries the person sorted by hand keep their category. Returns the change-history line.
+// Adds the plan: categories, rules after the person's own, tag rules, display names, card payment texts and salary texts (as
+// Salary money coming in rules); then sorts the entries that have no category yet and adds the new tags to the entries that
+// match. Entries the person sorted by hand keep their category. Returns the change-history line.
 export function addAnswer(S, plan) {
   const p = Object.fromEntries(KINDS.map((k) => [k, plan[k] || []]));
   if (!planSize(p)) return false;
@@ -161,6 +161,6 @@ export function addAnswer(S, plan) {
     if (!t.c) { const r = p.rules.find((x) => ruleHit(t, x.k)); if (r) { t.c = r.c; sorted++; } }
     for (const r of p.tagRules) if (ruleHit(t, r.k)) t.tags = [...new Set([...(t.tags || []), ...r.tags])];
   }
-  for (const v of p.salary) { const o = {}; if (addInRule(S, v, "salary", o)) sorted += o.c; } // Settings → Money coming in rules, as Salary
+  for (const v of p.salary) addInRule(S, v, "salary"); // Settings → Money coming in rules, as Salary
   return [["Added categories from an AI file", `${p.cats.length} categories, ${p.rules.length} rules, ${p.tagRules.length} tag rules, ${p.names.length} display names, ${p.cards.length} card payment rules, ${p.salary.length} salary rules, ${sorted} sorted`]];
 }

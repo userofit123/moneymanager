@@ -81,7 +81,8 @@ export function forecastHistory(S, H) {
   // pending rows count, the same way the Activity page counts them
   (H.rows || []).forEach((t) => {
     const i = ks.indexOf(rdOf(t).slice(0, 7)); if (i < 0) return;
-    // money in only (lib/moneyIn.js): money back lowers its category's spending, so it is never expected again as income
+    // money in only (lib/moneyIn.js): money back is neither money in nor spending, so it is never expected again
+    if (t.back) return;
     if (isIn(t)) { inc[i] += t.a; add(incS2, incKey(S, t), i, t.a); return; }
     const k = t.c || "Uncategorized"; exp[i] -= t.a; add(cats2, k, i, -t.a);
     if (CC.has(acctOf(t))) { expCard[i] -= t.a; add(card2, k, i, -t.a); }

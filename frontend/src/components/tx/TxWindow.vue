@@ -12,12 +12,12 @@ import { ask } from "../../core/ask.js";
 import { tx as heTx } from "../../core/heText.js";
 import { catNames, catColor, catLabel } from "../../core/cats.js";
 import { goActivity } from "../../core/shell.js";
-import { txOpenId, closeTx, openPop, openTx } from "../../core/txwin.js";
+import { txOpenId, closeTx, openPop } from "../../core/txwin.js";
 import { openDocs } from "../../core/docs.js";
 import { run, setCategory, addTags as addTagsAct, cpMark as cpMarkAct, ignOn as ignOnAct } from "../../core/txact.js";
 import * as A from "../../lib/txactions.js";
-import { allRows, costRows, txChips, amtText, SYM, CHIP_ICON, whyBill, futureTip, inWhy, inLink } from "../../lib/txrows.js";
-import { MARKS, MARK_EN, markOf, chosenMark, setMark, twinState } from "../../lib/moneyIn.js";
+import { allRows, costRows, txChips, amtText, SYM, CHIP_ICON, whyBill, futureTip, inWhy } from "../../lib/txrows.js";
+import { MARKS, MARK_EN, markOf, chosenMark, setMark } from "../../lib/moneyIn.js";
 import { kinds, displayName, duplicateIds, rmOf, instOf, cardOf, detailRows, flat, prettyKey } from "../../lib/activity.js";
 import { catJarsOf } from "../../lib/jars.js";
 import { fm, f0 } from "../../format.js";
@@ -94,7 +94,7 @@ const removeTag = (x, g) => run(A.removeTag, x.id, g);
 const mi = computed(() => {
   const x = cur.value; if (!x || !(x.a > 0) || x.virtual || x.balUpd || isXf(x) || K.value.isIgn(x)) return null;
   const r = K.value.inOf(x); if (!r) return null;
-  return { r, mark: markOf(r), chosen: chosenMark(S.value, x), link: inLink(S.value, r) };
+  return { r, mark: markOf(r), chosen: chosenMark(S.value, x) };
 });
 // what the app would decide without the person's choice (shown on "Automatic")
 const autoMark = computed(() => { const x = cur.value; if (!mi.value?.chosen) return ""; const S2 = { ...S.value, inMark: { ...(S.value.inMark || {}) }, tx: S.value.tx.map((y) => (y.id == x.id ? { ...y, mk: undefined } : y)) }; delete S2.inMark[x.id]; return markOf(kinds(S2, today.value).inOf(x)); });
@@ -125,10 +125,8 @@ const rels = computed(() => {
   if (k.isFut(x)) add("cal", t("activity.upcoming"), futureTip(S.value, x));
   if (rmOf(x) && real) add("cal", t("activity.w.movedTitle"), t("activity.w.movedText", { d: dstr(x.d), m: mk(rmOf(x)) }), [{ label: t("activity.w.mChange"), run: () => openPop("month", { id: x.id }) }, { label: t("activity.w.mResetBtn"), run: () => confirmDo(t("activity.w.mResetQ"), t("activity.w.mResetText"), () => { close(); if (!run(A.moReset, x.id).err) toast(t("activity.w.mBack")); }) }], "amber");
   if (ign) add("off", t("activity.d.ignTitle"), t("activity.d.ignText"), [{ label: t("activity.d.ignOff"), run: () => confirmDo(t("activity.d.ignOffQ"), t("activity.d.ignOffText"), () => { close(); run(A.ignOff, x.id); }) }]);
-  if (tw) { const card = S.value.accounts.find((a) => a.n == x.to)?.kind == "card", w1 = card ? t("txw.w.onCard") : t("txw.w.inBank"), w2 = card ? t("txw.w.inBank") : t("txw.w.onCard"), ts = twinState(S.value, x, k.inOf);
-    // the same refund on the card and in the bank: counted once already (a note), or still twice (choose which to leave out)
-    if (ts?.once) add("twin", t("txw.mi.twinT"), t("txw.mi.twin", { amt: fm(x.a), w1, d1: dstr(x.d), w2, d2: dstr(tw.d), name: name(tw) }));
-    else add("twin", t("txw.w.twinT"), t("txw.w.twin", { amt: fm(x.a), w1, d1: dstr(x.d), w2, d2: dstr(tw.d), name: name(tw) }), [{ label: t("txw.w.ignCard"), cls: "f", run: () => confirmDo(t("txw.w.ignCardQ"), t("activity.d.ignOnText"), () => { close(); ignOnAct(card ? x.id : tw.id); }) }, { label: t("txw.w.ignBank"), run: () => confirmDo(t("txw.w.ignBankQ"), t("activity.d.ignOnText"), () => { close(); ignOnAct(card ? tw.id : x.id); }) }], "amber"); }
+  if (tw) { const card = S.value.accounts.find((a) => a.n == x.to)?.kind == "card", w1 = card ? t("txw.w.onCard") : t("txw.w.inBank"), w2 = card ? t("txw.w.inBank") : t("txw.w.onCard");
+    add("twin", t("txw.w.twinT"), t("txw.w.twin", { amt: fm(x.a), w1, d1: dstr(x.d), w2, d2: dstr(tw.d), name: name(tw) }), [{ label: t("txw.w.ignCard"), cls: "f", run: () => confirmDo(t("txw.w.ignCardQ"), t("activity.d.ignOnText"), () => { close(); ignOnAct(card ? x.id : tw.id); }) }, { label: t("txw.w.ignBank"), run: () => confirmDo(t("txw.w.ignBankQ"), t("activity.d.ignOnText"), () => { close(); ignOnAct(card ? tw.id : x.id); }) }], "amber"); }
   if (cp) add("card", t("activity.type.cardpay"), cardOf(x, k.ci) ? t("activity.d.cpText", { card: cardOf(x, k.ci) }) : t("activity.d.cpTextAny"), [{ label: t("activity.d.cpCount"), run: () => confirmDo(t("activity.d.cpCountQ"), t("activity.d.cpCountText"), () => { close(); run(A.cpCount, x.id); }) }]);
   else if (ov) add("card", t("activity.d.counted1"), t("activity.d.counted1Text"), [{ label: t("activity.d.cpUncount"), run: () => confirmDo(t("activity.d.cpUncountQ"), t("activity.d.cpUncountText"), () => { close(); run(A.cpUncount, x.id); }) }]);
   if (pair) { const cx = costRows(S.value).find((r) => r.id == "v" + pair.o); add("swap", t("activity.type.transfer"), t("activity.w.xfText", { cost: cx ? t("activity.w.xfCost", { amt: fm(cx.cost) }) : t("activity.w.xfNoCost") }), [{ label: t("activity.r.notXf"), run: () => confirmDo(t("activity.d.xfNoQ"), t("activity.d.xfNoText"), () => { close(); run(A.xfNo, pair.o); }) }]); }
@@ -199,7 +197,6 @@ function copyDetails() {
           <details v-if="mi" class="txs2" data-s="mi" :open="!!sec.mi" @toggle="toggleSec('mi', $event)"><summary><span class="sct">{{ t("txw.mi.title") }}</span><em>{{ t("txw.mi.k." + mi.mark) }}</em></summary><div class="sbd">
             <div class="sm">{{ t("txw.mi.tip." + mi.mark) }}</div>
             <div class="sm" style="margin-top:4px"><b>{{ mi.chosen ? t("txw.mi.why.chosen") : inWhy(mi.r) }}</b></div>
-            <div v-if="mi.link" class="sm" style="margin-top:6px">{{ t("txw.mi.forText", { n: name(mi.link), d: dstr(mi.link.d), amt: fm(-mi.link.a) }) }} <button type="button" class="btn o s" @click="openTx(mi.link.id)">{{ t("txw.mi.openBuy") }}</button></div>
             <div class="kchips" role="radiogroup" :aria-label="t('txw.mi.title')"><button v-for="m in MARKS" :key="m" type="button" role="radio" :aria-checked="mi.mark === m" :class="{ on: mi.mark === m }" @click="markIn(cur, m)">{{ t("txw.mi.k." + m) }}</button><button v-if="mi.chosen" type="button" :data-tip="t('txw.mi.autoTip', { k: t('txw.mi.k.' + autoMark) })" @click="markIn(cur, '')">{{ t("txw.mi.auto") }}</button></div>
           </div></details>
           <details v-if="!cur.virtual && !isXf(cur)" class="txs2" data-s="org" :open="!!sec.org" @toggle="toggleSec('org', $event)"><summary><span class="sct">{{ t("activity.d.organise") }}</span></summary><div class="sbd">

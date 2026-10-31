@@ -76,11 +76,13 @@ same("add a card payment rule", (N) => C.addCardRule(N, " Leumi-Card  חיוב. 
 same("a card rule that exists is refused", (N) => C.addCardRule(N, "MAX charge"));
 same("a card rule needs two letters", (N) => C.addCardRule(N, "a."));
 same("delete a card payment rule", (N) => C.deleteCardRule(N, 0));
-same("add a money coming in rule as Salary (gives the income you have the Salary category)", (N) => C.addInRule(N, "WIX", "salary"));
-same("a money coming in rule with no match", (N) => C.addInRule(N, "acme", "people"));
+same("add a money coming in rule as Salary (no entry changes: salary is not a category)", (N) => C.addInRule(N, "WIX", "salary"));
+same("add a money coming in rule as Money back", (N) => C.addInRule(N, "insurer", "back"));
+same("a money coming in rule with no match", (N) => C.addInRule(N, "acme", "salary"));
 same("a money coming in rule with an unknown kind is refused", (N) => C.addInRule(N, "acme", "zzz"));
-same("old salary texts are read as Salary rules until they are moved", (N) => { N.salaryRules = ["wix"]; delete N.moneyInRules; return C.addInRule(N, "wix", "earned"); });
-same("change what a money coming in rule gives", (N) => { N.moneyInRules = [{ k: "wix", kind: "salary" }]; return C.setInRuleKind(N, 0, "earned"); });
+same("a money coming in rule of an older kind is refused", (N) => C.addInRule(N, "acme", "people"));
+same("old salary texts are read as Salary rules until they are moved", (N) => { N.salaryRules = ["wix"]; delete N.moneyInRules; return C.addInRule(N, "wix", "salary"); });
+same("change what a money coming in rule gives", (N) => { N.moneyInRules = [{ k: "wix", kind: "salary" }]; return C.setInRuleKind(N, 0, "back"); });
 same("delete a money coming in rule", (N) => { N.moneyInRules = [{ k: "wix", kind: "salary" }]; return C.deleteInRule(N, 0); });
 
 // The edits typed into a rule row, with their exact lines.

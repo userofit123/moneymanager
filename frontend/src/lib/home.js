@@ -57,7 +57,7 @@ export const inILS = (a, fx) => { const r = fxRate(fx, a.cur); return r > 0 ? a.
 export function homeModel(S, now = new Date(), fx = {}) {
   S = withTransfers(S || {});
   const NOW = now, MK = NOW.getFullYear() + "-" + p2(NOW.getMonth() + 1), TODAY = MK + "-" + p2(NOW.getDate()), DAYN = NOW.getDate(), DIM = new Date(NOW.getFullYear(), NOW.getMonth() + 1, 0).getDate();
-  const { A, k, costRows, notIn } = countedTx(S, TODAY), tx = S.tx || [], jarsAll = S.jars || [], cfg = { budgetPct: 80, ...(S.cfg || {}) }, budgets = S.budgets || {};
+  const { A, k, costRows } = countedTx(S, TODAY), tx = S.tx || [], jarsAll = S.jars || [], cfg = { budgetPct: 80, ...(S.cfg || {}) }, budgets = S.budgets || {};
   // the exchange rate of a currency (fxRate); with none at all, its account is listed as not counted (noRate)
   const rate = (c) => fxRate(fx, c), hasRate = (a) => rate(a.cur) > 0;
   const accts = (S.accounts || []).filter((a) => a.kind != "card" && !a.hide);
@@ -71,17 +71,16 @@ export function homeModel(S, now = new Date(), fx = {}) {
   // that day's rate. null when any of them has none from then: Recap then works the start out backwards (lib/recap.js).
   const ms0 = S.monthStart?.[MK]?.acc, startSaved = ms0 && cashAccts.length && cashAccts.every((a) => Number.isFinite(ms0[a.id])) ? sum(cashAccts.map((a) => ms0[a.id])) : null;
   const ALL = tx.concat(costRows);
-  // money in, or spending (money back lowers it: lib/moneyIn.js isOut, its -t.a is below 0)
+  // money in, or spending (money back is neither: lib/moneyIn.js)
   const monthSum = (m, sg) => sum(A.filter((t) => (sg > 0 ? isIn(t) : isOut(t)) && rdOf(t).startsWith(m)).map((t) => (sg > 0 ? t.a : -t.a)));
   const spendM = {}; A.filter((t) => isOut(t) && rdOf(t).startsWith(MK)).forEach((t) => { const c = t.c || "Uncategorized"; spendM[c] = (spendM[c] || 0) - t.a; });
-  // a category with more money back than spending this month is not listed
-  const spend = Object.entries(spendM).filter((x) => x[1] > 0.005).sort((a, b) => b[1] - a[1]);
+  const spend = Object.entries(spendM).sort((a, b) => b[1] - a[1]);
 
   // Six months of history (this one last). Months before the first data are "no history".
   const ms = []; for (let i = 5; i >= 0; i--) ms.push(addM(MK, -i));
   const hist = { keys: ms, inc: ms.map(() => 0), exp: ms.map(() => 0), first: 0 };
   { const first = tx.filter((t) => !k.isFut(t) && !t.virtual).reduce((m, t) => (t.d < m ? t.d : m), "9999-99-99"); let fi = first == "9999-99-99" ? 5 : ms.indexOf(first.slice(0, 7)); if (fi < 0) fi = first.slice(0, 7) < ms[0] ? 0 : 5; if (first != "9999-99-99" && +first.slice(8) > 10 && fi < 5) fi++; hist.first = Math.max(0, Math.min(5, fi)); }
-  A.forEach((t) => { const i = ms.indexOf(rdOf(t).slice(0, 7)); if (i < 0) return; if (isIn(t)) hist.inc[i] += t.a; else hist.exp[i] -= t.a; });
+  A.forEach((t) => { const i = ms.indexOf(rdOf(t).slice(0, 7)); if (i < 0) return; if (isIn(t)) hist.inc[i] += t.a; else if (isOut(t)) hist.exp[i] -= t.a; });
   const budMonths = [2, 3, 4].filter((i) => i >= hist.first).map((i) => ms[i]);
   const monthlyByCat = {}; A.filter(isOut).forEach((t) => { const c = t.c || "Uncategorized", m = rdOf(t).slice(0, 7); (monthlyByCat[c] = monthlyByCat[c] || {})[m] = (monthlyByCat[c][m] || 0) - t.a; });
 
@@ -162,7 +161,7 @@ export function homeModel(S, now = new Date(), fx = {}) {
   const groups = []; accts.filter((a) => !(a.kind == "pension" && !(+a.v > 0))).forEach((a) => { let g = groups.find((x) => x.n == a.n); if (!g) groups.push((g = { n: a.n, L: [] })); g.L.push(a); });
   groups.forEach((g) => { g.total = sum(g.L.map(accILS)); g.manual = g.L.every((x) => x.manual); g.wallet = g.L[0].kind == "wallet"; g.multi = g.L.length > 1 || g.wallet || g.L.some((x) => x.cur != "ILS"); });
 
-  const inc = monthSum(MK, 1), ex = monthSum(MK, -1), back = splitIn(A, (t) => rdOf(t).startsWith(MK)).back, pen = sum(accts.filter((a) => a.kind == "pension").map(accILS));
+  const inc = monthSum(MK, 1), ex = monthSum(MK, -1), split = splitIn(A, (t) => rdOf(t).startsWith(MK)), pen = sum(accts.filter((a) => a.kind == "pension").map(accILS));
   const rd = new Set(cashAccts.filter((a) => a.at || a.v).map((a) => a.src).filter(Boolean));
   const missing = cashAccts.filter((a) => a.kind != "custom" && !a.at && !a.v && !a.manual && !(a.src && rd.has(a.src))).map((a) => a.n);
   const recent = ALL.filter((t) => !k.isXf(t) && t.d >= MK && !k.isFut(t)).sort((a, b) => b.d.localeCompare(a.d)).slice(0, 5);
@@ -181,14 +180,14 @@ export function homeModel(S, now = new Date(), fx = {}) {
 
   return {
     MK, pm, DAYN, DIM, today: TODAY, k,
-    kpi: { cash, pen, withPension: cash + pen, inc, ex, back, net: Math.round(inc) - Math.round(ex), incLast: hist.inc[4], exLast: hist.exp[4], missing, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a), lbl: accCur(a) })), notCounted: accts.filter((a) => (a.kind == "bank" || a.kind == "wallet") && !a.inNW).map((a) => a.n), noRate, nwSpark: nwSpark.filter((v) => v > 0).length > 1 ? nwSpark : null, incSpark: hist.inc.some((v) => v > 0) ? hist.inc : null, exSpark: hist.exp.some((v) => v > 0) ? hist.exp : null },
+    kpi: { cash, pen, withPension: cash + pen, inc, ex, back: split.back, sal: split.salary, net: Math.round(inc) - Math.round(ex), incLast: hist.inc[4], exLast: hist.exp[4], missing, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a), lbl: accCur(a) })), notCounted: accts.filter((a) => (a.kind == "bank" || a.kind == "wallet") && !a.inNW).map((a) => a.n), noRate, nwSpark: nwSpark.filter((v) => v > 0).length > 1 ? nwSpark : null, incSpark: hist.inc.some((v) => v > 0) ? hist.inc : null, exSpark: hist.exp.some((v) => v > 0) ? hist.exp : null },
     groups, cards, recent, upcoming, budgets: budgetsSorted, jars, spend, rate,
     flow: { ...flow0, saved: inJars + buffer, aside, toCome, free, over, freeRaw: raw, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a), lbl: accCur(a) })) },
     has, any,
     // For the Jars page: bill names by their match text, and six months of income and spending (this one last).
     billNames: Object.fromEntries(BC.map((b) => [b.match, b.n])), hist,
     // For the Jars page's pop-ups and "Full by" dates: every bill, and the counted payments.
-    billsAll: BC, rows: A, notIn, S, nameOf: (t) => nameOf(S, t),
+    billsAll: BC, rows: A, S, nameOf: (t) => nameOf(S, t),
     startSaved,
   };
 }

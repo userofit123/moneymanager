@@ -122,14 +122,14 @@ test("an English history sentence is written again in Hebrew, the same as the li
   assert.ok(seen.length >= 7);
 });
 
-test("a large amount's title follows what the money is: money back, from a person, money in", async () => {
+test("a large amount's title follows what the money is: money back, salary, income", async () => {
   const S = demoState(); let id = 95000;
   const add = (o) => S.tx.push({ id: id++, c: "", tags: [], docs: [], note: "", d: "2026-10-15", ...o });
   add({ from: "Big furniture", to: "Max", desc: "Big furniture refund", a: 6000 }); // came in on a card: money back
-  add({ from: "Dana", to: "Bank Hapoalim", desc: "Bit Dana", a: 5500 }); // Bit: from a person
-  add({ from: "Globex", to: "Bank Hapoalim", desc: "Globex bonus", a: 7000 }); // other income
+  add({ from: "Globex", to: "Bank Hapoalim", desc: "Globex pay", a: 7000, mk: "salary" }); // marked as salary
+  add({ from: "", to: "Bank Hapoalim", desc: "זיכוי", a: 5500 }); // a bank deposit called "credit": income
   const c = await ctxOf("en"), title = (n) => { const x = newAlerts(S).find((a) => a.key == "large" && a.p.name == n); return x && alertTexts(x, c)[0]; };
   assert.equal(title("Big furniture refund"), "Large money back: Big furniture refund");
-  assert.equal(title("Bit Dana"), "Large amount from a person: Bit Dana");
-  assert.equal(title("Globex bonus"), "Large income: Globex bonus");
+  assert.equal(title("Globex pay"), "Salary came in: Globex pay");
+  assert.equal(title("זיכוי"), "Large income: זיכוי");
 });

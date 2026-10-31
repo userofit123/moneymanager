@@ -106,7 +106,8 @@
   "Updated a budget (suggested)": "עודכן תקציב (מוצע)",
   "Updated past transactions": "עודכנו תנועות קודמות",
   "Updated pension": "עודכנה הפנסיה",
-  "Updated profile": "הפרופיל עודכן"
+  "Updated profile": "הפרופיל עודכן",
+  "Money coming in kinds updated": "סוגי הכסף שנכנס עודכנו"
  },
  "history lines in saved results": {
   "#food → #Trip · 3 transactions": "#food ← #Trip · 3 תנועות",
@@ -276,7 +277,9 @@
   "test": "בדיקה",
   "yearly": "שנתי",
   "3 categories, 10 rules, 2 tag rules, 12 sorted": "3 קטגוריות, 10 כללים, 2 כללי תגיות, 12 תנועות שויכו",
-  "3 categories, 10 rules, 2 tag rules, 4 display names, 1 card payment rules, 1 salary rules, 12 sorted": "3 קטגוריות, 10 כללים, 2 כללי תגיות, 4 שמות תצוגה, 1 כללי תשלום כרטיס, 1 כללי משכורת, 12 תנועות שויכו"
+  "3 categories, 10 rules, 2 tag rules, 4 display names, 1 card payment rules, 1 salary rules, 12 sorted": "3 קטגוריות, 10 כללים, 2 כללי תגיות, 4 שמות תצוגה, 1 כללי תשלום כרטיס, 1 כללי משכורת, 12 תנועות שויכו",
+  "1 rules now Salary, 2 rules removed, 3 choices moved to Income or automatic": "כלל אחד הוא עכשיו משכורת, 2 כללים הוסרו, 3 בחירות הועברו להכנסה או לאוטומטי",
+  "Acme pay → Income": "Acme pay ← הכנסה"
  },
  "server messages": {
   "\nAutomatic attempts are paused. Check the login, then unlock it in Settings.": "\nהניסיונות האוטומטיים מושהים. בדקו את פרטי ההתחברות ואז בטלו את הנעילה בהגדרות.",

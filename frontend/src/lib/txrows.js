@@ -5,9 +5,9 @@ import { i18n } from "../i18n.js";
 import { fm, f0 } from "../format.js";
 import { dcell, dstr } from "../dates.js";
 import { TP } from "../core/tooltip.js";
-import { rmOf, instOf, cardOf, displayName } from "./activity.js";
-import { billOf } from "./txactions.js";
-import { markOf, twinState } from "./moneyIn.js";
+import { rmOf, instOf, cardOf } from "./activity.js";
+import { billOf, refundTwin } from "./txactions.js";
+import { markOf } from "./moneyIn.js";
 import { upInstRows } from "./bills.js";
 import { SRC_NAMES } from "../catnames.js";
 
@@ -68,11 +68,8 @@ export function txChips(S, x, c) {
   if (x.pending && !x.virtual) add("p-pend", t("activity.chip.pending"), t("activity.chip.pendingTip"));
   if (K.isIgn(x)) add("p-ign", t("activity.chip.ignored"), t("activity.chip.ignoredTip"));
   else {
-    // a refund on the card and again in the bank: counted once already (the bank one carries the label), or still twice
-    const tw = !x.virtual && K.inOf ? twinState(S, x, K.inOf) : null;
-    if (tw && tw.once) { if (tw.mine) add("p-twin", t("txw.mi.chip.twinOnce"), t("txw.mi.chip.twinOnceTip", { d: dstr(tw.tw.d) })); }
-    else if (tw) add("p-twin", t("txw.chip.twin"), t("txw.chip.twinTip"));
-    if (!(tw && tw.mine) && !c.noKind) { const k = inChip(S, x, K); if (k) add("p-mi p-" + k.cls, k.label, k.tip); }
+    if (refundTwin(S, x)) add("p-twin", t("txw.chip.twin"), t("txw.chip.twinTip"));
+    if (!c.noKind) { const k = inChip(x, K); if (k) add("p-mi p-" + k.cls, k.label, k.tip); }
   }
   if (K.isCp(x)) add("p-card", t("activity.chip.cardpay"), t("activity.chip.cardpayTip", { card: cardOf(x, K.ci) || t("activity.chip.card") }));
   if (x.upBill != null) {
@@ -87,19 +84,14 @@ export function txChips(S, x, c) {
   return out;
 }
 // ---- what a money coming in is (lib/moneyIn.js) ----
-// Plain words for why the app decided what a money coming in is (r.why).
-export const inWhy = (r) => t("txw.mi.why." + (r?.why || "rest"));
-// The purchase money back is for, or null.
-export const inLink = (S, r) => (r && r.link != null ? (S.tx || []).find((y) => y.id == r.link) || null : null);
-const short = (s, n = 26) => (s.length > n ? s.slice(0, n - 1).trimEnd() + "…" : s);
-// The label for a money coming in row ({ cls, label, tip }), or null for rows that are not money in (transfers have their own).
-export function inChip(S, x, K) {
+// Plain words for why a money coming in is what it is (r.why; a rule names its text).
+export const inWhy = (r) => t("txw.mi.why." + (r?.why || "income"), { k: r?.rule || "" });
+// The label for a salary or money back row ({ cls, label, tip }); null for other money in (no label) and for rows that
+// are not money in (transfers have their own).
+export function inChip(x, K) {
   if (!(x.a > 0) || x.virtual || x.balUpd || K.isXf(x) || !K.inOf) return null;
-  const r = K.inOf(x); if (!r) return null;
-  const m = markOf(r), b = m == "back" ? inLink(S, r) : null;
-  const label = b ? t("txw.mi.chip.backFor", { n: short(displayName(S, b)) }) : t("txw.mi.chip." + m);
-  const tip = TP(t("txw.mi.k." + m), b ? [[t("txw.mi.for"), displayName(S, b) + " · " + dstr(b.d) + " · " + fm(-b.a)]] : [], t("txw.mi.tip." + m) + "\n" + inWhy(r));
-  return { cls: m, label, tip };
+  const m = markOf(K.inOf(x)); if (m == "income") return null;
+  return { cls: m, label: t("txw.mi.chip." + m), tip: TP(t("txw.mi.k." + m), [], t("txw.mi.tip." + m) + "\n" + inWhy(K.inOf(x))) };
 }
 
 // "+₪1,250" / "−₪80" ("≈" in front of an expected bill); a balance update is "balance +₪500".

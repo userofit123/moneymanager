@@ -121,10 +121,9 @@ test("a new budget starts at the usual month, to the nearest 50", () => {
   assert.deepEqual(["Food", "Fun", "Uncategorized"].map((k) => row(R.cats, k).sugBudget), [200, 50, ""]);
 });
 
-test("money back lowers its category's spending in its month, and is not money in", () => {
-  const s = S(); s.tx.push(tx(16, "2026-09-08", "Super C", 40, "Refunds", [], { from: "Super C", to: "Bank" }));
+test("money back is neither spending nor money in: the purchase's category keeps its full spending", () => {
+  const s = S(); s.tx.push(tx(16, "2026-09-08", "Super C", 40, "Food", [], { from: "Super C", to: "Bank", mk: "back" }));
   const R = run(3, s), r = row(R.cats, "Food");
-  assert.equal(r.out, 560);
+  assert.equal(r.out, 600);
   assert.equal(r.in, 50);
-  assert.equal(row(R.cats, "Refunds"), undefined);
 });

@@ -2052,36 +2052,6 @@
   "text": "Card payments 0 If a payment from your bank contains the text, it is the bill of a credit card. It is not counted as spending, because each purchase is already counted on the card. Add rule No rules of your own yet. Mark one card payment in Activity and the app offers to make one for you, or add one above. Recognised automatically, with no rule: Isracard · ישראכרט, Visa Cal · כ.א.ל · ויזה כאל, Max · מקס · מקס איט פי, American Express · אמריקן אקספרס, Diners · דיינרס, Leumi Card · לאומי קארד. Also any bank payment equal to what a card was charged on that day.",
   "tips": []
  },
- "add-a-money-coming-in-rule-as-salary-gives-the-income-you-have-the-salary-category": {
-  "data": {
-   "cats": {"Food":0,"Dining":1,"Fun":2,"Bills":3,"Income":99,"Uncategorized":4,"Salary":99},
-   "tx": [
-    [1,"Food",["food","home"]],
-    [2,"Dining",[]],
-    [3,"Dining",["Trip"]],
-    [4,"Dining",["food"]],
-    [5,"Fun",["tv"]],
-    [6,"Fun",[]],
-    [7,"",[]],
-    [8,"Salary",[]],
-    [9,"Salary",[]],
-    [10,"",[]],
-    [11,"",[]],
-    [12,"Food",["food"]],
-    [13,"Bills",[]]
-   ],
-   "rules": [{"k":"shufersal","c":"Dining","t":""},{"k":"cafe","c":"Dining","t":""}],
-   "tagRules": [{"k":"netflix","t":"tv,fun"},{"k":"pharm","t":"health"}],
-   "budgets": {"Food":1000,"Dining":500},
-   "bills": ["Food"],
-   "jars": [[{"c":"Food","since":"2026-01-01"},{"c":"Dining","since":"2026-02-01"}]],
-   "names": [{"k":"wix","n":"Salary","f":"from","m":"in"}],
-   "card": ["max charge"],
-   "sal": [],
-   "inRules": [{"k":"wix","kind":"salary"}]
-  },
-  "lines": [["Money coming in rule","\"wix\" → Salary"]]
- },
  "a-money-coming-in-rule-with-no-match": {
   "data": {
    "cats": {"Food":0,"Dining":1,"Fun":2,"Bills":3,"Income":99,"Uncategorized":4},
@@ -2108,9 +2078,9 @@
    "names": [{"k":"wix","n":"Salary","f":"from","m":"in"}],
    "card": ["max charge"],
    "sal": [],
-   "inRules": [{"k":"acme","kind":"people"}]
+   "inRules": [{"k":"acme","kind":"salary"}]
   },
-  "lines": [["Money coming in rule","\"acme\" → From a person"]]
+  "lines": [["Money coming in rule","\"acme\" → Salary"]]
  },
  "a-money-coming-in-rule-with-an-unknown-kind-is-refused": {
   "data": {
@@ -2196,9 +2166,9 @@
    "names": [{"k":"wix","n":"Salary","f":"from","m":"in"}],
    "card": ["max charge"],
    "sal": [],
-   "inRules": [{"k":"wix","kind":"earned"}]
+   "inRules": [{"k":"wix","kind":"back"}]
   },
-  "lines": [["Changed money coming in rule","\"wix\" → Earned"]]
+  "lines": [["Changed money coming in rule","\"wix\" → Money back"]]
  },
  "delete-a-money-coming-in-rule": {
   "data": {
@@ -2251,7 +2221,7 @@
    "div.rlnone.sm",
    "div.sfoot"
   ],
-  "text": "Money coming in 0 If money coming in holds the text (in its transaction name or the payer), it is what you pick here. Your rules come before what the app works out by itself. Add rule No rules of your own yet. Add a payer above, for example your employer. Worked out with no rule: money that says משכורת, שכר, salary or payroll is Salary; the same payer paying about the same every month is Earned; money in on a credit card, or that says זיכוי, החזר or refund, is Money back; Bit and PayBox are From a person; a cash deposit is Your own money; the rest is Other income.",
+  "text": "Money coming in 0 If money coming in holds the text (in its transaction name or the payer), it is a Salary or Money back, as you pick here. Add rule No rules of your own yet. Add a payer above, for example your employer. With no rule: money that came in on a credit card is Money back, and all other money coming in is Income. Nothing is decided from words in the text.",
   "tips": []
  },
  "page-empty-setInRules": {
@@ -2275,7 +2245,96 @@
    "div.rlnone.sm",
    "div.sfoot"
   ],
-  "text": "Money coming in 0 If money coming in holds the text (in its transaction name or the payer), it is what you pick here. Your rules come before what the app works out by itself. Add rule No rules of your own yet. Add a payer above, for example your employer. Worked out with no rule: money that says משכורת, שכר, salary or payroll is Salary; the same payer paying about the same every month is Earned; money in on a credit card, or that says זיכוי, החזר or refund, is Money back; Bit and PayBox are From a person; a cash deposit is Your own money; the rest is Other income.",
+  "text": "Money coming in 0 If money coming in holds the text (in its transaction name or the payer), it is a Salary or Money back, as you pick here. Add rule No rules of your own yet. Add a payer above, for example your employer. With no rule: money that came in on a credit card is Money back, and all other money coming in is Income. Nothing is decided from words in the text.",
   "tips": []
+ },
+ "add-a-money-coming-in-rule-as-salary-no-entry-changes-salary-is-not-a-category": {
+  "data": {
+   "cats": {"Food":0,"Dining":1,"Fun":2,"Bills":3,"Income":99,"Uncategorized":4},
+   "tx": [
+    [1,"Food",["food","home"]],
+    [2,"Dining",[]],
+    [3,"Dining",["Trip"]],
+    [4,"Dining",["food"]],
+    [5,"Fun",["tv"]],
+    [6,"Fun",[]],
+    [7,"",[]],
+    [8,"",[]],
+    [9,"Uncategorized",[]],
+    [10,"",[]],
+    [11,"",[]],
+    [12,"Food",["food"]],
+    [13,"Bills",[]]
+   ],
+   "rules": [{"k":"shufersal","c":"Dining","t":""},{"k":"cafe","c":"Dining","t":""}],
+   "tagRules": [{"k":"netflix","t":"tv,fun"},{"k":"pharm","t":"health"}],
+   "budgets": {"Food":1000,"Dining":500},
+   "bills": ["Food"],
+   "jars": [[{"c":"Food","since":"2026-01-01"},{"c":"Dining","since":"2026-02-01"}]],
+   "names": [{"k":"wix","n":"Salary","f":"from","m":"in"}],
+   "card": ["max charge"],
+   "sal": [],
+   "inRules": [{"k":"wix","kind":"salary"}]
+  },
+  "lines": [["Money coming in rule","\"wix\" → Salary"]]
+ },
+ "add-a-money-coming-in-rule-as-money-back": {
+  "data": {
+   "cats": {"Food":0,"Dining":1,"Fun":2,"Bills":3,"Income":99,"Uncategorized":4},
+   "tx": [
+    [1,"Food",["food","home"]],
+    [2,"Dining",[]],
+    [3,"Dining",["Trip"]],
+    [4,"Dining",["food"]],
+    [5,"Fun",["tv"]],
+    [6,"Fun",[]],
+    [7,"",[]],
+    [8,"",[]],
+    [9,"Uncategorized",[]],
+    [10,"",[]],
+    [11,"",[]],
+    [12,"Food",["food"]],
+    [13,"Bills",[]]
+   ],
+   "rules": [{"k":"shufersal","c":"Dining","t":""},{"k":"cafe","c":"Dining","t":""}],
+   "tagRules": [{"k":"netflix","t":"tv,fun"},{"k":"pharm","t":"health"}],
+   "budgets": {"Food":1000,"Dining":500},
+   "bills": ["Food"],
+   "jars": [[{"c":"Food","since":"2026-01-01"},{"c":"Dining","since":"2026-02-01"}]],
+   "names": [{"k":"wix","n":"Salary","f":"from","m":"in"}],
+   "card": ["max charge"],
+   "sal": [],
+   "inRules": [{"k":"insurer","kind":"back"}]
+  },
+  "lines": [["Money coming in rule","\"insurer\" → Money back"]]
+ },
+ "a-money-coming-in-rule-of-an-older-kind-is-refused": {
+  "data": {
+   "cats": {"Food":0,"Dining":1,"Fun":2,"Bills":3,"Income":99,"Uncategorized":4},
+   "tx": [
+    [1,"Food",["food","home"]],
+    [2,"Dining",[]],
+    [3,"Dining",["Trip"]],
+    [4,"Dining",["food"]],
+    [5,"Fun",["tv"]],
+    [6,"Fun",[]],
+    [7,"",[]],
+    [8,"",[]],
+    [9,"Uncategorized",[]],
+    [10,"",[]],
+    [11,"",[]],
+    [12,"Food",["food"]],
+    [13,"Bills",[]]
+   ],
+   "rules": [{"k":"shufersal","c":"Dining","t":""},{"k":"cafe","c":"Dining","t":""}],
+   "tagRules": [{"k":"netflix","t":"tv,fun"},{"k":"pharm","t":"health"}],
+   "budgets": {"Food":1000,"Dining":500},
+   "bills": ["Food"],
+   "jars": [[{"c":"Food","since":"2026-01-01"},{"c":"Dining","since":"2026-02-01"}]],
+   "names": [{"k":"wix","n":"Salary","f":"from","m":"in"}],
+   "card": ["max charge"],
+   "sal": []
+  },
+  "lines": []
  }
 }

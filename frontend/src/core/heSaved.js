@@ -53,7 +53,7 @@ const RULES = [
   [/^GitHub answered HTTP (\d+)$/, (a) => "GitHub החזיר שגיאה " + a],
   [/^no exchange rate for (\w+) on (\S+); run a rates refresh first$/, (c, d) => "אין שער חליפין ל‑" + c + " ב‑" + d + ". רעננו קודם את השערים"],
   // "What is this money?" in the transaction window: "<name> → Money back"
-  [/^(.+) → (Earned|Salary|Money back|From a person|Your own money|Other income|Automatic)$/, (a, k) => a + " ← " + ({ Earned: "הכנסה מעבודה", Salary: "משכורת", "Money back": "החזר כספי", "From a person": "מאדם", "Your own money": "הכסף שלכם", "Other income": "הכנסה אחרת", Automatic: "אוטומטי" })[k]],
+  [/^(.+) → (Income|Earned|Salary|Money back|From a person|Your own money|Other income|Automatic)$/, (a, k) => a + " ← " + ({ Income: "הכנסה", Earned: "הכנסה מעבודה", Salary: "משכורת", "Money back": "החזר כספי", "From a person": "מאדם", "Your own money": "הכסף שלכם", "Other income": "הכנסה אחרת", Automatic: "אוטומטי" })[k]],
   // history details written by the server
   [/^(.+): matched your hand-entered transaction$/, (a) => a + ": הותאם לתנועה שהזנתם ידנית"],
   [/^(.+): browser profile saved for later automatic logins$/, (a) => a + ": פרופיל הדפדפן נשמר להתחברויות אוטומטיות בהמשך"],
@@ -69,6 +69,7 @@ const RULES = [
   [/^(.+): it matches what the card charged on (.+), so it is not counted as spending$/, (d, dt) => d + ": זה תואם למה שהכרטיס חויב ב-" + dt + ", ולכן לא נספר כהוצאה"],
   [/^(\d+) income entr(?:y|ies) marked as Salary \(it says so, or the same payer pays a similar amount every month\)$/, (n) => (n == 1 ? "הכנסה אחת סומנה" : n + " הכנסות סומנו") + " כמשכורת (כתוב כך, או שאותו משלם מעביר סכום דומה כל חודש)"],
   [/^(\d+) income entr(?:y|ies) marked as Salary \(it says so, or one of your rules says so\)$/, (n) => (n == 1 ? "הכנסה אחת סומנה" : n + " הכנסות סומנו") + " כמשכורת (כתוב כך, או שאחד הכללים שלך אומר כך)"],
+  [/^(\d+) rules now Salary, (\d+) rules removed, (\d+) choices moved to Income or automatic$/, (a, b, c) => one(a, "כלל אחד הוא", a + " כללים הם") + " עכשיו משכורת, " + one(b, "כלל אחד הוסר", b + " כללים הוסרו") + ", " + one(c, "בחירה אחת הועברה", c + " בחירות הועברו") + " להכנסה או לאוטומטי"],
   [/^Salary texts that are now money coming in rules \(→ Salary\): (\d+)$/, (n) => "טקסטים של משכורת שהם עכשיו כללי כסף שנכנס (← משכורת): " + n],
   [/^(.+) ([A-Z]{3}): money (out|in) (.+) with no transaction \(between snapshots\)$/, (a, c, k, n) => a + " " + c + ": " + (k == "out" ? "כסף יצא " : "כסף נכנס ") + n + " ללא תנועה (בין צילומי יתרה)"],
   [/^(.+) ([A-Z]{3}): the balance adds up over the whole period, (\d+) open gaps? closed$/, (a, c, n) => a + " " + c + ": היתרה מסתדרת על פני כל התקופה, " + (n == 1 ? "פער פתוח אחד נסגר" : n + " פערים פתוחים נסגרו")],
@@ -209,6 +210,7 @@ const HISTORY = {
   "Salary found": "נמצאה משכורת",
   "Salary rule": "כלל משכורת",
   "Salary rules moved": "כללי המשכורת הועברו",
+  "Money coming in kinds updated": "סוגי הכסף שנכנס עודכנו",
   "Money coming in rule": "כלל כסף שנכנס",
   "Changed money coming in rule": "שינוי כלל כסף שנכנס",
   "Sample data loaded": "נטענו נתוני דוגמה",
