@@ -1,0 +1,117 @@
+/* The sign-in screen on a phone (components/AuthScreen.vue). Loaded by it on a phone only, before the phone app itself, so it
+   holds all it needs. Every rule starts with html.phone. */
+html.phone .ph-auth {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  overflow-y: auto;
+  padding: calc(var(--st) + 24px) 24px calc(var(--sb) + 24px);
+  background: var(--bg);
+  color: var(--tx);
+}
+
+html.phone .ph-auth-c {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  inline-size: 100%;
+  max-inline-size: 400px;
+  margin: auto;
+  text-align: center;
+}
+
+html.phone .ph-auth-logo.logo {
+  inline-size: 72px;
+  block-size: 72px;
+  margin: 0 0 20px;
+  border-radius: 22px;
+}
+
+html.phone .ph-auth h1 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 700;
+  letter-spacing: -.3px;
+}
+
+html.phone.he .ph-auth h1 {
+  letter-spacing: 0;
+  font-weight: 600;
+}
+
+html.phone .ph-auth-s {
+  margin: 0 0 28px;
+  color: var(--tx2);
+  font-size: 15px;
+  line-height: 22px;
+}
+
+html.phone .ph-auth form {
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  text-align: start;
+}
+
+html.phone .ph-auth label {
+  margin: 0 4px 8px;
+  color: var(--tx2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+html.phone .ph-auth input {
+  inline-size: 100%;
+  min-block-size: 52px;
+  margin-block-end: 18px;
+  padding-inline: 16px;
+  border: 1px solid var(--ol);
+  border-radius: 16px;
+  background: var(--s1);
+  color: var(--tx);
+  font: inherit;
+  font-size: 17px;
+}
+
+html.phone .ph-auth input:focus {
+  outline: none;
+  border-color: var(--acc);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc) 22%, transparent);
+}
+
+html.phone .ph-auth-err {
+  min-block-size: 20px;
+  margin: -6px 4px 12px;
+  color: var(--neg);
+  font-size: 14px;
+}
+
+html.phone .ph-auth-go {
+  min-block-size: 52px;
+  border: 0;
+  border-radius: var(--pill);
+  background: var(--acc);
+  color: var(--on);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .12s, filter .12s;
+}
+
+html.phone .ph-auth-go:active {
+  transform: scale(.97);
+  filter: brightness(.94);
+}
+
+html.phone .ph-auth-go:disabled {
+  opacity: .5;
+}
+
+html.phone .ph-auth-logo.logo svg {
+  inline-size: 38px;
+  block-size: 38px;
+}

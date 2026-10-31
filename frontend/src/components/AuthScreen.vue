@@ -1,6 +1,9 @@
 <script setup>
 // The sign-in screen, and the first-time "choose a password" screen.
+// On a phone (mobile.js) it is a full screen of its own: a centred column with large fields, clear of the notch and home bar
+// (its styles, phone/styles/auth.css, are loaded only there).
 import { ref, computed, watch, nextTick, onMounted } from "vue";
+import { isPhone } from "../mobile.js";
 import { useI18n } from "vue-i18n";
 import { app, signIn } from "../core/boot.js";
 import { tx } from "../core/heText.js";
@@ -19,10 +22,26 @@ async function go() {
 }
 watch(() => app.need2fa, (v) => { if (v) nextTick(() => codeEl.value?.focus()); });
 onMounted(() => setTimeout(() => pwEl.value?.focus(), 50));
+if (isPhone.value) import("../phone/styles/auth.css");
 </script>
 
 <template>
-  <div id="auth" style="display:flex;position:fixed;inset:0;z-index:300;background:var(--bg);align-items:center;justify-content:center;padding:20px">
+  <div v-if="isPhone" id="auth" class="ph-auth">
+    <div class="ph-auth-c">
+      <AppLogo sym="coin" class="ph-auth-logo" />
+      <h1>{{ setup ? t("auth.setupT") : t("auth.loginT") }}</h1>
+      <p class="ph-auth-s">{{ setup ? t("auth.setupS") : t("auth.loginS") }}</p>
+      <form @submit.prevent="go">
+        <label for="authP">{{ t("auth.pw") }}</label>
+        <input id="authP" ref="pwEl" v-model="pw" type="password" :autocomplete="setup ? 'new-password' : 'current-password'">
+        <template v-if="setup"><label for="authP2">{{ t("auth.pw2") }}</label><input id="authP2" v-model="pw2" type="password" autocomplete="new-password"></template>
+        <template v-if="app.need2fa"><label for="authC">{{ t("auth.code") }}</label><input id="authC" ref="codeEl" v-model="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></template>
+        <p class="ph-auth-err" role="alert">{{ err }}</p>
+        <button class="ph-auth-go" type="submit" :disabled="busy">{{ setup ? t("auth.create") : t("auth.signIn") }}</button>
+      </form>
+    </div>
+  </div>
+  <div v-else id="auth" style="display:flex;position:fixed;inset:0;z-index:300;background:var(--bg);align-items:center;justify-content:center;padding:20px">
     <div class="card" style="max-width:380px;width:100%">
       <div style="display:flex;align-items:center;gap:12px;margin:0 0 10px"><AppLogo sym="coin" style="margin:0" /><h3 style="margin:0">{{ setup ? t("auth.setupT") : t("auth.loginT") }}</h3></div>
       <div class="sm" style="margin-bottom:14px">{{ setup ? t("auth.setupS") : t("auth.loginS") }}</div>
