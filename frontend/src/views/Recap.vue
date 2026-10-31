@@ -192,7 +192,7 @@ const PARTS = {
     if (x.kind == "in") {
       const one = x.who.length == 1 ? nm(x.who[0][0]) : L("cameIn"), k = "rng:" + rg + "@income";
       const sum = had ? sumBox([L("hadThen"), x.b0], [{ k: "in", label: one, amt: x.a, link: x.who.length == 1 ? "tx:" + x.who[0][2] : k, subs: parts(x.who, k) }], ends()) : "";
-      return part(zz, "in", "tp", L("stepIn", { date: dlong(x.from) }), k, mn(x.a), had ? "" : pills(x.who.slice(0, 3).map((w) => [w[0], w[1], "tx:" + w[2]])), sum);
+      return part(zz, "in", "tp", L(x.sal ? "stepSal" : "stepIn", { date: dlong(x.from) }), k, mn(x.a), had ? "" : pills(x.who.slice(0, 3).map((w) => [w[0], w[1], "tx:" + w[2]])), sum);
     }
     if (x.kind == "card") {
       // what the bill paid for: the purchases it was matched to (when they add up to it), else a general line
@@ -218,11 +218,14 @@ const PARTS = {
     const groups = [
       ...(x.bank >= 1 ? [{ k: "out", label: L("paidAcc"), amt: x.bank, link: "rng:" + rg + "@expense", subs: cats(x.topBank, x.bank, "expense") }] : []),
       ...(x.small >= 1 ? [{ k: "in", label: L("smallIn"), amt: x.small, link: "rng:" + rg + "@income" }] : []),
+      ...(x.backBank >= 1 ? [{ k: "in", label: L("backIn"), amt: x.backBank, link: "rng:" + rg + "@back" }] : []),
       ...(x.cps >= 1 ? [{ k: "out", label: L("cardBill", {}, 2), amt: x.cps }] : []),
       ...(x.card >= 1 ? [{ k: "card", label: L("cardLater"), amt: x.card, link: "now", subs: cats(x.topCard, x.card, "expense") }] : []),
     ];
     const sum = sumBox(had ? [L("hadThen"), x.b0] : null, groups, had ? ends() : null);
-    return part(zz, "out", "tn", lab, "rng:" + rg + "@expense", mn(x.a), "", sum);
+    // what came in during it, said plainly next to what was spent (money back on the cards too)
+    const came = x.back >= 1 || x.small >= 1 ? [L("lnSpent", { a: mi(x.a) }), ...(x.back >= 1 ? [L("lnBack", { a: mi(x.back) })] : []), ...(x.small >= 1 ? [L("lnIn", { a: mi(x.small) })] : [])].join(" · ") : "";
+    return part(zz, "out", "tn", lab, "rng:" + rg + "@expense", mn(x.a), came, sum);
   },
   now: (m, zz) => {
     // what you have today, and what is yours once the card spending still to come leaves the accounts

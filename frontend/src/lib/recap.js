@@ -207,14 +207,17 @@ export function cardShare(A, CC, months) {
 
 // The month as it happened, in date order: the days money came in, the days a credit card bill was taken from the bank,
 // and the spending in between. Each step carries the bank balance before and after it, so the steps add up from the start
-// of the month to today's balance (start + money in − paid from the accounts − card bills = today).
-// Small amounts in are counted inside the spending around them; with very many big days, only the biggest stand on their own.
+// of the month to today's balance (start + money in + money back − paid from the accounts − card bills = today).
+// Small amounts in and money back are counted inside the spending around them, and each spending step says what came in
+// during it (small: money in, back: money back, on the cards too); with very many big days, only the biggest stand on their own.
 const BIG_IN = 0.08, MIN_IN = 200, MAX_MARKS = 8;
 // end: today's balance, when the start is a saved balance: what the steps do not explain becomes one more step ("other").
 export function monthSteps({ A, S, k, MK, TODAY, CC, inc, dn, start, end = null }) {
   const inMonth = (d) => d.startsWith(MK) && d <= TODAY;
-  // money that reached the bank and wallet accounts (money back on a credit card lowers its bill instead: chargeDays below)
-  const ins = A.filter((t) => t.a > 0 && !CC.has(t.to) && inMonth(rdOf(t))), outs = A.filter((t) => t.a < 0 && inMonth(rdOf(t)));
+  // money in that reached the bank and wallet accounts, and money back: into those accounts (it raises the balance) or on a
+  // credit card (it lowers the card's bill instead: chargeDays below)
+  const ins = A.filter((t) => t.a > 0 && !t.back && !CC.has(t.to) && inMonth(rdOf(t))), outs = A.filter((t) => t.a < 0 && inMonth(rdOf(t)));
+  const backs = A.filter((t) => t.back && inMonth(rdOf(t)));
   const cps = (S.tx || []).filter((t) => !t.virtual && k.isCp(t) && inMonth(String(t.d)));
   // the days that stand on their own: money in (one per day, when it is big enough) and card bills (one per day)
   const byDay = (L, d) => { const o = {}; L.forEach((t) => { const x = d(t); (o[x] = o[x] || []).push(t); }); return Object.entries(o).map(([d, L0]) => ({ d, tx: L0, a: L0.reduce((s, t) => s + Math.abs(t.a), 0) })); };
@@ -231,18 +234,20 @@ export function monthSteps({ A, S, k, MK, TODAY, CC, inc, dn, start, end = null 
     const on = (t) => { const d = rdOf(t); return d >= a && d <= b; };
     const out = outs.filter(on), bank = out.filter((t) => !CC.has(t.from)).reduce((s, t) => s - t.a, 0), card = out.filter((t) => CC.has(t.from)).reduce((s, t) => s - t.a, 0);
     const small = ins.filter((t) => on(t) && !big.has(t)).reduce((s, t) => s + t.a, 0);
+    const bk = backs.filter(on), backBank = bk.filter((t) => !CC.has(t.to)).reduce((s, t) => s + t.a, 0), back = bk.reduce((s, t) => s + t.a, 0);
     const cpx = cps.filter((t) => !big.has(t) && String(t.d) >= a && String(t.d) <= b).reduce((s, t) => s - t.a, 0);
-    if (bank + card + small + cpx < 1) return;
+    if (bank + card + small + back + cpx < 1) return;
     // the biggest categories, of all of it, of what the accounts paid, and of what went on credit cards
     const topOf = (L) => { const c0 = {}; L.forEach((t) => { const c = t.c || "Uncategorized"; c0[c] = (c0[c] || 0) - t.a; }); return Object.entries(c0).sort((x, y) => y[1] - x[1]).slice(0, 3); };
     const top = topOf(out), topBank = topOf(out.filter((t) => !CC.has(t.from))), topCard = topOf(out.filter((t) => CC.has(t.from)));
-    const b0 = bal; bal += small - bank - cpx;
-    steps.push({ kind: "spend", from: a, to: b, a: bank + card, bank, card, small, cps: cpx, top, topBank, topCard, b0, b1: bal });
+    const b0 = bal; bal += small + backBank - bank - cpx;
+    steps.push({ kind: "spend", from: a, to: b, a: bank + card, bank, card, small, back, backBank, cps: cpx, top, topBank, topCard, b0, b1: bal });
   };
   marks.forEach((x) => {
     if (x.d > from) spend(from, prevDay(x.d));
     const b0 = bal; bal += x.kind == "in" ? x.a : -x.a;
-    steps.push({ kind: x.kind, from: x.d, to: x.d, a: x.a, who: x.tx.map((t) => [dn(t), Math.abs(t.a), t.id]).sort((p, q) => q[1] - p[1]), b0, b1: bal });
+    // sal: the day's money in is all salary (lib/moneyIn.js), so the step can name it
+    steps.push({ kind: x.kind, from: x.d, to: x.d, a: x.a, who: x.tx.map((t) => [dn(t), Math.abs(t.a), t.id]).sort((p, q) => q[1] - p[1]), ...(x.kind == "in" && x.tx.every((t) => t.sal) ? { sal: true } : {}), b0, b1: bal });
     if (x.d >= from) from = x.d;
   });
   if (from <= TODAY) spend(from, TODAY);
@@ -290,7 +295,7 @@ export function monthSteps({ A, S, k, MK, TODAY, CC, inc, dn, start, end = null 
     else x.b1 = Math.round(x.b1);
     b = x.b1;
     if (x.kind != "spend") x.a = Math.abs(x.b1 - x.b0);
-    else { x.small = Math.round(x.small); x.cps = Math.round(x.cps); x.card = Math.round(x.card); x.bank = x.b0 - x.b1 + x.small - x.cps; x.a = Math.round(x.a); }
+    else { x.small = Math.round(x.small); x.back = Math.round(x.back); x.backBank = Math.round(x.backBank); x.cps = Math.round(x.cps); x.card = Math.round(x.card); x.bank = x.b0 - x.b1 + x.small + x.backBank - x.cps; x.a = Math.round(x.a); }
   });
   // with a saved start, what the steps above do not show (money between your own accounts, changes in the value of foreign
   // money, corrections by the bank, entries left out) is one more step, so the steps still end at today's balance

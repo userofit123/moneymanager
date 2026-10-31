@@ -118,3 +118,23 @@ test("Recap begins the month with the balances saved then, when every counted ac
   const one = monthSteps({ A: [], S: { tx: [] }, k: { isCp: () => false }, MK: "2026-10", TODAY: "2026-10-17", CC: new Set(), inc: 0, dn: () => "", start: 500, end: 380 });
   assert.deepEqual(one.map((x) => [x.kind, x.a, x.up, x.b0, x.b1]), [["other", 120, false, 500, 380]]);
 });
+
+test("each spending step says what came in during it: money in and money back; a salary day is named; still adds up", () => {
+  const CC = new Set(["Card"]), T = (id, d, a, o = {}) => ({ id, d, a, desc: id, from: a < 0 ? "Bank" : id, to: a < 0 ? id : "Bank", ...o });
+  const A = [
+    T("sal", "2026-10-01", 9000, { sal: true }), // big: its own step, named as salary
+    T("rent", "2026-10-03", -4000),
+    T("zik", "2026-10-04", 150), // small money in ("זיכוי" at the bank)
+    T("ret", "2026-10-05", 80, { back: true }), // money back you marked, into the bank
+    T("buy", "2026-10-06", -300, { from: "Card" }),
+    T("cr", "2026-10-07", 100, { back: true, from: "Shop", to: "Card" }), // a card credit: lowers the card's bill
+  ];
+  const steps = monthSteps({ A, S: { tx: [], accounts: [] }, k: { isCp: () => false }, MK: "2026-10", TODAY: "2026-10-10", CC, inc: 9150, dn: (t) => t.id, start: 1000 });
+  assert.deepEqual(steps.map((x) => x.kind), ["in", "spend"]);
+  assert.equal(steps[0].sal, true);
+  const s = steps[1];
+  assert.deepEqual([s.a, s.bank, s.card, s.small, s.back, s.backBank], [4300, 4000, 300, 150, 180, 80]);
+  // today's bank balance: 1000 + 9000 − 4000 + 150 + 80 (the card credit stays on the card)
+  assert.equal(s.b1, 6230);
+  assert.equal(s.owed, 200); // the card's bill: 300 bought, 100 back
+});

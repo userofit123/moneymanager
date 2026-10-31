@@ -171,7 +171,7 @@
   "stepOtherX": "What the steps above don't show: money moved between your own accounts, changes in the value of foreign money, corrections by the bank, and entries left out of your reports.",
   "otherCh": "Other changes",
   "stepRange": "From {a} to {b}, you spent",
-  "smallIn": "Small amounts received",
+  "smallIn": "Money in",
   "leftToday": "Today you have",
   "lbToday": "In your accounts: {a}",
   "lbMonth": "This month",
@@ -232,5 +232,10 @@
   "incGuessT": "a guess",
   "incIn": "Predicted income in {mon}",
   "spendIn": "Predicted spending in {mon}",
-  "incCame": "came in {came} of {of} months"
+  "incCame": "came in {came} of {of} months",
+  "stepSal": "On {date}, your salary came in",
+  "backIn": "Money back",
+  "lnSpent": "Spent {a}",
+  "lnBack": "Money back {a}",
+  "lnIn": "Money in {a}"
 }
