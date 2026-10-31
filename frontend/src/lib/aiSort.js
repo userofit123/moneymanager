@@ -3,7 +3,8 @@
 // checked here and added. Nothing is overwritten.
 import { ruleHit, ruleTags, normTag, normD, transferIds } from "./activity.js";
 import { CAT_HE } from "../catnames.js";
-import { ruleExists, genCheck, addSalaryRule, salaryHit } from "./categories.js";
+import { ruleExists, genCheck, addInRule, salaryHit } from "./categories.js";
+import { inRules } from "./moneyIn.js";
 
 export const LIMITS = { cats: 200, rules: 5000, tagRules: 5000, names: 2000, cards: 50, salary: 50, name: 40, text: 60, mine: 300 };
 // The kinds of rows in a plan, in the order the preview shows them.
@@ -27,7 +28,7 @@ export function exportTexts(S, language) {
   const mine = (xs) => xs.slice(0, LIMITS.mine);
   return {
     language, myCategories: Object.keys(S?.cats || {}).filter((k) => k != "Uncategorized"), myTags: [...new Set((S?.tagRules || []).flatMap(ruleTags))],
-    myDisplayNames: mine((S?.cfg?.nameRules || []).map((r) => ({ contains: r.k, name: r.n }))), myCardPayments: mine(S?.cardRules || []), mySalary: mine(S?.salaryRules || []),
+    myDisplayNames: mine((S?.cfg?.nameRules || []).map((r) => ({ contains: r.k, name: r.n }))), myCardPayments: mine(S?.cardRules || []), mySalary: mine(inRules(S).filter((r) => r.kind == "salary").map((r) => r.k)),
     texts,
   };
 }
@@ -105,7 +106,7 @@ export function readAnswer(S, raw) {
     }
     return out;
   };
-  const cards = texts(j.cardPayments, S.cardRules, LIMITS.cards), salary = texts(j.salary, S.salaryRules, LIMITS.salary);
+  const cards = texts(j.cardPayments, S.cardRules, LIMITS.cards), salary = texts(j.salary, inRules(S).map((r) => r.k), LIMITS.salary);
   return { plan: { cats, rules, tagRules, names, cards, salary }, skipped };
 }
 
@@ -160,6 +161,6 @@ export function addAnswer(S, plan) {
     if (!t.c) { const r = p.rules.find((x) => ruleHit(t, x.k)); if (r) { t.c = r.c; sorted++; } }
     for (const r of p.tagRules) if (ruleHit(t, r.k)) t.tags = [...new Set([...(t.tags || []), ...r.tags])];
   }
-  for (const v of p.salary) { const o = {}; if (addSalaryRule(S, v, o)) sorted += o.n; }
+  for (const v of p.salary) { const o = {}; if (addInRule(S, v, "salary", o)) sorted += o.c; } // Settings → Money coming in rules, as Salary
   return [["Added categories from an AI file", `${p.cats.length} categories, ${p.rules.length} rules, ${p.tagRules.length} tag rules, ${p.names.length} display names, ${p.cards.length} card payment rules, ${p.salary.length} salary rules, ${sorted} sorted`]];
 }

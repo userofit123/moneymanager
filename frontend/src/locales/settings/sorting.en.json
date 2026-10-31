@@ -78,16 +78,7 @@
     "cardNone": "No rules of your own yet. Mark one card payment in Activity and the app offers to make one for you, or add one above.",
     "cardPh": "Text from the bank line, for example ישראכרט חיוב",
     "cardAuto": "Recognised automatically, with no rule: {list}. Also any bank payment equal to what a card was charged on that day.",
-    "cardShort": "Type some text from the bank line, for example “ישראכרט חיוב”.",
-    "salTitle": "Salary",
-    "salDesc": "If an income contains the text (in its transaction name or the payer), it is marked as Salary when it has no category yet.",
-    "salary": "Salary",
-    "salNone": "No rules of your own yet. Add the name of your employer above.",
-    "salPh": "Payer or text, for example wix",
-    "salAuto": "Recognised automatically, with no rule: income that says משכורת, שכר, salary or payroll, and the same payer paying a similar amount every month for three months or more.",
-    "salShort": "Type text from the payer or the transaction name, for example “wix”.",
-    "salAdded": "Rule added. {n} existing income entry is now Salary. | Rule added. {n} existing income entries are now Salary.",
-    "salAddedNew": "Rule added. Future income like this is marked as Salary."
+    "cardShort": "Type some text from the bank line, for example “ישראכרט חיוב”."
   },
   "ai": {
     "title": "Let an AI make your categories",
@@ -152,5 +143,17 @@
     "s1t": "1. Download your transaction texts",
     "s2t": "2. Ask an AI chat",
     "s3t": "3. Upload the answer"
+  },
+  "mi": {
+    "title": "Money coming in",
+    "desc": "If money coming in holds the text (in its transaction name or the payer), it is what you pick here. Your rules come before what the app works out by itself.",
+    "ifIn": "If it holds",
+    "kind": "What it is",
+    "none": "No rules of your own yet. Add a payer above, for example your employer.",
+    "ph": "Payer or text, for example wix",
+    "short": "Type text from the payer or the transaction name, for example “wix”.",
+    "added": "Rule added. It matches 1 entry of money coming in you already have. | Rule added. It matches {n} entries of money coming in you already have.",
+    "addedNew": "Rule added. Money coming in like this follows it from now on.",
+    "auto": "Worked out with no rule: money that says משכורת, שכר, salary or payroll is Salary; the same payer paying about the same every month is Earned; money in on a credit card, or that says זיכוי, החזר or refund, is Money back; Bit and PayBox are From a person; a cash deposit is Your own money; the rest is Other income."
   }
 }

@@ -623,3 +623,27 @@ test("a change that no new charge or group of charges explains still opens a bal
   await tx((c) => recordSnapshot(c, card, -1065.5, new Date("2026-10-21T08:00:00Z"))); // 100 less than the charges say
   assert.deepEqual(await openGaps(), [100]);
 });
+
+test("salary texts move once into money coming in rules (→ Salary), are kept, and the rules decide the Salary category", async () => {
+  await reset();
+  const { moveSalaryRules } = await import("../src/state.js");
+  await q("DELETE FROM settings WHERE key IN ('money_in_rules','salary_rules')");
+  await q("INSERT INTO settings (key,value) VALUES ('salary_rules','[\"globex\",\"initech\"]')");
+  assert.equal(await moveSalaryRules(), 2);
+  assert.equal(await moveSalaryRules(), 0); // only once
+  let S = await getState();
+  assert.deepEqual(S.moneyInRules, [{ k: "globex", kind: "salary" }, { k: "initech", kind: "salary" }]);
+  assert.deepEqual(S.salaryRules, ["globex", "initech"]); // the old texts stay
+  assert.equal((await q("SELECT count(*)::int AS n FROM audit_log WHERE action='Salary rules moved'")).rows[0].n, 1);
+  // saved back: unknown kinds and empty texts are dropped
+  S.moneyInRules = [{ k: "globex", kind: "earned" }, { k: "initech", kind: "salary" }, { k: "x", kind: "zzz" }, { k: " ", kind: "back" }];
+  await putState(S);
+  S = await getState();
+  assert.deepEqual(S.moneyInRules, [{ k: "globex", kind: "earned" }, { k: "initech", kind: "salary" }]);
+  // after a sync: a Salary rule gives the Salary category; a rule with another kind stops the salary words
+  await q("INSERT INTO transactions (date,description,from_name,to_name,amount,source,external_id) VALUES (current_date,'Transfer','Initech','Bank Hapoalim',5000,'hapoalim','m1'),(current_date,'Salary bonus','Globex','Bank Hapoalim',800,'hapoalim','m2')");
+  await ingest({ name: "Bank Hapoalim", currency: "ILS", source: "hapoalim" }, []);
+  const cat = async (e) => (await q("SELECT category FROM transactions WHERE external_id=$1", [e])).rows[0].category;
+  assert.equal(await cat("m1"), "Salary");
+  assert.equal(await cat("m2"), null);
+});

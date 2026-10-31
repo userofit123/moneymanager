@@ -1,7 +1,8 @@
-// The Categories and tags page's logic: categories, tags, category rules, tag rules, name rules, card rules and salary rules.
+// The Categories and tags page's logic: categories, tags, category rules, tag rules, name rules, card rules and money coming in rules.
 // Each change works on a copy of the data (S) and returns the change-history lines [action, detail] in English (saved as is, shown in Hebrew through tx(), core/heSaved.js),
 // or false when nothing changes. Numbers the page shows afterwards (how many moved) go into `out`.
 import { ruleHit, ruleTags, normD, transferIds } from "./activity.js";
+import { MARKS, MARK_EN, inRules } from "./moneyIn.js";
 
 export { ruleTags };
 const CNC = new Intl.Collator(undefined, { sensitivity: "base" });
@@ -215,17 +216,35 @@ export function addCardRule(S, v) {
   return [["Card payment rule", '"' + txt + '" counts as a card payment']];
 }
 export function deleteCardRule(S, i) { if (!S.cardRules || S.cardRules[+i] == null) return false; const line = ["Removed card payment rule", '"' + S.cardRules[+i] + '"']; S.cardRules.splice(+i, 1); return [line]; }
-// Also marks the income you already have that matches and has no category as Salary.
 // Income with no category (not a move between your own accounts, xs: transferIds) whose text holds a salary text (already normD).
 export const salaryHit = (x, txt, xs) => !x.virtual && x.a > 0 && (!x.c || x.c == "Uncategorized") && !xs.has(x.id) && normD(x.desc + " " + (x.from || "")).includes(txt);
-export function addSalaryRule(S, v, out = {}) {
-  if (genCheck(S.salaryRules, v)) return false;
+
+// ---- money coming in rules (Settings → Money coming in): text → kind ----
+// S.moneyInRules [{ k: text (normD), kind: one of MARKS }], read through inRules (lib/moneyIn.js).
+export const inRuleCheck = (S, v) => genCheck(inRules(S).map((r) => r.k), v);
+// Money coming in (not a move between your own accounts, xs: transferIds) whose name or payer holds the text (already normD).
+export const inHit = (x, txt, xs) => !x.virtual && x.a > 0 && !xs.has(x.id) && normD(x.desc + " " + (x.from || "")).includes(txt);
+// Adds a rule. A Salary rule also gives the money in that matches and has no category the Salary category (as the
+// server does after a sync). out.n: how many entries it matches now; out.c: how many got the Salary category.
+export function addInRule(S, v, kind, out = {}) {
+  if (!MARKS.includes(kind) || inRuleCheck(S, v)) return false;
   const txt = normD(v), xs = transferIds(S);
-  S.salaryRules = [...(S.salaryRules || []), txt];
-  let n = 0;
-  if (S.cats.Salary == null) S.cats.Salary = 99;
-  for (const x of S.tx) if (salaryHit(x, txt, xs)) { x.c = "Salary"; n++; }
-  out.n = n;
-  return [["Salary rule", 'income containing "' + txt + '" is Salary' + (n ? " (" + n + " existing)" : "")]];
+  S.moneyInRules = [...inRules(S), { k: txt, kind }];
+  const hits = S.tx.filter((x) => inHit(x, txt, xs));
+  out.n = hits.length; out.c = 0;
+  if (kind == "salary") {
+    if (S.cats.Salary == null) S.cats.Salary = 99;
+    for (const x of hits) if (!x.c || x.c == "Uncategorized") { x.c = "Salary"; out.c++; }
+  }
+  return [["Money coming in rule", '"' + txt + '" → ' + MARK_EN[kind]]];
 }
-export function deleteSalaryRule(S, i) { if (!S.salaryRules || S.salaryRules[+i] == null) return false; const line = ["Removed salary rule", '"' + S.salaryRules[+i] + '"']; S.salaryRules.splice(+i, 1); return [line]; }
+export function setInRuleKind(S, i, kind) {
+  const L = inRules(S), r = L[+i]; if (!r || r.kind == kind || !MARKS.includes(kind)) return false;
+  S.moneyInRules = L.map((x, j) => (j == +i ? { ...x, kind } : x));
+  return [["Changed money coming in rule", '"' + r.k + '" → ' + MARK_EN[kind]]];
+}
+export function deleteInRule(S, i) {
+  const L = inRules(S), r = L[+i]; if (!r) return false;
+  S.moneyInRules = L.filter((_, j) => j != +i);
+  return [["Removed money coming in rule", '"' + r.k + '" → ' + MARK_EN[r.kind]]];
+}

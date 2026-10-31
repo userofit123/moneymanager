@@ -1,4 +1,4 @@
-// Shared by the Settings → Automatic sorting sections (category, tag, name, card and salary rules).
+// Shared by the Settings → Automatic sorting sections (category, tag, name, card and money coming in rules).
 // The data changes and their history lines come from lib/categories.js.
 import { ref } from "vue";
 import { data } from "../../stores/data.js";

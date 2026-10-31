@@ -1,6 +1,6 @@
 // Things the app works out by itself after a sync, so nobody has to mark them one by one:
 //  - a card bill paid from the bank (its amount equals what the card charged on that day),
-//  - a salary (money in that says so, or holds one of your salary texts).
+//  - a salary (money in that says so, or that one of your money coming in rules calls Salary).
 import { audit } from "./db.js";
 
 // The banks give timestamps. A date at local midnight arrives as 21:00 or 22:00 of the day before in UTC, so a date is always read in Israel time.
@@ -45,10 +45,10 @@ export async function detectCardPayments(c) {
 
 export const normText = (s) => String(s || "").toLowerCase().replace(/[.'"״׳_,\-]/g, "").replace(/\s+/g, " ").trim();
 const SALARY_WORDS = /(משכורת|שכר עבודה|שכר\b|salary|payroll|wages)/i;
-// A salary is money in that says so (salary words) or holds one of your salary texts (Settings). The same payer paying
+// A salary is money in that says so (salary words) or that one of your money coming in rules (Settings) calls Salary. The same payer paying
 // every month is not enough: that can be regular work pay that is not a salary, and the app shows it as earned money.
 // Any money in is checked, whatever its category, but the category is set to Salary only when it has none: a category
-// you or your rules gave stays. Money you said is something else (in_mark) and money in on a card are left alone.
+// you or your rules gave stays. Money you or a rule said is something else (in_mark, a rule) and money in on a card are left alone.
 export async function detectSalary(c) {
   const inc = (await c.query(
     `SELECT t.id, t.description, t.from_name, t.category FROM transactions t
@@ -57,13 +57,15 @@ export async function detectSalary(c) {
        AND NOT EXISTS (SELECT 1 FROM transfer_links l WHERE (l.out_id=t.id OR l.in_id=t.id) AND l.status<>'rej')
        AND t.date > current_date - interval '420 days'`)).rows;
   const setting = async (k, d) => (await c.query("SELECT value FROM settings WHERE key=$1", [k])).rows[0]?.value || d;
-  const mine = (await setting("salary_rules", [])).map(normText).filter((x) => x.length > 1);
+  // your money coming in rules (Settings), the first that matches wins, as in the app
+  const rules = (await setting("money_in_rules", [])).map((r) => ({ k: normText(r?.k), kind: r?.kind })).filter((r) => r.k.length > 0);
   const mark = await setting("in_mark", {});
   const todo = inc.filter((t) => {
     if (t.category && t.category !== "Uncategorized") return false;
     if (mark[t.id]) return mark[t.id] === "salary";
-    const hay = normText(t.description + " " + (t.from_name || ""));
-    return SALARY_WORDS.test(t.description) || mine.some((m) => hay.includes(m));
+    const hay = normText(t.description + " " + (t.from_name || "")), rule = rules.find((r) => hay.includes(r.k));
+    if (rule) return rule.kind === "salary";
+    return SALARY_WORDS.test(t.description);
   });
   if (!todo.length) return 0;
   await c.query("INSERT INTO categories (name,color) VALUES ('Salary',99) ON CONFLICT (name) DO NOTHING");

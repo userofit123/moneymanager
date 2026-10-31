@@ -2,7 +2,7 @@
 // bought, optionally linked to that purchase), people (from a person, through Bit or PayBox), own (your own money moved
 // or put in: not income) or other (interest, dividends, anything else). Worked out from the data only, never from the
 // category. Nothing here changes the data or the screen.
-import { transferIds, isCardPay, cardInfo, ruleHit, normD } from "./activity.js";
+import { transferIds, isCardPay, cardInfo, normD } from "./activity.js";
 import { refundTwin } from "./txactions.js";
 import { plainOf, nameKey, incKey } from "./recap.js";
 
@@ -27,14 +27,17 @@ const textOf = (t) => [t.desc, t.memo, t.bd, t.from].filter(Boolean).join(" ");
 const dayOf = (d) => Date.parse(String(d).slice(0, 10) + "T12:00:00Z") / 864e5;
 // two shop names are the same when equal, or when one holds the other as whole words (4 letters at least)
 const sameName = (a, b) => !!a && !!b && (a == b || (Math.min(a.length, b.length) >= 4 && ((" " + a + " ").includes(" " + b + " ") || (" " + b + " ").includes(" " + a + " "))));
+// The money coming in rules (Settings → Money coming in): [{ k: text, kind: one of MARKS }]. Before they existed, salary
+// texts (S.salaryRules) did this job: the server moves them over once (→ Salary); until it has, they are read as such.
+export const inRules = (S) => (Array.isArray(S?.moneyInRules) ? S.moneyInRules : (S?.salaryRules || []).map((k) => ({ k, kind: "salary" })));
 const kindOf = (k) => (k == "salary" ? { kind: "earned", sub: "salary" } : KINDS.includes(k) ? { kind: k } : null);
 
 // The kind of every money coming in (a > 0) in S.tx, as a Map of entry id → { kind, sub?, link?, twin?, why }.
 // sub: "salary" for a salary. link: the id of the purchase money back is for. twin: the card entry a bank deposit repeats
 // (the same refund, to be counted once). why: the rule that decided it:
-//   "chosen" the entry's own choice (t.mk, or S.inMark[id], where the app saves it) · "rule" a money coming in rule (S.moneyInRules [{ k, kind }]) · "transfer" ·
+//   "chosen" the entry's own choice (t.mk, or S.inMark[id], where the app saves it) · "rule" a money coming in rule (inRules: its text in the name or payer) · "transfer" ·
 //   "card" came in on a credit card · "twin" the bank copy of a card refund · "purchase" same shop as an earlier purchase · "refund" refund words ·
-//   "cash" · "app" Bit or PayBox · "salary" salary words or your salary texts · "regular" the same payer every month (earned, not a salary) ·
+//   "cash" · "app" Bit or PayBox · "salary" salary words · "regular" the same payer every month (earned, not a salary) ·
 //   "interest" · "rest" nothing else matched.
 // The rules are tried in this order, the first that matches wins. t.mk and a rule's kind are one of KINDS, or "salary".
 export function moneyIn(S) {
@@ -58,8 +61,9 @@ export function moneyIn(S) {
     return best ? best.t.id : null;
   };
 
-  // your salary texts (Settings → Salary), and the payers that pay about the same every month
-  const mine = (S1.salaryRules || []).map(normD).filter((x) => x.length > 1);
+  // your money coming in rules (their text in the entry's name or payer), and the payers that pay about the same every month
+  const rules = inRules(S1).map((r) => ({ k: normD(r?.k), o: kindOf(r?.kind) })).filter((r) => r.k.length > 0 && r.o);
+  const ruleOf = (t) => { const h = normD(t.desc + " " + (t.from || "")); return rules.find((r) => h.includes(r.k)); };
   const regular = new Set(), byPayer = new Map();
   ins.filter((t) => !xs.has(t.id) && !onCard(t)).forEach((t) => { const k = incKey(S1, t).toLowerCase(); if (k) (byPayer.get(k) || byPayer.set(k, []).get(k)).push(t); });
   byPayer.forEach((L) => {
@@ -69,7 +73,7 @@ export function moneyIn(S) {
     if (new Set(near.map((t) => String(t.d).slice(0, 7))).size < PAY_MONTHS || near.length < L.length * 0.6) return;
     near.forEach((t) => regular.add(t.id));
   });
-  const salaryWhy = (t, W, txt) => (hasWord(SALARY_W, W) || hasPhrase(txt, SALARY_P) || mine.some((m) => normD(t.desc + " " + (t.from || "")).includes(m)) ? "salary" : regular.has(t.id) ? "regular" : "");
+  const salaryWhy = (t, W, txt) => (hasWord(SALARY_W, W) || hasPhrase(txt, SALARY_P) ? "salary" : regular.has(t.id) ? "regular" : "");
 
   const out = new Map();
   for (const t of ins) {
@@ -82,7 +86,7 @@ export function moneyIn(S) {
     };
     // 1. your own choice on the entry, or a money coming in rule
     const own = kindOf(t.mk || S1.inMark?.[t.id]); if (own) { set(own, "chosen"); continue; }
-    const rule = (S1.moneyInRules || []).find((r) => kindOf(r.kind) && ruleHit(t, r.k)); if (rule) { set(kindOf(rule.kind), "rule"); continue; }
+    const rule = ruleOf(t); if (rule) { set(rule.o, "rule"); continue; }
     // 2. moved between your own accounts
     if (xs.has(t.id)) { set({ kind: "own" }, "transfer"); continue; }
     // 3. came in on a credit card: money back, which lowers that card's bill
@@ -98,7 +102,7 @@ export function moneyIn(S) {
     if (hasWord(CASH_W, W) || (hasWord(DEPOSIT_W, W) && !hasWord(CHEQUE_W, W))) { set({ kind: "own" }, "cash"); continue; }
     // 8. from a person, through Bit or PayBox
     if (hasWord(PEOPLE_W, W)) { set({ kind: "people" }, "app"); continue; }
-    // 9. salary words or your salary texts: a salary; the same payer at about the same amount every month: earned money
+    // 9. salary words: a salary; the same payer at about the same amount every month: earned money
     //    (regular work pay, not called a salary unless it says so)
     if (sw) { set(sw == "salary" ? { kind: "earned", sub: "salary" } : { kind: "earned" }, sw); continue; }
     // 10. interest and dividends, and anything else

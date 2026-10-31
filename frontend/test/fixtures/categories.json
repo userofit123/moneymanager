@@ -931,93 +931,6 @@
   },
   "lines": [["Removed card payment rule","\"max charge\""]]
  },
- "add-a-salary-rule-marks-the-income-you-have": {
-  "data": {
-   "cats": {"Food":0,"Dining":1,"Fun":2,"Bills":3,"Income":99,"Uncategorized":4,"Salary":99},
-   "tx": [
-    [1,"Food",["food","home"]],
-    [2,"Dining",[]],
-    [3,"Dining",["Trip"]],
-    [4,"Dining",["food"]],
-    [5,"Fun",["tv"]],
-    [6,"Fun",[]],
-    [7,"",[]],
-    [8,"Salary",[]],
-    [9,"Salary",[]],
-    [10,"",[]],
-    [11,"",[]],
-    [12,"Food",["food"]],
-    [13,"Bills",[]]
-   ],
-   "rules": [{"k":"shufersal","c":"Dining","t":""},{"k":"cafe","c":"Dining","t":""}],
-   "tagRules": [{"k":"netflix","t":"tv,fun"},{"k":"pharm","t":"health"}],
-   "budgets": {"Food":1000,"Dining":500},
-   "bills": ["Food"],
-   "jars": [[{"c":"Food","since":"2026-01-01"},{"c":"Dining","since":"2026-02-01"}]],
-   "names": [{"k":"wix","n":"Salary","f":"from","m":"in"}],
-   "card": ["max charge"],
-   "sal": ["wix"]
-  },
-  "lines": [["Salary rule","income containing \"wix\" is Salary (2 existing)"]]
- },
- "a-salary-rule-with-no-match": {
-  "data": {
-   "cats": {"Food":0,"Dining":1,"Fun":2,"Bills":3,"Income":99,"Uncategorized":4,"Salary":99},
-   "tx": [
-    [1,"Food",["food","home"]],
-    [2,"Dining",[]],
-    [3,"Dining",["Trip"]],
-    [4,"Dining",["food"]],
-    [5,"Fun",["tv"]],
-    [6,"Fun",[]],
-    [7,"",[]],
-    [8,"",[]],
-    [9,"Uncategorized",[]],
-    [10,"",[]],
-    [11,"",[]],
-    [12,"Food",["food"]],
-    [13,"Bills",[]]
-   ],
-   "rules": [{"k":"shufersal","c":"Dining","t":""},{"k":"cafe","c":"Dining","t":""}],
-   "tagRules": [{"k":"netflix","t":"tv,fun"},{"k":"pharm","t":"health"}],
-   "budgets": {"Food":1000,"Dining":500},
-   "bills": ["Food"],
-   "jars": [[{"c":"Food","since":"2026-01-01"},{"c":"Dining","since":"2026-02-01"}]],
-   "names": [{"k":"wix","n":"Salary","f":"from","m":"in"}],
-   "card": ["max charge"],
-   "sal": ["acme"]
-  },
-  "lines": [["Salary rule","income containing \"acme\" is Salary"]]
- },
- "delete-a-salary-rule": {
-  "data": {
-   "cats": {"Food":0,"Dining":1,"Fun":2,"Bills":3,"Income":99,"Uncategorized":4},
-   "tx": [
-    [1,"Food",["food","home"]],
-    [2,"Dining",[]],
-    [3,"Dining",["Trip"]],
-    [4,"Dining",["food"]],
-    [5,"Fun",["tv"]],
-    [6,"Fun",[]],
-    [7,"",[]],
-    [8,"",[]],
-    [9,"Uncategorized",[]],
-    [10,"",[]],
-    [11,"",[]],
-    [12,"Food",["food"]],
-    [13,"Bills",[]]
-   ],
-   "rules": [{"k":"shufersal","c":"Dining","t":""},{"k":"cafe","c":"Dining","t":""}],
-   "tagRules": [{"k":"netflix","t":"tv,fun"},{"k":"pharm","t":"health"}],
-   "budgets": {"Food":1000,"Dining":500},
-   "bills": ["Food"],
-   "jars": [[{"c":"Food","since":"2026-01-01"},{"c":"Dining","since":"2026-02-01"}]],
-   "names": [{"k":"wix","n":"Salary","f":"from","m":"in"}],
-   "card": ["max charge"],
-   "sal": []
-  },
-  "lines": [["Removed salary rule","\"wix\""]]
- },
  "tags": {
   "tags": [["food",2],["home",1],["Trip",1],["tv",1],["fun",0],["health",0]],
   "m": [[5,6],[7]],
@@ -2073,29 +1986,6 @@
   "text": "Card payments 1 If a payment from your bank contains the text, it is the bill of a credit card. It is not counted as spending, because each purchase is already counted on the card. Add rule If it contains max charge → Card payment Delete Recognised automatically, with no rule: Isracard · ישראכרט, Visa Cal · כ.א.ל · ויזה כאל, Max · מקס · מקס איט פי, American Express · אמריקן אקספרס, Diners · דיינרס, Leumi Card · לאומי קארד. Also any bank payment equal to what a card was charged on that day.",
   "tips": []
  },
- "page-data-setSalRules": {
-  "blocks": [
-   "section.card.ss",
-   "div.ssh",
-   "span.ssi",
-   "svg.",
-   "rect.",
-   "circle.",
-   "path.",
-   "div.",
-   "b.",
-   "span.cnt",
-   "div.sm",
-   "div.ssb",
-   "div.rladd",
-   "input.",
-   "button.btn.s",
-   "div.rlnone.sm",
-   "div.sfoot"
-  ],
-  "text": "Salary 0 If an income contains the text (in its transaction name or the payer), it is marked as Salary when it has no category yet. Add rule No rules of your own yet. Add the name of your employer above. Recognised automatically, with no rule: income that says משכורת, שכר, salary or payroll, and the same payer paying a similar amount every month for three months or more.",
-  "tips": []
- },
  "page-empty-aiSort": {
   "blocks": [
    "section.card.ss",
@@ -2162,7 +2052,185 @@
   "text": "Card payments 0 If a payment from your bank contains the text, it is the bill of a credit card. It is not counted as spending, because each purchase is already counted on the card. Add rule No rules of your own yet. Mark one card payment in Activity and the app offers to make one for you, or add one above. Recognised automatically, with no rule: Isracard · ישראכרט, Visa Cal · כ.א.ל · ויזה כאל, Max · מקס · מקס איט פי, American Express · אמריקן אקספרס, Diners · דיינרס, Leumi Card · לאומי קארד. Also any bank payment equal to what a card was charged on that day.",
   "tips": []
  },
- "page-empty-setSalRules": {
+ "add-a-money-coming-in-rule-as-salary-gives-the-income-you-have-the-salary-category": {
+  "data": {
+   "cats": {"Food":0,"Dining":1,"Fun":2,"Bills":3,"Income":99,"Uncategorized":4,"Salary":99},
+   "tx": [
+    [1,"Food",["food","home"]],
+    [2,"Dining",[]],
+    [3,"Dining",["Trip"]],
+    [4,"Dining",["food"]],
+    [5,"Fun",["tv"]],
+    [6,"Fun",[]],
+    [7,"",[]],
+    [8,"Salary",[]],
+    [9,"Salary",[]],
+    [10,"",[]],
+    [11,"",[]],
+    [12,"Food",["food"]],
+    [13,"Bills",[]]
+   ],
+   "rules": [{"k":"shufersal","c":"Dining","t":""},{"k":"cafe","c":"Dining","t":""}],
+   "tagRules": [{"k":"netflix","t":"tv,fun"},{"k":"pharm","t":"health"}],
+   "budgets": {"Food":1000,"Dining":500},
+   "bills": ["Food"],
+   "jars": [[{"c":"Food","since":"2026-01-01"},{"c":"Dining","since":"2026-02-01"}]],
+   "names": [{"k":"wix","n":"Salary","f":"from","m":"in"}],
+   "card": ["max charge"],
+   "sal": [],
+   "inRules": [{"k":"wix","kind":"salary"}]
+  },
+  "lines": [["Money coming in rule","\"wix\" → Salary"]]
+ },
+ "a-money-coming-in-rule-with-no-match": {
+  "data": {
+   "cats": {"Food":0,"Dining":1,"Fun":2,"Bills":3,"Income":99,"Uncategorized":4},
+   "tx": [
+    [1,"Food",["food","home"]],
+    [2,"Dining",[]],
+    [3,"Dining",["Trip"]],
+    [4,"Dining",["food"]],
+    [5,"Fun",["tv"]],
+    [6,"Fun",[]],
+    [7,"",[]],
+    [8,"",[]],
+    [9,"Uncategorized",[]],
+    [10,"",[]],
+    [11,"",[]],
+    [12,"Food",["food"]],
+    [13,"Bills",[]]
+   ],
+   "rules": [{"k":"shufersal","c":"Dining","t":""},{"k":"cafe","c":"Dining","t":""}],
+   "tagRules": [{"k":"netflix","t":"tv,fun"},{"k":"pharm","t":"health"}],
+   "budgets": {"Food":1000,"Dining":500},
+   "bills": ["Food"],
+   "jars": [[{"c":"Food","since":"2026-01-01"},{"c":"Dining","since":"2026-02-01"}]],
+   "names": [{"k":"wix","n":"Salary","f":"from","m":"in"}],
+   "card": ["max charge"],
+   "sal": [],
+   "inRules": [{"k":"acme","kind":"people"}]
+  },
+  "lines": [["Money coming in rule","\"acme\" → From a person"]]
+ },
+ "a-money-coming-in-rule-with-an-unknown-kind-is-refused": {
+  "data": {
+   "cats": {"Food":0,"Dining":1,"Fun":2,"Bills":3,"Income":99,"Uncategorized":4},
+   "tx": [
+    [1,"Food",["food","home"]],
+    [2,"Dining",[]],
+    [3,"Dining",["Trip"]],
+    [4,"Dining",["food"]],
+    [5,"Fun",["tv"]],
+    [6,"Fun",[]],
+    [7,"",[]],
+    [8,"",[]],
+    [9,"Uncategorized",[]],
+    [10,"",[]],
+    [11,"",[]],
+    [12,"Food",["food"]],
+    [13,"Bills",[]]
+   ],
+   "rules": [{"k":"shufersal","c":"Dining","t":""},{"k":"cafe","c":"Dining","t":""}],
+   "tagRules": [{"k":"netflix","t":"tv,fun"},{"k":"pharm","t":"health"}],
+   "budgets": {"Food":1000,"Dining":500},
+   "bills": ["Food"],
+   "jars": [[{"c":"Food","since":"2026-01-01"},{"c":"Dining","since":"2026-02-01"}]],
+   "names": [{"k":"wix","n":"Salary","f":"from","m":"in"}],
+   "card": ["max charge"],
+   "sal": []
+  },
+  "lines": []
+ },
+ "old-salary-texts-are-read-as-salary-rules-until-they-are-moved": {
+  "data": {
+   "cats": {"Food":0,"Dining":1,"Fun":2,"Bills":3,"Income":99,"Uncategorized":4},
+   "tx": [
+    [1,"Food",["food","home"]],
+    [2,"Dining",[]],
+    [3,"Dining",["Trip"]],
+    [4,"Dining",["food"]],
+    [5,"Fun",["tv"]],
+    [6,"Fun",[]],
+    [7,"",[]],
+    [8,"",[]],
+    [9,"Uncategorized",[]],
+    [10,"",[]],
+    [11,"",[]],
+    [12,"Food",["food"]],
+    [13,"Bills",[]]
+   ],
+   "rules": [{"k":"shufersal","c":"Dining","t":""},{"k":"cafe","c":"Dining","t":""}],
+   "tagRules": [{"k":"netflix","t":"tv,fun"},{"k":"pharm","t":"health"}],
+   "budgets": {"Food":1000,"Dining":500},
+   "bills": ["Food"],
+   "jars": [[{"c":"Food","since":"2026-01-01"},{"c":"Dining","since":"2026-02-01"}]],
+   "names": [{"k":"wix","n":"Salary","f":"from","m":"in"}],
+   "card": ["max charge"],
+   "sal": ["wix"]
+  },
+  "lines": []
+ },
+ "change-what-a-money-coming-in-rule-gives": {
+  "data": {
+   "cats": {"Food":0,"Dining":1,"Fun":2,"Bills":3,"Income":99,"Uncategorized":4},
+   "tx": [
+    [1,"Food",["food","home"]],
+    [2,"Dining",[]],
+    [3,"Dining",["Trip"]],
+    [4,"Dining",["food"]],
+    [5,"Fun",["tv"]],
+    [6,"Fun",[]],
+    [7,"",[]],
+    [8,"",[]],
+    [9,"Uncategorized",[]],
+    [10,"",[]],
+    [11,"",[]],
+    [12,"Food",["food"]],
+    [13,"Bills",[]]
+   ],
+   "rules": [{"k":"shufersal","c":"Dining","t":""},{"k":"cafe","c":"Dining","t":""}],
+   "tagRules": [{"k":"netflix","t":"tv,fun"},{"k":"pharm","t":"health"}],
+   "budgets": {"Food":1000,"Dining":500},
+   "bills": ["Food"],
+   "jars": [[{"c":"Food","since":"2026-01-01"},{"c":"Dining","since":"2026-02-01"}]],
+   "names": [{"k":"wix","n":"Salary","f":"from","m":"in"}],
+   "card": ["max charge"],
+   "sal": [],
+   "inRules": [{"k":"wix","kind":"earned"}]
+  },
+  "lines": [["Changed money coming in rule","\"wix\" → Earned"]]
+ },
+ "delete-a-money-coming-in-rule": {
+  "data": {
+   "cats": {"Food":0,"Dining":1,"Fun":2,"Bills":3,"Income":99,"Uncategorized":4},
+   "tx": [
+    [1,"Food",["food","home"]],
+    [2,"Dining",[]],
+    [3,"Dining",["Trip"]],
+    [4,"Dining",["food"]],
+    [5,"Fun",["tv"]],
+    [6,"Fun",[]],
+    [7,"",[]],
+    [8,"",[]],
+    [9,"Uncategorized",[]],
+    [10,"",[]],
+    [11,"",[]],
+    [12,"Food",["food"]],
+    [13,"Bills",[]]
+   ],
+   "rules": [{"k":"shufersal","c":"Dining","t":""},{"k":"cafe","c":"Dining","t":""}],
+   "tagRules": [{"k":"netflix","t":"tv,fun"},{"k":"pharm","t":"health"}],
+   "budgets": {"Food":1000,"Dining":500},
+   "bills": ["Food"],
+   "jars": [[{"c":"Food","since":"2026-01-01"},{"c":"Dining","since":"2026-02-01"}]],
+   "names": [{"k":"wix","n":"Salary","f":"from","m":"in"}],
+   "card": ["max charge"],
+   "sal": [],
+   "inRules": []
+  },
+  "lines": [["Removed money coming in rule","\"wix\" → Salary"]]
+ },
+ "page-data-setInRules": {
   "blocks": [
    "section.card.ss",
    "div.ssh",
@@ -2178,11 +2246,36 @@
    "div.ssb",
    "div.rladd",
    "input.",
+   "select.",
    "button.btn.s",
    "div.rlnone.sm",
    "div.sfoot"
   ],
-  "text": "Salary 0 If an income contains the text (in its transaction name or the payer), it is marked as Salary when it has no category yet. Add rule No rules of your own yet. Add the name of your employer above. Recognised automatically, with no rule: income that says משכורת, שכר, salary or payroll, and the same payer paying a similar amount every month for three months or more.",
+  "text": "Money coming in 0 If money coming in holds the text (in its transaction name or the payer), it is what you pick here. Your rules come before what the app works out by itself. Add rule No rules of your own yet. Add a payer above, for example your employer. Worked out with no rule: money that says משכורת, שכר, salary or payroll is Salary; the same payer paying about the same every month is Earned; money in on a credit card, or that says זיכוי, החזר or refund, is Money back; Bit and PayBox are From a person; a cash deposit is Your own money; the rest is Other income.",
+  "tips": []
+ },
+ "page-empty-setInRules": {
+  "blocks": [
+   "section.card.ss",
+   "div.ssh",
+   "span.ssi",
+   "svg.",
+   "rect.",
+   "circle.",
+   "path.",
+   "div.",
+   "b.",
+   "span.cnt",
+   "div.sm",
+   "div.ssb",
+   "div.rladd",
+   "input.",
+   "select.",
+   "button.btn.s",
+   "div.rlnone.sm",
+   "div.sfoot"
+  ],
+  "text": "Money coming in 0 If money coming in holds the text (in its transaction name or the payer), it is what you pick here. Your rules come before what the app works out by itself. Add rule No rules of your own yet. Add a payer above, for example your employer. Worked out with no rule: money that says משכורת, שכר, salary or payroll is Salary; the same payer paying about the same every month is Earned; money in on a credit card, or that says זיכוי, החזר or refund, is Money back; Bit and PayBox are From a person; a cash deposit is Your own money; the rest is Other income.",
   "tips": []
  }
 }

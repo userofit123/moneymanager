@@ -35,6 +35,23 @@ export async function ensureDefaults({ demoAccounts = true } = {}) {
     for (const r of rows)
       await q("INSERT INTO accounts (name,currency,kind,source,subtitle,manual,in_net_worth,sort) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)", [...r.slice(0, 6), r[2] !== "pension" && r[2] !== "card", r[6]]);
   }
+  await moveSalaryRules();
+}
+
+// The kinds a money coming in rule can give (frontend/src/lib/moneyIn.js MARKS).
+export const IN_KINDS = ["earned", "salary", "back", "people", "own", "other"];
+// Settings → Money coming in rules (money_in_rules: [{ k: text, kind }]) took the place of the salary texts (salary_rules).
+// Once (also after restoring an older backup): every salary text becomes a rule "text → Salary". salary_rules stays as it
+// was, so nothing is lost, but only money_in_rules is used from then on.
+export async function moveSalaryRules() {
+  if ((await q("SELECT 1 FROM settings WHERE key='money_in_rules'")).rowCount) return 0;
+  const old = (await q("SELECT value FROM settings WHERE key='salary_rules'")).rows[0]?.value;
+  const list = [...new Set((Array.isArray(old) ? old : []).map((x) => String(x).trim()).filter(Boolean))].slice(0, 200);
+  await tx(async (c) => {
+    await c.query("INSERT INTO settings (key,value) VALUES ('money_in_rules',$1) ON CONFLICT (key) DO NOTHING", [JSON.stringify(list.map((k) => ({ k, kind: "salary" })))]);
+    if (list.length) await c.query("INSERT INTO audit_log (who,action,detail) VALUES ('System','Salary rules moved',$1)", [`Salary texts that are now money coming in rules (→ Salary): ${list.length}`]);
+  });
+  return list.length;
 }
 
 export async function getState() {
@@ -102,7 +119,7 @@ export async function getState() {
     ntfy: await setting("ntfy", ""),
     jarsTotal: await setting("jars_total", 0), jarsBuffer: await setting("jars_buffer", 0), jarsReserve: await setting("jars_reserve", 0),
     nwPension: await setting("nw_pension", false),
-    hiddenMerchants: await setting("hidden_merchants", []), ccOverride: await setting("cc_override", {}), cardRules: await setting("card_rules", []), salaryRules: await setting("salary_rules", []), txIgnore: await setting("tx_ignore", {}), inMark: await setting("in_mark", {}), budgetNo: await setting("budget_no", []), tagList: await setting("tag_list", []),
+    hiddenMerchants: await setting("hidden_merchants", []), ccOverride: await setting("cc_override", {}), cardRules: await setting("card_rules", []), salaryRules: await setting("salary_rules", []), moneyInRules: await setting("money_in_rules", []), txIgnore: await setting("tx_ignore", {}), inMark: await setting("in_mark", {}), budgetNo: await setting("budget_no", []), tagList: await setting("tag_list", []),
     cfg,
     currencies: await configuredCurrencies(), fxCurrencies: await activeCurrencies(),
     accounts: accounts.rows.map((a) => ({
@@ -224,6 +241,8 @@ export async function putState(S) {
     await put("cc_override", S.ccOverride && typeof S.ccOverride === "object" ? S.ccOverride : {});
     await put("card_rules", Array.isArray(S.cardRules) ? S.cardRules.map(String).slice(0, 200) : []);
     await put("salary_rules", Array.isArray(S.salaryRules) ? S.salaryRules.map(String).slice(0, 200) : []);
+    // Settings → Money coming in rules: text → kind; an older app that does not know them sends none: then they stay
+    if (Array.isArray(S.moneyInRules)) await put("money_in_rules", S.moneyInRules.filter((r) => r && String(r.k || "").trim() && IN_KINDS.includes(r.kind)).slice(0, 200).map((r) => ({ k: String(r.k).trim().slice(0, 100), kind: r.kind })));
     await put("tx_ignore", S.txIgnore && typeof S.txIgnore === "object" ? S.txIgnore : {});
     // what a money coming in is, when the person chose it (id → earned, salary, back, people, own or other);
     // an older app that does not know this sends none: then the saved choices stay as they are

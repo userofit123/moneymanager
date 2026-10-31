@@ -43,7 +43,7 @@ export default [
   ["set.trules", "#setTagrules", ".ssh b", "Tag rules", "Tag rules", "", "כללי תגיות"],
   ["set.nrules", "#setNames", ".ssh b", "Display names", "Display names", "", "שמות תצוגה"],
   ["set.cprules", "#setCardRules", ".ssh b", "Card payments", "Card payments", "", "חיובי כרטיס"],
-  ["set.srules", "#setSalRules", ".ssh b", "Salary", "Salary", "", "משכורת"],
+  ["set.srules", "#setInRules", ".ssh b", "Money coming in", "Money coming in", "", "כסף שנכנס"],
   ["set.conn", "#setConn", ".ssh b", "Connections", "Add a connection", "", "חיבורים"],
   ["set.sync", "#setSyncCfg", ".ssh b", "Automatic sync", "How often", "", "סנכרון אוטומטי"],
   ["set.sync", "#setSync", ".ssh b", "Past syncs", "Past syncs", "", "סנכרונים קודמים"],

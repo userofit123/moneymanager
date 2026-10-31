@@ -112,7 +112,7 @@ test("adding adds every kind, marks matching income with no category as Salary, 
   assert.deepEqual(S.cfg.nameRules.at(-1), { k: "SPRM 0042", n: "Super-Pharm", f: "any", m: "in" });
   assert.equal(S.cfg.nameRules.length, n0 + 1);
   assert.ok(S.cardRules.includes("visa cal charge"));
-  assert.ok(S.salaryRules.includes(plan.salary[0]));
+  assert.ok(S.moneyInRules.some((r) => r.k == plan.salary[0] && r.kind == "salary")); // Settings → Money coming in, as Salary
   assert.equal(S.tx.find((t) => t.id == pay.id).c, "Salary");
   assert.equal(lines.length, 1);
   assert.match(lines[0][1], /^0 categories, 0 rules, 0 tag rules, 1 display names, 1 card payment rules, 1 salary rules, [1-9]\d* sorted$/);

@@ -98,7 +98,13 @@ test("9. a salary: its words or your salary texts; the same payer at about the s
   assert.deepEqual(one(IN("2026-10-01", 7000, "Salary October", "Acme")), { kind: "earned", sub: "salary", why: "salary" });
   assert.equal(one(IN("2026-10-01", 7000, "משכורת", "")).sub, "salary");
   assert.equal(one(IN("2026-10-01", 7000, "שכר עבודה", "")).sub, "salary");
-  assert.deepEqual(one(IN("2026-10-01", 7000, "Globex payment", "Globex"), [], { salaryRules: ["globex"] }), { kind: "earned", sub: "salary", why: "salary" });
+  // old salary texts (before the server moved them into money coming in rules) still count, as Salary rules
+  assert.deepEqual(one(IN("2026-10-01", 7000, "Globex payment", "Globex"), [], { salaryRules: ["globex"] }), { kind: "earned", sub: "salary", why: "rule" });
+  // once moved, only the money coming in rules count: a rule the person changed or removed wins over the old text
+  assert.deepEqual(one(IN("2026-10-01", 7000, "Globex payment", "Globex"), [], { salaryRules: ["globex"], moneyInRules: [{ k: "globex", kind: "earned" }] }), { kind: "earned", why: "rule" });
+  assert.equal(one(IN("2026-10-01", 7000, "Globex payment", "Globex"), [], { salaryRules: ["globex"], moneyInRules: [] }).why, "rest");
+  // a rule looks at the name and the payer, not at the account the money came into
+  assert.equal(one(IN("2026-10-01", 7000, "Payment", "Someone"), [], { moneyInRules: [{ k: "bank", kind: "back" }] }).why, "rest");
   // the same payer: three months, similar amounts, at least 1500
   const L = [IN("2026-07-09", 6000, "Initech", "Initech"), IN("2026-08-09", 6400, "Initech", "Initech"), IN("2026-09-09", 5900, "Initech", "Initech")];
   const M = run(L);

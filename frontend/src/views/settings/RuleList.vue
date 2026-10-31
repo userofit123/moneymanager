@@ -1,5 +1,5 @@
 <script setup>
-// One rule list in Settings → Automatic sorting (category, tag, name, card payment and salary rules):
+// One rule list in Settings → Automatic sorting (category, tag, name, card payment and money coming in rules):
 // a card with the title, the form for a new rule, a search box, the rules and a short text when there are none.
 // The "add" slot holds the boxes of the new rule (the Add button is here); the default slot holds the rules (.rule rows);
 // the "foot" slot is a short grey note at the bottom; anything in "after" sits outside the card (a window).

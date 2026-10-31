@@ -16,7 +16,7 @@ const NOW = new Date(2026, 9, 17, 12);
 // a planned entry, a card charge), categories Food / Dining / Fun / Bills, category, tag and name rules, two budgets, a bill and a jar,
 // with the fields the app fills in after loading.
 const start = () => structuredClone(saved("categories-start"));
-const pick = (S) => ({ cats: S.cats, tx: S.tx.map((t) => [t.id, t.c, t.tags]), rules: S.rules, tagRules: S.tagRules, budgets: S.budgets, bills: S.bills.map((b) => b.cat), jars: S.jars.map((j) => j.cats), names: S.cfg.nameRules, card: S.cardRules, sal: S.salaryRules });
+const pick = (S) => ({ cats: S.cats, tx: S.tx.map((t) => [t.id, t.c, t.tags]), rules: S.rules, tagRules: S.tagRules, budgets: S.budgets, bills: S.bills.map((b) => b.cat), jars: S.jars.map((j) => j.cats), names: S.cfg.nameRules, card: S.cardRules, sal: S.salaryRules, inRules: S.moneyInRules });
 
 // One action: the data afterwards and the history lines.
 const slug = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -76,9 +76,12 @@ same("add a card payment rule", (N) => C.addCardRule(N, " Leumi-Card  חיוב. 
 same("a card rule that exists is refused", (N) => C.addCardRule(N, "MAX charge"));
 same("a card rule needs two letters", (N) => C.addCardRule(N, "a."));
 same("delete a card payment rule", (N) => C.deleteCardRule(N, 0));
-same("add a salary rule (marks the income you have)", (N) => C.addSalaryRule(N, "WIX"));
-same("a salary rule with no match", (N) => C.addSalaryRule(N, "acme"));
-same("delete a salary rule", (N) => { N.salaryRules = ["wix"]; return C.deleteSalaryRule(N, 0); });
+same("add a money coming in rule as Salary (gives the income you have the Salary category)", (N) => C.addInRule(N, "WIX", "salary"));
+same("a money coming in rule with no match", (N) => C.addInRule(N, "acme", "people"));
+same("a money coming in rule with an unknown kind is refused", (N) => C.addInRule(N, "acme", "zzz"));
+same("old salary texts are read as Salary rules until they are moved", (N) => { N.salaryRules = ["wix"]; delete N.moneyInRules; return C.addInRule(N, "wix", "earned"); });
+same("change what a money coming in rule gives", (N) => { N.moneyInRules = [{ k: "wix", kind: "salary" }]; return C.setInRuleKind(N, 0, "earned"); });
+same("delete a money coming in rule", (N) => { N.moneyInRules = [{ k: "wix", kind: "salary" }]; return C.deleteInRule(N, 0); });
 
 // The edits typed into a rule row, with their exact lines.
 test("editing a rule row writes the right history lines", () => {
@@ -118,7 +121,7 @@ async function load() {
   return (mods = { data: store.data, i18n: i18nMod.i18n, setLang: i18nMod.setLang });
 }
 // The Categories page, or one section of Settings → Automatic sorting (views/settings/<file>.vue).
-const VIEWS = ["/src/views/Categories.vue", ...["CatRulesPane", "TagRulesPane", "NameRulesPane", "CardRulesPane", "SalaryRulesPane", "AiPane"].map((f) => `/src/views/settings/${f}.vue`)];
+const VIEWS = ["/src/views/Categories.vue", ...["CatRulesPane", "TagRulesPane", "NameRulesPane", "CardRulesPane", "MoneyInRulesPane", "AiPane"].map((f) => `/src/views/settings/${f}.vue`)];
 async function page(S, lang = "en", view = VIEWS[0]) {
   const m = await load(), V = (await vite.ssrLoadModule(view)).default; await m.setLang(lang); m.data.state.value = structuredClone(S);
   const app = createSSRApp({ render: () => h(V) }); app.use(m.i18n);
@@ -138,7 +141,7 @@ const tidy = (h) => h.replace(/<select([^>]*)>[\s\S]*?<\/select>/g, "<select$1><
 const text = (h) => unesc(tidy(h).replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim();
 const skeleton = (h) => [...tidy(h).matchAll(/<([a-z0-9]+)([^>]*)>/g)].map(([, tag, at]) => tag + "." + ((/(?:^|\s)class="([^"]*)"/.exec(at) || [])[1] || "").split(/\s+/).filter((c) => c && c != "hi").sort().join("."));
 const tips = (h) => [...h.matchAll(/data-tip="([^"]*)"/g)].map((m) => unesc(m[1]));
-const PANES = ["setCats", "setTags", "aiSort", "setRules", "setTagrules", "setNames", "setCardRules", "setSalRules"];
+const PANES = ["setCats", "setTags", "aiSort", "setRules", "setTagrules", "setNames", "setCardRules", "setInRules"];
 // The search bar at the top of each tab is checked on its own (the rule lists in Settings have it inside the card).
 const noBar = (h) => (h.startsWith('<div class="rtool">') ? h.slice(h.indexOf("</div>") + 6) : h);
 
@@ -152,10 +155,10 @@ for (const [name, key, mk] of [["the test data", "data", () => start()], ["nothi
   });
 }
 test("the search bars have their words", async () => {
-  const html = await all({ ...start(), salaryRules: ["wix"] }, "en"), bar = (id) => (/<div class="(?:rtool|rlfind)">([\s\S]*?)<\/div>/.exec(inner(html, id)) || [])[1] || "";
+  const html = await all({ ...start(), moneyInRules: [{ k: "wix", kind: "salary" }] }, "en"), bar = (id) => (/<div class="(?:rtool|rlfind)">([\s\S]*?)<\/div>/.exec(inner(html, id)) || [])[1] || "";
   assert.match(bar("setCats"), /placeholder="Search categories…"[\s\S]*placeholder="New category name"[\s\S]*\+ Add category/);
   assert.match(bar("setRules"), /Search rules by text or category…/); assert.match(bar("setTags"), /Search tags…/);
-  assert.match(bar("setTagrules"), /Search rules by text or tag…/); assert.match(bar("setCardRules"), /Search rules…/); assert.match(bar("setSalRules"), /Search rules…/); assert.match(bar("setNames"), /Search rules by text or name…/);
+  assert.match(bar("setTagrules"), /Search rules by text or tag…/); assert.match(bar("setCardRules"), /Search rules…/); assert.match(bar("setInRules"), /Search rules…/); assert.match(bar("setNames"), /Search rules by text or name…/);
 });
 test("the Hebrew page shows no English words from the app (only names from the data)", async () => {
   const S = start(), b = text(await all(S, "he"));

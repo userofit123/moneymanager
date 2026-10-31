@@ -520,8 +520,14 @@ html.he .rule .rarr {
 }
 
 .rule select[data-c="nrf"],
-.rule select[data-c="nrm"] {
+.rule select[data-c="nrm"],
+.rule select[data-c="ink"] {
   flex: 0 1 150px;
+}
+
+/* on a phone the kind takes the line's room, so its name is not cut */
+html.mob .rule select[data-c="ink"] {
+  flex: 1 1 150px;
 }
 
 .rlnone {
