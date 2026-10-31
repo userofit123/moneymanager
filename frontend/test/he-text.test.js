@@ -39,6 +39,7 @@ test("the Hebrew follows the gender in the profile", () => {
   assert.equal(T("Save the login first.", "m"), "קודם שמור את פרטי ההתחברות.");
   assert.equal(T("Save the login first.", "f"), "קודם שמרי את פרטי ההתחברות.");
   assert.equal(genderize("אתם רואים", "f"), "את רואה");
+  assert.deepEqual(["m", "f", ""].map((g) => genderize("הגדירו עם AI", g)), ["הגדר עם AI", "הגדירי עם AI", "הגדירו עם AI"]);
   assert.equal(genderize("עברו את הגבול", "m"), "עברו את הגבול", "'they passed' stays");
 });
 
