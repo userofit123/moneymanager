@@ -1,0 +1,13 @@
+/* The computer's windows while the phone app shows them (until each has its phone version): they sit at the bottom
+   of the screen, full width, like the phone's own sheets. */
+html.phone .pop {
+  inset-inline: 0;
+  inset-block-end: 0;
+  inline-size: auto;
+  max-inline-size: var(--p-max);
+  margin-inline: auto;
+  max-block-size: 88dvh;
+  border-radius: var(--p-r-sheet) var(--p-r-sheet) 0 0;
+  padding-block-end: var(--sb);
+  z-index: 61;
+}

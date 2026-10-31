@@ -9,7 +9,6 @@ import { suggestions, suggestOpen } from "../../core/suggest.js";
 import { appearanceOpen, syncOpen } from "../../core/shell.js";
 import { installPrompt, install } from "../../core/pwa.js";
 import { UP } from "../../core/updates.js";
-import { openSettingsTab } from "../../views/settings/tab.js";
 import { helpOn } from "../help.js";
 import { usePhoneNav } from "../navigation.js";
 import { ICONS } from "../icons.js";
@@ -26,7 +25,7 @@ const r = (k) => t("phone.shell.moreRows." + k);
 const MONEY = ["recap", "accounts", "budgets", "reports", "forecast", "categories"];
 const pageName = (n) => (n === "reports" ? t("shell.moreRep") : t("nav." + n));
 const update = computed(() => ["available", "downloading", "ready", "installing"].includes(UP.status));
-const openUpdate = () => openSettingsTab("app");
+const openUpdate = () => nav.push("settingsSection", "app");
 </script>
 
 <template>

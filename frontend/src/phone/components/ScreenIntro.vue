@@ -5,7 +5,6 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { pages } from "../../routes.js";
 import { openForm } from "../../core/forms.js";
-import { openSettingsTab } from "../../views/settings/tab.js";
 import { usePhoneNav } from "../navigation.js";
 import { ICONS } from "../icons.js";
 import EmptyState from "./EmptyState.vue";
@@ -23,8 +22,8 @@ const ACT = {
   accounts: () => openForm("account"),
   budgets: () => openForm("budget"),
   categories: () => openForm("category"),
-  alerts: () => openSettingsTab("alr"),
-  settings: () => openSettingsTab("prof"),
+  alerts: () => nav.push("settingsSection", "alr"),
+  settings: () => nav.push("settingsSection", "prof"),
 };
 const action = computed(() => (ACT[props.name] && te("phone.shell.open." + props.name) ? t("phone.shell.open." + props.name) : ""));
 </script>

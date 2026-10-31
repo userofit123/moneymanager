@@ -1,8 +1,10 @@
-/* The phone app's styles, loaded only with the phone app (PhoneApp.vue), in this order: sizes, page, building blocks, screens.
+/* The phone app's styles, loaded only with the phone app (PhoneApp.vue), in this order: sizes, page, building blocks, the
+   computer's windows shown in the phone app, screens.
    Every rule starts with html.phone, so nothing here can reach the computer layout. */
 @import "./tokens.css";
 @import "./base.css";
 @import "./components.css";
+@import "./adopted.css";
 @import "./screens/account.css";
 @import "./screens/accounts.css";
 @import "./screens/activity.css";

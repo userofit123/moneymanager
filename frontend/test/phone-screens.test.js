@@ -29,11 +29,11 @@ test("every screen's name has a text in English and Hebrew", () => {
   for (const t of TABS) for (const m of [en, he]) assert.ok(get(m, "phone.shell.tabs." + t), `tab ${t} has no name`);
 });
 
-test("phone/styles/index.css loads the sizes, page, building blocks and every screen's stylesheet", () => {
+test("phone/styles/index.css loads the sizes, page, building blocks, the adopted computer windows and every screen's stylesheet", () => {
   const index = readFileSync(new URL("../src/phone/styles/index.css", import.meta.url), "utf8");
   const imports = [...index.matchAll(/@import "\.\/([^"]+)";/g)].map((m) => m[1]);
-  assert.deepEqual(imports.slice(0, 3), ["tokens.css", "base.css", "components.css"]);
+  assert.deepEqual(imports.slice(0, 4), ["tokens.css", "base.css", "components.css", "adopted.css"]);
   const screens = readdirSync(new URL("../src/phone/styles/screens/", import.meta.url)).map((f) => "screens/" + f);
-  assert.deepEqual(imports.slice(3).sort(), screens.sort());
+  assert.deepEqual(imports.slice(4).sort(), screens.sort());
   assert.match(readFileSync(new URL("../src/phone/PhoneApp.vue", import.meta.url), "utf8"), /import "\.\/styles\/index\.css"/);
 });
