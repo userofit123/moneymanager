@@ -1,1 +1,402 @@
-/* budgets screen (phone/screens). Every rule starts with html.phone. */
+/* Phone Budgets screen (phone/screens/BudgetsScreen.vue). Every rule starts with html.phone. */
+
+/* the opening sentence; over the budgets: the amount in red */
+html.phone .ph-bud .ph-hero {
+  padding: 4px 4px 0;
+}
+
+html.phone .ph-bud .ph-hero.over .ph-hero-a {
+  color: var(--neg);
+}
+
+/* the month's two totals, side by side; the budgeted one stands out, as on Home */
+html.phone .ph-bud-tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+html.phone .ph-bud-tiles .ph-stat {
+  min-inline-size: 0;
+  justify-content: flex-start;
+  cursor: default;
+}
+
+html.phone .ph-bud-tiles .ph-stat:first-child {
+  background: var(--accc);
+  color: var(--onc);
+}
+
+html.phone .ph-bud-tiles .ph-stat-n {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* a category's colour as a small dot in a 36px lead, like Home */
+html.phone .ph-bud-dot {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 36px;
+  block-size: 36px;
+}
+
+html.phone .ph-bud-dot::before {
+  content: "";
+  inline-size: 10px;
+  block-size: 10px;
+  border-radius: 50%;
+  background: var(--d);
+}
+
+/* a budget row: name and "spent of budget", the bar with today's mark, then how it is going */
+html.phone .ph-bud-row {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding-block: 10px 14px;
+  padding-inline-start: 4px;
+}
+
+/* hairlines between rows start after the dot, like the shared rows */
+html.phone .ph-bud-row + .ph-bud-row::before,
+html.phone .ph-bud-s + .ph-bud-s::before,
+html.phone .ph-bud-un + .ph-bud-un::before {
+  inset-inline-start: 40px;
+}
+
+html.phone .ph-bud-row-h {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-inline-size: 0;
+}
+
+html.phone .ph-bud-row-h .ph-row-t {
+  flex: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html.phone .ph-bud-v {
+  flex: none;
+  color: var(--tx2);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+html.phone .ph-bud-row .ph-chev {
+  flex: none;
+}
+
+html.phone .ph-bud-bar,
+html.phone .ph-bud-row-s {
+  margin-inline-start: 36px;
+}
+
+html.phone .ph-bud-bar {
+  position: relative;
+  display: block;
+}
+
+/* today's place in the month: if the colour passes it, spending runs ahead of the month */
+html.phone .ph-bud-bar u {
+  position: absolute;
+  inset-block: -3px;
+  inline-size: 2px;
+  margin-inline-start: -1px;
+  border-radius: 1px;
+  background: var(--tx2);
+  opacity: .55;
+}
+
+html.phone .ph-bud-bar.big {
+  margin: 4px 0 0;
+}
+
+html.phone .ph-bud-bar.big .ph-prog {
+  block-size: 10px;
+}
+
+html.phone .ph-bud-row-s {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+html.phone .ph-bud-st {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+  color: var(--pos);
+}
+
+html.phone .ph-bud-st.warn {
+  color: var(--warn);
+}
+
+html.phone .ph-bud-st.neg {
+  color: var(--neg);
+}
+
+html.phone .ph-bud-idea {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--acc);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+html.phone .ph-bud-idea .ph-ic {
+  inline-size: 16px;
+  block-size: 16px;
+}
+
+/* a suggested budget: its name and usual spending, then the amount box and the two choices */
+html.phone .ph-bud-s {
+  padding-block: 6px 14px;
+  padding-inline: 4px 16px;
+}
+
+html.phone .ph-bud-s,
+html.phone .ph-bud-un {
+  position: relative;
+}
+
+html.phone .ph-bud-s + .ph-bud-s::before,
+html.phone .ph-bud-un + .ph-bud-un::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  border-block-start: 1px solid var(--p-line);
+}
+
+html.phone .ph-bud-s-h {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  inline-size: 100%;
+  min-block-size: var(--p-hit);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tx);
+  font: inherit;
+  text-align: start;
+}
+
+html.phone .ph-bud-wrap {
+  white-space: normal;
+}
+
+html.phone .ph-bud-s-a {
+  display: flex;
+  gap: 8px;
+  margin-block-start: 8px;
+  margin-inline-start: 36px;
+}
+
+html.phone .ph-bud-sb {
+  flex: none;
+  min-block-size: 44px;
+  padding-inline: 14px;
+  font-size: 15px;
+}
+
+/* an amount box with ₪ in front, 16px so the phone does not zoom */
+html.phone .ph-bud-in {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-inline-size: 72px;
+  min-block-size: 44px;
+  padding-inline: 12px;
+  border-radius: 12px;
+  background: var(--s2);
+  color: var(--tx2);
+  font-size: 16px;
+}
+
+html.phone .ph-bud-in:focus-within {
+  outline: 2px solid var(--acc);
+  outline-offset: -2px;
+}
+
+html.phone .ph-bud-in input {
+  flex: 1;
+  min-inline-size: 0;
+  block-size: 44px;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: none;
+  color: var(--tx);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-bud-in.wide {
+  min-block-size: 48px;
+  border-radius: var(--p-r-group);
+  background: var(--p-surf);
+}
+
+html.phone .ph-bud-again {
+  align-self: flex-start;
+  margin-block-start: calc(var(--p-gap) * -.5);
+  padding-inline: 4px;
+}
+
+/* spending with no budget: the category row and its "Set budget" button */
+html.phone .ph-bud-un {
+  display: flex;
+  align-items: center;
+  padding-inline-end: 12px;
+}
+
+html.phone .ph-bud-un .ph-row {
+  flex: 1;
+  min-inline-size: 0;
+  padding-inline-start: 4px;
+}
+
+html.phone .ph-bud-set {
+  flex: none;
+  min-block-size: 36px;
+  padding-inline: 14px;
+  font-size: 14px;
+}
+
+html.phone .ph-bud-none {
+  margin: 0;
+  padding: 14px 16px;
+  color: var(--tx2);
+  font-size: 15px;
+  line-height: 22px;
+}
+
+html.phone .ph-bud-none b {
+  color: var(--tx);
+}
+
+/* the budget sheet: spent of the budget set large, its status, the bar */
+html.phone .ph-bud-big {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+html.phone .ph-bud-big p {
+  margin: 0;
+  color: var(--tx2);
+  font-size: 15px;
+}
+
+html.phone .ph-bud-big b {
+  color: var(--tx);
+  font-size: 34px;
+  line-height: 40px;
+  font-weight: 700;
+  letter-spacing: -.5px;
+}
+
+html.phone .ph-bud-big b.neg {
+  color: var(--neg);
+}
+
+html.phone .ph-bud-line {
+  margin: 10px 0 0;
+  color: var(--tx2);
+  font-size: 14px;
+}
+
+html.phone .ph-bud-sheet .ph-group {
+  margin-block-start: var(--p-gap);
+}
+
+html.phone .ph-bud-rv-t {
+  margin: 0;
+  padding: 14px 16px 0;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+html.phone .ph-bud-rv-a {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px 14px;
+}
+
+html.phone .ph-bud-rv-a .ph-btn {
+  min-block-size: 44px;
+  padding-inline: 18px;
+  font-size: 15px;
+}
+
+/* the last months, side by side; a month over the budget in red */
+html.phone .ph-bud-months {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: 4px;
+  padding: 12px 16px;
+}
+
+html.phone .ph-bud-months span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+html.phone .ph-bud-months small {
+  color: var(--tx2);
+  font-size: 12px;
+}
+
+html.phone .ph-bud-months b.neg {
+  color: var(--neg);
+}
+
+html.phone .ph-bud-del {
+  background: color-mix(in srgb, var(--neg) 12%, transparent);
+  color: var(--neg);
+  min-block-size: 44px;
+}
+
+/* loading and error */
+html.phone .ph-bud-skel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 4px;
+}
+
+html.phone .ph-bud-skel i {
+  display: block;
+  block-size: 28px;
+  inline-size: 85%;
+  border-radius: 8px;
+  background: var(--s2);
+}
+
+html.phone .ph-bud-skel i + i {
+  inline-size: 55%;
+}
+
+html.phone .ph-bud-err {
+  margin: 0;
+  padding: 16px;
+  border-radius: var(--p-r-group);
+  background: color-mix(in srgb, var(--neg) 10%, transparent);
+  color: var(--neg);
+}
