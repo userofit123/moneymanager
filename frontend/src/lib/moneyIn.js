@@ -106,3 +106,41 @@ export function moneyIn(S) {
   out.forEach((r) => { if (r.link == null) delete r.link; if (r.twin == null) delete r.twin; });
   return out;
 }
+
+// moneyIn(S), worked out once and kept while the entries, accounts, transfers and rules stay the same (every change
+// makes new entries, so a change always works it out again).
+const memo = new WeakMap(), NONE = [];
+export function inKinds(S) {
+  const tx = S?.tx || NONE, key = [S?.accounts, S?.xf?.length, S?.salaryRules, S?.moneyInRules], m = memo.get(tx);
+  if (m && m.key.every((x, i) => x === key[i])) return m.out;
+  const out = moneyIn(S); memo.set(tx, { key, out }); return out;
+}
+
+// How a money coming in counts: "in" money in (earned, people, other), "back" money back (lowers spending), or null
+// not counted (your own money, and a bank deposit that repeats a card refund, which counts once on the card).
+export const partOf = (r) => (!r ? "in" : r.kind == "own" || r.twin ? null : r.kind == "back" ? "back" : "in");
+
+// The counted row for money coming in (t.a > 0), or null when it does not count. r: its moneyIn entry; byId: entries by id.
+// Money in gets ik (its kind) and sal (a salary). Money back gets back: true and the category of the purchase it is for,
+// so it lowers that category's spending in its month.
+export function inRow(t, r, byId) {
+  const p = partOf(r); if (!p) return null;
+  if (p == "back") { const b = r.link != null ? byId.get(r.link) : null; return { ...t, back: true, c: (b && b.c) || t.c }; }
+  return { ...t, ik: r ? r.kind : "other", ...(r && r.sub == "salary" ? { sal: true } : {}) };
+}
+
+// For counted rows (countedTx): money in (not money back), and spending (money back counts as less spending: add -t.a).
+export const isIn = (t) => t.a > 0 && !t.back;
+export const isOut = (t) => t.a < 0 || !!t.back;
+
+// Counted rows split by kind: in (earned + people + other: "money in" everywhere), earned with its salary part, people,
+// other, and back (money back, kept apart: it lowers spending). on(t): which rows (a month, a period).
+export function splitIn(rows, on = () => true) {
+  const o = { in: 0, earned: 0, salary: 0, people: 0, other: 0, back: 0 };
+  for (const t of rows || NONE) {
+    if (!(t.a > 0) || !on(t)) continue;
+    if (t.back) { o.back += t.a; continue; }
+    o.in += t.a; o[KINDS.includes(t.ik) && t.ik != "own" ? t.ik : "other"] += t.a; if (t.sal) o.salary += t.a;
+  }
+  return o;
+}

@@ -20,7 +20,7 @@ const S = {
 const k = kinds(S, "2026-10-17");
 
 test("In, Out and Net leave out transfers, card payments, upcoming and ignored rows", () => {
-  assert.deepEqual(totals(S.tx, k), { inc: 5000, out: 100, net: 4900 });
+  assert.deepEqual(totals(S.tx, k), { inc: 5000, out: 100, back: 0, net: 4900 });
   assert.deepEqual(leftOut(S.tx, k), { transfers: 2, cardPays: 1, upcoming: 1, balance: 0, ignored: 1 });
 });
 
@@ -40,14 +40,14 @@ test("sorting and grouping by month, newest month first", () => {
   assert.equal(sortRows(S.tx, "new")[0].id, "fu");
   const g = groupRows(sortRows(S.tx, "new"), "month", "new", k);
   assert.deepEqual(g.map((x) => x.key), ["2099-01", "2026-10", "2026-09"]);
-  assert.deepEqual(g[1].T, { inc: 5000, out: 100, net: 4900 });
+  assert.deepEqual(g[1].T, { inc: 5000, out: 100, back: 0, net: 4900 });
 });
 
 test("Activity's Type filter and group by type count exactly the rows In, Out and Net count (the same as countedTx)", () => {
   const S2 = { ...S, accounts: [{ n: "Old card", kind: "card", inR: false }], tx: [...S.tx, { id: "nr", d: "2026-10-03", a: -60, desc: "Cafe", from: "Old card", to: "Cafe", tags: [] }, { id: "nr2", d: "2026-10-04", a: 20, desc: "Back", from: "Cafe", to: "Old card", tags: [] }] };
   const k2 = kinds(S2, "2026-10-17"), ids = (f) => filterRows(S2, S2.tx, { q: "", src: "", cat: "", type: "", tag: "", ...f }, k2).map((t) => t.id);
   // an account not counted in reports is left out of the totals, like countedTx
-  assert.deepEqual(totals(S2.tx, k2), { inc: 5000, out: 100, net: 4900 });
+  assert.deepEqual(totals(S2.tx, k2), { inc: 5000, out: 100, back: 0, net: 4900 });
   assert.deepEqual(countedTx(S2, "2026-10-17").A.map((t) => t.id).sort(), ["a", "b"]);
   assert.equal(leftOut(S2.tx, k2).ignored, 3);
   // Expenses: the counted spending and the upcoming one, never a row left out, a card payment or a not-counted account

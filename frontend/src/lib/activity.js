@@ -1,6 +1,7 @@
 // The Activity list's rules, kept apart from the screen so they can be tested: which rows show, in what order,
 // how they are grouped, and how In, Out and Net are counted.
 import { SRC_NAMES } from "../catnames.js";
+import { inKinds, partOf } from "./moneyIn.js";
 
 // Money moved between the user's own accounts (confirmed or guessed). Not income or spending.
 // A pair is "auto" (found by the app, waiting for review), "ok" (confirmed) or "rej" (the user said it is not a transfer).
@@ -66,6 +67,8 @@ export function kinds(S, today) {
     isFut: (t) => isFuture(t, today),
     isCp: (t) => isCardPay(S, t, ci),
     isOff: (t) => NR.size > 0 && !t.virtual && (NR.has(t.from) || NR.has(t.to)),
+    // what a money coming in is (lib/moneyIn.js), worked out the first time it is asked
+    inOf: (t) => inKinds(S).get(t.id),
   };
 }
 // A row In, Out and Net count (the same rows as countedTx in lib/bills.js): not a transfer, card payment, upcoming item,
@@ -73,13 +76,17 @@ export function kinds(S, today) {
 export const counts = (t, k) => !(t.balUpd || k.isXf(t) || k.isIgn(t) || k.isFut(t) || k.isCp(t) || k.isOff(t));
 
 // Only real income and spending count. Transfers, card payments, upcoming items, balance notes and rows the user left out do not.
+// Money back (back) lowers Out instead of adding to In; your own money put in does not count (lib/moneyIn.js).
 export function totals(list, k) {
-  let inc = 0, out = 0;
+  let inc = 0, out = 0, back = 0;
   for (const t of list) {
     if (!counts(t, k)) continue;
-    if (t.a > 0) inc += t.a; else out -= t.a;
+    if (t.a < 0) { out -= t.a; continue; }
+    const p = k.inOf ? partOf(k.inOf(t)) : "in";
+    if (p == "in") inc += t.a; else if (p == "back") back += t.a;
   }
-  return { inc, out, net: inc - out };
+  out -= back;
+  return { inc, out, back, net: inc - out };
 }
 
 export function leftOut(list, k) {

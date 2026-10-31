@@ -2,6 +2,7 @@
 // Nothing here touches the screen. Bills the app finds by itself are only worked out; they are saved
 // the first time a change is made (withDetected), so a change always has a saved bill to work on.
 import { kinds, instOf, counts } from "./activity.js";
+import { inRow } from "./moneyIn.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
 const sum = (a) => a.reduce((t, x) => t + x, 0);
@@ -28,6 +29,8 @@ export function cadenceOf(L) {
 
 // The payments that count (no transfers, card payments, future or left-out ones), plus the cost of moving money.
 // Pending ones count, the same way the Activity page counts them. Home, Accounts and Reports use the same rows.
+// Money coming in is a copy with its kind (lib/moneyIn.js inRow): money back is marked back (it lowers spending),
+// your own money put in is left out of A and given apart (notIn), for the walk through the bank balance (Recap's steps).
 export function countedTx(S, today) {
   const k = kinds(S, today), tx = S.tx || [];
   const byId = new Map(tx.map((t) => [t.id, t]));
@@ -35,8 +38,10 @@ export function countedTx(S, today) {
     const o = byId.get(x.o), i = byId.get(x.i); if (!o || !i) return null; const c = -o.a - i.a;
     return c > 0.5 ? { id: "v" + x.o, virtual: true, d: o.d, desc: "Transfer cost · " + o.from + " → " + i.to, from: o.from, to: "Transfer fees / FX spread", a: -c, c: "Fees & FX costs" } : null;
   }).filter(Boolean);
-  const A = tx.filter((t) => counts(t, k)).concat(costRows);
-  return { A, k, costRows };
+  const A = [], notIn = [];
+  for (const t of tx) { if (!counts(t, k)) continue; if (t.a > 0) { const r = inRow(t, k.inOf(t), byId); if (r) A.push(r); else notIn.push(t); } else A.push(t); }
+  A.push(...costRows);
+  return { A, k, costRows, notIn };
 }
 
 // A store that charges again and again is a bill. Returns the bills to add; the saved ones and the ignored ones are skipped.

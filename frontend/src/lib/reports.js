@@ -2,6 +2,7 @@
 // the periods, comparisons, monthly series, merchants and tags. Nothing here changes the data.
 import { rangeOf as rangeOfA, rdOf } from "./activity.js";
 import { addM } from "./home.js";
+import { isIn } from "./moneyIn.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
 const sum = (a) => a.reduce((x, y) => x + y, 0);
@@ -56,23 +57,23 @@ export function seriesN(M, n, ty, MK) {
   const keys = []; for (let i = n - 1; i >= 0; i--) keys.push(addM(MK, -i));
   const inc = keys.map(() => 0), exp = keys.map(() => 0), cats = {};
   rows.forEach((t) => { const i = keys.indexOf(rdOf(t).slice(0, 7)); if (i < 0) return;
-    if (t.a > 0) { inc[i] += t.a; if (ty == "inc") { const c = t.c || "Uncategorized"; (cats[c] = cats[c] || keys.map(() => 0))[i] += t.a; } }
-    else { exp[i] -= t.a; if (ty != "inc") { const c = t.c || "Uncategorized"; (cats[c] = cats[c] || keys.map(() => 0))[i] -= t.a; } } });
+    if (isIn(t)) { inc[i] += t.a; if (ty == "inc") { const c = t.c || "Uncategorized"; (cats[c] = cats[c] || keys.map(() => 0))[i] += t.a; } }
+    else if (t.a < 0) { exp[i] -= t.a; if (ty != "inc") { const c = t.c || "Uncategorized"; (cats[c] = cats[c] || keys.map(() => 0))[i] -= t.a; } } });
   return { keys, inc, exp, cat: Object.fromEntries(Object.entries(cats).sort((a, b) => sum(b[1]) - sum(a[1])).slice(0, 5)) };
 }
 
 // The main chart: what can be shown, and one number per month for it.
 export function trOptions(M) {
   const rows = counted(M), cat = {}, src = {}, tag = {};
-  rows.forEach((t) => { const v = Math.abs(t.a); if (t.a > 0) { const k = incKey(t); src[k] = (src[k] || 0) + v; } else { const c = t.c || "Uncategorized"; cat[c] = (cat[c] || 0) + v; (t.tags || []).forEach((g) => (tag[g] = (tag[g] || 0) + v)); } });
+  rows.forEach((t) => { const v = Math.abs(t.a); if (isIn(t)) { const k = incKey(t); src[k] = (src[k] || 0) + v; } else if (t.a < 0) { const c = t.c || "Uncategorized"; cat[c] = (cat[c] || 0) + v; (t.tags || []).forEach((g) => (tag[g] = (tag[g] || 0) + v)); } });
   const top = (o, n) => Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, n).map((x) => x[0]);
   return { cat: top(cat, 40), src: top(src, 12), tag: top(tag, 20) };
 }
 export function trSeries(M, S, spec, ms) {
   const rows = counted(M), by = (pred, sg) => { const m = {}; rows.forEach((t) => { if (pred(t)) m[rdOf(t).slice(0, 7)] = (m[rdOf(t).slice(0, 7)] || 0) + (sg ? t.a : Math.abs(t.a)); }); return ms.map((k) => m[k] || 0); };
   const [k, ...r] = spec.split(":"), arg = r.join(":");
-  if (k == "inc") return by((t) => t.a > 0); if (k == "exp") return by((t) => t.a < 0); if (k == "net") return by(() => true, 1);
-  if (k == "cat") return by((t) => t.a < 0 && (t.c || "Uncategorized") == arg); if (k == "src") return by((t) => t.a > 0 && incKey(t) == arg); if (k == "tag") return by((t) => t.a < 0 && (t.tags || []).includes(arg));
+  if (k == "inc") return by(isIn); if (k == "exp") return by((t) => t.a < 0); if (k == "net") return by(() => true, 1);
+  if (k == "cat") return by((t) => t.a < 0 && (t.c || "Uncategorized") == arg); if (k == "src") return by((t) => isIn(t) && incKey(t) == arg); if (k == "tag") return by((t) => t.a < 0 && (t.tags || []).includes(arg));
   if (k == "bills") {
     const ids = new Set();
     (M.billsAll || []).filter((b) => b.flag != "canceled").forEach((b) => (b.mode == "once" ? (S.tx || []).filter((t) => (b.ids || []).includes(t.id)) : M.rows.filter((t) => t.a < 0 && (t.desc + " " + t.to).toLowerCase().includes(b.match))).forEach((t) => ids.add(t.id)));
