@@ -22,6 +22,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 - **Alerts:** background alerts can be turned on again after the server's key changed, the large amount alert says what the money is, and an alert you dismiss shows as closed in History right away.
 - **Wording:** plain words everywhere, no "we", predictions say "likely", Hebrew follows your gender setting, and amounts read correctly inside Hebrew sentences.
 - **Phone:** a new phone app, built from scratch: a tab bar (Home, Activity, Jars, Bills, More), screens that open on top of each other with Back, large titles that shrink as you scroll, pull down to sync, and a More page with everything else. The computer layout does not change.
+- **Phone windows:** every window opens as a sheet from the bottom (forms, "Are you sure?", ⋯ menus, drop-downs); tooltips open with a tap; messages sit above the tab bar; + opens "Add or update" as a grid; Settings lists your profile and every section, each on its own screen; the sign-in screen fits the phone; in the installed iPhone app, a swipe from the edge goes back.
 - **Fixes:** a refund on a credit card lowers that card's bill; Accounts no longer counts another currency 1 to 1; a bill no longer shows twice in Activity; Recap's graphs run left to right in Hebrew too; every open and close arrow is the same thin chevron.
 
 ### Windows app
