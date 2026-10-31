@@ -1,1 +1,394 @@
-/* activity screen (phone/screens). Every rule starts with html.phone. */
+/* Activity on the phone (phone/screens/ActivityScreen.vue): the switch, search and filter chips, the sentence with its totals,
+   the rows in their groups (headers stay under the top bar while their rows scroll), and the Needs review cards. */
+
+/* ---- the top: All / Needs review, search, filters ---- */
+html.phone .ph-actv-head {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 var(--p-gut) 16px;
+}
+
+html.phone .ph-actv-head .ph-chips {
+  margin-block: -4px;
+}
+
+/* ---- the sentence and the small totals under it ---- */
+html.phone .ph-actv-sum {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-inline: 4px;
+}
+
+html.phone .ph-actv-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  color: var(--tx2);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+html.phone .ph-actv-fact {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+html.phone .ph-actv-fact b {
+  color: var(--tx);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-actv-fact b.neg,
+html.phone .ph-actv-gp .neg b {
+  color: var(--neg);
+}
+
+/* shown only some items (from an alert or another page) */
+html.phone .ph-actv-focus {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--p-r-group);
+  background: var(--accc);
+  color: var(--onc);
+}
+
+html.phone .ph-actv-focus .ph-row-s {
+  color: inherit;
+  opacity: .8;
+}
+
+html.phone .ph-wrap {
+  white-space: normal;
+}
+
+/* ---- groups: a header that stays under the top bar, then its rows ---- */
+html.phone .ph-actv-g {
+  display: flex;
+  flex-direction: column;
+}
+
+html.phone .ph-actv-gh {
+  position: sticky;
+  inset-block-start: calc(var(--p-bar) + var(--st));
+  z-index: 5;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 2px 8px;
+  inline-size: calc(100% + 2 * var(--p-gut));
+  margin-inline: calc(-1 * var(--p-gut));
+  padding: 8px calc(var(--p-gut) + 4px);
+  border: 0;
+  background: var(--p-glass);
+  -webkit-backdrop-filter: saturate(1.6) blur(20px);
+  backdrop-filter: saturate(1.6) blur(20px);
+  color: var(--tx);
+  font: inherit;
+  text-align: start;
+}
+
+html.phone .ph-actv-gt {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 15px;
+  line-height: 20px;
+}
+
+html.phone .ph-actv-gt b {
+  font-weight: 600;
+}
+
+html.phone .ph-actv-gt > span {
+  color: var(--tx2);
+  font-size: 13px;
+}
+
+html.phone .ph-actv-gc {
+  inline-size: 18px;
+  block-size: 18px;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  color: var(--tx2);
+  transform: rotate(90deg);
+  transition: transform var(--p-t-fade) var(--p-ease);
+}
+
+html.phone .ph-actv-g.closed .ph-actv-gc {
+  transform: rotate(calc(90deg - 90deg * var(--p-dir)));
+}
+
+html.phone .ph-actv-gp {
+  grid-column: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+html.phone .ph-actv-gp b {
+  color: var(--tx);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-actv-g + .ph-actv-g {
+  margin-block-start: calc(-1 * var(--p-gap) + 8px);
+}
+
+html.phone .ph-actv-g .ph-group-b {
+  margin-block-start: 4px;
+}
+
+/* ---- a transaction row ---- */
+html.phone .ph-txr {
+  align-items: flex-start;
+  padding-block: 12px;
+}
+
+html.phone .ph-txr.fut {
+  opacity: .62;
+}
+
+html.phone .ph-av {
+  display: grid;
+  place-items: center;
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: var(--p-r-tile);
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+html.phone .ph-txr-s {
+  display: flex;
+  gap: 10px;
+}
+
+html.phone .ph-txr-s > span {
+  flex: none;
+}
+
+html.phone .ph-txr-s > .ph-txr-acc {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html.phone .ph-txr-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-block-start: 6px;
+}
+
+html.phone .ph-txr-chips .bd {
+  margin: 0;
+}
+
+html.phone .ph-txr-end {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding-block-start: 1px;
+}
+
+html.phone .ph-txr-a {
+  color: var(--tx);
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+html.phone .ph-txr-a.pos {
+  color: var(--pos);
+}
+
+html.phone .ph-txr-a.bal {
+  color: var(--tx2);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+html.phone .ph-txr-o {
+  color: var(--tx2);
+  font-size: 12px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* the swipe's separators: inset past the avatar, as in every list */
+html.phone .ph-actv-g .ph-swipe + .ph-swipe::before {
+  inset-inline-start: 64px;
+  z-index: 1;
+}
+
+/* the end of the list: a small ring while more rows load */
+html.phone .ph-actv-end {
+  display: grid;
+  place-items: center;
+  min-block-size: 24px;
+}
+
+html.phone .ph-actv-spin {
+  inline-size: 20px;
+  block-size: 20px;
+  border: 2px solid var(--p-line);
+  border-block-start-color: var(--acc);
+  border-radius: 50%;
+  animation: ph-actv-spin .8s linear infinite;
+}
+
+@keyframes ph-actv-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---- buttons in cards ---- */
+html.phone .ph-btn.ph-sm {
+  min-block-size: 40px;
+  padding-inline: 16px;
+  font-size: 15px;
+}
+
+html.phone .ph-btn.tonal.ph-sm {
+  background: var(--accc);
+  color: var(--onc);
+}
+
+html.phone .ph-btn.danger {
+  background: var(--neg);
+  color: #fff;
+}
+
+/* ---- Needs review ---- */
+html.phone .ph-actv-rh {
+  padding-inline: 4px;
+}
+
+html.phone .ph-rv {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 14px 16px 16px;
+}
+
+html.phone .ph-rv + .ph-rv::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 16px 0;
+  border-block-start: 1px solid var(--p-line);
+}
+
+html.phone .ph-rv-h {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  inline-size: 100%;
+  font-size: 16px;
+  line-height: 22px;
+}
+
+html.phone .ph-rv-h b {
+  font-weight: 600;
+}
+
+html.phone .ph-rv-h .bd {
+  margin-inline-start: auto;
+}
+
+html.phone .ph-rv-to {
+  inline-size: 16px;
+  block-size: 16px;
+  color: var(--tx2);
+}
+
+html.phone .ph-rv-amt {
+  margin-inline-start: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-rv-big {
+  margin: 2px 0;
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 600;
+}
+
+html.phone .ph-rv-p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+html.phone .ph-rv-p.mu {
+  color: var(--tx2);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+html.phone .ph-rv-b {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-start: 8px;
+}
+
+/* ---- sheets ---- */
+html.phone .ph-actv-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-block: 4px 8px;
+}
+
+html.phone .ph-actv-dates input {
+  font-size: 16px;
+  min-block-size: 48px;
+}
+
+html.phone .ph-actv-how {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+html.phone .ph-actv-how dt {
+  font-weight: 600;
+}
+
+html.phone .ph-actv-how dd {
+  margin: 2px 0 14px;
+  color: var(--tx2);
+}
+
+/* the Export window (the computer's ExportPanel) in a phone sheet: one column, the sheet's own title only */
+html.phone .ph-adopt .exp .exhead {
+  display: none;
+}
+
+html.phone .ph-adopt .exp .exlay {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+html.phone .ph-adopt .exp .exside {
+  position: static;
+}
