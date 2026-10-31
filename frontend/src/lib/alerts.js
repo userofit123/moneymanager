@@ -71,8 +71,8 @@ export function alertsModel(S, M, now = new Date(), fc = {}, friendly = (e) => e
     if (j.bal < 1 && (S.tx || []).some((t) => t.jarNo && t.jarNo === t.c && catJars[t.c] && catJars[t.c].j.id == j.id && t.d.startsWith(MK))) add("je-" + j.id + MK, "jars", "med", "jarOut", { j: j.n, cats: mine.join(", ") }, "jars"); }); }
   // cards
   M.cards.forEach((cd) => { const u = cd.now, l = cd.last; if (l > 0 && u > l * (1 + c.cardPct / 100)) add("cd-" + cd.n + MK, "card", "med", "card", { n: cd.n, pct: Math.round((u / l - 1) * 100), u: fm(u), l: fm(l) }, "dash"); });
-  // large amounts
-  M.rows.filter((t) => Math.abs(t.a) >= c.largeAmt && (now - new Date(t.d)) / 864e5 <= 7 && !t.virtual).forEach((t) => add("lg-" + t.id, "large", "low", "large", { inc: t.a > 0 ? 1 : 0, name: M.nameOf(t), amt: fm(t.a), date: t.d, lim: fm(c.largeAmt) }, "tx", { ids: [t.id] }));
+  // large amounts (k: what the money is, for the words: money in, money back, from a person or money out)
+  M.rows.filter((t) => Math.abs(t.a) >= c.largeAmt && (now - new Date(t.d)) / 864e5 <= 7 && !t.virtual).forEach((t) => add("lg-" + t.id, "large", "low", "large", { inc: t.a > 0 ? 1 : 0, k: t.a < 0 ? "Out" : t.back ? "Back" : t.ik == "people" ? "People" : "In", name: M.nameOf(t), amt: fm(t.a), date: t.d, lim: fm(c.largeAmt) }, "tx", { ids: [t.id] }));
   const xs = (S.xf || []).filter((x) => x.st == "auto").length; if (xs) add("xf-" + xs, "xfer", "med", "xfer", { n: xs }, "tx", { tab: "rev" });
   const dups = duplicateIds(S); if (dups.size) add("dp-" + dups.size, "xfer", "med", "dup", { n: dups.size }, "tx", { ids: [...dups] });
   // balance gaps

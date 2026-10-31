@@ -72,7 +72,7 @@ function alertText(x) {
     case "due": return [p.d == 0 ? t("al.dueToday", p) : p.d == 1 ? t("al.dueT1", p) : t("al.dueT", p), X("due")];
     case "price": return [tk(p.up ? "al.priceUp" : "al.priceDown", p), `${p.was} → ${p.amt} (${p.pct})`];
     case "jarAsk": return [t("al.jarAskT"), X("jarAsk")];
-    case "large": return [tk(p.inc ? "al.largeIn" : "al.largeOut", p), X("large")];
+    case "large": return [tk("al.large" + (p.k || (p.inc ? "In" : "Out")), p), X("large")];
     case "xfer": return [tk("al.xferT" + (p.n == 1 ? "1" : ""), p), X("xfer")];
     case "dup": return [tk("al.dupT" + (p.n == 1 ? "1" : ""), p), X("dup")];
     case "gapBill": return [T("gapBill"), X("gapBill")];

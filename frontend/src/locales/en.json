@@ -810,6 +810,8 @@
     "cardT": "{n} charge is {pct}% higher than last month",
     "cardX": "{u} still to be charged this month, against {l} charged last month.",
     "largeIn": "Large income: {name}",
+    "largeBack": "Large money back: {name}",
+    "largePeople": "Large amount from a person: {name}",
     "largeOut": "Large expense: {name}",
     "largeX": "{amt} · {date}. Above your large-amount limit of {lim} (change it in Alert settings).",
     "xferT": "{n} transfers to review",
