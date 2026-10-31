@@ -144,7 +144,7 @@
     "done": "Done · I am logged in",
     "d1": "This is the app’s own browser, shown live. Log in as you normally do, enter the code the bank sends you, and tick “remember this device” if it asks. When you reach your account, press",
     "d1b": "Done",
-    "d1c": ". The bank then knows this browser, so automatic syncs should not ask for a code again. Only you can see this window.",
+    "d1c": ". The bank then knows this browser, so automatic syncs should not ask for a code again.",
     "imgAlt": "bank page",
     "ph": "Type here and press Send (for the code)",
     "send": "Send",

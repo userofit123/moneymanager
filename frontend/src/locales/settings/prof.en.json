@@ -3,7 +3,7 @@
   "desc": "Everything here is optional. It stays in your own data and is never sent anywhere.",
   "name": "Name",
   "namePh": "What name should the app use?",
-  "nameHint": "Used to greet you on the Recap page. It is only shown to you.",
+  "nameHint": "Used to greet you on the Recap page.",
   "age": "Age",
   "agePh": "e.g. 34",
   "ageHint": "So you can set goals such as “reach ₪200,000 by age 40”. It stays up to date as the years pass.",
