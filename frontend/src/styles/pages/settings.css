@@ -191,6 +191,37 @@ html.mob .setmain {
   padding-bottom: 160px;
 }
 
+/* Phone: the round buttons float over the last ~40px at the end of the screen.
+   Controls that sit at the end of a line (switches, short number boxes, Delete on a rule, a card's title button) keep that much room after them. */
+html.mob .sr.srtg > .src,
+html.mob .sr.srsub > .src,
+html.mob .sr.inl > .src,
+html.mob .rule .rdel,
+html.mob #set .ssh > .btn {
+  margin-inline-end: 40px;
+}
+
+/* Phone: each card's icon sits at the top of its title, also when the explanation runs over several lines */
+html.mob #set .ssh {
+  align-items: flex-start;
+}
+
+html.mob #set .ssh > div {
+  min-height: 38px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Currencies on a phone: Add stays beside the currency box */
+html.mob .sr.curadd > .src {
+  flex-wrap: nowrap;
+}
+
+html.mob .sr.curadd .src select {
+  flex: 1;
+}
+
 /* the side list stays in view and fits the window: when the window is short it scrolls on its own */
 .setnav {
   position: sticky;
@@ -901,6 +932,12 @@ html.mob .rladd > .btn {
   font-size: 12px;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/* System information: each value takes its own direction (dir="auto"), so English values (versions, browser) read and cut off left to right also in Hebrew;
+   in Hebrew they still sit right beside their label */
+html.he #setErr .kvr .v {
+  text-align: right; /* fixed side */
 }
 
 .errsys {

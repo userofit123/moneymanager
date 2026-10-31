@@ -37,7 +37,7 @@ async function clear() { try { await request("/api/errors", { method: "DELETE" }
     <div v-if="!ERRS.loaded" class="card sm">{{ tk("loading") }}</div>
     <template v-else>
       <SetSection icon="log" :title="tk('sysT')" :desc="tk('sysD')" pad>
-        <div class="kv"><div v-for="[k, v] in kv" :key="k" class="kvr"><span class="k">{{ k }}</span><span class="v">{{ String(v) }}</span></div></div>
+        <div class="kv"><div v-for="[k, v] in kv" :key="k" class="kvr"><span class="k">{{ k }}</span><span class="v" dir="auto">{{ String(v) }}</span></div></div>
         <div class="errsys"><button type="button" class="btn o s" data-a="errCopySys" @click="copyText(sys(), tk('tSys'))">{{ tk("copySys") }}</button></div>
       </SetSection>
       <SetSection icon="log" :title="tk('title')" :desc="tk('desc')" :count="R.length">

@@ -241,6 +241,8 @@ const NAMES = {
 
 // Messages from the server and the bank reader: errors, sync and connection states, field names, bank names.
 const SERVER = {
+  "Windows app (built-in database)": "אפליקציית Windows (מסד נתונים מובנה)",
+  "Docker / server (PostgreSQL)": "Docker / שרת (PostgreSQL)",
   "{} sample transactions": "{} תנועות לדוגמה",
   "{d}": "{d}",
   "A backup is already running.": "גיבוי כבר רץ.",

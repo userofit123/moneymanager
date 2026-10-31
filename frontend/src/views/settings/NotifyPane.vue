@@ -148,7 +148,7 @@ async function nchDelGo(k) { try { await data.api("/api/notify/channels/" + k, {
     <SetSection icon="bell" title="ntfy" :desc="tk('ntfyD')">
       <SetRow stack :desc="tk('ntfyLabelD')">
         <template #title><label for="nchNtfy">{{ tk("ntfyLabel") }}</label></template>
-        <input id="nchNtfy" dir="ltr" data-c="ntfy" :value="S.ntfy" placeholder="https://ntfy.example.com/money" @change="setNtfy($event.target.value)">
+        <input id="nchNtfy" dir="ltr" data-c="ntfy" :value="S.ntfy" placeholder="http://192.168.1.20:2586/money" @change="setNtfy($event.target.value)">
         <button type="button" class="btn o s" data-a="ntfyTest" @click="ntfyTest">{{ tk("ntfyTest") }}</button>
       </SetRow>
     </SetSection>

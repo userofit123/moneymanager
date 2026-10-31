@@ -35,7 +35,7 @@ async function remove(c) {
       <SetRow :title="tk('inUse')" :desc="tk('inUseDesc')" stack>
         <div class="curl"><span v-for="c in listOf(S)" :key="c" class="chip">{{ symOf(c) ? symOf(c) + " " : "" }}{{ c }}<button v-if="!isUsed(S, c)" type="button" class="curx" data-a="curDel" :data-c="c" :aria-label="tk('remove', { c })" @click="remove(c)">×</button></span></div>
       </SetRow>
-      <SetRow :title="tk('addTitle')" :desc="tk('addDesc')">
+      <SetRow :title="tk('addTitle')" :desc="tk('addDesc')" cls="curadd">
         <select id="curSel" v-model="pick" :aria-label="tk('addTitle')"><option value="">{{ tk("pick") }}</option><option v-for="c in addable(S)" :key="c" :value="c">{{ c }} · {{ t("settings.cur.names." + c) }}</option></select><button type="button" class="btn o s" data-a="curAdd" @click="add">{{ tk("add") }}</button>
       </SetRow>
       <template #foot>{{ tk("foot") }}</template>
