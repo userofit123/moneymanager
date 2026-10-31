@@ -3,7 +3,7 @@
 // the others are Money Manager servers elsewhere. The desktop shell does the work (desktop/main.js); this page only asks it.
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import SetHead from "./SetHead.vue";
+import SetSection from "./SetSection.vue";
 import SetRow from "./SetRow.vue";
 import { ask } from "../../core/ask.js";
 
@@ -29,22 +29,18 @@ async function add() {
 
 <template>
   <div id="setServer">
-    <div class="card ss">
-      <SetHead icon="link" :title="tk('title')" :desc="tk('desc')" />
-      <div class="ssb">
-        <SetRow v-for="r in rows" :key="r.id" :title="r.name" :desc="r.desc">
-          <span v-if="r.now" class="bd fl">{{ tk("now") }}</span>
-          <button v-else type="button" class="btn s" data-a="srvUse" @click="use(r.id)">{{ tk("open") }}</button>
-          <button v-if="r.id != 'local'" type="button" class="btn o s" data-a="srvRemove" style="margin-inline-start:6px" @click="remove(r)">{{ tk("remove") }}</button>
-        </SetRow>
-        <SetRow :title="tk('addT')" :desc="tk('addD')" />
-        <div class="tools" style="margin-top:6px">
-          <input v-model="nm" :placeholder="tk('name')" :aria-label="tk('name')" autocomplete="off">
-          <input v-model="ad" dir="ltr" :placeholder="tk('addr')" :aria-label="tk('addrL')" autocomplete="off" spellcheck="false" @keydown.enter.prevent="add">
-          <button type="button" class="btn" data-a="srvAdd" :disabled="busy" @click="add">{{ busy ? tk("checking") : tk("add") }}</button>
-        </div>
-        <div class="sm" style="color:var(--neg);min-height:18px" role="alert">{{ err }}</div>
-      </div>
-    </div>
+    <SetSection icon="link" :title="tk('title')" :desc="tk('desc')">
+      <SetRow v-for="r in rows" :key="r.id" :title="r.name" :desc="r.desc">
+        <span v-if="r.now" class="bd fl">{{ tk("now") }}</span>
+        <button v-else type="button" class="btn s" data-a="srvUse" @click="use(r.id)">{{ tk("open") }}</button>
+        <button v-if="r.id != 'local'" type="button" class="btn o s" data-a="srvRemove" @click="remove(r)">{{ tk("remove") }}</button>
+      </SetRow>
+      <SetRow stack cls="srvadd" :title="tk('addT')" :desc="tk('addD')">
+        <input v-model="nm" :placeholder="tk('name')" :aria-label="tk('name')" autocomplete="off">
+        <input v-model="ad" dir="ltr" :placeholder="tk('addr')" :aria-label="tk('addrL')" autocomplete="off" spellcheck="false" @keydown.enter.prevent="add">
+        <button type="button" class="btn s" data-a="srvAdd" :disabled="busy" @click="add">{{ busy ? tk("checking") : tk("add") }}</button>
+      </SetRow>
+      <div class="sm srverr" role="alert">{{ err }}</div>
+    </SetSection>
   </div>
 </template>

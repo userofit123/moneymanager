@@ -837,3 +837,77 @@ html.mob .rladd > .btn {
   padding-top: 14px;
   border-top: 1px solid var(--ol);
 }
+
+/* Version and updates: the download bar under its line, a failed check in red, the server how-to note */
+.updbar {
+  display: block;
+  margin: 8px 0 0;
+}
+
+.sr.updfail .srt .sm {
+  color: var(--bad);
+}
+
+#updCard .sfoot code {
+  background: var(--s1);
+}
+
+/* What's new: the whole title line opens a version; the badge after the number */
+.relv > summary {
+  cursor: pointer;
+}
+
+.relb {
+  margin-inline-start: 8px;
+}
+
+/* Server: the address boxes share the line with Check and add; the error under them */
+.sr.srvadd .src > input:not([type=checkbox]) {
+  flex: 1 1 180px;
+  width: auto;
+}
+
+.srverr {
+  margin-top: 4px;
+  color: var(--neg);
+}
+
+/* Problems and support: each problem, its time, and the full details */
+.errw {
+  flex: 1;
+  min-width: 0;
+}
+
+.errw > b {
+  font-size: 14px;
+}
+
+.errm,
+.errt {
+  margin-top: 2px;
+  word-break: break-word;
+}
+
+.errt {
+  opacity: .7;
+}
+
+.errd {
+  margin-top: 6px;
+}
+
+.errd pre {
+  margin: 8px 0 0;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.errsys {
+  display: flex;
+  margin-top: 12px;
+}
+
+.srverr:empty {
+  display: none;
+}

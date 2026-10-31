@@ -2,7 +2,7 @@
   "title": "What's new",
   "desc": "Everything that changed in each version, newest first.",
   "youOn": "You are on version {v}.",
-  "none": "No change log is available.",
+  "none": "The list of changes is not available right now.",
   "version": "Version",
   "installed": "Installed",
   "newer": "Newer",

@@ -5,13 +5,13 @@ const REL = ref({ sections: [], loaded: false, raw: null });
 </script>
 
 <script setup>
-// Settings → Change log:
+// Settings → What's new:
 // every version with what changed, newest first, in Hebrew where the Hebrew notes have it.
 import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { getJson } from "../../core/http.js";
 import { UP, relPick, mdLite, vNewer } from "../../core/updates.js";
-import SetHead from "./SetHead.vue";
+import SetSection from "./SetSection.vue";
 
 const { t, locale } = useI18n();
 const tk = (k, a) => t("settings.rel." + k, a || {});
@@ -24,12 +24,13 @@ const desc = computed(() => tk("desc") + (cur.value ? " " + tk("youOn", { v: "�
 
 <template>
   <div id="setRel">
-    <div class="card ss">
-      <SetHead icon="log" :title="tk('title')" :desc="desc" :count="L.length" />
-      <div v-if="!L.length" class="ssb"><div class="sm" style="padding:14px 2px">{{ REL.loaded ? tk("none") : tk("loading") }}</div></div>
-    </div>
+    <SetSection icon="log" :title="tk('title')" :desc="desc" :count="L.length">
+      <template v-if="!L.length" #default><div class="sm rlnone">{{ REL.loaded ? tk("none") : tk("loading") }}</div></template>
+    </SetSection>
     <details v-for="(r, i) in L" :key="r.v" class="card ss relv" :open="i < 2 || (cur && vNewer(r.v, cur))">
-      <summary class="ssh" style="cursor:pointer"><div style="flex:1;min-width:0"><b><span>{{ tk("version") }}</span> ⁦{{ r.v }}⁩<template v-if="r.v == cur">{{ " " }}<span class="bd pc p-jar">{{ tk("installed") }}</span></template><template v-else-if="cur && vNewer(r.v, cur)">{{ " " }}<span class="bd pc p-bill">{{ tk("newer") }}</span></template></b><div v-if="dt(r.date)" class="sm">{{ dt(r.date) }}</div></div></summary>
+      <summary class="ssh">
+        <div><b>{{ tk("version") }} ⁦{{ r.v }}⁩<span v-if="r.v == cur" class="bd pc p-jar relb">{{ tk("installed") }}</span><span v-else-if="cur && vNewer(r.v, cur)" class="bd pc p-bill relb">{{ tk("newer") }}</span></b><div v-if="dt(r.date)" class="sm">{{ dt(r.date) }}</div></div>
+      </summary>
       <div class="ssb p" v-html="mdLite(r.body)" />
     </details>
   </div>

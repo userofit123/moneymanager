@@ -9,7 +9,7 @@
   "checking": "Checking for updates…",
   "availDesk": "Version {v} is available.",
   "availServer": "Version {v} is available.",
-  "serverHow1": "To update your server, pull the new image: press",
+  "serverHow1": "To update your server, press",
   "or": "or",
   "serverHow2": "in Docker Desktop, Portainer or Dockhand. In a terminal:",
   "serverHow3": "Your data is kept.",
@@ -50,5 +50,6 @@
   "appGet": "Get the latest app",
   "appGetD": "Download the newest file from GitHub and open it to update. Your server and your data are not touched.",
   "appGetBtn": "Open downloads",
-  "srvVerT": "Your server's version"
+  "srvVerT": "Your server's version",
+  "updT": "New versions"
 }
