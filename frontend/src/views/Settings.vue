@@ -1,8 +1,8 @@
 <script setup>
 // Settings: the list of
-// sections on one side (six groups) and the open section next to it. Each section is its own file in views/settings/.
+// sections on one side (seven groups) and the open section next to it. Each section is its own file in views/settings/.
 // The open section is not part of the address.
-import { computed, defineAsyncComponent, onMounted } from "vue";
+import { computed, defineAsyncComponent, nextTick, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
 import PageHeader from "../components/PageHeader.vue";
@@ -19,6 +19,9 @@ const panes = Object.fromEntries(Object.entries(PANES).map(([id, load]) => [id, 
 const inDesktop = typeof window !== "undefined" && !!window.desktopServers; // the desktop app: sections that need its shell show
 const groups = NAV.map((g) => ({ ...g, tabs: g.tabs.filter((x) => !x.desktop || inDesktop) }));
 const pane = computed(() => (!inDesktop && NAV.some((g) => g.tabs.some((x) => x.desktop && x.id === settingsTab.value)) ? panes.prof : panes[settingsTab.value] || panes.prof));
+// On a phone the list is a row that scrolls sideways: keep the open section's chip in sight (also when opened from another page).
+const showOn = () => nextTick(() => document.querySelector("#setTabs button.on")?.scrollIntoView({ block: "nearest", inline: "center" }));
+onMounted(() => watch(settingsTab, showOn, { immediate: true }));
 </script>
 
 <template>

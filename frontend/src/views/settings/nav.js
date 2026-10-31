@@ -1,4 +1,4 @@
-// The Settings side list (#setTabs): six groups, each with its sections and their icons.
+// The Settings side list (#setTabs): seven groups, each with its sections and their icons.
 // "pane" is the file that draws the section (loaded when it is opened). desktop: true = only in the desktop app (it needs the shell).
 export const NAV = [
   { group: "you", tabs: [
@@ -18,20 +18,22 @@ export const NAV = [
     { id: "cprules", icon: "<rect x=\"3\" y=\"6\" width=\"18\" height=\"12\" rx=\"2\"/><path d=\"M3 10h18M7 15h3\"/>" },
     { id: "srules", icon: "<rect x=\"3\" y=\"7\" width=\"18\" height=\"13\" rx=\"2\"/><path d=\"M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18\"/>" },
   ] },
-  { group: "data", tabs: [
-    { id: "sec", icon: "<path d=\"M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z\"/><path d=\"M9 12l2 2 4-4\"/>" },
-    { id: "server", desktop: true, icon: "<rect x=\"3\" y=\"4\" width=\"18\" height=\"7\" rx=\"2\"/><rect x=\"3\" y=\"13\" width=\"18\" height=\"7\" rx=\"2\"/><path d=\"M7 7.5h.01M7 16.5h.01\"/>" },
-    { id: "data", icon: "<ellipse cx=\"12\" cy=\"6\" rx=\"8\" ry=\"3\"/><path d=\"M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3\"/>" },
-    { id: "backup", icon: "<path d=\"M12 15V4M8 8l4-4 4 4M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5\"/>" },
-    { id: "log", icon: "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>" },
-  ] },
   { group: "alerts", tabs: [
     { id: "alr", icon: "<path d=\"M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0\"/>" },
     { id: "notify", icon: "<rect x=\"7\" y=\"3\" width=\"10\" height=\"18\" rx=\"2\"/><path d=\"M11 18h2\"/>" },
   ] },
+  { group: "safety", tabs: [
+    { id: "sec", icon: "<path d=\"M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z\"/><path d=\"M9 12l2 2 4-4\"/>" },
+  ] },
+  { group: "data", tabs: [
+    { id: "backup", icon: "<path d=\"M12 15V4M8 8l4-4 4 4M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5\"/>" },
+    { id: "data", icon: "<ellipse cx=\"12\" cy=\"6\" rx=\"8\" ry=\"3\"/><path d=\"M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3\"/>" },
+    { id: "log", icon: "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>" },
+  ] },
   { group: "about", tabs: [
     { id: "app", icon: "<path d=\"M12 4v11M7 11l5 5 5-5M5 20h14\"/>" },
     { id: "rel", icon: "<path d=\"M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5\"/>" },
+    { id: "server", desktop: true, icon: "<rect x=\"3\" y=\"4\" width=\"18\" height=\"7\" rx=\"2\"/><rect x=\"3\" y=\"13\" width=\"18\" height=\"7\" rx=\"2\"/><path d=\"M7 7.5h.01M7 16.5h.01\"/>" },
     { id: "err", icon: "<path d=\"M12 3l10 18H2zM12 10v5M12 18v.01\"/>" },
   ] },
 ];

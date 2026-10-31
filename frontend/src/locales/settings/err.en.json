@@ -11,7 +11,7 @@
   "memV": "{free} of {total} MB free",
   "dataV": "{a} accounts, {t} transactions",
   "copySys": "Copy system information",
-  "title": "Error log",
+  "title": "Problems and support",
   "desc": "Every error the app meets, newest first. Copy it and send it when something does not work.",
   "copyAll": "Copy everything",
   "refresh": "Refresh",
@@ -23,7 +23,7 @@
   "tOne": "Error copied",
   "tAllOne": "1 error copied",
   "tAllMany": "{n} errors copied",
-  "tCleared": "Error log cleared",
+  "tCleared": "Problem list cleared",
   "copied": "Copied",
   "loading": "Loading…",
   "kNode": "Node / Electron"

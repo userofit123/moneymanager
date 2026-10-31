@@ -101,7 +101,7 @@ const HELP = {
     {h:"Reading an alert",p:["The coloured dot shows how urgent it is. Then a title, a short line with the numbers, and two buttons.","**Open** takes you to the right place (the bill, the budget, the payment). **Dismiss** hides it. A dismissed alert does not come back, unless it is a new one."],ex:"**Netflix is due in 2 days** - About ₪55. Press **Open** to see the bill."},
     {h:"Kinds of alerts",p:["Bills due soon or overdue, bill price changes, budgets almost used or over, a card charge much higher than last month, a large payment, transfers and duplicates to review, a balance that changed with no payment to explain it, a source that is out of date, uncategorized payments, a forecast that goes below zero, income without a document, a jar that ran out, and payments that look like they came from a jar.","Each kind can be turned on or off, and some have limits you can change."]},
     {h:"History tab",p:["Each line shows **Active**, **Resolved** (the problem went away by itself) or **Dismissed** (you hid it). You also see when it appeared and how long it lasted.","Press **Show more** to go further back."],ex:"Appeared 3 Oct, 09:00 - gone 5 Oct, 18:00 (2 days)."},
-    {h:"Change what you get",p:["**Alert settings →** opens Settings → Which alerts, where you choose the kinds and the limits.","Where alerts are sent (your phone, Telegram and so on) is set in Settings → Notifications."]}
+    {h:"Change what you get",p:["**Alert settings →** opens Settings → Which alerts, where you choose the kinds and the limits.","Where alerts are sent (your phone, Telegram and so on) is set in Settings → Where alerts go."]}
   ]},
 
   cats:{title:"About Categories",lead:"A category is a label for a payment, like Groceries or Rent. Categories make your charts, budgets and forecast meaningful.",blocks:[
@@ -121,7 +121,7 @@ const HELP = {
     {h:"Statuses",p:["**Connected**, **Out of date**, **Last attempt failed**, **Locked**, **Needs a code**, **Not tested**, **No credentials**. If a source has a problem, a red line explains it."]}
   ]},
 
-  "set.sync":{title:"About Sync",lead:"Sync is how the app fetches new payments and balances from your connections. This tab sets when it happens and shows a log of every sync.",blocks:[
+  "set.sync":{title:"About automatic sync",lead:"Sync is how the app fetches new payments and balances from your connections. This tab sets when it happens and shows a log of every sync.",blocks:[
     {h:"What sync is for",p:["The server syncs by itself, even when the app is closed. Opening the app never starts a sync.","You can always press **Sync now** (here, in Connections, or in the + menu)."],demo:"sync"},
     {h:"How often",p:["Choose **Once a day**, **Twice a day**, **Every 8 hours**, **Every 6 hours**, **Every 4 hours**, or **Never, only when I press Sync now**.","Then set the **Time of day** (or **First sync at**). Below it you see when the next sync will happen and when the last automatic one ran."],ex:"Every 8 hours, first at 06:00: syncs at 06:00, 14:00 and 22:00."},
     {h:"How far back each sync reads",p:["**Each routine sync reads the last** 2 weeks, 30 days, 60 days or 90 days. Shorter is quicker and gentler on the bank.","**First import of a new source reads** 3 months up to 5 years. It is used once when you connect. The bank decides how much it still keeps, usually 1 to 2 years."],ex:"Routine sync of 30 days: each time, the last 30 days are checked and new payments added. Old ones are not duplicated."},
@@ -146,7 +146,7 @@ const HELP = {
     {h:"Dismissed by mistake",p:["**Show dismissed alerts again** brings back alerts you hid. **Go to alerts →** opens the page.","Where alerts are sent is in the Notifications tab."]}
   ]},
 
-  "set.notify":{title:"About Notifications",lead:"Choose where alerts are sent when you are not looking at the app: your phone, Telegram, or another service.",blocks:[
+  "set.notify":{title:"About where alerts go",lead:"Choose where alerts are sent when you are not looking at the app: your phone, Telegram, or another service.",blocks:[
     {h:"What this tab is for",p:["Alerts always show inside the app. Here you can also get them outside it. When the app is closed, the server sends them to the places you turn on below."]},
     {h:"On this device",p:["The line **Permission** shows if this browser may show notifications. **Allow notifications** asks the browser. **Send a test** shows one right away so you know it works.","Notifications show while the app is open on this device."]},
     {h:"ntfy",p:["ntfy is a free notification service you can run on your own server. Type your topic address and press **Send test to ntfy**. Optional."]},
@@ -155,7 +155,7 @@ const HELP = {
     {h:"Privacy",p:["Telegram and webhooks send the alert text, with account names and amounts, over the internet to that service. Turn them on only if you are fine with that.","Which kinds of alerts are sent is set in the Which alerts tab."],tip:"WhatsApp has no free official way to message yourself. A Telegram bot or a webhook does the same job."}
   ]},
 
-  "set.sec":{title:"About Security",lead:"Protect your app: your password, an extra code from your phone, and where you are signed in.",blocks:[
+  "set.sec":{title:"About password and sign-in",lead:"Protect your app: your password, an extra code from your phone, and where you are signed in.",blocks:[
     {h:"What this tab is for",p:["This app holds private money data. These settings decide who can open it."]},
     {h:"Password",p:["Type your **Current password** and a **New password** with at least 10 characters, then press **Change password**.","Changing it signs out every other device."],ex:"Use a long sentence you can remember, not a short word."},
     {h:"Two-factor sign-in",p:["This adds a 6-digit code from your phone each time you sign in, so a stolen password is not enough.","Press **Set up**. You see a key. Add it to an authenticator app (Aegis, Google Authenticator, 1Password), enter the 6-digit code and press **Turn on**.","To switch it off, type your password and press **Turn off**."],tip:"Save the key somewhere safe. If you lose both your phone and the key, you may not be able to sign in."},

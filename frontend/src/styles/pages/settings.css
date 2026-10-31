@@ -168,13 +168,17 @@ html.mob .setmain {
   padding-bottom: 160px;
 }
 
+/* the side list stays in view and fits the window: when the window is short it scrolls on its own */
 .setnav {
   position: sticky;
   top: 18px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 10px;
+  gap: 1px;
+  padding: 8px;
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
+  scrollbar-width: thin;
   background: var(--s1);
   border: 1px solid var(--ol);
   border-radius: var(--r);
@@ -186,7 +190,7 @@ html.mob .setmain {
   letter-spacing: .8px;
   text-transform: uppercase;
   color: var(--tx2);
-  padding: 14px 12px 4px;
+  padding: 8px 12px 2px;
 }
 
 .sng:first-child {
@@ -202,7 +206,7 @@ html.mob .setmain {
   font: inherit;
   font-size: 14px;
   color: var(--tx2);
-  padding: 9px 12px;
+  padding: 5px 12px;
   border-radius: 12px;
   cursor: pointer;
   text-align: start;
@@ -240,6 +244,7 @@ html.mob .setmain {
     position: static;
     flex-direction: row;
     overflow-x: auto;
+    max-height: none;
     scrollbar-width: none;
     padding: 6px;
     gap: 4px;
@@ -279,6 +284,7 @@ html.mob .setnav {
   position: static;
   flex-direction: row;
   overflow-x: auto;
+  max-height: none;
   scrollbar-width: none;
   padding: 6px;
   gap: 4px;
