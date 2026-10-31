@@ -761,3 +761,16 @@ html.mob .rladd > .btn {
 .nsent {
   margin-bottom: 12px;
 }
+
+/* Two-step sign-in: the key to add to the phone app, and its link in small type */
+.tfakey {
+  font-size: var(--fs-lg);
+  color: var(--tx);
+  word-break: break-all;
+  margin-block: 8px 4px;
+}
+
+.tfauri {
+  font-size: var(--fs-sm);
+  word-break: break-all;
+}

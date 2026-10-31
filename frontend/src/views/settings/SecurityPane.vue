@@ -1,8 +1,8 @@
 <script setup>
-// Settings → Security: the password, two-factor sign-in and sessions.
+// Settings → Password and sign-in: app lock, the password, two-step sign-in and the signed-in devices.
 import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import SetHead from "./SetHead.vue";
+import SetSection from "./SetSection.vue";
 import SetRow from "./SetRow.vue";
 import { api, sendJson, toast, toastErr } from "./shared.js";
 import { request } from "../../core/http.js";
@@ -24,9 +24,10 @@ const start = ref(null); // { secret, uri } while two-factor is being set up
 const MM = typeof window !== "undefined" ? window.mmApp : null;
 const lock = ref({ available: false, enabled: false, delay: 30 });
 onMounted(async () => { if (MM) { try { lock.value = await MM.lock(); } catch { /* no lock option */ } } });
-async function setLock(e) {
-  const on = e.target.checked;
-  try { lock.value = await MM.setLock(on); } catch (x) { e.target.checked = false; toast(String(x?.message || x).includes("lockNone") ? tk("lockNone") : tk("lockFail"), { kind: "err" }); }
+// A failed switch is drawn again from `lock` (lockKey), so it shows Off.
+const lockKey = ref(0);
+async function setLock(on) {
+  try { lock.value = await MM.setLock(on); } catch (x) { lockKey.value++; toast(String(x?.message || x).includes("lockNone") ? tk("lockNone") : tk("lockFail"), { kind: "err" }); }
 }
 async function setDelay(e) {
   try { lock.value = await MM.setLock(lock.value.enabled, +e.target.value); } catch { toast(tk("lockNone"), { kind: "err" }); }
@@ -54,47 +55,36 @@ const logout = (all) => signOut(all);
 
 <template>
   <div id="setSec">
-    <div v-if="MM" class="card ss">
-      <SetHead icon="lock" :title="tk('lockTitle')" :desc="tk('lockDesc')" />
-      <div class="ssb">
-        <label class="tg"><span><b style="font-weight:600">{{ tk("lockOn") }}</b><div class="sm">{{ lock.available ? tk("lockHow") : tk("lockNone") }}</div></span><input type="checkbox" data-a="appLock" :checked="lock.enabled" :disabled="!lock.available && !lock.enabled" @change="setLock"></label>
-        <SetRow v-if="lock.enabled" :title="tk('lockWhen')" :desc="tk('lockWhenD')"><select data-c="appLock" data-k="delay" :aria-label="tk('lockWhen')" :value="String(lock.delay)" @change="setDelay"><option v-for="d in DELAYS" :key="d" :value="String(d)">{{ tk("lockD" + d) }}</option></select></SetRow>
-      </div>
-    </div>
-    <div class="card ss">
-      <SetHead icon="key" :title="tk('pwTitle')" :desc="tk('pwDesc')" />
-      <div class="ssb p">
-        <form @submit.prevent>
-          <div class="two">
-            <div class="fld"><label>{{ tk("pwCur") }}</label><input id="pwCur" v-model="pw.cur" type="password" autocomplete="current-password"></div>
-            <div class="fld"><label>{{ tk("pwNew") }}</label><input id="pwNew" v-model="pw.next" type="password" autocomplete="new-password"></div>
-          </div>
-        </form>
-        <button type="button" class="btn s" data-a="pwChange" @click="changePw">{{ tk("pwChange") }}</button>
-      </div>
-    </div>
-    <div class="card ss">
-      <SetHead icon="phone" :title="tk('tfaTitle')" :desc="totp ? tk('tfaOnDesc') : tk('tfaOffDesc')" />
-      <div class="ssb">
-        <SetRow :title="tk('status')" :desc="totp ? tk('turnedOn') : tk('turnedOff')"><span class="bd" :class="totp ? 'dn' : 'fl'">{{ totp ? tk("on") : tk("off") }}</span></SetRow>
-        <template v-if="start">
-          <div class="sinfo"><div>{{ tk("tfaKey") }}<div class="num" style="font-size:16px;word-break:break-all;margin:8px 0 4px;color:var(--tx)">{{ start.secret }}</div><div style="word-break:break-all;font-size:12px">{{ start.uri }}</div></div></div>
-          <div class="tools" style="margin-top:12px"><input id="tfaCode" v-model="code" inputmode="numeric" maxlength="6" :placeholder="tk('tfaCodePh')"><button type="button" class="btn s" data-a="tfaEnable" @click="tfaEnable">{{ tk("turnOn") }}</button></div>
-        </template>
-        <div v-else-if="totp" class="tools" style="margin-top:12px"><input id="tfaPw" v-model="offPw" type="password" :placeholder="tk('tfaPwPh')"><button type="button" class="btn r s" data-a="tfaDisable" @click="tfaDisable">{{ tk("turnOff") }}</button></div>
-        <div v-else style="padding-top:12px"><button type="button" class="btn s" data-a="tfaStart" @click="tfaStart">{{ tk("setUp") }}</button></div>
-      </div>
-    </div>
-    <div class="card ss">
-      <SetHead icon="door" :title="tk('sessTitle')" :desc="tk('sessDesc')" />
-      <div class="ssb">
-        <SetRow v-for="s in sessions" :key="s.id" :title="sName(s)" :desc="[sWhere(s), tk('lastUsed') + ' ' + sWhen(s.lastSeen)].filter(Boolean).join(' · ')">
-          <span v-if="s.current" class="bd dn">{{ tk("thisOne") }}</span>
-          <button v-else type="button" class="btn o s" data-a="endSession" @click="endSession(s)">{{ tk("signOut") }}</button>
-        </SetRow>
-        <SetRow :title="tk('thisDevice')" :desc="tk('thisDeviceDesc')"><button type="button" class="btn o s" data-a="logout" @click="logout(false)">{{ tk("signOut") }}</button></SetRow>
-        <SetRow :title="tk('everyDevice')" :desc="tk('everyDeviceDesc')"><button type="button" class="btn o s" data-a="logoutAll" @click="logout(true)">{{ tk("signOutAll") }}</button></SetRow>
-      </div>
-    </div>
+    <SetSection v-if="MM" icon="lock" :title="tk('lockTitle')" :desc="tk('lockDesc')">
+      <SetRow :key="lockKey" toggle data-a="appLock" :title="tk('lockOn')" :desc="lock.available ? tk('lockHow') : tk('lockNone')" :model-value="lock.enabled" :disabled="!lock.available && !lock.enabled" @update:model-value="setLock" />
+      <SetRow v-if="lock.enabled" :title="tk('lockWhen')" :desc="tk('lockWhenD')"><select data-c="appLock" data-k="delay" :aria-label="tk('lockWhen')" :value="String(lock.delay)" @change="setDelay"><option v-for="d in DELAYS" :key="d" :value="String(d)">{{ tk("lockD" + d) }}</option></select></SetRow>
+    </SetSection>
+    <SetSection icon="key" :title="tk('pwTitle')" :desc="tk('pwDesc')" pad>
+      <form @submit.prevent>
+        <div class="two">
+          <div class="fld"><label for="pwCur">{{ tk("pwCur") }}</label><input id="pwCur" v-model="pw.cur" type="password" autocomplete="current-password"></div>
+          <div class="fld"><label for="pwNew">{{ tk("pwNew") }}</label><input id="pwNew" v-model="pw.next" type="password" autocomplete="new-password"></div>
+        </div>
+        <div class="sact"><button type="button" class="btn s" data-a="pwChange" @click="changePw">{{ tk("pwChange") }}</button></div>
+      </form>
+    </SetSection>
+    <SetSection icon="phone" :title="tk('tfaTitle')" :desc="tk('tfaDesc')">
+      <SetRow :title="tk('tfaRow')" :desc="totp ? tk('tfaOnDesc') : tk('tfaOffDesc')" :badge="totp">
+        <button v-if="!totp && !start" type="button" class="btn s" data-a="tfaStart" @click="tfaStart">{{ tk("setUp") }}</button>
+      </SetRow>
+      <template v-if="start">
+        <div class="sinfo"><div>{{ tk("tfaKey") }}<div class="num tfakey">{{ start.secret }}</div><div class="tfauri">{{ start.uri }}</div></div></div>
+        <SetRow stack :title="tk('tfaCodeT')" :desc="tk('tfaCodeD')"><input id="tfaCode" v-model="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" :aria-label="tk('tfaCodeT')" :placeholder="tk('tfaCodePh')"><button type="button" class="btn s" data-a="tfaEnable" @click="tfaEnable">{{ tk("turnOn") }}</button></SetRow>
+      </template>
+      <SetRow v-else-if="totp" stack :title="tk('tfaOffT')" :desc="tk('tfaOffD')"><input id="tfaPw" v-model="offPw" type="password" autocomplete="current-password" :aria-label="tk('tfaPwPh')" :placeholder="tk('tfaPwPh')"><button type="button" class="btn r s" data-a="tfaDisable" @click="tfaDisable">{{ tk("turnOff") }}</button></SetRow>
+    </SetSection>
+    <SetSection icon="door" :title="tk('sessTitle')" :desc="tk('sessDesc')">
+      <SetRow v-for="s in sessions" :key="s.id" :title="sName(s)" :desc="[sWhere(s), tk('lastUsed') + ' ' + sWhen(s.lastSeen)].filter(Boolean).join(' · ')">
+        <span v-if="s.current" class="bd dn">{{ tk("thisOne") }}</span>
+        <button v-else type="button" class="btn o s" data-a="endSession" @click="endSession(s)">{{ tk("signOut") }}</button>
+      </SetRow>
+      <SetRow :title="tk('thisDevice')" :desc="tk('thisDeviceDesc')"><button type="button" class="btn o s" data-a="logout" @click="logout(false)">{{ tk("signOut") }}</button></SetRow>
+      <SetRow :title="tk('everyDevice')" :desc="tk('everyDeviceDesc')"><button type="button" class="btn o s" data-a="logoutAll" @click="logout(true)">{{ tk("signOutAll") }}</button></SetRow>
+    </SetSection>
   </div>
 </template>
