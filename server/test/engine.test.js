@@ -378,7 +378,7 @@ test("a balance gap closes by itself when a charge first listed at 0 gets its re
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 0);
 });
 
-test("a bank payment equal to what the card charged that day is marked as a card payment; a monthly payer is marked Salary; dates are read in Israel time", async () => {
+test("a bank payment equal to what the card charged that day is marked as a card payment; a salary is marked Salary only when it says so and has no category, a monthly payer alone is not; dates are read in Israel time", async () => {
   await reset();
   const { ilDate } = await import("../src/autodetect.js");
   assert.equal(ilDate("2025-10-09T21:00:00.000Z"), "2025-10-10");
@@ -389,12 +389,14 @@ test("a bank payment equal to what the card charged that day is marked as a card
   await tx((c) => c.query("INSERT INTO transactions (date,description,from_name,to_name,amount,source,external_id,details) VALUES ('2026-09-25','A','Visa Cal','Shop',-300,'visaCal','x1',$1),('2026-09-27','B','Visa Cal','Shop2',-212.5,'visaCal','x2',$1)", [JSON.stringify({ processedDate: pd })]));
   await q("INSERT INTO transactions (date,description,from_name,to_name,amount,source,external_id) VALUES ('2026-10-10','כרטיסי אשראי','Bank Hapoalim','Cal',-512.5,'hapoalim','b1'),('2026-10-10','Rent','Bank Hapoalim','Landlord',-5600,'hapoalim','b2')");
   for (const m of ["2026-07", "2026-08", "2026-09"]) await q("INSERT INTO transactions (date,description,from_name,to_name,amount,source,external_id) VALUES ($1,'העברה','Acme Ltd','Bank Hapoalim',9000,'hapoalim',$2)", [m + "-10", "s" + m]);
+  await q("INSERT INTO transactions (date,description,from_name,to_name,amount,source,external_id,category) VALUES ('2026-10-01','משכורת','Beta Ltd','Bank Hapoalim',7000,'hapoalim','w1',NULL),('2026-10-02','Salary Gamma','Gamma','Bank Hapoalim',4000,'hapoalim','w2','Other income'),('2026-10-03','Payroll Delta','Delta','Bank Hapoalim',3000,'hapoalim','w3','Uncategorized')");
   await ingest({ name: "Bank Hapoalim", currency: "ILS", source: "hapoalim" }, []);
   const ov = (await q("SELECT value FROM settings WHERE key='cc_override'")).rows[0].value;
   const b1 = (await q("SELECT id FROM transactions WHERE external_id='b1'")).rows[0].id, b2 = (await q("SELECT id FROM transactions WHERE external_id='b2'")).rows[0].id;
   assert.equal(ov[b1], 2);
   assert.equal(ov[b2], undefined);
-  assert.equal((await q("SELECT count(*)::int AS n FROM transactions WHERE category='Salary'")).rows[0].n, 3);
+  const sal = (await q("SELECT external_id FROM transactions WHERE category='Salary' ORDER BY external_id")).rows.map((r) => r.external_id);
+  assert.deepEqual(sal, ["w1", "w3"]); // the monthly payer (no salary words) and the one with a category stay as they are
 });
 
 test("a refund on the card lowers the card bill it is matched against", async () => {

@@ -68,6 +68,7 @@ const RULES = [
   [/^(.+) · entered by you$/, (x) => TM(x) + " · הוזן על ידכם"],
   [/^(.+): it matches what the card charged on (.+), so it is not counted as spending$/, (d, dt) => d + ": זה תואם למה שהכרטיס חויב ב-" + dt + ", ולכן לא נספר כהוצאה"],
   [/^(\d+) income entr(?:y|ies) marked as Salary \(it says so, or the same payer pays a similar amount every month\)$/, (n) => (n == 1 ? "הכנסה אחת סומנה" : n + " הכנסות סומנו") + " כמשכורת (כתוב כך, או שאותו משלם מעביר סכום דומה כל חודש)"],
+  [/^(\d+) income entr(?:y|ies) marked as Salary \(it says so, or one of your rules says so\)$/, (n) => (n == 1 ? "הכנסה אחת סומנה" : n + " הכנסות סומנו") + " כמשכורת (כתוב כך, או שאחד הכללים שלך אומר כך)"],
   [/^(.+) ([A-Z]{3}): money (out|in) (.+) with no transaction \(between snapshots\)$/, (a, c, k, n) => a + " " + c + ": " + (k == "out" ? "כסף יצא " : "כסף נכנס ") + n + " ללא תנועה (בין צילומי יתרה)"],
   [/^(.+) ([A-Z]{3}): the balance adds up over the whole period, (\d+) open gaps? closed$/, (a, c, n) => a + " " + c + ": היתרה מסתדרת על פני כל התקופה, " + (n == 1 ? "פער פתוח אחד נסגר" : n + " פערים פתוחים נסגרו")],
   [/^(.+) ([A-Z]{3}): (.+) explained by a transaction$/, (a, c, n) => a + " " + c + ": " + n + " הוסברו על ידי תנועה"],
