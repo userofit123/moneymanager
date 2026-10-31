@@ -16,6 +16,9 @@ const BANKW = new Set(["זיכוי", "זיכויים", "זכות", "העברה",
 // a payee's name without the numbers banks often add to it (dates, reference numbers), so the same payee matches every month
 export const plainOf = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, " ").replace(/[0-9/\\.,:;*#()\-_'"\u05f3\u05f4]+/g, " ").replace(/\s+/g, " ").trim();
 const bankWords = (s) => plainOf(s).toLowerCase().split(" ").filter(Boolean).every((w) => BANKW.has(w) || BANKW.has(w.replace(/^[מבלו]/, "")));
+// A name's own words, lower case, without the numbers and the bank words around it ("זיכוי SHOP 123" → "shop"), so the same
+// shop or payer matches however the bank wrote it (lib/moneyIn.js).
+export const nameKey = (s) => plainOf(s).toLowerCase().split(" ").filter((w) => w && !BANKW.has(w) && !BANKW.has(w.replace(/^[מבלו]/, ""))).join(" ");
 // The name an income is grouped under, the same name the app shows for it: the name you gave it (a rename or a naming rule),
 // or else who sent it, its description or its memo, never a bare bank word; with none of these, its category.
 export const incKey = (S, t) => {
