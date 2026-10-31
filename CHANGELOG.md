@@ -21,6 +21,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 - **Backup and restore:** shows where the backups are. In the Windows app, Open shows the folder. In a browser, the page shows the folder on the computer that runs the app with a Copy button, and with Docker, the line in docker-compose.yml that keeps backups in a normal folder.
 - **Alerts:** background alerts can be turned on again after the server's key changed, the large amount alert says what the money is, and an alert you dismiss shows as closed in History right away.
 - **Wording:** plain words everywhere, no "we", predictions say "likely", Hebrew follows your gender setting, and amounts read correctly inside Hebrew sentences.
+- **Phone:** the phone layout is being rebuilt from scratch as a real phone app; the old phone layout is removed and the computer layout is unchanged.
 - **Fixes:** a refund on a credit card lowers that card's bill; Accounts no longer counts another currency 1 to 1; a bill no longer shows twice in Activity; Recap's graphs run left to right in Hebrew too; every open and close arrow is the same thin chevron.
 
 ### Windows app
