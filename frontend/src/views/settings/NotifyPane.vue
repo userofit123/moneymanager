@@ -52,6 +52,7 @@ const b64u = (x) => { const p = "=".repeat((4 - (x.length % 4)) % 4), r = atob((
 const pushReg = async () => navigator.serviceWorker && (await navigator.serviceWorker.getRegistration());
 async function pushRefresh() {
   if (!("PushManager" in window) || !navigator.serviceWorker) { pushOk.value = false; pushSt.value = window.isSecureContext ? tk("noSupport") : tk("needHttps"); return; }
+  if (perm.value == "denied") { pushOk.value = false; pushSt.value = tk("deniedHelp"); return; }
   try {
     const reg = await pushReg(), sub = reg && (await reg.pushManager.getSubscription());
     const st = await data.api("/api/push/status", sendJson("POST", { endpoint: sub && sub.endpoint }));
@@ -61,7 +62,7 @@ async function pushRefresh() {
   } catch { pushSt.value = tk("couldNotCheck"); return false; }
 }
 const pushOk = ref(true); // this browser can do push
-async function pushSet(on) { const was = pushHere.value; pushHere.value = on; if (on) await pushOn(); else await pushOff(); if (!(await pushRefresh())) pushHere.value = was; }
+async function pushSet(on) { const was = pushHere.value; pushHere.value = on; if (on) await pushOn(); else await pushOff(); if (!pushOk.value) { pushHere.value = false; pushSt.value = tk("noService"); return; } if (!(await pushRefresh())) pushHere.value = was; }
 async function pushOn() {
   try {
     if (!("PushManager" in window)) { toast(tt("needHttps"), { kind: "err" }); return; }
@@ -70,10 +71,17 @@ async function pushOn() {
     const reg = await pushReg(); if (!reg) { toast(tt("notReady"), { kind: "err" }); return; }
     const k = (await data.api("/api/push/key")).key;
     let sub = await reg.pushManager.getSubscription();
+    // a sign-up made for an older server key never works again: drop it and sign up anew
+    const same = (a) => { const x = new Uint8Array(a || []), y = b64u(k); return x.length == y.length && x.every((v, i) => v == y[i]); };
+    if (sub && !same(sub.options && sub.options.applicationServerKey)) { await sub.unsubscribe(); sub = null; }
     if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(k) });
     await data.api("/api/push/subscribe", sendJson("POST", { sub: sub.toJSON(), label: navigator.userAgent.slice(0, 60) }));
     toast(tt("turnedOn"));
-  } catch { toast(tt("couldNotOn"), { kind: "err" }); }
+  } catch (e) {
+    // AbortError: the browser has no push service here (a private window, or a browser built without one)
+    if (e && e.name == "AbortError") { pushOk.value = false; toast(tk("noService"), { kind: "err" }); return; }
+    toast(tt("couldNotOn"), { kind: "err" });
+  }
 }
 async function pushOff() {
   try {
@@ -132,7 +140,6 @@ async function nchDelGo(k) { try { await data.api("/api/notify/channels/" + k, {
         <input id="nchTgC" dir="ltr" v-model="tg.chat" placeholder="123456789" inputmode="numeric">
         <button type="button" class="btn s" data-a="nchSave" data-k="telegram" @click="nchSave('telegram')">{{ tk("save") }}</button>
       </SetRow>
-      <template #foot>{{ tk("privacy") }}</template>
     </SetSection>
     <SetSection icon="link" :title="tk('whT')" :desc="tk('whD')">
       <SetRow :title="tk('status')" :desc="NCH.webhook ? tk('whOnD') : tk('whOffD')" :badge="NCH.webhook" :cls="NCH.webhook ? '' : 'inl'">
@@ -143,7 +150,6 @@ async function nchDelGo(k) { try { await data.api("/api/notify/channels/" + k, {
         <input id="nchWhU" dir="ltr" v-model="wh" type="password" autocomplete="off" :placeholder="NCH.webhook ? tk('tgSaved') : 'https://…'">
         <button type="button" class="btn s" data-a="nchSave" data-k="webhook" @click="nchSave('webhook')">{{ tk("save") }}</button>
       </SetRow>
-      <template #foot>{{ tk("whatsapp") }}</template>
     </SetSection>
     <SetSection icon="bell" title="ntfy" :desc="tk('ntfyD')">
       <SetRow stack :desc="tk('ntfyLabelD')">

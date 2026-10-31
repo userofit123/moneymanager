@@ -1,7 +1,8 @@
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 import { reset, pool } from "./helpers.js";
-import { inboxAdd, inboxRead, inboxAlive, sendNtfy } from "../src/notify.js";
+import { inboxAdd, inboxRead, inboxAlive, sendNtfy, pushKey, pushSubscribe, pushStatus } from "../src/notify.js";
+import { q } from "../src/db.js";
 
 before(reset);
 after(() => pool.end());
@@ -26,4 +27,16 @@ test("an alert is kept for the app only after an app has asked, and then counts 
   assert.equal((await inboxRead("0")).items.length, 0);
   assert.equal(await sendNtfy("Money", "now the app listens"), true);
   assert.deepEqual((await inboxRead("0")).items.map((i) => i.body), ["now the app listens"]);
+});
+
+test("push keys that can no longer be opened (the secret key changed) are made again, and the old devices are forgotten", async () => {
+  await reset();
+  const first = await pushKey();
+  assert.equal(await pushKey(), first);
+  await pushSubscribe({ endpoint: "https://push.example.test/a", keys: { p256dh: "x", auth: "y" } }, "test");
+  assert.equal((await pushStatus()).devices, 1);
+  await q("UPDATE settings SET value = jsonb_set(value, '{priv}', '\"not-readable\"') WHERE key='push_vapid'");
+  const next = await pushKey();
+  assert.notEqual(next, first);
+  assert.equal((await pushStatus()).devices, 0);
 });

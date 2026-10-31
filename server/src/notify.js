@@ -65,10 +65,15 @@ export async function sendChannel(kind, title, body) {
 const PUSH_KEYS = "push_vapid", PUSH_SUBS = "push_subs";
 const getSet = async (k, d) => (await q("SELECT value FROM settings WHERE key=$1", [k])).rows[0]?.value ?? d;
 const putSet = (k, v) => q("INSERT INTO settings (key,value) VALUES ($1,$2::jsonb) ON CONFLICT (key) DO UPDATE SET value=$2::jsonb", [k, JSON.stringify(v)]);
+// The saved private key can no longer be opened when the server's secret key changed (a new .env, a restored backup):
+// then new keys are made, and the old devices are forgotten, because their sign-up was made for the old key and will never work again.
 async function vapid() {
-  let k = await getSet(PUSH_KEYS, null);
-  if (!k) { const g = webpush.generateVAPIDKeys(); k = { pub: g.publicKey, priv: encrypt(g.privateKey) }; await putSet(PUSH_KEYS, k); }
-  return { pub: k.pub, priv: decrypt(k.priv) };
+  const k = await getSet(PUSH_KEYS, null);
+  if (k) { try { return { pub: k.pub, priv: decrypt(k.priv) }; } catch { /* made with another secret key: start again below */ } }
+  const g = webpush.generateVAPIDKeys();
+  await putSet(PUSH_KEYS, { pub: g.publicKey, priv: encrypt(g.privateKey) });
+  if (k) await putSet(PUSH_SUBS, []);
+  return { pub: g.publicKey, priv: g.privateKey };
 }
 export const pushKey = async () => (await vapid()).pub;
 export async function pushSubscribe(sub, label) {

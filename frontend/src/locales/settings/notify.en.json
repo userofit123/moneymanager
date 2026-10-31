@@ -32,6 +32,7 @@
   "devOne": "1 device in total.",
   "devMany": "{n} devices in total.",
   "couldNotCheck": "Could not check.",
+  "noService": "This browser cannot get alerts while the app is closed (for example in a private window). Use another browser, or Telegram or ntfy below.",
   "pushOn": "Turn on for this device",
   "pushOff": "Turn off",
   "pushTest": "Send a test",
@@ -82,7 +83,5 @@
   "whT": "Webhook (other apps)",
   "whOnD": "Alerts are sent to your web address.",
   "whOffD": "Not set up. Paste the address below and save.",
-  "whLabelD": "The other service gives you this address.",
-  "privacy": "Telegram and webhooks send the alert text, with account names and amounts, over the internet to that service. Turn them on only if you are comfortable with that.",
-  "whatsapp": "WhatsApp has no free official way to message yourself. A Telegram bot or a webhook does the same job."
+  "whLabelD": "The other service gives you this address."
 }
