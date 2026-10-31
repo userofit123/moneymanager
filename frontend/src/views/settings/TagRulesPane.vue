@@ -1,5 +1,5 @@
 <script setup>
-// Settings → Automatic sorting → Tag rules: if a description contains a text, it gets one or more tags.
+// Settings → Automatic sorting → Tag rules: if a transaction contains a text (where the rule looks), it gets one or more tags.
 // After a rule is added or changed it offers to tag the transactions you already have.
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -9,9 +9,11 @@ import { fm } from "../../format.js";
 import { dstr } from "../../dates.js";
 import { displayName } from "../../lib/activity.js";
 import * as C from "../../lib/categories.js";
+import { USUAL } from "../../lib/ruleFields.js";
 import BaseSheet from "../../components/BaseSheet.vue";
 import TagEditor from "../../components/TagEditor.vue";
 import RuleList from "./RuleList.vue";
+import RuleWhere from "./RuleWhere.vue";
 import { save, err, ok, newRuleTags } from "./sorting.js";
 
 const { t } = useI18n();
@@ -20,7 +22,7 @@ const S = computed(() => data.state.value);
 const tags = (L) => L.map((g) => "#" + g).join(" ");
 const goTag = (g) => goActivity({ tag: g });
 
-const trk = ref(""), newEd = ref(null), ask = ref(null);
+const trk = ref(""), trf = ref(USUAL.tag), newEd = ref(null), ask = ref(null);
 // After a tag rule is added or changed: offer to tag the transactions you already have (tagRuleAsk).
 function tagRuleAsk(i, isNew) {
   const r = S.value.tagRules[i]; if (!r) return;
@@ -33,21 +35,22 @@ function trText(i, ev) { const r = S.value.tagRules[i], v = ev.target.value.trim
 function trTagsAdd(i, L) { if (save((n) => C.addTagRuleTags(n, i, L))) tagRuleAsk(i); }
 function trTagRemove(i, at) { if (C.ruleTags(S.value.tagRules[i]).length <= 1) return err(tk("tr.last")); save((n) => C.removeTagRuleTag(n, i, at)); }
 const trDel = (i) => save((n) => C.deleteTagRule(n, i));
+function trWhere(i, f) { if (save((n) => C.setRuleWhere(n, "tag", i, f))) tagRuleAsk(i); }
 function newTagsAdd(L) { for (const g of L) if (!newRuleTags.value.includes(g)) newRuleTags.value.push(g); }
 function trAdd() {
   const k = trk.value.trim(); if (!k) return;
   newTagsAdd(newEd.value?.take() || []); // tags typed but not added yet count too
   if (!newRuleTags.value.length) return err(tk("tr.needTag"));
-  save((n) => C.addTagRule(n, k, newRuleTags.value));
-  newRuleTags.value = []; trk.value = "";
+  save((n) => C.addTagRule(n, k, newRuleTags.value, trf.value));
+  newRuleTags.value = []; trk.value = ""; trf.value = USUAL.tag;
   tagRuleAsk(S.value.tagRules.length - 1, true);
 }
 </script>
 
 <template>
   <RuleList v-if="S" id="setTagrules" icon="tag" :title="tk('tr.title')" :desc="tk('tr.desc')" :count="S.tagRules.length" search="tagrules" :search-ph="tk('search.tagrules')" :empty="tk('tr.none')" @add="trAdd">
-    <template #add><input id="trk" v-model="trk" :placeholder="tk('ifDescPh')" :aria-label="tk('text')" @keydown.enter.prevent="trAdd"><div class="rltags"><TagEditor ref="newEd" :tags="newRuleTags" :commit-on-blur="false" @add="newTagsAdd" @remove="newRuleTags.splice($event, 1)" @go="goTag" /></div></template>
-    <div v-for="(r, i) in S.tagRules" :key="i + '|' + r.k" class="rule"><span>{{ tk("ifDesc") }}</span><input data-c="trk" :data-i="i" :value="r.k" :aria-label="tk('text')" @change="trText(i, $event)"><span class="rarr">→</span><TagEditor :tags="C.ruleTags(r)" @add="trTagsAdd(i, $event)" @remove="trTagRemove(i, $event)" @go="goTag" /><button type="button" class="btn o s rdel" @click="trDel(i)">{{ tk("del") }}</button></div>
+    <template #add><RuleWhere id="trf" v-model="trf" kind="tag" /><input id="trk" v-model="trk" :placeholder="tk('ifDescPh')" :aria-label="tk('text')" @keydown.enter.prevent="trAdd"><div class="rltags"><TagEditor ref="newEd" :tags="newRuleTags" :commit-on-blur="false" @add="newTagsAdd" @remove="newRuleTags.splice($event, 1)" @go="goTag" /></div></template>
+    <div v-for="(r, i) in S.tagRules" :key="i + '|' + r.k" class="rule"><span>{{ tk("if") }}</span><RuleWhere data-c="trf" :data-i="i" :model-value="r.f || USUAL.tag" kind="tag" @update:model-value="trWhere(i, $event)" /><span>{{ tk("has") }}</span><input data-c="trk" :data-i="i" :value="r.k" :aria-label="tk('text')" @change="trText(i, $event)"><span class="rarr">→</span><TagEditor :tags="C.ruleTags(r)" @add="trTagsAdd(i, $event)" @remove="trTagRemove(i, $event)" @go="goTag" /><button type="button" class="btn o s rdel" @click="trDel(i)">{{ tk("del") }}</button></div>
     <template #foot>{{ tk("tr.foot") }}</template>
 
     <!-- Tag your earlier transactions too? -->
