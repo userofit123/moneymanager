@@ -948,3 +948,16 @@ html.he #setErr .kvr .v {
 .srverr:empty {
   display: none;
 }
+
+/* More room between fields in Settings cards (each field has a hint under it). */
+.setmain .fld {
+  margin-bottom: 20px;
+}
+
+html[data-den="compact"] .setmain .fld {
+  margin-bottom: 14px;
+}
+
+html[data-den="roomy"] .setmain .fld {
+  margin-bottom: 24px;
+}

@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [0.12.12] - 2026-10-24
 
 ### App
+- **Settings: more room between fields** (Profile and other forms), so each hint reads with its own field.
 - **Settings: a clearer side list.** Its sections sit under seven plain headings (You, Banks and cards, Sorting, Alerts, Sign-in and safety, Your data, About the app), and the list fits the window. Clearer names: **Where alerts go** (was Notifications), **Password and sign-in** (was Security), **Automatic sync**, **What's new** (was Change log) and **Problems and support** (was Error log). On a phone, the open section's chip stays in sight.
 - **Settings: the cards leave room for the round buttons at the side**, so a switch or button at the end of a line is never under them; Preferences' **Language and region** has a globe icon.
 - **Settings: Profile, Preferences and Currencies tidied.** Same card layout as the other sections; Currencies shows the ones in use and an **Add a currency** line, with a short note about the rates at the bottom; Profile's buttons are the same size as elsewhere; App icon has its own icon.
