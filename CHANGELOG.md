@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [0.12.12] - 2026-10-24
 
 ### App
+- **Settings: the cards leave room for the round buttons at the side**, so a switch or button at the end of a line is never under them; Preferences' **Language and region** has a globe icon.
 - **Predictions say "likely" everywhere.** Bills the app guesses are now **likely bill** / **Likely on** in Activity, **Likely in** / **Likely out** in Activity's header, **Likely** on Recap's calendar, and alerts say a payment was **likely due**. The jar texts talk about the free money **you'll likely have**. "If you expected income…" and a bill's **Expected amount** (a number you type) stay as they were.
 - **Help uses today's names.** The Forecast guide names the table's columns **Average**, **Likely**, **Total** and **Trend** and its rows **Saved each month (money in − money out)** and **Money you'll likely have at month's end**; Recap's guide says **Likely end**.
 - **Fixed: Accounts no longer counts another currency 1 to 1.** Without an exchange rate it uses the last saved one, the same as Home; with none ever, the account shows its own amount and **not counted yet** instead of a wrong shekel amount.

@@ -91,6 +91,52 @@ html.mob .sr.inl {
   align-items: center;
 }
 
+/* an on/off row (SetRow toggle): the whole line flips the switch, which stays at the end, also on a phone */
+.sr.srtg {
+  cursor: pointer;
+}
+
+.sr .src > .tg {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+}
+
+html.mob .sr.srtg {
+  flex-direction: row;
+  align-items: center;
+}
+
+html.mob .sr.srtg > .src {
+  justify-content: flex-end;
+}
+
+.sr.srtg.dis {
+  cursor: default;
+}
+
+.sr.srtg.dis > .srt {
+  opacity: .6;
+}
+
+/* a stacked row (SetRow stack): the control sits under the text and takes the full width */
+.sr.stk {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.sr.stk > .src {
+  justify-content: flex-start;
+}
+
+.sr.stk .src > select,
+.sr.stk .src > input:not([type=checkbox]) {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+
 /* settings: a list of sections on the side, the section on the right */
 
 .setwrap {
@@ -102,6 +148,24 @@ html.mob .sr.inl {
 
 .setmain {
   min-width: 0;
+}
+
+/* keep controls at the end of a row clear of the floating buttons (calculator, help, alerts, +).
+   Computer: they float in a column up to 80px from the window's edge, so the cards stop before it
+   (on a wide window the page already ends far enough from the edge).
+   Phone: the cards keep their width, and extra room at the bottom lets the last rows scroll above the buttons. */
+html:not(.mob) .setmain {
+  padding-inline-end: 60px;
+}
+
+@media (min-width: 1600px) {
+  html:not(.mob) .setmain {
+    padding-inline-end: 0;
+  }
+}
+
+html.mob .setmain {
+  padding-bottom: 160px;
 }
 
 .setnav {

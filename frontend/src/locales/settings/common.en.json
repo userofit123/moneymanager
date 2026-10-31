@@ -6,5 +6,7 @@
   "done": "Done",
   "close": "Close",
   "dismiss": "Dismiss",
-  "undo": "Undo"
+  "undo": "Undo",
+  "on": "On",
+  "off": "Off"
 }
