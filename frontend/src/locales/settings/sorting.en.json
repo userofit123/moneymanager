@@ -88,7 +88,8 @@
     "cardNone": "No rules of your own yet. Mark one card payment in Activity and the app offers to make one for you, or add one above.",
     "cardPh": "Text from the bank line, for example ישראכרט חיוב",
     "cardAuto": "Recognised automatically, with no rule: {list}. Also any bank payment equal to what a card was charged on that day.",
-    "cardShort": "Type some text from the bank line, for example “ישראכרט חיוב”."
+    "cardShort": "Type some text from the bank line, for example “ישראכרט חיוב”.",
+    "textChanged": "Rule changed."
   },
   "ai": {
     "title": "Let an AI make your categories",
@@ -137,11 +138,11 @@
     "colName": "Name",
     "colKind": "Kind",
     "colRules": "Rules",
-    "colText": "If the text has",
+    "colText": "If",
     "colCat": "Category",
     "colTags": "Tags",
     "colShown": "Show it as",
-    "colTextOnly": "Text",
+    "colThen": "It is",
     "spend": "spending",
     "all": "Select all",
     "noneSel": "Select none",

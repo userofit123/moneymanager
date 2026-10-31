@@ -220,6 +220,14 @@ export function addCardRule(S, v, f, m) {
   S.cardRules = [...(S.cardRules || []), w.f || w.m ? { k: txt, ...w } : txt];
   return [["Card payment rule", '"' + txt + '" counts as a card payment']];
 }
+// Changes a card rule's text (kept with its where and how); false when it is too short or already a rule.
+export function setCardRuleText(S, i, v) {
+  const L = S.cardRules || [], r = L[+i]; if (r == null) return false;
+  const old = ruleText(r), txt = normD(v);
+  if (txt == old || genCheck(L.filter((_, j) => j != +i), v)) return false;
+  S.cardRules = L.map((x, j) => (j == +i ? (typeof x == "object" ? { ...x, k: txt } : txt) : x));
+  return [["Changed card payment rule", '"' + old + '" → "' + txt + '"']];
+}
 export function deleteCardRule(S, i) { if (!S.cardRules || S.cardRules[+i] == null) return false; const line = ["Removed card payment rule", '"' + ruleText(S.cardRules[+i]) + '"']; S.cardRules.splice(+i, 1); return [line]; }
 
 // ---- money coming in rules (Settings → Money coming in): text → Salary or Money back ----
@@ -240,6 +248,14 @@ export function setInRuleKind(S, i, kind) {
   const L = inRules(S), r = L[+i]; if (!r || r.kind == kind || !RULE_KINDS.includes(kind)) return false;
   S.moneyInRules = L.map((x, j) => (j == +i ? { ...x, kind } : x));
   return [["Changed money coming in rule", '"' + r.k + '" → ' + MARK_EN[kind]]];
+}
+// Changes a money coming in rule's text (kept with its kind, where and how); false when too short or already a rule.
+export function setInRuleText(S, i, v) {
+  const L = inRules(S), r = L[+i]; if (!r) return false;
+  const txt = normD(v);
+  if (txt == r.k || genCheck(L.filter((_, j) => j != +i).map((x) => x.k), v)) return false;
+  S.moneyInRules = L.map((x, j) => (j == +i ? { ...x, k: txt } : x));
+  return [["Changed money coming in rule", '"' + r.k + '" → "' + txt + '"']];
 }
 export function deleteInRule(S, i) {
   const L = inRules(S), r = L[+i]; if (!r) return false;

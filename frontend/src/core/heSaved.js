@@ -151,6 +151,7 @@ const HISTORY = {
   "Changed jar type": "סוג הקופה שונה",
   "Changed name rule": "שינוי כלל שם",
   "Changed where a rule looks": "שינוי המקום שבו כלל מחפש",
+  "Changed card payment rule": "שינוי כלל חיוב כרטיס",
   "Changed how a rule matches": "שינוי אופן ההתאמה של כלל",
   "Changed rule": "שונה כלל",
   "Changed rule tag": "שונתה תגית של כלל",

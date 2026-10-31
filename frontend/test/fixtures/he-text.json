@@ -112,7 +112,8 @@
   "\"netflix\" looks in: Bank's note": "\"netflix\" · מחפש ב: הערת הבנק",
   "\"wix\" looks in: Name, payer or bank's note": "\"wix\" · מחפש ב: שם, משלם או הערת הבנק",
   "Changed how a rule matches": "שינוי אופן ההתאמה של כלל",
-  "\"netflix\" match: does not contain": "\"netflix\" · התאמה: לא מכיל"
+  "\"netflix\" match: does not contain": "\"netflix\" · התאמה: לא מכיל",
+  "Changed card payment rule": "שינוי כלל חיוב כרטיס"
  },
  "history lines in saved results": {
   "#food → #Trip · 3 transactions": "#food ← #Trip · 3 תנועות",

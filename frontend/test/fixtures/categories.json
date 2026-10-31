@@ -2004,13 +2004,13 @@
    "span.",
    "select.rwhere",
    "select.rhow",
-   "b.gtxt",
+   "input.",
    "span.rarr",
    "b.",
    "button.btn.o.rdel.s",
    "div.sfoot"
   ],
-  "text": "Card payments 1 If a payment from your bank contains the text in the place you choose, it is the bill of a credit card. It is not counted as spending, because each purchase is already counted on the card. If Add rule If max charge → Card payment Delete Recognised automatically, with no rule: Isracard · ישראכרט, Visa Cal · כ.א.ל · ויזה כאל, Max · מקס · מקס איט פי, American Express · אמריקן אקספרס, Diners · דיינרס, Leumi Card · לאומי קארד. Also any bank payment equal to what a card was charged on that day.",
+  "text": "Card payments 1 If a payment from your bank contains the text in the place you choose, it is the bill of a credit card. It is not counted as spending, because each purchase is already counted on the card. If Add rule If → Card payment Delete Recognised automatically, with no rule: Isracard · ישראכרט, Visa Cal · כ.א.ל · ויזה כאל, Max · מקס · מקס איט פי, American Express · אמריקן אקספרס, Diners · דיינרס, Leumi Card · לאומי קארד. Also any bank payment equal to what a card was charged on that day.",
   "tips": []
  },
  "page-empty-aiSort": {

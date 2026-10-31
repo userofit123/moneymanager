@@ -123,3 +123,16 @@ test("choosing where a rule looks and how it compares: saved only when it is not
   assert.equal(C.genCheck(S.cardRules, "Card bill"), "dup");
   C.deleteCardRule(S, 1); assert.deepEqual(S.cardRules, ["ישראכרט"]);
 });
+
+test("the text of a card payment or money coming in rule can be changed, keeping where it looks and how", () => {
+  const S = { tx: TX, cardRules: ["max charge", { k: "card bill", f: "memo", m: "eq" }], moneyInRules: [{ k: "acme", kind: "salary", f: "memo" }, { k: "wix", kind: "back" }], xf: [] };
+  assert.deepEqual(C.setCardRuleText(S, 1, "Card  Bill!"), [["Changed card payment rule", '"card bill" → "card bill!"']]);
+  assert.deepEqual(S.cardRules[1], { k: "card bill!", f: "memo", m: "eq" });
+  assert.deepEqual(C.setCardRuleText(S, 0, "MAX charge"), false, "the same text");
+  assert.equal(C.setCardRuleText(S, 0, "card bill!"), false, "already a rule");
+  assert.equal(C.setCardRuleText(S, 0, "x"), false, "too short");
+  C.setCardRuleText(S, 0, "max it"); assert.equal(S.cardRules[0], "max it");
+  assert.deepEqual(C.setInRuleText(S, 0, "Acme Ltd"), [["Changed money coming in rule", '"acme" → "acme ltd"']]);
+  assert.deepEqual(S.moneyInRules[0], { k: "acme ltd", kind: "salary", f: "memo" });
+  assert.equal(C.setInRuleText(S, 0, "wix"), false);
+});
