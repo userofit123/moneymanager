@@ -20,6 +20,7 @@ export const SI = {
   key: "<circle cx=\"8\" cy=\"15\" r=\"4\"/><path d=\"M11 12l9-9M16 7l3 3\"/>",
   shield: "<path d=\"M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z\"/><path d=\"M9 12l2 2 4-4\"/>",
   phone: "<rect x=\"7\" y=\"3\" width=\"10\" height=\"18\" rx=\"2\"/><path d=\"M11 18h2\"/>",
+  send: "<path d=\"M21 3L3 10.5l7 3 3 7.5z\"/><path d=\"M10 13.5L21 3\"/>",
   bank: "<path d=\"M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18\"/>",
   clock: "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>",
   door: "<path d=\"M14 4h5v16h-5M10 8l-4 4 4 4M6 12h10\"/>",

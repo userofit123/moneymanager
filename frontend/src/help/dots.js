@@ -50,7 +50,6 @@ export default [
   ["set.data", "#setData", ".ssh b", "Import", "Import", "", "ייבוא"],
   ["set.data", "#setData", ".ssh b", "Your data", "Export", "", "הנתונים שלכם"],
   ["set.alr", "#setAlr", ".ssh b", "Which alerts to show", "Which alerts to show", "", "אילו התראות להציג"],
-  ["set.alr", "#setAlr", ".ssh b", "When an alert shows", "When an alert shows", "", "מתי מופיעה התראה"],
   ["set.notify", "#setNotify", ".ssh b", "On this device", "On this device", "", "במכשיר הזה"],
   ["set.notify", "#setNotify", ".ssh b", "ntfy", "ntfy", "", "ntfy"],
   ["set.notify", "#setNotify", ".ssh b", "Telegram", "Telegram", "", "טלגרם"],

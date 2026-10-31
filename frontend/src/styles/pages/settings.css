@@ -137,6 +137,29 @@ html.mob .sr.srtg > .src {
   width: 100%;
 }
 
+/* an amount under its switch (Which alerts): indented, no line above, a short number box */
+.sr.srsub {
+  border-top: 0;
+  padding-top: 0;
+  padding-inline-start: 20px;
+}
+
+.sr.srsub .srt > b {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--tx2);
+}
+
+.sr.srsub .src input:not([type=checkbox]),
+html.mob .sr.srsub .src input:not([type=checkbox]) {
+  width: 110px;
+  min-width: 0;
+}
+
+.sr.stk .src > .btn {
+  flex: none;
+}
+
 /* settings: a list of sections on the side, the section on the right */
 
 .setwrap {
@@ -732,4 +755,9 @@ html.mob .rladd > .btn {
 
 .ccard .ssb.p + .cform {
   padding-top: 0;
+}
+
+/* Where alerts go: the "Not sent" window */
+.nsent {
+  margin-bottom: 12px;
 }
