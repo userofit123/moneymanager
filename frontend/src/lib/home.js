@@ -3,6 +3,7 @@
 // Nothing here changes the data; bills the app finds by itself are only worked out, not saved.
 import { cardsDue, stillToPay, reallyYours, roundParts } from "./recap.js";
 import { acctOf } from "./activity.js";
+import { fieldText } from "./ruleFields.js";
 import { isIn, isOut, splitIn } from "./moneyIn.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
@@ -38,7 +39,7 @@ export function withTransfers(S) {
   return xf.length === (S.xf || []).length ? S : { ...S, xf };
 }
 const nohtml = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&").trim();
-const nameField = (t, f) => (f == "desc" ? t.desc : f == "memo" ? t.memo : f == "from" ? t.from : f == "to" ? t.to : f == "note" ? t.note : [t.desc, t.memo, t.bd, t.from, t.to, t.note].filter(Boolean).join(" "));
+const nameField = (t, f) => fieldText(t, f || "any");
 const rnm = (s) => String(s == null ? "" : s).toLowerCase().replace(/[0-9*#_/\\\-.,:;()'"\u05f3\u05f4]+/g, " ").replace(/\s+/g, " ").trim();
 // The name shown for a payment: the one you typed, a naming rule, or the bank's text.
 export const nameOf = (S, t) => { const c = S?.cfg || {}, o = c.renames && c.renames[t.id]; if (o) return o; if (c.nameRules) { const r = c.nameRules.find((x) => { const q = rnm(x.k); if (!q) return false; const v = rnm(nameField(t, x.f || "any")); return x.m == "eq" ? v == q : v.includes(q); }); if (r) return r.n; } return nohtml(t.desc); };

@@ -2,6 +2,7 @@
 // categories, category rules, tag rules, display names, card payment texts and salary texts, and the file it gives back is
 // checked here and added. Nothing is overwritten.
 import { ruleHit, ruleTags, normTag, normD } from "./activity.js";
+import { ruleText } from "./ruleFields.js";
 import { CAT_HE } from "../catnames.js";
 import { ruleExists, genCheck, addInRule } from "./categories.js";
 import { inRules } from "./moneyIn.js";
@@ -28,7 +29,7 @@ export function exportTexts(S, language) {
   const mine = (xs) => xs.slice(0, LIMITS.mine);
   return {
     language, myCategories: Object.keys(S?.cats || {}).filter((k) => k != "Uncategorized"), myTags: [...new Set((S?.tagRules || []).flatMap(ruleTags))],
-    myDisplayNames: mine((S?.cfg?.nameRules || []).map((r) => ({ contains: r.k, name: r.n }))), myCardPayments: mine(S?.cardRules || []), mySalary: mine(inRules(S).filter((r) => r.kind == "salary").map((r) => r.k)),
+    myDisplayNames: mine((S?.cfg?.nameRules || []).map((r) => ({ contains: r.k, name: r.n }))), myCardPayments: mine((S?.cardRules || []).map(ruleText)), mySalary: mine(inRules(S).filter((r) => r.kind == "salary").map((r) => r.k)),
     texts,
   };
 }
@@ -106,7 +107,7 @@ export function readAnswer(S, raw) {
     }
     return out;
   };
-  const cards = texts(j.cardPayments, S.cardRules, LIMITS.cards), salary = texts(j.salary, inRules(S).map((r) => r.k), LIMITS.salary);
+  const cards = texts(j.cardPayments, (S.cardRules || []).map(ruleText), LIMITS.cards), salary = texts(j.salary, inRules(S).map((r) => r.k), LIMITS.salary);
   return { plan: { cats, rules, tagRules, names, cards, salary }, skipped };
 }
 

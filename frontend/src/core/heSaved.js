@@ -54,6 +54,8 @@ const RULES = [
   [/^no exchange rate for (\w+) on (\S+); run a rates refresh first$/, (c, d) => "אין שער חליפין ל‑" + c + " ב‑" + d + ". רעננו קודם את השערים"],
   // "What is this money?" in the transaction window: "<name> → Money back"
   [/^(.+) → (Income|Earned|Salary|Money back|From a person|Your own money|Other income|Automatic)$/, (a, k) => a + " ← " + ({ Income: "הכנסה", Earned: "הכנסה מעבודה", Salary: "משכורת", "Money back": "החזר כספי", "From a person": "מאדם", "Your own money": "הכסף שלכם", "Other income": "הכנסה אחרת", Automatic: "אוטומטי" })[k]],
+  // Settings → Automatic sorting: where a rule looks (lib/ruleFields.js WHERE_EN)
+  [/^(.+) looks in: (.+)$/, (k, f) => k + " · מחפש ב: " + ({ Everything: "הכול", "Transaction name": "שם התנועה", "Bank's note": "הערת הבנק", "Bank's description": "התיאור של הבנק", "Bank's category": "הקטגוריה של הבנק", "Who paid": "מי שילם", "Paid to": "למי שולם", "Your note": "ההערה שלך", "Your account": "החשבון שלך", "Currency paid in": "המטבע ששולם בו", "Name, who paid or paid to": "שם, מי שילם או למי שולם", "Name or paid to": "שם או למי שולם", "Name, who paid or bank's note": "שם, מי שילם או הערת הבנק" }[f] || f)],
   // history details written by the server
   [/^(.+): matched your hand-entered transaction$/, (a) => a + ": הותאם לתנועה שהזנתם ידנית"],
   [/^(.+): browser profile saved for later automatic logins$/, (a) => a + ": פרופיל הדפדפן נשמר להתחברויות אוטומטיות בהמשך"],
@@ -147,6 +149,7 @@ const HISTORY = {
   "Changed jar target": "יעד הקופה שונה",
   "Changed jar type": "סוג הקופה שונה",
   "Changed name rule": "שינוי כלל שם",
+  "Changed where a rule looks": "שינוי המקום שבו כלל מחפש",
   "Changed rule": "שונה כלל",
   "Changed rule tag": "שונתה תגית של כלל",
   "Changed tag rule": "כלל תגית שונה",

@@ -37,7 +37,7 @@ export function settle(S, now = new Date(), fx = {}) {
 
   // 4. category rules never override a category set by hand
   const k = kinds(S, today);
-  S.tx.forEach((t) => { if (!t.c && !k.isXf(t)) { const r = S.rules.find((r) => ruleHit(t, r.k)); if (r) t.c = r.c; } });
+  S.tx.forEach((t) => { if (!t.c && !k.isXf(t)) { const r = S.rules.find((r) => ruleHit(t, r.k, r.f)); if (r) t.c = r.c; } });
 
   // 5. jars that pay for a category
   jarAuto(S, k, sys, now);

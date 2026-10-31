@@ -107,7 +107,10 @@
   "Updated past transactions": "עודכנו תנועות קודמות",
   "Updated pension": "עודכנה הפנסיה",
   "Updated profile": "הפרופיל עודכן",
-  "Money coming in kinds updated": "סוגי הכסף שנכנס עודכנו"
+  "Money coming in kinds updated": "סוגי הכסף שנכנס עודכנו",
+  "Changed where a rule looks": "שינוי המקום שבו כלל מחפש",
+  "\"netflix\" looks in: Bank's note": "\"netflix\" · מחפש ב: הערת הבנק",
+  "\"wix\" looks in: Name, who paid or bank's note": "\"wix\" · מחפש ב: שם, מי שילם או הערת הבנק"
  },
  "history lines in saved results": {
   "#food → #Trip · 3 transactions": "#food ← #Trip · 3 תנועות",

@@ -3,6 +3,7 @@
 // or { err } when nothing can be done. Extra results (how many were changed) come back too. Nothing here touches the screen.
 import { fm } from "../format.js";
 import { dstr } from "../dates.js";
+import { ruleText } from "./ruleFields.js";
 import { jarPay, jarUnpay } from "../core/settle.js";
 import { normD, isCardPay, cardInfo, rn, ruleHit, ruleTags, tagSimilar, nameHit, transferIds, isIgnored } from "./activity.js";
 
@@ -88,7 +89,7 @@ export function cpSimilar(S, t) {
 export function cpRuleAdd(S, id) {
   const t0 = byId(S, id); if (!t0) return { err: "gone" };
   const txt = normD(t0.desc), n = cpSimilar(S, t0).length, lines = [];
-  if (!(S.cardRules || []).map(normD).includes(txt)) { S.cardRules = [...(S.cardRules || []), txt]; lines.push(["Card payment rule", '"' + txt + '" counts as a card payment']); }
+  if (!(S.cardRules || []).map((r) => normD(ruleText(r))).includes(txt)) { S.cardRules = [...(S.cardRules || []), txt]; lines.push(["Card payment rule", '"' + txt + '" counts as a card payment']); }
   return ok(lines, { n });
 }
 export function ignOn(S, id) { S.txIgnore = S.txIgnore || {}; S.txIgnore[id] = 1; return ok([["Left out of totals", byId(S, id)?.desc || ""]]); }

@@ -6,6 +6,7 @@ import { toast } from "./toast.js";
 import { addSuggestion, setSuggestionRunner } from "./suggest.js";
 import { openPop } from "./txwin.js";
 import * as A from "../lib/txactions.js";
+import { ruleText } from "../lib/ruleFields.js";
 import { guessKw, tagSimilar, ruleTags, cardInfo, transferIds, displayName, normD } from "../lib/activity.js";
 
 const t = (...a) => i18n.global.t(...a);
@@ -52,7 +53,7 @@ export function cpMark(id) {
   const r = run(A.cpMark, id), x = byId(id);
   if (!r.err && x) {
     const n = A.cpSimilar(S(), x).length, txt = normD(x.desc);
-    if (txt.length >= 2 && !(S().cardRules || []).map(normD).includes(txt))
+    if (txt.length >= 2 && !(S().cardRules || []).map((r) => normD(ruleText(r))).includes(txt))
       addSuggestion({ key: "card|" + txt, title: t("txw.cpOfferT"), text: n ? t("txw.cpOfferN", { n, desc: x.desc }, n) : t("txw.cpOffer0", { desc: x.desc }), actions: [{ label: n ? t("txw.cpYesAll", { n: n + 1 }) : t("txw.cpCreate"), kind: "cpRule", arg: { id: x.id } }] });
   }
   return r;
