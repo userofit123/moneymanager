@@ -32,9 +32,10 @@ function place(animate) {
   const set = (r) => `translate(${r.x}px,${r.y}px) scale(${r.w / to.w},${r.h / to.h})`;
   p.style.transform = set(to); cur = to;
   if (!animate || !from || (from.x === to.x && from.y === to.y && from.w === to.w && from.h === to.h) || matchMedia("(prefers-reduced-motion:reduce)").matches) return;
-  const vert = !document.documentElement.classList.contains("mob"), clamp = (u) => Math.max(0, Math.min(1, u)), ease = (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
-  const a0 = vert ? from.y : from.x, a1 = vert ? to.y : to.x, l0 = vert ? from.h : from.w, l1 = vert ? to.h : to.w, c0 = vert ? from.x : from.y, c1 = vert ? to.x : to.y, m = vert ? to.w : to.h, b0 = a0 + l0, b1 = a1 + l1, fwd = a1 + b1 >= a0 + b0;
-  at = (u) => { const lead = 1 - Math.pow(1 - clamp(u / 0.65), 3), trail = ease(clamp((u - 0.25) / 0.75)), A = a0 + (a1 - a0) * (fwd ? trail : lead), B = b0 + (b1 - b0) * (fwd ? lead : trail), nr = 1 - 0.55 * Math.sin(Math.PI * u), c = c0 + (c1 - c0) * ease(u), len = Math.max(1, B - A), th = m * nr, cc = c + (m - th) / 2; return vert ? { x: cc, y: A, w: th, h: len } : { x: A, y: cc, w: len, h: th }; };
+  // the menu is a rail at the side, so the pill moves up or down
+  const clamp = (u) => Math.max(0, Math.min(1, u)), ease = (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
+  const a0 = from.y, a1 = to.y, l0 = from.h, l1 = to.h, c0 = from.x, c1 = to.x, m = to.w, b0 = a0 + l0, b1 = a1 + l1, fwd = a1 + b1 >= a0 + b0;
+  at = (u) => { const lead = 1 - Math.pow(1 - clamp(u / 0.65), 3), trail = ease(clamp((u - 0.25) / 0.75)), A = a0 + (a1 - a0) * (fwd ? trail : lead), B = b0 + (b1 - b0) * (fwd ? lead : trail), nr = 1 - 0.55 * Math.sin(Math.PI * u), c = c0 + (c1 - c0) * ease(u), len = Math.max(1, B - A), th = m * nr, cc = c + (m - th) / 2; return { x: cc, y: A, w: th, h: len }; };
   const N = 24, frames = []; for (let i = 0; i <= N; i++) { const u = i / N, r = i == N ? to : at(u); frames.push({ transform: set(r), offset: u }); }
   anim = p.animate(frames, { duration: D, easing: "linear" }); anim.onfinish = () => { anim = null; };
 }

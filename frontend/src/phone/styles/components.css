@@ -1,0 +1,1234 @@
+/* The phone app's building blocks (phone/components): screen frame, tab bar, lists, sheets, buttons and small parts. */
+
+/* ---- Screen frame: top bar, large title, content ---- */
+html.phone .ph-screen {
+  max-inline-size: var(--p-max);
+  margin-inline: auto;
+  position: relative;
+}
+
+html.phone .ph-bar {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+  min-block-size: var(--p-bar);
+  padding: var(--st) calc(var(--p-gut) - 10px) 0;
+  margin-inline: calc(50% - 50vw);
+  padding-inline: max(calc(var(--p-gut) - 10px), calc(50vw - 50% + var(--p-gut) - 10px));
+  border-block-end: 1px solid transparent;
+  transition: background-color var(--p-t-fade), border-color var(--p-t-fade);
+}
+
+html.phone .ph-bar.small {
+  background: var(--p-glass);
+  -webkit-backdrop-filter: saturate(1.6) blur(20px);
+  backdrop-filter: saturate(1.6) blur(20px);
+  border-block-end-color: var(--p-line);
+}
+
+html.phone .ph-bar-start {
+  display: flex;
+  min-inline-size: 0;
+}
+
+html.phone .ph-bar-end {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+html.phone .ph-bar-title {
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+  max-inline-size: 52vw;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity var(--p-t-fade), transform var(--p-t-fade) var(--p-ease);
+}
+
+html.phone .ph-bar.small .ph-bar-title {
+  opacity: 1;
+  transform: none;
+}
+
+html.phone .ph-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-block-size: var(--p-hit);
+  padding-inline: 4px 10px;
+  margin-inline-start: -4px;
+  border: 0;
+  background: none;
+  color: var(--acc);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: var(--pill);
+  min-inline-size: 0;
+}
+
+html.phone .ph-back span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-inline-size: 28vw;
+}
+
+html.phone .ph-back .ph-ic {
+  inline-size: 26px;
+  block-size: 26px;
+  stroke-width: 2.2;
+}
+
+html.phone .ph-titlebox {
+  padding: 2px var(--p-gut) 16px;
+}
+
+html.phone .ph-title {
+  font-size: 32px;
+  line-height: 38px;
+  font-weight: 700;
+  letter-spacing: -.4px;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+html.phone.he .ph-title {
+  letter-spacing: 0;
+  font-weight: 600;
+}
+
+html.phone .ph-sentinel {
+  block-size: 1px;
+  margin-block-start: -12px;
+  margin-block-end: 11px;
+}
+
+html.phone .ph-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-gap);
+  padding-inline: var(--p-gut);
+}
+
+/* ---- Pull to sync and the sync bar ---- */
+html.phone .ph-body {
+  transition: transform .3s var(--p-ease-out);
+}
+
+html.phone .ph-pull {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: calc(var(--st) + var(--p-bar) - 34px);
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  opacity: min(1, calc(var(--pull) / 40px));
+  transform: translateY(calc(var(--pull) * .55));
+  z-index: 1;
+}
+
+html.phone .ph-pull svg {
+  inline-size: 28px;
+  block-size: 28px;
+  fill: none;
+  stroke: var(--tx2);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transition: stroke var(--p-t-press);
+}
+
+html.phone .ph-pull.ready svg {
+  stroke: var(--acc);
+}
+
+html.phone .ph-syncbar {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-start: var(--st);
+  block-size: 2px;
+  z-index: 40;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity var(--p-t-fade);
+  pointer-events: none;
+}
+
+html.phone .ph-syncbar.on {
+  opacity: 1;
+}
+
+html.phone .ph-syncbar i {
+  position: absolute;
+  inset-block: 0;
+  inline-size: 40%;
+  background: var(--acc);
+  border-radius: var(--pill);
+  animation: ph-sync 1.3s var(--p-ease) infinite;
+}
+
+@keyframes ph-sync {
+  from { inset-inline-start: -40%; }
+  to { inset-inline-start: 100%; }
+}
+
+html.phone .ph-syncline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-block-size: 32px;
+  margin-block-start: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tx2);
+  font: inherit;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+html.phone .ph-syncline .ph-ic {
+  inline-size: 16px;
+  block-size: 16px;
+}
+
+html.phone .ph-syncline.bad {
+  color: var(--neg);
+}
+
+html.phone .ph-syncline.run .ph-ic {
+  animation: ph-spin 1s linear infinite;
+}
+
+@keyframes ph-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---- Offline pill ---- */
+html.phone .ph-offline {
+  position: fixed;
+  inset-block-start: calc(var(--st) + var(--p-bar) + 6px);
+  inset-inline: 0;
+  margin-inline: auto;
+  inline-size: max-content;
+  max-inline-size: calc(100vw - 2 * var(--p-gut));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--pill);
+  background: var(--tx);
+  color: var(--bg);
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 30;
+  transform: translateY(-12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--p-t-fade), transform var(--p-t-fade) var(--p-ease);
+}
+
+html.phone .ph-offline.on {
+  opacity: 1;
+  transform: none;
+}
+
+html.phone .ph-offline .ph-ic {
+  inline-size: 18px;
+  block-size: 18px;
+}
+
+/* ---- Tab bar ---- */
+html.phone .ph-tabs {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: 25;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  padding: 6px max(4px, calc(50vw - var(--p-max) / 2)) calc(var(--sb) + 6px);
+  min-block-size: var(--p-tab);
+  background: var(--p-glass);
+  -webkit-backdrop-filter: saturate(1.6) blur(20px);
+  backdrop-filter: saturate(1.6) blur(20px);
+  border-block-start: 1px solid var(--p-line);
+  transition: transform .2s var(--p-ease);
+}
+
+html.phone .ph-tabs.kb {
+  transform: translateY(110%);
+}
+
+html.phone .ph-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-inline-size: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tx2);
+  font: inherit;
+}
+
+html.phone .ph-tab-ic {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: 56px;
+  block-size: 32px;
+  border-radius: var(--pill);
+  transition: background-color var(--p-t-fade), color var(--p-t-fade);
+}
+
+html.phone .ph-tab.on .ph-tab-ic {
+  background: var(--accc);
+  color: var(--onc);
+  animation: ph-pill .28s var(--p-ease-out);
+}
+
+html.phone .ph-tab.on .ph-tab-ic .ph-ic {
+  stroke-width: 2.1;
+}
+
+@keyframes ph-pill {
+  from { transform: scaleX(.6); }
+}
+
+html.phone .ph-tab-l {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+  max-inline-size: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+html.phone .ph-tab.on .ph-tab-l {
+  color: var(--tx);
+}
+
+html.phone .ph-tab-ic .ph-badge {
+  position: absolute;
+  inset-block-start: -2px;
+  inset-inline-start: 32px;
+}
+
+/* ---- Counts ---- */
+html.phone .ph-badge {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 18px;
+  block-size: 18px;
+  padding-inline: 5px;
+  border-radius: var(--pill);
+  background: var(--neg);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  box-shadow: 0 0 0 2px var(--bg);
+}
+
+/* ---- Icon buttons, buttons, links ---- */
+html.phone .ph-ib {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: var(--p-hit);
+  block-size: var(--p-hit);
+  padding: 0;
+  border: 0;
+  border-radius: var(--pill);
+  background: none;
+  color: var(--tx);
+  transition: background-color var(--p-t-press);
+}
+
+html.phone .ph-ib:active {
+  background: var(--p-press);
+}
+
+html.phone .ph-ib .ph-badge {
+  position: absolute;
+  inset-block-start: 4px;
+  inset-inline-end: 2px;
+}
+
+html.phone .ph-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-block-size: 48px;
+  padding-inline: 24px;
+  border: 0;
+  border-radius: var(--pill);
+  background: var(--acc);
+  color: var(--on);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 20px;
+  transition: transform var(--p-t-press), filter var(--p-t-press);
+}
+
+html.phone .ph-btn:active {
+  transform: scale(.97);
+  filter: brightness(.94);
+}
+
+html.phone .ph-btn.tonal {
+  background: var(--accc);
+  color: var(--onc);
+  min-block-size: 44px;
+}
+
+html.phone .ph-btn:disabled {
+  opacity: .4;
+}
+
+html.phone .ph-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-block-size: var(--p-hit);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--acc);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+html.phone .ph-link .ph-ic {
+  inline-size: 18px;
+  block-size: 18px;
+}
+
+/* ---- Grouped lists ---- */
+html.phone .ph-group-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-block-size: 28px;
+  padding-inline: 4px;
+  margin-block-end: 6px;
+}
+
+html.phone .ph-group-h h3 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+html.phone .ph-group-h .ph-link {
+  min-block-size: 28px;
+  font-size: 14px;
+}
+
+html.phone .ph-group-b {
+  background: var(--p-surf);
+  border-radius: var(--p-r-group);
+  overflow: hidden;
+}
+
+html.phone .ph-group-n {
+  margin: 8px 4px 0;
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+html.phone .ph-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  inline-size: 100%;
+  min-block-size: 48px;
+  padding: 10px 16px;
+  border: 0;
+  background: none;
+  color: var(--tx);
+  font: inherit;
+  text-align: start;
+  transition: background-color var(--p-t-press);
+}
+
+html.phone .ph-row.two {
+  min-block-size: var(--p-row);
+}
+
+html.phone .ph-row:active:not(:disabled) {
+  background: var(--p-press);
+  transition-duration: 0s;
+}
+
+html.phone .ph-row:disabled {
+  opacity: .4;
+}
+
+/* a hairline between rows, starting after the icon tile */
+html.phone .ph-row + .ph-row::before,
+html.phone .ph-swipe + .ph-swipe::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 16px 0;
+  border-block-start: 1px solid var(--p-line);
+}
+
+html.phone .ph-row:has(.ph-row-lead) + .ph-row::before {
+  inset-inline-start: 64px;
+}
+
+html.phone .ph-row-lead {
+  display: flex;
+  flex: none;
+}
+
+html.phone .ph-tile {
+  display: grid;
+  place-items: center;
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: var(--p-r-tile);
+  background: color-mix(in srgb, var(--tile) 15%, transparent);
+  color: var(--tile);
+}
+
+html.phone .ph-tile .ph-ic {
+  inline-size: 20px;
+  block-size: 20px;
+}
+
+html.phone[data-mode="dark"] .ph-tile {
+  background: color-mix(in srgb, var(--tile) 24%, transparent);
+  color: color-mix(in srgb, var(--tile) 55%, #fff);
+}
+
+html.phone .ph-row-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-inline-size: 0;
+}
+
+html.phone .ph-row-t {
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 500;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+html.phone .ph-row-s {
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+html.phone .ph-row-end {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  color: var(--tx2);
+}
+
+html.phone .ph-row-v {
+  font-size: 16px;
+}
+
+html.phone .ph-row.danger .ph-row-t {
+  color: var(--neg);
+}
+
+html.phone .ph-chev {
+  inline-size: 18px;
+  block-size: 18px;
+  color: color-mix(in srgb, var(--tx2) 70%, transparent);
+  margin-inline-end: -4px;
+}
+
+html.phone .ph-switch {
+  position: relative;
+  inline-size: 52px;
+  block-size: 32px;
+  border-radius: var(--pill);
+  background: var(--s2);
+  border: 2px solid color-mix(in srgb, var(--tx2) 60%, transparent);
+  transition: background-color var(--p-t-fade), border-color var(--p-t-fade);
+}
+
+html.phone .ph-switch i {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 6px;
+  inline-size: 16px;
+  block-size: 16px;
+  margin-block-start: -8px;
+  border-radius: 50%;
+  background: var(--tx2);
+  transition: inset-inline-start var(--p-t-fade) var(--p-ease), inline-size var(--p-t-fade), block-size var(--p-t-fade), margin var(--p-t-fade);
+}
+
+html.phone .ph-switch.on {
+  background: var(--acc);
+  border-color: var(--acc);
+}
+
+html.phone .ph-switch.on i {
+  inset-inline-start: 22px;
+  inline-size: 24px;
+  block-size: 24px;
+  margin-block-start: -12px;
+  background: var(--on);
+}
+
+/* ---- Swipe rows ---- */
+html.phone .ph-swipe {
+  position: relative;
+  overflow: hidden;
+}
+
+html.phone .ph-swipe-row {
+  position: relative;
+  background: var(--p-surf);
+  transition: transform .25s var(--p-ease-out);
+}
+
+html.phone .ph-swipe-row.drag {
+  transition: none;
+}
+
+html.phone .ph-swipe-a {
+  position: absolute;
+  inset-block: 0;
+  display: flex;
+}
+
+html.phone .ph-swipe-a.start {
+  inset-inline-start: 0;
+}
+
+html.phone .ph-swipe-a.end {
+  inset-inline-end: 0;
+}
+
+html.phone .ph-swipe-a button {
+  inline-size: 84px;
+  border: 0;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--acc);
+}
+
+html.phone .ph-swipe-a button.neg {
+  background: var(--neg);
+}
+
+html.phone .ph-swipe-a button.warn {
+  background: var(--warn);
+}
+
+/* ---- Empty states and screen intros ---- */
+html.phone .ph-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+html.phone .ph-empty-ic {
+  display: grid;
+  place-items: center;
+  inline-size: 56px;
+  block-size: 56px;
+  border-radius: 50%;
+  background: var(--accc);
+  color: var(--onc);
+  margin-block-end: 4px;
+}
+
+html.phone .ph-empty h3 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 600;
+}
+
+html.phone .ph-empty p {
+  margin: 0;
+  max-inline-size: 30ch;
+  color: var(--tx2);
+  font-size: 15px;
+  line-height: 22px;
+}
+
+html.phone .ph-empty .ph-btn {
+  margin-block-start: 12px;
+}
+
+html.phone .ph-intro {
+  padding-block-start: 10vh;
+}
+
+html.phone .ph-intro .ph-empty-ic {
+  inline-size: 72px;
+  block-size: 72px;
+  border-radius: 24px;
+}
+
+html.phone .ph-intro .ph-empty-ic .ph-ic {
+  inline-size: 30px;
+  block-size: 30px;
+  stroke-width: 1.6;
+}
+
+html.phone .ph-intro p {
+  font-size: 17px;
+  line-height: 24px;
+  color: var(--tx);
+}
+
+/* ---- Sentence headline, number tiles, progress ---- */
+html.phone .ph-hero-s {
+  margin: 0;
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: 500;
+  text-wrap: balance;
+}
+
+html.phone .ph-hero-a {
+  display: inline-block;
+  font-size: 34px;
+  line-height: 40px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.5px;
+}
+
+html.phone .ph-hero-l {
+  margin-block-start: 4px;
+}
+
+html.phone .ph-amt {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--tx);
+}
+
+html.phone .ph-amt.pos {
+  color: var(--pos);
+}
+
+html.phone .ph-amt.neg {
+  color: var(--neg);
+}
+
+html.phone .ph-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: var(--p-r-group);
+  background: var(--p-surf);
+  color: var(--tx);
+  font: inherit;
+  text-align: start;
+}
+
+html.phone .ph-stat:active {
+  background: var(--p-press);
+}
+
+html.phone .ph-stat-l,
+html.phone .ph-stat-n {
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+html.phone .ph-stat-v {
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-prog {
+  display: block;
+  block-size: 6px;
+  border-radius: var(--pill);
+  background: var(--s2);
+  overflow: hidden;
+}
+
+html.phone .ph-prog i {
+  display: block;
+  block-size: 100%;
+  border-radius: inherit;
+  background: var(--acc);
+}
+
+html.phone .ph-prog.warn i {
+  background: var(--warn);
+}
+
+html.phone .ph-prog.neg i {
+  background: var(--neg);
+}
+
+html.phone .ph-ring {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+}
+
+html.phone .ph-ring svg {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+  fill: none;
+  stroke-width: 4;
+}
+
+html.phone .ph-ring .trk {
+  stroke: var(--s2);
+}
+
+html.phone .ph-ring .val {
+  stroke: var(--acc);
+  stroke-linecap: round;
+}
+
+html.phone .ph-ring.warn .val {
+  stroke: var(--warn);
+}
+
+html.phone .ph-ring.neg .val {
+  stroke: var(--neg);
+}
+
+html.phone .ph-ring-in {
+  position: relative;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ---- Loading rows ---- */
+html.phone .ph-skel-r {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+html.phone .ph-skel-r span {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+html.phone .ph-skel i {
+  display: block;
+  border-radius: 6px;
+  background: var(--s2);
+  animation: ph-skel 1.4s ease-in-out infinite;
+}
+
+html.phone .ph-skel .a {
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: var(--p-r-tile);
+}
+
+html.phone .ph-skel .b {
+  inline-size: 55%;
+  block-size: 12px;
+}
+
+html.phone .ph-skel .c {
+  inline-size: 35%;
+  block-size: 10px;
+}
+
+html.phone .ph-skel .d {
+  inline-size: 56px;
+  block-size: 12px;
+}
+
+@keyframes ph-skel {
+  50% { opacity: .55; }
+}
+
+/* ---- Search, chips, choices ---- */
+html.phone .ph-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  block-size: 40px;
+  padding-inline: 12px 4px;
+  border-radius: 12px;
+  background: var(--s2);
+  color: var(--tx2);
+}
+
+html.phone .ph-search .ph-ic {
+  inline-size: 20px;
+  block-size: 20px;
+}
+
+html.phone .ph-search input {
+  flex: 1;
+  min-inline-size: 0;
+  border: 0;
+  background: none;
+  color: var(--tx);
+  font: inherit;
+  font-size: 16px;
+  outline: none;
+  padding: 0;
+}
+
+html.phone .ph-search input::-webkit-search-cancel-button {
+  display: none;
+}
+
+html.phone .ph-search-x {
+  display: grid;
+  place-items: center;
+  inline-size: 36px;
+  block-size: 36px;
+  border: 0;
+  background: none;
+  color: var(--tx2);
+}
+
+html.phone .ph-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-inline: var(--p-gut);
+  margin-inline: calc(-1 * var(--p-gut));
+  mask-image: linear-gradient(to right, transparent, #000 var(--p-gut), #000 calc(100% - var(--p-gut)), transparent);
+}
+
+html.phone .ph-chip {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  block-size: 36px;
+  margin-block: 4px;
+  border-radius: var(--pill);
+  border: 1px solid var(--p-line);
+  background: var(--bg);
+  color: var(--tx);
+}
+
+html.phone .ph-chip.on {
+  background: var(--accc);
+  border-color: transparent;
+  color: var(--onc);
+}
+
+html.phone .ph-chip-b {
+  block-size: 100%;
+  padding-inline: 14px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+html.phone .ph-chip.on .ph-chip-b {
+  padding-inline-end: 4px;
+}
+
+html.phone .ph-chip-x {
+  display: grid;
+  place-items: center;
+  inline-size: 32px;
+  block-size: 100%;
+  border: 0;
+  background: none;
+  color: inherit;
+}
+
+html.phone .ph-chip-x .ph-ic {
+  inline-size: 16px;
+  block-size: 16px;
+}
+
+html.phone .ph-segwrap {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+html.phone .ph-seg.seg {
+  display: flex;
+  min-inline-size: 100%;
+  inline-size: max-content;
+}
+
+html.phone .ph-seg.seg > button {
+  flex: 1 0 auto;
+  min-block-size: 36px;
+  font-size: 14px;
+}
+
+html.phone .ph-info {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 32px;
+  block-size: 32px;
+  margin: -6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tx2);
+  cursor: pointer;
+}
+
+html.phone .ph-info .ph-ic {
+  inline-size: 18px;
+  block-size: 18px;
+}
+
+html.phone .ph-tiptext {
+  font-size: 15px;
+  line-height: 22px;
+}
+
+html.phone .ph-tiptext p,
+html.phone .ph-tiptext ul {
+  margin: 0 0 10px;
+}
+
+html.phone .ph-tiptext ul {
+  padding-inline-start: 20px;
+}
+
+/* ---- Sheets ---- */
+html.phone .ph-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--scrim);
+}
+
+html.phone .ph-sheet {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: 61;
+  display: flex;
+  flex-direction: column;
+  max-block-size: 92dvh;
+  max-inline-size: var(--p-max);
+  margin-inline: auto;
+  border-radius: var(--p-r-sheet) var(--p-r-sheet) 0 0;
+  background: var(--bg);
+  box-shadow: var(--shadow-sheet);
+  outline: none;
+  transition: transform var(--p-t-sheet) var(--p-ease-out);
+}
+
+html.phone[data-mode="dark"] .ph-sheet {
+  background: color-mix(in srgb, var(--tx) 5%, var(--bg));
+}
+
+html.phone .ph-sheet.large {
+  block-size: 92dvh;
+}
+
+html.phone .ph-grab {
+  display: grid;
+  place-items: center;
+  block-size: 22px;
+  flex: none;
+  touch-action: none;
+}
+
+html.phone .ph-grab i {
+  inline-size: 36px;
+  block-size: 5px;
+  border-radius: var(--pill);
+  background: color-mix(in srgb, var(--tx2) 40%, transparent);
+}
+
+html.phone .ph-sheet-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px 4px var(--p-gut);
+  flex: none;
+}
+
+html.phone .ph-sheet-h h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 600;
+}
+
+html.phone .ph-close {
+  background: var(--s2);
+  inline-size: 36px;
+  block-size: 36px;
+}
+
+html.phone .ph-close .ph-ic {
+  inline-size: 18px;
+  block-size: 18px;
+  stroke-width: 2.2;
+}
+
+html.phone .ph-sheet-b {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding: 8px var(--p-gut) calc(var(--sb) + 16px);
+}
+
+html.phone .ph-sheet-f {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px var(--p-gut) calc(var(--sb) + 12px);
+  border-block-start: 1px solid var(--p-line);
+}
+
+html.phone .ph-sheet-f + .ph-sheet-b,
+html.phone .ph-sheet-b:has(+ .ph-sheet-f) {
+  padding-block-end: 16px;
+}
+
+html.phone .ph-fade-enter-active,
+html.phone .ph-fade-leave-active {
+  transition: opacity var(--p-t-sheet);
+}
+
+html.phone .ph-fade-enter-from,
+html.phone .ph-fade-leave-to {
+  opacity: 0;
+}
+
+html.phone .ph-rise-enter-active,
+html.phone .ph-rise-leave-active {
+  transition: transform var(--p-t-sheet) var(--p-ease-out);
+}
+
+html.phone .ph-rise-enter-from,
+html.phone .ph-rise-leave-to {
+  transform: translateY(100%);
+}
+
+/* action lists and pickers inside sheets */
+html.phone .ph-act-t {
+  margin: 0 0 8px;
+  color: var(--tx2);
+  font-size: 13px;
+  text-align: center;
+}
+
+html.phone .ph-acts,
+html.phone .ph-pick {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--p-r-group);
+  background: var(--p-surf);
+  overflow: hidden;
+}
+
+html.phone .ph-act,
+html.phone .ph-pick-o {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-block-size: 52px;
+  padding-inline: 16px;
+  border: 0;
+  background: none;
+  color: var(--tx);
+  font: inherit;
+  font-size: 16px;
+  text-align: start;
+}
+
+html.phone .ph-act + .ph-act,
+html.phone .ph-pick-o + .ph-pick-o {
+  border-block-start: 1px solid var(--p-line);
+}
+
+html.phone .ph-act:active,
+html.phone .ph-pick-o:active {
+  background: var(--p-press);
+}
+
+html.phone .ph-act.danger {
+  color: var(--neg);
+}
+
+html.phone .ph-act-x {
+  justify-content: center;
+  margin-block-start: 8px;
+  border-radius: var(--p-r-group);
+  background: var(--p-surf);
+  font-weight: 600;
+  inline-size: 100%;
+}
+
+html.phone .ph-pick-ck {
+  color: var(--acc);
+  margin-inline-start: auto;
+}
+
+html.phone .ph-pick-q {
+  margin-block-end: 12px;
+}
+
+/* the app's own h2 is a small capitals label; the phone's headings are plain */
+html.phone :is(.ph-bar-title, .ph-sheet-h h2) {
+  display: block;
+  color: var(--tx);
+  letter-spacing: normal;
+  text-transform: none;
+}

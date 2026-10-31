@@ -1,0 +1,23 @@
+/* The phone app's styles, loaded only with the phone app (PhoneApp.vue), in this order: sizes, page, building blocks, screens.
+   Every rule starts with html.phone, so nothing here can reach the computer layout. */
+@import "./tokens.css";
+@import "./base.css";
+@import "./components.css";
+@import "./screens/account.css";
+@import "./screens/accounts.css";
+@import "./screens/activity.css";
+@import "./screens/alerts.css";
+@import "./screens/bill.css";
+@import "./screens/bills.css";
+@import "./screens/budgets.css";
+@import "./screens/categories.css";
+@import "./screens/category.css";
+@import "./screens/forecast.css";
+@import "./screens/home.css";
+@import "./screens/jar.css";
+@import "./screens/jars.css";
+@import "./screens/more.css";
+@import "./screens/recap.css";
+@import "./screens/reports.css";
+@import "./screens/settings.css";
+@import "./screens/transaction.css";

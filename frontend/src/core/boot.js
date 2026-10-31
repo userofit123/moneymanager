@@ -83,12 +83,12 @@ async function syncTz() {
   } catch { /* not important enough to bother anyone */ }
 }
 
-// Waits until the page is on screen (its code is loaded separately), so the splash fades into the page and its opening
+// Waits until the page (or the phone app's screen) is on screen (its code is loaded separately), so the splash fades into the page and its opening
 // animation (html.intro) plays on it. At most 3 seconds.
 async function pageShown() {
   try { await current.value?.component?.(); } catch { /* the page shows its own error */ }
   const t0 = Date.now();
-  while (!document.querySelector("main > .view, main > section") && Date.now() - t0 < 3000) await new Promise((r) => requestAnimationFrame(r));
+  while (!document.querySelector("main > .view, main > section, .ph-stage > .ph-screen") && Date.now() - t0 < 3000) await new Promise((r) => requestAnimationFrame(r));
 }
 
 // The splash fades out (html.boot → html.intro), like bootDone().

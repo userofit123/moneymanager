@@ -2,3 +2,4 @@
 export { default as main } from "./he.json";
 export const pages = import.meta.glob("./pages/*.he.json", { eager: true, import: "default" });
 export const settings = import.meta.glob("./settings/*.he.json", { eager: true, import: "default" });
+export const phone = import.meta.glob("./phone/*.he.json", { eager: true, import: "default" });

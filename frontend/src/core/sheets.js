@@ -21,8 +21,8 @@ let y = 0;
 function lock(on) {
   const H = document.documentElement;
   if (on === H.classList.contains("sl")) return;
-  if (on) { y = scrollY; H.classList.add("sl"); if (H.classList.contains("mob")) document.body.style.top = "-" + y + "px"; }
-  else { H.classList.remove("sl"); document.body.style.top = ""; if (H.classList.contains("mob")) scrollTo(0, y); }
+  if (on) { y = scrollY; H.classList.add("sl"); if (H.classList.contains("phone")) document.body.style.top = "-" + y + "px"; }
+  else { H.classList.remove("sl"); document.body.style.top = ""; if (H.classList.contains("phone")) scrollTo(0, y); }
 }
 export function sheetOpened(close) {
   stack.push(close);

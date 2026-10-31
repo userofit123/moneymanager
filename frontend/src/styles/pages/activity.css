@@ -747,7 +747,7 @@ html.he #exCats > * {
   white-space: nowrap;
 }
 
-html:not(.mob) #txTab {
+html:not(.phone) #txTab {
   display: grid;
   grid-template-columns: max-content minmax(0, 2fr) minmax(0, 1.4fr) minmax(0, 1.4fr) minmax(0, 1fr) max-content max-content;
   --hh: 41px;

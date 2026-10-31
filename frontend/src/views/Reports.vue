@@ -23,7 +23,6 @@ import "../styles/pages/reports.css"; // this page's own styles
 const { t, locale } = useI18n();
 const tk = (key, ...a) => t(key, ...a);
 const he = computed(() => locale.value === "he");
-const isMob = () => document.documentElement.classList.contains("mob");
 
 // ---- data ----
 onMounted(async () => {
@@ -148,7 +147,7 @@ function trShow(e) {
 }
 const tipEl = ref(null);
 function trClick(e) {
-  if (isMob()) return; const d = trDraw.value, m = trm.value, r = e.currentTarget.getBoundingClientRect(); if (e.clientX - r.left < d.Pl - 6) return;
+  const d = trDraw.value, m = trm.value, r = e.currentTarget.getBoundingClientRect(); if (e.clientX - r.left < d.Pl - 6) return;
   goActivity(goSpec(m.ms[Math.max(0, Math.min(m.vals.length - 1, Math.floor((e.clientX - r.left - d.Pl) / d.band)))]));
 }
 const setPension = (e) => save((n) => { n.nwPension = e.target.checked; });
@@ -234,7 +233,7 @@ const showMerch = (n) => save((s) => { s.hiddenMerchants = (s.hiddenMerchants ||
               <line class="trx" :x1="trHov ? trHov.x : 0" :x2="trHov ? trHov.x : 0" :y1="trDraw.Pt" :y2="trDraw.H - trDraw.Pb" stroke="var(--tx)" stroke-opacity=".35" stroke-dasharray="3 3" :style="{ display: trHov ? '' : 'none' }" />
               <circle class="trd" r="5.5" :cx="trHov ? trHov.x : 0" :cy="trHov ? trHov.y : 0" :fill="trm.col" stroke="var(--bg)" stroke-width="2" :style="{ display: trHov && trDraw.kind != 'bars' ? '' : 'none' }" />
             </svg>
-            <div v-if="trHov" ref="tipEl" class="trtip" :style="{ display: 'flex', left: trHov.lx + 'px', top: trHov.top + 'px' }"><b>{{ trm.fullL[trHov.i] }}</b><span>{{ fm(trm.vals[trHov.i]) }}</span><small v-if="trm.prev">{{ t("rep.prevLabel", { amt: fm(trm.prev[trHov.i]) }) }}</small><small v-if="!isMob()">{{ t("rep.clickOpen") }}</small></div>
+            <div v-if="trHov" ref="tipEl" class="trtip" :style="{ display: 'flex', left: trHov.lx + 'px', top: trHov.top + 'px' }"><b>{{ trm.fullL[trHov.i] }}</b><span>{{ fm(trm.vals[trHov.i]) }}</span><small v-if="trm.prev">{{ t("rep.prevLabel", { amt: fm(trm.prev[trHov.i]) }) }}</small><small>{{ t("rep.clickOpen") }}</small></div>
           </div>
         </div>
         <div class="trstats"><div v-for="s in trm.stats" :key="s[0]"><span>{{ s[1] }}<template v-if="s[3]">{{ " " }}<small>(<bdi>{{ s[3] }}</bdi>)</small></template></span><b class="num" :class="{ neg: s[0] == 'chg' && s[2] < 0 }">{{ s[2] < 0 ? "−" : "" }}{{ fm(Math.abs(s[2])) }}</b></div></div>
@@ -259,7 +258,7 @@ const showMerch = (n) => save((s) => { s.hiddenMerchants = (s.hiddenMerchants ||
         <div class="card cfill"><div class="bh"><div class="lbl">{{ t("rep.incVsExp") }}</div><div class="rctl rng" id="ctl-bars"><select :value="RN.bars" :aria-label="t('rep.monthsShown')" @change="RN.bars = +$event.target.value"><option v-for="[n, l] in monOpts" :key="n" :value="n" :selected="RN.bars == n">{{ l }}</option></select></div></div>
           <div id="bars"><div class="bcw" :ref="(e) => (bcw.el.value = e)"><svg v-if="barChart" :width="barChart.W" :height="barChart.H" :viewBox="`0 0 ${barChart.W} ${barChart.H}`">
             <template v-for="(g, i) in barChart.grid" :key="'g' + i"><line class="gl" :x1="g.x1" :x2="g.x2" :y1="g.y" :y2="g.y" stroke-dasharray="3 5" /><text :x="g.x1 - 6" :y="g.y + 4" text-anchor="end">{{ g.label }}</text></template>
-            <template v-for="c in barChart.cols" :key="c.mk"><rect class="gob" v-tip="t('rep.incomeTip', { m: c.m, v: f0(c.iv) })" :x="c.ix" :y="c.iy" :width="c.bw" :height="c.ih" :rx="c.rx" fill="var(--inc)" @click="!isMob() && goActivity({ from: c.mk + '-01', to: c.mk + '-31', ty: 'income' })" /><rect class="gob" v-tip="t('rep.expensesTip', { m: c.m, v: f0(c.ev) })" :x="c.ex" :y="c.ey" :width="c.bw" :height="c.eh" :rx="c.rx" fill="var(--exp)" @click="!isMob() && goActivity({ from: c.mk + '-01', to: c.mk + '-31', ty: 'expense' })" /><text :x="c.cx" :y="barChart.H - 6" text-anchor="middle" :style="{ fontSize: barChart.fs + 'px' }">{{ c.m }}</text></template>
+            <template v-for="c in barChart.cols" :key="c.mk"><rect class="gob" v-tip="t('rep.incomeTip', { m: c.m, v: f0(c.iv) })" :x="c.ix" :y="c.iy" :width="c.bw" :height="c.ih" :rx="c.rx" fill="var(--inc)" @click="goActivity({ from: c.mk + '-01', to: c.mk + '-31', ty: 'income' })" /><rect class="gob" v-tip="t('rep.expensesTip', { m: c.m, v: f0(c.ev) })" :x="c.ex" :y="c.ey" :width="c.bw" :height="c.eh" :rx="c.rx" fill="var(--exp)" @click="goActivity({ from: c.mk + '-01', to: c.mk + '-31', ty: 'expense' })" /><text :x="c.cx" :y="barChart.H - 6" text-anchor="middle" :style="{ fontSize: barChart.fs + 'px' }">{{ c.m }}</text></template>
           </svg></div><div class="flex sm" style="gap:16px"><span><span class="dot" style="background:var(--inc)"></span> {{ t("rep.income") }}</span><span><span class="dot" style="background:var(--exp)"></span> {{ t("rep.expenses") }}</span></div></div></div>
 
         <!-- top merchants -->
@@ -301,7 +300,7 @@ const showMerch = (n) => save((s) => { s.hiddenMerchants = (s.hiddenMerchants ||
             <template v-for="(g, i) in lineChart.grid" :key="'g' + i"><line class="gl" :x1="g.x1" :x2="g.x2" :y1="g.y" :y2="g.y" stroke-dasharray="3 5" /><text :x="g.x1 - 6" :y="g.y + 4" text-anchor="end">{{ g.label }}</text></template>
             <text v-for="(m, i) in lineChart.labels" :key="'m' + i" :x="lineChart.x(i)" :y="lineChart.H - 6" text-anchor="middle" :style="{ fontSize: lineChart.fs + 'px' }">{{ m }}</text>
             <g v-for="l in lineChart.lines" :key="l.k" class="ls" :class="{ on: lineHot === l.k }" @mouseenter="lineHot = l.k" @mouseleave="lineHot = null"><polyline fill="none" :stroke="cc(l.k)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" :points="l.pts" /><polyline fill="none" stroke="transparent" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" :points="l.pts" />
-              <circle v-for="d in l.dots" :key="d.mk" class="gob" :cx="d.x" :cy="d.y" r="4.5" fill="var(--bg)" :stroke="cc(l.k)" stroke-width="2.5" @click="!isMob() && goActivity({ from: d.mk + '-01', to: d.mk + '-31', cat: l.k, ty: RN.lt == 'inc' ? 'income' : 'expense' })" /></g>
+              <circle v-for="d in l.dots" :key="d.mk" class="gob" :cx="d.x" :cy="d.y" r="4.5" fill="var(--bg)" :stroke="cc(l.k)" stroke-width="2.5" @click="goActivity({ from: d.mk + '-01', to: d.mk + '-31', cat: l.k, ty: RN.lt == 'inc' ? 'income' : 'expense' })" /></g>
             <line v-if="lhov" :x1="lhov.x" :x2="lhov.x" y1="14" :y2="lineChart.H - 24" stroke="var(--tx)" stroke-opacity=".35" stroke-dasharray="3 3" style="pointer-events:none" />
           </svg>
           <div v-if="lhov" ref="lineTip" class="trtip m" :style="{ display: 'flex', left: lhov.lx + 'px', top: '4px' }"><b>{{ lineChart.labels[lhov.i] }}</b><span v-for="r in lineChart.lines.map((l) => [l.k, l.vals[lhov.i]]).sort((p, q) => q[1] - p[1]).slice(0, 7)" :key="r[0]"><i class="tdot" :style="{ background: cc(r[0]) }"></i>{{ catName(r[0]) }} ₪{{ f0(r[1]) }}</span></div></div>

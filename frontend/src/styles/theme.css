@@ -243,28 +243,28 @@ html[data-spc="wide"] {
   --spg: 38px;
 }
 
-html[data-nav="mini"]:not(.mob) nav {
+html[data-nav="mini"]:not(.phone) nav {
   width: 68px;
 }
 
-html[data-nav="mini"]:not(.mob) .nb {
+html[data-nav="mini"]:not(.phone) .nb {
   font-size: 0;
   gap: 0;
 }
 
-html[data-nav="mini"]:not(.mob) .nb .ic {
+html[data-nav="mini"]:not(.phone) .nb .ic {
   width: 46px;
 }
 
-html[data-nav="mini"]:not(.mob) .syncb #sync {
+html[data-nav="mini"]:not(.phone) .syncb #sync {
   display: none;
 }
 
-html[data-nav="mini"]:not(.mob) .pop {
+html[data-nav="mini"]:not(.phone) .pop {
   left: 80px; /* fixed side */
 }
 
-html[data-nav="mini"]:not(.mob) .badge {
+html[data-nav="mini"]:not(.phone) .badge {
   right: 10px; /* fixed side */
 }
 

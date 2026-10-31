@@ -636,12 +636,12 @@ html.dframe.he #dragbar {
   left: 0; /* fixed side */
 }
 
-html.dframe.he:not(.mob) #dragbar {
+html.dframe.he:not(.phone) #dragbar {
   right: var(--navw); /* fixed side */
 }
 
 /* in Hebrew the side menu is at the end, where the window buttons are: its content starts below them */
-html.dframe.he:not(.mob) nav {
+html.dframe.he:not(.phone) nav {
   padding-top: calc(var(--tb) + 8px);
 }
 

@@ -12,9 +12,10 @@ const KEY = "moneyLang";
 const saved = readPref(KEY) === "he" ? "he" : "en";
 
 // Each language's texts: locales/<lang>.json, plus pages and parts that keep their texts in their own files
-// (locales/pages/<name>.<lang>.json, filed under "<name>") and the Settings sections (locales/settings/<section>.<lang>.json, under "settings.<section>").
+// (locales/pages/<name>.<lang>.json, filed under "<name>"), the Settings sections (locales/settings/<section>.<lang>.json, under "settings.<section>")
+// and the phone app's own texts (locales/phone/<area>.<lang>.json, under "phone.<area>").
 const sections = (files) => Object.fromEntries(Object.entries(files).map(([p, m]) => [p.split("/").pop().replace(/\.(en|he)\.json$/, ""), m]));
-const pack = (m) => ({ ...m.main, ...sections(m.pages), settings: sections(m.settings) });
+const pack = (m) => ({ ...m.main, ...sections(m.pages), settings: sections(m.settings), phone: sections(m.phone || {}) });
 
 // In Hebrew, amounts and numbers inside a sentence keep their order (wrapped in ⁦…⁩),
 // and "you" forms follow the gender in the profile once the Hebrew rules are loaded (core/heGender.js, set by core/heText.js).

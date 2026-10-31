@@ -130,12 +130,12 @@
 /* keep controls at the end of a row clear of the floating buttons (calculator, help, alerts, +).
    Computer: they float in a column up to 80px from the window's edge, so the cards stop before it
    (on a wide window the page already ends far enough from the edge). */
-html:not(.mob) .setmain {
+html:not(.phone) .setmain {
   padding-inline-end: 60px;
 }
 
 @media (min-width: 1600px) {
-  html:not(.mob) .setmain {
+  html:not(.phone) .setmain {
     padding-inline-end: 0;
   }
 }

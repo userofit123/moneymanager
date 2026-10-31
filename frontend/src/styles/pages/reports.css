@@ -483,8 +483,8 @@
   transform: translateX(16px);
 }
 
-html:not(.mob) .trs,
-html:not(.mob) .gob {
+html:not(.phone) .trs,
+html:not(.phone) .gob {
   cursor: pointer;
 }
 

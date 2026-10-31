@@ -1,0 +1,111 @@
+/* The phone app's page: the document scrolls, the content is one calm column, the glow shows only behind the top of
+   Home and More, and a window that is open holds the page where it was (core/sheets.js sets the top). */
+html.phone body {
+  display: block;
+  background: var(--bg);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+html.phone:not(.ph-glow)::before {
+  display: none;
+}
+
+html.phone.ph-glow::before {
+  position: absolute;
+  block-size: 440px;
+  mask-image: linear-gradient(#000 35%, transparent);
+}
+
+html.phone.sl body {
+  position: fixed;
+  inset-inline: 0;
+}
+
+html.phone .ph-app {
+  min-block-size: 100dvh;
+  padding-block-end: calc(var(--p-tab) + var(--sb) + 24px);
+}
+
+html.phone .ph-app :is(button, a, input, select, textarea) {
+  touch-action: manipulation;
+}
+
+html.phone .ph-app :focus-visible,
+html.phone .ph-sheet :focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+html.phone .ph-ic {
+  inline-size: 24px;
+  block-size: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+
+/* the only fixed flip: icons that point somewhere (Back, row chevrons) turn round in Hebrew */
+html.phone.he .ph-ic.dir {
+  transform: scaleX(-1);
+}
+
+/* Moving between screens (View Transitions): a pushed screen comes in from the end side and the one under it moves a
+   little the other way and dims; Back plays it in reverse; tabs cross-fade. The tab bar stays still. */
+html.phone .ph-tabs {
+  view-transition-name: ph-tabs;
+}
+
+html.phone::view-transition-group(root) {
+  animation-duration: var(--p-t-push);
+}
+
+html.phone[data-phnav="push"]::view-transition-new(root) {
+  animation: ph-from-end var(--p-t-push) var(--p-ease-out) both;
+}
+
+html.phone[data-phnav="push"]::view-transition-old(root) {
+  animation: ph-to-start var(--p-t-push) var(--p-ease-out) both;
+}
+
+html.phone[data-phnav="pop"]::view-transition-old(root) {
+  animation: ph-to-end var(--p-t-push) var(--p-ease-out) both;
+  z-index: 2;
+}
+
+html.phone[data-phnav="pop"]::view-transition-new(root) {
+  animation: ph-from-start var(--p-t-push) var(--p-ease-out) both;
+}
+
+html.phone[data-phnav="tab"]::view-transition-old(root),
+html.phone[data-phnav="tab"]::view-transition-new(root) {
+  animation-duration: var(--p-t-fade);
+}
+
+@keyframes ph-from-end {
+  from { transform: translateX(calc(100% * var(--p-dir))); }
+}
+
+@keyframes ph-to-start {
+  to { transform: translateX(calc(-30% * var(--p-dir))); filter: brightness(.92); }
+}
+
+@keyframes ph-to-end {
+  to { transform: translateX(calc(100% * var(--p-dir))); }
+}
+
+@keyframes ph-from-start {
+  from { transform: translateX(calc(-30% * var(--p-dir))); filter: brightness(.92); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.phone *,
+  html.phone *::before,
+  html.phone *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 120ms !important;
+  }
+}

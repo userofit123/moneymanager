@@ -2,6 +2,7 @@
 // The app's frame: the menu (a rail at the side), the job bar, the offline banner,
 // the help and alerts buttons, the + button, the page for the current address, and the windows every page can open.
 // Before that, the sign-in screen when this browser is not signed in (core/boot.js).
+// On a phone (mobile.js) the phone app (phone/PhoneApp.vue) shows instead of this frame; it is loaded only on a phone.
 import { ref, computed, defineAsyncComponent, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { pages } from "./routes.js";
@@ -23,9 +24,11 @@ import QuickSheet from "./components/shell/QuickSheet.vue";
 import FormHost from "./components/FormHost.vue";
 import AskPop from "./components/AskPop.vue";
 import { suggestions, suggestOpen, bulbPop } from "./core/suggest.js";
+import { isPhone } from "./mobile.js";
 
 // Windows that open from a button or a link are loaded in files of their own, once the app has started (they are drawn
 // as soon as the app is shown, closed, so they are already here when first opened, and they open with the same animation).
+const PhoneApp = defineAsyncComponent(() => import("./phone/PhoneApp.vue"));
 const AppearancePanel = defineAsyncComponent(() => import("./components/AppearancePanel.vue"));
 const SyncSheet = defineAsyncComponent(() => import("./components/shell/SyncSheet.vue"));
 const WelcomePops = defineAsyncComponent(() => import("./components/shell/WelcomePops.vue"));
@@ -60,6 +63,7 @@ addEventListener("offline", () => (online.value = false));
   <div v-if="dframe" id="dragbar" aria-hidden="true"></div>
   <button v-if="dframe" id="dmenu" type="button" :class="{ upd: ['available', 'downloading', 'ready'].includes(UP.status) }" :aria-label="t('shell.appMenu')" :title="t('shell.appMenu')" @click="appMenu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="12" cy="19" r="1.8" /></svg></button>
   <AuthScreen v-if="app.phase === 'auth'" />
+  <PhoneApp v-else-if="isPhone && app.phase !== 'start'" />
   <template v-else-if="app.phase !== 'start'">
     <JobBar />
     <div id="offline" class="banner" :class="{ on: !online }">{{ t("auth.offline") }}</div>

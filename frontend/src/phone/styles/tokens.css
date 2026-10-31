@@ -1,0 +1,40 @@
+/* The phone app's sizes and timings, built on the app's own colours (styles/tokens.css), so every look and dark mode work. */
+html.phone {
+  --p-gut: 16px;
+  --p-max: 680px;
+  --p-bar: 52px;
+  --p-tab: 58px;
+  --p-row: 56px;
+  --p-hit: 44px;
+  --p-r-group: var(--r-md);
+  --p-r-sheet: var(--r-sheet);
+  --p-r-tile: 10px;
+  --p-gap: 24px;
+  --p-surf: var(--s1);
+  --p-press: var(--s2);
+  --p-line: var(--ol);
+  --p-ease: cubic-bezier(.2, .8, .2, 1);
+  --p-ease-out: cubic-bezier(.16, 1, .3, 1);
+  --p-t-push: 320ms;
+  --p-t-sheet: 300ms;
+  --p-t-fade: 160ms;
+  --p-t-press: 120ms;
+  --p-glass: color-mix(in srgb, var(--bg) 84%, transparent);
+  --p-dir: 1;
+}
+
+html.phone.he {
+  --p-dir: -1;
+}
+
+@media (min-width: 400px) {
+  html.phone {
+    --p-gut: 20px;
+  }
+}
+
+/* in dark mode the grouped lists need a little more lift off the page */
+html.phone[data-mode="dark"] {
+  --p-surf: color-mix(in srgb, var(--tx) 6%, var(--bg));
+  --p-press: color-mix(in srgb, var(--tx) 11%, var(--bg));
+}

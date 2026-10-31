@@ -8,12 +8,15 @@ const read = (p) => readFileSync(new URL(p, import.meta.url), "utf8");
 const STYLES = new URL("../src/styles/", import.meta.url);
 const index = read("../src/styles/index.css");
 
-test("main.js loads styles/index.css and starts the phone switch; the look sets light/dark (data-mode), which the styles depend on", () => {
+test("main.js loads styles/index.css and starts the phone switch (html.phone, isPhone); the look sets light/dark (data-mode), which the styles depend on", () => {
   const main = read("../src/main.js");
   assert.match(main, /import "\.\/styles\/index\.css"/);
   assert.match(main, /startMobile\(\)/);
   const mob = read("../src/mobile.js");
-  assert.match(mob, /w <= 860 \|\| \(touch && w <= 1100\)/);
+  assert.match(mob, /isPhone\.value = w <= 860 \|\| \(touch && w <= 1100\)/);
+  assert.match(mob, /classList\.toggle\("phone", isPhone\.value\)/);
+  // the same test before the first paint (index.html), so the phone class is there from the start
+  assert.match(read("../index.html"), /classList\.toggle\("phone",w<=860\|\|\(touch&&w<=1100\)\)/);
   assert.match(read("../src/core/theme.js"), /h\.dataset\.mode = d \? "dark" : "light"/);
 });
 
