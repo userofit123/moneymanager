@@ -15,7 +15,7 @@
   "ruleOffer0": "No other items look like \"{kw}\" yet, but a rule would catch future ones.",
   "roTitle": "New category rule",
   "roText": "You put {name} in {cat}. A rule puts similar items in this category, now and in the future.",
-  "roIf": "If the description contains",
+  "roIf": "If the transaction name contains",
   "roCat": "Category",
   "roMin": "Type at least two letters.",
   "roSim": "{n} other item contains \"{kw}\" and will be put in {cat} now: {list} | {n} other items contain \"{kw}\" and will be put in {cat} now: {list}",

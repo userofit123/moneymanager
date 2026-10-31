@@ -1311,7 +1311,7 @@
    "button.btn.o.rdel.s",
    "div.sfoot"
   ],
-  "text": "Category rules 2 If a new transaction's description contains the text, it gets that category. Add rule If description contains → Delete If description contains → Delete The first rule that matches wins. A category you set by hand is never changed.",
+  "text": "Category rules 2 If a new transaction's name contains the text, it gets that category. Add rule If the transaction name contains → Delete If the transaction name contains → Delete The first rule that matches wins. A category you set by hand is never changed.",
   "tips": []
  },
  "page-data-setTags": {
@@ -1599,7 +1599,7 @@
    "button.btn.o.rdel.s",
    "div.sfoot"
   ],
-  "text": "Tag rules 2 If a new transaction's description contains the text, it gets these tags. Add rule If description contains → tv × fun × Delete If description contains → health × Delete Tags come on top of the category, and one rule can add several. When you add a rule, you can also tag the transactions you already have.",
+  "text": "Tag rules 2 If a new transaction's name contains the text, it gets these tags. Add rule If the transaction name contains → tv × fun × Delete If the transaction name contains → health × Delete Tags come on top of the category, and one rule can add several. When you add a rule, you can also tag the transactions you already have.",
   "tips": []
  },
  "page-data-setNames": {
@@ -1910,7 +1910,7 @@
    "div.rlnone.sm",
    "div.sfoot"
   ],
-  "text": "Category rules 0 If a new transaction's description contains the text, it gets that category. Add rule No rules yet. Add one above, or let an AI make them in Set up with an AI. The first rule that matches wins. A category you set by hand is never changed.",
+  "text": "Category rules 0 If a new transaction's name contains the text, it gets that category. Add rule No rules yet. Add one above, or let an AI make them in Set up with an AI. The first rule that matches wins. A category you set by hand is never changed.",
   "tips": []
  },
  "page-empty-setTags": {
@@ -1972,7 +1972,7 @@
    "div.rlnone.sm",
    "div.sfoot"
   ],
-  "text": "Tag rules 0 If a new transaction's description contains the text, it gets these tags. Add rule No tag rules yet. Add one above. Example: “netflix” adds the tag “streaming”. Tags come on top of the category, and one rule can add several. When you add a rule, you can also tag the transactions you already have.",
+  "text": "Tag rules 0 If a new transaction's name contains the text, it gets these tags. Add rule No tag rules yet. Add one above. Example: “netflix” adds the tag “streaming”. Tags come on top of the category, and one rule can add several. When you add a rule, you can also tag the transactions you already have.",
   "tips": []
  },
  "page-empty-setNames": {
@@ -2093,7 +2093,7 @@
    "div.rlnone.sm",
    "div.sfoot"
   ],
-  "text": "Salary 0 If an income contains the text (in its description or the payer), it is marked as Salary when it has no category yet. Add rule No rules of your own yet. Add the name of your employer above. Recognised automatically, with no rule: income that says משכורת, שכר, salary or payroll, and the same payer paying a similar amount every month for three months or more.",
+  "text": "Salary 0 If an income contains the text (in its transaction name or the payer), it is marked as Salary when it has no category yet. Add rule No rules of your own yet. Add the name of your employer above. Recognised automatically, with no rule: income that says משכורת, שכר, salary or payroll, and the same payer paying a similar amount every month for three months or more.",
   "tips": []
  },
  "page-empty-aiSort": {
@@ -2182,7 +2182,7 @@
    "div.rlnone.sm",
    "div.sfoot"
   ],
-  "text": "Salary 0 If an income contains the text (in its description or the payer), it is marked as Salary when it has no category yet. Add rule No rules of your own yet. Add the name of your employer above. Recognised automatically, with no rule: income that says משכורת, שכר, salary or payroll, and the same payer paying a similar amount every month for three months or more.",
+  "text": "Salary 0 If an income contains the text (in its transaction name or the payer), it is marked as Salary when it has no category yet. Add rule No rules of your own yet. Add the name of your employer above. Recognised automatically, with no rule: income that says משכורת, שכר, salary or payroll, and the same payer paying a similar amount every month for three months or more.",
   "tips": []
  }
 }
