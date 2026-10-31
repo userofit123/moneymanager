@@ -3,6 +3,7 @@
 // data-* attributes on <html>, and classes on <body>. The rules that use them are in styles/theme.css.
 import { reactive, ref, watch } from "vue";
 import { readJson, writeJson } from "./prefs.js";
+import { setTabIcon } from "./symbols.js";
 
 export const ATM = {Indigo:{L:["#4355b9","#dee0ff","#0b1550","#fbf8fd","#7b4fb8","#fff"],D:["#b9c3ff","#2d3f9e","#dee0ff","#111218","#c7a6ff","#0b1550"]},
 Ocean:{L:["#006b7d","#b3ebff","#001f26","#f4fafc","#2d7dd2","#fff"],D:["#4fd8eb","#004e5c","#b3ebff","#0a1417","#5aa9ff","#00363f"]},
@@ -106,6 +107,7 @@ export function applyTheme() {
   ["outline", "raised", "glass"].forEach((c) => document.body?.classList.toggle(c, theme.surf == c));
   writeJson("moneyTheme", theme);
   writeJson("moneyBoot", { bg: a[3], d, a1: a[0], a2: a[4], on: a[5], sym: theme.sym });
+  setTabIcon(theme.sym);
 }
 
 // The new look fades in (a view transition), like themeSwap(); from an element, it spreads out in a circle from it (themeSwapFrom).
