@@ -408,7 +408,7 @@ html.phone .ph-set .sr {
   padding-block: 12px;
 }
 
-html.phone .ph-set .sr > .srt {
+html.phone .ph-set .sr:not(.stk) > .srt {
   flex: 1 1 170px;
 }
 
@@ -431,10 +431,6 @@ html.phone .ph-set .sr.srtg > .srt {
   flex-basis: 0;
 }
 
-html.phone .ph-set .sr.stk > .src {
-  flex-basis: 100%;
-}
-
 html.phone .ph-set .sr > .src :is(select, input:not([type=checkbox])) {
   max-inline-size: 100%;
 }
@@ -451,4 +447,34 @@ html.phone .ph-set :is(.tblw, .tbl, .scrollx) {
 html.phone .ph-tipbox :is(.tn, .ta) {
   font-size: 15px;
   line-height: 22px;
+}
+
+/* rule pages: each part of a new rule (where, how, the text, the result) on its own full line; "If" leads the first */
+html.phone .ph-set .rladd {
+  gap: 10px;
+}
+
+html.phone .ph-set .rladd > :is(select, input, .rltags) {
+  flex: 1 1 100%;
+  min-inline-size: 0;
+}
+
+html.phone .ph-set .rladd > .rwhere {
+  flex-basis: 0;
+}
+
+html.phone .ph-set .rladd > .btn {
+  flex: 1 1 100%;
+  min-block-size: 48px;
+  font-size: 16px;
+}
+
+html.phone .ph-set .rlrows .rule {
+  gap: 8px;
+  padding: 12px;
+}
+
+html.phone .ph-set .rlrows .rule > :is(select, input:not([type=checkbox])) {
+  flex: 1 1 140px;
+  min-inline-size: 0;
 }
