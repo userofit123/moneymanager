@@ -232,7 +232,7 @@ test("only one connection job at a time: a second test or sync is refused while 
 });
 
 test("ntfy alerts may only go to your own network", () => {
-  for (const ok of ["http://localhost:8080/money", "http://192.168.1.20/money", "http://10.0.0.4:2586/x", "http://100.101.102.103/x", "https://rhs.taile6739f.ts.net/money", "http://ntfy/money", "http://nas.local/x"]) assert.equal(ntfyProblem(ok), null, ok);
+  for (const ok of ["http://localhost:8080/money", "http://192.168.1.20/money", "http://10.0.0.4:2586/x", "http://100.101.102.103/x", "https://myhost.tail1234.ts.net/money", "http://ntfy/money", "http://nas.local/x"]) assert.equal(ntfyProblem(ok), null, ok);
   for (const bad of ["https://ntfy.sh/mytopic", "https://example.com/x", "http://8.8.8.8/x", "http://172.32.0.1/x"]) assert.ok(ntfyProblem(bad), bad);
   assert.ok(ntfyProblem("not a url"));
 });

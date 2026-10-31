@@ -123,7 +123,7 @@ async function nchDelGo(k) { try { await data.api("/api/notify/channels/" + k, {
     </div>
     <div class="card ss">
       <SetHead icon="bell" title="ntfy" :desc="tk('ntfyD')" />
-      <div class="ssb p"><div class="fld"><label>{{ tk("ntfyLabel") }}</label><input data-c="ntfy" :value="S.ntfy" placeholder="https://rhs.taile6739f.ts.net:PORT/money" @change="setNtfy($event.target.value)"></div><button type="button" class="btn o s" data-a="ntfyTest" @click="ntfyTest">{{ tk("ntfyTest") }}</button></div>
+      <div class="ssb p"><div class="fld"><label>{{ tk("ntfyLabel") }}</label><input data-c="ntfy" :value="S.ntfy" placeholder="https://myhost.tail1234.ts.net:PORT/money" @change="setNtfy($event.target.value)"></div><button type="button" class="btn o s" data-a="ntfyTest" @click="ntfyTest">{{ tk("ntfyTest") }}</button></div>
     </div>
     <div class="sm" style="margin:0 4px 12px;line-height:1.5">{{ tk("note") }}</div>
     <div class="card ss">

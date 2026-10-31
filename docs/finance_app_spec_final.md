@@ -127,7 +127,7 @@ Known limits: one-off items are not predicted; card timing is by purchase date; 
 
 ## 7. Hosting (matches my server setup)
 - Server `rhs`: Ubuntu, Docker, Tailscale, Caddy reverse proxy on the shared `proxy` network. Compose files in `~/docker/finance/`.
-- Served at `https://rhs.taile6739f.ts.net:PORT` through Caddy. **[OPEN]** choose the port (9008 is reserved for n8n in my notes).
+- Served at `https://myhost.tail1234.ts.net:PORT` through Caddy. **[OPEN]** choose the port (9008 is reserved for n8n in my notes).
 - Database and documents under `/mnt/data/finance/`, added to the nightly backup.
 - **Known server issue to fix first:** unreliable DNS from the ISP while the server runs on WiFi. Add extra DNS servers to systemd-resolved and reconnect the built-in Ethernet port.
 
