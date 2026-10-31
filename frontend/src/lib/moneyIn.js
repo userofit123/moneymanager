@@ -9,7 +9,7 @@ import { plainOf, nameKey, incKey } from "./recap.js";
 export const KINDS = ["earned", "back", "people", "own", "other"];
 // how far back a purchase can be for money in from the same shop to be its money back
 export const BACK_DAYS = 120;
-// a payer is a salary when it pays in 3 or more months, usually at least this much, most payments within 35% of the usual
+// a payer is a regular payer (earned money) when it pays in 3 or more months, usually at least this much, most payments within 35% of the usual
 export const PAY_MONTHS = 3, PAY_MIN = 1500, PAY_NEAR = 0.35;
 
 // The words that say what money is, in English and Hebrew (a Hebrew word may start with ו, ה, ב, ל or מ).
@@ -34,7 +34,7 @@ const kindOf = (k) => (k == "salary" ? { kind: "earned", sub: "salary" } : KINDS
 // (the same refund, to be counted once). why: the rule that decided it:
 //   "chosen" the entry's own choice (t.mk, or S.inMark[id], where the app saves it) · "rule" a money coming in rule (S.moneyInRules [{ k, kind }]) · "transfer" ·
 //   "card" came in on a credit card · "twin" the bank copy of a card refund · "purchase" same shop as an earlier purchase · "refund" refund words ·
-//   "cash" · "app" Bit or PayBox · "salary" salary words or your salary texts · "regular" the same payer every month ·
+//   "cash" · "app" Bit or PayBox · "salary" salary words or your salary texts · "regular" the same payer every month (earned, not a salary) ·
 //   "interest" · "rest" nothing else matched.
 // The rules are tried in this order, the first that matches wins. t.mk and a rule's kind are one of KINDS, or "salary".
 export function moneyIn(S) {
@@ -76,7 +76,7 @@ export function moneyIn(S) {
     const W = words(textOf(t)), txt = W.join(" "), sw = salaryWhy(t, W, txt);
     const set = (o, why) => {
       const r = { ...o, why };
-      if (r.kind == "earned" && !r.sub && sw && why != "chosen") r.sub = "salary";
+      if (r.kind == "earned" && !r.sub && sw == "salary" && why != "chosen") r.sub = "salary";
       if (r.kind == "back" && r.link === undefined) { const l = purchaseOf(t); if (l != null) r.link = l; }
       out.set(t.id, r);
     };
@@ -98,8 +98,9 @@ export function moneyIn(S) {
     if (hasWord(CASH_W, W) || (hasWord(DEPOSIT_W, W) && !hasWord(CHEQUE_W, W))) { set({ kind: "own" }, "cash"); continue; }
     // 8. from a person, through Bit or PayBox
     if (hasWord(PEOPLE_W, W)) { set({ kind: "people" }, "app"); continue; }
-    // 9. salary words, your salary texts, or the same payer at about the same amount every month
-    if (sw) { set({ kind: "earned", sub: "salary" }, sw); continue; }
+    // 9. salary words or your salary texts: a salary; the same payer at about the same amount every month: earned money
+    //    (regular work pay, not called a salary unless it says so)
+    if (sw) { set(sw == "salary" ? { kind: "earned", sub: "salary" } : { kind: "earned" }, sw); continue; }
     // 10. interest and dividends, and anything else
     set({ kind: "other" }, hasWord(OTHER_W, W) ? "interest" : "rest");
   }

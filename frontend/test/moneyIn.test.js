@@ -94,7 +94,7 @@ test("8. Bit and PayBox are from people", () => {
   assert.notEqual(one(IN("2026-10-01", 50, "Orbit Ltd", "Orbit")).kind, "people");
 });
 
-test("9. a salary: its words, your salary texts, or the same payer at about the same amount for 3 months", () => {
+test("9. a salary: its words or your salary texts; the same payer at about the same amount for 3 months is earned, not a salary", () => {
   assert.deepEqual(one(IN("2026-10-01", 7000, "Salary October", "Acme")), { kind: "earned", sub: "salary", why: "salary" });
   assert.equal(one(IN("2026-10-01", 7000, "משכורת", "")).sub, "salary");
   assert.equal(one(IN("2026-10-01", 7000, "שכר עבודה", "")).sub, "salary");
@@ -102,7 +102,10 @@ test("9. a salary: its words, your salary texts, or the same payer at about the 
   // the same payer: three months, similar amounts, at least 1500
   const L = [IN("2026-07-09", 6000, "Initech", "Initech"), IN("2026-08-09", 6400, "Initech", "Initech"), IN("2026-09-09", 5900, "Initech", "Initech")];
   const M = run(L);
-  L.forEach((t) => assert.deepEqual(M.get(t.id), { kind: "earned", sub: "salary", why: "regular" }));
+  L.forEach((t) => assert.deepEqual(M.get(t.id), { kind: "earned", why: "regular" })); // regular work pay, not called a salary
+  // a regular payer that also says salary is a salary
+  const P = [7, 8, 9].map((m) => IN(`2026-0${m}-09`, 6000, "Payroll Initech", "Initech"));
+  run(P).forEach((r) => assert.deepEqual(r, { kind: "earned", sub: "salary", why: "salary" }));
   // only two months, too small, or amounts all over the place: not a salary
   assert.equal(run(L.slice(0, 2)).get(L[0].id).why, "rest");
   const small = [1, 2, 3].map((m) => IN(`2026-0${m}-05`, 300, "Club", "Club"));
