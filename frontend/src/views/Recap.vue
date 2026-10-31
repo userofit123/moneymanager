@@ -174,8 +174,8 @@ function attnWords(it) {
 const PARTS = {
   hero: (m) => `<section class="rkh rr"><h2>${greeting()}</h2><p>${L({ start: "leadStart", mid: "leadMid", end: "leadEnd" }[m.phase], { mon: mname(m.MK) })}</p>${dayScale(m)}</section>`,
   start: (m, zz) => {
-    const d = m.cash - m.start, line = Math.abs(d) >= 100 ? chip(d >= 0 ? L("moreToday", { a: mi(d) }) : L("lessToday", { a: mi(-d) }), d >= 0 ? "good" : "warn", "now", L("lbToday", { a: mi(m.cash) })) : "";
-    return part(zz, "start", "", L("began", { mon: mname(m.MK) }), "now", mn(m.start), L("beganX", { date: dlong(m.MK + "-01") }) + (line ? `<br>${line}` : ""), "", true);
+    const d = Math.round(m.cash) - m.start, line = Math.abs(d) >= 100 ? chip(d >= 0 ? L("moreToday", { a: mi(d) }) : L("lessToday", { a: mi(-d) }), d >= 0 ? "good" : "warn", "now", L("lbToday", { a: mi(m.cash) })) : "";
+    return part(zz, "start", "", L("began", { mon: mname(m.MK) }), "now", mn(m.start), (m.startReal ? L("beganSaved", { date: dlong(m.startOn) }) : L("beganX", { date: dlong(m.MK + "-01") })) + (line ? `<br>${line}` : ""), "", true);
   },
   // one step of the month (lib/recap.js monthSteps): money in, a credit card bill, or the spending in between
   step: (m, zz, i) => {
@@ -201,6 +201,11 @@ const PARTS = {
       const subs = fit && x.who.length == 1 ? parts(b.list, "") : parts(x.who, "");
       const sum = had ? sumBox([L("hadThen"), x.b0], [{ k: "out", label: x.who.length == 1 ? nm(x.who[0][0]) : L("cardBill", {}, 2), amt: x.a, link: x.who.length == 1 ? "tx:" + x.who[0][2] : "", subs }], ends()) : "";
       return part(zz, "card", "", L("stepCard", { date: dlong(x.from) }, x.who.length), x.who.length == 1 ? "tx:" + x.who[0][2] : x.from, mn(x.a), why + (had ? "" : pills(x.who.map((w) => [w[0], w[1], "tx:" + w[2]]))), sum);
+    }
+    // what the steps above do not show (only with a saved start): it keeps the steps adding up to today's balance
+    if (x.kind == "other") {
+      const sum = had ? sumBox([L("hadThen"), x.b0], [{ k: x.up ? "in" : "out", label: L("otherCh"), amt: x.a }], ends()) : "";
+      return part(zz, "info", "", L(x.up ? "stepOtherUp" : "stepOtherDown"), "", mn(x.a), L("stepOtherX"), sum);
     }
     const lab = x.from == x.to ? L("stepOn", { date: dlong(x.from) }) : x.to == m.today ? L("stepSince", { a: dlong(x.from) }) : L("stepRange", { a: dlong(x.from), b: dlong(x.to) });
     // what left the accounts, by category; then what was spent by credit card, shown but not counted: it comes out when the card bill is due

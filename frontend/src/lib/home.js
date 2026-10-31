@@ -67,6 +67,9 @@ export function homeModel(S, now = new Date(), fx = {}) {
   // shared by Home's tile, Recap, the Forecast start, Free to use and the Key numbers panel.
   const cashAll = accts.filter((a) => a.inNW && (a.kind == "bank" || a.kind == "wallet" || a.kind == "custom")), cashAccts = cashAll.filter(hasRate), noRate = cashAll.filter((a) => !hasRate(a)).map((a) => a.n);
   const cashNow = sum(cashAccts.map(accILS));
+  // what those same accounts held when the month began: the balances the server saved (state.js monthStarts), in shekels at
+  // that day's rate. null when any of them has none from then: Recap then works the start out backwards (lib/recap.js).
+  const ms0 = S.monthStart?.[MK]?.acc, startSaved = ms0 && cashAccts.length && cashAccts.every((a) => Number.isFinite(ms0[a.id])) ? sum(cashAccts.map((a) => ms0[a.id])) : null;
   const ALL = tx.concat(costRows);
   // money in, or spending (money back lowers it: lib/moneyIn.js isOut, its -t.a is below 0)
   const monthSum = (m, sg) => sum(A.filter((t) => (sg > 0 ? isIn(t) : isOut(t)) && rdOf(t).startsWith(m)).map((t) => (sg > 0 ? t.a : -t.a)));
@@ -186,6 +189,7 @@ export function homeModel(S, now = new Date(), fx = {}) {
     billNames: Object.fromEntries(BC.map((b) => [b.match, b.n])), hist,
     // For the Jars page's pop-ups and "Full by" dates: every bill, and the counted payments.
     billsAll: BC, rows: A, notIn, S, nameOf: (t) => nameOf(S, t),
+    startSaved,
   };
 }
 

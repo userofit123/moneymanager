@@ -4,7 +4,7 @@ import { healGaps } from "./engine.js";
 import { listConnections, PROVIDERS } from "./connections.js";
 import { addCore } from "./categories.js";
 import { readJars, fillJarsTx, thisMonth } from "./jars.js";
-import { activeCurrencies, configuredCurrencies } from "./fx.js";
+import { activeCurrencies, configuredCurrencies, rateOn } from "./fx.js";
 import { ilDate } from "./autodetect.js";
 
 export const DEFAULT_CFG = {
@@ -52,6 +52,33 @@ export async function moveSalaryRules() {
     if (list.length) await c.query("INSERT INTO audit_log (who,action,detail) VALUES ('System','Salary rules moved',$1)", [`Salary texts that are now money coming in rules (→ Salary): ${list.length}`]);
   });
   return list.length;
+}
+
+// What each bank, wallet and hand-added account held when this month and the last one began (at the end of the day before
+// the 1st, Israel time), in shekels at that day's rate: the last balance the bank gave by then (balance_snapshots), or for
+// an account you type in, the balance it had by then (account_updates; never changed: its balance now). An account with
+// none of these, or a currency with no rate, is left out: Recap then works the start out backwards (lib/home.js startSaved).
+export async function monthStarts(today = ilDate(new Date())) {
+  const out = {};
+  for (const back of [0, 1]) {
+    const d = new Date(Date.UTC(+today.slice(0, 4), +today.slice(5, 7) - 1 - back, 1)), mk = d.toISOString().slice(0, 7);
+    const on = new Date(d.getTime() - 864e5).toISOString().slice(0, 10), from = mk + "-01"; // the last day before the month
+    const r = await q(
+      `SELECT a.id, a.currency, a.manual, a.balance::float AS balance,
+        (SELECT s.balance::float FROM balance_snapshots s WHERE s.account_id=a.id AND s.taken_at < ($1::timestamp AT TIME ZONE 'Asia/Jerusalem') ORDER BY s.taken_at DESC, s.id DESC LIMIT 1) AS snap,
+        EXISTS (SELECT 1 FROM balance_snapshots s WHERE s.account_id=a.id) AS has_snap,
+        (SELECT u.new_balance::float FROM account_updates u WHERE u.account_id=a.id AND u.at < ($1::timestamp AT TIME ZONE 'Asia/Jerusalem') ORDER BY u.at DESC, u.id DESC LIMIT 1) AS upd,
+        (SELECT json_build_object('old', u.old_balance::float) FROM account_updates u WHERE u.account_id=a.id AND u.at >= ($1::timestamp AT TIME ZONE 'Asia/Jerusalem') ORDER BY u.at, u.id LIMIT 1) AS next
+       FROM accounts a WHERE a.kind IN ('bank','wallet','custom')`, [from]);
+    const acc = {};
+    for (const a of r.rows) {
+      const v = a.snap != null ? a.snap : a.has_snap || !a.manual ? null : a.upd != null ? a.upd : a.next ? a.next.old : a.balance;
+      const rate = v == null ? null : await rateOn(a.currency, on);
+      if (v != null && rate > 0) acc[a.id] = Math.round(v * rate * 100) / 100;
+    }
+    out[mk] = { on, acc };
+  }
+  return out;
 }
 
 export async function getState() {
@@ -131,6 +158,7 @@ export async function getState() {
     connected, locked, connStatus, companies: Object.values(PROVIDERS).filter((p) => p.kind !== "wallet").map((p) => ({ label: p.label, kind: p.kind })),
     sources: runs.rows.map((r) => ({ n: r.source, ok: r.ok, at: r.finished_at, added: r.added, msg: r.message })),
     nwSnaps: snaps.rows,
+    monthStart: await monthStarts(),
     balUpdates: (await q("SELECT u.id,a.name AS acc,u.at,u.old_balance::float AS old,u.new_balance::float AS nu,u.note FROM account_updates u JOIN accounts a ON a.id=u.account_id ORDER BY u.at DESC, u.id DESC LIMIT 300")).rows,
     gaps: gaps.rows.map((g) => ({ ...g, window_from: g.window_from.toISOString(), window_to: g.window_to.toISOString() })),
   };

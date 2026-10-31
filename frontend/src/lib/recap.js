@@ -132,7 +132,11 @@ export function recapModel(M, now) {
     toComeRows: W ? W.src.filter((r) => r.left >= 0.5).sort((a, b) => b.left - a.left).map((r) => ({ k: r.k, amt: r.left, kind: r.kind })) : [] };
   // what jars still hold at the end, after paying their part of what is still to come
   const heldEnd = Math.max(0, F.inJars - jarCov) + F.buffer;
-  const start = cash - inc + (ex - cardsU) + cardPaid;
+  // what you began the month with, in whole shekels (rounded once: the hero, the steps and their sums show this one number):
+  // what the accounts held when the month began (the server's saved balances, homeModel's startSaved), or, with none saved
+  // from then for every account, worked out backwards from today's balance
+  const startReal = M.startSaved != null, startOn = startReal ? S.monthStart[MK].on : "";
+  const start = Math.round(startReal ? M.startSaved : cash - inc + (ex - cardsU) + cardPaid);
   // the budgets in the order they were made (Home sorts its copy)
   const order = Object.keys(S.budgets || {}), bud = [...M.budgets].sort((a, b) => order.indexOf(a.k) - order.indexOf(b.k));
   const over = bud.filter((b) => b.st == "over"), risk = bud.filter((b) => b.st == "pace" || b.st == "warn"), okB = bud.filter((b) => b.st == "ok");
@@ -152,9 +156,9 @@ export function recapModel(M, now) {
   rec.filter((b) => b.nx.toISOString().slice(0, 7) == MK && b.nx.toISOString().slice(0, 10) >= TODAY).forEach((b) => { const i = b.nx.getDate() - 1; if (days[i]) days[i].up.push([b.n, b.pred, b.idx]); });
   const nextBills = sum(rec.filter((b) => b.nx.toISOString().slice(0, 7) == nmk).map((b) => b.pred));
   const top = M.spend.filter(([c]) => !skip(c)).sort((a, b) => b[1] - a[1]).slice(0, 3);
-  const steps = monthSteps({ A, S, k, MK, TODAY, CC, inc, dn, start, notIn: M.notIn });
+  const steps = monthSteps({ A, S, k, MK, TODAY, CC, inc, dn, start, notIn: M.notIn, end: startReal ? cash : null });
   const phase = day <= 5 ? "start" : dim - day <= 6 ? "end" : "mid";
-  return { MK, today: TODAY, jarCov, rest, incRest: AT.inc, incLeft, daysLeft, day, dim, pm, nmk, cash, inc, ex, cardsU, cardsPrev, cardPaid, cardsThis, cardsNow, cardsNext, sureJar, sureOwn: sure - sureJar, jarsUsed, nextCards, bankSpent: ex - cardsU, cardsOwed, sure, likely, likelyBank, likelyCard, nextBill, afterNext, endMonth, freeParts, afterSure, reallyNow, same, incs, bills, billsTot, limitsLeft, end, toPay, heldEnd, top, start, over, risk, okB, above, below, w1, w0, days, nextBills, phase, steps, inJars: F.inJars, buffer: F.buffer, jarsHeld: F.jarsHeld || [], planned: R.total, plannedRows: R.rows.map((r) => ({ k: r.k, amt: r.amt, kind: r.kind })), over0: F.over };
+  return { MK, today: TODAY, jarCov, rest, incRest: AT.inc, incLeft, daysLeft, day, dim, pm, nmk, cash, inc, ex, cardsU, cardsPrev, cardPaid, cardsThis, cardsNow, cardsNext, sureJar, sureOwn: sure - sureJar, jarsUsed, nextCards, bankSpent: ex - cardsU, cardsOwed, sure, likely, likelyBank, likelyCard, nextBill, afterNext, endMonth, freeParts, afterSure, reallyNow, same, incs, bills, billsTot, limitsLeft, end, toPay, heldEnd, top, start, startReal, startOn, over, risk, okB, above, below, w1, w0, days, nextBills, phase, steps, inJars: F.inJars, buffer: F.buffer, jarsHeld: F.jarsHeld || [], planned: R.total, plannedRows: R.rows.map((r) => ({ k: r.k, amt: r.amt, kind: r.kind })), over0: F.over };
 }
 
 // The day a card purchase leaves the bank: the charge date the card company gave (t.ch), or else the card's usual charge day,
@@ -205,7 +209,8 @@ export function cardShare(A, CC, months) {
 // Small amounts in are counted inside the spending around them; with very many big days, only the biggest stand on their own.
 const BIG_IN = 0.08, MIN_IN = 200, MAX_MARKS = 8;
 // notIn: your own money put in (countedTx), not counted as money in but still part of the walk.
-export function monthSteps({ A, S, k, MK, TODAY, CC, inc, dn, start, notIn = [] }) {
+// end: today's balance, when the start is a saved balance: what the steps do not explain becomes one more step ("other").
+export function monthSteps({ A, S, k, MK, TODAY, CC, inc, dn, start, notIn = [], end = null }) {
   const inMonth = (d) => d.startsWith(MK) && d <= TODAY;
   // money that reached the bank and wallet accounts (money back on a credit card lowers its bill instead: chargeDays below)
   const ins = A.concat(notIn).filter((t) => t.a > 0 && !CC.has(t.to) && inMonth(rdOf(t))), outs = A.filter((t) => t.a < 0 && inMonth(rdOf(t)));
@@ -286,6 +291,10 @@ export function monthSteps({ A, S, k, MK, TODAY, CC, inc, dn, start, notIn = [] 
     if (x.kind != "spend") x.a = Math.abs(x.b1 - x.b0);
     else { x.small = Math.round(x.small); x.cps = Math.round(x.cps); x.card = Math.round(x.card); x.bank = x.b0 - x.b1 + x.small - x.cps; x.a = Math.round(x.a); }
   });
+  // with a saved start, what the steps above do not show (money between your own accounts, changes in the value of foreign
+  // money, corrections by the bank, entries left out) is one more step, so the steps still end at today's balance
+  const d = end == null ? 0 : Math.round(end) - b, p = steps[steps.length - 1];
+  if (Math.abs(d) >= 1) steps.push({ kind: "other", from: MK + "-01", to: TODAY, a: Math.abs(d), up: d > 0, b0: b, b1: b + d, billed: p ? p.billed : 0, owed: p ? p.owed : 0, due: p ? p.due : [] });
   return steps;
 }
 

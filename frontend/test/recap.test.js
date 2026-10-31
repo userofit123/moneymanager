@@ -96,3 +96,25 @@ test("a regular income a few days later than usual still counts its usual amount
   const shop = { id: 1, d: "2026-08-10", desc: "Corner Shop", from: "Bank", to: "Corner Shop", a: -80, c: "Groceries" };
   assert.equal(inc([shop, I("2026-09-03", 12000)], 5), 0, "an income paid in only one of the two months is not counted as coming");
 });
+
+test("Recap begins the month with the balances saved then, when every counted account has one; the rest is one more step", () => {
+  const NOW = new Date(2026, 9, 17, 12), S = demoState(NOW), back = recapModel(homeModel(structuredClone(S), NOW, FX), NOW);
+  const counted = S.accounts.filter((a) => a.inNW && ["bank", "wallet", "custom"].includes(a.kind));
+  // no saved balance from then: worked out backwards, as before, and no extra step
+  assert.equal(back.startReal, false); assert.equal(back.start, r0(back.start)); assert.ok(!back.steps.some((x) => x.kind == "other"));
+  // one counted account without a saved balance: the whole start is still worked out backwards (never mixed)
+  const part = { "2026-10": { on: "2026-09-30", acc: { [counted[0].id]: 1000 } } };
+  if (counted.length > 1) assert.equal(recapModel(homeModel(structuredClone({ ...S, monthStart: part }), NOW, FX), NOW).start, back.start);
+  // every counted account saved: the start is their sum, rounded once, and the steps still end at today's balance
+  const acc = Object.fromEntries(counted.map((a, i) => [a.id, i ? 100.4 : 2000.3])), want = r0(2000.3 + 100.4 * (counted.length - 1));
+  const m = recapModel(homeModel(structuredClone({ ...S, monthStart: { "2026-10": { on: "2026-09-30", acc } } }), NOW, FX), NOW);
+  assert.equal(m.startReal, true); assert.equal(m.startOn, "2026-09-30"); assert.equal(m.start, want);
+  assert.equal(m.steps[0].b0, want); assert.equal(m.steps.at(-1).b1, r0(m.cash));
+  m.steps.forEach((x, i) => i && assert.equal(x.b0, m.steps[i - 1].b1));
+  const o = m.steps.at(-1); assert.equal(o.kind, "other"); assert.equal(o.b1 - o.b0, o.up ? o.a : -o.a);
+  // a start that already adds up to today's balance needs no extra step
+  const end = monthSteps({ A: [], S: { tx: [] }, k: { isCp: () => false }, MK: "2026-10", TODAY: "2026-10-17", CC: new Set(), inc: 0, dn: () => "", start: 500, end: 500.2 });
+  assert.deepEqual(end, []);
+  const one = monthSteps({ A: [], S: { tx: [] }, k: { isCp: () => false }, MK: "2026-10", TODAY: "2026-10-17", CC: new Set(), inc: 0, dn: () => "", start: 500, end: 380 });
+  assert.deepEqual(one.map((x) => [x.kind, x.a, x.up, x.b0, x.b1]), [["other", 120, false, 500, 380]]);
+});
