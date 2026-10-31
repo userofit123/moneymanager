@@ -17,6 +17,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 - **Recap shows there is more below the path.** A small **Next month** arrow under the end of the path leads down to the look at next month (press it to scroll there), and that part's text is wider.
 - **Fixed: Home's first tile has no ? any more**, and its (i) sits right after **In your accounts** instead of at the far end.
 - **Fixed: the search icon in Activity is sharp again** with the see-through (glass) look, instead of a blur.
+- **Fixed: Recap's day bars run left to right in Hebrew too**, the first day on the left, like every chart over time.
 - **Fixed: amounts inside Hebrew sentences.** A space before an amount, a comma after it, or a joined "מ-" no longer jumps to the wrong side (for example in the Forecast guide's examples).
 - **Forecast guide in Hebrew:** says **קופות** (jars) like the rest of the app and no longer says "we".
 - **Bank names come from one list.** Activity, the transaction window and Sync read the built-in bank and card names from one place. Nothing changes on screen.

@@ -115,9 +115,10 @@ function greeting() {
 }
 const dayScale = (m) => { let s = ""; for (let d = 1; d <= m.dim; d++) s += `<i class="${d < m.day ? "p" : d == m.day ? "n" : ""}" data-d="${d}" role="button" tabindex="0" aria-label="${esc(dfull(m.MK + "-" + p2(d)))}" style="--i:${d}"></i>`;
   return `<div class="rkds"><div class="rkdt">${s}</div><div class="rkdl"><span>${L("dayOf", { d: m.day, n: m.dim })}</span><span>${m.dim - m.day > 0 ? L("daysLeft", { n: m.dim - m.day }, m.dim - m.day) : L("lastDay")}</span></div><div class="rktip" hidden></div></div>`; };
+// one bar per day; days run left to right in Hebrew too, like every chart over time
 function dayBars(m) {
   const W = 600, Hh = 96, gap = 4, n = m.dim, bw = (W - gap * (n - 1)) / n, hs = dayBarHeights(m, Hh); let s = "";
-  for (let i = 0; i < n; i++) { const x = H() ? W - bw - i * (bw + gap) : i * (bw + gap); s += hs[i] != null ? `<rect x="${x}" y="${Hh - hs[i]}" width="${bw}" height="${hs[i]}" rx="${Math.min(4, bw / 2)}" class="${i == m.day - 1 ? "t" : "b"} gr" style="--i:${i}"/>` : `<rect x="${x}" y="${Hh - 2}" width="${bw}" height="2" rx="1" class="f"/>`; }
+  for (let i = 0; i < n; i++) { const x = i * (bw + gap); s += hs[i] != null ? `<rect x="${x}" y="${Hh - hs[i]}" width="${bw}" height="${hs[i]}" rx="${Math.min(4, bw / 2)}" class="${i == m.day - 1 ? "t" : "b"} gr" style="--i:${i}"/>` : `<rect x="${x}" y="${Hh - 2}" width="${bw}" height="2" rx="1" class="f"/>`; }
   return `<div class="rkbw"><svg class="rkv bars" viewBox="0 0 ${W} ${Hh}" preserveAspectRatio="none" role="img" aria-label="${esc(L("barsAria"))}">${s}</svg><div class="rktip" hidden></div></div>`;
 }
 const nowBar = (m) => { const P = m.freeParts; return segBar([[N("cardsUnpaid"), P.cards, "c4", "now"], [N("upcomingS"), P.up, "c5", "ahead"], [N("leftBudgets"), P.toCome, "c2", "budg"], [N("putAside"), P.aside, "c3", "jars"], [N("free"), Math.max(0, P.free), "c1", "now"]]); };
@@ -399,10 +400,10 @@ function wireDays(el, m) {
 }
 function wireBars(el, m) {
   const w = el.querySelector(".rkbw"); if (!w) return; const svg = w.querySelector("svg"), tip = w.querySelector(".rktip"), n = m.dim; let cur = 0;
-  const idx = (e) => { const r = svg.getBoundingClientRect(); return Math.max(1, Math.min(n, Math.floor((H() ? 1 - (e.clientX - r.left) / r.width : (e.clientX - r.left) / r.width) * n) + 1)); };
+  const idx = (e) => { const r = svg.getBoundingClientRect(); return Math.max(1, Math.min(n, Math.floor(((e.clientX - r.left) / r.width) * n) + 1)); };
   const show = (i) => { const D = m.days[i - 1]; if (!D) return; svg.querySelectorAll("rect").forEach((x, k) => x.classList.toggle("hv", k == i - 1));
     tip.innerHTML = dayTip(D, i > m.day, i == m.day); tip.hidden = false; cur = i;
-    const a = w.getBoundingClientRect(), r = svg.getBoundingClientRect(), fr = H() ? n - i + 0.5 : i - 0.5, cx = r.left + (fr / n) * r.width - a.left, tw = tip.offsetWidth;
+    const a = w.getBoundingClientRect(), r = svg.getBoundingClientRect(), fr = i - 0.5, cx = r.left + (fr / n) * r.width - a.left, tw = tip.offsetWidth;
     tip.style.left = Math.max(0, Math.min(a.width - tw, cx - tw / 2)) + "px"; tip.style.bottom = a.bottom - r.top + 10 + "px"; };
   const hide = () => { tip.hidden = true; cur = 0; svg.querySelectorAll("rect.hv").forEach((x) => x.classList.remove("hv")); };
   svg.addEventListener("mousemove", (e) => show(idx(e))); svg.addEventListener("mouseleave", hide);
