@@ -327,10 +327,10 @@ const html = computed(() => {
   // "next" (a look at next month) stands on its own under the end of the path
   const nx = order.includes("next") ? PARTS.next(m) : "", path = order.filter((p) => p != "next");
   path.forEach((p, i) => { const zz = i < 2 || i == path.length - 1 ? 0 : zc + 1; const h = draw(p, zz); if (zz && h) zc++; out.push(h); });
-  // under the end of the path, a small arrow down shows there is more: a look at next month (it scrolls there)
+  // between the end of the path and next month, a small arrow down shows there is more: a look at next month (it scrolls there)
   const cue = nx ? `<a class="rkdn" data-a="recapNext" role="button" tabindex="0"><span>${L("nextCue")}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></a>` : "";
-  const endH = out[out.length - 1].replace('class="rk rr', 'class="rk rr zend').replace(/<\/section>$/, cue + "</section>"), chain = out.slice(2, -1).join("") + endH;
-  return `<div class="rkw0">${out[0]}${out[1] || ""}${chain ? `<div class="rkz">${chain}</div>` : ""}${nx}</div>`;
+  const endH = out[out.length - 1].replace('class="rk rr', 'class="rk rr zend'), chain = out.slice(2, -1).join("") + endH;
+  return `<div class="rkw0">${out[0]}${out[1] || ""}${chain ? `<div class="rkz">${chain}</div>` : ""}${cue}${nx}</div>`;
 });
 
 // ---- opening the matching page, filtered (recapGo) ----
