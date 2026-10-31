@@ -10,6 +10,7 @@ import BaseSheet from "../../components/BaseSheet.vue";
 import SetSection from "./SetSection.vue";
 import SetRow from "./SetRow.vue";
 import { ask as askYes } from "../../core/ask.js";
+import { copyText } from "./errlog.js";
 
 const { t, locale } = useI18n();
 const tk = (k, a) => t("settings.backup." + k, a || {});
@@ -27,6 +28,10 @@ const del = (name) => askYes(tk("toast.delConfirm"), "", () => delGo(name), { da
 async function delGo(name) { try { BK.value = await data.api("/api/backup/file/" + encodeURIComponent(name), { method: "DELETE" }); } catch (x) { err(x); } }
 const pwOff = () => askYes(tk("toast.pwOffConfirm"), "", () => put({ password: null }), { danger: true });
 const openDir = () => window.desktop.openFolder(BK.value.dir);
+// In a browser the folder cannot be opened: the page shows where it is on the computer that runs the app (the server tells, see hostPlace).
+const place = computed(() => BK.value?.place || {});
+const hostDir = computed(() => { const p = place.value; return p.volume ? "/var/lib/docker/volumes/" + p.volume + "/_data" + (p.inVolume == "/" ? "" : p.inVolume) : p.docker ? "" : BK.value?.dir || ""; });
+const LINK_LINE = "- /path/on/your/host/backups:/data/backups";
 async function choose() { const r = await window.desktop.chooseFolder(BK.value.dir); if (r) put({ dir: r }); }
 
 // ---- the windows: set a password, ask for a backup's password, "Restore this backup?" ----
@@ -87,6 +92,14 @@ const KEEP = [[3, "d3"], [7, "w1"], [14, "w2"], [30, "d30"], [60, "d60"], [90, "
         </SetRow>
         <SetRow v-else stack :title="tk('folder.t')" :desc="tk('folder.tip')">
           <input type="text" dir="ltr" data-c="bkset" data-k="dir" :value="BK.custom ? BK.dir : ''" :placeholder="BK.defaultDir" :aria-label="tk('folder.aria')" @change="put({ dir: $event.target.value })"><button v-if="BK.custom" type="button" class="btn o s" data-a="bkDirDefault" @click="put({ dir: '' })">{{ tk("folder.default") }}</button>
+        </SetRow>
+        <SetRow v-if="!desk" stack data-k="bkWhere" :title="tk('where.t')">
+          <template #desc>{{ place.volume ? tk("where.vol", { v: place.volume }) : place.linked ? tk("where.linked") : place.docker ? tk("where.docker") : tk("where.here") }}<bdi v-if="hostDir" class="bkdir" dir="ltr">{{ hostDir }}</bdi></template>
+          <button v-if="hostDir" type="button" class="btn o s" data-a="bkCopyDir" @click="copyText(hostDir, tk('where.copied'))">{{ tk("where.copy") }}</button>
+        </SetRow>
+        <SetRow v-if="!desk && place.docker && !place.linked" stack data-k="bkNormal" :title="tk('normal.t')">
+          <template #desc>{{ tk("normal.d") }}<bdi class="bkdir" dir="ltr"><code>{{ LINK_LINE }}</code></bdi></template>
+          <button type="button" class="btn o s" data-a="bkCopyLine" @click="copyText(LINK_LINE, tk('normal.copied'))">{{ tk("where.copy") }}</button>
         </SetRow>
         <SetRow :title="tk('pw.t')" :desc="BK.hasPassword ? tk('pw.on') : tk('pw.off')" :badge="BK.hasPassword">
           <button type="button" class="btn o s" data-a="bkPw" @click="pw1 = ''; pw2 = ''; win = 'pw'">{{ BK.hasPassword ? tk("pw.change") : tk("pw.set") }}</button><button v-if="BK.hasPassword" type="button" class="btn o s" data-a="bkPwOff" @click="pwOff">{{ tk("pw.turnOff") }}</button>

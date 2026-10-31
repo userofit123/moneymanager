@@ -41,3 +41,14 @@ test("a password protects the file, a wrong one is refused, and old backups are 
   assert.ok(!fs.existsSync(old));
   await assert.rejects(() => bk.removeFile("../x.mmbackup"), /not a backup file name/);
 });
+
+test("the backup folder's place on the computer: a Docker volume, a linked folder, or no Docker", () => {
+  const d = fs.mkdtempSync(path.join(os.tmpdir(), "mm-place-")), env = path.join(d, "dockerenv"), mi = path.join(d, "mountinfo");
+  assert.deepEqual(bk.hostPlace("/data/backups", { dockerenv: env, mountinfo: mi }), { docker: false });
+  fs.writeFileSync(env, "");
+  fs.writeFileSync(mi, "1 0 0:1 / / rw - overlay overlay rw\n568 558 254:1 /docker/volumes/demo_appdata/_data /data rw,relatime - ext4 /dev/vda1 rw\n");
+  assert.deepEqual(bk.hostPlace("/data/backups", { dockerenv: env, mountinfo: mi }), { docker: true, volume: "demo_appdata", inVolume: "/backups" });
+  fs.appendFileSync(mi, "570 558 254:1 /home/someone/backups /data/backups rw - ext4 /dev/vda1 rw\n");
+  assert.deepEqual(bk.hostPlace("/data/backups", { dockerenv: env, mountinfo: mi }), { docker: true, linked: true });
+  assert.deepEqual(bk.hostPlace("/srv/x", { dockerenv: env, mountinfo: mi }), { docker: true });
+});

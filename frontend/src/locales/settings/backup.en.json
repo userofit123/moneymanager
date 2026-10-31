@@ -30,6 +30,20 @@
     "open": "Open",
     "default": "Use the default"
   },
+  "where": {
+    "t": "Where the backups are",
+    "vol": "Inside Docker, in its storage named {v}. On the computer that runs Docker, the folder is here:",
+    "linked": "In the folder on your computer that docker-compose.yml links to /data/backups.",
+    "docker": "Inside Docker, in the app's storage.",
+    "here": "On the computer that runs the app, the folder is here:",
+    "copy": "Copy",
+    "copied": "Folder copied"
+  },
+  "normal": {
+    "t": "Keep them in a normal folder",
+    "d": "In docker-compose.yml, remove the # at the start of this line, put your folder in place of /path/on/your/host/backups, then run docker compose up -d. The next backups go there.",
+    "copied": "Line copied"
+  },
   "pw": {
     "t": "Password",
     "on": "New backups are protected. You need the password to restore them, also on another device.",

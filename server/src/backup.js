@@ -158,7 +158,25 @@ export async function view() {
       return { name: f, size: st.size, at: st.mtime.toISOString(), encrypted: enc, safety: f.startsWith("before-restore-"), imported: f.startsWith("imported-") };
     }).sort((a, b) => b.at.localeCompare(a.at));
   } catch { /* folder not there yet */ }
-  return { on: cfg.on, at: cfg.at, keep: cfg.keep, dir: cfg.dir, defaultDir: defaultDir(), custom: cfg.custom, withDocs: cfg.withDocs, hasPassword: !!raw.pw, last: (await getSet("backup_last")) || null, files, tz: await tzOf() };
+  return { on: cfg.on, at: cfg.at, keep: cfg.keep, dir: cfg.dir, defaultDir: defaultDir(), custom: cfg.custom, withDocs: cfg.withDocs, hasPassword: !!raw.pw, last: (await getSet("backup_last")) || null, files, tz: await tzOf(), place: hostPlace(cfg.dir) };
+}
+// Where the backup folder is on the computer that runs the app. Inside Docker the folder seen here (/data/backups) is not
+// the one on that computer: the mount table tells whether it sits in a Docker volume (its name) or in a linked folder.
+// docker: running in a container; volume: the Docker volume's name; inVolume: the folder inside it; linked: a folder from the computer.
+export function hostPlace(dir, { dockerenv = "/.dockerenv", mountinfo = "/proc/self/mountinfo" } = {}) {
+  if (!fs.existsSync(dockerenv)) return { docker: false };
+  let best = null;
+  try {
+    for (const line of fs.readFileSync(mountinfo, "utf8").split("\n")) {
+      const f = line.split(" "); if (f.length < 5) continue;
+      const root = f[3], at = f[4].replace(/\\040/g, " ");
+      if ((dir === at || dir.startsWith(at === "/" ? "/" : at + "/")) && (!best || at.length > best.at.length)) best = { root, at };
+    }
+  } catch { /* no mount table: just "inside Docker" */ }
+  if (!best || best.at === "/") return { docker: true };
+  const v = /\/volumes\/([^/]+)\/_data$/.exec(best.root);
+  if (v) return { docker: true, volume: v[1], inVolume: dir.slice(best.at.length) || "/" };
+  return { docker: true, linked: true };
 }
 export function filePath(cfg, name) { return path.join(cfg.dir, safeName(name)); }
 export async function removeFile(name) { fs.rmSync(filePath(await getCfg(), name), { force: true }); }
