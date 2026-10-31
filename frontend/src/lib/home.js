@@ -3,7 +3,7 @@
 // Nothing here changes the data; bills the app finds by itself are only worked out, not saved.
 import { cardsDue, stillToPay, reallyYours, roundParts } from "./recap.js";
 import { acctOf } from "./activity.js";
-import { fieldText } from "./ruleFields.js";
+import { fieldText, textMatch } from "./ruleFields.js";
 import { isIn, isOut, splitIn } from "./moneyIn.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
@@ -42,7 +42,7 @@ const nohtml = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, "").replace
 const nameField = (t, f) => fieldText(t, f || "any");
 const rnm = (s) => String(s == null ? "" : s).toLowerCase().replace(/[0-9*#_/\\\-.,:;()'"\u05f3\u05f4]+/g, " ").replace(/\s+/g, " ").trim();
 // The name shown for a payment: the one you typed, a naming rule, or the bank's text.
-export const nameOf = (S, t) => { const c = S?.cfg || {}, o = c.renames && c.renames[t.id]; if (o) return o; if (c.nameRules) { const r = c.nameRules.find((x) => { const q = rnm(x.k); if (!q) return false; const v = rnm(nameField(t, x.f || "any")); return x.m == "eq" ? v == q : v.includes(q); }); if (r) return r.n; } return nohtml(t.desc); };
+export const nameOf = (S, t) => { const c = S?.cfg || {}, o = c.renames && c.renames[t.id]; if (o) return o; if (c.nameRules) { const r = c.nameRules.find((x) => { const q = rnm(x.k); if (!q) return false; const v = rnm(nameField(t, x.f || "any")); return textMatch(v, q, x.m); }); if (r) return r.n; } return nohtml(t.desc); };
 
 // What was bought with a card in each month: the counted rows paid from it, less the refunds that came back to it
 // (the same on Home and Accounts). isCard: is the row on this card (acctOf: refunds sit in "to"). Never below 0.

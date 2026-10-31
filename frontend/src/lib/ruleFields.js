@@ -12,12 +12,21 @@ export const USUAL = { cat: "dtf", tag: "dtf", card: "dt", in: "dfm", name: "any
 // The choices offered for a kind of rule: its usual parts first, then each part.
 export const whereOptions = (kind) => (USUAL[kind] == "any" ? FIELDS : [USUAL[kind], ...FIELDS]);
 export const isWhere = (f) => FIELDS.includes(f) || Object.hasOwn(COMBOS, f);
+// How a rule's text is compared with that part (both already in the same case): a rule with none "contains", as before.
+export const HOWS = ["in", "eq", "starts", "ends", "not"];
+export const isHow = (m) => HOWS.includes(m);
+export function textMatch(hay, q, m) {
+  hay = String(hay ?? "");
+  return m == "eq" ? hay == q : m == "starts" ? hay.startsWith(q) : m == "ends" ? hay.endsWith(q) : m == "not" ? !hay.includes(q) : hay.includes(q);
+}
 // The English names written in the change history (shown in Hebrew through core/heSaved.js).
 export const WHERE_EN = {
   any: "Everything", desc: "Transaction name", memo: "Bank's note", bd: "Bank's description", bc: "Bank's category",
   from: "Who paid", to: "Paid to", note: "Your note", acct: "Your account", cur: "Currency paid in",
-  dtf: "Name, who paid or paid to", dt: "Name or paid to", dfm: "Name, who paid or bank's note",
+  dtf: "Name, from or to", dt: "Name or paid to", dfm: "Name, payer or bank's note",
 };
+
+export const HOW_EN = { in: "contains", eq: "is exactly", starts: "starts with", ends: "ends with", not: "does not contain" };
 
 // One part of an entry. acct: your own account (money out leaves it, money in arrives in it). cur: the currency
 // of a payment made in another currency (like USD). bc: the bank's own category. bd: the bank's description.
@@ -32,3 +41,4 @@ export function fieldText(t, f) {
 // A card payment rule is its text, or { k: text, f: where } when the person chose where it looks.
 export const ruleText = (r) => (r && typeof r == "object" ? String(r.k || "") : String(r ?? ""));
 export const ruleWhere = (r, kind) => (r && typeof r == "object" && isWhere(r.f) ? r.f : USUAL[kind]);
+export const ruleHow = (r) => (r && typeof r == "object" && isHow(r.m) ? r.m : "in");

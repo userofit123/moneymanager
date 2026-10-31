@@ -5,6 +5,13 @@ const ANY = ["desc", "memo", "bd", "from", "to", "note"];
 export const COMBOS = { dtf: ["desc", "to", "from"], dt: ["desc", "to"], dfm: ["desc", "from", "memo"] };
 export const USUAL = { cat: "dtf", tag: "dtf", card: "dt", in: "dfm", name: "any" };
 export const isWhere = (f) => FIELDS.includes(f) || Object.hasOwn(COMBOS, f);
+// How a rule's text is compared with that part (both already in the same case): a rule with none "contains", as before.
+export const HOWS = ["in", "eq", "starts", "ends", "not"];
+export const isHow = (m) => HOWS.includes(m);
+export function textMatch(hay, q, m) {
+  hay = String(hay ?? "");
+  return m == "eq" ? hay == q : m == "starts" ? hay.startsWith(q) : m == "ends" ? hay.endsWith(q) : m == "not" ? !hay.includes(q) : hay.includes(q);
+}
 
 const part = (t, k) => (k == "acct" ? (t.a > 0 ? t.to : t.from) : k == "cur" ? t.orig?.cur : t[k]);
 export function fieldText(t, f) {
@@ -23,3 +30,5 @@ export const rowTx = (r) => ({
 });
 // The text a category or tag rule reads on the server. A rule with no choice (field '') reads the name only, as it always did.
 export const ruleSees = (r, field) => (field ? fieldText(rowTx(r), field) : r.description);
+// Whether a category or tag rule (keyword, field, how) matches a row, case ignored.
+export const ruleMatches = (row, rule) => textMatch(String(ruleSees(row, rule.field) || "").toLowerCase(), String(rule.keyword).toLowerCase(), rule.how);

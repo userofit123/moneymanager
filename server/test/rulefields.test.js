@@ -22,10 +22,15 @@ test("category rules: no field reads the name only (as before); a field reads th
   const c = await add("Transfer", "Acme Payroll", "Bank Hapoalim", 9000, { category: "Salary stuff" });
   await q("INSERT INTO rules (keyword,category,tag,position) VALUES ('fake cafe','Eating out','',0)"); // old rule, no field
   await q("INSERT INTO rules (keyword,category,tag,position,field) VALUES ('lunch','Groceries','',1,'memo'),('acme','Income','',2,'from')");
+  await q("INSERT INTO rules (keyword,category,tag,position,field,how) VALUES ('shop','Eating out','',3,'desc','starts'),('cafe','Income','',4,'desc','eq')");
+  const d = await add("Shop near me", "Max", "X", -5), e = await add("My shop", "Max", "X", -5), f = await add("Cafe", "Max", "X", -5);
   await tx((cl) => applyRules(cl));
   assert.equal(await cat(a), "Groceries"); // "fake cafe" is only in Paid to: the old rule does not read it on the server
   assert.equal(await cat(b), "Eating out");
   assert.equal(await cat(c), "Income");
+  assert.equal(await cat(d), "Eating out", "starts with");
+  assert.equal(await cat(e), null);
+  assert.equal(await cat(f), "Income", "is exactly");
 });
 
 test("tag rules: no field reads the name only; bank's category and your account work", async () => {
@@ -43,14 +48,15 @@ test("state keeps each rule's field; unknown fields and old rules come back with
   assert.equal(S.rules[0].f, undefined);
   assert.equal(S.rules[1].f, "memo");
   S.rules.push({ k: "x1", c: "Groceries", t: "", f: "nope" });
-  S.cardRules = ["max charge", { k: "isracard", f: "memo" }, { k: "amex", f: "bad" }];
-  S.moneyInRules = [{ k: "acme", kind: "salary" }, { k: "wix", kind: "back", f: "memo" }];
-  S.tagRules[0].f = "note";
+  S.cardRules = ["max charge", { k: "isracard", f: "memo" }, { k: "amex", f: "bad" }, { k: "cal", m: "eq" }];
+  S.moneyInRules = [{ k: "acme", kind: "salary" }, { k: "wix", kind: "back", f: "memo", m: "ends" }];
+  S.tagRules[0].f = "note"; S.tagRules[0].m = "not";
   await putState(S);
   const S2 = await getState();
   assert.equal(S2.rules.find((r) => r.k == "x1").f, undefined);
   assert.equal(S2.tagRules[0].f, "note");
-  assert.deepEqual(S2.cardRules, ["max charge", { k: "isracard", f: "memo" }, "amex"]);
-  assert.deepEqual(S2.moneyInRules, [{ k: "acme", kind: "salary" }, { k: "wix", kind: "back", f: "memo" }]);
+  assert.equal(S2.tagRules[0].m, "not");
+  assert.deepEqual(S2.cardRules, ["max charge", { k: "isracard", f: "memo" }, "amex", { k: "cal", m: "eq" }]);
+  assert.deepEqual(S2.moneyInRules, [{ k: "acme", kind: "salary" }, { k: "wix", kind: "back", f: "memo", m: "ends" }]);
   assert.equal(S2.tx.find((t) => t.desc == "Shop 1").bc, "Fashion");
 });

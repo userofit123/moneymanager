@@ -76,22 +76,49 @@ test("a rule with a choice reads only that part", () => {
   assert.equal(M([{ k: "acme ltd", kind: "back", f: "memo" }]).kind, "back");
 });
 
-test("choosing where a rule looks: saved only when it is not the usual place, with a history line", () => {
+test("how a rule compares: contains, is exactly, starts with, ends with, does not contain", () => {
+  assert.deepEqual(SF.HOWS, F.HOWS);
+  for (const m of F.HOWS) for (const [h, q] of [["fake cafe 12", "fake"], ["fake", "fake"], ["abc", "bc"], ["", "x"]]) assert.equal(SF.textMatch(h, q, m), F.textMatch(h, q, m));
+  const t = TX[0]; // name "FAKE CAFE 12" → "fake cafe" as the rules read it
+  assert.equal(ruleHit(t, "fake cafe", "desc", "eq"), true);
+  assert.equal(ruleHit(t, "cafe", "desc", "eq"), false);
+  assert.equal(ruleHit(t, "fake", "desc", "starts"), true);
+  assert.equal(ruleHit(t, "cafe", "desc", "ends"), true);
+  assert.equal(ruleHit(t, "fake", "desc", "ends"), false);
+  assert.equal(ruleHit(t, "acme", "desc", "not"), true);
+  assert.equal(ruleHit(t, "fake", "desc", "not"), false);
+  assert.equal(ruleHit(t, "fake", undefined, "in"), ruleHit(t, "fake"), "contains is the same as no choice");
+  const S = { tx: [], accounts: [{ n: "Bank Hapoalim", kind: "bank" }], cardRules: [{ k: "standing", f: "desc", m: "starts" }] };
+  assert.equal(isCardPay(S, { id: 9, a: -5, desc: "Standing order", from: "Bank Hapoalim", to: "" }), true);
+  assert.equal(isCardPay(S, { id: 9, a: -5, desc: "My standing order", from: "Bank Hapoalim", to: "" }), false);
+  const M = (rules) => moneyIn({ tx: [TX[1]], accounts: [], moneyInRules: rules }).get(2);
+  assert.equal(M([{ k: "transfer", kind: "back", f: "desc", m: "eq" }]).kind, "back");
+  assert.equal(M([{ k: "trans", kind: "back", f: "desc", m: "eq" }]).kind, "income");
+});
+
+test("choosing where a rule looks and how it compares: saved only when it is not the usual place, with a history line", () => {
   const S = { tx: TX, rules: [{ k: "cafe", c: "Food", t: "" }], tagRules: [{ k: "cafe", t: "x" }], cardRules: ["ישראכרט"], moneyInRules: [{ k: "acme", kind: "salary" }], xf: [] };
-  assert.deepEqual(C.setRuleWhere(S, "cat", 0, "memo"), [["Changed where a rule looks", '"cafe" looks in: Bank\'s note']]);
+  assert.deepEqual(C.setRuleMatch(S, "cat", 0, "f", "memo"), [["Changed where a rule looks", '"cafe" looks in: Bank\'s note']]);
   assert.equal(S.rules[0].f, "memo");
-  assert.equal(C.setRuleWhere(S, "cat", 0, "memo"), false, "no change, no line");
-  C.setRuleWhere(S, "cat", 0, "dtf");
+  assert.equal(C.setRuleMatch(S, "cat", 0, "f", "memo"), false, "no change, no line");
+  C.setRuleMatch(S, "cat", 0, "f", "dtf");
   assert.deepEqual(S.rules[0], { k: "cafe", c: "Food", t: "" }, "back to the usual place: saved as before");
-  C.setRuleWhere(S, "tag", 0, "note"); assert.equal(S.tagRules[0].f, "note");
-  C.setRuleWhere(S, "card", 0, "to"); assert.deepEqual(S.cardRules, [{ k: "ישראכרט", f: "to" }]);
-  C.setRuleWhere(S, "card", 0, "dt"); assert.deepEqual(S.cardRules, ["ישראכרט"]);
-  C.setRuleWhere(S, "in", 0, "memo"); assert.deepEqual(S.moneyInRules, [{ k: "acme", kind: "salary", f: "memo" }]);
-  C.setRuleWhere(S, "in", 0, "dfm"); assert.deepEqual(S.moneyInRules, [{ k: "acme", kind: "salary" }]);
-  assert.equal(C.setRuleWhere(S, "cat", 0, "nowhere"), false);
+  C.setRuleMatch(S, "tag", 0, "f", "note"); assert.equal(S.tagRules[0].f, "note");
+  C.setRuleMatch(S, "card", 0, "f", "to"); assert.deepEqual(S.cardRules, [{ k: "ישראכרט", f: "to" }]);
+  C.setRuleMatch(S, "card", 0, "f", "dt"); assert.deepEqual(S.cardRules, ["ישראכרט"]);
+  C.setRuleMatch(S, "in", 0, "f", "memo"); assert.deepEqual(S.moneyInRules, [{ k: "acme", kind: "salary", f: "memo" }]);
+  C.setRuleMatch(S, "in", 0, "f", "dfm"); assert.deepEqual(S.moneyInRules, [{ k: "acme", kind: "salary" }]);
+  assert.equal(C.setRuleMatch(S, "cat", 0, "f", "nowhere"), false);
+  assert.deepEqual(C.setRuleMatch(S, "cat", 0, "m", "not"), [["Changed how a rule matches", '"cafe" match: does not contain']]);
+  assert.deepEqual(S.rules[0], { k: "cafe", c: "Food", t: "", m: "not" });
+  C.setRuleMatch(S, "cat", 0, "m", "in"); assert.deepEqual(S.rules[0], { k: "cafe", c: "Food", t: "" });
+  C.setRuleMatch(S, "card", 0, "m", "eq"); assert.deepEqual(S.cardRules, [{ k: "ישראכרט", m: "eq" }]);
+  C.setRuleMatch(S, "card", 0, "m", "in"); assert.deepEqual(S.cardRules, ["ישראכרט"]);
+  C.setRuleMatch(S, "in", 0, "m", "starts"); assert.deepEqual(S.moneyInRules, [{ k: "acme", kind: "salary", m: "starts" }]);
+  C.setRuleMatch(S, "in", 0, "m", "in");
   // adding: the usual place is not saved
-  C.addRule(S, "shop", "Fun", "dtf"); C.addRule(S, "lunch", "Food", "memo");
-  assert.deepEqual(S.rules.slice(1), [{ k: "shop", c: "Fun", t: "" }, { k: "lunch", c: "Food", t: "", f: "memo" }]);
+  C.addRule(S, "shop", "Fun", "dtf", "in"); C.addRule(S, "lunch", "Food", "memo", "eq");
+  assert.deepEqual(S.rules.slice(1), [{ k: "shop", c: "Fun", t: "" }, { k: "lunch", c: "Food", t: "", f: "memo", m: "eq" }]);
   C.addCardRule(S, "card bill", "memo"); assert.deepEqual(S.cardRules.at(-1), { k: "card bill", f: "memo" });
   assert.equal(C.genCheck(S.cardRules, "Card bill"), "dup");
   C.deleteCardRule(S, 1); assert.deepEqual(S.cardRules, ["ישראכרט"]);

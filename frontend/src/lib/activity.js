@@ -2,7 +2,7 @@
 // how they are grouped, and how In, Out and Net are counted.
 import { SRC_NAMES } from "../catnames.js";
 import { inKinds, partOf } from "./moneyIn.js";
-import { fieldText, ruleText, ruleWhere, FIELDS } from "./ruleFields.js";
+import { fieldText, ruleText, ruleWhere, ruleHow, textMatch, FIELDS } from "./ruleFields.js";
 
 // Money moved between the user's own accounts (confirmed or guessed). Not income or spending.
 // A pair is "auto" (found by the app, waiting for review), "ok" (confirmed) or "rej" (the user said it is not a transfer).
@@ -39,7 +39,7 @@ export function cardInfo(S) {
   };
 }
 // A card rule reads the part the person chose (ruleWhere; with no choice: the name and Paid to, as before).
-const cardRuleHit = (S, t) => { const x = normD(t.desc + " " + (t.to || "")); return CARD_STRONG.test(x) || CARD_WEAK.test(x) || (S?.cardRules || []).some((r) => { const n = normD(ruleText(r)), f = ruleWhere(r, "card"); return n.length > 1 && (f == "dt" ? x : normD(fieldText(t, f))).includes(n); }); };
+const cardRuleHit = (S, t) => { const x = normD(t.desc + " " + (t.to || "")); return CARD_STRONG.test(x) || CARD_WEAK.test(x) || (S?.cardRules || []).some((r) => { const n = normD(ruleText(r)), f = ruleWhere(r, "card"); return n.length > 1 && textMatch(f == "dt" ? x : normD(fieldText(t, f)), n, ruleHow(r)); }); };
 export function isCardPay(S, t, ci = cardInfo(S)) {
   if (t.virtual || t.a >= 0) return false;
   const ov = S?.ccOverride?.[t.id];
@@ -52,7 +52,7 @@ export const cardOf = (t, ci) => { const x = t.desc + " " + (t.to || ""); return
 // Name rules ("Look in", "Match", "Text", "Call it"): which field a rule reads, whether it matches, and the name shown.
 export const NFIELDS = FIELDS;
 export const nameField = (t, f) => fieldText(t, f || "any");
-export function nameHit(t, r) { const q = rn(r.k); if (!q) return false; const v = rn(nameField(t, r.f || "any")); return r.m === "eq" ? v === q : v.includes(q); }
+export function nameHit(t, r) { const q = rn(r.k); if (!q) return false; const v = rn(nameField(t, r.f || "any")); return textMatch(v, q, r.m); }
 export function displayName(S, t) {
   const c = S?.cfg || {}, o = c.renames && c.renames[t.id];
   if (o) return o;
@@ -230,8 +230,9 @@ export function normTag(S, v) {
 
 // Text as the rules compare it: lower case, numbers and punctuation turned into spaces.
 export const rn = (s) => String(s == null ? "" : s).toLowerCase().replace(/[0-9*#_/\\\-.,:;()'"\u05f3\u05f4]+/g, " ").replace(/\s+/g, " ").trim();
-// f: where the rule looks (lib/ruleFields.js); with none, the name, Paid to and Who paid, as before.
-export const ruleHit = (t, kw, f) => { const q = rn(kw); return q.length > 0 && rn(fieldText(t, f || "dtf")).includes(q); };
+// f: where the rule looks, m: how it compares (lib/ruleFields.js); with none, it reads the name, Paid to and Who paid and
+// "contains", as before.
+export const ruleHit = (t, kw, f, m) => { const q = rn(kw); return q.length > 0 && textMatch(rn(fieldText(t, f || "dtf")), q, m); };
 export const ruleTags = (r) => String(r?.t || "").split(",").map((x) => x.trim().replace(/^#+/, "")).filter(Boolean);
 // The words a rule would look for: the store's name (or the description), first two words.
 export function guessKw(t, ci) {

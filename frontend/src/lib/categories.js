@@ -3,7 +3,7 @@
 // or false when nothing changes. Numbers the page shows afterwards (how many moved) go into `out`.
 import { ruleHit, ruleTags, normD, transferIds } from "./activity.js";
 import { RULE_KINDS, MARK_EN, inRules } from "./moneyIn.js";
-import { FIELDS, USUAL, WHERE_EN, isWhere, fieldText, ruleText, ruleWhere } from "./ruleFields.js";
+import { FIELDS, USUAL, WHERE_EN, HOW_EN, isWhere, isHow, fieldText, ruleText, ruleWhere, ruleHow, textMatch } from "./ruleFields.js";
 
 export { ruleTags };
 const CNC = new Intl.Collator(undefined, { sensitivity: "base" });
@@ -115,11 +115,12 @@ export function deleteTag(S, g) {
 // ---- category rules ----
 export const ruleExists = (S, k) => S.rules.some((r) => r.k.toLowerCase() == k.toLowerCase());
 // f: where the rule looks (lib/ruleFields.js); left out when it is the usual place for this kind of rule.
-const own = (f, kind) => (isWhere(f) && f != USUAL[kind] ? { f } : {});
-export function addRule(S, k, c, f) {
+// m: how it compares its text; left out when it is "contains" (as before).
+const own = (f, kind, m) => ({ ...(isWhere(f) && f != USUAL[kind] ? { f } : {}), ...(isHow(m) && m != "in" ? { m } : {}) });
+export function addRule(S, k, c, f, m) {
   k = String(k || "").trim();
   if (!k || ruleExists(S, k)) return false;
-  S.rules.push({ k, c, t: "", ...own(f, "cat") });
+  S.rules.push({ k, c, t: "", ...own(f, "cat", m) });
   return [["Added rule", '"' + k + '" → ' + c]];
 }
 export function deleteRule(S, i) { const r = S.rules.splice(+i, 1)[0]; return r ? [["Deleted rule", '"' + r.k + '" → ' + r.c]] : false; }
@@ -131,7 +132,7 @@ export function setRuleText(S, i, v) {
   return [line];
 }
 // Past transactions still in the old category that the rule's text matches (offered to move after a category change).
-export const ruleMoveCount = (S, k, old, f) => S.tx.filter((x) => !x.virtual && x.c == old && ruleHit(x, k, f)).length;
+export const ruleMoveCount = (S, k, old, f, m) => S.tx.filter((x) => !x.virtual && x.c == old && ruleHit(x, k, f, m)).length;
 export function setRuleCat(S, i, c) {
   const r = S.rules[+i];
   if (!r || r.c == c) return false;
@@ -141,7 +142,7 @@ export function setRuleCat(S, i, c) {
 export function applyRulePast(S, i, old, out = {}) {
   const r = S.rules[+i]; if (!r) return false;
   let n = 0;
-  for (const t of S.tx) if (!t.virtual && t.c == old && ruleHit(t, r.k, r.f)) { t.c = r.c; n++; }
+  for (const t of S.tx) if (!t.virtual && t.c == old && ruleHit(t, r.k, r.f, r.m)) { t.c = r.c; n++; }
   out.n = n; out.c = r.c;
   return [["Updated past transactions", n + ' · "' + r.k + '" → ' + r.c]];
 }
@@ -149,11 +150,11 @@ export const uncategorized = (S) => S.tx.filter((t) => !t.c).length;
 
 // ---- tag rules ----
 // Transactions the rule's text matches that miss at least one of its tags.
-export function tagRuleMatches(S, r) { const kw = r.k.toLowerCase(), tags = ruleTags(r); return S.tx.filter((t) => !t.virtual && ruleHit(t, kw, r.f) && tags.some((g) => !(t.tags || []).includes(g))); }
-export function addTagRule(S, k, tags, f) {
+export function tagRuleMatches(S, r) { const kw = r.k.toLowerCase(), tags = ruleTags(r); return S.tx.filter((t) => !t.virtual && ruleHit(t, kw, r.f, r.m) && tags.some((g) => !(t.tags || []).includes(g))); }
+export function addTagRule(S, k, tags, f, m) {
   k = String(k || "").trim();
   if (!k || !tags.length) return false;
-  const r = { k, t: tags.join(","), ...own(f, "tag") };
+  const r = { k, t: tags.join(","), ...own(f, "tag", m) };
   S.tagRules.push(r);
   return [["Added tag rule", '"' + k + '" → ' + r.t]];
 }
@@ -185,7 +186,7 @@ export function applyTagRulePast(S, i, out = {}) {
   const r = S.tagRules[+i]; if (!r) return false;
   const tags = ruleTags(r), kw = r.k.toLowerCase();
   let n = 0;
-  if (tags.length) for (const t of S.tx) { if (t.virtual || !ruleHit(t, kw, r.f)) continue; t.tags = t.tags || []; let ch = false; for (const g of tags) if (!t.tags.includes(g)) { t.tags.push(g); ch = true; } if (ch) n++; }
+  if (tags.length) for (const t of S.tx) { if (t.virtual || !ruleHit(t, kw, r.f, r.m)) continue; t.tags = t.tags || []; let ch = false; for (const g of tags) if (!t.tags.includes(g)) { t.tags.push(g); ch = true; } if (ch) n++; }
   out.n = n;
   return [["Tagged past transactions", n + ' · "' + r.k + '" → ' + r.t]];
 }
@@ -212,11 +213,11 @@ export function setNameRule(S, i, field, v) {
 export const CARD_NAMES = ["Isracard · ישראכרט", "Visa Cal · כ.א.ל · ויזה כאל", "Max · מקס · מקס איט פי", "American Express · אמריקן אקספרס", "Diners · דיינרס", "Leumi Card · לאומי קארד"];
 // "short" (less than 2 letters) or "dup", or "" when the text can be added
 export const genCheck = (list, v) => { const x = normD(v); return x.length < 2 ? "short" : (list || []).map((r) => normD(ruleText(r))).includes(x) ? "dup" : ""; };
-// A card rule is saved as its text, or { k, f } when it looks somewhere other than the usual place.
-export function addCardRule(S, v, f) {
+// A card rule is saved as its text, or { k, f, m } when it looks somewhere other than the usual place or does not just contain.
+export function addCardRule(S, v, f, m) {
   if (genCheck(S.cardRules, v)) return false;
-  const txt = normD(v), w = own(f, "card");
-  S.cardRules = [...(S.cardRules || []), w.f ? { k: txt, ...w } : txt];
+  const txt = normD(v), w = own(f, "card", m);
+  S.cardRules = [...(S.cardRules || []), w.f || w.m ? { k: txt, ...w } : txt];
   return [["Card payment rule", '"' + txt + '" counts as a card payment']];
 }
 export function deleteCardRule(S, i) { if (!S.cardRules || S.cardRules[+i] == null) return false; const line = ["Removed card payment rule", '"' + ruleText(S.cardRules[+i]) + '"']; S.cardRules.splice(+i, 1); return [line]; }
@@ -225,14 +226,14 @@ export function deleteCardRule(S, i) { if (!S.cardRules || S.cardRules[+i] == nu
 // S.moneyInRules [{ k: text (normD), kind: one of RULE_KINDS }], read through inRules (lib/moneyIn.js).
 export const inRuleCheck = (S, v) => genCheck(inRules(S).map((r) => r.k), v);
 // Money coming in (not a move between your own accounts, xs: transferIds) whose name or payer holds the text (already normD).
-// f: where the rule looks, when the person chose it.
-export const inHit = (x, txt, xs, f) => !x.virtual && x.a > 0 && !xs.has(x.id) && normD(f ? fieldText(x, f) : x.desc + " " + (x.from || "")).includes(txt);
+// f, m: where the rule looks and how it compares, when the person chose them.
+export const inHit = (x, txt, xs, f, m) => !x.virtual && x.a > 0 && !xs.has(x.id) && textMatch(normD(f ? fieldText(x, f) : x.desc + " " + (x.from || "")), txt, m);
 // Adds a rule (it changes no entry: the app reads the rules each time). out.n: how many entries it matches now.
-export function addInRule(S, v, kind, out = {}, f) {
+export function addInRule(S, v, kind, out = {}, f, m) {
   if (!RULE_KINDS.includes(kind) || inRuleCheck(S, v)) return false;
-  const txt = normD(v), xs = transferIds(S), w = own(f, "in");
+  const txt = normD(v), xs = transferIds(S), w = own(f, "in", m);
   S.moneyInRules = [...inRules(S), { k: txt, kind, ...w }];
-  out.n = S.tx.filter((x) => inHit(x, txt, xs, w.f)).length;
+  out.n = S.tx.filter((x) => inHit(x, txt, xs, w.f, w.m)).length;
   return [["Money coming in rule", '"' + txt + '" → ' + MARK_EN[kind]]];
 }
 export function setInRuleKind(S, i, kind) {
@@ -246,25 +247,25 @@ export function deleteInRule(S, i) {
   return [["Removed money coming in rule", '"' + r.k + '" → ' + MARK_EN[r.kind]]];
 }
 
-// ---- where a rule looks (category, tag, card payment and money coming in rules) ----
-// kind: cat, tag, card or in. f: one of whereOptions(kind) (lib/ruleFields.js); the usual place is saved as no choice,
-// so the rule reads exactly what it read before the choice existed.
-export function setRuleWhere(S, kind, i, f) {
-  if (!isWhere(f)) return false;
-  const usual = f == USUAL[kind];
-  let r, k;
+// ---- where a rule looks and how it compares (category, tag, card payment and money coming in rules) ----
+// kind: cat, tag, card or in. key: "f" (where, one of whereOptions(kind) in lib/ruleFields.js) or "m" (how, one of HOWS).
+// The usual place and "contains" are saved as no choice, so the rule reads exactly what it read before the choice existed.
+export function setRuleMatch(S, kind, i, key, v) {
+  if (key == "f" ? !isWhere(v) : key == "m" ? !isHow(v) : true) return false;
+  const usual = key == "f" ? USUAL[kind] : "in", cur = (r) => (key == "f" ? ruleWhere(r, kind) : ruleHow(r));
+  const set = (x) => { const { [key]: _, ...rest } = x; return v == usual ? rest : { ...rest, [key]: v }; };
+  let r;
   if (kind == "cat" || kind == "tag") {
-    r = (kind == "cat" ? S.rules : S.tagRules)[+i]; if (!r || (r.f || USUAL[kind]) == f) return false;
-    if (usual) delete r.f; else r.f = f;
-    k = r.k;
+    const L = kind == "cat" ? S.rules : S.tagRules; r = L[+i]; if (!r || cur(r) == v) return false;
+    L[+i] = set(r);
   } else if (kind == "card") {
-    r = (S.cardRules || [])[+i]; if (r == null || ruleWhere(r, "card") == f) return false;
-    k = ruleText(r);
-    S.cardRules = S.cardRules.map((x, j) => (j == +i ? (usual ? k : { k, f }) : x));
+    r = (S.cardRules || [])[+i]; if (r == null || cur(r) == v) return false;
+    const o = set(typeof r == "object" ? r : { k: r });
+    S.cardRules = S.cardRules.map((x, j) => (j == +i ? (o.f || o.m ? o : o.k) : x));
   } else if (kind == "in") {
-    const L = inRules(S); r = L[+i]; if (!r || ruleWhere(r, "in") == f) return false;
-    k = r.k;
-    S.moneyInRules = L.map((x, j) => { if (j != +i) return x; const { f: _, ...rest } = x; return usual ? rest : { ...rest, f }; });
+    const L = inRules(S); r = L[+i]; if (!r || cur(r) == v) return false;
+    S.moneyInRules = L.map((x, j) => (j == +i ? set(x) : x));
   } else return false;
-  return [["Changed where a rule looks", '"' + k + '" looks in: ' + WHERE_EN[f]]];
+  const k = '"' + ruleText(r) + '"';
+  return [key == "f" ? ["Changed where a rule looks", k + " looks in: " + WHERE_EN[v]] : ["Changed how a rule matches", k + " match: " + HOW_EN[v]]];
 }

@@ -1,19 +1,19 @@
 // Server-side rules that keep the books right after every import: categories, transfers, duplicates, balance gaps.
 import { audit } from "./db.js";
-import { TX_COLS, ruleSees } from "./ruleFields.js";
+import { TX_COLS, ruleMatches } from "./ruleFields.js";
 
 const OWN_FALLBACK = ["Bank Hapoalim", "Wise"];
 
 // 1. Rules: never overwrite a category that is already set.
 export async function applyRules(c) {
-  const rules = (await c.query("SELECT keyword,category,tag,field FROM rules ORDER BY position,id")).rows;
+  const rules = (await c.query("SELECT keyword,category,tag,field,how FROM rules ORDER BY position,id")).rows;
   if (!rules.length) return 0;
   const rows = (await c.query(
     `SELECT t.id,${TX_COLS} FROM transactions t
      WHERE t.category IS NULL AND NOT EXISTS (SELECT 1 FROM transfer_links l WHERE (l.out_id=t.id OR l.in_id=t.id) AND l.status<>'rej')`)).rows;
   let n = 0;
   for (const t of rows) {
-    const r = rules.find((r) => String(ruleSees(t, r.field) || "").toLowerCase().includes(r.keyword.toLowerCase())); // field: where the rule looks
+    const r = rules.find((r) => r.keyword && ruleMatches(t, r)); // field: where the rule looks, how: contains, is exactly…
     if (!r) continue;
     await c.query("UPDATE transactions SET category=$2 WHERE id=$1", [t.id, r.category]);
     for (const tag of String(r.tag || "").split(",").map((x) => x.trim().replace(/^#+/, "")).filter(Boolean)) { // a rule can carry several tags, separated by commas
@@ -29,13 +29,13 @@ export async function applyRules(c) {
 // so a tag you remove by hand is not put back on the next sync.
 export async function applyTagRules(c, ids) {
   if (!ids || !ids.length) return 0;
-  const rules = (await c.query("SELECT keyword,tag,field FROM tag_rules ORDER BY position,id")).rows;
+  const rules = (await c.query("SELECT keyword,tag,field,how FROM tag_rules ORDER BY position,id")).rows;
   if (!rules.length) return 0;
   const rows = (await c.query(`SELECT t.id,${TX_COLS} FROM transactions t WHERE t.id = ANY($1)`, [ids])).rows;
   let n = 0;
   for (const t of rows) {
     const tags = new Set();
-    for (const r of rules) if (r.keyword && String(ruleSees(t, r.field) || "").toLowerCase().includes(r.keyword.toLowerCase())) String(r.tag).split(",").map((x) => x.trim().replace(/^#+/, "")).filter(Boolean).forEach((g) => tags.add(g));
+    for (const r of rules) if (r.keyword && ruleMatches(t, r)) String(r.tag).split(",").map((x) => x.trim().replace(/^#+/, "")).filter(Boolean).forEach((g) => tags.add(g));
     for (const tag of tags) {
       await c.query("INSERT INTO tags (name) VALUES ($1) ON CONFLICT DO NOTHING", [tag]);
       await c.query("INSERT INTO transaction_tags (transaction_id,tag,position) VALUES ($1,$2,99) ON CONFLICT DO NOTHING", [t.id, tag]);

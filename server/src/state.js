@@ -6,10 +6,14 @@ import { addCore } from "./categories.js";
 import { readJars, fillJarsTx, thisMonth } from "./jars.js";
 import { activeCurrencies, configuredCurrencies, rateOn } from "./fx.js";
 import { ilDate } from "./autodetect.js";
-import { isWhere } from "./ruleFields.js";
+import { isWhere, isHow } from "./ruleFields.js";
 
 // Where a rule looks (ruleFields.js); anything unknown is "" (the rule reads what it always read).
 const where = (f) => (isWhere(f) ? f : "");
+// How a rule compares its text (ruleFields.js); "" = contains, as before.
+const how = (m) => (isHow(m) && m !== "in" ? m : "");
+// The where and how a card or money coming in rule keeps (only when not the usual).
+const ruleOpts = (r) => ({ ...(where(r.f) ? { f: where(r.f) } : {}), ...(how(r.m) ? { m: how(r.m) } : {}) });
 
 export const DEFAULT_CFG = {
   jars: 1, bills: 1, price: 1, budget: 1, card: 1, large: 1, xfer: 1, recon: 1, pending: 1, sync: 1, uncat: 1, forecast: 1, docs: 1,
@@ -111,8 +115,8 @@ export async function monthStarts(today = ilDate(new Date())) {
 export async function getState() {
   const [cats, rules, tagRules, txs, tags, docs, xf, budgets, bills, ign, jars, audit, dism, adj, accounts, runs, rev, snaps, gaps] = await Promise.all([
     q("SELECT name,color FROM categories ORDER BY sort"),
-    q("SELECT keyword,category,tag,field FROM rules ORDER BY position,id"),
-    q("SELECT keyword,tag,field FROM tag_rules ORDER BY position,id"),
+    q("SELECT keyword,category,tag,field,how FROM rules ORDER BY position,id"),
+    q("SELECT keyword,tag,field,how FROM tag_rules ORDER BY position,id"),
     q("SELECT id,date,description,from_name,to_name,amount,orig_currency,orig_amount,category,note,dup_ok,pending,source,inst_n,inst_total,jar_id,jar_amount,jar_auto,jar_skip,report_month,details->>'processedDate' AS pdate,(details IS NOT NULL) AS has_det,NULLIF(details->>'memo','') AS memo,NULLIF(details->>'category','') AS bcat,NULLIF(COALESCE(details->>'description',details->'details'->>'description'),'') AS bdesc,(source='wise' AND (details->>'type'='CARD_PAYMENT' OR details->'details'->>'type'='CARD')) AS wcard FROM transactions ORDER BY date DESC, id DESC"),
     q("SELECT transaction_id,tag FROM transaction_tags ORDER BY position"),
     q("SELECT id,transaction_id,filename,(path IS NOT NULL) AS has FROM documents ORDER BY id"),
@@ -144,8 +148,8 @@ export async function getState() {
     v: 4,
     rev: parseInt(rev.rows[0].value, 10),
     cats: Object.fromEntries(cats.rows.map((c) => [c.name, c.color])),
-    rules: rules.rows.map((r) => ({ k: r.keyword, c: r.category, t: r.tag, ...(r.field ? { f: r.field } : {}) })),
-    tagRules: tagRules.rows.map((r) => ({ k: r.keyword, t: r.tag, ...(r.field ? { f: r.field } : {}) })),
+    rules: rules.rows.map((r) => ({ k: r.keyword, c: r.category, t: r.tag, ...(r.field ? { f: r.field } : {}), ...(r.how ? { m: r.how } : {}) })),
+    tagRules: tagRules.rows.map((r) => ({ k: r.keyword, t: r.tag, ...(r.field ? { f: r.field } : {}), ...(r.how ? { m: r.how } : {}) })),
     tx: txs.rows.map((r) => ({
       id: r.id, d: r.date, desc: r.description, from: r.from_name, to: r.to_name, a: r.amount,
       ...(r.orig_currency ? { orig: { cur: r.orig_currency, amt: r.orig_amount } } : {}),
@@ -209,12 +213,12 @@ export async function putState(S) {
     // rules (wholesale, order kept)
     await c.query("DELETE FROM rules");
     for (const [i, r] of (S.rules || []).entries())
-      await c.query("INSERT INTO rules (keyword,category,tag,position,field) VALUES ($1,$2,$3,$4,$5)", [r.k, r.c, r.t || "", i, where(r.f)]);
+      await c.query("INSERT INTO rules (keyword,category,tag,position,field,how) VALUES ($1,$2,$3,$4,$5,$6)", [r.k, r.c, r.t || "", i, where(r.f), how(r.m)]);
 
     // tag rules (wholesale, order kept)
     await c.query("DELETE FROM tag_rules");
     for (const [i, r] of (S.tagRules || []).entries())
-      if (r.k && r.t) await c.query("INSERT INTO tag_rules (keyword,tag,position,field) VALUES ($1,$2,$3,$4)", [r.k, r.t, i, where(r.f)]);
+      if (r.k && r.t) await c.query("INSERT INTO tag_rules (keyword,tag,position,field,how) VALUES ($1,$2,$3,$4,$5)", [r.k, r.t, i, where(r.f), how(r.m)]);
 
     // jars: the balance is only written when the user edited it (or the jar is new); fills are the server's job
     const jids = (S.jars || []).map((j) => j.id);
@@ -294,11 +298,11 @@ export async function putState(S) {
     await put("cfg", S.cfg || {}); await put("ntfy", S.ntfy || ""); await put("jars_total", +S.jarsTotal || 0); await put("jars_buffer", Math.max(0, +S.jarsBuffer || 0)); await put("jars_reserve", Math.max(0, +S.jarsReserve || 0)); await put("nw_pension", !!S.nwPension);
     await put("hidden_merchants", Array.isArray(S.hiddenMerchants) ? S.hiddenMerchants.map(String).slice(0, 500) : []);
     await put("cc_override", S.ccOverride && typeof S.ccOverride === "object" ? S.ccOverride : {});
-    // a card payment rule is its text, or { k, f } when the person chose where it looks
-    await put("card_rules", Array.isArray(S.cardRules) ? S.cardRules.slice(0, 200).map((r) => (r && typeof r === "object" ? (where(r.f) ? { k: String(r.k || ""), f: where(r.f) } : String(r.k || "")) : String(r))) : []);
+    // a card payment rule is its text, or { k, f, m } when the person chose where it looks (f) or how it compares (m)
+    await put("card_rules", Array.isArray(S.cardRules) ? S.cardRules.slice(0, 200).map((r) => (r && typeof r === "object" ? (Object.keys(ruleOpts(r)).length ? { k: String(r.k || ""), ...ruleOpts(r) } : String(r.k || "")) : String(r))) : []);
     await put("salary_rules", Array.isArray(S.salaryRules) ? S.salaryRules.map(String).slice(0, 200) : []);
     // Settings → Money coming in rules: text → kind; an older app that does not know them sends none: then they stay
-    if (Array.isArray(S.moneyInRules)) await put("money_in_rules", S.moneyInRules.filter((r) => r && String(r.k || "").trim() && IN_KINDS.includes(inKind(r.kind))).slice(0, 200).map((r) => ({ k: String(r.k).trim().slice(0, 100), kind: inKind(r.kind), ...(where(r.f) ? { f: where(r.f) } : {}) })));
+    if (Array.isArray(S.moneyInRules)) await put("money_in_rules", S.moneyInRules.filter((r) => r && String(r.k || "").trim() && IN_KINDS.includes(inKind(r.kind))).slice(0, 200).map((r) => ({ k: String(r.k).trim().slice(0, 100), kind: inKind(r.kind), ...ruleOpts(r) })));
     await put("tx_ignore", S.txIgnore && typeof S.txIgnore === "object" ? S.txIgnore : {});
     // what a money coming in is, when the person chose it (id → income, salary or back);
     // an older app that does not know this sends none: then the saved choices stay as they are

@@ -4,7 +4,7 @@
 // person's choice or rule. Money moved between your own accounts (transfers) is not here: it is not counted at all.
 // Nothing here changes the data or the screen.
 import { transferIds, normD } from "./activity.js";
-import { fieldText, ruleWhere } from "./ruleFields.js";
+import { fieldText, ruleWhere, ruleHow, textMatch } from "./ruleFields.js";
 
 export const KINDS = ["income", "back"];
 // What a money coming in rule can set (Settings → Money coming in).
@@ -28,10 +28,10 @@ const kindOf = (v) => (v == "salary" ? { kind: "income", sub: "salary" } : v == 
 export function moneyIn(S) {
   const tx = S?.tx || [], S1 = { ...S, tx, accounts: S?.accounts || [] }, xs = transferIds(S1);
   const acc = new Map(S1.accounts.map((a) => [a.n, a.kind]));
-  const rules = inRules(S1).map((r) => ({ k: normD(r?.k), raw: String(r?.k || "").trim(), o: kindOf(r.kind), f: ruleWhere(r, "in") })).filter((r) => r.k.length > 0);
+  const rules = inRules(S1).map((r) => ({ k: normD(r?.k), raw: String(r?.k || "").trim(), o: kindOf(r.kind), f: ruleWhere(r, "in"), m: ruleHow(r) })).filter((r) => r.k.length > 0);
   // the bank's note is read too: some banks put the real payer there (the name says only "זיכוי", the note "המבצע: <payer>")
   // each rule reads the part the person chose (with no choice: the name, the payer and the bank's note)
-  const ruleOf = (t) => { const h = {}; return rules.find((r) => (h[r.f] ??= normD(fieldText(t, r.f))).includes(r.k)); };
+  const ruleOf = (t) => { const h = {}; return rules.find((r) => textMatch(h[r.f] ??= normD(fieldText(t, r.f)), r.k, r.m)); };
   const out = new Map();
   for (const t of tx) {
     if (!(t.a > 0) || t.virtual || xs.has(t.id)) continue;
