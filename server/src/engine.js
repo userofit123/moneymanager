@@ -108,14 +108,34 @@ export async function resetGapBase(c, accountId) {
 
 // What the newest balance leaves unexplained, counting every payment added after the starting point. A charge the bank still lists as pending is
 // already in a card balance, so the answer that fits better (with or without pending ones) is the one that counts.
-async function leftOver(c, account, base, lastBalance) {
-  const sum = async (pending) => (await c.query(
-    `SELECT COALESCE(sum(CASE WHEN orig_amount IS NULL THEN amount ELSE abs(orig_amount) * sign(amount) END - COALESCE(gap_explained,0)),0)::float AS s FROM transactions
+// timing: when it does not add up, true if leaving out one or a few new charges dated near the start or the newest reading makes it add up
+// (the card's list and the card's total do not always show a new charge at the same time).
+async function leftOver(c, account, base, last) {
+  const rows = async (pending) => (await c.query(
+    `SELECT (CASE WHEN orig_amount IS NULL THEN amount ELSE abs(orig_amount) * sign(amount) END - COALESCE(gap_explained,0))::float AS a, date::text AS d FROM transactions
      WHERE ($4 OR NOT pending) AND (created_at > $2 OR id > COALESCE($5::bigint, 9223372036854775807)) AND date >= ($2::timestamptz - interval '${OLD_DAYS} days')::date
        AND ((amount<0 AND from_name=$1) OR (amount>0 AND to_name=$1)) AND COALESCE(orig_currency,'ILS')=$3`,
-    [account.name, base.upto, account.currency, pending, base.maxId ?? null])).rows[0].s;
-  const a = computeGap(base.balance, lastBalance, await sum(false)), b = computeGap(base.balance, lastBalance, await sum(true));
-  return Math.abs(a) <= Math.abs(b) ? a : b;
+    [account.name, base.upto, account.currency, pending, base.maxId ?? null])).rows;
+  const near = (d, at) => Math.abs(new Date(d + "T12:00:00Z") - new Date(at)) <= TIMING_DAYS * 864e5;
+  let U = null, timing = false;
+  for (const pending of [false, true]) {
+    const R = await rows(pending), u = computeGap(base.balance, last.balance, R.reduce((x, r) => x + r.a, 0));
+    if (U === null || Math.abs(u) < Math.abs(U)) U = u;
+    if (Math.abs(u) >= GAP_MIN && !timing) timing = leaveOutFits(R.filter((r) => near(r.d, base.from || base.upto) || near(r.d, last.at)).map((r) => r.a).slice(0, 40), -u);
+  }
+  return { U, timing: Math.abs(U) >= GAP_MIN && timing };
+}
+// A charge dated this close to a balance reading may be in the card's total before (or after) the card lists it.
+const TIMING_DAYS = 2;
+// Whether one amount, all of them or a group of them adds up to need (within rounding). The work is capped so a long list stays quick.
+function leaveOutFits(L, need) {
+  const fits = (v) => Math.abs(v - need) < GAP_MIN;
+  if (L.some(fits)) return true;
+  if (L.length > 1 && fits(L.reduce((x, v) => x + v, 0))) return true;
+  let budget = 200000;
+  const go = (k, from, left) => { if (budget-- <= 0) return false; if (k === 0) return Math.abs(left) < GAP_MIN; for (let i = from; i <= L.length - k; i++) if (go(k - 1, i + 1, left - L[i])) return true; return false; };
+  for (let k = 2; k < L.length; k++) if (go(k, 0, need)) return true;
+  return false;
 }
 
 // Bring the open gaps of an account in line with the payments now in the app. Returns the id of a gap that was just opened, or null.
@@ -133,7 +153,7 @@ export async function settleGaps(c, accountName, currency, prev = null) {
   }
   if (!base && prev) base = { balance: +prev.balance, upto: prev.taken_at, from: prev.taken_at };
   if (!base) { await putBase(c, account.id, last.balance, await dbNow(c), last.taken_at); return null; }
-  const U = await leftOver(c, account, base, last.balance);
+  const { U, timing } = await leftOver(c, account, base, { balance: last.balance, at: last.taken_at });
   if (Math.abs(U) < GAP_MIN) { // the books add up: everything open is explained, and counting starts again from here
     if (open.length) {
       await c.query("UPDATE balance_gaps SET remaining=0, status='cleared' WHERE account_id=$1 AND status='open'", [account.id]);
@@ -143,6 +163,13 @@ export async function settleGaps(c, accountName, currency, prev = null) {
     return null;
   }
   await putBase(c, account.id, base.balance, base.upto, base.from || base.upto, base.maxId ?? null);
+  if (timing) { // only a charge listed before (or after) the card's total counts it: no gap, and the starting point stays so the charge still counts later
+    if (open.length) {
+      await c.query("UPDATE balance_gaps SET remaining=0, status='cleared' WHERE account_id=$1 AND status='open'", [account.id]);
+      await audit(c, "Gaps cleared", `${accountName} ${currency}: the balance adds up over the whole period, ${open.length} open gap${open.length > 1 ? "s" : ""} closed`);
+    }
+    return null;
+  }
   let opened = null;
   if (open.length) { // one gap per account: it grows or shrinks as the payments and balances come in
     await c.query("UPDATE balance_gaps SET amount=$2, remaining=$2, window_to=$3 WHERE id=$1", [open[0].id, U, last.taken_at]);

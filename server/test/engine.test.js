@@ -570,3 +570,41 @@ test("the same payments and balances give the same gaps whether the copy synced 
   assert.deepEqual(await open(d2.a.id), []);
   assert.deepEqual(await open(w2.a.id), []);
 });
+
+test("a charge already in the card's total but listed only later does not open a balance gap", async () => {
+  const { card } = await cardAndBank();
+  const acc = { name: "Card", currency: "ILS", source: "max" };
+  await tx((c) => recordSnapshot(c, card, -5210.4, new Date("2026-10-29T04:05:00Z"))); // the total already counts a 250 charge the card has not listed
+  await ingest(acc, [
+    { date: "2026-10-29", description: "Shop A", amount: -250, currency: "ILS", externalId: "c:t1" },
+    { date: "2026-10-30", description: "Shop B", amount: -312.75, currency: "ILS", pending: true, externalId: "c:t2" },
+    { date: "2026-10-30", description: "Shop C", amount: -187.55, currency: "ILS", pending: true, externalId: "c:t3" },
+  ]);
+  await tx((c) => recordSnapshot(c, card, -5960.7, new Date("2026-10-30T11:10:00Z")));
+  assert.deepEqual(await openGaps(), []);
+});
+
+test("a charge listed before the card's total counts it opens no gap, and the books add up once the total catches up", async () => {
+  const { card } = await cardAndBank();
+  const acc = { name: "Card", currency: "ILS", source: "max" };
+  await tx((c) => recordSnapshot(c, card, -500, new Date("2026-10-20T08:00:00Z")));
+  await ingest(acc, [{ date: "2026-10-20", description: "Shop A", amount: -88.4, currency: "ILS", externalId: "c:u1" }]);
+  await tx((c) => recordSnapshot(c, card, -500, new Date("2026-10-20T20:00:00Z"))); // listed, not in the total yet
+  assert.deepEqual(await openGaps(), []);
+  await tx((c) => recordSnapshot(c, card, -588.4, new Date("2026-10-21T08:00:00Z"))); // the total catches up
+  assert.deepEqual(await openGaps(), []);
+  const base = (await q("SELECT value FROM settings WHERE key=$1", ["gapbase:" + card.id])).rows[0].value;
+  assert.equal(base.balance, -588.4); // the books add up: counting starts again from here
+});
+
+test("a change that no new charge or group of charges explains still opens a balance gap", async () => {
+  const { card } = await cardAndBank();
+  const acc = { name: "Card", currency: "ILS", source: "max" };
+  await tx((c) => recordSnapshot(c, card, -1000, new Date("2026-10-20T08:00:00Z")));
+  await ingest(acc, [
+    { date: "2026-10-20", description: "Shop A", amount: -120, currency: "ILS", externalId: "c:v1" },
+    { date: "2026-10-21", description: "Shop B", amount: -45.5, currency: "ILS", externalId: "c:v2" },
+  ]);
+  await tx((c) => recordSnapshot(c, card, -1065.5, new Date("2026-10-21T08:00:00Z"))); // 100 less than the charges say
+  assert.deepEqual(await openGaps(), [100]);
+});
