@@ -205,3 +205,32 @@ html.mob .sfoot {
   font-weight: 600;
   line-height: 1.5;
 }
+
+/* SlideOpen: a part that slides open and shut (height and fade) */
+.slo {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows .25s var(--ease), opacity .2s var(--ease);
+}
+
+.slo.on {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.slo > .sloi {
+  min-block-size: 0;
+  min-inline-size: 0;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slo {
+    transition: none;
+  }
+}
+
+.slo.done > .sloi {
+  overflow: visible;
+}

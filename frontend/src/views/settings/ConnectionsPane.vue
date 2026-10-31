@@ -10,15 +10,18 @@ import BaseSheet from "../../components/BaseSheet.vue";
 import ConnCard from "./ConnCard.vue";
 import SetSection from "./SetSection.vue";
 import SetRow from "./SetRow.vue";
+import SlideOpen from "../../components/SlideOpen.vue";
+import { openSettingsTab } from "./tab.js";
 import { SI } from "./icons.js";
-import { CONN, adding, avail, cards, formOpen, nConnected, nBad, provName, companyOf, labelOf, loadConn, connStartHere } from "./conn.js";
+import { adding, avail, cards, formOpen, nConnected, nBad, companyOf, labelOf, loadConn, connStartHere } from "./conn.js";
 
 const { t } = useI18n();
 const tk = (k, a) => t("settings.conn." + k, a || {});
 onMounted(() => { data.start(); loadConn(); });
 const KG = [["bank", "gBank"], ["card", "gCard"], ["wallet", "gWallet"]];
 const pick = ref("");
-const used = () => CONN.value.filter((c) => c.configured).map((c) => provName(c));
+// the three safety facts: text and icon
+const NOTES = [["note1", "lock"], ["note2", "eye"], ["note3", "shield"]];
 
 function add() {
   const v = pick.value; if (!v) return;
@@ -42,28 +45,30 @@ const onShot = (src) => { testOpen.value = false; shot.value = { src, label: lab
         <span v-else-if="nConnected" class="bd dn">{{ tk("allFine") }}</span>
         <button type="button" class="btn s" data-a="connForm" :aria-expanded="formOpen" @click="formOpen = !formOpen">{{ formOpen ? tk("close") : tk("addBtn") }}</button>
       </template>
-      <template v-if="formOpen || !cards.length" #default>
-      <div v-if="formOpen" class="cadd">
-        <SetRow stack :title="tk('pickT')" :desc="tk('help')">
-          <template v-if="avail.length">
-            <select id="connPick" v-model="pick" :aria-label="tk('pickAria')">
-              <option value="">{{ tk("pickPh") }}</option>
-              <template v-for="[k, g] in KG" :key="k"><optgroup v-if="avail.some((c) => c.kind == k)" :label="tk(g)"><option v-for="c in avail.filter((x) => x.kind == k)" :key="c.source" :value="c.source">{{ companyOf(c) }}{{ c.configured || adding.includes(c.source) ? tk("another") : "" }}</option></optgroup></template>
-            </select>
-            <button type="button" class="btn s" data-a="connAdd" @click="add">{{ tk("add") }}</button>
-          </template>
-          <span v-else class="sm">{{ tk("nothingToAdd") }}</span>
-        </SetRow>
-        <div v-if="used().length" class="sm cused">{{ tk("connectedLbl") }} <b>{{ used().join(", ") }}</b>.<span>{{ tk("twoLogins") }}</span></div>
-        <div class="cnote"><span><svg viewBox="0 0 24 24" v-html="SI.lock" />{{ tk("note1") }}</span><span><svg viewBox="0 0 24 24" v-html="SI.eye" />{{ tk("note2") }}</span><span><svg viewBox="0 0 24 24" v-html="SI.shield" />{{ tk("note3") }}</span></div>
-        <div class="sm cused">{{ tk("missing") }}</div>
-      </div>
-      <div v-else class="cempty">
-        <b>{{ tk("emptyT") }}</b>
-        <div class="sm">{{ tk("emptyD") }}</div>
-        <div class="cnote"><span><svg viewBox="0 0 24 24" v-html="SI.lock" />{{ tk("note1") }}</span><span><svg viewBox="0 0 24 24" v-html="SI.eye" />{{ tk("note2") }}</span><span><svg viewBox="0 0 24 24" v-html="SI.shield" />{{ tk("note3") }}</span></div>
-      </div>
-      </template>
+      <SlideOpen :open="formOpen || !cards.length">
+        <div v-if="formOpen || cards.length" class="cadd">
+          <SetRow stack :title="tk('pickT')" :desc="tk('help')">
+            <template v-if="avail.length">
+              <select id="connPick" v-model="pick" :aria-label="tk('pickAria')">
+                <option value="">{{ tk("pickPh") }}</option>
+                <template v-for="[k, g] in KG" :key="k"><optgroup v-if="avail.some((c) => c.kind == k)" :label="tk(g)"><option v-for="c in avail.filter((x) => x.kind == k)" :key="c.source" :value="c.source">{{ companyOf(c) }}{{ c.configured || adding.includes(c.source) ? tk("another") : "" }}</option></optgroup></template>
+              </select>
+              <button type="button" class="btn s" data-a="connAdd" @click="add">{{ tk("add") }}</button>
+            </template>
+            <span v-else class="sm">{{ tk("nothingToAdd") }}</span>
+          </SetRow>
+          <div v-if="cards.length" class="sm cused">{{ tk("twoLogins") }}</div>
+          <ul class="cnote"><li v-for="n in NOTES" :key="n[0]"><svg viewBox="0 0 24 24" v-html="SI[n[1]]" />{{ tk(n[0]) }}</li></ul>
+          <SetRow cls="cmiss" :title="tk('missingT')" :desc="tk('missingD')">
+            <button type="button" class="btn o s" data-a="connImport" @click="openSettingsTab('data')">{{ tk("missingBtn") }}</button>
+          </SetRow>
+        </div>
+        <div v-else class="cempty">
+          <b>{{ tk("emptyT") }}</b>
+          <div class="sm">{{ tk("emptyD") }}</div>
+          <ul class="cnote"><li v-for="n in NOTES" :key="n[0]"><svg viewBox="0 0 24 24" v-html="SI[n[1]]" />{{ tk(n[0]) }}</li></ul>
+        </div>
+      </SlideOpen>
       <template #foot>{{ tk("otpNote") }}</template>
     </SetSection>
     <ConnCard v-for="c in cards" :key="c.source" :c="c" @test="onTest" @shot="onShot" />

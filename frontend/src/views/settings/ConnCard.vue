@@ -1,6 +1,7 @@
 <script setup>
 // One connection in Settings → Connections:
-// its state, what was found, the login form (open while it is not working, or when "Edit connection" is pressed) and "Import more history".
+// its state, what was found, the login form (open while it is not working, or when "Edit connection" is pressed),
+// and Sync with how far back it reads.
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
@@ -9,7 +10,7 @@ import { fmtWhen, friendlyErr, srcName } from "../../core/sources.js";
 import { f0 } from "../../format.js";
 import JobButton from "../../components/JobButton.vue";
 import SetHead from "./SetHead.vue";
-import SetRow from "./SetRow.vue";
+import SlideOpen from "../../components/SlideOpen.vue";
 import { nameOf, fieldName, stateName, TONE, BAD, openCards, typed, connSave, connCancel, connTest, connUnlock, connDel, connSync, connHist, assistStart } from "./conn.js";
 
 const props = defineProps({ c: { type: Object, required: true } });
@@ -29,7 +30,9 @@ const hint = computed(() => {
 // the typed values of this card (kept while the page is open)
 if (!typed[props.c.source]) typed[props.c.source] = { nick: props.c.nickname || "", f: {} };
 const v = computed(() => typed[src.value] || { nick: "", f: {} });
-const days = ref("1825");
+// how far back Sync reads: "" is the usual sync; a number of days reads older history once, then it goes back to usual
+const days = ref("");
+const sync = () => { const d = +days.value; return d ? connHist(src.value, d).then(() => { days.value = ""; }) : connSync(src.value); };
 const toggle = () => { if (openCards.has(src.value)) openCards.delete(src.value); else openCards.add(src.value); };
 // while a sync or test runs: the badge and the note under the card follow it
 const me = computed(() => !!job.value && (job.value.source == src.value || job.value.source == "all"));
@@ -45,7 +48,9 @@ const note = computed(() => {
     <SetHead :icon="c.kind == 'card' ? 'card' : 'bank'" :title="nameOf(c)" :desc="hint">
       <span class="bd" :class="me ? 'fl' : TONE[c.status.tone]" :data-badge="c.source"><template v-if="me"><i class="spinner" />{{ word(job.kind) }}…</template><template v-else>{{ stateName(c.status) }}</template></span>
       <span v-if="c.configured" class="cbtns">
-        <JobButton class="btn s" kind="sync" :source="c.source" data-a="connSync" :data-s="c.source" @click="connSync(c.source)">{{ tk("sync") }}</JobButton>
+        <select v-model="days" :data-hist="c.source" :aria-label="tk('histAria')"><option value="">{{ tk("hUsual") }}</option><option value="365">{{ tk("h365") }}</option><option value="730">{{ tk("h730") }}</option><option value="1825">{{ tk("h1825") }}</option></select>
+        <span class="chtip" :data-tip="tk('histTip')" />
+        <JobButton class="btn s" kind="sync" :source="c.source" data-a="connSync" :data-s="c.source" @click="sync">{{ tk("sync") }}</JobButton>
         <button v-if="BAD.includes(c.status.key) && c.provider != 'wise'" type="button" class="btn o s" data-a="connShot" :data-s="c.source" :data-tip="tk('shotTip')" @click="emit('shot', c.source)">{{ tk("shot") }}</button>
         <button v-if="ok" type="button" class="btn o s" data-a="connEdit" :data-s="c.source" :aria-expanded="open" @click="toggle">{{ open ? tk("hide") : tk("edit") }}</button>
       </span>
@@ -58,26 +63,22 @@ const note = computed(() => {
         <div class="cdt"><span>{{ tk("lFound") }}</span><b><span v-if="accs.length" class="accs"><span v-for="a in accs" :key="a.n">{{ a.n }}<br><span class="sm num">{{ a.cur == "ILS" ? "₪" : a.cur + " " }}{{ f0(a.v) }}</span></span></span><template v-else>{{ tk("noneYet") }}</template></b></div>
       </div>
     </div>
-    <div v-if="open" class="ssb p cform">
-      <div class="jobnote" :class="{ act: me }" :data-src="c.source">{{ note }}</div>
-      <form autocomplete="off" @submit.prevent>
-        <div class="fld"><label>{{ c.extra ? tk("nickReq") : tk("nickOpt") }}</label><input v-model="v.nick" type="text" autocomplete="off" maxlength="30" :data-cn="c.source" :placeholder="tk('nickPh')"></div>
-        <div v-for="f in c.fields" :key="f.k" class="fld"><label>{{ fieldName(f) }}</label><input v-model="v.f[f.k]" type="password" autocomplete="off" :data-cf="c.source + ':' + f.k" :placeholder="c.configured ? tk('savedPh') : ''"></div>
-      </form>
-      <div class="cact">
-        <button type="button" class="btn s" data-a="connSave" :data-s="c.source" @click="connSave(c.source)">{{ tk("save") }}</button>
-        <button v-if="!c.configured" type="button" class="btn o s" data-a="connCancel" :data-s="c.source" @click="connCancel(c.source)">{{ tk("cancel") }}</button>
-        <JobButton v-if="c.configured && c.provider != 'wise'" :class="['btn', c.status.key == 'otp' ? '' : 'o', 's']" kind="assist" :source="c.source" data-a="connAssist" :data-s="c.source" @click="assistStart(c.source)">{{ tk("verify") }}</JobButton>
-        <JobButton v-if="c.configured" class="btn o s" kind="test" :source="c.source" data-a="connTest" :data-s="c.source" @click="connTest(c.source).then((r) => r && emit('test', c.source, r))">{{ tk("test") }}</JobButton>
-        <button v-if="c.locked" type="button" class="btn o s" data-a="connUnlock" :data-s="c.source" @click="connUnlock(c.source)">{{ tk("unlock") }}</button>
-        <button v-if="c.configured" type="button" class="btn r s cdel" data-a="connDel" :data-s="c.source" @click="connDel(c.source)">{{ tk("remove") }}</button>
+    <SlideOpen :open="open">
+      <div class="ssb p cform">
+        <div class="jobnote" :class="{ act: me }" :data-src="c.source">{{ note }}</div>
+        <form autocomplete="off" @submit.prevent>
+          <div class="fld"><label>{{ c.extra ? tk("nickReq") : tk("nickOpt") }}</label><input v-model="v.nick" type="text" autocomplete="off" maxlength="30" :data-cn="c.source" :placeholder="tk('nickPh')"></div>
+          <div v-for="f in c.fields" :key="f.k" class="fld"><label>{{ fieldName(f) }}</label><input v-model="v.f[f.k]" type="password" autocomplete="off" :data-cf="c.source + ':' + f.k" :placeholder="c.configured ? tk('savedPh') : ''"></div>
+        </form>
+        <div class="cact">
+          <button type="button" class="btn s" data-a="connSave" :data-s="c.source" @click="connSave(c.source)">{{ tk("save") }}</button>
+          <button v-if="!c.configured" type="button" class="btn o s" data-a="connCancel" :data-s="c.source" @click="connCancel(c.source)">{{ tk("cancel") }}</button>
+          <JobButton v-if="c.configured && c.provider != 'wise'" :class="['btn', c.status.key == 'otp' ? '' : 'o', 's']" kind="assist" :source="c.source" data-a="connAssist" :data-s="c.source" @click="assistStart(c.source)">{{ tk("verify") }}</JobButton>
+          <JobButton v-if="c.configured" class="btn o s" kind="test" :source="c.source" data-a="connTest" :data-s="c.source" @click="connTest(c.source).then((r) => r && emit('test', c.source, r))">{{ tk("test") }}</JobButton>
+          <button v-if="c.locked" type="button" class="btn o s" data-a="connUnlock" :data-s="c.source" @click="connUnlock(c.source)">{{ tk("unlock") }}</button>
+          <button v-if="c.configured" type="button" class="btn r s cdel" data-a="connDel" :data-s="c.source" @click="connDel(c.source)">{{ tk("remove") }}</button>
+        </div>
       </div>
-    </div>
-    <div v-if="c.configured" class="ssb chist">
-      <SetRow :title="tk('histT')" :desc="tk('histD')">
-        <select v-model="days" :data-hist="c.source" :aria-label="tk('histAria')"><option value="365">{{ tk("h365") }}</option><option value="730">{{ tk("h730") }}</option><option value="1825">{{ tk("h1825") }}</option></select>
-        <JobButton class="btn o s" kind="sync" :source="c.source" data-a="connHist" :data-s="c.source" @click="connHist(c.source, +days)">{{ tk("histBtn") }}</JobButton>
-      </SetRow>
-    </div>
+    </SlideOpen>
   </section>
 </template>

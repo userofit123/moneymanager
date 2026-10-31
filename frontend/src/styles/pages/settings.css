@@ -369,15 +369,19 @@ html.mob .setnav button {
   border-radius: 99px;
 }
 
-.cnote span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+/* Connections: the three safety facts, one per line with its icon (side by side when there is room) */
+.cnote li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.4;
 }
 
 .cnote svg {
-  width: 15px;
-  height: 15px;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
   fill: none;
   stroke: var(--acc);
   stroke-width: 1.9;
@@ -648,9 +652,19 @@ html.mob .rladd > .btn {
   flex: 1 1 180px;
 }
 
+/* the add form and the empty state slide open inside the card's body, so they carry its padding */
+#setConn > .ss:first-child > .ssb {
+  padding: 0;
+}
+
 .cadd,
 .cempty {
-  padding-bottom: 4px;
+  padding: 6px 20px 18px;
+}
+
+html.mob .cadd,
+html.mob .cempty {
+  padding: 4px 16px 16px;
 }
 
 .cadd .sr.stk .src > select {
@@ -659,12 +673,19 @@ html.mob .rladd > .btn {
 }
 
 .cused {
-  margin-top: 12px;
+  margin-top: -4px;
+  margin-bottom: 4px;
   line-height: 1.5;
 }
 
 .cempty {
-  padding-top: 16px;
+  padding-top: 22px;
+}
+
+/* "Bank not in the list?" with its Import a file button */
+.sr.cmiss {
+  margin-top: 16px;
+  padding-bottom: 0;
 }
 
 .cempty > b {
@@ -685,6 +706,7 @@ html.mob .rladd > .btn {
 .cbtns {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
 }
 
@@ -698,15 +720,30 @@ html.mob .rladd > .btn {
   margin-inline-start: auto;
 }
 
-.chist {
-  border-top: 1px solid var(--ol);
-  padding-top: 0;
-  padding-bottom: 0;
+/* how far back Sync reads: a small drop-down beside Sync, the same height as the buttons */
+.cbtns select {
+  min-height: 32px;
+  padding-block: 5px;
+  padding-inline-start: 12px;
+  font-size: 12px;
+  border-radius: 99px;
+  background-position-x: right 10px; /* fixed side: the arrow, flipped for Hebrew below */
 }
 
-.chist .sr .src select {
-  min-height: 36px;
-  padding-block: 6px;
+html.he .cbtns select {
+  background-position-x: left 10px; /* fixed side */
+}
+
+/* the (i) that explains the drop-down sits right after it */
+.cbtns .chtip {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-start: -4px;
+}
+
+/* Phone: Sync and its drop-down stay clear of the round buttons at the end of the screen */
+html.mob #setConn .cbtns {
+  margin-inline-end: 40px;
 }
 
 /* Connections: the test and "where it stopped" windows */
@@ -784,7 +821,7 @@ html.mob .rladd > .btn {
   margin-inline-start: 6px;
 }
 
-.ccard .ssb.p + .cform {
+.ccard .ssb.p + .slo .cform {
   padding-top: 0;
 }
 
