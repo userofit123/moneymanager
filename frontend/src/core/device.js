@@ -18,4 +18,7 @@ export const device = {
   phone: /Android|iPhone|iPad|iPod/i.test(ua),
   windows: /Windows/i.test(ua),
   linux: /Linux/i.test(ua) && !/Android/i.test(ua),
+  // an iPad asks for the desktop site and says "Macintosh": its touch screen tells it apart from a Mac
+  ios: /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && typeof navigator !== "undefined" && navigator.maxTouchPoints > 1),
+  mac: /Macintosh/i.test(ua) && !(typeof navigator !== "undefined" && navigator.maxTouchPoints > 1),
 };

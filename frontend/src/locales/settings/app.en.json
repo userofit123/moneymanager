@@ -26,16 +26,12 @@
   "seeChanged": "See what changed",
   "auto": "Update automatically",
   "autoD": "Download and install new versions by itself. It installs the next time you close the app.",
-  "getT": "Get the apps",
-  "getD": "Money Manager also comes as an app for your phone and your computer.",
   "androidT": "Android app",
   "androidD": "An app for your Android phone, with a fingerprint lock and alerts as phone notifications.",
   "androidBtn": "Download",
   "instT": "Install on this device",
   "instD": "Optional. Gives the app its own icon and window, and it opens even without a connection.",
-  "install": "Install",
   "instHint": "Install it for a full-screen app icon on this device.",
-  "instHow": "Android or desktop Chrome: browser menu → Install app. iPhone: Share → Add to Home Screen.",
   "installBtn": "Install app",
   "deskT": "Desktop app",
   "deskD": "A Windows or Linux app with its own private database, or a window onto your own server. Free, from GitHub.",
@@ -51,5 +47,30 @@
   "appGetD": "Download the newest file from GitHub and open it to update. Your server and your data are not touched.",
   "appGetBtn": "Open downloads",
   "srvVerT": "Your server's version",
-  "updT": "New versions"
+  "updT": "New versions",
+  "hereD": "This device: {d}. Installing is optional: the app gets its own icon and window, and opens even without a connection.",
+  "os": {
+    "win": "Windows computer",
+    "mac": "Mac",
+    "linux": "Linux computer",
+    "android": "Android phone or tablet",
+    "ios": "iPhone or iPad"
+  },
+  "doneT": "Installed",
+  "doneD": "The app is already installed on this device.",
+  "browserT": "Install from the browser",
+  "how": {
+    "win": "In Chrome or Edge: open the browser menu, then Install app.",
+    "mac": "In Safari: File, then Add to Dock. In Chrome: the browser menu, then Install app.",
+    "linux": "In Chrome or Edge: open the browser menu, then Install app.",
+    "android": "In Chrome: open the browser menu, then Add to home screen.",
+    "ios": "In Safari: tap Share, then Add to Home Screen."
+  },
+  "get": {
+    "win": "Or download the Windows app.",
+    "linux": "Or download the Linux app.",
+    "android": "Or download the Android app."
+  },
+  "otherT": "Other devices",
+  "otherD": "The app works on these too. Open this same address on the device, then follow the steps."
 }

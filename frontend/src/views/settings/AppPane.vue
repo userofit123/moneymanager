@@ -16,21 +16,26 @@ const D = typeof window !== "undefined" ? window.desktop : null, desk = !!D;
 const standalone = typeof matchMedia !== "undefined" && matchMedia("(display-mode: standalone)").matches;
 const MM = typeof window !== "undefined" ? window.mmApp : null; // the phone app: its own version, and where to get a newer one
 const showGet = device.inBrowser; // a browser tab or the installed web app: it can offer the other apps
-const showInstall = showGet && !standalone; // "install this app" only from a browser tab
-const showAndroid = showGet && device.android;
 const RELEASES = "https://github.com/userofit123/moneymanager/releases/latest";
 const newer = (a, b) => { const x = String(a).split(".").map(Number), y = String(b).split(".").map(Number); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); return false; };
 const appNewer = computed(() => !!(MM && UP.latest && newer(UP.latest, String(MM.version).split("-")[0])));
-// The desktop apps are on GitHub: the files for this computer first, then the page with all of them
-const REPO = "https://github.com/userofit123/moneymanager/releases", ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
-const phone = /Android|iPhone|iPad|iPod/i.test(ua), win = /Windows/i.test(ua), linux = /Linux/i.test(ua) && !phone;
-const downloads = computed(() => {
-  const x = UP.latest, base = REPO + "/download/v" + x + "/", all = { k: "deskAll", href: REPO + "/latest", main: false };
+// Install: the options for this device first, then the other devices the app works on.
+// win, mac, linux, android, ios: each has its way to install from the browser, and some have an app to download from GitHub.
+const REPO = "https://github.com/userofit123/moneymanager/releases";
+const OSES = ["win", "mac", "linux", "android", "ios"];
+const here = device.ios ? "ios" : device.android ? "android" : device.windows ? "win" : device.mac ? "mac" : device.linux ? "linux" : "";
+const others = OSES.filter((o) => o !== here);
+// The files on GitHub for one kind of device (the first one is the main button)
+function files(os) {
+  const x = UP.latest, base = REPO + "/download/v" + x + "/";
+  if (os == "android") return [{ k: "androidBtn", href: RELEASES, main: true }];
+  if (os != "win" && os != "linux") return [];
   if (!x) return [{ k: "deskAll", href: REPO + "/latest", main: true }];
-  if (win) return [{ k: "deskWin", href: base + "Money-Manager-Setup-" + x + ".exe", main: true }, all];
-  if (linux) return [{ k: "deskRpm", href: base + "Money-Manager-" + x + "-linux-x86_64.rpm", main: true }, { k: "deskDeb", href: base + "Money-Manager-" + x + "-linux-amd64.deb", main: false }, { k: "deskApp", href: base + "Money-Manager-" + x + "-linux-x86_64.AppImage", main: false }, all];
-  return [{ k: "deskAll", href: REPO + "/latest", main: true }];
-});
+  if (os == "win") return [{ k: "deskWin", href: base + "Money-Manager-Setup-" + x + ".exe", main: true }];
+  return [{ k: "deskRpm", href: base + "Money-Manager-" + x + "-linux-x86_64.rpm", main: true }, { k: "deskDeb", href: base + "Money-Manager-" + x + "-linux-amd64.deb", main: false }, { k: "deskApp", href: base + "Money-Manager-" + x + "-linux-x86_64.AppImage", main: false }];
+}
+// this computer's desktop app files, then the page with all of them
+const hereFiles = computed(() => { const l = files(here); return here == "win" || here == "linux" ? (UP.latest ? [...l, { k: "deskAll", href: REPO + "/latest", main: false }] : l) : []; });
 // the update states that have a line of text under "New versions"
 const STATES = ["uptodate", "checking", "available", "downloading", "installing", "ready", "error", "dev"];
 const v = () => (UP.latest ? "⁦" + UP.latest + "⁩" : "");
@@ -76,12 +81,20 @@ function setAuto(on) { if (!D) return; UP.auto = on; D.setAuto(on); }
       <SetRow v-if="desk && UP.status != 'dev' && !UP.manual" toggle data-upd="auto" :title="tk('auto')" :desc="tk('autoD')" :model-value="UP.auto" @update:model-value="setAuto" />
       <template v-if="!desk && UP.status == 'available'" #foot>{{ tk("serverHow1") }} <b>Update</b> {{ tk("or") }} <b>Pull and redeploy</b> {{ tk("serverHow2") }} <code dir="ltr">docker compose pull</code> <code dir="ltr">docker compose up -d</code>. {{ tk("serverHow3") }}</template>
     </SetSection>
-    <SetSection v-if="showGet" id="instCard" icon="install" :title="showInstall ? tk('instT') : tk('getT')" :desc="showInstall ? tk('instD') : tk('getD')">
-      <SetRow v-if="showInstall" :title="tk('install')" :desc="installPrompt ? tk('instHint') : tk('instHow')"><button v-if="installPrompt" type="button" class="btn s" data-a="install" @click="install">{{ tk("installBtn") }}</button></SetRow>
-      <SetRow v-if="showAndroid" :title="tk('androidT')" :desc="tk('androidD')"><a class="btn s" :href="RELEASES" target="_blank" rel="noopener" data-a="androidDl">{{ tk("androidBtn") }}</a></SetRow>
-      <SetRow v-if="!phone" stack :title="tk('deskT')" :desc="tk('deskD')">
-        <a v-for="d in downloads" :key="d.k" class="btn s" :class="{ o: !d.main }" :href="d.href" target="_blank" rel="noopener" data-a="deskDl">{{ tk(d.k) }}</a>
-      </SetRow>
-    </SetSection>
+    <template v-if="showGet">
+      <SetSection id="instCard" icon="install" :title="tk('instT')" :desc="here ? tk('hereD', { d: tk('os.' + here) }) : tk('instD')">
+        <SetRow v-if="standalone" :title="tk('doneT')" :desc="tk('doneD')" />
+        <SetRow v-else :title="tk('browserT')" :desc="installPrompt ? tk('instHint') : tk('how.' + (here || 'win'))"><button v-if="installPrompt" type="button" class="btn s" data-a="install" @click="install">{{ tk("installBtn") }}</button></SetRow>
+        <SetRow v-if="here == 'android'" :title="tk('androidT')" :desc="tk('androidD')"><a class="btn s" :href="RELEASES" target="_blank" rel="noopener" data-a="androidDl">{{ tk("androidBtn") }}</a></SetRow>
+        <SetRow v-if="hereFiles.length" stack :title="tk('deskT')" :desc="tk('deskD')">
+          <a v-for="d in hereFiles" :key="d.k" class="btn s" :class="{ o: !d.main }" :href="d.href" target="_blank" rel="noopener" data-a="deskDl">{{ tk(d.k) }}</a>
+        </SetRow>
+      </SetSection>
+      <SetSection id="instOther" icon="app" :title="tk('otherT')" :desc="tk('otherD')">
+        <SetRow v-for="o in others" :key="o" :stack="files(o).length > 1" :title="tk('os.' + o)" :desc="tk('how.' + o) + (files(o).length ? ' ' + tk('get.' + o) : '')">
+          <a v-for="d in files(o)" :key="d.k" class="btn o s" :href="d.href" target="_blank" rel="noopener" :data-a="o == 'android' ? 'androidDl' : 'deskDl'">{{ tk(d.k) }}</a>
+        </SetRow>
+      </SetSection>
+    </template>
   </div>
 </template>
