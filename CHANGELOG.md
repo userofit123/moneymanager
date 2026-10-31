@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [0.12.12] - 2026-10-24
 
 ### App
+- **Settings → App icon:** the Coin choice now always sits on the look's colours like the other symbols, not on its own purple tile when another icon is chosen.
 - **Settings → Set up with an AI: clearer and roomier.** The top box now says what the page is for and how it works, in plain words; **See the instructions** and **The AI gave text, not a file?** are spaced rows with a chevron, with room around what opens; no extra space at the bottom of the card.
 - **Settings → Connections, tidier:** the add form and Edit login slide open and shut, the three safety facts are a short list, "Bank not in the list?" has its own Import a file button, and Sync is one joined control with how far back it reads (the usual period, such as Last 30 days, or 1, 2 or 5 years) instead of a separate Import more history part, explained in the page help. Accounts found shows each account as "Name ·· last 4 digits · amount", side by side. The state shows once, as the last pill in the card's header (no separate Status cell). "Verify this device" is now "Verify login" (with a short tip), and the "Device verified" cell is now "Login verification": the day it was done, or the day of the first sync that worked.
 - **Plainer hints:** the Profile name hint and the bank login window no longer say "only you can see this", since the app is just for you.

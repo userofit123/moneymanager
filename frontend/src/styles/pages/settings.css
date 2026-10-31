@@ -431,6 +431,11 @@ html.mob .setnav button {
   height: 34px;
 }
 
+/* the coin's own purple tile is left out here, so it sits on the look's colours like the other symbols */
+.symv svg.coin > rect {
+  fill: transparent;
+}
+
 html.mob .setnav {
   margin-inline: -16px;
   padding: 8px 16px;
@@ -592,6 +597,8 @@ html.mob .rladd > .btn {
 #aiSort .aimore:not([open]) > summary::after { transform: rotate(-90deg); }
 html.he #aiSort .aimore:not([open]) > summary::after { transform: rotate(90deg); }
 #aiSort .aimore[open] { padding-bottom: 16px; }
+/* the last fold's own padding is the card's bottom edge: same 18px as above the first box */
+#aiSort .ssb { padding-bottom: 4px; }
 #aiSort .aimore[open] > :not(summary) + :not(summary) { margin-top: 12px; }
 #aiSort .aimore .fld { margin-bottom: 0; }
 #aiSort .aimore pre { margin: 0; white-space: pre-wrap; unicode-bidi: plaintext; text-align: start; font-size: 12px; max-height: 260px; overflow: auto; padding: 12px 14px; border-radius: var(--r); background: var(--s2); }
