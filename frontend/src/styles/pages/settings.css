@@ -1042,6 +1042,11 @@ html.mob #setConn .cbtns {
   margin-top: 6px;
 }
 
+/* the "Full details" row sits inside the problem's row, not at the bottom of a card: no rounded bottom */
+.errd > summary {
+  border-radius: 0;
+}
+
 .errd pre {
   margin: 8px 0 0;
   font-size: 12px;
