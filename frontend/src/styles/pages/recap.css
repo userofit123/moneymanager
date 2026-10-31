@@ -365,16 +365,17 @@ html.he a.rkl:hover i {
   white-space: nowrap;
 }
 
-html.he .rkpt {
+html.he .rkpt,
+html.he .rkpa {
   translate: 50% 0;
 }
 
-.rkpt::before {
-  content: "";
+/* the box stays inside the chart near its ends; its pointer always sits right under the today dot */
+.rkpa {
   position: absolute;
-  top: -5px;
-  inset-inline: 0;
-  margin-inline: auto;
+  inset-inline-start: var(--x);
+  top: calc(var(--y) + 17px);
+  translate: -50% 0;
   width: 8px;
   height: 8px;
   rotate: 45deg;
