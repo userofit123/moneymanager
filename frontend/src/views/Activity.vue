@@ -30,7 +30,7 @@ import BaseButton from "../components/BaseButton.vue";
 import RangeCal from "./RangeCal.vue";
 import ExportPanel from "../components/ExportPanel.vue";
 import EmText from "../components/EmText.vue";
-import { RANGES, kinds, totals, leftOut, filterRows, sortRows, groupRows, GROUPS, hasFilters, displayName, allTags, reviewTransfers, duplicateIds, reviewGaps, gapBill } from "../lib/activity.js";
+import { RANGES, kinds, counts, totals, leftOut, filterRows, sortRows, groupRows, GROUPS, hasFilters, displayName, allTags, reviewTransfers, duplicateIds, reviewGaps, gapBill } from "../lib/activity.js";
 import "../styles/pages/activity.css"; // this page's own styles
 
 const { t, locale } = useI18n();
@@ -121,7 +121,7 @@ function groupLabel(L) {
   if (L.week) return t("activity.weekOf", { date: dcell(L.week) });
   if (L.month) return mname(L.month) + " " + L.month.slice(0, 4);
   if ("cat" in L) return catLabel(L.cat);
-  if (L.type) return tk("activity.type." + (L.type === "expenses" ? "expense" : L.type === "transfers" ? "transfer" : "income"));
+  if (L.type) return L.type === "ignored" || L.type === "balance" ? tk("activity.lot." + L.type) : tk("activity.type." + (L.type === "expenses" ? "expense" : L.type === "transfers" ? "transfer" : L.type));
   if ("tag" in L) return L.tag || t("activity.noTag");
   return L.name || t("activity.other");
 }
@@ -176,7 +176,7 @@ const goCat = (c) => reset({ cat: c || "Uncategorized" });
 
 // ---- the totals line and the group headers ----
 const sumTip = computed(() => {
-  const L = rows.value, o = lo.value, k = K.value, cnt = L.filter((x) => !(x.balUpd || k.isXf(x) || k.isIgn(x) || k.isFut(x) || k.isCp(x))).length, ks = ["transfers", "cardPays", "upcoming", "balance", "ignored"];
+  const L = rows.value, o = lo.value, k = K.value, cnt = L.filter((x) => counts(x, k)).length, ks = ["transfers", "cardPays", "upcoming", "balance", "ignored"];
   return TP(t("activity.sumTitle"), [[t("activity.sumIncluded"), String(cnt)], ...ks.filter((key) => o[key]).map((key) => [tk("activity.lot." + key), String(o[key])])], [t(filtered.value ? "activity.sumFilt" : "activity.sumAll"), ...ks.filter((key) => o[key]).map((key) => tk("activity.sumWhy." + key))].join("\n"));
 });
 const loText = computed(() => { const o = lo.value; return [o.transfers && t("activity.lo.transfers", { n: o.transfers }, o.transfers), o.cardPays && t("activity.lo.cardPays", { n: o.cardPays }, o.cardPays), o.upcoming && t("activity.lo.upcoming", { n: o.upcoming }, o.upcoming), o.balance && t("activity.lo.balance", { n: o.balance }, o.balance), o.ignored && t("activity.lo.ignored", { n: o.ignored })].filter(Boolean).join(", "); });

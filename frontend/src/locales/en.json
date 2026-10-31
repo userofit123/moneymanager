@@ -256,7 +256,7 @@
       "cardPays": "Card payments: paying your credit card bill from the bank. The purchases are already counted on the card, so counting the payment too would count the same money twice.",
       "upcoming": "Upcoming: payments or income expected on a later date. They count once they happen.",
       "balance": "Balance updates: a balance you changed by hand. It is a note, not income or spending.",
-      "ignored": "Left out by you: transactions you chose to count out."
+      "ignored": "Left out by you: transactions you chose to count out, and those of accounts you set not to count in reports."
     },
     "g": {
       "expIn": "Likely in",

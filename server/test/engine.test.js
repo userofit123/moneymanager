@@ -397,6 +397,19 @@ test("a bank payment equal to what the card charged that day is marked as a card
   assert.equal((await q("SELECT count(*)::int AS n FROM transactions WHERE category='Salary'")).rows[0].n, 3);
 });
 
+test("a refund on the card lowers the card bill it is matched against", async () => {
+  await reset();
+  await q("INSERT INTO accounts (name,currency,kind,source,subtitle,sort) VALUES ('Visa Cal','ILS','card','visaCal','x',60) ON CONFLICT DO NOTHING");
+  const pd = JSON.stringify({ processedDate: "2026-10-09T21:00:00.000Z" });
+  // money in is stored with the card in to_name and the shop in from_name
+  await tx((c) => c.query("INSERT INTO transactions (date,description,from_name,to_name,amount,source,external_id,details) VALUES ('2026-09-25','A','Visa Cal','Shop',-300,'visaCal','x1',$1),('2026-09-28','Refund','Shop','Visa Cal',100,'visaCal','x2',$1)", [pd]));
+  await q("INSERT INTO transactions (date,description,from_name,to_name,amount,source,external_id) VALUES ('2026-10-10','כרטיסי אשראי','Bank Hapoalim','Cal',-200,'hapoalim','b1')");
+  await ingest({ name: "Bank Hapoalim", currency: "ILS", source: "hapoalim" }, []);
+  const ov = (await q("SELECT value FROM settings WHERE key='cc_override'")).rows[0]?.value || {};
+  const b1 = (await q("SELECT id FROM transactions WHERE external_id='b1'")).rows[0].id;
+  assert.equal(ov[b1], 2);
+});
+
 test("a charge the bank still lists as pending explains the balance gap it caused", async () => {
   await reset();
   const acc = { name: "Max", currency: "ILS", source: "max" };

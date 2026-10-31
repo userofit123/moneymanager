@@ -21,7 +21,7 @@ function demoState(NOW, o = {}) {
 const r0 = (n) => Math.round(n);
 const pick = (m) => ({
   nums: ["day", "dim", "cash", "inc", "ex", "cardsU", "cardsPrev", "cardPaid", "cardsThis", "cardsNext", "likelyBank", "likelyCard", "nextBill", "same", "billsTot", "limitsLeft", "end", "start", "w1", "w0", "nextBills", "inJars", "buffer"].map((k) => [k, r0(m[k])]),
-  phase: m.phase, sal: m.sal && m.sal.id, incs: m.incs.map((t) => t.id), bills: m.bills.map((b) => [b.n, r0(b.amt)]),
+  phase: m.phase, incs: m.incs.map((t) => t.id), bills: m.bills.map((b) => [b.n, r0(b.amt)]),
   over: m.over.map((b) => b.k), risk: m.risk.map((b) => b.k), okB: m.okB.map((b) => b.k), above: m.above.map((x) => x.k), below: m.below.map((x) => x.k),
   days: m.days.map((D) => [D.d, r0(D.spent), r0(D.inc), D.ex.map((x) => r0(x[1])), D.inn.map((x) => r0(x[1])), D.up.map((x) => [x[0], r0(x[1])])]),
 });
@@ -71,6 +71,19 @@ test("Recap says what each card bill paid for, also an early one in the middle o
   const P2 = [P(10, "2026-10-02", -300), P(11, "2026-10-21", -204.4)], st2 = monthSteps({ A, S: { ...S, tx: P2 }, k: { isCp: (t) => !!t.cp }, MK: "2026-10", TODAY: "2026-10-25", CC: new Set(["Max"]), inc: 0, dn: (t) => t.to, start: 1000.6 });
   const i = st2.findIndex((x) => x.kind == "card" && x.from == "2026-10-21");
   assert.equal(st2[i].a, 204); assert.equal(st2[i - 1].due.find((o) => o.d == "2026-10-21").a, 204);
+});
+
+test("a refund on a credit card (money in, so the card is in \"to\") lowers that card's bill", () => {
+  const S = { tx: [] }, k = { isCp: () => false }, CC = new Set(["Max"]);
+  const A = [{ d: "2026-09-25", from: "Max", to: "Shop A", a: -100, ch: "2026-10-10" }, { d: "2026-09-28", from: "Shop A", to: "Max", a: 30, ch: "2026-10-10" }, { d: "2026-10-03", from: "Max", to: "Shop B", a: -40, ch: "2026-11-10" }, { d: "2026-10-04", from: "Shop B", to: "Max", a: 10, ch: "2026-11-10" }];
+  assert.deepEqual(cardsDue({ S, A, k, CC, TODAY: "2026-10-05", MK: "2026-10" }), { thisMonth: 70, later: 30, now: [{ n: "Max", a: 70, d: "2026-10-10" }], next: [{ n: "Max", a: 30, d: "2026-11-10" }] });
+  // the card's usual charge day applies to a refund too
+  assert.equal(chargeOf({ d: "2026-10-20", from: "Shop", to: "Max", a: 5 }, { Max: { day: 2, lag: 1 } }), "2026-11-02");
+  // monthSteps: the bill of 70 (100 bought, 30 back) is matched to the purchases and the refund
+  const P = { id: 10, d: "2026-10-10", a: -70, cp: true, from: "Bank", to: "Card company" };
+  const steps = monthSteps({ A, S: { tx: [P], accounts: [] }, k: { isCp: (t) => !!t.cp }, MK: "2026-10", TODAY: "2026-10-25", CC, inc: 0, dn: (t) => t.to, start: 1000 });
+  const card = steps.find((x) => x.kind == "card");
+  assert.equal(card.buys.a, 70); assert.equal(card.buys.n, 2);
 });
 
 test("a regular income a few days later than usual still counts its usual amount this month", () => {

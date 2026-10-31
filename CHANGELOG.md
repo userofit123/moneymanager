@@ -7,6 +7,8 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [0.12.12] - 2026-10-24
 
 ### App
+- **Fixed: a refund on a credit card now lowers that card's bill.** Home's Cards box, the card chart on Accounts, Recap's card bills and the check that finds a card bill paid from the bank now count money that came back to the card.
+- **Fixed: Activity's totals, Type filter and grouping by type now count the same rows as Home and Reports.** Rows of an account set not to count in reports are left out of In, Out and Net (shown under "Left out by you"); Income and Expenses no longer list rows you left out or card payments; grouping by type gives card payments, balance updates and rows left out by you their own groups.
 - **Rules say "transaction name" instead of "description".** Category rules, tag rules, salary, display names and the rule windows now say what they check: the transaction's name as the bank wrote it.
 - **Settings → App icon:** the Coin choice now always sits on the look's colours like the other symbols, not on its own purple tile when another icon is chosen.
 - **Settings → Set up with an AI: clearer and roomier.** The top box now says what the page is for and how it works, in plain words; **See the instructions** and **The AI gave text, not a file?** are spaced rows with a chevron, with room around what opens; no extra space at the bottom of the card.

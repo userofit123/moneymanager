@@ -2,6 +2,7 @@
 // the totals, bills, budgets, jars and money flow.
 // Nothing here changes the data; bills the app finds by itself are only worked out, not saved.
 import { cardsDue, stillToPay, reallyYours, roundParts } from "./recap.js";
+import { acctOf } from "./activity.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
 export const addM = (m, k) => { const d = new Date(+m.slice(0, 4), +m.slice(5, 7) - 1 + k, 1); return d.getFullYear() + "-" + p2(d.getMonth() + 1); };
@@ -41,8 +42,9 @@ const rnm = (s) => String(s == null ? "" : s).toLowerCase().replace(/[0-9*#_/\\\
 // The name shown for a payment: the one you typed, a naming rule, or the bank's text.
 export const nameOf = (S, t) => { const c = S?.cfg || {}, o = c.renames && c.renames[t.id]; if (o) return o; if (c.nameRules) { const r = c.nameRules.find((x) => { const q = rnm(x.k); if (!q) return false; const v = rnm(nameField(t, x.f || "any")); return x.m == "eq" ? v == q : v.includes(q); }); if (r) return r.n; } return nohtml(t.desc); };
 
-// What was bought with a card in each month: the counted rows paid from it (the same on Home and Accounts).
-export const cardBuys = (A, isCard, m) => sum(A.filter((t) => t.a < 0 && isCard(t) && t.d.startsWith(m)).map((t) => -t.a));
+// What was bought with a card in each month: the counted rows paid from it, less the refunds that came back to it
+// (the same on Home and Accounts). isCard: is the row on this card (acctOf: refunds sit in "to"). Never below 0.
+export const cardBuys = (A, isCard, m) => Math.max(0, sum(A.filter((t) => isCard(t) && t.d.startsWith(m)).map((t) => -t.a)));
 
 // The exchange rate of a currency in fx (the last saved one when offline, core: data.js). With none at all it is 0:
 // money in it is left out and its account shown as not counted yet, never counted as 1 to 1 (Home and Accounts).
@@ -147,7 +149,7 @@ export function homeModel(S, now = new Date(), fx = {}) {
 
   // Cards: this month's charges against last month's (the counted rows, the same as the card chart on Accounts).
   const pm = addM(MK, -1);
-  const cards = (S.accounts || []).filter((a) => a.kind == "card").map((a) => { const on = (t) => t.from == a.n; return { n: a.n, acc: a, now: cardBuys(A, on, MK), last: cardBuys(A, on, pm) }; });
+  const cards = (S.accounts || []).filter((a) => a.kind == "card").map((a) => { const on = (t) => acctOf(t) == a.n; return { n: a.n, acc: a, now: cardBuys(A, on, MK), last: cardBuys(A, on, pm) }; });
   { const on = (t) => t.wc; if (A.some((t) => t.wc && t.a < 0)) cards.push({ n: "Wise card", wise: true, now: cardBuys(A, on, MK), last: cardBuys(A, on, pm) }); }
 
   // Accounts grouped by name (one bank with several currencies is one card).

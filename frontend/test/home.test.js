@@ -128,6 +128,14 @@ test("the Cards box counts the same rows as the card chart on Accounts", () => {
   assert.equal(cardBuys(A, on, "2026-09"), M.cards[0].last);
 });
 
+test("a refund on a card (money in, the card in \"to\") lowers what the Cards box shows for it", () => {
+  const S = base();
+  S.tx.push({ id: 11, d: "2026-10-08", desc: "Refund", from: "Shop", to: "Max", a: 50, c: "Food" });
+  const M = homeModel(S, NOW, {});
+  assert.equal(M.cards[0].now, 350);
+  assert.equal(cardBuys([{ d: "2026-10-01", from: "Shop", to: "Max", a: 90 }], (t) => t.to == "Max", "2026-10"), 0, "never below 0");
+});
+
 test("upcoming payments this month are a step of the flow, and nothing is taken off twice", () => {
   // a bill still due on 25 Oct, paid from a jar for its category; a card purchase with a later date counted by the card bill
   const S = base();

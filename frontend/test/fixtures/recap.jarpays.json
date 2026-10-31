@@ -25,7 +25,6 @@
   ["buffer",1500]
  ],
  "phase": "mid",
- "sal": 10,
  "incs": [10],
  "bills": [["Partner",89],["Disney+",35],["Wise conversion fee",18]],
  "over": [],

@@ -16,8 +16,9 @@ const dayNum = (s) => Math.round(Date.parse(s + "T00:00:00Z") / 864e5);
 
 export async function detectCardPayments(c) {
   const cards = (await c.query(
-    `SELECT t.from_name AS acc, t.source, t.amount::float AS amt, t.details->>'processedDate' AS pd
-     FROM transactions t JOIN accounts a ON a.name=t.from_name AND a.kind='card'
+    // the card is the account a purchase left from (from_name) or a refund came into (to_name); a refund lowers the bill
+    `SELECT a.name AS acc, t.source, t.amount::float AS amt, t.details->>'processedDate' AS pd
+     FROM transactions t JOIN accounts a ON a.name=(CASE WHEN t.amount<0 THEN t.from_name ELSE t.to_name END) AND a.kind='card'
      WHERE NOT t.pending AND t.details->>'processedDate' IS NOT NULL AND t.date > current_date - interval '420 days'`)).rows;
   if (!cards.length) return 0;
   const groups = new Map(); // "company|IL date" and "account|IL date" -> signed sum of what the card charged that day

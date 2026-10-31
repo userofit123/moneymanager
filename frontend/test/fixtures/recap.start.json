@@ -25,7 +25,6 @@
   ["buffer",1500]
  ],
  "phase": "start",
- "sal": null,
  "incs": [],
  "bills": [
   ["To savings",1500],

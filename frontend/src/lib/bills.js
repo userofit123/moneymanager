@@ -1,7 +1,7 @@
 // Bills: found and predicted from the payments. Shared bill logic for the Bills page, Home, Budgets and alerts.
 // Nothing here touches the screen. Bills the app finds by itself are only worked out; they are saved
 // the first time a change is made (withDetected), so a change always has a saved bill to work on.
-import { kinds, instOf } from "./activity.js";
+import { kinds, instOf, counts } from "./activity.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
 const sum = (a) => a.reduce((t, x) => t + x, 0);
@@ -30,14 +30,12 @@ export function cadenceOf(L) {
 // Pending ones count, the same way the Activity page counts them. Home, Accounts and Reports use the same rows.
 export function countedTx(S, today) {
   const k = kinds(S, today), tx = S.tx || [];
-  const NR = new Set((S.accounts || []).filter((a) => a.inR === false).map((a) => a.n));
-  const noRep = (t) => NR.size > 0 && (NR.has(t.from) || NR.has(t.to));
   const byId = new Map(tx.map((t) => [t.id, t]));
   const costRows = (S.xf || []).filter((x) => x.st != "rej").map((x) => {
     const o = byId.get(x.o), i = byId.get(x.i); if (!o || !i) return null; const c = -o.a - i.a;
     return c > 0.5 ? { id: "v" + x.o, virtual: true, d: o.d, desc: "Transfer cost · " + o.from + " → " + i.to, from: o.from, to: "Transfer fees / FX spread", a: -c, c: "Fees & FX costs" } : null;
   }).filter(Boolean);
-  const A = tx.filter((t) => !k.isXf(t) && !k.isIgn(t) && !k.isFut(t) && !k.isCp(t) && !noRep(t)).concat(costRows);
+  const A = tx.filter((t) => counts(t, k)).concat(costRows);
   return { A, k, costRows };
 }
 

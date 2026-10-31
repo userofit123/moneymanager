@@ -1,7 +1,7 @@
 // The Accounts page's numbers and lists, kept apart from the screen so they can be tested.
 // Nothing here changes the data. S: the whole data, today: "YYYY-MM-DD", fx: { USD: 3.7 }.
 import { shallowRef } from "vue";
-import { kinds } from "./activity.js";
+import { kinds, acctOf } from "./activity.js";
 import { withTransfers, addM, cardBuys, fxRate } from "./home.js";
 import { countedTx } from "./bills.js";
 import { balRows, costRows } from "./txrows.js";
@@ -64,7 +64,7 @@ export function cardMonthly(S, name, today) {
   const { S: S2, tx, MK } = ctx(S, today), first = tx.reduce((m, t) => (!t.virtual && t.a < 0 && t.from == name && t.d < m ? t.d : m), "9999-99-99").slice(0, 7);
   let n = 12; while (n < 36 && addM(MK, -n) >= first) n++;
   const keys = Array.from({ length: n }, (_, i) => addM(MK, -(n - 1 - i)));
-  const { A } = countedTx(S2, today), on = (t) => t.from == name;
+  const { A } = countedTx(S2, today), on = (t) => acctOf(t) == name;
   return { keys, vals: keys.map((m) => Math.round(cardBuys(A, on, m))) };
 }
 

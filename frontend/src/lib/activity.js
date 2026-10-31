@@ -6,6 +6,10 @@ import { SRC_NAMES } from "../catnames.js";
 // A pair is "auto" (found by the app, waiting for review), "ok" (confirmed) or "rej" (the user said it is not a transfer).
 export const transferIds = (S) => new Set((S?.xf || []).filter((x) => x.st !== "rej").flatMap((x) => [x.o, x.i]));
 export const isIgnored = (S, t) => !!(S?.txIgnore && S.txIgnore[t.id]);
+// The user's own account a row belongs to: money out leaves from it (from), money in arrives in it (to).
+export const acctOf = (t) => (t.a > 0 ? t.to : t.from);
+// Accounts set not to count in reports (inR false): their rows are not counted as income or spending anywhere.
+export const offIds = (S) => new Set((S?.accounts || []).filter((a) => a.inR === false).map((a) => a.n));
 export const isFuture = (t, today) => t.upBill != null || t.upInst || (!t.virtual && String(t.d) > today);
 // Paying the credit card bill from the bank: the purchases are already counted on the card.
 // It counts as one when it comes from a bank account and its text names a card company,
@@ -54,21 +58,25 @@ export function displayName(S, t) {
 }
 
 export function kinds(S, today) {
-  const xs = transferIds(S), ci = cardInfo(S);
+  const xs = transferIds(S), ci = cardInfo(S), NR = offIds(S);
   return {
     ci,
     isXf: (t) => xs.has(t.id),
     isIgn: (t) => isIgnored(S, t),
     isFut: (t) => isFuture(t, today),
     isCp: (t) => isCardPay(S, t, ci),
+    isOff: (t) => NR.size > 0 && !t.virtual && (NR.has(t.from) || NR.has(t.to)),
   };
 }
+// A row In, Out and Net count (the same rows as countedTx in lib/bills.js): not a transfer, card payment, upcoming item,
+// balance note, row left out by you, or row of an account not counted in reports.
+export const counts = (t, k) => !(t.balUpd || k.isXf(t) || k.isIgn(t) || k.isFut(t) || k.isCp(t) || k.isOff(t));
 
 // Only real income and spending count. Transfers, card payments, upcoming items, balance notes and rows the user left out do not.
 export function totals(list, k) {
   let inc = 0, out = 0;
   for (const t of list) {
-    if (t.balUpd || k.isXf(t) || k.isIgn(t) || k.isFut(t) || k.isCp(t)) continue;
+    if (!counts(t, k)) continue;
     if (t.a > 0) inc += t.a; else out -= t.a;
   }
   return { inc, out, net: inc - out };
@@ -80,7 +88,8 @@ export function leftOut(list, k) {
     cardPays: list.filter(k.isCp).length,
     upcoming: list.filter(k.isFut).length,
     balance: list.filter((t) => t.balUpd).length,
-    ignored: list.filter((t) => k.isIgn(t) && !k.isXf(t) && !k.isFut(t) && !k.isCp(t) && !t.balUpd).length,
+    // left out by you: rows you left out, and rows of accounts you set not to count in reports
+    ignored: list.filter((t) => (k.isIgn(t) || k.isOff(t)) && !k.isXf(t) && !k.isFut(t) && !k.isCp(t) && !t.balUpd).length,
   };
 }
 
@@ -133,7 +142,9 @@ export function filterRows(S, rows, f, k) {
       if (f.type === "transfer") return k.isXf(t);
       if (f.type === "cardpay") return k.isCp(t);
       if (f.type === "bill") return !!(f.billOf && f.billOf(t)); // the bill a payment belongs to (billOf, passed in by the page)
-      return !k.isXf(t) && !k.isCp(t) && (f.type === "income") === (t.a > 0);
+      // income and expenses: the rows In and Out count, and upcoming ones (shown as still to come)
+      const up = k.isFut(t) && !t.balUpd && !k.isXf(t) && !k.isIgn(t) && !k.isCp(t) && !k.isOff(t);
+      return (counts(t, k) || up) && (f.type === "income") === (t.a > 0);
     }
     return true;
   });
@@ -159,7 +170,8 @@ export function groupOf(t, mode, k, ws) {
     case "week": { const w = weekStart(t.d, ws); return [w, { week: w }, true]; }
     case "month": { const r = rdOf(t); return [r.slice(0, 7), { month: r.slice(0, 7) }, true]; }
     case "cat": return [t.c || "Uncategorized", { cat: t.c || "Uncategorized" }];
-    case "type": { const x = k.isXf(t) ? "transfers" : t.a > 0 ? "income" : "expenses"; return [x, { type: x }]; }
+    // the same kinds as the Type filter; balance notes and rows left out by you get their own groups
+    case "type": { const x = k.isXf(t) ? "transfers" : k.isCp(t) ? "cardpay" : t.balUpd ? "balance" : k.isIgn(t) || k.isOff(t) ? "ignored" : t.a > 0 ? "income" : "expenses"; return [x, { type: x }]; }
     case "acct": { const x = (t.a < 0 ? t.from : t.to) || ""; return [x, { name: x }]; }
     case "merchant": { const x = (t.a < 0 ? t.to : t.from) || ""; return [x, { name: x }]; }
     case "tag": { const x = (t.tags || [])[0] || ""; return [x, { tag: x }]; }
@@ -176,7 +188,7 @@ export function groupRows(rows, mode, sort, k, ws) {
   const size = (g) => Math.abs(g.T.out) + Math.abs(g.T.inc);
   const last = (g) => g.rows.reduce((m, t) => (t.d > m ? t.d : m), "");
   // P: upcoming spending in the group, which the header shows as "still to come"; E: upcoming income.
-  const ok = (t) => !t.balUpd && !k.isXf(t) && !k.isIgn(t) && !k.isCp(t) && k.isFut(t);
+  const ok = (t) => !t.balUpd && !k.isXf(t) && !k.isIgn(t) && !k.isCp(t) && !k.isOff(t) && k.isFut(t);
   return [...gs.values()].map((g) => ({ ...g, T: totals(g.rows, k), P: g.rows.filter((t) => ok(t) && t.a < 0).reduce((x, t) => x - t.a, 0), E: g.rows.filter((t) => ok(t) && t.a > 0).reduce((x, t) => x + t.a, 0), allFut: g.rows.every(k.isFut) })).sort((a, b) => {
     if (a.chrono) return sort === "old" ? a.key.localeCompare(b.key) : b.key.localeCompare(a.key);
     return sort === "big" ? size(b) - size(a) : sort === "small" ? size(a) - size(b) : sort === "old" ? last(a).localeCompare(last(b)) : last(b).localeCompare(last(a));
