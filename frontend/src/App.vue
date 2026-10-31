@@ -1,5 +1,5 @@
 <script setup>
-// The app's frame: the menu (a rail on a computer, a bar at the bottom of a phone), the job bar, the offline banner,
+// The app's frame: the menu (a rail at the side), the job bar, the offline banner,
 // the help and alerts buttons, the + button, the page for the current address, and the windows every page can open.
 // Before that, the sign-in screen when this browser is not signed in (core/boot.js).
 import { ref, computed, defineAsyncComponent, watch } from "vue";
@@ -19,7 +19,6 @@ import { UP } from "./core/updates.js";
 import AuthScreen from "./components/AuthScreen.vue";
 import AppNav from "./components/shell/AppNav.vue";
 import JobBar from "./components/shell/JobBar.vue";
-import MoreSheet from "./components/shell/MoreSheet.vue";
 import QuickSheet from "./components/shell/QuickSheet.vue";
 import FormHost from "./components/FormHost.vue";
 import AskPop from "./components/AskPop.vue";
@@ -78,7 +77,6 @@ addEventListener("offline", () => (online.value = false));
       <component :is="view" v-if="view && app.phase === 'ready'" />
     </main>
     <HelpPanel />
-    <MoreSheet />
     <SyncSheet />
     <QuickSheet />
     <FormHost />

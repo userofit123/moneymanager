@@ -144,10 +144,6 @@ i.live.spin {
   background: var(--acc);
 }
 
-html.mob .badge {
-  right: calc(50% - 22px); /* fixed side */
-}
-
 .catl {
   cursor: pointer;
 }
@@ -176,11 +172,6 @@ html.he .badge {
 html.he .tag,
 html.he .chip {
   direction: rtl;
-}
-
-html.mob.he .badge {
-  left: auto; /* fixed side */
-  right: calc(50% - 22px); /* fixed side */
 }
 
 .mrow .mt .catl {
@@ -243,16 +234,6 @@ html.mob.he .badge {
   margin-top: 0;
   background: var(--bg);
   box-shadow: 0 16px 36px -14px rgba(0, 0, 0, .45);
-}
-
-html.mob .badge {
-  top: 0;
-  right: calc(50% - 28px); /* fixed side */
-}
-
-html.mob .chip,
-html.mob .tag {
-  min-height: 30px;
 }
 
 .bd {

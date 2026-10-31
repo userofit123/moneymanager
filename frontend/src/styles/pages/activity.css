@@ -40,12 +40,6 @@ div.ghead {
   white-space: nowrap;
 }
 
-html.mob div.ghead:first-child {
-  margin-top: -16px;
-  border-top: 0;
-  border-radius: 20px 20px 0 0;
-}
-
 .exo {
   align-items: center;
   gap: 8px;
@@ -347,24 +341,6 @@ html.he #exCats > * {
   width: 100%;
 }
 
-html.mob .exst {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-html.mob .exst > div:first-child:not(:last-child) {
-  grid-column: 1/-1;
-}
-
-@media (max-width: 760px) {
-  .exlay {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .exside {
-    position: static;
-  }
-}
-
 #txTabs.seg {
   display: inline-flex;
   width: fit-content;
@@ -397,12 +373,6 @@ html.mob .exst > div:first-child:not(:last-child) {
 
 .exprev b {
   color: var(--tx);
-}
-
-html.mob .exfoot {
-  bottom: calc(-22px - var(--sb));
-  margin: 8px -18px calc(-22px - var(--sb));
-  padding: 14px 18px calc(22px + var(--sb));
 }
 
 #txMain > .ttool {
@@ -734,46 +704,6 @@ html.mob .exfoot {
   pointer-events: none;
 }
 
-html.mob .fbar {
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-html.mob .fbar::-webkit-scrollbar {
-  display: none;
-}
-
-html.mob .fseg {
-  flex: 0 0 auto;
-  min-width: 150px;
-}
-
-html.mob .fseg.fclr {
-  min-width: 0;
-}
-
-html.mob .tsearch {
-  flex: 1 1 100%;
-}
-
-html.mob .tsearch input {
-  min-height: 44px;
-}
-
-html.mob .ttool .vsels {
-  flex: 1 1 100%;
-  margin: 0;
-}
-
-html.mob .vsel {
-  flex: 1 1 0;
-}
-
-html.mob .vsel select {
-  width: 100%;
-  height: 38px;
-}
-
 .txs-g {
   display: flex;
   align-items: center;
@@ -929,41 +859,6 @@ html:not(.mob) #txTab {
   border-radius: 0;
 }
 
-html.mob .txs {
-  flex-direction: column;
-  align-items: stretch;
-  margin: 0;
-}
-
-html.mob .txs-g {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  width: 100%;
-}
-
-html.mob .txs-g > div {
-  padding: 6px 8px;
-  justify-content: space-between;
-}
-
-html.mob .txs-g > div + div::before {
-  display: none;
-}
-
-html.mob .txs-l {
-  width: 100%;
-}
-
-html.mob .txs-c {
-  width: 100%;
-  justify-content: center;
-}
-
-html.mob .txs {
-  margin-top: 0;
-}
-
 /* export page */
 
 .exsec.exd {
@@ -1116,20 +1011,6 @@ html.he .exsamp th {
 html body .exlay > aside.exside.card {
   position: sticky;
   top: 16px;
-}
-
-html.mob body .exlay > aside.exside.card {
-  top: 84px;
-}
-
-@media (max-width: 760px) {
-  .exlay {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  html body .exlay > aside.exside.card {
-    position: static;
-  }
 }
 
 .exside .exs + .exs {

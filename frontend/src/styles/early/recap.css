@@ -132,13 +132,6 @@
   stroke-width: 1.9;
 }
 
-@media (max-width: 700px) {
-  .rkcir .rki svg {
-    width: 30px;
-    height: 30px;
-  }
-}
-
 .rkbl {
   display: grid;
   gap: 14px;
@@ -214,11 +207,6 @@ a.rkbr:hover {
 
 .rkbr {
   display: block;
-}
-
-html.mob .rkw0 {
-  gap: 104px;
-  padding: 32px 0 150px;
 }
 
 .rki svg {

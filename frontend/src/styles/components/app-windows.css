@@ -23,12 +23,6 @@
   color: var(--neg);
 }
 
-@media (hover: none) {
-  .mrow .mh {
-    opacity: .55;
-  }
-}
-
 .wnp {
   position: fixed;
   inset: 0;

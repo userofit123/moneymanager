@@ -11,30 +11,6 @@
   margin: 6px 0 0;
 }
 
-html.mob .ctl {
-  gap: 6px;
-}
-
-html.mob .ctl > div {
-  width: 100%;
-}
-
-html.mob .ctl {
-  gap: 10px;
-  align-items: flex-end;
-}
-
-html.mob .ctl .seg {
-  margin: 4px 0 0;
-}
-
-html.mob .ctl select {
-  min-height: 38px;
-  padding: 6px 10px;
-  font-size: 14px;
-  width: auto;
-}
-
 .jfg {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
@@ -101,10 +77,6 @@ html.mob .ctl select {
 
 .jfs i.pos {
   color: var(--pos);
-}
-
-html.mob .jfs {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 /* the table's wrapper scrolls sideways only if a very narrow screen cannot fit it, which also clips its soft shadow: room below and at the sides keeps the shadow whole */
@@ -671,90 +643,6 @@ html.he .fcsum .op svg {
 #fcTab .fcml li.now span {
   color: var(--acc);
   font-weight: 600;
-}
-
-/* a phone: narrower columns so the table fits the screen; the direction shows only its sign */
-@media (max-width: 700px) {
-  /* the app's phone rule makes tables a scrolling block, which drops the fixed columns */
-  html.mob #fcTab table.rt {
-    display: table;
-  }
-
-  #fcTab col.cb {
-    width: 4rem;
-  }
-
-  #fcTab col.cv {
-    width: 4rem;
-  }
-
-  #fcTab col.cd {
-    width: 2.2rem;
-  }
-
-  #fcTab .fcb {
-    gap: 1px;
-  }
-
-  #fcTab tbody tr td.fcbars {
-    padding-inline: 4px;
-  }
-
-  #fcTab .fcbar {
-    min-inline-size: 2px;
-  }
-
-  /* the direction head shows only its signs */
-  #fcTab th.dc .dhl {
-    display: none;
-  }
-
-  #fcTab th.dc .dhs {
-    display: inline;
-  }
-
-  #fcTab th,
-  #fcTab td {
-    padding-inline: 4px;
-    font-size: 12px;
-  }
-
-  #fcTab tr.tot td,
-  #fcTab tr.grp td.am {
-    font-size: 12px;
-  }
-
-  #fcTab th.mog {
-    white-space: normal;
-  }
-
-  #fcTab th {
-    white-space: normal;
-    line-height: 1.25;
-  }
-
-  #fcTab .dw,
-  #fcTab .fccv {
-    display: none;
-  }
-
-  #fcTab .fcml {
-    grid-template-columns: repeat(auto-fill, minmax(3.9rem, 5.6rem));
-    gap: 4px;
-    padding: 6px 8px 8px;
-  }
-
-  #fcTab .fcml li {
-    padding: 5px 6px;
-  }
-
-  #fcTab .fcml b {
-    font-size: 12px;
-  }
-
-  #fcTab td.dc .bd {
-    padding-inline: 4px;
-  }
 }
 
 /* a row with money in only one month has no direction */

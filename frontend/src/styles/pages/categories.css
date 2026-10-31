@@ -94,25 +94,6 @@
   margin-inline-start: auto;
 }
 
-/* a phone: the totals take their own line under the title, three side by side */
-@media (max-width: 560px) {
-  .ssh.cshd > .cstn {
-    flex: 1 1 100%;
-    margin-inline-start: 0;
-    flex-wrap: nowrap;
-  }
-
-  .ssh.cshd .cstn > div {
-    flex: 1 1 0;
-    min-width: 0;
-    padding: 8px 10px;
-  }
-
-  .ssh.cshd .cstn b {
-    font-size: 14px;
-  }
-}
-
 .cstn > div {
   display: flex;
   flex-direction: column;
@@ -487,7 +468,6 @@
     background: none;
   }
 
-
   .csh .cssort {
     padding: 4px 10px;
     border: 1px solid var(--ol);
@@ -556,7 +536,6 @@
 .csper > .seg {
   margin: 0;
 }
-
 
 /* cards clip their corners with overflow: hidden, which stops sticky titles; clip does the same without that */
 #cats .card.ss {

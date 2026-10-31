@@ -1,4 +1,4 @@
-/* The app frame: the menu (a rail on a computer, a bar at the bottom of a phone), the page header, main, the + button,
+/* The app frame: the menu (a rail at the side), the page header, main, the + button,
    the job bar and the offline banner, and the page grids. */
 
 #splash {
@@ -222,10 +222,6 @@ html.vt-r::view-transition-new(root) {
   font-family: inherit;
 }
 
-.only-m {
-  display: none !important;
-}
-
 main {
   flex: 1 1 0;
   width: 100%;
@@ -296,12 +292,6 @@ html.intro #dash .grid > .card {
 
 .g2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-@media (max-width: 860px) {
-  .g2 {
-    grid-template-columns: 1fr;
-  }
 }
 
 #jobBar {
@@ -424,15 +414,6 @@ html.he .sugb {
   left: 30px; /* fixed side */
 }
 
-html.mob .sugb {
-  right: 16px; /* fixed side */
-  bottom: calc(92px + var(--sb, 0px));
-}
-
-html.mob.he .sugb {
-  left: 16px; /* fixed side */
-}
-
 .fab {
   position: fixed;
   right: 22px; /* fixed side */
@@ -468,115 +449,15 @@ html.mob.he .sugb {
   display: block;
 }
 
-html.mob nav {
-  position: fixed !important;
-  top: auto !important;
-  bottom: 0 !important;
-  inset-inline: 0 !important;
-  width: 100% !important;
-  height: auto !important;
-  min-height: 0 !important;
-  max-height: none !important;
-  flex-direction: row;
-  justify-content: space-around;
-  align-items: stretch;
-  padding: 6px 4px calc(6px + var(--sb));
-  border-right: 0; /* fixed side */
-  border-top: 1px solid var(--ol);
-  background: color-mix(in srgb, var(--bg) 94%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  z-index: 50;
-  overflow: visible;
-  gap: 0;
-  transform: none;
-}
-
-html.mob nav .logo,
-html.mob .syncb,
-html.mob .navb,
-html.mob .nb.sec {
-  display: none !important;
-}
-
-html.mob .only-m {
-  display: flex !important;
-}
-
-html.mob .nb {
-  font-size: 10px;
-  min-height: 52px;
-  justify-content: center;
-  flex: 1 1 0;
-  width: auto;
-  min-width: 0;
-}
-
-html.mob .nb .ic {
-  width: 46px;
-}
-
-html.mob main {
-  padding: calc(14px + var(--st)) 14px calc(100px + var(--sb));
-  margin: 0 auto;
-  width: 100%;
-}
-
-html.mob .g2,
-html.mob .g2s {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-html.mob .fab {
-  display: none;
-}
-
-html.mob .navplus {
-  flex: none;
-  width: 56px;
-  min-height: 0;
-  align-self: center;
-  justify-content: center;
-  padding: 0;
-}
-
-html.mob .navplus .pb {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 15px;
-  background: linear-gradient(135deg, var(--acc), var(--acc2));
-  color: var(--on);
-  font-size: 26px;
-  font-weight: 300;
-  line-height: 1;
-  box-shadow: 0 6px 16px -6px var(--acc);
-}
-
 html.nt *,
 html.nt *::before,
 html.nt *::after {
   transition: none !important;
 }
 
-/* ===== phone polish ===== */
-
-html.mob main {
-  padding-inline: 16px;
-}
-
-html.mob .sub {
-  font-size: 13px;
-}
-
 html.he .fab {
   right: auto; /* fixed side */
   left: 22px; /* fixed side */
-}
-
-html.mob.he .fab {
-  display: none;
 }
 
 /* the page guide: a panel beside the page that explains it */
@@ -594,7 +475,6 @@ html.mob.he .fab {
 }
 
 html .fabx .sugb,
-html.mob .fabx .sugb,
 html.he .fabx .sugb {
   position: relative !important;
   inset: auto !important;
@@ -602,11 +482,6 @@ html.he .fabx .sugb {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-}
-
-html.mob .fabx .sugb {
-  width: 42px;
-  height: 42px;
 }
 
 .fabx .ib {
@@ -629,26 +504,6 @@ html.he .fabx {
     right: auto; /* fixed side */
     left: 442px; /* fixed side */
   }
-}
-
-html.mob .fabx {
-  right: 16px; /* fixed side */
-  bottom: calc(150px + var(--sb));
-  width: 56px;
-  z-index: 45;
-}
-
-html.mob .fabx .ib {
-  width: 42px;
-  height: 42px;
-  border: 1px solid var(--ol);
-  background: var(--s1);
-}
-
-html.mob.he .fabx {
-  right: auto; /* fixed side */
-  left: 16px; /* fixed side */
-  bottom: calc(84px + var(--sb));
 }
 
 /* One spacing rule. A header and the block under it are one group. Groups, and blocks without a header, sit --spg apart; a header sits --hg above its block. Page columns and grids use --spg too. */
@@ -694,10 +549,6 @@ html.mob.he .fabx {
   gap: var(--spg);
 }
 
-html.mob .only-d {
-  display: none !important;
-}
-
 .updb {
   display: flex;
   flex-direction: column;
@@ -726,10 +577,6 @@ html.mob .only-d {
   position: relative;
 }
 
-html.mob .updb {
-  display: none !important;
-}
-
 .logo svg,
 #splash i svg {
   display: block;
@@ -752,134 +599,7 @@ svg.coin > rect {
 
 /* top app bar */
 
-html.mob main {
-  padding: 0 16px calc(148px + var(--sb));
-}
-
-html.mob main > header {
-  position: sticky;
-  top: 0;
-  z-index: 30;
-  margin: 0 -16px 8px;
-  padding: calc(10px + var(--st)) 16px 10px;
-  gap: 8px;
-  background: color-mix(in srgb, var(--bg) 82%, transparent);
-  backdrop-filter: blur(18px) saturate(1.4);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
-}
-
-html.mob main > header h1 {
-  font-size: 24px;
-  line-height: 1.15;
-  letter-spacing: -.4px;
-  font-weight: 700;
-}
-
-html.mob main > header .sub {
-  font-size: 12px;
-  margin-top: 1px;
-  opacity: .85;
-}
-
 /* bottom navigation: 4 destinations + More, pill indicator, FAB floats above */
-
-html.mob nav {
-  padding: 8px 8px calc(8px + var(--sb));
-  border-top: 0;
-  box-shadow: 0 -1px 0 var(--ol), 0 -10px 30px -18px #0006;
-  background: color-mix(in srgb, var(--bg) 90%, var(--s1));
-}
-
-html.mob nav .nb[data-v=alerts],
-html.mob nav .navplus {
-  display: none !important;
-}
-
-html.mob .nb {
-  min-height: 56px;
-  gap: 4px;
-  font-size: 11.5px;
-  font-weight: 500;
-  letter-spacing: .1px;
-  color: var(--tx2);
-  -webkit-tap-highlight-color: transparent;
-}
-
-html.mob .nb .ic {
-  width: 60px;
-  height: 32px;
-  border-radius: 16px;
-  transition: background .25s, transform .15s;
-}
-
-html.mob .nb .ic svg {
-  width: 22px;
-  height: 22px;
-}
-
-html.mob .nb:active .ic {
-  transform: scale(.94);
-}
-
-html.mob .nb.on {
-  font-weight: 700;
-  color: var(--tx);
-}
-
-html.mob .nb.on .ic {
-  background: var(--accc);
-  color: var(--onc);
-}
-
-html.mob .fab {
-  display: grid;
-  right: 16px; /* fixed side */
-  bottom: calc(84px + var(--sb));
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
-  z-index: 45;
-  font-size: 30px;
-  font-weight: 300;
-  box-shadow: 0 10px 24px -8px var(--acc), 0 2px 6px #0003;
-  -webkit-tap-highlight-color: transparent;
-}
-
-html.mob .fab:active {
-  transform: scale(.94);
-}
-
-html.mob .card {
-  border-radius: 20px;
-  padding: 16px;
-}
-
-html.mob .grid {
-  gap: 12px;
-}
-
-html.mob .sm {
-  line-height: 1.4;
-}
-
-@media (max-width: 360px) {
-  html.mob main {
-    padding-inline: 12px;
-  }
-
-  html.mob main > header {
-    margin-inline: -12px;
-    padding-inline: 12px;
-  }
-
-  html.mob .nb .ic {
-    width: 52px;
-  }
-
-  html.mob .nb {
-    font-size: 11px;
-  }
-}
 
 /* The desktop app has no system title bar. The page runs right to the top of the window; an invisible strip over its empty top edge lets the window be
    dragged, and the system's window buttons sit on the page at the end. core/theme.js adds html.dframe and tells the desktop shell the colours. */
@@ -912,7 +632,6 @@ html.dframe #dragbar {
   -webkit-app-region: drag;
 }
 
-html.dframe.mob #dragbar,
 html.dframe.he #dragbar {
   left: 0; /* fixed side */
 }
@@ -937,10 +656,6 @@ html.dframe .banner {
 /* in the desktop app, what slides in at the top (messages, the page guide, the attachment viewer) starts below the title strip, never under the window buttons */
 html.dframe #toasts {
   top: calc(var(--tb) + 12px);
-}
-
-html.dframe.mob #toasts {
-  top: calc(var(--tb) + 8px);
 }
 
 html.dframe .help {

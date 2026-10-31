@@ -42,13 +42,6 @@ tr.ghead td {
   min-width: 0;
 }
 
-html.mob div.ghead {
-  margin: 10px -16px 2px;
-  border-radius: 0;
-  padding: 11px 16px;
-  border-block: 1px solid var(--ol);
-}
-
 .xfc {
   border: 1px dashed color-mix(in srgb, var(--acc) 50%, var(--ol));
   border-radius: 18px;

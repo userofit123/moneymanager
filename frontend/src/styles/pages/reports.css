@@ -100,26 +100,6 @@
   letter-spacing: 0;
 }
 
-html.mob .trstats {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-html.mob .trpick {
-  flex: 1 1 100%;
-}
-
-html.mob .trpick select {
-  width: 100%;
-}
-
-html.mob .trtop .trseg {
-  width: 100%;
-}
-
-html.mob .trtop .trseg button {
-  flex: 1;
-}
-
 .rctl {
   display: flex;
   flex-wrap: wrap;
@@ -376,14 +356,6 @@ html.mob .trtop .trseg button {
 
 .cmpb .val {
   margin: 6px 0 4px;
-}
-
-html.mob .cmpcol {
-  flex: 1 1 100%;
-  padding-inline-end: 0;
-  border-inline-end: 0;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--ol);
 }
 
 .trtop {

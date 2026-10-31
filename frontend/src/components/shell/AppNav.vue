@@ -1,5 +1,5 @@
 <script setup>
-// The menu: a rail on a computer, a bar at the bottom of a phone (<nav>), with each page's icon and badge;
+// The menu: a rail on a computer (<nav>), with each page's icon and badge;
 // the gliding highlight moves to the open page. At the bottom of the rail: update, sync status and Appearance.
 import { ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
@@ -8,13 +8,13 @@ import { current, hrefOf, go } from "../../router.js";
 import { alertList, reviewCount } from "../../core/derived.js";
 import { syncState } from "../../core/sources.js";
 import { job } from "../../core/jobs.js";
-import { appearanceOpen, moreOpen, quickOpen, syncOpen } from "../../core/shell.js";
+import { appearanceOpen, syncOpen } from "../../core/shell.js";
 import AppLogo from "../AppLogo.vue";
 import UpdateButton from "./UpdateButton.vue";
 
 const { t } = useI18n();
 const navPages = pages.filter((p) => p.nav);
-// the short page names the stylesheet uses in data-v (for example nav .nb[data-v=alerts] is hidden on a phone)
+// the short page names the stylesheet uses in data-v
 const NAV_ID = { recap: "recap", home: "dash", accounts: "acc", activity: "tx", jars: "jars", bills: "bills", budgets: "budg", reports: "rep", forecast: "fc", alerts: "alerts", categories: "cats", settings: "set" };
 const badge = (p) => (p.name === "alerts" ? alertList.value.length : p.name === "activity" ? reviewCount.value : 0);
 const nav = ref(null), pill = ref(null);
@@ -39,7 +39,7 @@ function place(animate) {
   anim = p.animate(frames, { duration: D, easing: "linear" }); anim.onfinish = () => { anim = null; };
 }
 watch(() => current.value.name, () => nextTick(() => place(true)));
-// it follows the menu when its size or the look changes (corners, menu style, spacing, phone/computer), and once the fonts are in
+// it follows the menu when its size or the look changes (corners, menu style, spacing), and once the fonts are in
 const onResize = () => place(false);
 let ro = null, mo = null;
 onMounted(() => {
@@ -59,11 +59,7 @@ onBeforeUnmount(() => { removeEventListener("resize", onResize); ro?.disconnect(
       <button type="button" class="nb" :class="{ on: current.name === p.name, sec: !p.main }" :data-v="NAV_ID[p.name]" :aria-current="current.name === p.name ? 'page' : undefined" @click="go(hrefOf(p))">
         <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" v-html="p.icon" /></span>{{ t("nav." + p.name) }}<span v-if="p.name === 'activity' || p.name === 'alerts'" class="badge" :style="{ display: badge(p) ? 'grid' : 'none' }">{{ badge(p) }}</span>
       </button>
-      <button v-if="p.name === 'jars'" type="button" class="nb only-m navplus" :aria-label="t('shell.add')" @click="quickOpen = true"><span class="pb">+</span></button>
     </template>
-    <button type="button" class="nb only-m" @click="moreOpen = true">
-      <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="19" cy="12" r="1.6" /></svg></span>{{ t("shell.more") }}<span class="badge" :style="{ display: alertList.length ? 'grid' : 'none' }">{{ alertList.length }}</span>
-    </button>
     <div class="navb">
       <UpdateButton />
       <button type="button" class="syncb" :class="{ spinning: !!job }" @click="syncOpen = true"><i class="live" :class="syncState.live" /><span id="sync">{{ syncState.top }}<br><b style="color:var(--tx);font-size:12px">{{ syncState.sub }}</b></span></button>

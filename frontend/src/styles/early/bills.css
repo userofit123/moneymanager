@@ -56,18 +56,3 @@
   font-size: 19px;
   font-weight: 650;
 }
-
-html.mob .bgh {
-  padding: 14px 16px;
-  gap: 12px;
-}
-
-html.mob .bgr {
-  padding: 2px 16px;
-}
-
-html.mob .brow {
-  gap: 11px;
-  padding: 14px 0;
-  flex-wrap: wrap;
-}

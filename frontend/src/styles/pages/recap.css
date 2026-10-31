@@ -858,58 +858,6 @@ html.he .rkbr .bar i {
   font-size: 19px;
 }
 
-@media (max-width: 700px) {
-  .rkz {
-    gap: 36px;
-  }
-
-  .rk.z .rkni {
-    grid-column: 1;
-    height: 72px;
-    justify-content: center;
-  }
-
-  .rk.za .rkni,
-  .rk.zb .rkni {
-    justify-content: center;
-  }
-
-  .rkcir {
-    width: 72px;
-    height: 72px;
-    padding: 5px;
-  }
-
-  .rkcir::before {
-    inset: 5px;
-  }
-
-  .rk.za .rkb,
-  .rk.zb .rkb {
-    grid-column: 2;
-    grid-row: 1;
-    padding: 0;
-    text-align: start;
-  }
-
-  .rk.zb .rkx {
-    align-items: flex-start;
-  }
-
-  .rk.zb .rkrgs,
-  .rk.zb .rkleg {
-    justify-content: flex-start;
-  }
-
-  .rk.z .rkn {
-    font-size: 40px;
-  }
-
-  .rk.z .rkp {
-    font-size: 16px;
-  }
-}
-
 .rkl {
   text-transform: none !important;
   letter-spacing: 0 !important;
@@ -1133,54 +1081,6 @@ a.rkbr,
   color: color-mix(in srgb, var(--pb) 70%, var(--tx));
 }
 
-html.mob .rkh h2 {
-  font-size: 56px;
-  letter-spacing: -2px;
-  text-transform: none;
-  margin: 0;
-}
-
-html.mob .rkds {
-  margin-top: 38px;
-}
-
-html.mob .rki {
-  width: 72px;
-  height: 72px;
-  border-radius: 25px;
-  margin-bottom: 20px;
-}
-
-html.mob .rki svg {
-  width: 35px;
-  height: 35px;
-}
-
-html.mob .rkn {
-  font-size: 64px;
-  letter-spacing: -2.4px;
-}
-
-html.mob .rkp {
-  font-size: 18px;
-}
-
-html.mob .rkch {
-  font-size: 14px;
-}
-
-html.mob .rkch .cp {
-  width: 42px;
-}
-
-html.mob .rkch .tx {
-  padding-inline: 12px 14px;
-}
-
-html.mob .rkpl b {
-  font-size: 18px;
-}
-
 /* Recap visual system: one family (acc / acc2 + tints), flat solid circles, soft path, cap-in-pill components. Warning = --c2, positive = --pos, negative = --neg only. */
 
 .rkw0 {
@@ -1398,10 +1298,6 @@ a.rkbr {
 
 /* coming up: the date is the cap */
 
-html.mob .rki {
-  border-radius: 50%;
-}
-
 [data-mode=dark] .rkw0 {
   --rkbody: var(--s1);
 }
@@ -1410,17 +1306,6 @@ html.mob .rki {
   display: flex;
   width: fit-content;
   margin: 12px auto 0;
-}
-
-@media (max-width: 700px) {
-  .rk.z .rkni {
-    width: 76px;
-  }
-
-  .rkcir {
-    padding: 0;
-  }
-
 }
 
 .chain summary {
@@ -1700,7 +1585,6 @@ html.he .rkeq :is(.qout,.qin) .qb svg {
   font-size: 15px;
   font-weight: 650;
 }
-
 
 /* one width for everything in a part (the description, notes, sums, bars, lists and graphs), so they line up */
 .rkw0 {

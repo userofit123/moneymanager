@@ -45,10 +45,6 @@
   color: var(--onc);
 }
 
-html.mob .jtype {
-  grid-template-columns: 1fr;
-}
-
 .jcht {
   display: flex;
   align-items: center;

@@ -4,7 +4,6 @@ import { go } from "../router.js";
 import { openSettingsTab } from "../views/settings/tab.js";
 
 export const appearanceOpen = ref(false);
-export const moreOpen = ref(false);
 export const quickOpen = ref(false); // the "Add or update" sheet (the + button)
 export const syncOpen = ref(false); // the "Sources" sheet (sync status)
 

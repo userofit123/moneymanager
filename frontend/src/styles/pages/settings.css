@@ -55,27 +55,6 @@
   min-width: 130px;
 }
 
-html.mob .sr {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 10px;
-}
-
-html.mob .sr > .src {
-  justify-content: flex-start;
-}
-
-html.mob .sr .src select,
-html.mob .sr .src input:not([type=checkbox]) {
-  min-width: 0;
-  width: 100%;
-}
-
-html.mob .sr.inl {
-  flex-direction: row;
-  align-items: center;
-}
-
 /* an on/off row (SetRow toggle): the whole line flips the switch, which stays at the end, also on a phone */
 .sr.srtg {
   cursor: pointer;
@@ -85,15 +64,6 @@ html.mob .sr.inl {
   display: inline-flex;
   padding: 0;
   border: 0;
-}
-
-html.mob .sr.srtg {
-  flex-direction: row;
-  align-items: center;
-}
-
-html.mob .sr.srtg > .src {
-  justify-content: flex-end;
 }
 
 .sr.srtg.dis {
@@ -135,8 +105,7 @@ html.mob .sr.srtg > .src {
   color: var(--tx2);
 }
 
-.sr.srsub .src input:not([type=checkbox]),
-html.mob .sr.srsub .src input:not([type=checkbox]) {
+.sr.srsub .src input:not([type=checkbox]) {
   width: 110px;
   min-width: 0;
 }
@@ -160,8 +129,7 @@ html.mob .sr.srsub .src input:not([type=checkbox]) {
 
 /* keep controls at the end of a row clear of the floating buttons (calculator, help, alerts, +).
    Computer: they float in a column up to 80px from the window's edge, so the cards stop before it
-   (on a wide window the page already ends far enough from the edge).
-   Phone: the cards keep their width, and extra room at the bottom lets the last rows scroll above the buttons. */
+   (on a wide window the page already ends far enough from the edge). */
 html:not(.mob) .setmain {
   padding-inline-end: 60px;
 }
@@ -170,41 +138,6 @@ html:not(.mob) .setmain {
   html:not(.mob) .setmain {
     padding-inline-end: 0;
   }
-}
-
-html.mob .setmain {
-  padding-bottom: 160px;
-}
-
-/* Phone: the round buttons float over the last ~40px at the end of the screen.
-   Controls that sit at the end of a line (switches, short number boxes, Delete on a rule, a card's title button) keep that much room after them. */
-html.mob .sr.srtg > .src,
-html.mob .sr.srsub > .src,
-html.mob .sr.inl > .src,
-html.mob .rule .rdel,
-html.mob #set .ssh > .btn {
-  margin-inline-end: 40px;
-}
-
-/* Phone: each card's icon sits at the top of its title, also when the explanation runs over several lines */
-html.mob #set .ssh {
-  align-items: flex-start;
-}
-
-html.mob #set .ssh > div {
-  min-height: 38px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-/* Currencies on a phone: Add stays beside the currency box */
-html.mob .sr.curadd > .src {
-  flex-wrap: nowrap;
-}
-
-html.mob .sr.curadd .src select {
-  flex: 1;
 }
 
 /* the side list stays in view and fits the window: when the window is short it scrolls on its own */
@@ -274,84 +207,10 @@ html.mob .sr.curadd .src select {
   font-weight: 600;
 }
 
-@media (max-width: 900px) {
-  .setwrap {
-    display: block;
-  }
-
-  .setnav {
-    position: static;
-    flex-direction: row;
-    overflow-x: auto;
-    max-height: none;
-    scrollbar-width: none;
-    padding: 6px;
-    gap: 4px;
-    margin-bottom: var(--spg);
-    border-radius: 99px;
-  }
-
-  .sng {
-    display: block;
-    flex: none;
-    align-self: center;
-    white-space: nowrap;
-    padding: 0 4px 0 12px;
-    margin-inline-start: 4px;
-    border-inline-start: 1px solid var(--ol);
-  }
-
-  .sng:first-child {
-    border: 0;
-    margin: 0;
-    padding-inline-start: 6px;
-  }
-
-  .setnav button {
-    white-space: nowrap;
-    flex: none;
-    padding: 8px 14px;
-    border-radius: 99px;
-  }
-}
-
-html.mob .setwrap {
-  display: block;
-}
-
-html.mob .setnav {
-  position: static;
-  flex-direction: row;
-  overflow-x: auto;
-  max-height: none;
-  scrollbar-width: none;
-  padding: 6px;
-  gap: 4px;
-  margin-bottom: var(--spg);
-  border-radius: 99px;
-}
-
-html.mob .sng {
-  display: block;
-  flex: none;
-  align-self: center;
-  white-space: nowrap;
-  padding: 0 4px 0 12px;
-  margin-inline-start: 4px;
-  border-inline-start: 1px solid var(--ol);
-}
-
 .sng:first-child {
   border: 0;
   margin: 0;
   padding-inline-start: 6px;
-}
-
-html.mob .setnav button {
-  white-space: nowrap;
-  flex: none;
-  padding: 8px 14px;
-  border-radius: 99px;
 }
 
 /* Connections: the three safety facts, one per line with its icon (side by side when there is room) */
@@ -414,37 +273,6 @@ html.mob .setnav button {
 .symv svg.coin {
   width: 34px;
   height: 34px;
-}
-
-html.mob .setnav {
-  margin-inline: -16px;
-  padding: 8px 16px;
-  border-radius: 0;
-  border-width: 0 0 1px;
-  background: transparent;
-  gap: 6px;
-  position: sticky;
-  top: calc(58px + var(--st));
-  z-index: 20;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  background: color-mix(in srgb, var(--bg) 80%, transparent);
-}
-
-html.mob .setnav button {
-  flex: none;
-  white-space: nowrap;
-  min-height: 40px;
-  padding: 0 14px;
-  border-radius: 99px;
-  background: var(--s2);
-  color: var(--tx);
-}
-
-html.mob .setnav button.on {
-  background: var(--accc);
-  color: var(--onc);
-  font-weight: 600;
 }
 
 /* Automatic sorting: the rule lists, the "tag earlier transactions" window and the AI setup */
@@ -521,11 +349,6 @@ html.he .rule .rarr {
   flex: 0 1 150px;
 }
 
-/* on a phone the kind takes the line's room, so its name is not cut */
-html.mob .rule select[data-c="ink"] {
-  flex: 1 1 150px;
-}
-
 .rlnone {
   padding-block: 12px 4px;
   line-height: 1.5;
@@ -533,10 +356,6 @@ html.mob .rule select[data-c="ink"] {
 
 .rladd + .rlnone {
   padding-top: 0;
-}
-
-html.mob .rladd > .btn {
-  flex: 1 1 100%;
 }
 
 /* the "tag earlier transactions" window */
@@ -672,11 +491,6 @@ html.mob .rladd > .btn {
   padding: 6px 20px 18px;
 }
 
-html.mob .cadd,
-html.mob .cempty {
-  padding: 4px 16px 16px;
-}
-
 .cadd .sr.stk .src > select {
   flex: 1 1 220px;
   width: auto;
@@ -756,10 +570,6 @@ html.he .csplit select {
   background-position-x: left 10px; /* fixed side */
 }
 
-html.mob .csplit select {
-  font-size: 13px;
-}
-
 .csplit select:focus {
   box-shadow: none;
 }
@@ -810,11 +620,6 @@ html.mob .csplit select {
   min-height: 32px;
   padding: 5px 13px;
   font-size: 12px;
-}
-
-/* Phone: Sync and its drop-down stay clear of the round buttons at the end of the screen */
-html.mob #setConn .cbtns {
-  margin-inline-end: 40px;
 }
 
 /* Connections: the test and "where it stopped" windows */
@@ -1097,27 +902,6 @@ html[data-den="roomy"] .setmain .fld {
 .rlrows .rule select:not(.rwhere, .rhow) {
   flex: 0 1 165px;
   min-width: 0;
-}
-
-/* Phone: "If" and where it looks fill the first line (so the long choices are never cut off),
-   how it compares and the text share the second, and the result comes below */
-html.mob .rule .rwhere,
-html.mob .rladd > .rwhere {
-  flex: 1 1 calc(100% - 40px);
-}
-
-html.mob .rule .rhow,
-html.mob .rladd > .rhow {
-  flex: 0 1 45%;
-}
-
-html.mob .rlrows .rule input,
-html.mob .rladd > input {
-  flex: 1 1 45%;
-}
-
-html.mob .rlrows .rule select:not(.rwhere, .rhow) {
-  flex: 1 1 60%;
 }
 
 /* the "If" before the new rule's choices reads like the rules below it */

@@ -86,31 +86,6 @@ html.sl {
   scrollbar-gutter: stable;
 }
 
-html.mob.sl {
-  scrollbar-gutter: auto;
-}
-
-html.mob.sl body {
-  position: fixed;
-  inset-inline: 0;
-  width: 100%;
-}
-
-html.mob .seg {
-  overflow-x: auto;
-  scrollbar-width: none;
-  flex-wrap: nowrap;
-}
-
-html.mob .seg::-webkit-scrollbar {
-  display: none;
-}
-
-html.mob .seg button {
-  flex: 1 0 auto;
-  white-space: nowrap;
-}
-
 .h2r .seg {
   margin: 0;
   font-size: 12px;
@@ -128,16 +103,3 @@ html.he .sheet {
 }
 
 /* segmented controls and tab strips: full-width, scrollable, comfortable */
-
-html.mob .seg {
-  margin: 0 0 14px;
-  padding: 4px;
-  scroll-snap-type: x proximity;
-}
-
-html.mob .seg button {
-  min-height: 38px;
-  padding: 0 16px;
-  font-size: 14px;
-  scroll-snap-align: center;
-}

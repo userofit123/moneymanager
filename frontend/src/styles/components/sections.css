@@ -15,12 +15,6 @@
   align-items: center;
 }
 
-html.mob .tools input,
-html.mob .tools select {
-  flex: 1;
-  min-width: 130px;
-}
-
 .cdt .accs {
   display: flex;
   flex-wrap: wrap;
@@ -160,18 +154,6 @@ html.mob .tools select {
 
 .sinfo b {
   color: var(--tx);
-}
-
-html.mob .ssh {
-  padding: 14px 16px;
-}
-
-html.mob .ssb {
-  padding: 4px 16px 16px;
-}
-
-html.mob .sfoot {
-  padding: 12px 16px 14px;
 }
 
 .cdg {

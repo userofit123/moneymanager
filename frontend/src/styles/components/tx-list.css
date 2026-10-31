@@ -170,14 +170,6 @@ td select {
   border-top: 0;
 }
 
-html.mob .dtab {
-  display: none;
-}
-
-html.mob .txl {
-  display: block;
-}
-
 td select {
   padding-inline-end: 30px !important;
   background-position: right 9px center;
@@ -296,11 +288,6 @@ html.he td.am {
 }
 
 /* lists and rows */
-
-html.mob .txi,
-html.mob .row {
-  min-height: 56px;
-}
 
 .p-note {
   --pc: #c98a00;

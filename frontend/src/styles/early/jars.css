@@ -7,10 +7,6 @@
   font-size: 14px;
 }
 
-html.mob .jin .fld {
-  margin-bottom: 10px;
-}
-
 .kh b {
   font-size: 14px;
 }
@@ -82,14 +78,6 @@ html.mob .jin .fld {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-}
-
-html.mob .jhero > div {
-  padding: 20px 20px;
-}
-
-html.mob .jbufc {
-  padding: 16px 18px;
 }
 
 .jin .jbtn {

@@ -22,11 +22,6 @@
   gap: 6px 14px;
 }
 
-html.mob .eq {
-  gap: 4px 8px;
-  flex-wrap: nowrap;
-}
-
 tr.tot td {
   font-weight: 700;
   background: var(--s2);
@@ -138,28 +133,6 @@ tr.tot td {
 
 .txside .tiles {
   grid-template-columns: 1fr;
-}
-
-@media (max-width: 820px) {
-  .txgrid2 {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
-
-  .txside {
-    border-inline-start: 0;
-    padding-inline-start: 0;
-  }
-}
-
-html.mob .txgrid2 {
-  grid-template-columns: 1fr;
-  gap: 0;
-}
-
-html.mob .txside {
-  border-inline-start: 0;
-  padding-inline-start: 0;
 }
 
 .txp {
@@ -484,33 +457,6 @@ html.mob .txside {
   display: flex;
   justify-content: flex-end;
   z-index: 2;
-}
-
-html.mob .txfoot {
-  bottom: calc(-22px - var(--sb));
-  margin: 16px -18px calc(-22px - var(--sb));
-  padding: 14px 18px calc(22px + var(--sb));
-}
-
-html.mob .tiles {
-  grid-template-columns: 1fr;
-}
-
-html.mob .txam b {
-  font-size: 22px;
-}
-
-html.mob .kvr .k {
-  flex-basis: 96px;
-}
-
-html.mob .kvd .kvr .k {
-  flex-basis: 110px;
-}
-
-html.mob .txh2 .av {
-  width: 44px;
-  height: 44px;
 }
 
 .jhint {
@@ -1023,26 +969,6 @@ details.closing.txs2 > summary::after {
 .txside {
   border-inline-start: 1px solid var(--ol);
   padding-inline-start: 24px;
-}
-
-@media (max-width: 820px) {
-  .txmain {
-    padding-inline-end: 0;
-  }
-
-  .txside {
-    border-inline-start: 0;
-    padding-inline-start: 0;
-  }
-}
-
-html.mob .txmain {
-  padding-inline-end: 0;
-}
-
-html.mob .txside {
-  border-inline-start: 0;
-  padding-inline-start: 0;
 }
 
 .txs2 > summary em,

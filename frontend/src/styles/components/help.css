@@ -37,17 +37,6 @@
   letter-spacing: -.2px;
 }
 
-html.mob .bi {
-  width: 24px;
-  height: 24px;
-  border-radius: 8px;
-}
-
-html.mob .bi svg {
-  width: 14px;
-  height: 14px;
-}
-
 .hqw {
   display: inline-flex;
   align-items: center;
@@ -139,14 +128,6 @@ html.mob .bi svg {
 
 .al:first-child {
   border-top: 0;
-}
-
-html.mob #kpis,
-html.mob #billK,
-html.mob #budK,
-html.mob #fcK {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
 }
 
 .help {
@@ -376,11 +357,6 @@ html.help-on .help {
   }
 }
 
-html.mob .help {
-  width: 100vw;
-  border-inline-start: 0;
-}
-
 a.hl,
 .hl {
   cursor: pointer;
@@ -404,25 +380,4 @@ a.hl,
   background: var(--s2);
   padding: 1px 6px;
   border-radius: 6px;
-}
-
-html.mob h2 .hl {
-  padding: 8px 0 8px 10px;
-  font-size: 13px;
-  letter-spacing: 0;
-  text-transform: none;
-  font-weight: 600;
-}
-
-html.mob .h2r {
-  gap: 8px;
-}
-
-html.mob .al {
-  flex-wrap: wrap;
-  row-gap: 10px;
-}
-
-html.mob .al > div:nth-child(2) {
-  flex: 1 1 calc(100% - 30px) !important;
 }

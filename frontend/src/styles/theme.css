@@ -82,14 +82,6 @@ html[data-rad="sharp"] :is(input,select,textarea,.btn,.seg,.seg button,.chip,.ta
   border-radius: 3px;
 }
 
-html.mob[data-rad="soft"] .sheet {
-  border-radius: 14px 14px 0 0;
-}
-
-html.mob[data-rad="sharp"] .sheet {
-  border-radius: 5px 5px 0 0;
-}
-
 html[data-nsp="tight"] {
   --nvg: 0px;
   --nvp: 0px;
@@ -427,9 +419,8 @@ body.glass :is(.rkbr,.inf,.exo,.exbox,.exd,.exsamp,.txs-c,.jstat3,.stl,.phs > di
   backdrop-filter: var(--gfx);
 }
 
-/* the bar that shows a running job, and the phone's top bar and bottom menu (on a computer the menu is part of the backdrop) */
-body.glass #jobBar,
-html.mob body.glass :is(main > header,nav) {
+/* the bar that shows a running job */
+body.glass #jobBar {
   background: var(--gbg);
   -webkit-backdrop-filter: var(--gfx);
   backdrop-filter: var(--gfx);

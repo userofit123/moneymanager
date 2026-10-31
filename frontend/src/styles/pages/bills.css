@@ -94,31 +94,6 @@ html.he .bgh {
   padding: 2px 20px;
 }
 
-html.mob .bgr .row > div[style*="min-width:120px"] > .sm:last-child {
-  display: none;
-}
-
-html.mob .bgr .row > div[style*="min-width:120px"] {
-  max-width: 38%;
-}
-
-html.mob .bgr .row .grow b {
-  font-size: 15px;
-}
-
-html.mob .bgi {
-  width: 36px;
-  height: 36px;
-}
-
-html.mob .bgs b {
-  font-size: 16px;
-}
-
-html.mob .bgs span {
-  display: none;
-}
-
 .brow {
   position: relative;
   display: flex;
@@ -200,30 +175,4 @@ html.mob .bgs span {
 .bmore {
   flex: none;
   color: var(--tx2);
-}
-
-html.mob .brow .bm {
-  flex: 1 1 0;
-}
-
-html.mob .brow .ba {
-  order: 5;
-  flex: 1 0 100%;
-  min-width: 0;
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding-inline-start: 54px;
-  margin-top: -6px;
-  text-align: start;
-}
-
-html.mob .brow .ba > b {
-  display: inline;
-  font-size: 16px;
-}
-
-html.mob .brow .bs2,
-html.mob .brow .bfaint {
-  display: none;
 }

@@ -104,10 +104,6 @@ html.he .fxbar i {
   color: var(--tx2);
 }
 
-html.mob .fxs {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
 .fsr {
   display: flex;
   flex-wrap: wrap;
@@ -173,14 +169,6 @@ html.mob .fxs {
   border-color: color-mix(in srgb, var(--neg) 35%, var(--ol));
 }
 
-html.mob .fsr > i {
-  display: none;
-}
-
-html.mob .fst {
-  flex: 1 1 calc(50% - 8px);
-}
-
 .wcs.jn {
   border-radius: 0;
 }
@@ -219,19 +207,6 @@ html.mob .fst {
   white-space: nowrap;
   flex-wrap: nowrap;
   padding-inline: 0 4px;
-}
-
-html.mob .wrl {
-  display: none;
-}
-
-html.mob .wcs.jn {
-  border-radius: 99px 0 0 99px;
-}
-
-html.mob .wct {
-  grid-area: t;
-  border-radius: 0;
 }
 
 #flowSeg button {

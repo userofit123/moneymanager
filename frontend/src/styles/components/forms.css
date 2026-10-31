@@ -135,12 +135,6 @@ textarea {
   font-size: 14px;
 }
 
-@media (max-width: 520px) {
-  .qa {
-    grid-template-columns: 1fr;
-  }
-}
-
 input,
 select,
 textarea {
@@ -261,12 +255,6 @@ tr.grp td {
   border-top: 1px solid var(--ol);
 }
 
-html.mob input,
-html.mob select,
-html.mob textarea {
-  font-size: 16px;
-}
-
 .mi {
   width: 36px;
   height: 36px;
@@ -286,16 +274,6 @@ html.mob textarea {
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-
-html.mob [id^="ctl-"] .rng {
-  display: contents;
-}
-
-html.mob [id^="ctl-"] select {
-  flex: 1 1 130px;
-  width: auto;
-  min-width: 0;
 }
 
 html.he input[type=number],
@@ -378,10 +356,6 @@ html.he select:not([multiple]) {
   flex-direction: column;
   gap: var(--spg);
   min-width: 0;
-}
-
-html.mob :is(.exsec,.exside) .two {
-  grid-template-columns: minmax(0, 1fr);
 }
 
 .kchips {

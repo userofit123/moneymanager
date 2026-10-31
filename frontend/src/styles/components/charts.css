@@ -100,22 +100,6 @@ svg .gl {
   line-height: 1.55;
 }
 
-html.mob .dsvg {
-  display: block;
-  margin: 0 auto;
-}
-
-html.mob #donutHome,
-html.mob #donutRep {
-  flex-direction: column;
-  align-items: stretch;
-}
-
-html.mob .legend {
-  min-width: 0;
-  width: 100%;
-}
-
 .trw {
   position: relative;
   margin-top: 14px;
@@ -367,103 +351,6 @@ svg [data-tip] {
 
 .wc.end.neg .wca {
   color: var(--neg);
-}
-
-html.mob .wf2 {
-  display: flex;
-  flex-direction: column;
-  overflow: visible;
-  gap: 16px;
-}
-
-html.mob .wc {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-rows: none;
-  grid-template-areas: "n a" "p p" "t t";
-  text-align: start;
-  align-items: center;
-}
-
-html.mob .wca {
-  grid-area: a;
-  margin: 0;
-  min-height: 0;
-}
-
-html.mob .wca::before {
-  content: attr(data-l);
-  color: var(--tx2);
-  font-size: 12px;
-  font-weight: 500;
-  margin-inline-end: 8px;
-}
-
-html.mob .wc.start .wca::before,
-html.mob .wc.set .wca::before,
-html.mob .wc.end .wca::before {
-  content: none;
-}
-
-html.mob .wcn {
-  grid-area: n;
-  align-items: flex-start;
-  padding: 0;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 2px 8px;
-}
-
-html.mob .wcn .dot {
-  display: none;
-}
-
-html.mob .wcp {
-  grid-area: p;
-  height: 12px;
-  margin: 8px 0;
-  border-radius: 99px;
-  background: var(--s2);
-  overflow: hidden;
-}
-
-html.mob .wcs {
-  top: 0;
-  bottom: 0;
-  height: auto;
-  left: 0; /* fixed side */
-  right: auto; /* fixed side */
-  width: calc(var(--h)*1%);
-  border-radius: 99px;
-}
-
-html.mob .wcg {
-  top: 0;
-  bottom: 0;
-  height: auto;
-  left: calc(var(--b)*1%); /* fixed side */
-  right: auto; /* fixed side */
-  width: calc(var(--h)*1%);
-  border-radius: 0 99px 99px 0;
-}
-
-html.mob .wcb,
-html.mob .wcx,
-html.mob .wcl,
-html.mob .wct {
-  justify-content: space-between;
-  border-top: 0;
-  padding: 4px 0;
-  font-size: 13px;
-}
-
-html.mob .wcb::before,
-html.mob .wcx::before,
-html.mob .wcl::before,
-html.mob .wct::before {
-  content: attr(data-l);
-  color: var(--tx2);
-  font-size: 12px;
 }
 
 .trtip small:last-child {

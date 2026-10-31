@@ -4,17 +4,6 @@
   opacity: .7;
 }
 
-html.mob .jin .fld input {
-  font-size: 16px;
-}
-
-html.mob .jin .fld input,
-html.mob .jin .fld select {
-  min-height: 40px;
-  padding: 8px 12px;
-  font-size: 15px;
-}
-
 .kh {
   display: flex;
   justify-content: space-between;
@@ -147,11 +136,6 @@ html.mob .jin .fld select {
   }
 }
 
-html.mob .jbody .ring {
-  width: 104px !important;
-  height: 104px !important;
-}
-
 .hist .hr {
   display: flex;
   align-items: baseline;
@@ -274,23 +258,6 @@ html.mob .jbody .ring {
   width: 150px;
 }
 
-html.mob .jhero {
-  grid-template-columns: 1fr;
-}
-
-html.mob .jhero .jh2 {
-  border-inline-start: 0;
-  border-top: 1px solid color-mix(in srgb, var(--acc) 20%, var(--ol));
-}
-
-html.mob .jhero .jh1 .val {
-  font-size: 40px;
-}
-
-html.mob .jbufc .kin {
-  width: 100%;
-}
-
 .jin .jtools {
   gap: 4px;
 }
@@ -363,27 +330,6 @@ html.mob .jbufc .kin {
 
 .jbody .jstat3 b {
   white-space: nowrap;
-}
-
-html.mob .jbody .ring {
-  width: 118px !important;
-  height: 118px !important;
-}
-
-html.mob .jin .jtools {
-  gap: 3px;
-}
-
-html.mob .jin .jst {
-  padding: 0 6px 0 9px !important;
-}
-
-html.mob .jin .jpill > button {
-  padding: 6px 4px;
-}
-
-html.mob .jin .jpm {
-  padding: 5px 2px;
 }
 
 .jbody .jstat3 {

@@ -112,21 +112,6 @@
   color: var(--neg);
 }
 
-html.mob .btn {
-  min-height: 44px;
-}
-
-html.mob .btn.s {
-  min-height: 38px;
-}
-
-html.mob .ftools .btn {
-  grid-column: span 1;
-  padding: 0 8px;
-  min-height: 42px;
-  justify-content: center;
-}
-
 .cx {
   border: 0;
   background: none;
@@ -184,13 +169,4 @@ a.btn {
   letter-spacing: .8px;
   text-transform: uppercase;
   color: var(--tx2);
-}
-
-html.mob .btn {
-  border-radius: 99px;
-}
-
-html.mob .btn.s {
-  min-height: 40px;
-  padding: 0 16px;
 }

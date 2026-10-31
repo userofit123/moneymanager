@@ -172,14 +172,6 @@
   margin-top: 14px;
 }
 
-html.mob .rcal {
-  left: 8px !important; /* fixed side */
-  right: 8px; /* fixed side */
-  top: auto !important;
-  bottom: calc(16px + var(--sb));
-  width: auto;
-}
-
 .rcg button.s {
   border-radius: 0;
   border-start-start-radius: 99px;

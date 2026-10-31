@@ -215,20 +215,6 @@ svg text {
   letter-spacing: .8px;
 }
 
-/* ===== PHONE LAYOUT. Applied by a class set from JS (and by the media query as a backup) ===== */
-
-html.mob body {
-  display: block;
-}
-
-html.mob h1 {
-  font-size: 25px;
-}
-
-html.mob .flex {
-  gap: 14px;
-}
-
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: .28s;
@@ -236,36 +222,6 @@ html.mob .flex {
 
 .mrow .grow {
   font-size: 16px;
-}
-
-html.mob h2 {
-  flex-wrap: wrap;
-}
-
-html.mob #kpis .sm,
-html.mob #billK .sm,
-html.mob #budK .sm,
-html.mob #fcK .sm {
-  font-size: 12px;
-}
-
-html.mob [id^="ctl-"] {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
-html.mob .row > .grow[style*="min-width:160px"],
-html.mob .row > .grow[style*="min-width:200px"] {
-  min-width: 0 !important;
-  flex: 1 1 0 !important;
-}
-
-html.mob .row > .flex {
-  flex: 1 1 100%;
-  justify-content: flex-start;
-  padding-top: 2px;
 }
 
 /* ===== Hebrew: right to left. The page itself stays left-to-right so the scrollbar remains on the right; only the content is mirrored ===== */
@@ -381,29 +337,7 @@ body::after {
   display: none;
 }
 
-/* ===== MOBILE v2: Material-style phone layout. Everything is under html.mob, so desktop is untouched ===== */
-
-html.mob {
-  scroll-padding-top: 72px;
-}
-
-html.mob body {
-  -webkit-tap-highlight-color: transparent;
-}
-
 /* section rhythm */
-
-html.mob h2 {
-  margin: 24px 0 10px;
-  font-size: 12px;
-  letter-spacing: .9px;
-  min-height: 28px;
-}
-
-html.mob .al > .flex,
-html.mob .al > .btn {
-  margin-inline-start: 22px;
-}
 
 #app {
   display: contents;

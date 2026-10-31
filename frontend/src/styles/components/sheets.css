@@ -161,40 +161,6 @@
   display: none;
 }
 
-html.mob .pop {
-  inset-inline: 8px;
-  bottom: calc(76px + var(--sb));
-  width: auto;
-}
-
-html.mob .sheet {
-  inset-inline: 0;
-  bottom: 0;
-  top: auto;
-  transform: none;
-  margin: 0;
-  height: auto;
-  width: 100%;
-  max-height: 92vh;
-  border-radius: 26px 26px 0 0;
-  border-width: 1px 0 0;
-  overscroll-behavior: contain;
-  padding: 10px 18px calc(22px + var(--sb));
-}
-
-html.mob .sheet.on {
-  animation: up .25s;
-}
-
-html.mob .sheet .grab {
-  display: block;
-  width: 42px;
-  height: 5px;
-  border-radius: 3px;
-  background: var(--ol);
-  margin: 0 auto 14px;
-}
-
 @keyframes up {
   from {
     transform: translateY(40px);
@@ -209,10 +175,6 @@ html.mob .sheet .grab {
   }
 }
 
-html.mob .sheet.out {
-  animation: downOut .22s forwards;
-}
-
 .sheet .tags {
   display: flex;
   flex-wrap: wrap;
@@ -224,18 +186,9 @@ html.mob .sheet.out {
   margin: 0;
 }
 
-html.mob .row > div[style*="min-width:120px"] {
-  min-width: 0 !important;
-  flex: none;
-}
-
 html.he .pop {
   left: auto; /* fixed side */
   right: 98px; /* fixed side */
-}
-
-html.mob.he .pop {
-  inset-inline: 8px;
 }
 
 html.he .brow .ba,
@@ -304,33 +257,12 @@ html.he .row > div[style*="text-align:end"] {
   display: flex;
 }
 
-html.mob .pop {
-  max-height: calc(100vh - 100px - var(--sb));
-}
-
 /* the Appearance panel keeps one height whichever tab is open, so switching tabs does not resize it (a resize redraws everything behind it) */
 #pop {
   height: min(700px, calc(100vh - 32px));
 }
 
-html.mob #pop {
-  height: min(700px, calc(100vh - 100px - var(--sb)));
-}
-
-html.mob .pop {
-  bottom: calc(88px + var(--sb));
-}
-
 /* sheets: Material bottom sheet */
-
-html.mob .sheet {
-  border-radius: 28px 28px 0 0;
-  box-shadow: 0 -20px 60px -20px #0009;
-}
-
-html.mob .scrim {
-  backdrop-filter: blur(2px);
-}
 
 .askc {
   position: fixed;

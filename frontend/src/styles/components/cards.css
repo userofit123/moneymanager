@@ -91,69 +91,11 @@
   margin-bottom: 18px;
 }
 
-html.mob .flow {
-  padding: 16px;
-}
-
-html.mob .val {
-  font-size: 27px;
-}
-
-html.mob .card {
-  padding: 16px;
-}
-
 .acts {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin: 0 0 6px;
-}
-
-html.mob .card {
-  padding: 16px;
-  border-radius: 20px;
-}
-
-html.mob #kpis .card,
-html.mob #billK .card,
-html.mob #budK .card,
-html.mob #fcK .card {
-  padding: 14px 15px;
-  border-radius: 18px;
-}
-
-html.mob #kpis .card.hero,
-html.mob #billK .card.hero,
-html.mob #budK .card.hero,
-html.mob #fcK .card.hero {
-  grid-column: 1/-1;
-}
-
-html.mob #kpis .val,
-html.mob #billK .val,
-html.mob #budK .val,
-html.mob #fcK .val {
-  font-size: 23px;
-  margin: 4px 0;
-}
-
-html.mob #kpis .lbl,
-html.mob #billK .lbl,
-html.mob #budK .lbl,
-html.mob #fcK .lbl {
-  font-size: 12px;
-}
-
-html.mob #kpis > .card:last-child:nth-child(even) {
-  grid-column: 1/-1;
-}
-
-html.mob #repCtl select,
-html.mob .card > .flex > select {
-  min-height: 38px;
-  padding: 6px 10px;
-  font-size: 14px;
 }
 
 .card.acc .lbl {
@@ -173,23 +115,3 @@ html.he .big {
 }
 
 /* KPI tiles: sparkline sits under the text, never over it */
-
-html.mob #kpis .card:not(.hero) .spark,
-html.mob #billK .card:not(.hero) .spark,
-html.mob #budK .card:not(.hero) .spark,
-html.mob #fcK .card:not(.hero) .spark {
-  position: static;
-  display: block;
-  width: 100%;
-  height: 30px;
-  margin-top: 8px;
-}
-
-html.mob #kpis .card .sm {
-  padding-inline-end: 0;
-}
-
-html.mob .card .val {
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -.5px;
-}

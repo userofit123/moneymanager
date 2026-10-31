@@ -20,48 +20,6 @@
   pointer-events: none;
 }
 
-html.mob #toasts {
-  top: calc(8px + var(--st));
-  inset-inline: 10px;
-  bottom: auto;
-  width: auto;
-  gap: 6px;
-}
-
-html.mob .toast {
-  padding: 8px 10px;
-  gap: 8px;
-  border-radius: 12px;
-  font-size: 13px;
-}
-
-html.mob .toast .ti {
-  width: 20px;
-  height: 20px;
-}
-
-html.mob .toast .ti svg {
-  width: 12px;
-  height: 12px;
-}
-
-html.mob .toast .tm {
-  line-height: 1.25;
-}
-
-html.mob .toast .tm b {
-  font-size: 12px;
-}
-
-html.mob .toast .tacts {
-  margin-top: 2px;
-}
-
-html.mob .toast .tu {
-  padding: 4px 8px;
-  font-size: 13px;
-}
-
 .toast {
   pointer-events: auto;
   display: flex;
@@ -218,14 +176,6 @@ html.he #toasts {
   left: 18px; /* fixed side */
 }
 
-html.mob.he #toasts {
-  inset-inline: 10px;
-}
-
 html.he .toast.out {
   transform: translateX(-12px);
-}
-
-html.mob .toast {
-  border-radius: 16px;
 }
