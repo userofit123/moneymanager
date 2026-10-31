@@ -1748,6 +1748,50 @@ html.he .rkeq :is(.qout,.qin) .qb svg {
   font-size: 15px;
 }
 
+.rknext .rkp {
+  max-width: 720px;
+}
+
+/* the small arrow down under the end of the path: there is more below (a look at next month) */
+.rkdn {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  margin-top: 72px;
+  color: var(--acc);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rkdn svg {
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: rkbob 1.8s ease-in-out infinite;
+}
+
+.rkdn:hover svg {
+  animation-play-state: paused;
+  translate: 0 3px;
+}
+
+.rkdn:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 4px;
+  border-radius: var(--r-sm);
+}
+
+@keyframes rkbob {
+  50% {
+    translate: 0 5px;
+  }
+}
+
 /* the summary at the end of the path: two small numbers side by side, then the money you really have, big */
 .rkst {
   display: grid;

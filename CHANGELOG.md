@@ -14,6 +14,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 - **Fixed: no false "balance changed" item when a card lists a charge at another time than its total counts it.** When leaving out one or a few new charges from around that day makes the card's balance add up, nothing is flagged, and the charge still counts once the total catches up.
 - **Fixed: Recap's "Balance after card bills" matches "Your money after known payments".** It rounds each amount first, so the two no longer differ by ₪1, and the two small boxes at the end of Recap lift on hover like the other blocks, without an underline.
 - **Fixed: Recap's Today box points at the today dot again**, also at the start and end of the month, when the box itself stays inside the chart.
+- **Recap shows there is more below the path.** A small **Next month** arrow under the end of the path leads down to the look at next month (press it to scroll there), and that part's text is wider.
 - **Fixed: amounts inside Hebrew sentences.** A space before an amount, a comma after it, or a joined "מ-" no longer jumps to the wrong side (for example in the Forecast guide's examples).
 - **Forecast guide in Hebrew:** says **קופות** (jars) like the rest of the app and no longer says "we".
 - **Bank names come from one list.** Activity, the transaction window and Sync read the built-in bank and card names from one place. Nothing changes on screen.

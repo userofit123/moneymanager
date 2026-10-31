@@ -217,6 +217,7 @@
   "fromJar": "{a} of this comes from your {jar} jar.",
   "fromJars": "{a} of this comes from your jars.",
   "nextMonT": "A look at {mon}",
+  "nextCue": "Next month",
   "nextMonX": "A prediction, the same as on the Forecast page: the money you'll likely have at the end of this month, plus your usual income and spending in {mon}. What you may have on {date}, after paying for everything you bought.",
   "statusT": "Where you stand now",
   "stToday": "In your accounts today",

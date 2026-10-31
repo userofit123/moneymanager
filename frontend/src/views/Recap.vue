@@ -327,7 +327,9 @@ const html = computed(() => {
   // "next" (a look at next month) stands on its own under the end of the path
   const nx = order.includes("next") ? PARTS.next(m) : "", path = order.filter((p) => p != "next");
   path.forEach((p, i) => { const zz = i < 2 || i == path.length - 1 ? 0 : zc + 1; const h = draw(p, zz); if (zz && h) zc++; out.push(h); });
-  const endH = out[out.length - 1].replace('class="rk rr', 'class="rk rr zend'), chain = out.slice(2, -1).join("") + endH;
+  // under the end of the path, a small arrow down shows there is more: a look at next month (it scrolls there)
+  const cue = nx ? `<a class="rkdn" data-a="recapNext" role="button" tabindex="0"><span>${L("nextCue")}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></a>` : "";
+  const endH = out[out.length - 1].replace('class="rk rr', 'class="rk rr zend').replace(/<\/section>$/, cue + "</section>"), chain = out.slice(2, -1).join("") + endH;
   return `<div class="rkw0">${out[0]}${out[1] || ""}${chain ? `<div class="rkz">${chain}</div>` : ""}${nx}</div>`;
 });
 
@@ -366,8 +368,9 @@ const box = ref(null);
 function onClick(e) {
   const a = e.target.closest("[data-a]"); if (!a || !box.value.contains(a)) return;
   if (a.dataset.a == "recapGo") recapGo(a.dataset.k); else if (a.dataset.a == "billOpen") billOpen(+a.dataset.i); else if (a.dataset.a == "jarRelease") rel.value = true;
+  else if (a.dataset.a == "recapNext") box.value.querySelector(".rknext")?.scrollIntoView({ behavior: REDUCE() ? "auto" : "smooth", block: "start" });
 }
-function onKey(e) { if ((e.key == "Enter" || e.key == " ") && e.target.matches?.('[data-a="billOpen"]')) { e.preventDefault(); billOpen(+e.target.dataset.i); } }
+function onKey(e) { if ((e.key == "Enter" || e.key == " ") && e.target.matches?.('[data-a="billOpen"],[data-a="recapNext"]')) { e.preventDefault(); onClick(e); } }
 
 // ---- the day tooltips (dayTip, wireDays, wireBars) ----
 function dayTip(D, future, today) {
