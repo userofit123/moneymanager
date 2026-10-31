@@ -450,6 +450,17 @@ html.mob .setnav button.on {
 /* Automatic sorting: the rule lists, the "tag earlier transactions" window and the AI setup */
 
 /* A rule list (RuleList.vue): the new-rule form, the search box, the rules, the text when there are none */
+.rl .ssh b {
+  /* the rule pages: the name, its count and the (?) after it share one centre line */
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.rl .ssh .cnt {
+  vertical-align: 0;
+}
+
 .rladd {
   display: flex;
   flex-wrap: wrap;
