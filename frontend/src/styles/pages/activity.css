@@ -639,6 +639,7 @@ html.mob .exfoot {
   stroke-linecap: round;
   stroke-linejoin: round;
   pointer-events: none;
+  z-index: 1; /* above the box: a see-through (glass) box would blur it */
 }
 
 .tsearch input {

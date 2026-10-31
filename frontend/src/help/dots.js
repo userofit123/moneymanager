@@ -1,7 +1,6 @@
 // Where the small ? goes:
 // [help page, area on the page, element holding the name, start of its English text, title of the info block to open, how ("after" = next to the area), the same name in Hebrew].
 export default [
-  ["dash", "#kpis", ".lbl", "In your accounts", "The four big numbers", "", "בחשבונות שלך"],
   ["dash", "#sec-accts", "h2", "Accounts", "Accounts and credit cards", "", "חשבונות"],
   ["dash", "#sec-cards", "h2", "Credit cards", "Accounts and credit cards", "", "כרטיסי אשראי"],
   ["dash", "#sec-flow", "h2", "Money flow", "Money flow · ahead", "", "תזרים כספים"],

@@ -455,14 +455,14 @@ html[data-mode=dark] body.glass :is(.card,table,.bgrp,.jhero,.fcard,.setnav,.rke
   box-shadow: 0 1px 1px #0005, 0 12px 26px -14px #000b;
 }
 
-/* the Recap graph's "Today" label floats on its own (and uses ::before for its pointer), so it blurs directly */
+/* the Recap graph's "Today" label floats on its own (its pointer is .rkpa), so it blurs directly */
 body.glass .rkpt {
   -webkit-backdrop-filter: var(--gfx);
   backdrop-filter: var(--gfx);
 }
 
 /* the pointer keeps only the half that sticks out above the label, so the two see-through fills do not add up */
-body.glass .rkpt::before {
+body.glass .rkpa {
   clip-path: polygon(0 0, 100% 0, 0 100%);
   -webkit-backdrop-filter: var(--gfx);
   backdrop-filter: var(--gfx);
