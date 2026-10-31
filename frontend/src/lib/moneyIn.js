@@ -28,7 +28,8 @@ export function moneyIn(S) {
   const tx = S?.tx || [], S1 = { ...S, tx, accounts: S?.accounts || [] }, xs = transferIds(S1);
   const acc = new Map(S1.accounts.map((a) => [a.n, a.kind]));
   const rules = inRules(S1).map((r) => ({ k: normD(r?.k), raw: String(r?.k || "").trim(), o: kindOf(r.kind) })).filter((r) => r.k.length > 0);
-  const ruleOf = (t) => { const h = normD(t.desc + " " + (t.from || "")); return rules.find((r) => h.includes(r.k)); };
+  // the bank's note is read too: some banks put the real payer there (the name says only "זיכוי", the note "המבצע: <payer>")
+  const ruleOf = (t) => { const h = normD(t.desc + " " + (t.from || "") + " " + (t.memo || "")); return rules.find((r) => h.includes(r.k)); };
   const out = new Map();
   for (const t of tx) {
     if (!(t.a > 0) || t.virtual || xs.has(t.id)) continue;

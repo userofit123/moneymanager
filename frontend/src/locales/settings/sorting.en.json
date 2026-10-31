@@ -146,7 +146,7 @@
   },
   "mi": {
     "title": "Money coming in",
-    "desc": "If money coming in holds the text (in its transaction name or the payer), it is a Salary or Money back, as you pick here.",
+    "desc": "If money coming in holds the text (in its transaction name, the payer or the bank's note), it is a Salary or Money back, as you pick here.",
     "ifIn": "If it holds",
     "kind": "What it is",
     "none": "No rules of your own yet. Add a payer above, for example your employer.",

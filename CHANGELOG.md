@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [0.12.12] - 2026-10-24
 
 ### App
+- **Money coming in rules also read the bank's note**, where some banks (like Bank Hapoalim) put who paid: the name says only "זיכוי" and the note "המבצע: <payer>".
 - **Loading screen:** the coin fills its tile on the look's colours, instead of a small purple square inside it.
 - **The coin logo keeps the look's colours** right after you pick it, everywhere (side bar, loading screen, Settings), instead of showing its own purple tile until the page is reloaded.
 - **Money coming in is Income, Salary or Money back, and nothing is guessed from words.** Any money coming in is Income, a cash deposit too, and also a bank deposit the bank calls "זיכוי" (credit). It is Money back only when it came in on a credit card, or when you or a rule of yours say so. Salary is part of Income: only when you mark it or a rule of yours says so. Money moved between your own accounts is still not counted.

@@ -2221,7 +2221,7 @@
    "div.rlnone.sm",
    "div.sfoot"
   ],
-  "text": "Money coming in 0 If money coming in holds the text (in its transaction name or the payer), it is a Salary or Money back, as you pick here. Add rule No rules of your own yet. Add a payer above, for example your employer. With no rule: money that came in on a credit card is Money back, and all other money coming in is Income. Nothing is decided from words in the text.",
+  "text": "Money coming in 0 If money coming in holds the text (in its transaction name, the payer or the bank's note), it is a Salary or Money back, as you pick here. Add rule No rules of your own yet. Add a payer above, for example your employer. With no rule: money that came in on a credit card is Money back, and all other money coming in is Income. Nothing is decided from words in the text.",
   "tips": []
  },
  "page-empty-setInRules": {
@@ -2245,7 +2245,7 @@
    "div.rlnone.sm",
    "div.sfoot"
   ],
-  "text": "Money coming in 0 If money coming in holds the text (in its transaction name or the payer), it is a Salary or Money back, as you pick here. Add rule No rules of your own yet. Add a payer above, for example your employer. With no rule: money that came in on a credit card is Money back, and all other money coming in is Income. Nothing is decided from words in the text.",
+  "text": "Money coming in 0 If money coming in holds the text (in its transaction name, the payer or the bank's note), it is a Salary or Money back, as you pick here. Add rule No rules of your own yet. Add a payer above, for example your employer. With no rule: money that came in on a credit card is Money back, and all other money coming in is Income. Nothing is decided from words in the text.",
   "tips": []
  },
  "add-a-money-coming-in-rule-as-salary-no-entry-changes-salary-is-not-a-category": {

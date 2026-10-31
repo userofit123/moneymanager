@@ -73,3 +73,8 @@ test("inRow and partOf: money back is marked back, a salary sal", () => {
   assert.equal(partOf({ kind: "back" }), "back");
   assert.equal(partOf(undefined), "in");
 });
+
+test("a money coming in rule also reads the bank's note, where some banks put the payer", () => {
+  const t = IN("2026-10-08", 9000, "זיכוי", "זיכוי", { memo: "המבצע: Northwind Ltd. עבור: OTHER_BUSINESS" });
+  assert.equal(one(t, [], { moneyInRules: [{ k: "northwind", kind: "salary" }] }).sub, "salary");
+});
