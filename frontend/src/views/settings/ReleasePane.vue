@@ -27,7 +27,7 @@ const desc = computed(() => tk("desc") + (cur.value ? " " + tk("youOn", { v: "�
     <SetSection icon="log" :title="tk('title')" :desc="desc" :count="L.length">
       <template v-if="!L.length" #default><div class="sm rlnone">{{ REL.loaded ? tk("none") : tk("loading") }}</div></template>
     </SetSection>
-    <details v-for="(r, i) in L" :key="r.v" class="card ss relv" :open="i < 2 || (cur && vNewer(r.v, cur))">
+    <details v-for="(r, i) in L" :key="r.v" class="card ss relv fold" :open="i < 2 || (cur && vNewer(r.v, cur))">
       <summary class="ssh">
         <div><b>{{ tk("version") }} ⁦{{ r.v }}⁩<span v-if="r.v == cur" class="bd pc p-jar relb">{{ tk("installed") }}</span><span v-else-if="cur && vNewer(r.v, cur)" class="bd pc p-bill relb">{{ tk("newer") }}</span></b><div v-if="dt(r.date)" class="sm">{{ dt(r.date) }}</div></div>
       </summary>

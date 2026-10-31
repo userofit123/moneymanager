@@ -315,17 +315,6 @@ html.mob .txside {
   display: none;
 }
 
-.kvd > summary::before {
-  content: "▸";
-  display: inline-block;
-  margin-inline-end: 7px;
-  transition: transform .15s;
-}
-
-.kvd[open] > summary::before {
-  transform: rotate(90deg);
-}
-
 .kvd .kvr {
   padding: 6px 0;
   font-size: 13px;

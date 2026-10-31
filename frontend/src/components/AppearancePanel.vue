@@ -112,7 +112,7 @@ const lookDot = (x) => { const c = lookPal(x.v, k.value); return `background:lin
             <h5>{{ t("ap." + g) }}</h5>
             <div class="cgrid"><label v-for="n in ns" :key="n" class="crow"><input type="color" :value="custVal(n, k)" :aria-label="t('ap.' + CKEY[n])" @input="setCust(n, $event.target.value)"><span>{{ t("ap." + CKEY[n]) }}</span><output dir="ltr">{{ custVal(n, k).toUpperCase() }}</output></label></div>
           </div>
-          <details class="cch"><summary>{{ t("ap.charts") }}</summary><div class="cchips"><label v-for="(c, i) in CP.L" :key="i" class="cchip" :title="t('ap.chartN', { n: i + 1 })"><input type="color" :value="cpOf(k)[i]" :aria-label="t('ap.chartN', { n: i + 1 })" @input="setChart(i, $event.target.value)"></label></div></details>
+          <details class="cch fold"><summary>{{ t("ap.charts") }}</summary><div class="cchips"><label v-for="(c, i) in CP.L" :key="i" class="cchip" :title="t('ap.chartN', { n: i + 1 })"><input type="color" :value="cpOf(k)[i]" :aria-label="t('ap.chartN', { n: i + 1 })" @input="setChart(i, $event.target.value)"></label></div></details>
         </div>
       </div>
       <div class="apbt" :class="{ on: tab === 'bg' }">

@@ -12,23 +12,8 @@
   font-weight: 600;
 }
 
-.relv > summary {
-  list-style: none;
-}
-
-.relv > summary::-webkit-details-marker {
-  display: none;
-}
-
 .relv > summary::after {
-  content: "▾";
   margin-inline-start: auto;
-  color: var(--tx2);
-  transition: transform .2s;
-}
-
-.relv:not([open]) > summary::after {
-  transform: rotate(-90deg);
 }
 
 .ss .sr:first-child {
@@ -592,11 +577,8 @@ html.mob .rladd > .btn {
 /* the two folds: rows with a divider, like the steps above; open content gets room above and below */
 #aiSort .aimore { border-top: 1px solid var(--ol); }
 #aiSort .aisteps + .aimore { border-top: 0; }
-#aiSort .aimore > summary { display: flex; align-items: center; gap: 8px; padding-block: 14px; cursor: pointer; list-style: none; color: var(--acc); font-weight: 600; font-size: 14px; }
-#aiSort .aimore > summary::-webkit-details-marker { display: none; }
-#aiSort .aimore > summary::after { content: ""; width: 18px; height: 18px; flex: none; margin-inline-start: auto; background: var(--tx2); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") center/100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") center/100% 100% no-repeat; transition: transform .2s; }
-#aiSort .aimore:not([open]) > summary::after { transform: rotate(-90deg); }
-html.he #aiSort .aimore:not([open]) > summary::after { transform: rotate(90deg); }
+#aiSort .aimore > summary { display: flex; align-items: center; gap: 8px; padding-block: 14px; cursor: pointer; color: var(--acc); font-weight: 600; font-size: 14px; }
+#aiSort .aimore > summary::after { margin-inline-start: auto; }
 #aiSort .aimore[open] { padding-bottom: 16px; }
 /* the last fold's own padding is the card's bottom edge: same 18px as above the first box */
 #aiSort .ssb { padding-bottom: 4px; }

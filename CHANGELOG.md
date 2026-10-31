@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [0.12.12] - 2026-10-24
 
 ### App
+- **Open and close arrows are one thin chevron everywhere**, also in What's new and in Appearance's chart colours (no more ▾ or ▸). It points down when open, and to the end side when closed, so it turns the right way in Hebrew.
 - **Hebrew names in Settings:** the first group is now called אישי (personal), and Set up with an AI is called הגדר עם AI, in the form that fits the profile (הגדר, הגדירי or הגדירו).
 - **Problems and support:** the Full details row no longer has a rounded bottom.
 - **Fixed: Background alerts could not be turned on** after the server's secret key changed (a new .env or a restored backup): the server can no longer open its saved alert keys, so it now makes new ones, and each device turns the switch on again. When a browser cannot get alerts while the app is closed (for example a private window), the row says so and points to Telegram or ntfy.

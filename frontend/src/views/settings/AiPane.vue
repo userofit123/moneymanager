@@ -81,8 +81,8 @@ function add() {
         <SetRow :title="t('settings.sorting.ai.s3t')" :desc="t('settings.sorting.ai.s3')"><button type="button" class="btn s" @click="file.click()">{{ t("settings.sorting.ai.s3b") }}</button>
           <input ref="file" type="file" accept=".json,.txt,application/json,text/plain" hidden @change="upload"></SetRow>
       </div>
-      <details class="aimore"><summary>{{ t("settings.sorting.ai.see") }}</summary><pre dir="auto">{{ prompt }}</pre></details>
-      <details class="aimore"><summary>{{ t("settings.sorting.ai.pasteQ") }}</summary>
+      <details class="aimore fold"><summary>{{ t("settings.sorting.ai.see") }}</summary><pre dir="auto">{{ prompt }}</pre></details>
+      <details class="aimore fold"><summary>{{ t("settings.sorting.ai.pasteQ") }}</summary>
         <label class="fld">{{ t("settings.sorting.ai.pasteL") }}<textarea v-model="pasted" rows="4" dir="ltr" /></label>
         <button type="button" class="btn o s" :disabled="!pasted.trim()" @click="check(pasted)">{{ t("settings.sorting.ai.pasteGo") }}</button>
       </details>
