@@ -7,7 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [0.12.12] - 2026-10-24
 
 ### App
-- **Install on this device shows this device first.** The app tells which device it is on (Windows, Mac, Linux, Android, iPhone or iPad) and shows the steps and downloads for it, or says it is already installed. **Other devices** lists the rest, each with its steps and its app to download.
+- **Install on this device shows this device first.** The app tells which device it is on (Windows, Mac, Linux, Android, iPhone or iPad) and shows the steps and downloads for it, or says it is already installed. **Other devices** lists the rest, each with its steps and its app to download: Windows, Mac (Apple chip or Intel chip), Linux (.rpm, .deb, AppImage) and Android, each file linked straight from the latest release. iPhone and iPad have no app to download, and the page says so.
 - **Open and close arrows are one thin chevron everywhere**, also in What's new and in Appearance's chart colours (no more ▾ or ▸). It points down when open, and to the end side when closed, so it turns the right way in Hebrew.
 - **Hebrew names in Settings:** the first group is now called אישי (personal), and Set up with an AI is called הגדר עם AI, in the form that fits the profile (הגדר, הגדירי or הגדירו).
 - **Problems and support:** the Full details row no longer has a rounded bottom.

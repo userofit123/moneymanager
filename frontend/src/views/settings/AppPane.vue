@@ -8,6 +8,7 @@ import SetSection from "./SetSection.vue";
 import SetRow from "./SetRow.vue";
 import { openSettingsTab } from "./tab.js";
 import { device } from "../../core/device.js";
+import { downloads, RELEASES } from "../../lib/downloads.js";
 
 const { t } = useI18n();
 const tk = (k, a) => t("settings.app." + k, a || {});
@@ -16,26 +17,16 @@ const D = typeof window !== "undefined" ? window.desktop : null, desk = !!D;
 const standalone = typeof matchMedia !== "undefined" && matchMedia("(display-mode: standalone)").matches;
 const MM = typeof window !== "undefined" ? window.mmApp : null; // the phone app: its own version, and where to get a newer one
 const showGet = device.inBrowser; // a browser tab or the installed web app: it can offer the other apps
-const RELEASES = "https://github.com/userofit123/moneymanager/releases/latest";
 const newer = (a, b) => { const x = String(a).split(".").map(Number), y = String(b).split(".").map(Number); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); return false; };
 const appNewer = computed(() => !!(MM && UP.latest && newer(UP.latest, String(MM.version).split("-")[0])));
-// Install: the options for this device first, then the other devices the app works on.
-// win, mac, linux, android, ios: each has its way to install from the browser, and some have an app to download from GitHub.
-const REPO = "https://github.com/userofit123/moneymanager/releases";
+// Install: the options for this device first (core/device.js), then the other devices the app works on,
+// each with its way to install from the browser and its files on GitHub (lib/downloads.js; iPhone and iPad have none).
 const OSES = ["win", "mac", "linux", "android", "ios"];
-const here = device.ios ? "ios" : device.android ? "android" : device.windows ? "win" : device.mac ? "mac" : device.linux ? "linux" : "";
+const here = device.os;
 const others = OSES.filter((o) => o !== here);
-// The files on GitHub for one kind of device (the first one is the main button)
-function files(os) {
-  const x = UP.latest, base = REPO + "/download/v" + x + "/";
-  if (os == "android") return [{ k: "androidBtn", href: RELEASES, main: true }];
-  if (os != "win" && os != "linux") return [];
-  if (!x) return [{ k: "deskAll", href: REPO + "/latest", main: true }];
-  if (os == "win") return [{ k: "deskWin", href: base + "Money-Manager-Setup-" + x + ".exe", main: true }];
-  return [{ k: "deskRpm", href: base + "Money-Manager-" + x + "-linux-x86_64.rpm", main: true }, { k: "deskDeb", href: base + "Money-Manager-" + x + "-linux-amd64.deb", main: false }, { k: "deskApp", href: base + "Money-Manager-" + x + "-linux-x86_64.AppImage", main: false }];
-}
-// this computer's desktop app files, then the page with all of them
-const hereFiles = computed(() => { const l = files(here); return here == "win" || here == "linux" ? (UP.latest ? [...l, { k: "deskAll", href: REPO + "/latest", main: false }] : l) : []; });
+const files = (os) => downloads(os, UP.latest);
+// this device's files, then the page with all of them
+const hereFiles = computed(() => { const l = files(here); return l.length && UP.latest ? [...l, { k: "deskAll", href: RELEASES + "/latest", main: false }] : l; });
 // the update states that have a line of text under "New versions"
 const STATES = ["uptodate", "checking", "available", "downloading", "installing", "ready", "error", "dev"];
 const v = () => (UP.latest ? "⁦" + UP.latest + "⁩" : "");
@@ -51,7 +42,7 @@ function setAuto(on) { if (!D) return; UP.auto = on; D.setAuto(on); }
   <div id="setApp">
     <SetSection v-if="MM" id="appCard" icon="phone" :title="tk('appT')" :desc="tk('appD')">
       <SetRow :title="tk('installed')" :desc="'⁦v' + MM.version + '⁩'"><button type="button" class="btn o s" data-a="updNotes" @click="changelog">{{ tk("whatsNew") }}</button></SetRow>
-      <SetRow :title="appNewer ? tk('appNew', { v: v() }) : tk('appGet')" :desc="tk('appGetD')"><button type="button" class="btn s" :class="{ o: !appNewer }" data-a="appGet" @click="MM.open(RELEASES)">{{ tk("appGetBtn") }}</button></SetRow>
+      <SetRow :title="appNewer ? tk('appNew', { v: v() }) : tk('appGet')" :desc="tk('appGetD')"><button type="button" class="btn s" :class="{ o: !appNewer }" data-a="appGet" @click="MM.open(RELEASES + '/latest')">{{ tk("appGetBtn") }}</button></SetRow>
     </SetSection>
     <SetSection id="updCard" icon="install" :title="MM ? tk('srvVerT') : tk('title')" :desc="desk ? tk('descDesk') : tk('descServer')">
       <SetRow :title="tk('installed')" :desc="UP.cur ? '⁦v' + UP.cur + '⁩' : ''"><button type="button" class="btn o s" data-a="updNotes" @click="changelog">{{ tk("whatsNew") }}</button></SetRow>
@@ -85,13 +76,12 @@ function setAuto(on) { if (!D) return; UP.auto = on; D.setAuto(on); }
       <SetSection id="instCard" icon="install" :title="tk('instT')" :desc="here ? tk('hereD', { d: tk('os.' + here) }) : tk('instD')">
         <SetRow v-if="standalone" :title="tk('doneT')" :desc="tk('doneD')" />
         <SetRow v-else :title="tk('browserT')" :desc="installPrompt ? tk('instHint') : tk('how.' + (here || 'win'))"><button v-if="installPrompt" type="button" class="btn s" data-a="install" @click="install">{{ tk("installBtn") }}</button></SetRow>
-        <SetRow v-if="here == 'android'" :title="tk('androidT')" :desc="tk('androidD')"><a class="btn s" :href="RELEASES" target="_blank" rel="noopener" data-a="androidDl">{{ tk("androidBtn") }}</a></SetRow>
-        <SetRow v-if="hereFiles.length" stack :title="tk('deskT')" :desc="tk('deskD')">
-          <a v-for="d in hereFiles" :key="d.k" class="btn s" :class="{ o: !d.main }" :href="d.href" target="_blank" rel="noopener" data-a="deskDl">{{ tk(d.k) }}</a>
+        <SetRow v-if="here" :stack="hereFiles.length > 1" :title="tk('dlT.' + here)" :desc="tk('dlD.' + here)">
+          <a v-for="d in hereFiles" :key="d.k" class="btn s" :class="{ o: !d.main }" :href="d.href" target="_blank" rel="noopener" :data-a="here == 'android' ? 'androidDl' : 'deskDl'">{{ tk(d.k) }}</a>
         </SetRow>
       </SetSection>
       <SetSection id="instOther" icon="app" :title="tk('otherT')" :desc="tk('otherD')">
-        <SetRow v-for="o in others" :key="o" :stack="files(o).length > 1" :title="tk('os.' + o)" :desc="tk('how.' + o) + (files(o).length ? ' ' + tk('get.' + o) : '')">
+        <SetRow v-for="o in others" :key="o" :stack="files(o).length > 1" :title="tk('os.' + o)" :desc="tk('how.' + o) + ' ' + tk('get.' + o)">
           <a v-for="d in files(o)" :key="d.k" class="btn o s" :href="d.href" target="_blank" rel="noopener" :data-a="o == 'android' ? 'androidDl' : 'deskDl'">{{ tk(d.k) }}</a>
         </SetRow>
       </SetSection>

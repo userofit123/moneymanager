@@ -26,16 +26,28 @@
   "seeChanged": "See what changed",
   "auto": "Update automatically",
   "autoD": "Download and install new versions by itself. It installs the next time you close the app.",
-  "androidT": "Android app",
-  "androidD": "An app for your Android phone, with a fingerprint lock and alerts as phone notifications.",
   "androidBtn": "Download",
   "instT": "Install on this device",
   "instD": "Optional. Gives the app its own icon and window, and it opens even without a connection.",
   "instHint": "Install it for a full-screen app icon on this device.",
   "installBtn": "Install app",
-  "deskT": "Desktop app",
-  "deskD": "A Windows or Linux app with its own private database, or a window onto your own server. Free, from GitHub.",
+  "dlT": {
+    "win": "Windows app",
+    "mac": "Mac app",
+    "linux": "Linux app",
+    "android": "Android app",
+    "ios": "App to download"
+  },
+  "dlD": {
+    "win": "Keeps your data on this computer, or connects to your own server. Free, from GitHub.",
+    "mac": "Keeps your data on this Mac, or connects to your own server. Free, from GitHub. Pick the file for your Mac's chip: Apple menu, then About This Mac. The first time, allow it in System Settings, Privacy and Security, Open Anyway.",
+    "linux": "Keeps your data on this computer, or connects to your own server. Free, from GitHub. Pick the file that fits your system.",
+    "android": "An app for your Android phone, with a fingerprint lock and alerts as phone notifications.",
+    "ios": "There is no app to download for iPhone or iPad. Added to the Home Screen, it works like an app."
+  },
   "deskWin": "Download for Windows",
+  "deskMacArm": "Download for Apple chip (M1 and newer)",
+  "deskMacIntel": "Intel chip",
   "deskRpm": "Download .rpm (Fedora, Red Hat)",
   "deskDeb": ".deb (Ubuntu, Debian)",
   "deskApp": "AppImage (any Linux)",
@@ -68,8 +80,10 @@
   },
   "get": {
     "win": "Or download the Windows app.",
+    "mac": "Or download the Mac app (Apple chip or Intel chip).",
     "linux": "Or download the Linux app.",
-    "android": "Or download the Android app."
+    "android": "Or download the Android app.",
+    "ios": "There is no app to download for iPhone or iPad."
   },
   "otherT": "Other devices",
   "otherD": "The app works on these too. Open this same address on the device, then follow the steps."

@@ -22,3 +22,5 @@ export const device = {
   ios: /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && typeof navigator !== "undefined" && navigator.maxTouchPoints > 1),
   mac: /Macintosh/i.test(ua) && !(typeof navigator !== "undefined" && navigator.maxTouchPoints > 1),
 };
+// The kind of device in one word (win, mac, linux, android, ios; "" when unknown), for pages that show steps per device
+device.os = device.ios ? "ios" : device.android ? "android" : device.windows ? "win" : device.mac ? "mac" : device.linux ? "linux" : "";
