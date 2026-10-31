@@ -8,6 +8,9 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 
 ### App
 - **Every rule chooses where it looks and how it compares.** All five rule pages (category rules, tag rules, display names, card payments, money coming in) now read the same way: If [where] [how] [text] → [what it does]. Where: **Everything**, or one part of the entry (**Transaction name**, **Bank's note**, **Bank's description**, **Bank's category**, **Who paid**, **Paid to**, **Your note**, **Your account** or **Currency paid in**). How: **contains**, **is exactly**, **starts with**, **ends with** or **does not contain**. Your rules keep matching exactly what they matched before: each starts on the places it always read (for example "Name, from or to") with "contains". Changing it is in the change history and can be undone. The help explains the list.
+- **Card payment and money coming in rules can be edited in place**, like the other rule pages: change a rule's text in its box (it keeps where it looks and how it compares). Saved in the change history and can be undone.
+- **Rules on a phone:** where a rule looks has a line of its own, so long choices are never cut off; how it compares and the text share the next line, the result comes below.
+- **Set up with an AI shows each suggested rule the same way:** If [where] [how] [text], then what it does.
 - **Money coming in rules also read the bank's note**, where some banks (like Bank Hapoalim) put who paid: the name says only "זיכוי" and the note "המבצע: <payer>".
 - **Loading screen:** the coin fills its tile on the look's colours, instead of a small purple square inside it.
 - **The coin logo keeps the look's colours** right after you pick it, everywhere (side bar, loading screen, Settings), instead of showing its own purple tile until the page is reloaded.

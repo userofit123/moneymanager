@@ -1100,17 +1100,21 @@ html[data-den="roomy"] .setmain .fld {
   min-width: 0;
 }
 
-/* Phone: the two choices share a line, the text has a line of its own */
+/* Phone: "If" and where it looks fill the first line (so the long choices are never cut off),
+   how it compares and the text share the second, and the result comes below */
 html.mob .rule .rwhere,
+html.mob .rladd > .rwhere {
+  flex: 1 1 calc(100% - 40px);
+}
+
 html.mob .rule .rhow,
-html.mob .rladd > .rwhere,
 html.mob .rladd > .rhow {
-  flex: 1 1 35%;
+  flex: 0 1 45%;
 }
 
 html.mob .rlrows .rule input,
 html.mob .rladd > input {
-  flex: 1 1 100%;
+  flex: 1 1 45%;
 }
 
 html.mob .rlrows .rule select:not(.rwhere, .rhow) {
@@ -1120,4 +1124,9 @@ html.mob .rlrows .rule select:not(.rwhere, .rhow) {
 /* the "If" before the new rule's choices reads like the rules below it */
 .rladd > span {
   font-size: 14px;
+}
+
+/* AI setup preview: the "If [where] [how]" before each rule's text, quieter than the text itself */
+#aiSort .aitbl .aiif {
+  color: var(--tx2);
 }

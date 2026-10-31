@@ -1,6 +1,7 @@
 <script setup>
 // Settings → Automatic sorting → Set up with an AI: download the transaction texts, copy the instructions for an AI chat,
 // then upload (or paste) its answer, check what it adds and add it. The checks and the change come from lib/aiSort.js.
+import { USUAL } from "../../lib/ruleFields.js";
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
@@ -46,9 +47,12 @@ const SECS = [
   { kind: "rules", title: "secRules", n: "nRules", cols: ["colText", "colCat"] },
   { kind: "tagRules", title: "secTags", n: "nTagRules", cols: ["colText", "colTags"] },
   { kind: "names", title: "secNames", n: "nNames", cols: ["colText", "colShown"] },
-  { kind: "cards", title: "secCards", n: "nCards", d: "dCards", cols: ["colTextOnly"] },
-  { kind: "salary", title: "secSalary", n: "nSalary", d: "dSalary", cols: ["colTextOnly"] },
+  { kind: "cards", title: "secCards", n: "nCards", d: "dCards", cols: ["colText", "colThen"] },
+  { kind: "salary", title: "secSalary", n: "nSalary", d: "dSalary", cols: ["colText", "colThen"] },
 ];
+// Each rule reads like the rule lists: If [where] [how] [text]. AI rules look in the usual place and "contain".
+const RULE_KIND = { rules: "cat", tagRules: "tag", names: "name", cards: "card", salary: "in" };
+const ifText = (kind) => t("settings.sorting.where." + USUAL[RULE_KIND[kind]]) + " " + t("settings.sorting.how.in");
 const secs = computed(() => (found.value ? SECS.filter((x) => found.value.plan[x.kind].length) : []));
 const rows = (kind) => found.value.plan[kind];
 const st = (kind, x) => rowState(off.value, kind, x);
@@ -95,10 +99,10 @@ function add() {
               <tr v-for="x in rows(s.kind)" :key="rowKey(s.kind, x)" :class="{ off: !st(s.kind, x).on }" :data-tip="st(s.kind, x).locked ? t(A + 'catOff') : null">
                 <td class="ck"><input type="checkbox" :checked="st(s.kind, x).on" :disabled="st(s.kind, x).locked" :aria-label="String(s.kind == 'cats' ? x.name : rowKey(s.kind, x))" @change="toggle(s.kind, x)"></td>
                 <template v-if="s.kind == 'cats'"><td>{{ x.name }}</td><td>{{ t(A + (x.income ? "income" : "spend")) }}</td><td class="num">{{ rulesFor(x.name) }}</td></template>
-                <template v-else-if="s.kind == 'rules'"><td>{{ x.k }}</td><td>{{ x.c }}</td></template>
-                <template v-else-if="s.kind == 'tagRules'"><td>{{ x.k }}</td><td><template v-for="g in x.tags" :key="g"><bdi>#{{ g }}</bdi>{{ " " }}</template></td></template>
-                <template v-else-if="s.kind == 'names'"><td>{{ x.k }}</td><td>{{ x.n }}</td></template>
-                <td v-else>{{ x }}</td>
+                <template v-else-if="s.kind == 'rules'"><td><span class="aiif">{{ ifText(s.kind) }}</span> <b>{{ x.k }}</b></td><td>{{ x.c }}</td></template>
+                <template v-else-if="s.kind == 'tagRules'"><td><span class="aiif">{{ ifText(s.kind) }}</span> <b>{{ x.k }}</b></td><td><template v-for="g in x.tags" :key="g"><bdi>#{{ g }}</bdi>{{ " " }}</template></td></template>
+                <template v-else-if="s.kind == 'names'"><td><span class="aiif">{{ ifText(s.kind) }}</span> <b>{{ x.k }}</b></td><td>{{ x.n }}</td></template>
+                <template v-else><td><span class="aiif">{{ ifText(s.kind) }}</span> <b>{{ x }}</b></td><td>{{ s.kind == "cards" ? t("settings.sorting.gen.cardPay") : t("txw.mi.k.salary") }}</td></template>
               </tr>
             </tbody>
           </table></div>
