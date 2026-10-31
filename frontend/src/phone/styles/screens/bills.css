@@ -1,1 +1,234 @@
-/* bills screen (phone/screens). Every rule starts with html.phone. */
+/* bills screen (phone/screens/BillsScreen.vue). Every rule starts with html.phone. */
+
+html.phone .ph-bills .ph-hero {
+  padding: 4px 4px 0;
+}
+
+html.phone .ph-bills-err {
+  margin: 0;
+  padding: 16px 4px;
+  color: var(--neg);
+}
+
+/* due soon and price changes, side by side */
+html.phone .ph-bills-tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+html.phone .ph-bills-tiles .ph-stat {
+  min-inline-size: 0;
+  justify-content: flex-start;
+}
+
+html.phone .ph-bills-tiles .ph-stat-n {
+  font-size: 12px;
+  line-height: 16px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* the kinds: the switch, then the kind's name and its total */
+html.phone .ph-bills-kinds .ph-segwrap {
+  margin-block-end: 14px;
+}
+
+html.phone .ph-bills-tot {
+  color: var(--tx2);
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* the first letter in the category's colour */
+html.phone .ph-bills-av {
+  display: grid;
+  place-items: center;
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* the second line holds two facts in two parts */
+html.phone .ph-bills .ph-row-s > * + * {
+  margin-inline-start: 10px;
+}
+
+html.phone .ph-bills .ph-row-s .late {
+  color: var(--neg);
+  font-weight: 600;
+}
+
+html.phone .ph-bills .ph-row-s .now {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+html.phone .ph-bills .ph-row-s .soon {
+  color: var(--tx);
+  font-weight: 600;
+}
+
+html.phone .ph-bills-flag {
+  display: inline-block;
+  margin-inline-start: 8px;
+  padding: 1px 8px;
+  border-radius: var(--pill);
+  background: color-mix(in srgb, var(--warn) 16%, transparent);
+  color: var(--warn);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+  vertical-align: 1px;
+}
+
+html.phone .ph-bills-end {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+html.phone .ph-bills-end small {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-bills .up {
+  color: var(--neg);
+}
+
+html.phone .ph-bills .dn {
+  color: var(--pos);
+}
+
+/* an irregular bill that now looks regular */
+html.phone .ph-bills-sug {
+  padding: 0 16px 14px;
+  padding-inline-start: calc(16px + 36px + 12px); /* lines up with the row text */
+}
+
+html.phone .ph-bills-sug p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+html.phone .ph-bills-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+html.phone .ph-bills-btns .ph-btn {
+  min-block-size: 40px;
+  padding-inline: 16px;
+  font-size: 14px;
+}
+
+/* instalments: name and amount, how many paid, a bar, what is left */
+html.phone .ph-bills-ins {
+  align-items: flex-start;
+}
+
+html.phone .ph-bills-ins .ph-row-lead {
+  padding-block-start: 2px;
+}
+
+html.phone .ph-bills-ins .ph-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+html.phone .ph-bills-insh {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+html.phone .ph-bills-ins .ph-row-s b {
+  color: var(--tx);
+  font-weight: 600;
+}
+
+html.phone .ph-bills-ins .ph-prog {
+  margin-block: 4px 2px;
+}
+
+html.phone .ph-bills-ins .ph-chev {
+  align-self: center;
+}
+
+/* canceled bills: a title that opens and closes the list */
+html.phone .ph-bills-fold {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  inline-size: 100%;
+  min-block-size: var(--p-hit);
+  margin-block-end: 2px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--tx);
+  font: inherit;
+  text-align: start;
+}
+
+html.phone .ph-bills-fold h3 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+html.phone .ph-bills-chev {
+  color: var(--tx2);
+  transform: rotate(90deg);
+  transition: transform var(--p-t-fade) var(--p-ease);
+}
+
+html.phone .ph-bills-chev.on {
+  transform: rotate(-90deg);
+}
+
+html.phone .ph-bills-off .ph-row-t,
+html.phone .ph-bills-off .ph-amt {
+  color: var(--tx2);
+}
+
+/* the small windows */
+html.phone .ph-bills-how {
+  margin: 0 0 14px;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+html.phone .ph-bills-how p {
+  margin: 0;
+}
+
+html.phone .ph-bills-how .ph-bills-big {
+  margin-block-end: 6px;
+  font-size: 34px;
+  line-height: 40px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-bills-tot b {
+  color: var(--tx);
+  font-weight: 600;
+}
+
+/* rows in a sheet keep their gap (a sheet's ".two" rule is meant for form fields) */
+html.phone .ph-sheet .ph-bills-srow {
+  gap: 12px;
+}
