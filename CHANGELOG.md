@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [0.12.12] - 2026-10-24
 
 ### App
+- **The coin logo keeps the look's colours** right after you pick it, everywhere (side bar, loading screen, Settings), instead of showing its own purple tile until the page is reloaded.
 - **"Money in" now means money you earned or got from others.** Money back for things you bought, and your own money moved or put in (like a cash deposit), are no longer counted as money in on Home, Activity (In), Reports and Recap, so the same number shows everywhere. Home's Money in tooltip shows this month's money back on its own line.
 - **Money back lowers spending.** A refund counts as less spending in the category of the purchase it is for (or its own category), in the month it came: on Home, Budgets, Categories, Reports, Recap and Activity (Out). Money back on a credit card lowers that card's part, and Recap's walk through your bank no longer adds it to the bank. The Forecast, Jars and Recap's "still to come" no longer expect money back or your own money as future income.
 - **Fixed: a refund on a credit card now lowers that card's bill.** Home's Cards box, the card chart on Accounts, Recap's card bills and the check that finds a card bill paid from the bank now count money that came back to the card.

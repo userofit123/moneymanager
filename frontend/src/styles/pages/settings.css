@@ -431,11 +431,6 @@ html.mob .setnav button {
   height: 34px;
 }
 
-/* the coin's own purple tile is left out here, so it sits on the look's colours like the other symbols */
-.symv svg.coin > rect {
-  fill: transparent;
-}
-
 html.mob .setnav {
   margin-inline: -16px;
   padding: 8px 16px;

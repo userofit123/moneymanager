@@ -744,6 +744,12 @@ html.mob .updb {
   height: 100%;
 }
 
+/* inside the app the coin sits on the look's colours: its own purple tile (kept for the installed icon) is left out.
+   Without this the tile showed or not depending on which copy of its gradient the page found first. */
+svg.coin > rect {
+  fill: transparent;
+}
+
 /* top app bar */
 
 html.mob main {
