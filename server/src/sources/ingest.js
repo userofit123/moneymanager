@@ -2,7 +2,7 @@
 import crypto from "node:crypto";
 import { tx, audit, bumpRev } from "../db.js";
 import { rateOn, normCur } from "../fx.js";
-import { detectCardPayments, detectSalary } from "../autodetect.js";
+import { detectCardPayments } from "../autodetect.js";
 import { applyRules, applyTagRules, detectTransfers, healGaps } from "../engine.js";
 
 const hash = (...p) => crypto.createHash("sha1").update(p.join("|")).digest("hex").slice(0, 20);
@@ -104,7 +104,7 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
     await applyRules(c);
     await applyTagRules(c, fresh);
     const pairs = await detectTransfers(c);
-    const found = (await detectCardPayments(c)) + (await detectSalary(c));
+    const found = await detectCardPayments(c);
     // Open gaps are checked again against the payments now in the app (a late or hand-added payment can explain one).
     const healed = await healGaps(c, account.name, normCur(account.currency));
     if (added || merged || updated || pairs || healed || found) await bumpRev(c);

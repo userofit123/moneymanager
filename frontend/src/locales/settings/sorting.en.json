@@ -146,7 +146,7 @@
   },
   "mi": {
     "title": "Money coming in",
-    "desc": "If money coming in holds the text (in its transaction name or the payer), it is what you pick here. Your rules come before what the app works out by itself.",
+    "desc": "If money coming in holds the text (in its transaction name or the payer), it is a Salary or Money back, as you pick here.",
     "ifIn": "If it holds",
     "kind": "What it is",
     "none": "No rules of your own yet. Add a payer above, for example your employer.",
@@ -154,6 +154,6 @@
     "short": "Type text from the payer or the transaction name, for example “wix”.",
     "added": "Rule added. It matches 1 entry of money coming in you already have. | Rule added. It matches {n} entries of money coming in you already have.",
     "addedNew": "Rule added. Money coming in like this follows it from now on.",
-    "auto": "Worked out with no rule: money that says משכורת, שכר, salary or payroll is Salary; the same payer paying about the same every month is Earned; money in on a credit card, or that says זיכוי, החזר or refund, is Money back; Bit and PayBox are From a person; a cash deposit is Your own money; the rest is Other income."
+    "auto": "With no rule: money that came in on a credit card is Money back, and all other money coming in is Income. Nothing is decided from words in the text."
   }
 }

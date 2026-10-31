@@ -378,7 +378,7 @@ test("a balance gap closes by itself when a charge first listed at 0 gets its re
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 0);
 });
 
-test("a bank payment equal to what the card charged that day is marked as a card payment; a salary is marked Salary only when it says so and has no category, a monthly payer alone is not; dates are read in Israel time", async () => {
+test("a bank payment equal to what the card charged that day is marked as a card payment; no money in is given the Salary category, whatever it says; dates are read in Israel time", async () => {
   await reset();
   const { ilDate } = await import("../src/autodetect.js");
   assert.equal(ilDate("2025-10-09T21:00:00.000Z"), "2025-10-10");
@@ -396,7 +396,8 @@ test("a bank payment equal to what the card charged that day is marked as a card
   assert.equal(ov[b1], 2);
   assert.equal(ov[b2], undefined);
   const sal = (await q("SELECT external_id FROM transactions WHERE category='Salary' ORDER BY external_id")).rows.map((r) => r.external_id);
-  assert.deepEqual(sal, ["w1", "w3"]); // the monthly payer (no salary words) and the one with a category stay as they are
+  assert.deepEqual(sal, []); // salary is not a category: the app reads your rules and choices instead
+  assert.equal((await q("SELECT count(*)::int AS n FROM audit_log WHERE action='Salary found'")).rows[0].n, 0);
 });
 
 test("a refund on the card lowers the card bill it is matched against", async () => {
@@ -624,7 +625,7 @@ test("a change that no new charge or group of charges explains still opens a bal
   assert.deepEqual(await openGaps(), [100]);
 });
 
-test("salary texts move once into money coming in rules (→ Salary), are kept, and the rules decide the Salary category", async () => {
+test("salary texts move once into money coming in rules (→ Salary) and are kept; no rule gives a category", async () => {
   await reset();
   const { moveSalaryRules } = await import("../src/state.js");
   await q("DELETE FROM settings WHERE key IN ('money_in_rules','salary_rules')");
@@ -635,15 +636,31 @@ test("salary texts move once into money coming in rules (→ Salary), are kept, 
   assert.deepEqual(S.moneyInRules, [{ k: "globex", kind: "salary" }, { k: "initech", kind: "salary" }]);
   assert.deepEqual(S.salaryRules, ["globex", "initech"]); // the old texts stay
   assert.equal((await q("SELECT count(*)::int AS n FROM audit_log WHERE action='Salary rules moved'")).rows[0].n, 1);
-  // saved back: unknown kinds and empty texts are dropped
-  S.moneyInRules = [{ k: "globex", kind: "earned" }, { k: "initech", kind: "salary" }, { k: "x", kind: "zzz" }, { k: " ", kind: "back" }];
+  // saved back: an older "earned" rule is Salary; unknown or older kinds and empty texts are dropped
+  S.moneyInRules = [{ k: "globex", kind: "earned" }, { k: "initech", kind: "salary" }, { k: "x", kind: "zzz" }, { k: "y", kind: "people" }, { k: " ", kind: "back" }];
+  S.inMark = { 1: "salary", 2: "own", 3: "income" };
   await putState(S);
   S = await getState();
-  assert.deepEqual(S.moneyInRules, [{ k: "globex", kind: "earned" }, { k: "initech", kind: "salary" }]);
-  // after a sync: a Salary rule gives the Salary category; a rule with another kind stops the salary words
+  assert.deepEqual(S.moneyInRules, [{ k: "globex", kind: "salary" }, { k: "initech", kind: "salary" }]);
+  assert.deepEqual(S.inMark, { 1: "salary", 3: "income" });
+  // after a sync: no category is given, a Salary rule or salary words alike
   await q("INSERT INTO transactions (date,description,from_name,to_name,amount,source,external_id) VALUES (current_date,'Transfer','Initech','Bank Hapoalim',5000,'hapoalim','m1'),(current_date,'Salary bonus','Globex','Bank Hapoalim',800,'hapoalim','m2')");
   await ingest({ name: "Bank Hapoalim", currency: "ILS", source: "hapoalim" }, []);
   const cat = async (e) => (await q("SELECT category FROM transactions WHERE external_id=$1", [e])).rows[0].category;
-  assert.equal(await cat("m1"), "Salary");
+  assert.equal(await cat("m1"), null);
   assert.equal(await cat("m2"), null);
+});
+
+test("rules and choices of the older money coming in kinds are moved over once, with one history line", async () => {
+  await reset();
+  const { moveInKinds } = await import("../src/state.js");
+  await q("INSERT INTO settings (key,value) VALUES ('money_in_rules',$1) ON CONFLICT (key) DO UPDATE SET value=$1", [JSON.stringify([{ k: "acme", kind: "earned" }, { k: "bit", kind: "people" }, { k: "cash", kind: "own" }, { k: "insurer", kind: "back" }])]);
+  await q("INSERT INTO settings (key,value) VALUES ('in_mark',$1) ON CONFLICT (key) DO UPDATE SET value=$1", [JSON.stringify({ 1: "earned", 2: "own", 3: "other", 4: "salary", 5: "back" })]);
+  assert.equal(await moveInKinds(), 2 + 1 + 3);
+  assert.equal(await moveInKinds(), 0); // nothing old is left
+  const S = await getState();
+  assert.deepEqual(S.moneyInRules, [{ k: "acme", kind: "salary" }, { k: "insurer", kind: "back" }]);
+  assert.deepEqual(S.inMark, { 1: "income", 3: "income", 4: "salary", 5: "back" });
+  const L = (await q("SELECT detail FROM audit_log WHERE action='Money coming in kinds updated'")).rows;
+  assert.deepEqual(L.map((r) => r.detail), ["1 rules now Salary, 2 rules removed, 3 choices moved to Income or automatic"]);
 });

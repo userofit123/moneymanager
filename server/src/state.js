@@ -36,10 +36,13 @@ export async function ensureDefaults({ demoAccounts = true } = {}) {
       await q("INSERT INTO accounts (name,currency,kind,source,subtitle,manual,in_net_worth,sort) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)", [...r.slice(0, 6), r[2] !== "pension" && r[2] !== "card", r[6]]);
   }
   await moveSalaryRules();
+  await moveInKinds();
 }
 
-// The kinds a money coming in rule can give (frontend/src/lib/moneyIn.js MARKS).
-export const IN_KINDS = ["earned", "salary", "back", "people", "own", "other"];
+// What a money coming in rule can give (frontend/src/lib/moneyIn.js RULE_KINDS), and what the person can choose for one
+// entry (MARKS). An older app's "earned" rule is a Salary rule.
+export const IN_KINDS = ["salary", "back"], IN_MARKS = ["income", "salary", "back"];
+const inKind = (k) => (k === "earned" ? "salary" : k);
 // Settings → Money coming in rules (money_in_rules: [{ k: text, kind }]) took the place of the salary texts (salary_rules).
 // Once (also after restoring an older backup): every salary text becomes a rule "text → Salary". salary_rules stays as it
 // was, so nothing is lost, but only money_in_rules is used from then on.
@@ -52,6 +55,26 @@ export async function moveSalaryRules() {
     if (list.length) await c.query("INSERT INTO audit_log (who,action,detail) VALUES ('System','Salary rules moved',$1)", [`Salary texts that are now money coming in rules (→ Salary): ${list.length}`]);
   });
   return list.length;
+}
+
+// Money coming in has only income, salary and money back now (frontend/src/lib/moneyIn.js). Rules and choices saved with the
+// older kinds are moved over (whenever any are found, so also after restoring an older backup): an "earned" rule becomes a
+// Salary rule, rules for "from a person", "your own money" or "other income" are removed (that money is income anyway);
+// a choice of earned, from a person or other income becomes Income, and "your own money" goes back to automatic.
+export async function moveInKinds() {
+  const get = async (k) => (await q("SELECT value FROM settings WHERE key=$1", [k])).rows[0]?.value;
+  const R = await get("money_in_rules"), M = await get("in_mark");
+  let changed = 0, removed = 0, chosen = 0;
+  const R2 = Array.isArray(R) ? R.flatMap((r) => { const k = inKind(r?.kind); if (!IN_KINDS.includes(k)) { removed++; return []; } if (k !== r.kind) changed++; return [{ ...r, kind: k }]; }) : null;
+  const M2 = M && typeof M === "object" ? Object.fromEntries(Object.entries(M).flatMap(([id, v]) => { if (IN_MARKS.includes(v)) return [[id, v]]; chosen++; return ["earned", "people", "other"].includes(v) ? [[id, "income"]] : []; })) : null;
+  if (!changed && !removed && !chosen) return 0;
+  await tx(async (c) => {
+    const put = (k, v) => c.query("UPDATE settings SET value=$2 WHERE key=$1", [k, JSON.stringify(v)]);
+    if (changed || removed) await put("money_in_rules", R2);
+    if (chosen) await put("in_mark", M2);
+    await c.query("INSERT INTO audit_log (who,action,detail) VALUES ('System','Money coming in kinds updated',$1)", [`${changed} rules now Salary, ${removed} rules removed, ${chosen} choices moved to Income or automatic`]);
+  });
+  return changed + removed + chosen;
 }
 
 // What each bank, wallet and hand-added account held when this month and the last one began (at the end of the day before
@@ -270,12 +293,11 @@ export async function putState(S) {
     await put("card_rules", Array.isArray(S.cardRules) ? S.cardRules.map(String).slice(0, 200) : []);
     await put("salary_rules", Array.isArray(S.salaryRules) ? S.salaryRules.map(String).slice(0, 200) : []);
     // Settings → Money coming in rules: text → kind; an older app that does not know them sends none: then they stay
-    if (Array.isArray(S.moneyInRules)) await put("money_in_rules", S.moneyInRules.filter((r) => r && String(r.k || "").trim() && IN_KINDS.includes(r.kind)).slice(0, 200).map((r) => ({ k: String(r.k).trim().slice(0, 100), kind: r.kind })));
+    if (Array.isArray(S.moneyInRules)) await put("money_in_rules", S.moneyInRules.filter((r) => r && String(r.k || "").trim() && IN_KINDS.includes(inKind(r.kind))).slice(0, 200).map((r) => ({ k: String(r.k).trim().slice(0, 100), kind: inKind(r.kind) })));
     await put("tx_ignore", S.txIgnore && typeof S.txIgnore === "object" ? S.txIgnore : {});
-    // what a money coming in is, when the person chose it (id → earned, salary, back, people, own or other);
+    // what a money coming in is, when the person chose it (id → income, salary or back);
     // an older app that does not know this sends none: then the saved choices stay as they are
-    const MK = ["earned", "salary", "back", "people", "own", "other"];
-    if (S.inMark && typeof S.inMark === "object") await put("in_mark", Object.fromEntries(Object.entries(S.inMark).filter(([, v]) => MK.includes(v))));
+    if (S.inMark && typeof S.inMark === "object") await put("in_mark", Object.fromEntries(Object.entries(S.inMark).filter(([, v]) => IN_MARKS.includes(v))));
     await put("budget_no", Array.isArray(S.budgetNo) ? S.budgetNo.map(String).slice(0, 200) : []);
     // tags added by hand that no transaction has yet (a tag in use is kept with its transactions)
     // an older app that does not know this list sends none: then the saved list stays as it is
