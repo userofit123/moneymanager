@@ -526,3 +526,153 @@ html.mob .setnav button.on {
 .curx:hover {
   color: var(--neg);
 }
+
+/* Connections: the add form, the empty state and each bank's card */
+#setConn .ssh {
+  flex-wrap: wrap;
+  row-gap: 10px;
+}
+
+#setConn .ssh > div {
+  flex: 1 1 180px;
+}
+
+.cadd,
+.cempty {
+  padding-bottom: 4px;
+}
+
+.cadd .sr.stk .src > select {
+  flex: 1 1 220px;
+  width: auto;
+}
+
+.cused {
+  margin-top: 12px;
+  line-height: 1.5;
+}
+
+.cempty {
+  padding-top: 16px;
+}
+
+.cempty > b {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.cempty > .sm {
+  margin-top: 2px;
+  line-height: 1.45;
+}
+
+.ccard.bad .ssh .sm {
+  color: var(--neg);
+}
+
+.cbtns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cact .cdel {
+  margin-inline-start: auto;
+}
+
+.chist {
+  border-top: 1px solid var(--ol);
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.chist .sr .src select {
+  min-height: 36px;
+  padding-block: 6px;
+}
+
+/* Connections: the test and "where it stopped" windows */
+.cgap {
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.ctop {
+  margin-top: 8px;
+}
+
+.cblk {
+  display: block;
+}
+
+.cend {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.cshot {
+  width: 100%;
+  min-height: 80px;
+  border-radius: 12px;
+  border: 1px solid var(--ol);
+}
+
+/* Automatic sync: the next sync time; Past syncs: one line per sync */
+.snext {
+  font-size: 14.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.slmsg {
+  padding-block: 16px;
+}
+
+.slw {
+  flex: 1;
+  min-width: 0;
+}
+
+.slt {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.slt > b {
+  font-size: 14px;
+}
+
+.slg {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 12px;
+  margin-top: 4px;
+}
+
+.slg > span:nth-child(odd) {
+  opacity: .7;
+}
+
+.slm {
+  margin-top: 4px;
+  word-break: break-word;
+}
+
+.slsh {
+  margin-inline-start: 6px;
+}
+
+.ccard .ssb.p + .cform {
+  padding-top: 0;
+}

@@ -1,8 +1,6 @@
 {
   "title": "Connections",
   "sub": "Banks, cards and wallets that sync by themselves.",
-  "nothing": "Nothing connected yet",
-  "nConnected": "{n} connected",
   "oneIssue": "1 has an issue",
   "nIssues": "{n} have issues",
   "allFine": "All fine",
@@ -21,8 +19,8 @@
   "twoLogins": " Have two logins at one company (two Wise accounts, two sets of cards)? Add it again and give each a nickname. To disconnect one, press Remove on its own card.",
   "note1": "Logins are encrypted and never shown again",
   "note2": "Read-only: nothing can be moved",
-  "note3": "Two failed logins pause a source",
-  "missing": "Something missing? Import a CSV export from your bank or card instead (Settings → Import and export).",
+  "note3": "Two failed logins in a row pause that login",
+  "missing": "Bank not in the list? Import a file from your bank or card instead (Settings → Import and export).",
   "otpNote": "A bank may ask for a one-time code. If it does, use Verify this device, or import a file (Settings → Import and export). Wise: create a personal token with read-only permissions.",
   "newLogin": "{label} · new login",
   "lStatus": "Status",
@@ -43,7 +41,7 @@
   "unlock": "Unlock",
   "remove": "Remove",
   "histT": "Import more history",
-  "histD": "Reads further back than the routine sync, once. It asks for the period you pick and keeps whatever the bank still has. Nothing already in the app is duplicated.",
+  "histD": "Reads further back than the usual sync, once. It asks for the period you pick and keeps whatever the bank still has. Nothing already in the app is duplicated.",
   "histAria": "History to read",
   "h365": "Last year",
   "h730": "Last 2 years",
@@ -55,7 +53,7 @@
   "hide": "Hide settings",
   "edit": "Edit connection",
   "st": {
-    "none": "No credentials",
+    "none": "No login saved",
     "otp": "Needs a code",
     "locked": "Locked",
     "failed": "Last attempt failed",
@@ -116,7 +114,7 @@
     "saved": "Saved, encrypted",
     "unlocked": "Unlocked",
     "removed": "Removed",
-    "confirmRemove": "Remove the saved credentials?",
+    "confirmRemove": "Remove the saved login?",
     "synced": "Synced · {n} new",
     "failed": "Failed",
     "histNew": "{n} new",
@@ -138,7 +136,7 @@
   "txLast30": "{n} transactions in the last 30 days",
   "testLocked": "Locked",
   "testFailed": "Failed",
-  "testLockedD": "Two failures in a row. Check the credentials, then unlock it.",
+  "testLockedD": "Two failures in a row. Check the login, then press Unlock.",
   "assist": {
     "title": "Verify this device",
     "titleFor": "Verify this device · {label}",
@@ -154,5 +152,8 @@
     "tab": "Tab",
     "typeMy": "Type my {field}",
     "hint": "Click or tap the picture to focus a field, then type. \"Type my…\" fills a saved login without ever sending it to this page."
-  }
+  },
+  "pickT": "Bank or card",
+  "emptyT": "No bank or card connected yet",
+  "emptyD": "Press Add connection and pick your bank or card. Your transactions then come in by themselves."
 }

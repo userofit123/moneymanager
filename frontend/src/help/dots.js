@@ -46,7 +46,7 @@ export default [
   ["set.srules", "#setSalRules", ".ssh b", "Salary", "Salary", "", "משכורת"],
   ["set.conn", "#setConn", ".ssh b", "Connections", "Add a connection", "", "חיבורים"],
   ["set.sync", "#setSyncCfg", ".ssh b", "Automatic sync", "How often", "", "סנכרון אוטומטי"],
-  ["set.sync", "#setSync", ".ssh b", "Sync log", "Sync log", "", "יומן סנכרון"],
+  ["set.sync", "#setSync", ".ssh b", "Past syncs", "Past syncs", "", "סנכרונים קודמים"],
   ["set.data", "#setData", ".ssh b", "Import", "Import", "", "ייבוא"],
   ["set.data", "#setData", ".ssh b", "Your data", "Export", "", "הנתונים שלכם"],
   ["set.alr", "#setAlr", ".ssh b", "Which alerts to show", "Which alerts to show", "", "אילו התראות להציג"],
