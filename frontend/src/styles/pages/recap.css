@@ -368,7 +368,7 @@ html.he a.rkl:hover i {
 .rkpa {
   position: absolute;
   left: var(--x); /* fixed side */
-  top: calc(var(--y) + 17px);
+  top: calc(var(--y) + 19px);
   translate: -50% 0;
   width: 8px;
   height: 8px;
