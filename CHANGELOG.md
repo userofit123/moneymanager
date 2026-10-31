@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [0.12.12] - 2026-10-24
 
 ### App
+- **Every rule chooses where it looks.** Category rules, tag rules, card payments and money coming in rules now have the same "where to look" list as Display names: **Everything**, or one part of the entry (**Transaction name**, **Bank's note**, **Bank's description**, **Bank's category**, **Who paid**, **Paid to**, **Your note**, **Your account** or **Currency paid in**). Your rules keep matching exactly what they matched before: each starts on the places it always read (for example "Name, who paid or paid to"). Changing it is in the change history and can be undone. The help explains the list.
 - **Money coming in rules also read the bank's note**, where some banks (like Bank Hapoalim) put who paid: the name says only "זיכוי" and the note "המבצע: <payer>".
 - **Loading screen:** the coin fills its tile on the look's colours, instead of a small purple square inside it.
 - **The coin logo keeps the look's colours** right after you pick it, everywhere (side bar, loading screen, Settings), instead of showing its own purple tile until the page is reloaded.
