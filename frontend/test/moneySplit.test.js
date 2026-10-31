@@ -7,7 +7,9 @@ import { countedTx } from "../src/lib/bills.js";
 import { kinds, totals } from "../src/lib/activity.js";
 import { homeModel } from "../src/lib/home.js";
 import { seriesN, trSeries } from "../src/lib/reports.js";
-import { recapModel } from "../src/lib/recap.js";
+import { recapModel, afterToday } from "../src/lib/recap.js";
+import { budgetsModel } from "../src/lib/budgets.js";
+import { forecastHistory } from "../src/lib/jars.js";
 
 const ACC = [{ n: "Bank", kind: "bank", inNW: true, v: 1000, cur: "ILS" }, { n: "Card", kind: "card" }];
 const base = () => ({
@@ -77,7 +79,42 @@ test("Reports and Recap show the same money in as Home", () => {
   const R = recapModel(M, new Date(2026, 9, 17));
   assert.equal(R.inc, M.kpi.inc);
   assert.deepEqual(R.incs.map((t) => t.id), ["s1", "p1", "o1"]);
-  // Recap's walk through the bank still has every money that reached it, your own money put in too
+  // Recap's walk through the bank still has every money that reached it, your own money put in too (not the card refund:
+  // it lowers the card bill)
   const got = R.steps.reduce((s, x) => s + (x.kind == "in" ? x.a : x.kind == "spend" ? x.small : 0), 0);
-  assert.equal(got, 8000 + 150 + 20 + 500 + 100);
+  assert.equal(got, 8000 + 150 + 20 + 500);
+});
+
+test("money back lowers spending: Home, Budgets, Reports and Categories' category, in its month", () => {
+  const S = { ...base(), budgets: { Clothes: 500 } }, NOW = new Date(2026, 9, 17), M = homeModel(S, NOW, {});
+  assert.equal(M.kpi.ex, 300 - 100 + 200);
+  assert.deepEqual(Object.fromEntries(M.spend), { Clothes: 200, Food: 200 });
+  const B = budgetsModel(S, NOW);
+  assert.equal(B.info.find((x) => x.k == "Clothes").s, 200);
+  assert.deepEqual(Object.fromEntries(B.spend), Object.fromEntries(M.spend));
+  assert.deepEqual(trSeries(M, S, "exp", ["2026-10"]), [M.kpi.ex]);
+  assert.deepEqual(trSeries(M, S, "cat:Clothes", ["2026-10"]), [200]);
+  assert.equal(seriesN(M, 1, "exp", "2026-10").exp[0], M.kpi.ex);
+  // net stays money in less money out
+  assert.deepEqual(trSeries(M, S, "net", ["2026-10"]), [M.kpi.inc - M.kpi.ex]);
+});
+
+test("money back on a card lowers the card's part; a category with only money back this month is not listed", () => {
+  const S = base(); S.tx = S.tx.filter((t) => t.id != "b0");
+  S.tx.push({ id: "b9", d: "2026-08-05", a: -300, desc: "Fashion Shop", from: "Card", to: "Fashion Shop", c: "Clothes" });
+  const M = homeModel(S, new Date(2026, 9, 17), {});
+  assert.equal(M.spend.some(([c]) => c == "Clothes"), false);
+  const R = recapModel(M, new Date(2026, 9, 17));
+  assert.equal(R.cardsU, -100);
+  assert.equal(R.bankSpent, R.ex - R.cardsU);
+});
+
+test("Forecast and Recap's still to come never expect money back or your own money as income", () => {
+  const S = base(), M = homeModel(S, new Date(2026, 11, 3), {});
+  const H = forecastHistory(S, M), i = H.keys.indexOf("2026-10");
+  assert.equal(H.inc[i], 8170);
+  assert.equal(H.cat.Clothes[i], 200);
+  assert.ok(!Object.keys(H.incSrc).some((k) => /fashion|cash/i.test(k)));
+  const AT = afterToday(S, M.rows, "2026-12", 3, new Set(["Card"]));
+  assert.ok(!AT.inc.some((x) => /fashion|cash/i.test(x.k)));
 });

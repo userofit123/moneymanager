@@ -15,7 +15,7 @@ const S = () => ({
     tx(1, "2026-07-05", "Super A", -300, "Food", ["home"]),
     tx(2, "2026-08-05", "Super B", -200, "Food"),
     tx(3, "2026-09-05", "Super C", -100, "Food", ["home"]),
-    tx(4, "2026-09-07", "Super refund", 50, "Food"),
+    tx(4, "2026-09-07", "Super bonus", 50, "Food"), // money in, not money back
     tx(5, "2026-05-10", "Super old", -150, "Food"), // the months before
     tx(6, "2026-08-12", "Cinema", -80, "Fun", ["fun", "out"]),
     tx(7, "2026-09-01", "Pay", 5000, "Salary"),
@@ -119,4 +119,12 @@ test("money cells: money in is + and green, money out is − and red only when a
 test("a new budget starts at the usual month, to the nearest 50", () => {
   const R = run();
   assert.deepEqual(["Food", "Fun", "Uncategorized"].map((k) => row(R.cats, k).sugBudget), [200, 50, ""]);
+});
+
+test("money back lowers its category's spending in its month, and is not money in", () => {
+  const s = S(); s.tx.push(tx(16, "2026-09-08", "Super C", 40, "Refunds", [], { from: "Super C", to: "Bank" }));
+  const R = run(3, s), r = row(R.cats, "Food");
+  assert.equal(r.out, 560);
+  assert.equal(r.in, 50);
+  assert.equal(row(R.cats, "Refunds"), undefined);
 });

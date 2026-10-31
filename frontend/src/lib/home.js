@@ -3,7 +3,7 @@
 // Nothing here changes the data; bills the app finds by itself are only worked out, not saved.
 import { cardsDue, stillToPay, reallyYours, roundParts } from "./recap.js";
 import { acctOf } from "./activity.js";
-import { isIn, splitIn } from "./moneyIn.js";
+import { isIn, isOut, splitIn } from "./moneyIn.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
 export const addM = (m, k) => { const d = new Date(+m.slice(0, 4), +m.slice(5, 7) - 1 + k, 1); return d.getFullYear() + "-" + p2(d.getMonth() + 1); };
@@ -68,17 +68,19 @@ export function homeModel(S, now = new Date(), fx = {}) {
   const cashAll = accts.filter((a) => a.inNW && (a.kind == "bank" || a.kind == "wallet" || a.kind == "custom")), cashAccts = cashAll.filter(hasRate), noRate = cashAll.filter((a) => !hasRate(a)).map((a) => a.n);
   const cashNow = sum(cashAccts.map(accILS));
   const ALL = tx.concat(costRows);
-  const monthSum = (m, sg) => sum(A.filter((t) => (sg > 0 ? isIn(t) : t.a < 0) && rdOf(t).startsWith(m)).map((t) => Math.abs(t.a)));
-  const spendM = {}; A.filter((t) => t.a < 0 && rdOf(t).startsWith(MK)).forEach((t) => { const c = t.c || "Uncategorized"; spendM[c] = (spendM[c] || 0) + Math.abs(t.a); });
-  const spend = Object.entries(spendM).sort((a, b) => b[1] - a[1]);
+  // money in, or spending (money back lowers it: lib/moneyIn.js isOut, its -t.a is below 0)
+  const monthSum = (m, sg) => sum(A.filter((t) => (sg > 0 ? isIn(t) : isOut(t)) && rdOf(t).startsWith(m)).map((t) => (sg > 0 ? t.a : -t.a)));
+  const spendM = {}; A.filter((t) => isOut(t) && rdOf(t).startsWith(MK)).forEach((t) => { const c = t.c || "Uncategorized"; spendM[c] = (spendM[c] || 0) - t.a; });
+  // a category with more money back than spending this month is not listed
+  const spend = Object.entries(spendM).filter((x) => x[1] > 0.005).sort((a, b) => b[1] - a[1]);
 
   // Six months of history (this one last). Months before the first data are "no history".
   const ms = []; for (let i = 5; i >= 0; i--) ms.push(addM(MK, -i));
   const hist = { keys: ms, inc: ms.map(() => 0), exp: ms.map(() => 0), first: 0 };
   { const first = tx.filter((t) => !k.isFut(t) && !t.virtual).reduce((m, t) => (t.d < m ? t.d : m), "9999-99-99"); let fi = first == "9999-99-99" ? 5 : ms.indexOf(first.slice(0, 7)); if (fi < 0) fi = first.slice(0, 7) < ms[0] ? 0 : 5; if (first != "9999-99-99" && +first.slice(8) > 10 && fi < 5) fi++; hist.first = Math.max(0, Math.min(5, fi)); }
-  A.forEach((t) => { const i = ms.indexOf(rdOf(t).slice(0, 7)); if (i < 0) return; if (isIn(t)) hist.inc[i] += t.a; else if (t.a < 0) hist.exp[i] -= t.a; });
+  A.forEach((t) => { const i = ms.indexOf(rdOf(t).slice(0, 7)); if (i < 0) return; if (isIn(t)) hist.inc[i] += t.a; else hist.exp[i] -= t.a; });
   const budMonths = [2, 3, 4].filter((i) => i >= hist.first).map((i) => ms[i]);
-  const monthlyByCat = {}; A.filter((t) => t.a < 0).forEach((t) => { const c = t.c || "Uncategorized", m = rdOf(t).slice(0, 7); (monthlyByCat[c] = monthlyByCat[c] || {})[m] = (monthlyByCat[c][m] || 0) - t.a; });
+  const monthlyByCat = {}; A.filter(isOut).forEach((t) => { const c = t.c || "Uncategorized", m = rdOf(t).slice(0, 7); (monthlyByCat[c] = monthlyByCat[c] || {})[m] = (monthlyByCat[c][m] || 0) - t.a; });
 
   // Net worth over the last six months for the small line: saved snapshots, or rebuilt from the transactions.
   const nwSpark = (() => {

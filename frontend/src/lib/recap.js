@@ -2,7 +2,7 @@
 // and which parts show in which order. Nothing here changes the data.
 import { addM, rdOf, nameOf, flowSteps } from "./home.js";
 import { cardInfo, cardOf, acctOf } from "./activity.js";
-import { isIn } from "./moneyIn.js";
+import { isIn, isOut } from "./moneyIn.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
 const sum = (a) => a.reduce((s, x) => s + x, 0);
@@ -92,12 +92,12 @@ export function recapModel(M, now) {
   // credit cards only: the bank takes their purchases later, on the card's charge day. A Wise card is paid at once, like the bank.
   // Counted the same way as "spent" (the same rows), so the card part is never more than the whole.
   const CC = new Set((S.accounts || []).filter((a) => a.kind == "card").map((a) => a.n));
-  const onCard = (m) => A.filter((t) => t.a < 0 && CC.has(t.from) && rdOf(t).startsWith(m)).reduce((s, t) => s - t.a, 0);
+  const onCard = (m) => A.filter((t) => isOut(t) && CC.has(acctOf(t)) && rdOf(t).startsWith(m)).reduce((s, t) => s - t.a, 0);
   const cardsU = onCard(MK), cardsPrev = onCard(pm);
   const cardPaid = (S.tx || []).filter((t) => !t.virtual && k.isCp(t) && String(t.d).startsWith(MK) && String(t.d) <= TODAY).reduce((s, t) => s - t.a, 0);
   // card purchases still to leave the bank: the ones charged later this month, and the ones charged next month or after
   const due = cardsDue({ S, A, k, CC, TODAY, MK }), cardsThis = due.thisMonth, cardsNow = due.now, cardsNext = due.later, nextCards = due.next;
-  const same = A.filter((t) => t.a < 0 && rdOf(t).startsWith(pm) && +rdOf(t).slice(8) <= day).reduce((s, t) => s - t.a, 0);
+  const same = A.filter((t) => isOut(t) && rdOf(t).startsWith(pm) && +rdOf(t).slice(8) <= day).reduce((s, t) => s - t.a, 0);
   const incs = A.filter((t) => isIn(t) && rdOf(t).startsWith(MK)).sort((a, b) => b.a - a.a);
   const spendNow = Object.fromEntries(M.spend);
   const bills = F.up || stillToPay({ S, A, k, CC, BI, R, TODAY, MK }); // Home's model already has the list
@@ -136,18 +136,18 @@ export function recapModel(M, now) {
   // the budgets in the order they were made (Home sorts its copy)
   const order = Object.keys(S.budgets || {}), bud = [...M.budgets].sort((a, b) => order.indexOf(a.k) - order.indexOf(b.k));
   const over = bud.filter((b) => b.st == "over"), risk = bud.filter((b) => b.st == "pace" || b.st == "warn"), okB = bud.filter((b) => b.st == "ok");
-  const Mc = {}; A.filter((t) => t.a < 0).forEach((t) => { const c = t.c || "Uncategorized", m = rdOf(t).slice(0, 7); (Mc[c] = Mc[c] || {})[m] = (Mc[c][m] || 0) - t.a; });
+  const Mc = {}; A.filter(isOut).forEach((t) => { const c = t.c || "Uncategorized", m = rdOf(t).slice(0, 7); (Mc[c] = Mc[c] || {})[m] = (Mc[c][m] || 0) - t.a; });
   const idx = [2, 3, 4].filter((i) => i >= (M.hist.first || 0)).map((i) => M.hist.keys[i]), usual = (c) => (idx.length ? sum(idx.map((m) => (Mc[c] || {})[m] || 0)) / idx.length : 0);
   const skip = (c) => ["Income", "Uncategorized", "Fees & FX costs"].includes(c) || S.cats?.[c] === 99;
   const billMo = (c) => sum(M.billsAll.filter((b) => !b.once && !b.irregular && b.flag != "canceled" && b.mo > 0 && b.cat == c).map((b) => b.mo));
   const above = Object.keys(spendNow).filter((c) => !skip(c)).map((c) => ({ k: c, s: spendNow[c], u: usual(c) })).filter((x) => x.u >= 150 && x.s > x.u * 1.05).sort((a, b) => b.s - b.u - (a.s - a.u));
   const below = Object.keys(Mc).filter((c) => !skip(c)).map((c) => ({ k: c, s: spendNow[c] || 0, u: usual(c), by: (usual(c) * day) / dim })).filter((x) => x.u >= 250 && day >= 7 && x.s < x.by * 0.5 && !(billMo(x.k) > 0)).sort((a, b) => b.by - b.s - (a.by - a.s));
   const ago = (t) => Math.floor((new Date(TODAY + "T12:00:00") - new Date(rdOf(t) + "T12:00:00")) / 864e5);
-  const exp = A.filter((t) => t.a < 0);
+  const exp = A.filter(isOut);
   const w1 = exp.filter((t) => { const d = ago(t); return d >= 0 && d < 7; }).reduce((s, t) => s - t.a, 0), w0 = exp.filter((t) => { const d = ago(t); return d >= 7 && d < 14; }).reduce((s, t) => s - t.a, 0);
   // what happened on each day of the month (and what is planned for the days to come). The tooltip lists payees by name.
   const days = Array.from({ length: dim }, (_, i) => ({ d: MK + "-" + p2(i + 1), spent: 0, inc: 0, ex: [], inn: [], up: [] }));
-  A.forEach((t) => { const r = rdOf(t); if (!r.startsWith(MK)) return; const i = +r.slice(8) - 1; if (i < 0 || i >= dim) return; const D = days[i]; if (t.a < 0) { D.spent -= t.a; D.ex.push([dn(t), -t.a]); } else if (isIn(t)) { D.inc += t.a; D.inn.push([dn(t), t.a]); } });
+  A.forEach((t) => { const r = rdOf(t); if (!r.startsWith(MK)) return; const i = +r.slice(8) - 1; if (i < 0 || i >= dim) return; const D = days[i]; if (isOut(t)) { D.spent -= t.a; D.ex.push([dn(t), -t.a]); } else { D.inc += t.a; D.inn.push([dn(t), t.a]); } });
   const rec = BI.filter((b) => !b.once && !b.irregular && b.flag != "canceled" && b.nx);
   rec.filter((b) => b.nx.toISOString().slice(0, 7) == MK && b.nx.toISOString().slice(0, 10) >= TODAY).forEach((b) => { const i = b.nx.getDate() - 1; if (days[i]) days[i].up.push([b.n, b.pred, b.idx]); });
   const nextBills = sum(rec.filter((b) => b.nx.toISOString().slice(0, 7) == nmk).map((b) => b.pred));
@@ -195,7 +195,7 @@ export function cardsDue({ S, A, k, CC, TODAY, MK }) {
 }
 // What part of the spending usually goes on credit cards (the given months)
 export function cardShare(A, CC, months) {
-  let all = 0, card = 0; A.forEach((t) => { if (t.a >= 0 || !months.some((m) => rdOf(t).startsWith(m))) return; all -= t.a; if (CC.has(t.from)) card -= t.a; });
+  let all = 0, card = 0; A.forEach((t) => { if (!isOut(t) || !months.some((m) => rdOf(t).startsWith(m))) return; all -= t.a; if (CC.has(acctOf(t))) card -= t.a; });
   return all > 0 ? card / all : 0;
 }
 
@@ -207,7 +207,8 @@ const BIG_IN = 0.08, MIN_IN = 200, MAX_MARKS = 8;
 // notIn: your own money put in (countedTx), not counted as money in but still part of the walk.
 export function monthSteps({ A, S, k, MK, TODAY, CC, inc, dn, start, notIn = [] }) {
   const inMonth = (d) => d.startsWith(MK) && d <= TODAY;
-  const ins = A.concat(notIn).filter((t) => t.a > 0 && inMonth(rdOf(t))), outs = A.filter((t) => t.a < 0 && inMonth(rdOf(t)));
+  // money that reached the bank and wallet accounts (money back on a credit card lowers its bill instead: chargeDays below)
+  const ins = A.concat(notIn).filter((t) => t.a > 0 && !CC.has(t.to) && inMonth(rdOf(t))), outs = A.filter((t) => t.a < 0 && inMonth(rdOf(t)));
   const cps = (S.tx || []).filter((t) => !t.virtual && k.isCp(t) && inMonth(String(t.d)));
   // the days that stand on their own: money in (one per day, when it is big enough) and card bills (one per day)
   const byDay = (L, d) => { const o = {}; L.forEach((t) => { const x = d(t); (o[x] = o[x] || []).push(t); }); return Object.entries(o).map(([d, L0]) => ({ d, tx: L0, a: L0.reduce((s, t) => s + Math.abs(t.a), 0) })); };

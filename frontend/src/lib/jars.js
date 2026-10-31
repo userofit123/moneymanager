@@ -4,6 +4,8 @@
 import { homeModel, addM, rdOf } from "./home.js";
 import { dstr } from "../dates.js";
 import { recapModel, incKey } from "./recap.js";
+import { isIn } from "./moneyIn.js";
+import { acctOf } from "./activity.js";
 
 const sum = (a) => a.reduce((t, x) => t + x, 0);
 
@@ -79,9 +81,10 @@ export function forecastHistory(S, H) {
   // pending rows count, the same way the Activity page counts them
   (H.rows || []).forEach((t) => {
     const i = ks.indexOf(rdOf(t).slice(0, 7)); if (i < 0) return;
-    if (t.a > 0) { inc[i] += t.a; add(incS2, incKey(S, t), i, t.a); return; }
+    // money in only (lib/moneyIn.js): money back lowers its category's spending, so it is never expected again as income
+    if (isIn(t)) { inc[i] += t.a; add(incS2, incKey(S, t), i, t.a); return; }
     const k = t.c || "Uncategorized"; exp[i] -= t.a; add(cats2, k, i, -t.a);
-    if (CC.has(t.from)) { expCard[i] -= t.a; add(card2, k, i, -t.a); }
+    if (CC.has(acctOf(t))) { expCard[i] -= t.a; add(card2, k, i, -t.a); }
   });
   const f0 = (S.tx || []).filter((t) => !H.k.isFut(t) && !t.virtual).reduce((mm, t) => (t.d < mm ? t.d : mm), "9999-99-99");
   let fi = f0 == "9999-99-99" ? N - 1 : ks.indexOf(f0.slice(0, 7)); if (fi < 0) fi = f0.slice(0, 7) < ks[0] ? 0 : N - 1; if (f0 != "9999-99-99" && +f0.slice(8) > 10 && fi < N - 1) fi++; fi = Math.max(0, Math.min(N - 1, fi));

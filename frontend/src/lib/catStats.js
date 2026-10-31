@@ -6,6 +6,7 @@
 import { addM, rdOf } from "./home.js";
 import { allTags, ruleTags } from "./activity.js";
 import { roundBudget } from "./budgets.js";
+import { isIn, isOut } from "./moneyIn.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
 const CNC = new Intl.Collator(undefined, { sensitivity: "base" });
@@ -30,7 +31,7 @@ function build(names, rows, P, keyOf, mainOf, extra) {
   const sorted = [...rows].sort((a, b) => rdOf(b).localeCompare(rdOf(a)) || String(b.d).localeCompare(String(a.d)));
   for (const t of sorted) {
     const ks = keyOf(t); if (!ks.length) continue;
-    const m = rdOf(t).slice(0, 7), i = P.keys.indexOf(m), out = t.a < 0 ? -t.a : 0, inn = t.a > 0 ? t.a : 0;
+    const m = rdOf(t).slice(0, 7), i = P.keys.indexOf(m), out = isOut(t) ? -t.a : 0, inn = isIn(t) ? t.a : 0;
     if (cur.has(m)) { tot.out += out; tot.in += inn; }
     for (const k of ks) {
       let r = at.get(k);
