@@ -1,8 +1,8 @@
 {
   "title": "Currencies",
-  "desc": "₪ is always the display currency. Rates for the others are fetched daily (ECB reference rates). A currency stays while an account holds it.",
+  "desc": "The currencies your money is kept in.",
   "remove": "Remove {c}",
-  "pick": "Add a currency…",
+  "pick": "Choose a currency…",
   "add": "Add",
   "loaded": "{c} rates loaded",
   "ratesFail": "Saved, but rates could not be fetched yet: {e}",
@@ -33,5 +33,10 @@
     "KRW": "South Korean won",
     "THB": "Thai baht",
     "USD": "US dollar"
-  }
+  },
+  "inUse": "In use",
+  "inUseDesc": "A currency that an account holds cannot be removed.",
+  "addTitle": "Add a currency",
+  "addDesc": "Its exchange rate loads right away.",
+  "foot": "Totals are always worked out in ₪. The rates for other currencies are updated every day from the European Central Bank."
 }

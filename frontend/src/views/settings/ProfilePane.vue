@@ -3,7 +3,7 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
-import SetHead from "./SetHead.vue";
+import SetSection from "./SetSection.vue";
 import ProfileFields from "../../components/ProfileFields.vue";
 import { changeState, toastErr } from "./shared.js";
 import { profAge, profRead } from "./profile.js";
@@ -39,12 +39,9 @@ async function clearGo() {
 
 <template>
   <div ref="root" id="setProf">
-    <div class="card ss">
-      <SetHead icon="user" :title="tk('title')" :desc="tk('desc')" />
-      <div class="ssb p">
-        <ProfileFields v-model="form" prefix="pf" />
-        <div class="flex" style="justify-content:flex-end;gap:10px"><button type="button" class="btn o" data-a="profClear" @click="clear">{{ tk("clear") }}</button><button type="button" class="btn" data-a="profSave" @click="save">{{ tk("save") }}</button></div>
-      </div>
-    </div>
+    <SetSection icon="user" :title="tk('title')" :desc="tk('desc')" pad>
+      <ProfileFields v-model="form" prefix="pf" />
+      <div class="sact"><button type="button" class="btn o s" data-a="profClear" @click="clear">{{ tk("clear") }}</button><button type="button" class="btn s" data-a="profSave" @click="save">{{ tk("save") }}</button></div>
+    </SetSection>
   </div>
 </template>

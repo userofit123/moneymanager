@@ -23,6 +23,7 @@ export const SI = {
   bank: "<path d=\"M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18\"/>",
   clock: "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>",
   door: "<path d=\"M14 4h5v16h-5M10 8l-4 4 4 4M6 12h10\"/>",
+  app: "<rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"4.5\"/><circle cx=\"12\" cy=\"12\" r=\"3.2\"/>",
   globe: "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18\"/>",
   backup: "<path d=\"M12 15V4M8 8l4-4 4 4M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5\"/>",
   file: "<path d=\"M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5\"/>",

@@ -4,7 +4,8 @@ import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
 import { tx } from "../../core/heText.js";
-import SetHead from "./SetHead.vue";
+import SetSection from "./SetSection.vue";
+import SetRow from "./SetRow.vue";
 import { api, sendJson, toast, toastErr, changeState } from "./shared.js";
 import { symOf, listOf, isUsed, addable, withAdded, withRemoved } from "./currencies.js";
 
@@ -30,12 +31,14 @@ async function remove(c) {
 
 <template>
   <div v-if="S" id="setCur">
-    <div class="card ss">
-      <SetHead icon="cur" :title="tk('title')" :desc="tk('desc')" />
-      <div class="ssb p">
-        <div style="margin-bottom:12px"><span v-for="c in listOf(S)" :key="c" class="chip" style="margin:3px">{{ symOf(c) ? symOf(c) + " " : "" }}{{ c }}<template v-if="!isUsed(S, c)">{{ " " }}<button type="button" class="tag" style="border:0;background:none;cursor:pointer" data-a="curDel" :data-c="c" :aria-label="tk('remove', { c })" @click="remove(c)">×</button></template></span></div>
-        <div class="tools"><select id="curSel" v-model="pick"><option value="">{{ tk("pick") }}</option><option v-for="c in addable(S)" :key="c" :value="c">{{ c }} · {{ t("settings.cur.names." + c) }}</option></select><button type="button" class="btn o s" data-a="curAdd" @click="add">{{ tk("add") }}</button></div>
-      </div>
-    </div>
+    <SetSection icon="cur" :title="tk('title')" :desc="tk('desc')">
+      <SetRow :title="tk('inUse')" :desc="tk('inUseDesc')" stack>
+        <div class="curl"><span v-for="c in listOf(S)" :key="c" class="chip">{{ symOf(c) ? symOf(c) + " " : "" }}{{ c }}<button v-if="!isUsed(S, c)" type="button" class="curx" data-a="curDel" :data-c="c" :aria-label="tk('remove', { c })" @click="remove(c)">×</button></span></div>
+      </SetRow>
+      <SetRow :title="tk('addTitle')" :desc="tk('addDesc')">
+        <select id="curSel" v-model="pick" :aria-label="tk('addTitle')"><option value="">{{ tk("pick") }}</option><option v-for="c in addable(S)" :key="c" :value="c">{{ c }} · {{ t("settings.cur.names." + c) }}</option></select><button type="button" class="btn o s" data-a="curAdd" @click="add">{{ tk("add") }}</button>
+      </SetRow>
+      <template #foot>{{ tk("foot") }}</template>
+    </SetSection>
   </div>
 </template>

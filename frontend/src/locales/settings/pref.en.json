@@ -15,5 +15,6 @@
   "euro": "Euro",
   "pound": "Pound",
   "yen": "Yen",
-  "coin": "Coin"
+  "coin": "Coin",
+  "dfDesc": "How dates are written everywhere in the app."
 }
