@@ -1,1 +1,42 @@
-/* settings screen (phone/screens). Every rule starts with html.phone. */
+/* Settings and its sections (phone/screens/SettingsScreen.vue, SettingsSectionScreen.vue). Every rule starts with html.phone. */
+
+/* your profile on top: a round letter (or the person icon) in the app's colour, larger than the rows under it */
+html.phone .ph-settings .ph-me {
+  min-block-size: 76px;
+}
+
+html.phone .ph-me-av {
+  display: grid;
+  place-items: center;
+  inline-size: 48px;
+  block-size: 48px;
+  border-radius: 50%;
+  background: var(--accc);
+  color: var(--onc);
+}
+
+html.phone .ph-me-av b {
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+html.phone .ph-me-av svg {
+  inline-size: 26px;
+  block-size: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html.phone .ph-settings .ph-me .ph-row-t {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* a section's screen: the section's own cards under the title, as grouped lists */
+html.phone .ph-set {
+  padding-block-end: 8px;
+}

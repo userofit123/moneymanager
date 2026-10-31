@@ -1,0 +1,26 @@
+{
+  "you": "Your profile",
+  "edit": "Name, age and your goal",
+  "rows": {
+    "pref": "Language, dates, app icon",
+    "cur": "Currencies your money is in",
+    "conn": "Your banks and cards",
+    "sync": "When your banks are read",
+    "ai": "Let an AI set up categories",
+    "crules": "Which shop goes where",
+    "trules": "Labels added by themselves",
+    "nrules": "Clearer names for shops",
+    "cprules": "Card bills and their purchases",
+    "srules": "How money coming in is sorted",
+    "alr": "What is worth a heads-up",
+    "notify": "Phone, Telegram or other apps",
+    "sec": "Password, lock and devices",
+    "backup": "Keep a copy and bring it back",
+    "data": "Bring files in, take data out",
+    "log": "Every change, and undo",
+    "app": "This version and new ones",
+    "rel": "What changed in each version",
+    "err": "When something goes wrong",
+    "server": "Where your data is kept"
+  }
+}
