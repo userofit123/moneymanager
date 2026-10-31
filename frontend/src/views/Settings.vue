@@ -36,8 +36,9 @@ onMounted(() => watch(settingsTab, showOn, { immediate: true }));
           </button>
         </template>
       </div>
-      <div class="setmain stk">
-        <component :is="pane" :key="settingsTab" />
+      <!-- keyed, so each page fades up when it opens, like the other pages -->
+      <div :key="settingsTab" class="setmain stk tabfade">
+        <component :is="pane" />
       </div>
     </div>
   </section>

@@ -174,8 +174,8 @@ html.mob .setmain {
   top: 18px;
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  padding: 8px;
+  gap: 2px;
+  padding: 10px;
   max-height: calc(100vh - 36px);
   overflow-y: auto;
   scrollbar-width: thin;
@@ -190,11 +190,11 @@ html.mob .setmain {
   letter-spacing: .8px;
   text-transform: uppercase;
   color: var(--tx2);
-  padding: 8px 12px 2px;
+  padding: 20px 12px 6px;
 }
 
 .sng:first-child {
-  padding-top: 4px;
+  padding-top: 6px;
 }
 
 .setnav button {
@@ -206,7 +206,7 @@ html.mob .setmain {
   font: inherit;
   font-size: 14px;
   color: var(--tx2);
-  padding: 5px 12px;
+  padding: 9px 12px;
   border-radius: 12px;
   cursor: pointer;
   text-align: start;
