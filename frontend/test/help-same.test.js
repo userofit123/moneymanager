@@ -56,7 +56,8 @@ const ONLY_WITH_DATA = { "#sec-cards / Credit cards": "Home", "#sec-fx missing":
 const unesc = (x) => x.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&");
 const norm = (t) => String(t).replace(/\s+/g, " ").trim().toLowerCase();
 async function render(view, lang) {
-  const [V, store, i18nMod] = await Promise.all([`/src/views/${view}.vue`, "/src/stores/data.js", "/src/i18n.js"].map((p) => vite.ssrLoadModule(p)));
+  const [V, store, i18nMod, clock] = await Promise.all([`/src/views/${view}.vue`, "/src/stores/data.js", "/src/i18n.js", "/src/core/clock.js"].map((p) => vite.ssrLoadModule(p)));
+  clock.setNow(NOW); // the pages work out "this month" for the day the demo data was made for, not the real day
   await i18nMod.setLang(lang); store.data.state.value = demoState();
   const app = createSSRApp({ render: () => h(V.default) }); app.use(i18nMod.i18n);
   return (await renderToString(app)).replace(/<!--[\s\S]*?-->/g, "");
