@@ -24,7 +24,7 @@ const root = ref(null), none = useRowSearch(root, props.search);
 </script>
 
 <template>
-  <div :id="id" ref="root" class="rl">
+  <div :id="id" ref="root" class="rl" data-hq="end">
     <SetSection :icon="icon" :title="title" :desc="desc" :count="count">
       <div class="rladd"><slot name="add" /><button type="button" class="btn s" @click="$emit('add')">{{ t("settings.sorting.addRule") }}</button></div>
       <div v-if="count" class="rlfind"><input v-model="searches[search]" class="rsearch" type="search" :placeholder="searchPh" :aria-label="t('cats.search.label')" autocomplete="off"></div>

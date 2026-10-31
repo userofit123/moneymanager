@@ -7,6 +7,7 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [0.12.12] - 2026-10-24
 
 ### App
+- **Rule pages:** the number of rules now sits right after the card's name, and the (?) help comes after it.
 - **Every rule chooses where it looks and how it compares.** All five rule pages (category rules, tag rules, display names, card payments, money coming in) now read the same way: If [where] [how] [text] → [what it does]. Where: **Everything**, or one part of the entry (**Transaction name**, **Bank's note**, **Bank's description**, **Bank's category**, **Who paid**, **Paid to**, **Your note**, **Your account** or **Currency paid in**). How: **contains**, **is exactly**, **starts with**, **ends with** or **does not contain**. Your rules keep matching exactly what they matched before: each starts on the places it always read (for example "Name, from or to") with "contains". Changing it is in the change history and can be undone. The help explains the list.
 - **Card payment and money coming in rules can be edited in place**, like the other rule pages: change a rule's text in its box (it keeps where it looks and how it compares). Saved in the change history and can be undone.
 - **Rules on a phone:** where a rule looks has a line of its own, so long choices are never cut off; how it compares and the text share the next line, the result comes below.

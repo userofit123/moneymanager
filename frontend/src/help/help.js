@@ -73,7 +73,9 @@ export function helpDots(page, he, label, doc = document) {
     b.addEventListener("click", (e) => { e.preventDefault(); helpAt(k, block, he); });
     if (how === "after") { inside ? el.appendChild(b) : el.insertAdjacentElement("afterend", b); return; }
     if (el.tagName === "H2") { const t = el.firstChild; if (t && (t.nodeType === 3 || t.nodeType === 1)) { const w = doc.createElement("span"); w.className = "hqw"; t.replaceWith(w); w.append(t, b); return; } }
-    const at = [...el.children].find((c) => c.matches("a,.h2r,.chip,button,.hl,.cnt,.seg,.flex") && !c.classList.contains("bi") && !c.classList.contains("tinfo"));
+    // inside [data-hq="end"] (the rule lists) the count stays next to the name and the ? goes after it
+    const end = el.closest('[data-hq="end"]');
+    const at = [...el.children].find((c) => c.matches(end ? "a,.h2r,.chip,button,.hl,.seg,.flex" : "a,.h2r,.chip,button,.hl,.cnt,.seg,.flex") && !c.classList.contains("bi") && !c.classList.contains("tinfo"));
     // the (i) of a tooltip stays last: the ? goes before it
     const ti = at || [...el.children].find((c) => c.classList.contains("tinfo"));
     ti ? el.insertBefore(b, ti) : el.appendChild(b);
