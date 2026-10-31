@@ -20,6 +20,7 @@ A finance app for people who are **not** financial and don't know financial term
 - **HARD RULE: understand an item before naming it.** Always understand what the step or item is for, then name it after that purpose. Never name it after a single function or detail inside it.
 - **Design:** clean, modern, Material-inspired. Match the existing look (spacing, colors, components, icons) before adding anything new. Reuse components and shared modules. Right-to-left must work: icons and chevrons mirror correctly.
 - **Tooltips never show the question-mark (help) cursor.** Use the normal or pointer cursor.
+- **Open/close arrows are always chevrons** (the thin V-shaped line icon), never a filled triangle or text arrow like ▾ or ▸.
 - **Never real bank data in the repo**: code, tests, fixtures, docs and screenshots use made-up names and amounts only. `scripts/privacy-check.mjs` blocks a commit or push that adds a name from your local database (install once: `git config core.hooksPath .githooks`). Commits are signed with the GitHub no-reply address, never a personal email, and saved in UTC (`.githooks/post-commit`).
 - Other threads may work in the same folder: touch only the files your task needs and commit only your own changes.
 - Push, merge and release only after R approves.

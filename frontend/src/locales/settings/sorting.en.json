@@ -92,7 +92,7 @@
   "ai": {
     "title": "Let an AI make your categories",
     "desc": "Categories, rules, tags, display names, card payments and salary, made for your own spending, with any AI chat you already use.",
-    "privacy": "The file holds only the names in your transactions (shops and payers), how often each one appears, and whether money went out or came in. It has no amounts, dates or accounts. It does leave the app: it goes to the AI company you choose.",
+    "privacy": "The app puts each payment into a category (like Food or Car) so you can see where your money goes. Setting this up by hand, shop by shop, takes a long time. Here an AI chat does it for you: it reads the names of the shops and payers in your transactions and writes rules, so new payments are sorted on their own. Follow the 3 steps below. You check every suggestion before anything is added. Only the names leave the app, never amounts, dates or accounts.",
     "s1": "A file with the one name in your transactions. | A file with the {n} different names in your transactions.",
     "s1b": "Download",
     "s2": "Copy the instructions, paste them into an AI chat (for example ChatGPT, Claude or Gemini), and attach the file.",
