@@ -1,7 +1,6 @@
 {
   "del": "Delete",
   "if": "If",
-  "has": "contains",
   "ifDescPh": "Text to look for…",
   "where": {
     "label": "Where to look",
@@ -15,9 +14,17 @@
     "note": "Your note",
     "acct": "Your account",
     "cur": "Currency paid in",
-    "dtf": "Name, who paid or paid to",
+    "dtf": "Name, from or to",
     "dt": "Name or paid to",
-    "dfm": "Name, who paid or bank's note"
+    "dfm": "Name, payer or bank's note"
+  },
+  "how": {
+    "label": "How to match",
+    "in": "contains",
+    "eq": "is exactly",
+    "starts": "starts with",
+    "ends": "ends with",
+    "not": "does not contain"
   },
   "text": "Text to match",
   "addRule": "Add rule",
@@ -63,11 +70,6 @@
   "n": {
     "title": "Display names",
     "desc": "Show a clearer name for an entry. The bank's own text stays as it is.",
-    "if": "If",
-    "field": "Where to look",
-    "how": "How to match",
-    "in": "contains",
-    "eq": "is exactly",
     "name": "Name",
     "none": "No name rules yet. Example: if Bank's note contains “Acme Ltd” → Salary.",
     "textPh": "Text to match…",

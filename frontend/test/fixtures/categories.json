@@ -1204,7 +1204,9 @@
    "div.sm",
    "div.ssb",
    "div.rladd",
+   "span.",
    "select.rwhere",
+   "select.rhow",
    "input.",
    "select.",
    "button.btn.s",
@@ -1214,7 +1216,7 @@
    "div.rule",
    "span.",
    "select.rwhere",
-   "span.",
+   "select.rhow",
    "input.",
    "span.rarr",
    "select.",
@@ -1222,14 +1224,14 @@
    "div.rule",
    "span.",
    "select.rwhere",
-   "span.",
+   "select.rhow",
    "input.",
    "span.rarr",
    "select.",
    "button.btn.o.rdel.s",
    "div.sfoot"
   ],
-  "text": "Category rules 2 If a new transaction contains the text in the place you choose, it gets that category. Add rule If contains → Delete If contains → Delete The first rule that matches wins. A category you set by hand is never changed.",
+  "text": "Category rules 2 If a new transaction contains the text in the place you choose, it gets that category. If Add rule If → Delete If → Delete The first rule that matches wins. A category you set by hand is never changed.",
   "tips": []
  },
  "page-data-setTags": {
@@ -1478,7 +1480,9 @@
    "div.sm",
    "div.ssb",
    "div.rladd",
+   "span.",
    "select.rwhere",
+   "select.rhow",
    "input.",
    "div.rltags",
    "div.tbox",
@@ -1492,7 +1496,7 @@
    "div.rule",
    "span.",
    "select.rwhere",
-   "span.",
+   "select.rhow",
    "input.",
    "span.rarr",
    "div.tbox",
@@ -1509,7 +1513,7 @@
    "div.rule",
    "span.",
    "select.rwhere",
-   "span.",
+   "select.rhow",
    "input.",
    "span.rarr",
    "div.tbox",
@@ -1522,7 +1526,7 @@
    "button.btn.o.rdel.s",
    "div.sfoot"
   ],
-  "text": "Tag rules 2 If a new transaction contains the text in the place you choose, it gets these tags. Add rule If contains → tv × fun × Delete If contains → health × Delete Tags come on top of the category, and one rule can add several. When you add a rule, you can also tag the transactions you already have.",
+  "text": "Tag rules 2 If a new transaction contains the text in the place you choose, it gets these tags. If Add rule If → tv × fun × Delete If → health × Delete Tags come on top of the category, and one rule can add several. When you add a rule, you can also tag the transactions you already have.",
   "tips": []
  },
  "page-data-setNames": {
@@ -1538,8 +1542,9 @@
    "div.sm",
    "div.ssb",
    "div.rladd",
+   "span.",
    "select.rwhere",
-   "select.",
+   "select.rhow",
    "input.",
    "input.",
    "button.btn.s",
@@ -1549,14 +1554,14 @@
    "div.rule",
    "span.",
    "select.rwhere",
-   "select.",
+   "select.rhow",
    "input.",
    "span.rarr",
    "input.",
    "button.btn.o.rdel.s",
    "div.sfoot"
   ],
-  "text": "Display names 1 Show a clearer name for an entry. The bank's own text stays as it is. Add rule If → Delete Your rules and reports still use the bank's text. The first rule that matches wins, and a name you give one entry by hand always wins. To name one entry, open it and use Display name.",
+  "text": "Display names 1 Show a clearer name for an entry. The bank's own text stays as it is. If Add rule If → Delete Your rules and reports still use the bank's text. The first rule that matches wins, and a name you give one entry by hand always wins. To name one entry, open it and use Display name.",
   "tips": []
  },
  "page-empty-setCats": {
@@ -1827,14 +1832,16 @@
    "div.sm",
    "div.ssb",
    "div.rladd",
+   "span.",
    "select.rwhere",
+   "select.rhow",
    "input.",
    "select.",
    "button.btn.s",
    "div.rlnone.sm",
    "div.sfoot"
   ],
-  "text": "Category rules 0 If a new transaction contains the text in the place you choose, it gets that category. Add rule No rules yet. Add one above, or let an AI make them in Set up with an AI. The first rule that matches wins. A category you set by hand is never changed.",
+  "text": "Category rules 0 If a new transaction contains the text in the place you choose, it gets that category. If Add rule No rules yet. Add one above, or let an AI make them in Set up with an AI. The first rule that matches wins. A category you set by hand is never changed.",
   "tips": []
  },
  "page-empty-setTags": {
@@ -1886,7 +1893,9 @@
    "div.sm",
    "div.ssb",
    "div.rladd",
+   "span.",
    "select.rwhere",
+   "select.rhow",
    "input.",
    "div.rltags",
    "div.tbox",
@@ -1897,7 +1906,7 @@
    "div.rlnone.sm",
    "div.sfoot"
   ],
-  "text": "Tag rules 0 If a new transaction contains the text in the place you choose, it gets these tags. Add rule No tag rules yet. Add one above. Example: “netflix” adds the tag “streaming”. Tags come on top of the category, and one rule can add several. When you add a rule, you can also tag the transactions you already have.",
+  "text": "Tag rules 0 If a new transaction contains the text in the place you choose, it gets these tags. If Add rule No tag rules yet. Add one above. Example: “netflix” adds the tag “streaming”. Tags come on top of the category, and one rule can add several. When you add a rule, you can also tag the transactions you already have.",
   "tips": []
  },
  "page-empty-setNames": {
@@ -1913,15 +1922,16 @@
    "div.sm",
    "div.ssb",
    "div.rladd",
+   "span.",
    "select.rwhere",
-   "select.",
+   "select.rhow",
    "input.",
    "input.",
    "button.btn.s",
    "div.rlnone.sm",
    "div.sfoot"
   ],
-  "text": "Display names 0 Show a clearer name for an entry. The bank's own text stays as it is. Add rule No name rules yet. Example: if Bank's note contains “Acme Ltd” → Salary. Your rules and reports still use the bank's text. The first rule that matches wins, and a name you give one entry by hand always wins. To name one entry, open it and use Display name.",
+  "text": "Display names 0 Show a clearer name for an entry. The bank's own text stays as it is. If Add rule No name rules yet. Example: if Bank's note contains “Acme Ltd” → Salary. Your rules and reports still use the bank's text. The first rule that matches wins, and a name you give one entry by hand always wins. To name one entry, open it and use Display name.",
   "tips": []
  },
  "page-data-aiSort": {
@@ -1982,7 +1992,9 @@
    "div.sm",
    "div.ssb",
    "div.rladd",
+   "span.",
    "select.rwhere",
+   "select.rhow",
    "input.",
    "button.btn.s",
    "div.rlfind",
@@ -1991,14 +2003,14 @@
    "div.rule",
    "span.",
    "select.rwhere",
-   "span.",
+   "select.rhow",
    "b.gtxt",
    "span.rarr",
    "b.",
    "button.btn.o.rdel.s",
    "div.sfoot"
   ],
-  "text": "Card payments 1 If a payment from your bank contains the text in the place you choose, it is the bill of a credit card. It is not counted as spending, because each purchase is already counted on the card. Add rule If contains max charge → Card payment Delete Recognised automatically, with no rule: Isracard · ישראכרט, Visa Cal · כ.א.ל · ויזה כאל, Max · מקס · מקס איט פי, American Express · אמריקן אקספרס, Diners · דיינרס, Leumi Card · לאומי קארד. Also any bank payment equal to what a card was charged on that day.",
+  "text": "Card payments 1 If a payment from your bank contains the text in the place you choose, it is the bill of a credit card. It is not counted as spending, because each purchase is already counted on the card. If Add rule If max charge → Card payment Delete Recognised automatically, with no rule: Isracard · ישראכרט, Visa Cal · כ.א.ל · ויזה כאל, Max · מקס · מקס איט פי, American Express · אמריקן אקספרס, Diners · דיינרס, Leumi Card · לאומי קארד. Also any bank payment equal to what a card was charged on that day.",
   "tips": []
  },
  "page-empty-aiSort": {
@@ -2059,13 +2071,15 @@
    "div.sm",
    "div.ssb",
    "div.rladd",
+   "span.",
    "select.rwhere",
+   "select.rhow",
    "input.",
    "button.btn.s",
    "div.rlnone.sm",
    "div.sfoot"
   ],
-  "text": "Card payments 0 If a payment from your bank contains the text in the place you choose, it is the bill of a credit card. It is not counted as spending, because each purchase is already counted on the card. Add rule No rules of your own yet. Mark one card payment in Activity and the app offers to make one for you, or add one above. Recognised automatically, with no rule: Isracard · ישראכרט, Visa Cal · כ.א.ל · ויזה כאל, Max · מקס · מקס איט פי, American Express · אמריקן אקספרס, Diners · דיינרס, Leumi Card · לאומי קארד. Also any bank payment equal to what a card was charged on that day.",
+  "text": "Card payments 0 If a payment from your bank contains the text in the place you choose, it is the bill of a credit card. It is not counted as spending, because each purchase is already counted on the card. If Add rule No rules of your own yet. Mark one card payment in Activity and the app offers to make one for you, or add one above. Recognised automatically, with no rule: Isracard · ישראכרט, Visa Cal · כ.א.ל · ויזה כאל, Max · מקס · מקס איט פי, American Express · אמריקן אקספרס, Diners · דיינרס, Leumi Card · לאומי קארד. Also any bank payment equal to what a card was charged on that day.",
   "tips": []
  },
  "a-money-coming-in-rule-with-no-match": {
@@ -2231,14 +2245,16 @@
    "div.sm",
    "div.ssb",
    "div.rladd",
+   "span.",
    "select.rwhere",
+   "select.rhow",
    "input.",
    "select.",
    "button.btn.s",
    "div.rlnone.sm",
    "div.sfoot"
   ],
-  "text": "Money coming in 0 If money coming in contains the text in the place you choose, it is a Salary or Money back, as you pick here. Add rule No rules of your own yet. Add a payer above, for example your employer. With no rule: money that came in on a credit card is Money back, and all other money coming in is Income. Nothing is decided from words in the text.",
+  "text": "Money coming in 0 If money coming in contains the text in the place you choose, it is a Salary or Money back, as you pick here. If Add rule No rules of your own yet. Add a payer above, for example your employer. With no rule: money that came in on a credit card is Money back, and all other money coming in is Income. Nothing is decided from words in the text.",
   "tips": []
  },
  "page-empty-setInRules": {
@@ -2256,14 +2272,16 @@
    "div.sm",
    "div.ssb",
    "div.rladd",
+   "span.",
    "select.rwhere",
+   "select.rhow",
    "input.",
    "select.",
    "button.btn.s",
    "div.rlnone.sm",
    "div.sfoot"
   ],
-  "text": "Money coming in 0 If money coming in contains the text in the place you choose, it is a Salary or Money back, as you pick here. Add rule No rules of your own yet. Add a payer above, for example your employer. With no rule: money that came in on a credit card is Money back, and all other money coming in is Income. Nothing is decided from words in the text.",
+  "text": "Money coming in 0 If money coming in contains the text in the place you choose, it is a Salary or Money back, as you pick here. If Add rule No rules of your own yet. Add a payer above, for example your employer. With no rule: money that came in on a credit card is Money back, and all other money coming in is Income. Nothing is decided from words in the text.",
   "tips": []
  },
  "add-a-money-coming-in-rule-as-salary-no-entry-changes-salary-is-not-a-category": {

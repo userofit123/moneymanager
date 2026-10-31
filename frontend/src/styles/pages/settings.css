@@ -1076,3 +1076,48 @@ html[data-den="compact"] .setmain .fld {
 html[data-den="roomy"] .setmain .fld {
   margin-bottom: 24px;
 }
+
+/* The "If" part of every rule (RuleWhen.vue): where it looks and how it compares, kept narrow so a rule fits one line */
+.rule .rwhere,
+.rladd > .rwhere {
+  flex: 0 1 165px;
+  min-width: 0;
+}
+
+.rule .rhow,
+.rladd > .rhow {
+  flex: 0 1 135px;
+  min-width: 0;
+}
+
+.rlrows .rule input {
+  flex: 1 1 110px;
+  min-width: 80px;
+}
+
+.rlrows .rule select:not(.rwhere, .rhow) {
+  flex: 0 1 165px;
+  min-width: 0;
+}
+
+/* Phone: the two choices share a line, the text has a line of its own */
+html.mob .rule .rwhere,
+html.mob .rule .rhow,
+html.mob .rladd > .rwhere,
+html.mob .rladd > .rhow {
+  flex: 1 1 35%;
+}
+
+html.mob .rlrows .rule input,
+html.mob .rladd > input {
+  flex: 1 1 100%;
+}
+
+html.mob .rlrows .rule select:not(.rwhere, .rhow) {
+  flex: 1 1 60%;
+}
+
+/* the "If" before the new rule's choices reads like the rules below it */
+.rladd > span {
+  font-size: 14px;
+}
