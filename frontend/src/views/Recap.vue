@@ -267,7 +267,7 @@ const PARTS = {
     const subs = m.nextCards.map((c, i) => [`${nm(c.n)} · ${dshort(c.d)}`, amts[i], "now"]);
     // your balance now, the card bills, and what is really yours once they are paid
     const one = m.nextCards.length == 1, sameDay = m.nextCards.every((c) => c.d == first);
-    const sum = sumBox([N("inAccounts"), m.cash, "now"], [{ k: "out", label: one ? nm(m.nextCards[0].n) : L("cardBill", {}, 2), amt: m.cardsNext, link: "now", subs: one ? [] : subs }], [L("yoursAfter"), m.cash - m.cardsNext, "", null, L("reallyX", { date: dlong(first) })]);
+    const sum = sumBox([N("inAccounts"), m.cash, "now"], [{ k: "out", label: one ? nm(m.nextCards[0].n) : L("cardBill", {}, 2), amt: m.cardsNext, link: "now", subs: one ? [] : subs }], [L("yoursAfter"), Math.round(m.cash) - Math.round(m.cardsNext), "", null, L("reallyX", { date: dlong(first) })]);
     return part(zz, "card", "", L("nextT"), "now", mn(m.cardsNext), one || !sameDay ? L("nextX", { date: dlong(first) }, m.nextCards.length) : L("nextXs", { date: dlong(first) }), sum);
   },
   attn: (m, zz) => {

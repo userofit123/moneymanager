@@ -1769,6 +1769,7 @@ html.he .rkeq :is(.qout,.qin) .qb svg {
   font-size: 14px;
   text-align: center;
   cursor: pointer;
+  transition: transform .16s, box-shadow .16s;
 }
 
 .rkst a b {
@@ -1777,9 +1778,10 @@ html.he .rkeq :is(.qout,.qin) .qb svg {
   font-weight: 700;
 }
 
-.rkst a:hover span {
-  text-decoration: underline;
-  text-underline-offset: 3px;
+/* the whole block is the link: it lifts like the other blocks, no underline */
+.rkst a:hover {
+  transform: translateY(-3px);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--acc) 50%, var(--ol)), 0 14px 34px -16px var(--acc);
 }
 
 .rkrl {
