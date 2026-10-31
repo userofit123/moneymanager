@@ -17,7 +17,7 @@ A finance app for people who are **not** financial and don't know financial term
 - **Changelog, both languages, at the same time as the change:** `CHANGELOG.md` (English) and `CHANGELOG.he.md` (Hebrew).
 - **Right to left:** `<html>` stays left to right with class `he` (so scrollbars stay on the right), and `html.he body { direction: rtl }` flips the content. Never put `dir="rtl"` on `<html>`. Styles use logical properties (start/end), never fixed left/right.
 - **Very plain wording**, in English and Hebrew. No financial jargon. If a term is needed, explain it in simple words or in a tooltip.
-- **Understand an item before naming it.** Before naming or renaming anything, understand what it is actually for: its function and purpose. Only then name it.
+- **HARD RULE: understand an item before naming it.** Always understand what the step or item is for, then name it after that purpose. Never name it after a single function or detail inside it.
 - **Design:** clean, modern, Material-inspired. Match the existing look (spacing, colors, components, icons) before adding anything new. Reuse components and shared modules. Right-to-left must work: icons and chevrons mirror correctly.
 - **Tooltips never show the question-mark (help) cursor.** Use the normal or pointer cursor.
 - **Never real bank data in the repo**: code, tests, fixtures, docs and screenshots use made-up names and amounts only. `scripts/privacy-check.mjs` blocks a commit or push that adds a name from your local database (install once: `git config core.hooksPath .githooks`). Commits are signed with the GitHub no-reply address, never a personal email, and saved in UTC (`.githooks/post-commit`).
