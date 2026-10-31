@@ -4,15 +4,13 @@ import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
 import { catNames, catLabel } from "../../core/cats.js";
-import { searches, useRowSearch } from "../../core/rowSearch.js";
 import * as C from "../../lib/categories.js";
-import SetHead from "./SetHead.vue";
+import RuleList from "./RuleList.vue";
 import { save, err, ok } from "./sorting.js";
 
 const { t } = useI18n();
 const tk = (k, ...a) => t("settings.sorting." + k, ...a);
 const S = computed(() => data.state.value);
-const root = ref(null), none = useRowSearch(root, "rules");
 const names = computed(() => (S.value ? catNames(S.value) : []));
 
 const rk = ref(""), rc = ref("");
@@ -39,18 +37,9 @@ function rulePast(i, old) { const out = {}; if (save((n) => C.applyRulePast(n, i
 </script>
 
 <template>
-  <div id="setRules" ref="root">
-    <template v-if="S">
-      <div class="rtool"><input v-model="searches.rules" class="rsearch" type="search" :placeholder="tk('search.rules')" :aria-label="t('cats.search.label')" autocomplete="off"></div>
-      <div v-if="none" class="rsnone sm">{{ t("cats.search.none", { q: none }) }}</div>
-      <div class="card ss">
-        <SetHead icon="rules" :title="tk('r.title')" :desc="tk('r.desc')" :count="S.rules.length" />
-        <div class="tools ssb"><input id="rk" v-model="rk" @keydown.enter.prevent="ruleAdd" :placeholder="tk('ifDescPh')"><select id="rc" :value="newRuleCat" @change="rc = $event.target.value"><option v-for="c in names" :key="c" :value="c">{{ catLabel(c) }}</option></select><button type="button" class="btn" @click="ruleAdd">{{ tk("addRule") }}</button></div>
-        <div class="ssb p">
-          <div v-for="(r, i) in S.rules" :key="i + '|' + r.k" class="rule"><span>{{ tk("ifDesc") }}</span><input data-c="rulek" :data-i="i" :value="r.k" :aria-label="tk('text')" @change="ruleText(i, $event)"><span>→</span><select data-c="rulec" :data-i="i" :value="r.c" :aria-label="tk('r.cat')" @change="ruleCat(i, $event)"><option v-for="c in ruleOpts(r.c)" :key="c" :value="c">{{ catLabel(c) }}</option></select><button type="button" class="btn o s" style="margin-inline-start:auto" @click="ruleDel(i)">{{ tk("del") }}</button></div>
-          <div v-if="!S.rules.length" class="sm" style="padding:4px 2px 10px">{{ tk("r.none") }}</div>
-        </div>
-      </div>
-    </template>
-  </div>
+  <RuleList v-if="S" id="setRules" icon="rules" :title="tk('r.title')" :desc="tk('r.desc')" :count="S.rules.length" search="rules" :search-ph="tk('search.rules')" :empty="tk('r.none')" @add="ruleAdd">
+    <template #add><input id="rk" v-model="rk" :placeholder="tk('ifDescPh')" :aria-label="tk('text')" @keydown.enter.prevent="ruleAdd"><select id="rc" :value="newRuleCat" :aria-label="tk('r.cat')" @change="rc = $event.target.value"><option v-for="c in names" :key="c" :value="c">{{ catLabel(c) }}</option></select></template>
+    <div v-for="(r, i) in S.rules" :key="i + '|' + r.k" class="rule"><span>{{ tk("ifDesc") }}</span><input data-c="rulek" :data-i="i" :value="r.k" :aria-label="tk('text')" @change="ruleText(i, $event)"><span class="rarr">→</span><select data-c="rulec" :data-i="i" :value="r.c" :aria-label="tk('r.cat')" @change="ruleCat(i, $event)"><option v-for="c in ruleOpts(r.c)" :key="c" :value="c">{{ catLabel(c) }}</option></select><button type="button" class="btn o s rdel" @click="ruleDel(i)">{{ tk("del") }}</button></div>
+    <template #foot>{{ tk("r.foot") }}</template>
+  </RuleList>
 </template>

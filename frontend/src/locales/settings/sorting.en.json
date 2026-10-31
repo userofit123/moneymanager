@@ -7,13 +7,14 @@
   "search": {
     "rules": "Search rules by text or category…",
     "tagrules": "Search rules by text or tag…",
-    "gen": "Search rules…"
+    "gen": "Search rules…",
+    "names": "Search rules by text or name…"
   },
   "r": {
     "title": "Category rules",
-    "desc": "If a new transaction's description contains the text, it gets that category. The first matching rule wins, and a category you set by hand is never changed.",
+    "desc": "If a new transaction's description contains the text, it gets that category.",
     "cat": "Category",
-    "none": "No rules yet. Add one below, or let an AI make them in Set up with an AI.",
+    "none": "No rules yet. Add one above, or let an AI make them in Set up with an AI.",
     "dup": "There is already a rule for that text",
     "added": "Rule added. {n} uncategorized transaction now in {c}. | Rule added. {n} uncategorized transactions now in {c}.",
     "addedNew": "Rule added. It applies to new transactions.",
@@ -21,12 +22,13 @@
     "updated": "Rule updated",
     "move": "Move {n} past transaction too | Move {n} past transactions too",
     "leave": "Leave them",
-    "moved": "{n} transactions moved to {c}"
+    "moved": "{n} transactions moved to {c}",
+    "foot": "The first rule that matches wins. A category you set by hand is never changed."
   },
   "tr": {
     "title": "Tag rules",
-    "desc": "If a new transaction's description contains the text, it gets these tags. Tags are added on top of the category, and a rule can add several. When you add a rule you can also tag the transactions you already have.",
-    "none": "No tag rules yet. Add one below. Example: “netflix” adds the tag “streaming”.",
+    "desc": "If a new transaction's description contains the text, it gets these tags.",
+    "none": "No tag rules yet. Add one above. Example: “netflix” adds the tag “streaming”.",
     "needTag": "Add at least one tag",
     "last": "A tag rule needs at least one tag. Delete the rule instead.",
     "addedNew": "Rule added. New transactions that contain “{k}” get {tags}.",
@@ -38,11 +40,12 @@
     "more": "and {n} more",
     "onlyNew": "Only new ones",
     "tagN": "Tag {n} existing",
-    "tagged": "Tagged {n} transaction | Tagged {n} transactions"
+    "tagged": "Tagged {n} transaction | Tagged {n} transactions",
+    "foot": "Tags come on top of the category, and one rule can add several. When you add a rule, you can also tag the transactions you already have."
   },
   "n": {
     "title": "Display names",
-    "desc": "Give entries a clearer display name. Only what you see changes: the bank's own text, your rules and your reports still use the original. The first matching rule wins, and a name you give one entry by hand always wins. To name one entry, open it and use Display name.",
+    "desc": "Show a clearer name for an entry. The bank's own text stays as it is.",
     "if": "If",
     "field": "Field",
     "how": "How to match",
@@ -62,7 +65,8 @@
     "namePh": "Call it…",
     "needBoth": "Type the text to match and the name",
     "added": "Name rule added",
-    "needBothEdit": "A name rule needs text to match and a name"
+    "needBothEdit": "A name rule needs text to match and a name",
+    "foot": "Your rules and reports still use the bank's text. The first rule that matches wins, and a name you give one entry by hand always wins. To name one entry, open it and use Display name."
   },
   "gen": {
     "ifIn": "If it contains",
@@ -71,14 +75,14 @@
     "cardTitle": "Card payments",
     "cardDesc": "If a payment from your bank contains the text, it is the bill of a credit card. It is not counted as spending, because each purchase is already counted on the card.",
     "cardPay": "Card payment",
-    "cardNone": "No rules of your own yet. Mark one card payment in Activity and the app offers to create one for you, or add one below.",
+    "cardNone": "No rules of your own yet. Mark one card payment in Activity and the app offers to make one for you, or add one above.",
     "cardPh": "Text from the bank line, for example ישראכרט חיוב",
     "cardAuto": "Recognised automatically, with no rule: {list}. Also any bank payment equal to what a card was charged on that day.",
     "cardShort": "Type some text from the bank line, for example “ישראכרט חיוב”.",
     "salTitle": "Salary",
     "salDesc": "If an income contains the text (in its description or the payer), it is marked as Salary when it has no category yet.",
     "salary": "Salary",
-    "salNone": "No rules of your own yet. Add the name of your employer below.",
+    "salNone": "No rules of your own yet. Add the name of your employer above.",
     "salPh": "Payer or text, for example wix",
     "salAuto": "Recognised automatically, with no rule: income that says משכורת, שכר, salary or payroll, and the same payer paying a similar amount every month for three months or more.",
     "salShort": "Type text from the payer or the description, for example “wix”.",
@@ -89,7 +93,7 @@
     "title": "Let an AI make your categories",
     "desc": "Categories, rules, tags, display names, card payments and salary, made for your own spending, with any AI chat you already use.",
     "privacy": "The file holds only the names in your transactions (shops and payers), how often each one appears, and whether money went out or came in. It has no amounts, dates or accounts. It does leave the app: it goes to the AI company you choose.",
-    "s1": "Download your transaction texts ({n} different name). | Download your transaction texts ({n} different names).",
+    "s1": "A file with the one name in your transactions. | A file with the {n} different names in your transactions.",
     "s1b": "Download",
     "s2": "Copy the instructions, paste them into an AI chat (for example ChatGPT, Claude or Gemini), and attach the file.",
     "s2b": "Copy instructions",
@@ -144,6 +148,9 @@
     "exMessy": "PAYPAL *SPOTIFY 4029",
     "exShown": "Spotify",
     "exCard": "isracard",
-    "exPay": "acme ltd"
+    "exPay": "acme ltd",
+    "s1t": "1. Download your transaction texts",
+    "s2t": "2. Ask an AI chat",
+    "s3t": "3. Upload the answer"
   }
 }

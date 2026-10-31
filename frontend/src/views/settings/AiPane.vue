@@ -7,7 +7,8 @@ import { data } from "../../stores/data.js";
 import { toast } from "../../core/toast.js";
 import { copyText } from "./errlog.js";
 import { exportTexts, readAnswer, choose, wouldSort, addAnswer, answerExample, planSize, rowKey, rowState, flip } from "../../lib/aiSort.js";
-import SetHead from "./SetHead.vue";
+import SetSection from "./SetSection.vue";
+import SetRow from "./SetRow.vue";
 
 const { t, locale } = useI18n();
 const S = computed(() => data.state.value);
@@ -67,16 +68,15 @@ function add() {
 </script>
 
 <template>
-  <div id="aiSort" class="card ss">
-    <SetHead icon="rules" :title="t('settings.sorting.ai.title')" :desc="t('settings.sorting.ai.desc')" />
-    <div class="ssb p">
+  <div id="aiSort">
+    <SetSection icon="sparkle" :title="t('settings.sorting.ai.title')" :desc="t('settings.sorting.ai.desc')">
       <div class="sinfo aip">{{ t("settings.sorting.ai.privacy") }}</div>
-      <ol class="aisteps">
-        <li><span>{{ t("settings.sorting.ai.s1", { n: nTexts }, nTexts) }}</span><button type="button" class="btn o s" :disabled="!nTexts" @click="download">{{ t("settings.sorting.ai.s1b") }}</button></li>
-        <li><span>{{ t("settings.sorting.ai.s2") }}</span><button type="button" class="btn o s" @click="copy">{{ t("settings.sorting.ai.s2b") }}</button></li>
-        <li><span>{{ t("settings.sorting.ai.s3") }}</span><button type="button" class="btn s" @click="file.click()">{{ t("settings.sorting.ai.s3b") }}</button>
-          <input ref="file" type="file" accept=".json,.txt,application/json,text/plain" style="display:none" @change="upload"></li>
-      </ol>
+      <div class="aisteps">
+        <SetRow :title="t('settings.sorting.ai.s1t')" :desc="t('settings.sorting.ai.s1', { n: nTexts }, nTexts)"><button type="button" class="btn o s" :disabled="!nTexts" @click="download">{{ t("settings.sorting.ai.s1b") }}</button></SetRow>
+        <SetRow :title="t('settings.sorting.ai.s2t')" :desc="t('settings.sorting.ai.s2')"><button type="button" class="btn o s" @click="copy">{{ t("settings.sorting.ai.s2b") }}</button></SetRow>
+        <SetRow :title="t('settings.sorting.ai.s3t')" :desc="t('settings.sorting.ai.s3')"><button type="button" class="btn s" @click="file.click()">{{ t("settings.sorting.ai.s3b") }}</button>
+          <input ref="file" type="file" accept=".json,.txt,application/json,text/plain" hidden @change="upload"></SetRow>
+      </div>
       <details class="aimore"><summary>{{ t("settings.sorting.ai.see") }}</summary><pre dir="auto">{{ prompt }}</pre></details>
       <details class="aimore"><summary>{{ t("settings.sorting.ai.pasteQ") }}</summary>
         <label class="fld">{{ t("settings.sorting.ai.pasteL") }}<textarea v-model="pasted" rows="4" dir="ltr" /></label>
@@ -105,8 +105,8 @@ function add() {
         </section>
         <div class="sm">{{ t(A + "sorts", { n: sortN }, sortN) }}</div>
         <div v-if="found.skipped" class="sm">{{ t(A + "skipped", { n: found.skipped }, found.skipped) }}</div>
-        <div class="flex" style="gap:8px;margin-top:10px"><button type="button" class="btn s" :disabled="!total" @click="add">{{ t(A + "add") }}</button><button type="button" class="btn o s" @click="found = null">{{ t(A + "cancel") }}</button></div>
+        <div class="aiact"><button type="button" class="btn s" :disabled="!total" @click="add">{{ t(A + "add") }}</button><button type="button" class="btn o s" @click="found = null">{{ t(A + "cancel") }}</button></div>
       </div>
-    </div>
+    </SetSection>
   </div>
 </template>

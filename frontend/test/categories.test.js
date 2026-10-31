@@ -139,7 +139,7 @@ const text = (h) => unesc(tidy(h).replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ")
 const skeleton = (h) => [...tidy(h).matchAll(/<([a-z0-9]+)([^>]*)>/g)].map(([, tag, at]) => tag + "." + ((/(?:^|\s)class="([^"]*)"/.exec(at) || [])[1] || "").split(/\s+/).filter((c) => c && c != "hi").sort().join("."));
 const tips = (h) => [...h.matchAll(/data-tip="([^"]*)"/g)].map((m) => unesc(m[1]));
 const PANES = ["setCats", "setTags", "aiSort", "setRules", "setTagrules", "setNames", "setCardRules", "setSalRules"];
-// The search bar at the top of each tab is checked on its own.
+// The search bar at the top of each tab is checked on its own (the rule lists in Settings have it inside the card).
 const noBar = (h) => (h.startsWith('<div class="rtool">') ? h.slice(h.indexOf("</div>") + 6) : h);
 
 for (const [name, key, mk] of [["the test data", "data", () => start()], ["nothing at all", "empty", () => ({ ...start(), rules: [], tagRules: [], cardRules: [], salaryRules: [], cfg: { ...start().cfg, nameRules: [] }, tx: [] })]]) {
@@ -151,11 +151,11 @@ for (const [name, key, mk] of [["the test data", "data", () => start()], ["nothi
     }
   });
 }
-test("the search bars have their words, and Display names has none", async () => {
-  const html = await all(start(), "en"), bar = (id) => (/<div class="rtool">([\s\S]*?)<\/div>/.exec(inner(html, id)) || [])[1] || "";
+test("the search bars have their words", async () => {
+  const html = await all({ ...start(), salaryRules: ["wix"] }, "en"), bar = (id) => (/<div class="(?:rtool|rlfind)">([\s\S]*?)<\/div>/.exec(inner(html, id)) || [])[1] || "";
   assert.match(bar("setCats"), /placeholder="Search categories…"[\s\S]*placeholder="New category name"[\s\S]*\+ Add category/);
   assert.match(bar("setRules"), /Search rules by text or category…/); assert.match(bar("setTags"), /Search tags…/);
-  assert.match(bar("setTagrules"), /Search rules by text or tag…/); assert.match(bar("setCardRules"), /Search rules…/); assert.match(bar("setSalRules"), /Search rules…/); assert.equal(bar("setNames"), "");
+  assert.match(bar("setTagrules"), /Search rules by text or tag…/); assert.match(bar("setCardRules"), /Search rules…/); assert.match(bar("setSalRules"), /Search rules…/); assert.match(bar("setNames"), /Search rules by text or name…/);
 });
 test("the Hebrew page shows no English words from the app (only names from the data)", async () => {
   const S = start(), b = text(await all(S, "he"));
