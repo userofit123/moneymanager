@@ -61,6 +61,11 @@ html.phone .ph-bar.small .ph-bar-title {
   transform: none;
 }
 
+/* while the large title shows, the hidden small one takes no room, so a long screen name does not cut the Back label short */
+html.phone .ph-bar:not(.small) .ph-bar-title {
+  max-inline-size: 0;
+}
+
 html.phone .ph-back {
   display: inline-flex;
   align-items: center;

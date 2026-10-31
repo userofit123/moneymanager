@@ -42,3 +42,35 @@ export function dragDown(sheet, { onClose, body = sheet }) {
   sheet.addEventListener("touchcancel", end);
   return () => { sheet.removeEventListener("touchstart", start); sheet.removeEventListener("touchmove", move); sheet.removeEventListener("touchend", end); sheet.removeEventListener("touchcancel", end); };
 }
+
+// edgeBack: in the installed iPhone app (no browser Back gesture there), a drag from the start edge (the first 20px) pulls the
+// screen towards the end side; let go past 35% of the width, or with a quick flick, and onBack runs. can() says whether
+// there is a screen to go back to. sign() is +1 in English, -1 in Hebrew (the start edge is on the right in Hebrew).
+export function edgeBack(el, { can, onBack, sign }) {
+  let x0 = null, y0 = 0, t0 = 0, dx = 0, on = false;
+  const W = () => innerWidth;
+  const start = (e) => {
+    const x = e.touches[0].clientX, fromEdge = sign() > 0 ? x : W() - x;
+    if (e.touches.length > 1 || fromEdge > 20 || !can() || document.documentElement.classList.contains("sl")) return;
+    x0 = x; y0 = e.touches[0].clientY; t0 = performance.now(); dx = 0; on = false;
+  };
+  const move = (e) => {
+    if (x0 == null) return;
+    const mx = (e.touches[0].clientX - x0) * sign(), my = e.touches[0].clientY - y0;
+    if (!on && Math.abs(my) > Math.abs(mx)) { x0 = null; return; }
+    on = true; dx = Math.max(0, mx);
+    el.style.transition = "none"; el.style.transform = `translateX(${dx * sign()}px)`;
+    if (e.cancelable) e.preventDefault();
+  };
+  const end = () => {
+    if (x0 == null) return;
+    const v = dx / Math.max(1, performance.now() - t0), go = on && (dx > W() * 0.35 || v > 0.5);
+    x0 = null; el.style.transition = ""; el.style.transform = "";
+    if (go) onBack();
+  };
+  el.addEventListener("touchstart", start, { passive: true });
+  el.addEventListener("touchmove", move, { passive: false });
+  el.addEventListener("touchend", end);
+  el.addEventListener("touchcancel", end);
+  return () => { el.removeEventListener("touchstart", start); el.removeEventListener("touchmove", move); el.removeEventListener("touchend", end); el.removeEventListener("touchcancel", end); };
+}

@@ -6,9 +6,11 @@ import { reactive, ref, computed, watch, provide, nextTick, onMounted, onBeforeU
 import { current, query, go } from "../router.js";
 import { createNav, showUrl, top, pushUrl, rootUrl, NAV_KEY } from "./navigation.js";
 import { txOpenId } from "../core/txwin.js";
-import { settingsTab } from "../views/settings/tab.js";
+import { settingsTab, settingsAsked } from "../views/settings/tab.js";
 import { job } from "../core/jobs.js";
 import { helpUsed } from "./help.js";
+import { edgeBack } from "./gestures.js";
+import { sign } from "./dir.js";
 import ScreenHost from "./ScreenHost.vue";
 import TabBar from "./components/TabBar.vue";
 import OfflinePill from "./components/OfflinePill.vue";
@@ -23,7 +25,8 @@ const TxPops = defineAsyncComponent(() => import("../components/tx/TxPops.vue"))
 const DocViewer = defineAsyncComponent(() => import("../components/tx/DocViewer.vue"));
 const AssistWindow = defineAsyncComponent(() => import("../views/settings/AssistWindow.vue"));
 const HelpPanel = defineAsyncComponent(() => import("../help/HelpPanel.vue"));
-const QuickSheet = defineAsyncComponent(() => import("../components/shell/QuickSheet.vue"));
+const AddSheet = defineAsyncComponent(() => import("./sheets/AddSheet.vue"));
+const ExplainSheet = defineAsyncComponent(() => import("./sheets/ExplainSheet.vue"));
 
 const here = () => location.pathname + location.search;
 const url = ref(here());
@@ -107,12 +110,18 @@ provide(NAV_KEY, api);
 
 // A transaction opened anywhere (openTx) is pushed on the open tab; a Settings section opened from anywhere is pushed in More.
 watch(txOpenId, (id) => { if (id == null) return; txOpenId.value = null; api.push("transaction", id); });
-watch(settingsTab, (id) => { if (id) open(pushUrl("/settings", "settingsSection", id), "push"); });
+watch(settingsAsked, () => { const id = settingsTab.value; if (id) open(pushUrl("/settings", "settingsSection", id), "push"); });
 
 // the thin line under the top bar while a sync runs
 const syncing = computed(() => !!job.value);
-onMounted(() => { document.documentElement.classList.add("ph-ready"); });
-onBeforeUnmount(() => { document.documentElement.classList.remove("ph-ready", "ph-glow"); });
+// the installed iPhone app has no Back gesture of its own: a drag from the start edge goes back (elsewhere the system's is used)
+const standalone = typeof navigator !== "undefined" && (navigator.standalone === true || matchMedia("(display-mode: standalone)").matches) && /iPhone|iPad|iPod/.test(navigator.userAgent);
+let stopEdge = null;
+onMounted(() => {
+  document.documentElement.classList.add("ph-ready");
+  if (standalone && stage.value) stopEdge = edgeBack(stage.value, { can: () => stack.value.length > 1, onBack: () => api.back(), sign });
+});
+onBeforeUnmount(() => { stopEdge?.(); document.documentElement.classList.remove("ph-ready", "ph-glow"); });
 </script>
 
 <template>
@@ -126,7 +135,8 @@ onBeforeUnmount(() => { document.documentElement.classList.remove("ph-ready", "p
     </div>
     <TabBar />
     <AppearancePanel />
-    <QuickSheet />
+    <AddSheet />
+    <ExplainSheet />
     <SyncSheet />
     <HelpPanel v-if="helpUsed" />
     <FormHost />

@@ -28,8 +28,10 @@ export function startRouter() {
   try { history.scrollRestoration = "manual"; } catch { /* old browsers */ }
   addEventListener("popstate", () => { const was = current.value; path.value = location.pathname; query.value = location.search; if (current.value !== was) window.scrollTo(0, 0); });
   // a short or unknown address shows its page at the page's own address (the ?query and #hash stay, so links like ?add=1 still work)
+  // (/more is the phone app's own address, the More tab: it stays as it is there)
   const pg = matchPage(location.pathname);
-  if (pg.path !== location.pathname) { history.replaceState({}, "", hrefOf(pg) + location.search + location.hash); path.value = location.pathname; }
+  const phoneOwn = /^\/more\/?$/.test(location.pathname) && document.documentElement.classList.contains("phone");
+  if (pg.path !== location.pathname && !phoneOwn) { history.replaceState({}, "", hrefOf(pg) + location.search + location.hash); path.value = location.pathname; }
 }
 // For <a href> links inside the app: an ordinary click stays in the app, Ctrl or middle click still opens a new tab.
 export function onLink(e) {

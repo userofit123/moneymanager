@@ -1,13 +1,454 @@
-/* The computer's windows while the phone app shows them (until each has its phone version): they sit at the bottom
-   of the screen, full width, like the phone's own sheets. */
-html.phone .pop {
-  inset-inline: 0;
+/* The computer's windows, forms and Settings sections while the phone app shows them: the same content, with the phone's
+   sizes. Fields are 16px (no zoom on iPhone), buttons 48px and full width at the bottom of sheets, cards become grouped lists.
+   Each rule is limited to a phone container (.ph-adopt sheets, .ph-set sections, .ph-menu menus) or to the shared overlays
+   (drop-downs, toasts), so the phone's own screens are not touched. */
+
+/* ---- Fields everywhere in the phone app: never below 16px, and easy to hit ---- */
+html.phone :is(.ph-sheet, .ph-set) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]), select, textarea) {
+  min-block-size: 48px;
+  font-size: 16px;
+  border-radius: 14px;
+}
+
+html.phone :is(.ph-sheet, .ph-set) textarea {
+  min-block-size: 96px;
+}
+
+html.phone :is(.ph-sheet, .ph-set) input[type=file] {
+  font-size: 15px;
+  max-inline-size: 100%;
+}
+
+html.phone :is(.ph-sheet, .ph-set) .fld {
+  gap: 8px;
+  margin-block-end: 16px;
+}
+
+html.phone :is(.ph-sheet, .ph-set) .fld label {
+  font-size: 13px;
+}
+
+/* two fields side by side get their own line each on a phone (long Hebrew labels, big fingers) */
+html.phone :is(.ph-sheet, .ph-set) .two {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+html.phone :is(.ph-sheet, .ph-set) .btn {
+  min-block-size: 44px;
+  padding-inline: 20px;
+  font-size: 15px;
+}
+
+html.phone :is(.ph-sheet, .ph-set) .btn.s {
+  min-block-size: 36px;
+  padding-inline: 14px;
+  font-size: 14px;
+}
+
+/* ---- A computer window in a phone sheet ---- */
+html.phone .ph-adopt .ph-sheet-b {
+  padding-block-end: 0;
+}
+
+html.phone .ph-adopt .ph-sheet-b > h3:first-child {
+  margin: 0 0 12px;
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 600;
+  letter-spacing: normal;
+}
+
+html.phone .ph-adopt .ph-sheet-b > .sm:first-of-type {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* the window's last row of buttons (Cancel, Save) stays at the bottom, above the home bar, each button half the width */
+html.phone .ph-adopt .ph-sheet-b > :is(.flex, .dlg-actions):last-child {
+  position: sticky;
   inset-block-end: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  margin: 16px calc(-1 * var(--p-gut)) 0;
+  padding: 12px var(--p-gut) calc(var(--sb) + 12px);
+  background-color: var(--bg);
+  border-block-start: 1px solid var(--p-line);
+}
+
+html.phone[data-mode="dark"] .ph-adopt .ph-sheet-b > :is(.flex, .dlg-actions):last-child {
+  background-color: color-mix(in srgb, var(--tx) 5%, var(--bg));
+}
+
+html.phone .ph-adopt .ph-sheet-b > :is(.flex, .dlg-actions):last-child > :is(.btn, button) {
+  flex: 1 1 0;
+  min-block-size: 48px;
+  font-size: 16px;
+}
+
+/* a window with only its content (no buttons at the end) keeps room above the home bar */
+html.phone .ph-adopt .ph-sheet-b > :last-child:not(.flex):not(.dlg-actions) {
+  margin-block-end: calc(var(--sb) + 20px);
+}
+
+html.phone .ph-adopt .ph-sheet-b .qa {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* ---- "Are you sure?" (AskPop) ---- */
+html.phone .ph-sheet.ph-ask {
+  z-index: 71;
+}
+
+html.phone .ph-scrim:has(+ .ph-sheet.ph-ask) {
+  z-index: 70;
+}
+
+html.phone .ph-ask .ph-sheet-b {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-block-start: 4px;
+  text-align: center;
+}
+
+html.phone .ph-ask-t {
+  margin: 0;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 600;
+}
+
+html.phone .ph-ask-x {
+  margin: 0 0 8px;
+  color: var(--tx2);
+  font-size: 15px;
+  line-height: 22px;
+}
+
+html.phone .ph-ask .ph-btn {
+  inline-size: 100%;
+}
+
+html.phone .ph-ask .ph-btn:first-of-type {
+  margin-block-start: 6px;
+}
+
+html.phone .ph-btn.danger {
+  background: var(--neg);
+  color: var(--bg);
+}
+
+/* ---- ⋯ menus (PopMenu) as an action sheet ---- */
+html.phone .ph-menu-b {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--p-r-group);
+  background: var(--p-surf);
+  overflow: hidden;
+}
+
+html.phone .ph-menu-b > button {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-block-size: 52px;
+  padding-inline: 16px;
+  border: 0;
+  background: none;
+  color: var(--tx);
+  font: inherit;
+  font-size: 16px;
+  text-align: start;
+}
+
+html.phone .ph-menu-b > button + button {
+  border-block-start: 1px solid var(--p-line);
+}
+
+html.phone .ph-menu-b > button:active {
+  background: var(--p-press);
+}
+
+html.phone .ph-menu-b > button > svg {
+  inline-size: 22px;
+  block-size: 22px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: var(--tx2);
+}
+
+html.phone .ph-menu-b > button.dz,
+html.phone .ph-menu-b > button.dz > svg {
+  color: var(--neg);
+}
+
+/* a menu that lists things (a jar's history) */
+html.phone .ph-menu-b > .hh {
+  padding: 14px 16px 6px;
+  font-weight: 600;
+}
+
+html.phone .ph-menu-b > .hr {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  min-block-size: 48px;
+  padding-inline: 16px;
+  border-block-start: 1px solid var(--p-line);
+  font-size: 15px;
+}
+
+html.phone .ph-menu-b > :is(.he2, .hall) {
+  padding: 14px 16px;
+  border: 0;
+  background: none;
+  color: var(--acc);
+  font: inherit;
+  font-weight: 600;
+  text-align: start;
+}
+
+/* ---- Drop-downs (core/dropdown.js) as a sheet from the bottom ---- */
+html.phone .ph-dd-dim {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: var(--scrim);
+  opacity: 0;
+  transition: opacity var(--p-t-sheet);
+}
+
+html.phone .ph-dd-dim.in {
+  opacity: 1;
+}
+
+html.phone .ddm.ph-dd {
+  position: fixed;
+  inset-inline: 0;
+  inset-block: auto 0;
+  z-index: 81;
+  inline-size: auto;
+  min-inline-size: 0;
+  max-inline-size: var(--p-max);
+  max-block-size: 70dvh;
+  margin-inline: auto;
+  padding: 8px 8px calc(var(--sb) + 12px);
+  border: 0;
+  border-radius: var(--p-r-sheet) var(--p-r-sheet) 0 0;
+  background: var(--bg);
+  box-shadow: var(--shadow-sheet);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  opacity: 1;
+  transform: translateY(100%);
+  transition: transform var(--p-t-sheet) var(--p-ease-out);
+}
+
+html.phone[data-mode="dark"] .ddm.ph-dd {
+  background: color-mix(in srgb, var(--tx) 5%, var(--bg));
+}
+
+html.phone .ddm.ph-dd.in {
+  transform: none;
+}
+
+html.phone .ph-dd-h {
+  position: sticky;
+  inset-block-start: -8px;
+  z-index: 1;
+  margin: -8px -8px 4px;
+  padding: 18px 20px 10px;
+  background: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  text-align: center;
+}
+
+html.phone .ddm.ph-dd .ddo2 {
+  min-block-size: 50px;
+  padding-inline: 16px;
+  border-radius: 12px;
+  font-size: 16px;
+}
+
+html.phone .ddm.ph-dd .ddo2.sel {
+  background: var(--accc);
+  color: var(--onc);
+}
+
+html.phone .ddm.ph-dd .ddg {
+  padding: 14px 16px 4px;
+  font-size: 13px;
+}
+
+/* ---- Toasts: at the bottom, above the tab bar ---- */
+html.phone #toasts {
+  inset-block: auto calc(var(--p-tab) + var(--sb) + 10px);
+  inset-inline: var(--p-gut);
   inline-size: auto;
   max-inline-size: var(--p-max);
   margin-inline: auto;
-  max-block-size: 88dvh;
-  border-radius: var(--p-r-sheet) var(--p-r-sheet) 0 0;
-  padding-block-end: var(--sb);
-  z-index: 61;
+  flex-direction: column-reverse;
+}
+
+html.phone #toasts .toast {
+  font-size: 15px;
+}
+
+html.phone #toasts .tu {
+  min-block-size: 36px;
+}
+
+html.phone #toasts .tx {
+  min-inline-size: 36px;
+  min-block-size: 36px;
+}
+
+/* ---- A tooltip's text in a sheet (ExplainSheet) ---- */
+html.phone .ph-tipbox.tip {
+  position: static;
+  inline-size: auto;
+  max-inline-size: none;
+  padding: 0 0 calc(var(--sb) + 12px);
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  font-size: 15px;
+  line-height: 22px;
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  pointer-events: auto;
+}
+
+html.phone .ph-tipbox .tt {
+  margin-block-end: 10px;
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 600;
+}
+
+html.phone .ph-tipbox .tr {
+  padding-block: 6px;
+  font-size: 15px;
+}
+
+html.phone .ph-tipbox.one {
+  font-size: 16px;
+  padding-block-start: 4px;
+}
+
+/* ---- Settings sections (views/settings/*Pane.vue) on their own screen ---- */
+html.phone .ph-set {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-gap);
+  font-size: 15px;
+}
+
+html.phone .ph-set > * {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-gap);
+  min-inline-size: 0;
+}
+
+html.phone .ph-set .card {
+  padding: 0;
+  border: 0;
+  border-radius: var(--p-r-group);
+  background: var(--p-surf);
+  box-shadow: none;
+}
+
+html.phone .ph-set .ss > .ssh {
+  gap: 12px;
+  padding: 16px 16px 12px;
+}
+
+html.phone .ph-set .ssh b {
+  font-size: 16px;
+}
+
+html.phone .ph-set .ssh .sm {
+  font-size: 13.5px;
+  line-height: 19px;
+}
+
+html.phone .ph-set .ssb {
+  padding-inline: 16px;
+}
+
+html.phone .ph-set .ssb.p {
+  padding: 4px 16px 16px;
+}
+
+html.phone .ph-set .sfoot {
+  padding: 12px 16px 16px;
+  font-size: 13.5px;
+  line-height: 19px;
+}
+
+/* a row: the text on top when the control does not fit beside it */
+html.phone .ph-set .sr {
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  min-block-size: 56px;
+  padding-block: 12px;
+}
+
+html.phone .ph-set .sr > .srt {
+  flex: 1 1 170px;
+}
+
+html.phone .ph-set .sr .srt > b {
+  font-size: 15.5px;
+  font-weight: 500;
+}
+
+html.phone .ph-set .sr .srt .sm {
+  font-size: 13.5px;
+  line-height: 19px;
+}
+
+html.phone .ph-set .sr > .src {
+  max-inline-size: 100%;
+  flex-wrap: wrap;
+}
+
+html.phone .ph-set .sr.srtg > .srt {
+  flex-basis: 0;
+}
+
+html.phone .ph-set .sr.stk > .src {
+  flex-basis: 100%;
+}
+
+html.phone .ph-set .sr > .src :is(select, input:not([type=checkbox])) {
+  max-inline-size: 100%;
+}
+
+html.phone .ph-set table {
+  font-size: 14px;
+}
+
+html.phone .ph-set :is(.tblw, .tbl, .scrollx) {
+  max-inline-size: 100%;
+  overflow-x: auto;
+}
+
+html.phone .ph-tipbox :is(.tn, .ta) {
+  font-size: 15px;
+  line-height: 22px;
 }

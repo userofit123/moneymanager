@@ -2,6 +2,8 @@
 // The text format: first line the title, "label\tvalue" lines are rows, "---" is a line, "!text" is a warning, other lines are notes.
 // Inside any line: **bold**, ++money in++ (green), ~~money out~~ (red). A line starting "• " is a list item.
 // A single line is a plain hint. Hovering shows it after a short pause, an (i) button (class "tinfo") shows it at once and keeps it until you tap elsewhere.
+// In the phone app (html.phone, with a sheet given by tipSheet()) there is no bubble: a tap on an (i), or a press and hold on
+// anything with a tooltip, opens the text in a sheet from the bottom (phone/sheets/ExplainSheet.vue).
 
 let tipEl = null, host = null, pinned = null, timer = null, hideT = null, wired = false;
 const ensure = () => {
@@ -21,8 +23,8 @@ function marked(el, s) {
   }
   if (at < s.length) el.append(s.slice(at));
 }
-function fill(text) {
-  const t = ensure(), L = String(text).split("\n");
+function fill(text, t = ensure()) {
+  const L = String(text).split("\n");
   t.textContent = ""; t.classList.toggle("rich", L.length > 1);
   if (L.length < 2) { t.textContent = text; return; }
   L.forEach((ln, i) => {
@@ -67,10 +69,16 @@ function off() {
   clearTimeout(timer); clearTimeout(hideT); timer = null; if (tipEl) tipEl.classList.remove("on"); host = null;
   if (pinned) { pinned.classList.remove("on"); pinned = null; }
 }
+const pinOrSheet = (i) => { const h = i.closest("[data-tip]"); if (inSheet() && h) { off(); sheet(h.dataset.tip); } else pin(i); };
 function pin(i) {
   const h = i.closest("[data-tip]"); if (!h) return;
   off(); fill(h.dataset.tip); ensure().classList.add("on"); place(i); host = h; pinned = i; i.classList.add("on");
 }
+// the phone's sheet: tipSheet(fn) gives it; fn(text) opens it. tipFill(el, text) writes the formatted text into el.
+let sheet = null, held = 0;
+export const tipSheet = (fn) => { sheet = fn; };
+export const tipFill = (el, text) => fill(text, el);
+const inSheet = () => !!sheet && document.documentElement.classList.contains("phone");
 function wire() {
   if (wired || typeof document === "undefined") return; wired = true;
   const tipOf = (e) => e.target.closest && e.target.closest("[data-tip]");
@@ -82,17 +90,22 @@ function wire() {
   document.addEventListener("mousemove", (e) => { if (host && host.closest("svg") && tipEl.classList.contains("on")) placeAt(e.clientX, e.clientY); });
   document.addEventListener("mouseout", (e) => { if (pinned) return; const t = tipOf(e); if (t && !t.contains(e.relatedTarget)) { const n = e.relatedTarget?.closest?.("[data-tip]"); if (!(n && n.closest("svg") && t.closest("svg"))) off(); } });
   // the budget pace line has no (i): a tap on it opens its tooltip
-  document.addEventListener("click", (e) => { const u = e.target.closest && e.target.closest("u[data-tip]"); if (!u) return; off(); show(u, e); hideT = setTimeout(off, 4500); });
+  document.addEventListener("click", (e) => { const u = e.target.closest && e.target.closest("u[data-tip]"); if (!u) return; off(); if (inSheet()) return sheet(u.dataset.tip); show(u, e); hideT = setTimeout(off, 4500); });
   document.addEventListener("mousedown", off); document.addEventListener("keydown", off);
   addEventListener("scroll", off, { passive: true, capture: true });
   document.addEventListener("touchstart", (e) => {
     if (pinned && !(e.target.closest && e.target.closest(".tinfo"))) off();
-    const t = tipOf(e); if (!t) return; off(); timer = setTimeout(() => { show(t); hideT = setTimeout(off, 4500); }, 450);
+    const t = tipOf(e); if (!t) return; off();
+    // a press and hold opens it; on the phone in a sheet, and the tap that ends the hold does nothing else
+    timer = setTimeout(() => { if (inSheet()) { held = Date.now(); sheet(t.dataset.tip); return; } show(t); hideT = setTimeout(off, 4500); }, 450);
   }, { passive: true });
   document.addEventListener("touchend", () => clearTimeout(timer), { passive: true });
   document.addEventListener("touchmove", () => clearTimeout(timer), { passive: true });
-  document.addEventListener("click", (e) => { const i = e.target.closest && e.target.closest(".tinfo"); if (!i) return; e.preventDefault(); e.stopPropagation(); pin(i); }, true);
-  document.addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.classList && e.target.classList.contains("tinfo")) { e.preventDefault(); pin(e.target); } }, true);
+  document.addEventListener("click", (e) => {
+    if (held && Date.now() - held < 900) { held = 0; e.preventDefault(); e.stopPropagation(); return; }
+    const i = e.target.closest && e.target.closest(".tinfo"); if (!i) return; e.preventDefault(); e.stopPropagation(); pinOrSheet(i);
+  }, true);
+  document.addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.classList && e.target.classList.contains("tinfo")) { e.preventDefault(); pinOrSheet(e.target); } }, true);
 }
 const TI_NO = "button:not(.jst),a,input,select,textarea,option,td,tr,th,i,u,svg,.jpm,.mh,.dchip,.v";
 // Every explanatory tooltip gets a small (i) next to its label.

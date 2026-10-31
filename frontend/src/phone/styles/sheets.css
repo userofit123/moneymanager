@@ -1,0 +1,77 @@
+/* The phone app's own sheets (phone/sheets/*). Every rule starts with html.phone. */
+
+/* "Add or update": two columns of tiles, each with its icon, name and a short hint */
+html.phone .ph-add-g {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+html.phone .ph-add-i {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  min-block-size: 112px;
+  padding: 14px;
+  border: 0;
+  border-radius: var(--p-r-group);
+  background: var(--p-surf);
+  color: var(--tx);
+  font: inherit;
+  text-align: start;
+  transition: background var(--p-t-press), transform var(--p-t-press);
+}
+
+html.phone .ph-add-i:active {
+  background: var(--p-press);
+  transform: scale(.97);
+}
+
+html.phone .ph-add-i .ph-tile {
+  --tile: var(--acc);
+}
+
+html.phone .ph-add-t {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+html.phone .ph-add-h {
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 17px;
+}
+
+/* the first one (a transaction) is the one people add most: it spans the row, in the app's colour */
+html.phone .ph-add-w {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+html.phone .ph-add-i[data-k="tx"] {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  min-block-size: 76px;
+  background: var(--accc);
+  color: var(--onc);
+}
+
+html.phone .ph-add-i[data-k="tx"] .ph-tile {
+  margin: 0;
+  background: var(--acc);
+  color: var(--on);
+}
+
+html.phone .ph-add-i[data-k="tx"] .ph-add-t {
+  font-size: 17px;
+}
+
+html.phone .ph-add-i[data-k="tx"] .ph-add-h {
+  color: inherit;
+  opacity: .8;
+}

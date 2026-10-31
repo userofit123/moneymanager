@@ -3,7 +3,9 @@
 // a centred window that grows out of the button that opened it and fades out when closed.
 // Escape, a click outside and the Back button close it. Show it with v-if or v-model:open.
 // cls adds a size class: "xw" (wider) or "txw" (the wide entry window).
-import { ref, watch, nextTick, onBeforeUnmount } from "vue";
+// In the phone app (mobile.js) the same content shows in the phone's own sheet (phone/components/PhoneSheet.vue), loaded only there.
+import { ref, watch, nextTick, onBeforeUnmount, defineAsyncComponent } from "vue";
+import { isPhone } from "../mobile.js";
 import { sheetOpened, sheetClosed, sheetsOpen, lastTap } from "../core/sheets.js";
 import { layerOpen, layerClose } from "../core/layers.js";
 
@@ -11,6 +13,8 @@ const props = defineProps({ open: { type: Boolean, default: true }, cls: { type:
 const emit = defineEmits(["update:open", "close"]);
 const el = ref(null), scrim = ref(null);
 const close = () => { emit("update:open", false); emit("close"); };
+const phone = isPhone.value;
+const PhoneSheet = phone ? defineAsyncComponent(() => import("../phone/components/PhoneSheet.vue")) : null;
 
 function placeOrigin() {
   const sh = el.value; if (!sh) return;
@@ -18,10 +22,11 @@ function placeOrigin() {
   sh.style.transformOrigin = Math.round(near ? lastTap.x - (innerWidth - w) / 2 : w / 2) + "px " + Math.round(near ? lastTap.y - (innerHeight - h) / 2 : h / 2) + "px";
 }
 watch(() => props.open, (o, was) => {
+  if (phone) return;
   if (o) { sheetOpened(close); layerOpen(close); nextTick(() => { placeOrigin(); swapIn(); if (el.value) el.value.scrollTop = 0; }); }
   else if (was) { sheetClosed(close); layerClose(close); }
 }, { immediate: true });
-onBeforeUnmount(() => { if (props.open) { sheetClosed(close); layerClose(close); } });
+onBeforeUnmount(() => { if (!phone && props.open) { sheetClosed(close); layerClose(close); } });
 
 const reduce = () => matchMedia("(prefers-reduced-motion:reduce)").matches;
 // A window that takes over from another (the previous one is still fading out, or it opens on top of one) is simply there, without
@@ -39,7 +44,10 @@ const leave = (n) => {
 </script>
 
 <template>
-  <Teleport to="body">
+  <component :is="PhoneSheet" v-if="phone" :open="open" :label="label" :size="/xw/.test(cls) ? 'large' : 'fit'" :cls="'ph-adopt ' + cls" @close="close">
+    <slot :close="close" />
+  </component>
+  <Teleport v-else to="body">
     <Transition leave-active-class="out" :duration="{ enter: 1, leave: 240 }" :css="!reduce()" @before-leave="leave">
       <div v-if="open" ref="scrim" class="scrim on" @click="close" @touchmove.prevent />
     </Transition>
