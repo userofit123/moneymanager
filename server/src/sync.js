@@ -12,6 +12,7 @@ import { recordSnapshot, detectTransfers } from "./engine.js";
 import { getCreds, isLocked, recordResult, markTested, LABELS, KINDS, baseOf, validId, connName } from "./connections.js";
 import { scrub } from "./secrets.js";
 import { sendNtfy, notifyOnce, clearNotified, remindOldGaps } from "./notify.js";
+import { failNotice, personLang } from "./syncFailNotice.js";
 import { fillJars } from "./jars.js";
 
 const HISTORY_DAYS = +process.env.HISTORY_DAYS || 365; // default for the first import of a source, changeable in Settings
@@ -224,7 +225,8 @@ async function syncInner(name, opts = {}) {
     await q("UPDATE sync_runs SET finished_at=now(), ok=false, message=$2 WHERE id=$1", [run.rows[0].id, msg]);
     await logError({ source: "sync", action: `Sync ${label} (${opts.origin || "manual"})`, error: e, message: msg, scrub: Object.values(creds), context: { connection: name, origin: opts.origin || "manual", days: opts.days || null } });
     const locked = await recordResult(name, false, msg, creds);
-    await notifyOnce(`fail:${name}`, `Money · ${label} sync failed`, locked ? `${msg}\nAutomatic attempts are paused. Check the login, then unlock it in Settings.` : msg, "high");
+    const note = failNotice({ source: name, label, msg, locked, lang: await personLang() }); // plain words; the raw error stays in the logs above
+    await notifyOnce(`fail:${name}`, note.title, note.body, "high");
     setItem(name, { state: "failed", msg: String(msg).slice(0, 160) });
     return { ok: false, error: msg, locked };
   }

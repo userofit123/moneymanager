@@ -1494,6 +1494,9 @@
     "mTested": "The login works. Press Sync now to import",
     "mConnected": "Synced {when}",
     "mStale": "Last synced {when} (over 2 days ago)",
+    "fSite": "The bank's website had a problem during the sync. It will try again on its own.",
+    "fLogin": "The bank did not accept the login. Check the login details in Settings → Connections.",
+    "fBank": "The bank wants a new password or has blocked the account. Sort it out on the bank's website, then update the login in Settings → Connections.",
     "mFailed": "Check the login",
     "mLocked": "Paused after failed attempts. Check the login, then unlock",
     "mPension": "Updated by you when you move money"

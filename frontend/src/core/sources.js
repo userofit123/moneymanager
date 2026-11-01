@@ -6,6 +6,7 @@ import { data } from "../stores/data.js";
 import { toast } from "./toast.js";
 import { runJob, lastItems } from "./jobs.js";
 import { tx } from "./heText.js";
+import { failKind } from "../lib/syncFail.js";
 
 import { SRC_NAMES } from "../catnames.js";
 
@@ -27,7 +28,9 @@ export function friendlyErr(e) {
     const st = (e.match(/reqName=([A-Za-z_0-9]+)/) || [])[1] || "";
     return /^(ValidateIdData|performLogonI)$/.test(st) ? t("al.feLogon") : t("al.feNoData") + (st ? t("al.feStep", { st }) : "");
   }
-  return /^OTP_REQUIRED/.test(e) ? t("al.feOtp") : tx(e);
+  // the same plain words as the phone alert; the raw error stays in Past syncs and Problems and support
+  const k = failKind(e);
+  return k ? { otp: () => t("al.feOtp"), login: () => t("sync.fLogin"), bank: () => t("sync.fBank"), site: () => t("sync.fSite") }[k]() : tx(e);
 }
 
 export const sources = computed(() => {

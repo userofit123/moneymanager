@@ -4,6 +4,11 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [0.12.13] - 2026-11-01
+
+### App
+- **A failed sync says what happened in plain words:** the phone alert and the app (Settings → Connections, the sync window, Home alerts) no longer show the bank's raw error. They say whether the bank's website had a problem (it tries again on its own), the bank did not accept the login, the bank wants a new password or blocked the account, or a one-time code is needed. The alert comes in the language chosen in the app. The full error is still in Settings → Automatic sync (Past syncs) and Problems and support.
+
 ## [0.12.12] - 2026-11-01
 
 ### App
