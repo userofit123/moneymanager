@@ -28,7 +28,7 @@ const { t, tk, S, M, kpis, groups, cad, freq, avStyle, cc, monYr, priceChange, o
 const nav = usePhoneNav();
 onMounted(() => data.start());
 const P = (k, o, n) => t("phone.bills." + k, o || {}, n);
-const dayMonth = (d) => { const x = new Date(d); return dshort(x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0")); }; // "12/11": the next charge is within the year
+const dayMonth = (d) => { const x = new Date(d); return dshort(x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0")); }; // "12/11": the next and the missed charge are within weeks of today, so the year is left out
 const iso = (s) => "⁦" + s + "⁩"; // a date keeps its order inside a Hebrew sentence
 const BILL_ICON = pages.find((p) => p.name === "bills").icon;
 
@@ -46,7 +46,7 @@ const shown = computed(() => groups.value.find((g) => g.k === kind.value) || gro
 
 const open = (b) => nav.push("bill", billKey(b));
 const name = (b) => tx(b.n);
-const dueText = (b) => (b.status == "overdue" ? t("bills.overdue", { date: iso(dstr(b.pd)) }) : b.status == "pending" ? t("bills.dueNow") : b.days <= 7 ? t("bills.dueIn", { n: b.days }, b.days) : t("bills.nextCharge", { date: iso(dayMonth(b.nx)) }));
+const dueText = (b) => (b.status == "overdue" ? t("bills.overdue", { date: iso(dayMonth(b.pd)) }) : b.status == "pending" ? t("bills.dueNow") : b.days <= 7 ? t("bills.dueIn", { n: b.days }, b.days) : t("bills.nextCharge", { date: iso(dayMonth(b.nx)) }));
 const dueCls = (b) => (b.status == "overdue" ? "late" : b.status == "pending" ? "now" : b.days <= 7 ? "soon" : "");
 
 // the small windows: how the total is worked out, what is due soon, the price changes

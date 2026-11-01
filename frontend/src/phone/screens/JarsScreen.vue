@@ -25,7 +25,7 @@ defineProps({ id: { type: String, default: null } });
 
 const {
   t, tk, data, M, home, save, ctx, fm, tx, bufText, setBuffer, bufShown, BUF_PRESETS, filling, fill,
-  openNew, askDone, doDone, doneAsk, relAmt, doRelease, why, kindOf, stLabel, statTips, col, monthLine, goalLine, doneLine, goalFix,
+  openNew, askDone, doDone, doneAsk, relAmt, doRelease, why, kindOf, stLabel, statTips, col, monthLine, goalLine, doneLine, goalFix, KI,
 } = useJars();
 const nav = usePhoneNav();
 onMounted(() => data.start());
@@ -91,7 +91,8 @@ const LOCK = '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a
           <ListRow :title="t('jars.putIn')" @tap="explain(statTips.putIn)"><template #end><span class="ph-amt">{{ fm(M.month.got) }}</span></template></ListRow>
           <ListRow :title="t('jars.still')" @tap="explain(statTips.still)"><template #end><span class="ph-amt">{{ fm(M.month.still) }}</span></template></ListRow>
           <ListRow :title="t('num.free')" @tap="explain(statTips.avail)"><template #end><span class="ph-amt" :class="{ neg: M.month.waiting }">{{ fm(M.F.free) }}</span></template></ListRow>
-          <div v-if="M.has.any" class="ph-jars-fill"><button type="button" class="ph-btn" :disabled="filling" @click="fill">{{ t("jars.fill") }}</button></div>
+          <!-- Fill now stands out only while the jars still need money this month and there is free money to put in -->
+          <div v-if="M.has.any" class="ph-jars-fill"><button type="button" class="ph-btn" :class="{ tonal: M.month.done || M.month.waiting }" :disabled="filling" @click="fill">{{ t("jars.fill") }}</button></div>
         </div>
       </section>
 
@@ -104,7 +105,7 @@ const LOCK = '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a
       <template v-if="seg === 'jars'">
         <ListGroup>
           <ListRow v-for="j in M.jars" :key="j.id" class="ph-jars-row" :title="tx(j.n)" link @tap="open(j.id)">
-            <template #lead><ProgressRing class="ph-jars-ring" :value="j.open ? 0 : j.bal" :max="j.open ? 0 : j.need" :size="44" :color="col(j.p)"><span v-if="!j.open">{{ Math.min(999, j.pc) }}%</span></ProgressRing></template>
+            <template #lead><ProgressRing class="ph-jars-ring" :value="j.open ? 0 : j.bal" :max="j.open ? 0 : j.need" :size="44" :color="col(j.p)"><PIcon v-if="!j.open && j.pc >= 100" class="ph-jars-ok" :style="{ color: col(j.p) }" name="check" /><span v-else-if="!j.open">{{ j.pc }}%</span><svg v-else class="ph-jars-ki" :style="{ stroke: col(j.p) }" viewBox="0 0 24 24" aria-hidden="true" v-html="KI[j.type]" /></ProgressRing></template>
             <template #sub><span :class="'ph-jars-st ' + stTone(j.state)">{{ stLabel(j.state) }}</span><span>{{ kindOf(j) }}</span></template>
             <template #end><span class="ph-amt">{{ fm(j.bal) }}</span></template>
           </ListRow>

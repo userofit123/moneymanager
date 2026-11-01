@@ -462,8 +462,16 @@ html.phone .ph-group-h h3 {
 }
 
 html.phone .ph-group-h .ph-link {
+  position: relative;
   min-block-size: 28px;
   font-size: 14px;
+}
+
+/* the link stays small beside the title, but a finger gets the full 44px */
+html.phone .ph-group-h .ph-link::after {
+  content: "";
+  position: absolute;
+  inset: -8px -8px;
 }
 
 html.phone .ph-group-b {
@@ -868,7 +876,7 @@ html.phone .ph-ring {
   flex: none;
 }
 
-html.phone .ph-ring svg {
+html.phone .ph-ring > svg {
   position: absolute;
   inset: 0;
   transform: rotate(-90deg);

@@ -33,7 +33,12 @@ html.phone .ph-bills-tiles .ph-stat-n {
 
 /* the kinds: the switch, then the kind's name and its total */
 html.phone .ph-bills-kinds .ph-segwrap {
-  margin-block-end: 14px;
+  margin-block-end: 20px;
+}
+
+/* the switch's own computer margins are left out, so the space under it is the one above */
+html.phone .ph-bills-kinds .ph-seg.seg {
+  margin: 0;
 }
 
 html.phone .ph-bills-tot {
@@ -54,9 +59,17 @@ html.phone .ph-bills-av {
   font-size: 15px;
 }
 
-/* the second line holds two facts in two parts */
-html.phone .ph-bills .ph-row-s > * + * {
-  margin-inline-start: 10px;
+/* the second line holds two facts in two parts; when both do not fit, the second moves under the first instead of being cut */
+html.phone .ph-bills .ph-row-s {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 10px;
+}
+
+html.phone .ph-bills .ph-row-s > * {
+  max-inline-size: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 html.phone .ph-bills .ph-row-s .late {

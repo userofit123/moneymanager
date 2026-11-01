@@ -251,6 +251,12 @@ html.phone .ph-bud-un .ph-row {
   padding-inline-start: 4px;
 }
 
+html.phone .ph-bud-un .ph-row-s .ph-amt {
+  color: var(--tx);
+  font-size: 14px;
+  font-weight: 600;
+}
+
 html.phone .ph-bud-set {
   flex: none;
   min-block-size: 36px;

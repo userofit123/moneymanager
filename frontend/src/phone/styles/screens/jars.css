@@ -64,8 +64,32 @@ html.phone .ph-jars-fill .ph-btn {
 }
 
 html.phone .ph-jars-ring .ph-ring-in {
-  font-size: 11px;
+  font-size: 12px;
+  letter-spacing: -0.2px;
   font-variant-numeric: tabular-nums;
+}
+
+/* Jars / Goals / Completed: the computer's margins are left out, so the switch sits one section gap from what is above and below */
+html.phone .ph-jars .ph-seg.seg {
+  margin: 0;
+}
+
+/* a full jar: a check instead of 100%, which does not fit the small ring at a readable size */
+html.phone .ph-jars-ok {
+  display: block;
+  inline-size: 20px;
+  block-size: 20px;
+}
+
+/* a jar with no goal amount (monthly saving, a bill) shows what kind it is in its ring instead of a percent */
+html.phone .ph-jars-ki {
+  display: block;
+  inline-size: 20px;
+  block-size: 20px;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 html.phone .ph-jars .ph-row-s {

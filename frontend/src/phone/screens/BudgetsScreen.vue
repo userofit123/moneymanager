@@ -124,12 +124,12 @@ const seeSpending = (k) => { open.value = false; goCat(k); };
         <p class="ph-group-n">{{ t("budgets.markTip", { day: M.DAYN, days: M.DIM }) }}</p>
       </section>
 
-      <!-- spending with no budget: see it in Activity, or set a budget for it -->
+      <!-- spending with no budget: see it in Activity, or set a budget for it; the amount sits under the name so the name keeps its room beside the button -->
       <ListGroup v-if="M.un.length" :title="t('budgets.unTitle')" :note="P('tapNote')">
         <div v-for="[k, v] in M.un" :key="k" class="ph-bud-un">
           <ListRow :title="catLabel(k)" @tap="goCat(k)">
             <template #lead><span class="ph-bud-dot" :style="{ '--d': cc(k) }" /></template>
-            <template #end><span class="ph-amt">{{ fm(v) }}</span></template>
+            <template #sub><span class="ph-amt">{{ fm(v) }}</span></template>
           </ListRow>
           <button type="button" class="ph-btn tonal ph-bud-set" @click="openAdd(k)">{{ t("budgets.setBudget") }}</button>
         </div>
