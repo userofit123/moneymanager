@@ -156,7 +156,9 @@ html.phone .ph-auth .rkey {
 
 html.phone .ph-auth .rkey-v {
   border-radius: 16px;
-  font-size: 20px;
+  font-size: 17px;
+  letter-spacing: 0;
+  padding-inline: 8px;
 }
 
 html.phone .ph-auth .rkey-acts .btn {
