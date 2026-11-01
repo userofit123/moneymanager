@@ -585,26 +585,36 @@ html.phone .ph-fc-skel i + i {
 }
 
 
-/* ---- Years ahead (phone/components/ForecastYears.vue): the answer, then a place to try other amounts ---- */
+/* ---- Years ahead (phone/components/ForecastYears.vue): the answer for the choices as they are now, then the choices and the chart ---- */
 html.phone .ph-ya-ans {
-  padding: 14px 16px;
+  padding: 4px 16px 14px;
 }
 
-html.phone .ph-ya-ans p {
+html.phone .ph-ya-r {
   margin: 0;
-}
-
-html.phone .ph-ya-ans .ph-ya-l1 {
-  font-size: 18px;
-  line-height: 25px;
-  font-weight: 600;
+  padding: 10px 0;
+  font-size: 15px;
+  line-height: 21px;
   text-wrap: pretty;
 }
 
-html.phone .ph-ya-ans .ph-ya-l2 {
-  margin-block-start: 6px;
-  font-size: 15px;
-  line-height: 21px;
+html.phone .ph-ya-r + .ph-ya-r {
+  border-block-start: 1px solid var(--ol);
+}
+
+html.phone .ph-ya-r.r-total {
+  font-size: 18px;
+  line-height: 25px;
+  font-weight: 600;
+}
+
+html.phone .ph-ya-r small {
+  display: block;
+  margin-block-start: 2px;
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
 }
 
 html.phone .ph-ya b {
@@ -612,11 +622,16 @@ html.phone .ph-ya b {
   font-variant-numeric: tabular-nums;
 }
 
-html.phone .ph-ya-ans .ph-ya-basis {
-  margin-block-start: 10px;
+html.phone .ph-ya-basis {
+  margin: 4px 0 0;
   color: var(--tx2);
   font-size: 13px;
   line-height: 18px;
+}
+
+html.phone .ph-ya-back {
+  margin-block-start: 8px;
+  font-size: 14px;
 }
 
 /* no age yet: a row that opens the profile */
@@ -651,6 +666,11 @@ html.phone .ph-ya-inv b {
   font-weight: 600;
 }
 
+html.phone .ph-ya-play,
+html.phone .ph-ya-chart {
+  margin-block-start: 10px;
+}
+
 html.phone .ph-ya-play {
   padding: 14px 16px 2px;
 }
@@ -667,15 +687,8 @@ html.phone .ph-ya-play .fld label {
   color: var(--tx2);
 }
 
-html.phone .ph-ya-play input[type=range] {
-  inline-size: 100%;
-  block-size: 28px;
-  min-block-size: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  accent-color: var(--acc);
+html.phone .ph-ya-play .ya-sl {
+  block-size: 32px;
 }
 
 html.phone .ph-ya-rng {
@@ -684,8 +697,9 @@ html.phone .ph-ya-rng {
   gap: 12px;
 }
 
-html.phone .ph-ya-rng input[type=range] {
+html.phone .ph-ya-rng .ya-sl {
   flex: 1;
+  min-width: 0;
 }
 
 html.phone .ph-ya-rng output {
@@ -693,16 +707,6 @@ html.phone .ph-ya-rng output {
   min-inline-size: 64px;
   text-align: end;
   font-weight: 600;
-}
-
-html.phone .ph-ya-back {
-  align-self: flex-start;
-  font-size: 14px;
-}
-
-html.phone .ph-ya-chart,
-html.phone .ph-ya-res {
-  margin-block-start: 10px;
 }
 
 html.phone .ph-ya-chart {
@@ -738,27 +742,4 @@ html.phone .ph-ya-leg i.ln {
   block-size: 3px;
   border-radius: 2px;
   background: var(--acc);
-}
-
-html.phone .ph-ya-res {
-  padding: 4px 16px;
-}
-
-html.phone .ph-ya-r {
-  margin: 0;
-  padding: 10px 0;
-  font-size: 15px;
-  line-height: 21px;
-}
-
-html.phone .ph-ya-r + .ph-ya-r {
-  border-block-start: 1px solid var(--ol);
-}
-
-html.phone .ph-ya-r small {
-  display: block;
-  margin-block-start: 2px;
-  color: var(--tx2);
-  font-size: 13px;
-  line-height: 18px;
 }

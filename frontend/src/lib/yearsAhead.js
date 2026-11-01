@@ -4,12 +4,27 @@
 // - It goes month by month: each month the money first grows by that month's share of the yearly growth, then the month's
 //   amount set aside is added.
 // - A month's share of the yearly growth is (1 + growth)^(1/12) − 1, so twelve months together grow by exactly the yearly growth.
-// - It looks at most 40 years ahead (MAX_YEARS).
+// - It looks at most 40 years ahead (MAX_YEARS), and never past age 100 (MAX_AGE) when an age is known.
 // - Amounts are rounded once here, the way they are shown ("about"): under ₪10,000 to the nearest ₪100, above it to the nearest
-//   ₪1,000. A monthly amount needed is rounded up to the next ₪10, so it is always enough.
+//   ₪1,000. A monthly amount needed is rounded up to the next ₪10, so it is always enough. Ages and years are worked out once
+//   here too, and the sentences, the chart and "sooner / later" all use those same numbers.
 
 export const MAX_YEARS = 40;
+export const MAX_AGE = 100;
 const rateOf = (g) => Math.pow(1 + Math.max(-0.99, +g || 0), 1 / 12) - 1;
+
+// What you really kept each month: the average of money in − money out over the last n full months (this month is left out
+// because it is not over, and so are months before the data starts). FH: lib/jars.js forecastHistory (the same counted rows as
+// Activity and Home: no transfers between your own accounts, card bill payments, upcoming rows, balance notes or rows left out;
+// money back is neither). Returns { avg (whole shekels, null with no full month yet), months: their keys, oldest first }.
+export function keptEachMonth(FH, n = 3) {
+  if (!FH || !FH.keys) return { avg: null, months: [] };
+  const last = FH.last ?? FH.keys.length - 1, idx = [];
+  for (let j = Math.max(FH.first || 0, last - Math.max(1, n | 0)); j < last; j++) idx.push(j);
+  if (!idx.length) return { avg: null, months: [] };
+  const tot = idx.reduce((s, j) => s + (FH.inc[j] || 0) - (FH.exp[j] || 0), 0);
+  return { avg: Math.round(tot / idx.length), months: idx.map((j) => FH.keys[j]) };
+}
 
 // The money after `months` months: start grows, and `monthly` is added at the end of each month.
 export function amountAfter(start, monthly, g, months) {
@@ -46,50 +61,69 @@ export const pathOf = (start, monthly, g, years) => Array.from({ length: Math.ma
 export const about = (v) => { const a = Math.abs(+v || 0), u = a < 10000 ? 100 : 1000; return Math.sign(+v || 0) * Math.round(a / u) * u || 0; };
 // A monthly amount needed, rounded up to the next ₪10.
 export const aboutUp = (v) => (v == null ? null : Math.ceil(Math.max(0, v) / 10) * 10);
+// A round number at or above v: 1, 2, 2.5 or 5 times a power of ten.
+export const niceUp = (v) => { if (!(v > 0)) return 0; const p = Math.pow(10, Math.floor(Math.log10(v))); return [1, 2, 2.5, 5, 10].map((f) => f * p).find((x) => x >= v - 1e-9); };
 
-// The age to aim for when none was chosen: 50, or a round age at least 5 years away (never more than 40 years away).
-export const goalAgeOf = (age) => Math.min(age + MAX_YEARS, Math.max(50, Math.ceil((age + 5) / 5) * 5));
+// The "Set aside each month" slider: from ₪0 to a round amount well above both your average (3 times it) and the amount
+// needed for the goal (1.5 times it), at least ₪5,000. It does not depend on the amount chosen, so it never moves while dragging.
+export function sliderOf(kept, need) {
+  const max = niceUp(Math.max(5000, 3 * Math.max(0, +kept || 0), 1.5 * Math.max(0, +need || 0)));
+  return { max, step: max <= 10000 ? 50 : max <= 50000 ? 100 : max <= 250000 ? 500 : 1000 };
+}
+
+// The age to aim for when none was chosen: 50, or a round age at least 5 years away (within the ages that can be chosen).
+export const goalAgeOf = (age) => Math.min(Math.max(age + 1, Math.min(MAX_AGE, age + MAX_YEARS)), Math.max(50, Math.ceil((age + 5) / 5) * 5));
 
 // Everything Years ahead shows, from:
-// start: the money in your accounts today (whole shekels, Home's "In your accounts"); pace: what you set aside in an average month
-// now (the Forecast's "Saved each month", Average); age: your age now (0 when not given); pick: the choices made on the page
-// { m: each month, goal, at: the age, yrs: the years from now (used when no age is given), g: growth a year as a
+// start: the money in your accounts today (Home's "In your accounts"); pace: what you really kept in an average full month
+// (keptEachMonth; below ₪0 when more went out than came in); age: your age now (0 when not given); pick: the choices made on
+// the page { m: each month, goal, at: the age, yrs: the years from now (used when no age is given), g: growth a year as a
 // fraction } (missing = default).
+// Every sentence describes the choices as they are now (m); "kept" is your average (never below ₪0), which m starts at and
+// which "Back to my average" goes back to.
 export function yearsAheadModel({ start = 0, pace = 0, age = 0, pick = {} } = {}) {
   start = Math.round(+start || 0); pace = Math.round(+pace || 0);
-  const hasAge = age > 0, p = pick || {};
+  const hasAge = age > 0, p = pick || {}, kept = Math.max(0, pace);
   const num = (v, d) => (v === "" || v == null || !isFinite(+v) ? d : +v);
-  const m = Math.max(0, Math.round(num(p.m, Math.max(0, pace))));
+  const m = Math.max(0, Math.round(num(p.m, kept)));
   const goal = Math.max(1, Math.round(num(p.goal, 1000000)));
   const g = Math.min(0.15, Math.max(0, num(p.g, 0)));
-  const lo = hasAge ? age + 1 : 1, hi = hasAge ? age + MAX_YEARS : MAX_YEARS;
+  const lo = hasAge ? age + 1 : 1, hi = hasAge ? Math.max(age + 1, Math.min(MAX_AGE, age + MAX_YEARS)) : MAX_YEARS;
   const at = Math.min(hi, Math.max(lo, Math.round(hasAge ? num(p.at, goalAgeOf(age)) : num(p.yrs, 15))));
   const years = hasAge ? at - age : at;
-  // when a number of months is reached: the age then (whole years), or the years from now
-  const when = (k) => (k == null ? null : { k, age: hasAge ? Math.floor(age + k / 12) : null, years: k / 12 });
+  const lim = 12 * (hasAge ? Math.max(1, Math.min(MAX_YEARS, MAX_AGE - age)) : MAX_YEARS); // the most months looked ahead
+  // when the goal is reached after k months: the years from now, rounded (at least 1), and the age then (your age now + those
+  // years: the birthday is not known, so on average you are half a year past your age now); `soon` when within the first year
+  const when = (k) => { if (k == null) return null; const y = Math.max(1, Math.round(k / 12)); return { k, soon: k > 0 && k < 12, age: hasAge ? age + y : null, years: y }; };
+  const shownAt = (r) => (r == null ? null : hasAge ? r.age : r.years);
 
-  // today's pace (the answer at the top)
-  const now = { at: about(amountAfter(start, pace, g, years * 12)), reach: when(monthsToReach(start, pace, g, goal)) };
-  // the amounts tried
-  const need = aboutUp(monthlyFor(start, g, goal, years * 12));
-  const play = { at: about(amountAfter(start, m, g, years * 12)), reach: when(monthsToReach(start, m, g, goal)), need };
-  // the change from today's pace: each month (what is needed against what you keep now, never below ₪0) and how many months sooner
-  // it is reached
-  const kept = Math.max(0, pace), diff = { need: need == null ? null : need - kept, m: m - kept, sooner: now.reach && play.reach ? now.reach.k - play.reach.k : play.reach && !now.reach ? Infinity : now.reach && !play.reach ? -Infinity : null };
+  const total = about(amountAfter(start, m, g, years * 12)); // by the age (or in the years) chosen
+  const reach = when(monthsToReach(start, m, g, goal, lim));
+  const need = aboutUp(monthlyFor(start, g, goal, years * 12)); // each month, for the goal by the age chosen
+  const changed = m !== kept;
+  // the same at your average, only to say how much sooner or later the amount chosen gets there: the difference between the
+  // two ages (or years) as they would be shown, so it always matches them; "months" when both are shown the same
+  const base = when(monthsToReach(start, kept, g, goal, lim));
+  let sooner = null;
+  if (changed && reach && reach.k > 0) {
+    if (!base) sooner = { never: true };
+    else if (base.k !== reach.k) { const d = shownAt(base) - shownAt(reach); sooner = d != 0 ? { n: d } : { months: base.k > reach.k ? 1 : -1 }; }
+  }
 
-  // the chart: one point a year, from now to the chosen age, or to when the goal is reached if that is later (at least 5 years)
-  const span = Math.min(MAX_YEARS, Math.max(5, years, play.reach ? Math.ceil(play.reach.k / 12) : 0, now.reach ? Math.min(Math.ceil(now.reach.k / 12), years + 10) : 0));
-  const chart = { years: span, mine: pathOf(start, m, g, span), pace: pathOf(start, pace, g, span), goal, at: years, hit: play.reach ? play.reach.k / 12 : null, age: hasAge ? age : null };
+  // the chart: one point a year, from now to the age chosen, or to when the goal is reached if that is later (at least 5 years);
+  // the line at your average only when the amount chosen is different
+  const span = Math.min(lim / 12, Math.max(Math.min(5, lim / 12), years, reach ? Math.ceil(reach.k / 12) : 0));
+  const chart = { years: span, mine: pathOf(start, m, g, span), pace: changed ? pathOf(start, kept, g, span) : null, goal, at: years, hit: reach ? reach.k / 12 : null, age: hasAge ? age : null };
 
-  return { start, pace, age: hasAge ? age : 0, hasAge, m, goal, g, at, lo, hi, years, now, play, diff, chart, changed: m !== Math.max(0, pace) };
+  return { start, pace, kept, age: hasAge ? age : 0, hasAge, m, goal, g, at, lo, hi, years, total, reach, need, needDiff: need == null ? null : need - m, sooner, changed, chart, slider: sliderOf(kept, need) };
 }
 
 // The chart's shapes for one width: lines through the points, the goal line, where the goal is reached and the labels on the
 // left (amounts) and along the bottom (ages or years).
 export function yearsChartOf(c, W = 760, Ht = 240) {
-  const Pl = 50, Pr = 14, Pt = 18, Pb = 28, n = c.years || 1;
+  const Pl = 50, Pr = 14, Pt = 18, Pb = 28, n = c.years || 1, pace = c.pace || null;
   // the amounts on the left are round steps (1, 2, 2.5 or 5 times a power of ten), about three or four of them
-  const all = [...c.mine, ...c.pace, c.goal, 0], top = Math.max(...all) * 1.04 || 1, mn0 = Math.min(0, ...all);
+  const all = [...c.mine, ...(pace || []), c.goal, 0], top = Math.max(...all) * 1.04 || 1, mn0 = Math.min(0, ...all);
   const raw = (top - mn0) / 3.5, mag = Math.pow(10, Math.floor(Math.log10(raw))), step = [1, 2, 2.5, 5, 10].map((f) => f * mag).find((x) => x >= raw);
   const mn = Math.floor(mn0 / step) * step, mx = Math.ceil(top / step) * step;
   const X = (y) => Pl + (y / n) * (W - Pl - Pr), Y = (v) => Pt + (1 - (v - mn) / (mx - mn || 1)) * (Ht - Pt - Pb);
@@ -98,6 +132,12 @@ export function yearsChartOf(c, W = 760, Ht = 240) {
   const ticks = Array.from({ length: Math.round((mx - mn) / step) + 1 }, (_, k) => mn + k * step).map((v) => ({ y: Y(v), label: "₪" + short(v) }));
   const every = Math.max(1, Math.ceil((n * 46) / (W - Pl - Pr)));
   const xs = Array.from({ length: n + 1 }, (_, i) => i).filter((i) => i % every == 0 || i == n).filter((i, j, a) => i == n || a[j + 1] == null || a[j + 1] - i >= every * 0.6);
-  const hit = c.hit != null && c.hit <= n ? { x: X(c.hit), y: Y(c.goal) } : null;
-  return { W, Ht, Pl, Pr, Pt, Pb, X, Y, mine: line(c.mine), pace: line(c.pace), area: `${X(0)},${Y(Math.max(0, mn))} ${line(c.mine)} ${X(n)},${Y(Math.max(0, mn))}`, goalY: Y(c.goal), atX: c.at <= n ? X(c.at) : null, ticks, xs: xs.map((i) => ({ i, x: X(i) })), hit, pts: c.mine.map((v, i) => ({ i, x: X(i), y: Y(v), v, p: c.pace[i] })) };
+  // where the drawn line (straight between the yearly points) crosses the goal, so the dot sits on the line
+  let hit = null;
+  if (c.hit != null && c.hit <= n) {
+    const v = c.mine, i = v.findIndex((x) => x >= c.goal);
+    const at = i <= 0 ? 0 : i - 1 + (c.goal - v[i - 1]) / (v[i] - v[i - 1] || 1);
+    hit = { x: X(at), y: Y(c.goal) };
+  }
+  return { W, Ht, Pl, Pr, Pt, Pb, X, Y, mine: line(c.mine), pace: pace ? line(pace) : null, area: `${X(0)},${Y(Math.max(0, mn))} ${line(c.mine)} ${X(n)},${Y(Math.max(0, mn))}`, goalY: Y(c.goal), atX: c.at <= n ? X(c.at) : null, ticks, xs: xs.map((i) => ({ i, x: X(i) })), hit, pts: c.mine.map((v, i) => ({ i, x: X(i), y: Y(v), v, p: pace ? pace[i] : null })) };
 }

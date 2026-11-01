@@ -413,3 +413,27 @@ html.he .spark {
 .ya-dash.goal {
   border-color: var(--pos);
 }
+
+/* Years ahead's sliders (computer and phone): the plain browser slider in the app's colour (as in Appearance), none of the text box look */
+.ya-sl {
+  display: block;
+  inline-size: 100%;
+  block-size: 24px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  accent-color: var(--acc);
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.ya-sl:focus {
+  outline: none;
+}
+
+.ya-sl:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
