@@ -696,10 +696,6 @@ html.he .fcsum .op svg {
 }
 
 /* your average under "Set aside each month" */
-.ya-avg {
-  margin-top: 2px;
-}
-
 .ya-back {
   display: inline-flex;
   align-items: center;

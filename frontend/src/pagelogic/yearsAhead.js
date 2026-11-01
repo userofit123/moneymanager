@@ -72,12 +72,12 @@ export function useYearsAhead(M) {
     return out;
   });
 
-  // Your average, shown under "Set aside each month": the amount, and in its tooltip the full months it comes from.
+  // The tooltip of "Set aside each month": what it is, then your average and the full months it comes from.
   const monthName = (k) => new Date(+k.slice(0, 4), +k.slice(5, 7) - 1, 1).toLocaleDateString(locale.value === "he" ? "he-IL" : "en-GB", { month: "short" });
-  const avg = computed(() => {
+  const mTip = computed(() => {
     const y = Y.value, ks = kept.value.months, n = ks.length, range = n > 1 ? monthName(ks[0]) + " – " + monthName(ks[n - 1]) : n ? monthName(ks[0]) : "";
     const from = !n ? Y_("avgNone") : y.pace < 0 ? Y_("avgNeg", { amount: fm(-y.pace), n, range }, n) : Y_("avgFrom", { n, range }, n);
-    return { text: Y_("avg", { amount: fm(y.kept) }), tip: lines(Y_("avgTipH"), from, Y_("avgTip")) };
+    return lines(Y_("mTip"), "---", Y_("avgTipH", { amount: fm(y.kept) }), from, Y_("avgTip"));
   });
 
   // a point's name on the chart: "Age 45", "In 11 years" or "Today"
@@ -85,5 +85,5 @@ export function useYearsAhead(M) {
   const axisLabel = (i) => (Y.value.hasAge ? String(Y.value.age + i) : String(i));
   const legMine = computed(() => Y_("legMine", { m: fm(Y.value.m) }));
 
-  return { YAI, Y, Y_, set, back, atKey, typeAt, leaveAt, answer, avg, ptName, axisLabel, legMine, pc, GROWTH, fm };
+  return { YAI, Y, Y_, set, back, atKey, typeAt, leaveAt, answer, mTip, ptName, axisLabel, legMine, pc, GROWTH, fm };
 }

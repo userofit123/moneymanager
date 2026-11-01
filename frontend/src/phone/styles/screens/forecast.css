@@ -639,12 +639,6 @@ html.phone .ph-ya-lh {
 }
 
 /* your average under "Set aside each month" */
-html.phone .ph-ya-avg {
-  color: var(--tx2);
-  font-size: 13px;
-  line-height: 18px;
-}
-
 html.phone .ph-ya-back {
   font-size: 14px;
   gap: 4px;

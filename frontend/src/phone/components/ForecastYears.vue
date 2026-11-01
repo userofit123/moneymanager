@@ -11,7 +11,7 @@ import { useYearsAhead } from "../../pagelogic/yearsAhead.js";
 import { usePhoneNav } from "../navigation.js";
 
 const props = defineProps({ model: { type: Object, required: true } });
-const { YAI, Y, Y_, set, back, atKey, typeAt, leaveAt, answer, avg, ptName, axisLabel, legMine, pc, GROWTH, fm } = useYearsAhead(computed(() => props.model));
+const { YAI, Y, Y_, set, back, atKey, typeAt, leaveAt, answer, mTip, ptName, axisLabel, legMine, pc, GROWTH } = useYearsAhead(computed(() => props.model));
 const nav = usePhoneNav();
 const growth = computed(() => GROWTH.map((g) => ({ value: g, label: pc(g) + "%" })));
 // an amount box left empty while typing keeps the last amount
@@ -50,12 +50,11 @@ const PERSON = '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2
       <div class="fld">
         <!-- the way back to your average, at the end of the heading, only when the amount differs from it -->
         <div class="ph-ya-lh">
-          <label for="phYaM"><span :data-tip="Y_('mTip', { amount: fm(Y.kept) })">{{ Y_("m") }}</span></label>
+          <label for="phYaM"><span :data-tip="mTip">{{ Y_("m") }}</span></label>
           <button v-if="Y.changed" type="button" class="ph-link ph-ya-back" @click="back"><PIcon :svg="BACK" dir />{{ Y_("back") }}</button>
         </div>
         <MoneyInput id="phYaM" :key="'m' + redo" @blur="fill" :model-value="String(Y.m)" @update:model-value="setNum('m', $event)" />
         <input type="range" class="ya-sl" min="0" :max="Y.slider.max" :step="Y.slider.step" :value="Math.min(Y.m, Y.slider.max)" :aria-label="Y_('m')" @input="set('m', +$event.target.value)">
-        <div class="ph-ya-avg"><span :data-tip="avg.tip"><span>{{ avg.text }}</span></span></div>
       </div>
       <div class="fld">
         <label for="phYaAt"><span :data-tip="Y.hasAge ? Y_('atTip') : Y_('yrsTip')"><span>{{ Y.hasAge ? Y_("byAge") : Y_("inYears") }}</span></span></label>

@@ -11,7 +11,7 @@ import { openSettingsTab } from "../settings/tab.js";
 import { go } from "../../router.js";
 
 const props = defineProps({ model: { type: Object, required: true } });
-const { YAI, Y, Y_, set, back, atKey, typeAt, leaveAt, answer, avg, ptName, axisLabel, legMine, pc, GROWTH, fm } = useYearsAhead(computed(() => props.model));
+const { YAI, Y, Y_, set, back, atKey, typeAt, leaveAt, answer, mTip, ptName, axisLabel, legMine, pc, GROWTH } = useYearsAhead(computed(() => props.model));
 const toProfile = () => { openSettingsTab("prof"); go("/settings"); };
 // an amount box left empty while typing keeps the last amount
 const setNum = (k, v) => { if (v !== "" && isFinite(+v)) set(k, +v); };
@@ -48,12 +48,11 @@ const fill = (e) => { if (!e.target.value.trim()) redo.value++; };
       <div class="fld">
         <!-- the way back to your average, at the end of the heading, only when the amount differs from it -->
         <div class="ya-lh">
-          <label for="yaM"><span class="tipd" :data-tip="Y_('mTip', { amount: fm(Y.kept) })">{{ Y_("m") }}</span></label>
+          <label for="yaM"><span class="tipd" :data-tip="mTip">{{ Y_("m") }}</span></label>
           <button v-if="Y.changed" type="button" class="ya-back" data-a="yaBack" @click="back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" /></svg>{{ Y_("back") }}</button>
         </div>
         <MoneyInput id="yaM" :key="'m' + redo" @blur="fill" :model-value="String(Y.m)" @update:model-value="setNum('m', $event)" />
         <input type="range" class="ya-sl" min="0" :max="Y.slider.max" :step="Y.slider.step" :value="Math.min(Y.m, Y.slider.max)" :aria-label="Y_('m')" @input="set('m', +$event.target.value)">
-        <div class="sm ya-avg"><span class="tipd" :data-tip="avg.tip"><span>{{ avg.text }}</span></span></div>
       </div>
       <div class="fld">
         <div class="ya-lh"><label for="yaAt"><span class="tipd" :data-tip="Y.hasAge ? Y_('atTip') : Y_('yrsTip')"><span>{{ Y.hasAge ? Y_("byAge") : Y_("inYears") }}</span></span></label></div>
