@@ -7,7 +7,7 @@ import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { matchesSaved } from "./golden.js";
 import { buildDemo } from "../../server/src/seed.js";
-import { budgetsModel, acceptBudget, acceptAll, dismissSuggestion, laterReview, resetDismissed, applyBudget, setBudget, removeBudget, changeBudget, formSuggestion, formCategories } from "../src/lib/budgets.js";
+import { budgetsModel, acceptBudget, acceptAll, dismissSuggestion, laterReview, resetDismissed, applyBudget, setBudget, removeBudget, changeBudget, formSuggestion, formCategories, spendTrend } from "../src/lib/budgets.js";
 
 process.on("unhandledRejection", () => {});
 // The page is drawn on the server with the real Vue file (Vite), so no browser is needed.
@@ -187,4 +187,19 @@ test("pending payments count in the six months, the same as this month's spendin
   const M = budgetsModel(S, NOW);
   assert.equal(Math.round(M.hist.cat[k][5] - M0.hist.cat[k][5]), 40);
   assert.equal(Math.round((Object.fromEntries(M.spend)[k] || 0) - (Object.fromEntries(M0.spend)[k] || 0)), 40);
+});
+
+test("the trend compares the latest complete month with the months before it, and small changes read as steady", () => {
+  assert.equal(spendTrend([]), null); assert.equal(spendTrend([500]), null);
+  const up = spendTrend([400, 400, 520]);
+  assert.deepEqual([up.change, up.base, up.last, up.diff, up.avg], ["up", 400, 520, 120, 440]);
+  assert.equal(spendTrend([1000, 1000, 850]).change, "down");
+  assert.equal(spendTrend([1000, 1000, 1090]).change, "steady", "under 10% is steady");
+  assert.equal(spendTrend([100, 100, 140]).change, "steady", "under 50 is steady, even when it is 40%");
+  assert.equal(spendTrend([0, 0, 60]).change, "up");
+  assert.equal(spendTrend([300, 200]).change, "down", "two months: the second against the first");
+  // each budget gets the trend of the same months suggestions use
+  const M = budgetsModel(fixture(), NOW), g = M.info.find((b) => b.k === "Groceries");
+  assert.deepEqual(g.trend.vals, M.budMonths.map((m) => M.M.Groceries[m] || 0));
+  assert.deepEqual(Object.fromEntries(M.info.map((b) => [b.k, b.trend.change])), { Groceries: "up", Dining: "steady", Transport: "steady", Fun: "steady", Pets: "steady", Health: "steady", Home: "steady" });
 });

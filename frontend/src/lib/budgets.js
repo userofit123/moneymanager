@@ -30,7 +30,7 @@ export function budgetsModel(S, now = new Date()) {
   const info = Object.entries(budgets).map(([k, lim]) => {
     const s = sp0[k] || 0, pc = lim ? (s / lim) * 100 : 0, B = BC.filter((b) => !b.once && !b.irregular && b.flag != "canceled" && b.cat == k);
     const paid = Math.min(s, sum(B.filter((b) => b.lp && b.lp.startsWith(MK)).map((b) => b.pred))), due = sum(B.filter((b) => !(b.lp && b.lp.startsWith(MK)) && b.nx && b.nx.toISOString().slice(0, 7) == MK).map((b) => b.pred)), pace = paid + due + ((s - paid) / DAYN) * DIM;
-    return { k, lim, s, pace, pc, left: lim - s, perDay: Math.max(0, (lim - s) / Math.max(1, DIM - DAYN)), st: s > lim ? "over" : pc >= cfg.budgetPct ? "warn" : pace > lim ? "pace" : "ok" };
+    return { k, lim, s, pace, pc, left: lim - s, perDay: Math.max(0, (lim - s) / Math.max(1, DIM - DAYN)), st: s > lim ? "over" : pc >= cfg.budgetPct ? "warn" : pace > lim ? "pace" : "ok", trend: spendTrend(budMonths.map((m) => (M[k] || {})[m] || 0)) };
   });
   // suggestions: from the last three complete months, never created behind the user's back
   const recMo = (k) => sum(BC.filter((b) => !b.once && !b.irregular && b.flag != "canceled" && b.mo > 0 && b.cat == k).map((b) => b.mo));
@@ -53,6 +53,14 @@ export function budgetsModel(S, now = new Date()) {
   const un = spend.filter(([k]) => !(k in budgets) && k != "Uncategorized");
   const totL = sum(info.map((b) => b.lim)), totS = sum(info.map((b) => b.s));
   return { ...st, DAYN, DIM, spend, hist, budMonths, M, info, fresh, review, billsIn, catJars, catNames, un, totL, totS, budgetNo, budgets, bills: BC };
+}
+// Is the normal spending in a category going up or down? The last complete months (the ones suggestions use, oldest first):
+// the latest month against the average of the months before it. A change smaller than 10% of that average, or than ₪50,
+// reads as steady, so small wobbles are not called a change. Fewer than two months: no trend (null).
+export function spendTrend(vals, { pct = 0.1, min = 50 } = {}) {
+  if (!vals || vals.length < 2) return null;
+  const last = vals[vals.length - 1], before = vals.slice(0, -1), base = sum(before) / before.length, diff = last - base;
+  return { vals, avg: sum(vals) / vals.length, base, last, diff, change: Math.abs(diff) < Math.max(min, base * pct) ? "steady" : diff > 0 ? "up" : "down" };
 }
 // The suggested limit shown when adding a budget: the average of the last three months, to the nearest 50 (only for the biggest categories).
 // A monthly amount rounded the way suggested budgets are: to the nearest 50.

@@ -24,7 +24,7 @@ export default [
   ["jars", "#jars", "h2", "Completed", "Completed jars", "", "הושלם"],
   ["bills", "#billK", ".lbl", "Monthly total", "The three numbers on top", "", "סך הכול לחודש"],
   ["bills", "#bills", "h2", "Bills and subscriptions", "What Bills is for", "", "תשלומים קבועים ומנויים"],
-  ["budg", "#budK", ".lbl", "Budgeted this month", "The three numbers on top", "", "תקציב החודש"],
+  ["budg", "#budK", ".lbl", "Left to spend", "The numbers on top", "", "נשאר להוצאה"],
   ["budg", "#budS", "h2", "Suggested budgets", "Suggested budgets", "", "תקציבים מוצעים"],
   ["budg", "#budg", "h2", "By category", "One budget card", "", "לפי קטגוריה"],
   ["budg", "#budU", "h2", "Spending with no budget", "Spending with no budget", "", "הוצאות בלי תקציב"],

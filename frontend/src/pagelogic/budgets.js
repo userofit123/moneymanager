@@ -11,6 +11,7 @@ import { openTx, openPop } from "../core/txwin.js";
 import { catColor } from "../core/cats.js";
 import { dstr } from "../dates.js";
 import { toast } from "../core/toast.js";
+import { ask } from "../core/ask.js";
 import { fm } from "../lib/bills.js";
 import { acceptBudget, acceptAll, dismissSuggestion, laterReview, resetDismissed, applyBudget, removeBudget, changeBudget } from "../lib/budgets.js";
 
@@ -20,14 +21,16 @@ export function useBudgets() {
   const S = computed(() => data.state.value);
 
   const cc = (n) => catColor(S.value, n);
-  const mlab = computed(() => M.value.budMonths.map((m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(locale.value === "he" ? "he-IL" : "en-GB", { month: "short" })).join(", "));
+  const mname = (m, month) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(locale.value === "he" ? "he-IL" : "en-GB", { month });
+  const mnames = computed(() => M.value.budMonths.map((m) => mname(m, "short"))); // the last complete months, oldest first (suggestions and trends)
+  const mlab = computed(() => mnames.value.join(", "));
 
   // what is left of all budgets, per day until the month ends (the "Left to spend" line and the phone's opening sentence)
   const perDayLeft = computed(() => { const m = M.value; return Math.max(0, m.totL - m.totS) / Math.max(1, m.DIM - m.DAYN); });
   const kpis = computed(() => {
     const m = M.value, tl = m.totL, ts = m.totS;
     return [
-      { c: "hero", l: t("budgets.k.budgeted"), v: tl, s: t("budgets.k.across", { n: m.info.length }) },
+      { c: "hero", l: t("budgets.k.budgeted"), v: tl, s: t("budgets.k.across", { n: m.info.length }, m.info.length) },
       { c: "", l: t("budgets.k.spent"), v: ts, s: t("budgets.k.spentSub", { pct: tl ? Math.round((ts / tl) * 100) : 0, month: Math.round((m.DAYN / m.DIM) * 100) }) },
       { c: "", l: t("budgets.k.left"), v: tl - ts, s: t("budgets.k.leftSub", { amount: fm(perDayLeft.value) }) },
     ];
@@ -37,6 +40,19 @@ export function useBudgets() {
   const fillColor = (b) => (b.st == "over" ? "var(--neg)" : b.st == "warn" || b.st == "pace" ? "#e68a00" : "");
   const billSt = (b) => (b.irregular ? t("budgets.billIrr") : b.lp && b.lp.startsWith(M.value.MK) ? t("budgets.billPaid", { date: dstr(b.lp) }) : b.status == "overdue" ? t("budgets.billOver") : t("budgets.billDue", { date: dstr(b.nx) }));
   const rvOf = computed(() => Object.fromEntries(M.value.review.map((r) => [r.k, r])));
+  // the trend of a budget's category over the last complete months (lib/budgets.js spendTrend): its tag and its tooltip
+  const trendTag = (b) => (b.trend ? t("budgets.trend." + b.trend.change) : "");
+  // one sentence: how the latest month compares with the months before it
+  const trendLine = (b) => {
+    const r = b.trend; if (!r) return "";
+    const month = mname(M.value.budMonths[r.vals.length - 1], "long");
+    return r.change == "steady" ? t("budgets.trend.same", { month }) : t("budgets.trend." + (r.change == "up" ? "more" : "less"), { month, amount: fm(Math.abs(r.diff)) });
+  };
+  const trendTip = (b) => {
+    const r = b.trend; if (!r) return "";
+    return [t("budgets.trend.title", { n: r.vals.length }), ...r.vals.map((v, i) => mnames.value[i] + "\t" + (v > b.lim ? "~~" + fm(v) + "~~" : fm(v))), "---",
+      trendLine(b), t("budgets.trend.avg", { amount: fm(r.avg) }), ...(r.vals.some((v) => v > b.lim) ? [t("budgets.trend.over")] : [])].join("\n");
+  };
   const lastVals = (b) => M.value.budMonths.map((m) => (M.value.M[b.k] || {})[m] || 0);
 
   // ---- saving (like Jars: change a copy, send the whole state, then load the fresh copy) ----
@@ -55,6 +71,9 @@ export function useBudgets() {
   const apply = (r) => change((n) => applyBudget(n, r.k, r.prop));
   const edit = (k, ev) => change((n) => changeBudget(n, k, ev.target.value.replace(/,/g, ""))); // the box shows "1,200"
   const remove = (k) => change((n) => removeBudget(n, k));
+  const setAmount = (k, value) => { const v = Math.round(+String(value ?? "").replace(/,/g, "")); if (!(v > 0)) { say(t("budgets.enter"), "err"); return false; } if (v != M.value.budgets[k]) change((n) => changeBudget(n, k, v)); return true; };
+  // Remove asks first (the shared confirm window); Undo is on the "Saved" toast and in the change history
+  const askRemove = (k, name) => ask(t("budgets.del.title", { name }), t("budgets.del.text"), () => remove(k), { danger: true, yes: t("budgets.menu.remove") });
 
   // ---- Add a budget ----
   // Add a budget: the shared window (components/forms/BudgetForm.vue).
@@ -64,5 +83,5 @@ export function useBudgets() {
   // A bill inside a budget opens its last payment, or its payment history when there is none yet (billOpen).
   const billOpen = (x) => { const b = M.value.bills[x.idx]; if (!b) return; const L = M.value.billTx(b), last = L[L.length - 1]; if (last) openTx(last.id); else openPop("hist", { title: b.n, rows: L, sub: t("txw.chip.bill"), q: b.match }); };
 
-  return { t, tk, locale, S, M, cc, mlab, perDayLeft, kpis, stClass, stTip, fillColor, billSt, rvOf, lastVals, typed, propOf, accept, acceptEvery, dismiss, later, resetNo, apply, edit, remove, openAdd, goCat, billOpen };
+  return { t, tk, locale, S, M, cc, mlab, mnames, perDayLeft, kpis, stClass, stTip, fillColor, billSt, rvOf, trendTag, trendLine, trendTip, lastVals, typed, propOf, accept, acceptEvery, dismiss, later, resetNo, apply, edit, remove, setAmount, askRemove, openAdd, goCat, billOpen };
 }

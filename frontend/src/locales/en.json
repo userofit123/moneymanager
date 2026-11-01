@@ -1018,11 +1018,13 @@
     "loadError": "Your data could not be loaded. Check that the app is running and try again.",
     "k": {
       "budgeted": "Budgeted this month",
-      "across": "Across {n} categories",
+      "across": "1 budget | {n} budgets",
       "spent": "Spent so far",
       "spentSub": "{pct}% of budget · {month}% of the month gone",
       "left": "Left to spend",
-      "leftSub": "About {amount} per day for the rest of the month"
+      "leftSub": "About {amount} per day for the rest of the month",
+      "count": "Budgets",
+      "countTip": "Each budget is a monthly limit for one category."
     },
     "sugTitle": "Suggested budgets",
     "acceptAll": "Accept all",
@@ -1087,7 +1089,31 @@
     "save": "Save",
     "enter": "Enter an amount first",
     "saveFailed": "The change could not be saved. Try again.",
-    "stale": "Your data changed in the meantime. Reloaded, please try again."
+    "stale": "Your data changed in the meantime. Reloaded, please try again.",
+    "trend": {
+      "title": "Last {n} months",
+      "up": "Going up",
+      "down": "Going down",
+      "steady": "Steady",
+      "more": "In {month} you spent {amount} more than in the months before.",
+      "less": "In {month} you spent {amount} less than in the months before.",
+      "same": "{month} was about the same as the months before.",
+      "avg": "About {amount} a month on average.",
+      "over": "Red: more than this budget."
+    },
+    "options": "Budget options",
+    "menu": {
+      "change": "Change amount",
+      "inAct": "Show in Activity",
+      "remove": "Remove budget"
+    },
+    "change": {
+      "title": "Change the budget for {name}"
+    },
+    "del": {
+      "title": "Remove the budget for {name}?",
+      "text": "Only the monthly limit goes. Your payments stay as they are."
+    }
   },
   "forecast": {
     "loading": "Loading…",
