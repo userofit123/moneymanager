@@ -9,6 +9,9 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ### App
 - **A failed sync says what happened in plain words:** the phone alert and the app (Settings → Connections, the sync window, Home alerts) no longer show the bank's raw error. They say whether the bank's website had a problem (it tries again on its own), the bank did not accept the login, the bank wants a new password or blocked the account, or a one-time code is needed. The alert comes in the language chosen in the app. The full error is still in Settings → Automatic sync (Past syncs) and Problems and support.
 
+### Windows app
+- **Side menu in Hebrew:** its edge line no longer runs up behind the window buttons (minimise, maximise, close). It starts just below them and fades in softly.
+
 ## [0.12.12] - 2026-11-01
 
 ### App

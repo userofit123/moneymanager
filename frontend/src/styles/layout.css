@@ -645,6 +645,11 @@ html.dframe.he:not(.phone) nav {
   padding-top: calc(var(--tb) + 8px);
 }
 
+/* its edge line would run up behind the window buttons: it is invisible in their row and fades in just below it */
+html.dframe.he:not(.phone) nav {
+  border-image: linear-gradient(to bottom, transparent var(--tb), var(--ol) calc(var(--tb) + 10px)) 1;
+}
+
 html.dframe #jobBar {
   top: calc(var(--tb) + 12px);
 }
