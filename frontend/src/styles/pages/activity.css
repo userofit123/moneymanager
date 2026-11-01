@@ -434,10 +434,6 @@ html.he #exCats > * {
   gap: 7px;
 }
 
-.txs-c.mu .tinfo {
-  margin-inline-start: -3px;
-}
-
 .txs-c.mu {
   white-space: normal;
   flex-wrap: wrap;
@@ -706,35 +702,36 @@ html.he #exCats > * {
 
 .txs-g {
   display: flex;
-  align-items: center;
+  align-items: stretch;
 }
 
+/* each total: a small label (with its tip) above its amount, split from the next by a thin line */
 .txs-g > div {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 2px 0;
-  min-height: 22px;
-  border: 0;
-  border-radius: 0;
-  background: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 1px;
+  padding-inline: 16px;
+  border-inline-start: 1px solid var(--ol);
   white-space: nowrap;
 }
 
-.txs-g > div + div::before {
-  content: "·";
-  font-size: 13px;
-  margin-block: 0;
-  margin-inline: .55em calc(.55em - 8px);
-  color: var(--tx2);
-  font-weight: 700;
-  line-height: 1;
-  align-self: center;
+.txs-g > div:first-child {
+  padding-inline-start: 0;
+  border-inline-start: 0;
+}
+
+.txs-g > div:last-child {
+  padding-inline-end: 0;
 }
 
 .txs-g span {
+  display: flex;
+  align-items: center;
   font-size: 10px;
   font-weight: 600;
+  line-height: 1.3;
   text-transform: uppercase;
   letter-spacing: .6px;
   color: var(--tx2);
@@ -743,6 +740,7 @@ html.he #exCats > * {
 .txs-g b {
   font-size: 14px;
   font-weight: 650;
+  line-height: 1.25;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
