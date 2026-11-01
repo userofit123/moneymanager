@@ -3,9 +3,9 @@
 // hold too much, with Take back), then what went into the jars this month with Fill now, the amount kept untouched, and the
 // jars, goals and completed jars. Every number comes from pagelogic/jars.js, the same as the computer's Jars page.
 // A row opens the jar's own screen; + adds a jar.
-import { ref, computed, watch, nextTick, onMounted } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { ask } from "../../core/ask.js";
-import { tipFill } from "../../core/tooltip.js";
+import { explain } from "../../core/tooltip.js";
 import { useJars } from "../../pagelogic/jars.js";
 import AvailWhy from "../../views/AvailWhy.vue";
 import MoneyInput from "../../components/MoneyInput.vue";
@@ -40,16 +40,13 @@ const hero = computed(() => {
 });
 
 // a tooltip's text, opened by a tap (the computer shows it on hover)
-const tipText = ref(""), tipOpen = ref(false), tipBox = ref(null);
-const explain = (s) => { tipText.value = s; tipOpen.value = true; };
-watch([tipOpen, tipText], () => nextTick(() => { if (tipOpen.value && tipBox.value) tipFill(tipBox.value, tipText.value); }));
 
 // take back what is too much, mark a reached goal as done: each asks first (the computer's confirm windows)
-const askRelease = () => ask(t("jars.takeBack", { amount: fm(relAmt.value) }), t("jars.rel.text", { amount: fm(relAmt.value) }), doRelease);
+const askRelease = () => ask(t("jars.takeBack", { amount: fm(relAmt.value) }), t("jars.rel.text", { amount: fm(relAmt.value) }), doRelease, { yes: t("jars.rel.yes") });
 const askDoneOf = (g) => {
   askDone(g.id);
   const j = doneAsk.value; if (!j) return;
-  ask(t("jars.done.title", { name: tx(j.n) }), t("jars.done.text") + (j.bal > 0 ? " " + t("jars.done.back", { amount: fm(j.bal) }) : ""), doDone);
+  ask(t("jars.done.title", { name: tx(j.n) }), t("jars.done.text") + (j.bal > 0 ? " " + t("jars.done.back", { amount: fm(j.bal) }) : ""), doDone, { yes: t("jars.markDone") });
 };
 
 // keep untouched: preset amounts or an amount typed in
@@ -68,7 +65,6 @@ const open = (id) => nav.push("jar", String(id));
 const stTone = (s) => (s.key === "needs" ? "warn" : s.key === "partly" ? "acc" : s.cls === "dn" ? "pos" : "");
 const GTONE = { reached: "pos", ontrack: "pos", behind: "warn", saving: "acc", none: "" };
 const LOCK = '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>';
-const ring = (j) => ({ "--ring": col(j.p) });
 </script>
 
 <template>
@@ -108,7 +104,7 @@ const ring = (j) => ({ "--ring": col(j.p) });
       <template v-if="seg === 'jars'">
         <ListGroup>
           <ListRow v-for="j in M.jars" :key="j.id" class="ph-jars-row" :title="tx(j.n)" link @tap="open(j.id)">
-            <template #lead><ProgressRing class="ph-jars-ring" :value="j.open ? 0 : j.bal" :max="j.open ? 0 : j.need" :size="44" :style="ring(j)"><span v-if="!j.open">{{ Math.min(999, j.pc) }}%</span></ProgressRing></template>
+            <template #lead><ProgressRing class="ph-jars-ring" :value="j.open ? 0 : j.bal" :max="j.open ? 0 : j.need" :size="44" :color="col(j.p)"><span v-if="!j.open">{{ Math.min(999, j.pc) }}%</span></ProgressRing></template>
             <template #sub><span :class="'ph-jars-st ' + stTone(j.state)">{{ stLabel(j.state) }}</span><span>{{ kindOf(j) }}</span></template>
             <template #end><span class="ph-amt">{{ fm(j.bal) }}</span></template>
           </ListRow>
@@ -128,7 +124,7 @@ const ring = (j) => ({ "--ring": col(j.p) });
               <PIcon class="ph-chev" name="chevron" dir />
             </button>
             <div class="ph-jars-gb">
-              <ProgressBar :value="g.pc" :max="100" :style="{ '--bar': col(g.p) }" :label="tx(g.n)" />
+              <ProgressBar :value="g.pc" :max="100" :color="col(g.p)" :label="tx(g.n)" />
               <p>{{ goalLine(g) }}</p>
               <button v-if="g.st === 'reached'" type="button" class="ph-btn tonal" @click="askDoneOf(g)">{{ t("jars.markDone") }}</button>
               <button v-else-if="g.fix" type="button" class="ph-btn tonal" @click="save((s) => goalFix(s, g.id, ctx()))">{{ t("jars.raise", { amount: fm(g.fix) }) }}</button>
@@ -161,8 +157,5 @@ const ring = (j) => ({ "--ring": col(j.p) });
     </PhoneSheet>
 
     <AvailWhy v-if="home" v-model:open="why" :M="home" />
-    <PhoneSheet v-model:open="tipOpen" cls="ph-explain">
-      <div ref="tipBox" class="tip rich on ph-tipbox" :class="{ one: !tipText.includes('\n') }" />
-    </PhoneSheet>
   </PhoneScreen>
 </template>

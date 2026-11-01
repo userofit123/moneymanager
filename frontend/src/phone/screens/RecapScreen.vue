@@ -200,7 +200,7 @@ const pathPts = (s) => {
               <div v-else-if="v.up && v.up.length" class="ph-rc-up">
                 <h3>{{ L("upcoming") }}</h3>
                 <div class="ph-group-b">
-                  <component :is="x[3] != null || x[4] != null ? 'button' : 'div'" v-for="(x, k) in v.up.slice(0, 3)" :key="k" :type="x[3] != null || x[4] != null ? 'button' : null" class="ph-row two ph-rc-upr" @click="upOpen(x)">
+                  <component :is="x[3] != null || x[4] != null ? 'button' : 'div'" v-for="(x, k) in v.up.slice(0, 3)" :key="k" :type="x[3] != null || x[4] != null ? 'button' : null" class="ph-row ph-two ph-rc-upr" @click="upOpen(x)">
                     <span class="ph-rc-date"><b>{{ +x[0].slice(8) }}</b><small>{{ mon(x[0]) }}</small></span>
                     <span class="ph-row-main"><span class="ph-row-t">{{ x[1] }}</span><span class="ph-row-s">{{ dday(x[0]) }}</span></span>
                     <b class="ph-amt" v-html="mi(x[2])" />

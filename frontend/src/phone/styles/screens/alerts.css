@@ -114,13 +114,3 @@ html.phone .ph-alerts-more {
   justify-content: center;
   margin-block-start: 12px;
 }
-
-/* the swipe's Dismiss stays hidden while the row is at rest (its colour would show at the group's rounded corners) */
-html.phone .ph-alerts .ph-swipe:has(> .ph-swipe-row[style*="translateX(0px)"]) .ph-swipe-a {
-  visibility: hidden;
-}
-
-/* the switch sits on top of the list it switches */
-html.phone .ph-alerts-tabs .ph-segwrap {
-  margin-block-end: 14px;
-}

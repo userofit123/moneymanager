@@ -134,10 +134,6 @@ html.phone .ph-acc-tiles .ph-stat:last-child:nth-child(odd) {
   grid-column: 1 / -1;
 }
 
-html.phone .ph-acc-tiles .ph-stat:active {
-  background: var(--p-surf);
-}
-
 html.phone .ph-acc-tiles .ph-stat-v {
   overflow-wrap: anywhere;
 }

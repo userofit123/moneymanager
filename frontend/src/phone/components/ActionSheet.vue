@@ -1,6 +1,7 @@
 <script setup>
 // A short list of actions in a sheet, with Cancel apart at the bottom. Actions that remove something are red.
-// actions: [{ label, icon?, danger?, run }]. Used for "more" menus and long press.
+// actions: [{ label, icon?, value?, danger?, run }]; value: what it is set to now, at the end ("Group by   Month").
+// Used for "more" menus and long press.
 import { useI18n } from "vue-i18n";
 import PhoneSheet from "./PhoneSheet.vue";
 import PIcon from "./PIcon.vue";
@@ -14,7 +15,7 @@ const pick = (a) => { emit("update:open", false); a.run?.(); };
   <PhoneSheet :open="open" :label="title" @update:open="$emit('update:open', $event)">
     <p v-if="title" class="ph-act-t">{{ title }}</p>
     <div class="ph-acts">
-      <button v-for="a in actions" :key="a.label" type="button" class="ph-act" :class="{ danger: a.danger }" @click="pick(a)"><PIcon v-if="a.icon" :svg="a.icon" />{{ a.label }}</button>
+      <button v-for="a in actions" :key="a.label" type="button" class="ph-act" :class="{ danger: a.danger }" @click="pick(a)"><PIcon v-if="a.icon" :svg="a.icon" /><span class="ph-act-l">{{ a.label }}</span><span v-if="a.value" class="ph-act-v">{{ a.value }}</span></button>
     </div>
     <button type="button" class="ph-act ph-act-x" @click="$emit('update:open', false)">{{ t("phone.shell.cancel") }}</button>
   </PhoneSheet>

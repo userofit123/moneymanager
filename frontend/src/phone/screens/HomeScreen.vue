@@ -3,13 +3,14 @@
 // then what needs a look, the month's four totals, accounts, cards, the money flow, spending by category, budgets,
 // upcoming bills, recent activity, jars and exchange rates. Every number comes from pagelogic/home.js, the same as the
 // computer's Home page. The bell opens Alerts, + opens "Add or update". A block with nothing to show is hidden.
-import { ref, computed, watch, nextTick, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { data } from "../../stores/data.js";
 import { goActivity, quickOpen } from "../../core/shell.js";
 import { openForm } from "../../core/forms.js";
 import { suggestions, suggestOpen } from "../../core/suggest.js";
-import { tipFill, vTip } from "../../core/tooltip.js";
+import { vTip, explain } from "../../core/tooltip.js";
 import { amtText } from "../../lib/txrows.js";
+import { billKey } from "../../lib/bills.js";
 import { brandIcon } from "../../brands.js";
 import { currencySymbol } from "../../format.js";
 import { dcell, dstr, titleCase } from "../../dates.js";
@@ -29,15 +30,16 @@ import ProgressBar from "../components/ProgressBar.vue";
 import ProgressRing from "../components/ProgressRing.vue";
 import EmptyState from "../components/EmptyState.vue";
 import SkeletonRows from "../components/SkeletonRows.vue";
-import PhoneSheet from "../components/PhoneSheet.vue";
 import PIcon from "../components/PIcon.vue";
 defineProps({ id: { type: String, default: null } });
 
 const {
   t, fm, n0, an, pair, fx, S, M, monthName, catName, catColor, nm, accLbl, alertList, alerts3, openTxId, openAlert, accGo,
-  kpis, accSub, cardRows, flowMode, flowOpts, W, cols, colTip, leftOf, donut, fxCur, fxKeys, fxView, fxOpts, openBill,
+  kpis, accSub, cardRows, flowMode, flowOpts, W, cols, colTip, leftOf, donut, fxCur, fxKeys, fxView, fxOpts,
 } = useHome();
 const nav = usePhoneNav();
+// an upcoming bill opens its own screen
+const openBill = (b) => { const bl = M.value.billsAll[b.idx]; if (bl) nav.push("bill", billKey(bl)); };
 onMounted(() => data.start());
 const iso = (s) => "\u2066" + s + "\u2069"; // a date keeps its order inside a Hebrew sentence
 const cap = (s) => String(s).charAt(0).toUpperCase() + String(s).slice(1);
@@ -52,9 +54,6 @@ const hero = computed(() => {
 const avail = ref(false);
 
 // a tooltip's text, opened by a tap (the computer shows it on hover)
-const tipText = ref(""), tipOpen = ref(false), tipBox = ref(null);
-const explain = (s) => { tipText.value = s; tipOpen.value = true; };
-watch([tipOpen, tipText], () => nextTick(() => { if (tipOpen.value && tipBox.value) tipFill(tipBox.value, tipText.value); }));
 
 // the four totals: in your accounts and saved first (the month's answer), then money in and out
 const ORDER = ["worth", "net", "income", "expense"];
@@ -168,7 +167,7 @@ const isEnd = (c) => c.kind === "end";
       </ListGroup>
 
       <ListGroup v-if="M.has.bills" :title="t('home.upcomingBills')" :more="P('seeAll')" @more="nav.tab('bills')">
-        <ListRow v-for="b in M.upcoming" :key="b.idx" :title="an(b.n)" :sub="b.status == 'overdue' ? t('home.overdueSince', { date: iso(dstr(b.pd)) }) : P('dueOn', { date: iso(dstr(b.nx)) })" @tap="openBill(b)">
+        <ListRow v-for="b in M.upcoming" :key="b.idx" :title="an(b.n)" link :sub="b.status == 'overdue' ? t('home.overdueSince', { date: iso(dstr(b.pd)) }) : P('dueOn', { date: iso(dstr(b.nx)) })" @tap="openBill(b)">
           <template #lead><span class="ph-home-due" :class="{ late: b.status == 'overdue' }"><b>{{ b.status == "overdue" ? "!" : b.days }}</b></span></template>
           <template #end><span class="ph-amt">{{ b.vari ? "≈ " : "" }}{{ fm(b.pred) }}</span></template>
         </ListRow>
@@ -184,7 +183,7 @@ const isEnd = (c) => c.kind === "end";
 
       <ListGroup v-if="M.has.jars" :title="t('home.jars')" :more="P('seeAll')" @more="nav.tab('jars')">
         <ListRow v-for="j in M.jars" :key="j.id" :title="an(j.n)" :sub="j.open ? P('jarNoGoal', { amount: '₪' + n0(j.bal) }) : P('jarOf', { amount: '₪' + n0(j.bal), goal: '₪' + n0(j.need), pc: j.pc })" @tap="nav.push('jar', String(j.id))">
-          <template #lead><ProgressRing :value="j.open ? 0 : j.bal" :max="j.open ? 0 : j.need" :size="36" :style="{ '--ring': 'var(--c' + ((j.p - 1) % 7) + ')' }" /></template>
+          <template #lead><ProgressRing :value="j.open ? 0 : j.bal" :max="j.open ? 0 : j.need" :size="36" :color="'var(--c' + ((j.p - 1) % 7) + ')'" /></template>
           <template #end><span v-if="j.got" class="ph-amt pos">+₪{{ n0(j.got) }}</span><span v-else-if="j.want > 0" class="ph-home-wait">{{ t("home.waiting") }}</span></template>
         </ListRow>
       </ListGroup>
@@ -213,8 +212,5 @@ const isEnd = (c) => c.kind === "end";
     </template>
 
     <AvailWhy v-if="S" v-model:open="avail" :M="M" />
-    <PhoneSheet v-model:open="tipOpen" cls="ph-explain">
-      <div ref="tipBox" class="tip rich on ph-tipbox" :class="{ one: !tipText.includes('\n') }" />
-    </PhoneSheet>
   </PhoneScreen>
 </template>

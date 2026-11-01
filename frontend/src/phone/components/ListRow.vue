@@ -16,7 +16,7 @@ const tap = () => { if (props.disabled) return; if (props.toggle !== undefined) 
 </script>
 
 <template>
-  <button type="button" class="ph-row" :class="{ danger, two: !!sub }" :disabled="disabled" :role="toggle !== undefined ? 'switch' : undefined" :aria-checked="toggle !== undefined ? String(toggle) : undefined" @click="tap">
+  <button type="button" class="ph-row" :class="{ danger, 'ph-two': !!sub }" :disabled="disabled" :role="toggle !== undefined ? 'switch' : undefined" :aria-checked="toggle !== undefined ? String(toggle) : undefined" @click="tap">
     <span v-if="$slots.lead || icon || iconName" class="ph-row-lead">
       <slot name="lead"><span class="ph-tile" :style="tile"><PIcon :svg="icon" :name="iconName" /></span></slot>
     </span>

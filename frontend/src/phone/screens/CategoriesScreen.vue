@@ -133,7 +133,7 @@ const AI = '<path d="M12 3l1.8 4.6L18.5 9.5l-4.7 1.9L12 16l-1.8-4.6L5.5 9.5l4.7-
       </ListGroup>
     </template>
 
-    <PickerSheet v-if="L" v-model:open="sortOpen" :title="P('sortTitle')" :options="sortOpts" :model-value="sortNow" @update:model-value="pickSort" />
+    <PickerSheet v-if="L" v-model:open="sortOpen" required :title="P('sortTitle')" :options="sortOpts" :model-value="sortNow" @update:model-value="pickSort" />
 
     <PhoneSheet v-model:open="addOpen" :title="tab === 'cats' ? P('addCat') : P('addTag')">
       <p class="ph-cats-p">{{ tab === "cats" ? P("addCatText") : P("addTagText") }}</p>

@@ -18,14 +18,14 @@ escLayer(() => !!asking.value, askClose);
     <template v-if="asking">
       <p class="ph-ask-t">{{ asking.title }}</p>
       <p v-if="asking.text" class="ph-ask-x">{{ asking.text }}</p>
-      <button type="button" class="ph-btn" :class="{ danger: asking.danger }" @click="askYes">{{ t("txw.yes") }}</button>
+      <button type="button" class="ph-btn" :class="{ danger: asking.danger }" @click="askYes">{{ asking.yes || t("txw.yes") }}</button>
       <button type="button" class="ph-btn tonal" @click="askClose">{{ t("txw.cancel") }}</button>
     </template>
   </component>
   <Teleport v-else to="body">
     <div v-if="asking" class="askc" :class="{ in: shown }" @click.self="askClose">
       <div class="askb" role="alertdialog" :aria-label="asking.title"><b>{{ asking.title }}</b><div v-if="asking.text" class="sm">{{ asking.text }}</div>
-        <div class="askf"><button type="button" class="btn o s" @click="askClose">{{ t("txw.cancel") }}</button><button ref="yes" type="button" class="btn s" :class="{ r: asking.danger }" @click="askYes">{{ t("txw.yes") }}</button></div>
+        <div class="askf"><button type="button" class="btn o s" @click="askClose">{{ t("txw.cancel") }}</button><button ref="yes" type="button" class="btn s" :class="{ r: asking.danger }" @click="askYes">{{ asking.yes || t("txw.yes") }}</button></div>
       </div>
     </div>
   </Teleport>

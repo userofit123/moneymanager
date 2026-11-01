@@ -73,16 +73,6 @@ html.phone .ph-home-tiles .ph-stat-n {
   overflow: hidden;
 }
 
-html.phone .ph-home-tiles .k-worth {
-  background: var(--accc);
-  color: var(--onc);
-}
-
-html.phone .ph-home-tiles .k-worth .ph-stat-l,
-html.phone .ph-home-tiles .k-worth .ph-stat-n {
-  color: color-mix(in srgb, var(--onc) 75%, transparent);
-}
-
 html.phone .ph-home-tiles .k-income .ph-stat-v {
   color: var(--pos);
 }
@@ -272,11 +262,6 @@ html.phone .ph-home-av {
   color: var(--d);
   font-weight: 700;
   font-size: 15px;
-}
-
-/* jars: the ring in the jar's colour */
-html.phone .ph-home .ph-ring .val {
-  stroke: var(--ring, var(--acc));
 }
 
 html.phone .ph-home-wait {

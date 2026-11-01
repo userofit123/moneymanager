@@ -117,7 +117,7 @@ const seeSpending = (k) => { open.value = false; goCat(k); };
               <span class="ph-amt ph-bud-v">{{ P("spentOf", { spent: fm(b.s), limit: fm(b.lim) }) }}</span>
               <PIcon name="chevron" dir class="ph-chev" />
             </span>
-            <span class="ph-bud-bar"><ProgressBar :value="b.s" :max="b.lim" :tone="tone(b)" :label="catLabel(b.k)" /><u :style="{ insetInlineStart: today + '%' }" /></span>
+            <ProgressBar class="ph-bud-bar" :value="b.s" :max="b.lim" :tone="tone(b)" :mark="today" :label="catLabel(b.k)" />
             <span class="ph-bud-row-s"><span class="ph-bud-st" :class="tone(b)">{{ status(b) }}</span><span v-if="review(b)" class="ph-bud-idea"><PIcon name="idea" />{{ P("idea") }}</span></span>
           </button>
         </div>
@@ -143,7 +143,7 @@ const seeSpending = (k) => { open.value = false; goCat(k); };
           <p><b class="ph-amt" :class="{ neg: cur.st == 'over' }">{{ fm(cur.s) }}</b> <span>{{ t("budgets.of", { amount: fm(cur.lim) }) }}</span></p>
           <span class="ph-bud-st" :class="tone(cur)">{{ status(cur) }}</span>
         </div>
-        <span class="ph-bud-bar big"><ProgressBar :value="cur.s" :max="cur.lim" :tone="tone(cur)" :label="catLabel(cur.k)" /><u :style="{ insetInlineStart: today + '%' }" /></span>
+        <ProgressBar class="ph-bud-bar big" :value="cur.s" :max="cur.lim" :tone="tone(cur)" :mark="today" :label="catLabel(cur.k)" />
         <p class="ph-bud-line">{{ cur.left >= 0 ? t("budgets.leftLine", { rest: fm(cur.left), perDay: fm(cur.perDay) }) : t("budgets.overLine") }}</p>
 
         <ListGroup :title="P('howGoing')" :note="note(cur)">

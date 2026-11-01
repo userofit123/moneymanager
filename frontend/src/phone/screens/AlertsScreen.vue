@@ -50,54 +50,45 @@ const settings = () => nav.push("settingsSection", "alr");
     <template v-else>
       <HeroSentence v-if="rows.length" :parts="hero" />
 
-      <section class="ph-group ph-alerts-tabs">
-        <Segmented v-model="tabModel" :options="tabOpts" :label="P('tabs')" />
-
-        <!-- now: each alert opens its place; Dismiss (the button or a swipe) hides it -->
-        <template v-if="tab === 'now'">
-          <EmptyState v-if="!rows.length" :icon="BELL" :title="P('clearTitle')" :text="P('clearText')" />
-          <template v-else>
-            <div class="ph-group-b">
-              <SwipeRow v-for="x in rows" :key="x.id" :end="swipe(x)">
-                <div class="ph-al" :class="x.sev">
-                  <button type="button" class="ph-row two ph-al-open" @click="open(x)">
-                    <span class="ph-row-lead"><span class="ph-tile" :style="{ '--tile': `var(--${tone(x.sev)})` }"><PIcon :svg="BELL" /></span></span>
-                    <span class="ph-row-main">
-                      <span class="ph-row-t">{{ x.title }}</span>
-                      <span class="ph-row-s ph-al-text">{{ x.text }}</span>
-                      <span v-if="since[x.id]" class="ph-row-s ph-al-when"><span>{{ appeared(since[x.id]).a }}<bdi>{{ appeared(since[x.id]).at }}</bdi>{{ appeared(since[x.id]).b }}</span></span>
-                    </span>
-                    <span class="ph-row-end"><PIcon class="ph-chev" name="chevron" dir /></span>
-                  </button>
-                  <button type="button" class="ph-link ph-al-dis" @click="dismiss(x)">{{ t("alerts.dismiss") }}</button>
-                </div>
-              </SwipeRow>
-            </div>
-            <p class="ph-group-n">{{ P("openHint") }}</p>
-          </template>
-        </template>
-
-        <!-- history: when each alert came and went -->
-        <template v-else>
-          <SkeletonRows v-if="!hist.loaded" :rows="4" />
+      <!-- now: each alert opens its place; Dismiss (the button or a swipe) hides it. History: when each alert came and went -->
+      <ListGroup :note="tab === 'now' ? (rows.length ? P('openHint') : '') : hist.loaded && histList.length ? P('histNote') : ''">
+        <template #top>
+          <Segmented v-model="tabModel" :options="tabOpts" :label="P('tabs')" />
+          <template v-if="tab === 'now'"><EmptyState v-if="!rows.length" :icon="BELL" :title="P('clearTitle')" :text="P('clearText')" /></template>
+          <SkeletonRows v-else-if="!hist.loaded" :rows="4" />
           <EmptyState v-else-if="!histList.length" :icon="BELL" :title="t('alerts.tabHist')" :text="t('alerts.histEmpty')" />
-          <template v-else>
-            <div class="ph-group-b">
-              <div v-for="r in histList" :key="r.id ?? r.key + r.first_seen" class="ph-row two ph-alh">
-                <span class="ph-row-lead"><span class="ph-alh-dot" :class="r.sev" aria-hidden="true" /></span>
-                <span class="ph-row-main">
-                  <span class="ph-row-t">{{ r.title2 }}</span>
-                  <span class="ph-row-s ph-al-text">{{ r.detail2 }}</span>
-                  <span class="ph-row-s ph-al-when"><span>{{ r.ap.a }}<bdi>{{ r.ap.at }}</bdi>{{ r.ap.b }}</span><span v-if="r.end">{{ r.end.a }}<bdi>{{ r.end.at }}</bdi>{{ r.end.b }}</span><span v-else>{{ P("still") }}</span></span>
-                </span>
-                <span class="ph-row-end"><span class="ph-alh-st" :class="status(r)[0]">{{ status(r)[1] }}</span></span>
+        </template>
+        <template v-if="tab === 'now' ? rows.length : hist.loaded && histList.length" #default>
+          <template v-if="tab === 'now'">
+            <SwipeRow v-for="x in rows" :key="x.id" :end="swipe(x)">
+              <div class="ph-al" :class="x.sev">
+                <button type="button" class="ph-row ph-two ph-al-open" @click="open(x)">
+                  <span class="ph-row-lead"><span class="ph-tile" :style="{ '--tile': `var(--${tone(x.sev)})` }"><PIcon :svg="BELL" /></span></span>
+                  <span class="ph-row-main">
+                    <span class="ph-row-t">{{ x.title }}</span>
+                    <span class="ph-row-s ph-al-text">{{ x.text }}</span>
+                    <span v-if="since[x.id]" class="ph-row-s ph-al-when"><span>{{ appeared(since[x.id]).a }}<bdi>{{ appeared(since[x.id]).at }}</bdi>{{ appeared(since[x.id]).b }}</span></span>
+                  </span>
+                  <span class="ph-row-end"><PIcon class="ph-chev" name="chevron" dir /></span>
+                </button>
+                <button type="button" class="ph-link ph-al-dis" @click="dismiss(x)">{{ t("alerts.dismiss") }}</button>
               </div>
+            </SwipeRow>
+          </template>
+          <template v-else>
+            <div v-for="r in histList" :key="r.id ?? r.key + r.first_seen" class="ph-row ph-two ph-alh">
+              <span class="ph-row-lead"><span class="ph-alh-dot" :class="r.sev" aria-hidden="true" /></span>
+              <span class="ph-row-main">
+                <span class="ph-row-t">{{ r.title2 }}</span>
+                <span class="ph-row-s ph-al-text">{{ r.detail2 }}</span>
+                <span class="ph-row-s ph-al-when"><span>{{ r.ap.a }}<bdi>{{ r.ap.at }}</bdi>{{ r.ap.b }}</span><span v-if="r.end">{{ r.end.a }}<bdi>{{ r.end.at }}</bdi>{{ r.end.b }}</span><span v-else>{{ P("still") }}</span></span>
+              </span>
+              <span class="ph-row-end"><span class="ph-alh-st" :class="status(r)[0]">{{ status(r)[1] }}</span></span>
             </div>
-            <p class="ph-group-n">{{ P("histNote") }}</p>
-            <div v-if="hist.more" class="ph-alerts-more"><button type="button" class="ph-btn tonal" :disabled="hist.busy" @click="loadHist(true)">{{ t("alerts.more") }}</button></div>
           </template>
         </template>
-      </section>
+      </ListGroup>
+      <div v-if="tab !== 'now' && hist.loaded && histList.length && hist.more" class="ph-alerts-more"><button type="button" class="ph-btn tonal" :disabled="hist.busy" @click="loadHist(true)">{{ t("alerts.more") }}</button></div>
 
       <ListGroup>
         <ListRow :title="t('phone.shell.open.alerts')" :sub="P('settingsSub')" :icon="SETTINGS" tone="var(--c6)" link @tap="settings" />

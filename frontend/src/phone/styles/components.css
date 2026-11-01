@@ -83,11 +83,16 @@ html.phone .ph-back {
   min-inline-size: 0;
 }
 
+/* the name of the screen under it uses the room its side of the bar has, cut short only when that runs out */
+html.phone .ph-back {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
 html.phone .ph-back span {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  max-inline-size: 28vw;
 }
 
 html.phone .ph-back .ph-ic {
@@ -428,6 +433,17 @@ html.phone .ph-link .ph-ic {
 }
 
 /* ---- Grouped lists ---- */
+/* a control above a group's rows (a switch between two lists), or what shows instead of them */
+html.phone .ph-group-top {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+html.phone .ph-group-top + .ph-group-b {
+  margin-block-start: 14px;
+}
+
 html.phone .ph-group-h {
   display: flex;
   align-items: center;
@@ -479,7 +495,7 @@ html.phone .ph-row {
   transition: background-color var(--p-t-press);
 }
 
-html.phone .ph-row.two {
+html.phone .ph-row.ph-two {
   min-block-size: var(--p-row);
 }
 
@@ -636,6 +652,10 @@ html.phone .ph-swipe-a {
   display: flex;
 }
 
+html.phone .ph-swipe.rest .ph-swipe-a {
+  visibility: hidden;
+}
+
 html.phone .ph-swipe-a.start {
   inset-inline-start: 0;
 }
@@ -733,6 +753,11 @@ html.phone .ph-hero-s {
   text-wrap: balance;
 }
 
+/* an amount and the stop or comma after it stay on one line */
+html.phone .ph-hero-g {
+  white-space: nowrap;
+}
+
 html.phone .ph-hero-a {
   display: inline-block;
   font-size: 34px;
@@ -750,6 +775,12 @@ html.phone .ph-amt {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   color: var(--tx);
+}
+
+/* in Hebrew an amount reads as one piece, left to right, with its sign and "≈" before it (≈ −₪18) */
+html.phone .ph-amt {
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
 html.phone .ph-amt.pos {
@@ -773,7 +804,7 @@ html.phone .ph-stat {
   text-align: start;
 }
 
-html.phone .ph-stat:active {
+html.phone button.ph-stat:active {
   background: var(--p-press);
 }
 
@@ -789,6 +820,22 @@ html.phone .ph-stat-v {
   line-height: 26px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-prog-w {
+  position: relative;
+  display: block;
+}
+
+/* a place on the bar (today's place in the month): if the colour passes it, it runs ahead */
+html.phone .ph-prog-m {
+  position: absolute;
+  inset-block: -3px;
+  inline-size: 2px;
+  margin-inline-start: -1px;
+  border-radius: 1px;
+  background: var(--tx2);
+  opacity: .55;
 }
 
 html.phone .ph-prog {
@@ -949,7 +996,8 @@ html.phone .ph-chips {
   scrollbar-width: none;
   padding-inline: var(--p-gut);
   margin-inline: calc(-1 * var(--p-gut));
-  mask-image: linear-gradient(to right, transparent, #000 var(--p-gut), #000 calc(100% - var(--p-gut)), transparent);
+  /* fixed side: --fl and --fr are the left and right fades, set by ChipBar.vue for the side with more chips */
+  mask-image: linear-gradient(to right, transparent, #000 var(--fl, var(--p-gut)), #000 calc(100% - var(--fr, var(--p-gut))), transparent);
 }
 
 html.phone .ph-chip {
@@ -1055,6 +1103,15 @@ html.phone .ph-scrim {
   inset: 0;
   z-index: 60;
   background: var(--scrim);
+}
+
+/* an explanation opens on top of any sheet it was asked from */
+html.phone .ph-scrim:has(+ .ph-explain) {
+  z-index: 62;
+}
+
+html.phone .ph-sheet.ph-explain {
+  z-index: 63;
 }
 
 html.phone .ph-sheet {
@@ -1196,6 +1253,15 @@ html.phone .ph-pick-o {
   font: inherit;
   font-size: 16px;
   text-align: start;
+}
+
+html.phone .ph-act-l {
+  flex: 1;
+}
+
+html.phone .ph-act-v {
+  color: var(--tx2);
+  font-size: 15px;
 }
 
 html.phone .ph-act + .ph-act,

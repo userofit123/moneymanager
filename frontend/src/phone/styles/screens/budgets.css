@@ -19,7 +19,6 @@ html.phone .ph-bud-tiles {
 html.phone .ph-bud-tiles .ph-stat {
   min-inline-size: 0;
   justify-content: flex-start;
-  cursor: default;
 }
 
 html.phone .ph-bud-tiles .ph-stat:first-child {
@@ -94,22 +93,6 @@ html.phone .ph-bud-row .ph-chev {
 html.phone .ph-bud-bar,
 html.phone .ph-bud-row-s {
   margin-inline-start: 36px;
-}
-
-html.phone .ph-bud-bar {
-  position: relative;
-  display: block;
-}
-
-/* today's place in the month: if the colour passes it, spending runs ahead of the month */
-html.phone .ph-bud-bar u {
-  position: absolute;
-  inset-block: -3px;
-  inline-size: 2px;
-  margin-inline-start: -1px;
-  border-radius: 1px;
-  background: var(--tx2);
-  opacity: .55;
 }
 
 html.phone .ph-bud-bar.big {

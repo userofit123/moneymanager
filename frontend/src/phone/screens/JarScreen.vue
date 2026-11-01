@@ -5,7 +5,7 @@
 // can be opened again. Everything comes from pagelogic/jars.js, the same as the computer's Jars page.
 import { ref, computed, watch, nextTick, onMounted } from "vue";
 import { ask } from "../../core/ask.js";
-import { tipFill } from "../../core/tooltip.js";
+import { tipFill, explain } from "../../core/tooltip.js";
 import { openTx } from "../../core/txwin.js";
 import { useJars } from "../../pagelogic/jars.js";
 import { usePhoneNav } from "../navigation.js";
@@ -18,7 +18,6 @@ import ProgressBar from "../components/ProgressBar.vue";
 import ProgressRing from "../components/ProgressRing.vue";
 import EmptyState from "../components/EmptyState.vue";
 import SkeletonRows from "../components/SkeletonRows.vue";
-import PhoneSheet from "../components/PhoneSheet.vue";
 import PickerSheet from "../components/PickerSheet.vue";
 import ActionSheet from "../components/ActionSheet.vue";
 import PIcon from "../components/PIcon.vue";
@@ -45,9 +44,6 @@ watch(raw, (x, was) => { if (!x && was) nav.back(); });
 const stBox = ref(null);
 watch([jar, stBox], () => nextTick(() => { if (jar.value && stBox.value) tipFill(stBox.value, stBody(jar.value)); }), { immediate: true });
 // a tooltip's text, opened by a tap
-const tipText = ref(""), tipOpen = ref(false), tipBox = ref(null);
-const explain = (s) => { tipText.value = s; tipOpen.value = true; };
-watch([tipOpen, tipText], () => nextTick(() => { if (tipOpen.value && tipBox.value) tipFill(tipBox.value, tipText.value); }));
 
 // its history, narrowed by kind
 const kind = ref("all");
@@ -63,12 +59,12 @@ const more = ref(false);
 const askDoneHere = () => {
   askDone(raw.value.id);
   const j = doneAsk.value; if (!j) return;
-  ask(t("jars.done.title", { name: tx(j.n) }), t("jars.done.text") + (j.bal > 0 ? " " + t("jars.done.back", { amount: fm(j.bal) }) : ""), doDone);
+  ask(t("jars.done.title", { name: tx(j.n) }), t("jars.done.text") + (j.bal > 0 ? " " + t("jars.done.back", { amount: fm(j.bal) }) : ""), doDone, { yes: t("jars.markDone") });
 };
 const askDelHere = () => {
   askDel(raw.value.id);
   const j = delAsk.value; if (!j) return;
-  ask(t("jars.del.title", { name: tx(j.n) }), t("jars.del.text"), doDel, { danger: true });
+  ask(t("jars.del.title", { name: tx(j.n) }), t("jars.del.text"), doDel, { danger: true, yes: t("jars.menu.del") });
 };
 const ICON = {
   edit: '<path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/>',
@@ -104,9 +100,9 @@ const stTone = (s) => (s.key === "needs" ? "warn" : s.key === "partly" ? "acc" :
     <!-- an open jar -->
     <template v-else-if="jar">
       <header class="ph-jar-hero">
-        <ProgressRing class="ph-jar-ring" :value="jar.open ? 0 : jar.bal" :max="jar.open ? 0 : jar.need" :size="104" :style="{ '--ring': col(jar.p) }" :label="ringText(jar)">
+        <ProgressRing class="ph-jar-ring" :value="jar.open ? 0 : jar.bal" :max="jar.open ? 0 : jar.need" :size="104" :color="col(jar.p)" :label="ringText(jar)">
           <span class="ph-jar-pc">{{ jar.open ? "" : Math.min(999, jar.pc) + "%" }}</span>
-          <svg v-if="jar.open" class="ph-jar-ki" viewBox="0 0 24 24" aria-hidden="true" v-html="KI[jar.type]" />
+          <svg v-if="jar.open" class="ph-jar-ki" :style="{ stroke: col(jar.p) }" viewBox="0 0 24 24" aria-hidden="true" v-html="KI[jar.type]" />
         </ProgressRing>
         <h1 class="ph-jar-name">{{ tx(jar.n) }}</h1>
         <b class="ph-jar-amt">{{ fm(jar.bal) }}</b>
@@ -140,7 +136,7 @@ const stTone = (s) => (s.key === "needs" ? "warn" : s.key === "partly" ? "acc" :
       <section v-if="goal" class="ph-group ph-jar-goal">
         <div class="ph-group-h"><h3>{{ P("goalTitle") }}</h3><span class="ph-jar-pill" :class="GTONE[goal.st]">{{ tk("jars.g." + goal.st) }}</span></div>
         <div class="ph-group-b ph-jar-gb">
-          <ProgressBar :value="goal.pc" :max="100" :style="{ '--bar': col(goal.p) }" :label="tx(goal.n)" />
+          <ProgressBar :value="goal.pc" :max="100" :color="col(goal.p)" :label="tx(goal.n)" />
           <p>{{ goalLine(goal) }}</p>
           <button v-if="goal.st === 'reached'" type="button" class="ph-btn tonal" @click="askDoneHere">{{ t("jars.markDone") }}</button>
           <button v-else-if="goal.fix" type="button" class="ph-btn tonal" @click="save((s) => goalFix(s, goal.id, ctx()))">{{ t("jars.raise", { amount: fm(goal.fix) }) }}</button>
@@ -165,7 +161,7 @@ const stTone = (s) => (s.key === "needs" ? "warn" : s.key === "partly" ? "acc" :
       <div class="ph-group-h"><h3>{{ P("history") }}</h3></div>
       <Segmented v-if="hist.length" v-model="kind" :options="allKinds" :label="t('jars.hist.show')" />
       <div class="ph-group-b">
-        <component :is="h.pay ? 'button' : 'div'" v-for="(h, i) in shown" :key="i" :type="h.pay ? 'button' : undefined" class="ph-row two ph-jar-h" @click="h.pay && openTx(h.id)">
+        <component :is="h.pay ? 'button' : 'div'" v-for="(h, i) in shown" :key="i" :type="h.pay ? 'button' : undefined" class="ph-row ph-two ph-jar-h" @click="h.pay && openTx(h.id)">
           <span class="ph-row-main">
             <span class="ph-row-t">{{ noteText(h) }}</span>
             <span class="ph-row-s">{{ h.earlier ? t("jars.hist.earlier") : dstr(h.d) }}</span>
@@ -176,10 +172,7 @@ const stTone = (s) => (s.key === "needs" ? "warn" : s.key === "partly" ? "acc" :
       </div>
     </section>
 
-    <PickerSheet v-if="jar" :open="pickPri" :title="t('jars.pick')" :options="priOptions" :model-value="jar.ix + 1" @update:open="pickPri = $event" @update:model-value="(v) => save((s) => moveJarTo(s, jar.id, +v))" />
+    <PickerSheet v-if="jar" :open="pickPri" required :title="t('jars.pick')" :options="priOptions" :model-value="jar.ix + 1" @update:open="pickPri = $event" @update:model-value="(v) => save((s) => moveJarTo(s, jar.id, +v))" />
     <ActionSheet v-model:open="more" :title="raw ? tx(raw.n) : ''" :actions="actions" />
-    <PhoneSheet v-model:open="tipOpen" cls="ph-explain">
-      <div ref="tipBox" class="tip rich on ph-tipbox" :class="{ one: !tipText.includes('\n') }" />
-    </PhoneSheet>
   </PhoneScreen>
 </template>

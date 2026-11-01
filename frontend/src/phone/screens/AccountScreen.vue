@@ -4,13 +4,13 @@
 // numbers, the account's details, the balance updates typed by hand, and its own activity with a search.
 // ⋯ holds Update balance, Edit, Connection settings, Show in Activity and Remove (each only where the computer offers it).
 // Everything comes from pagelogic/accounts.js, the same as the computer's account page.
-import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { data } from "../../stores/data.js";
 import { now, dayOf } from "../../core/clock.js";
 import { openForm } from "../../core/forms.js";
 import { goActivity } from "../../core/shell.js";
 import { ask } from "../../core/ask.js";
-import { tipFill } from "../../core/tooltip.js";
+import { explain } from "../../core/tooltip.js";
 import { openSettingsTab } from "../../views/settings/tab.js";
 import { catColor, catLabel } from "../../core/cats.js";
 import { tx } from "../../core/heText.js";
@@ -32,7 +32,6 @@ import SearchField from "../components/SearchField.vue";
 import EmptyState from "../components/EmptyState.vue";
 import SkeletonRows from "../components/SkeletonRows.vue";
 import ActionSheet from "../components/ActionSheet.vue";
-import PhoneSheet from "../components/PhoneSheet.vue";
 import PIcon from "../components/PIcon.vue";
 
 const props = defineProps({ id: { type: String, default: null } });
@@ -88,9 +87,6 @@ watch(chartBox, (el) => { ro?.disconnect(); if (el && typeof ResizeObserver != "
 onBeforeUnmount(() => ro?.disconnect());
 
 // a tooltip's text (a detail's explanation), opened by a tap
-const tipText = ref(""), tipOpen = ref(false), tipBox = ref(null);
-const explain = (s) => { tipText.value = s; tipOpen.value = true; };
-watch([tipOpen, tipText], () => nextTick(() => { if (tipOpen.value && tipBox.value) tipFill(tipBox.value, tipText.value); }));
 
 // the account's activity rows: the first letter in the category's colour, the name, the date and category, the amount
 const K = computed(() => kinds(S.value, dayOf(now.value)));
@@ -155,7 +151,7 @@ const iso = (s) => "⁦" + s + "⁩"; // a date keeps its order inside a Hebrew 
         <div class="ph-group-h"><h3>{{ t("acc.activity") }}</h3><button type="button" class="ph-link" @click="goActivity({ src: D.name })">{{ P("showAct") }}</button></div>
         <SearchField v-model="q" :placeholder="t('acc.search')" />
         <div class="ph-group-b">
-          <button v-for="x in vis" :key="x.id" type="button" class="ph-row two ph-acc-tx" :class="{ fut: K.isFut(x) }" :disabled="x.virtual" @click="openRow(x)">
+          <button v-for="x in vis" :key="x.id" type="button" class="ph-row ph-two ph-acc-tx" :class="{ fut: K.isFut(x) }" :disabled="x.virtual" @click="openRow(x)">
             <span class="ph-row-lead"><span class="ph-acc-av" :style="avStyle(x)" aria-hidden="true">{{ (rowName(x) || "?")[0] }}</span></span>
             <span class="ph-row-main">
               <span class="ph-row-t">{{ rowName(x) }}</span>
@@ -176,8 +172,5 @@ const iso = (s) => "⁦" + s + "⁩"; // a date keeps its order inside a Hebrew 
     </template>
 
     <ActionSheet v-model:open="more" :title="D ? name : ''" :actions="actions" />
-    <PhoneSheet v-model:open="tipOpen" cls="ph-explain">
-      <div ref="tipBox" class="tip rich on ph-tipbox" :class="{ one: !tipText.includes('\n') }" />
-    </PhoneSheet>
   </PhoneScreen>
 </template>

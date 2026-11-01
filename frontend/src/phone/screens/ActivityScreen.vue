@@ -87,8 +87,8 @@ function applyDates() {
 // ---- the ⋯ menu: group, sort, export ----
 const optsOpen = ref(false);
 const optActs = computed(() => [
-  { label: labelOf(groupOpts.value, group.value), run: () => (picker.value = "group") },
-  { label: labelOf(sortOpts.value, sort.value), run: () => (picker.value = "sort") },
+  { label: t("activity.groupBy"), value: t("phone.activity.groupV." + group.value), run: () => (picker.value = "group") },
+  { label: t("activity.sortBy"), value: labelOf(sortOpts.value, sort.value), run: () => (picker.value = "sort") },
   { label: t("txw.a.exp"), run: () => (expOpen.value = true) },
 ]);
 
@@ -137,11 +137,6 @@ const heldActs = computed(() => {
   ];
 });
 const heldOpen = computed({ get: () => !!held.value, set: (v) => { if (!v) held.value = null; } });
-let timer = 0, sx = 0, sy = 0, fired = false;
-const press = (e, x) => { fired = false; sx = e.touches[0].clientX; sy = e.touches[0].clientY; clearTimeout(timer); timer = setTimeout(() => { fired = true; held.value = x; navigator.vibrate?.(10); }, 500); };
-const pressMove = (e) => { if (Math.abs(e.touches[0].clientX - sx) + Math.abs(e.touches[0].clientY - sy) > 10) clearTimeout(timer); };
-const pressEnd = () => clearTimeout(timer);
-const tap = (x) => { if (fired) { fired = false; return; } openRow(x); };
 
 // endless list: the next page of rows loads when the end of the list comes into view
 const endEl = ref(null);
@@ -198,8 +193,8 @@ const revEmpty = computed(() => !revXf.value.length && !revDups.value.length && 
             <span class="ph-actv-gp"><span v-for="(p, i) in grpParts(g)" :key="i" :class="{ neg: p.neg }" :data-tip="p.tip || undefined">{{ p.l }} <b dir="ltr">{{ p.v }}</b></span></span>
           </button>
           <div v-if="!g.label || !closed.has(gkey(g))" class="ph-group-b">
-            <SwipeRow v-for="x in g.rows" :key="x.id" :end="swipeActs(x)">
-              <button type="button" class="ph-row two ph-txr" :class="{ fut: K.isFut(x) }" @click="tap(x)" @contextmenu.prevent="held = x" @touchstart.passive="press($event, x)" @touchmove.passive="pressMove" @touchend="pressEnd" @touchcancel="pressEnd">
+            <SwipeRow v-for="x in g.rows" :key="x.id" :end="swipeActs(x)" @hold="held = x">
+              <button type="button" class="ph-row ph-two ph-txr" :class="{ fut: K.isFut(x) }" @click="openRow(x)">
                 <span class="ph-row-lead"><span class="ph-av" :style="avStyle(x)" aria-hidden="true">{{ (name(x) || "?")[0] }}</span></span>
                 <span class="ph-row-main">
                   <span class="ph-row-t">{{ name(x) }}</span>
@@ -260,7 +255,7 @@ const revEmpty = computed(() => !revXf.value.length && !revDups.value.length && 
     </template>
 
     <!-- sheets -->
-    <PickerSheet v-model:open="pickOpen" :title="PICK[picker]?.title || ''" :options="PICK[picker]?.options || []" :model-value="pickVal" @update:model-value="picked" />
+    <PickerSheet v-model:open="pickOpen" :required="picker === 'group' || picker === 'sort'" :title="PICK[picker]?.title || ''" :options="PICK[picker]?.options || []" :model-value="pickVal" @update:model-value="picked" />
     <PickerSheet v-model:open="catOpen" :title="catFor ? name(catFor) : ''" :options="catOptions" :model-value="catNow" @update:model-value="catPicked" />
     <ActionSheet v-model:open="optsOpen" :actions="optActs" />
     <ActionSheet v-model:open="heldOpen" :title="held ? name(held) : ''" :actions="heldActs" />

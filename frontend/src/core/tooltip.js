@@ -77,6 +77,8 @@ function pin(i) {
 // the phone's sheet: tipSheet(fn) gives it; fn(text) opens it. tipFill(el, text) writes the formatted text into el.
 let sheet = null, held = 0;
 export const tipSheet = (fn) => { sheet = fn; };
+// a tap that explains a number on the phone (a tile, a row): its text in the same sheet
+export const explain = (text) => { if (sheet && text) sheet(text); };
 export const tipFill = (el, text) => fill(text, el);
 const inSheet = () => !!sheet && document.documentElement.classList.contains("phone");
 function wire() {

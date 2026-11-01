@@ -227,8 +227,3 @@ html.phone .ph-bills-tot b {
   color: var(--tx);
   font-weight: 600;
 }
-
-/* rows in a sheet keep their gap (a sheet's ".two" rule is meant for form fields) */
-html.phone .ph-sheet .ph-bills-srow {
-  gap: 12px;
-}

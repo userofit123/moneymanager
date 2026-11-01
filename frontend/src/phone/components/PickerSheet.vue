@@ -1,12 +1,12 @@
 <script setup>
 // Choose one (or several, multi) from a list in a sheet: a search field when the list is long, a check at the picked ones,
-// and "Clear" when something is picked. options: [{ value, label, sub? }].
+// and "Clear" when something is picked (not for a choice that must stay set: required). options: [{ value, label, sub? }].
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import PhoneSheet from "./PhoneSheet.vue";
 import SearchField from "./SearchField.vue";
 import PIcon from "./PIcon.vue";
-const props = defineProps({ open: { type: Boolean, default: false }, title: { type: String, default: "" }, options: { type: Array, default: () => [] }, modelValue: { type: [String, Number, Array], default: null }, multi: { type: Boolean, default: false } });
+const props = defineProps({ open: { type: Boolean, default: false }, title: { type: String, default: "" }, options: { type: Array, default: () => [] }, modelValue: { type: [String, Number, Array], default: null }, multi: { type: Boolean, default: false }, required: { type: Boolean, default: false } });
 const emit = defineEmits(["update:open", "update:modelValue"]);
 const { t } = useI18n();
 const q = ref("");
@@ -30,6 +30,6 @@ const clear = () => emit("update:modelValue", props.multi ? [] : null);
         <PIcon v-if="picked(o.value)" name="check" class="ph-pick-ck" />
       </button>
     </div>
-    <template v-if="some" #foot><button type="button" class="ph-btn tonal" @click="clear">{{ t("phone.shell.clear") }}</button></template>
+    <template v-if="some && !required" #foot><button type="button" class="ph-btn tonal" @click="clear">{{ t("phone.shell.clear") }}</button></template>
   </PhoneSheet>
 </template>

@@ -5,7 +5,7 @@ html.phone .ph-rep .ph-hero {
   padding: 0 4px;
 }
 
-html.phone .ph-rep .ph-hero.neg .ph-hero-a:first-of-type {
+html.phone .ph-rep .ph-hero.neg .ph-hero-g:first-of-type .ph-hero-a {
   color: var(--neg);
 }
 
@@ -152,7 +152,6 @@ html.phone .ph-rep-tiles {
 html.phone .ph-rep-tiles .ph-stat {
   min-inline-size: 0;
   justify-content: flex-start;
-  cursor: default;
 }
 
 html.phone .ph-rep-tiles .ph-stat.cur {
@@ -429,9 +428,4 @@ html.phone .ph-rep-err {
   border-radius: var(--p-r-group);
   background: color-mix(in srgb, var(--neg) 10%, transparent);
   color: var(--neg);
-}
-
-/* the amounts in the opening sentence flow with the words, so a full stop after one never starts the next line */
-html.phone .ph-rep .ph-hero-a {
-  display: inline;
 }

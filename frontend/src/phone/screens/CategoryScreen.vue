@@ -3,10 +3,10 @@
 // looked at set large, with its change against the months before; month by month (a tap picks a month, its transactions open
 // in Activity); every number the computer's columns show; and the latest transactions. ⋯ holds Rename or merge, Merge into…
 // (categories) and Delete. Everything comes from pagelogic/categories.js, the same as the computer's page.
-import { ref, computed, watch, nextTick, onMounted } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { useCategories } from "../../pagelogic/categories.js";
 import { data } from "../../stores/data.js";
-import { tipFill } from "../../core/tooltip.js";
+import { explain } from "../../core/tooltip.js";
 import { usePhoneNav } from "../navigation.js";
 import PhoneScreen from "../components/PhoneScreen.vue";
 import IconButton from "../components/IconButton.vue";
@@ -60,9 +60,6 @@ const atOut = computed(() => row.value?.outM[at.value] || 0), atIn = computed(()
 
 // the numbers the computer's columns show (tags have no budget); a tap explains one
 const cols = computed(() => CAT_COLS.filter((c) => !(tab.value === "tags" && c === "budget")));
-const tipText = ref(""), tipOpen = ref(false), tipBox = ref(null);
-const explain = (s) => { tipText.value = s; tipOpen.value = true; };
-watch([tipOpen, tipText], () => nextTick(() => { if (tipOpen.value && tipBox.value) tipFill(tipBox.value, tipText.value); }));
 const tapCol = (c) => {
   const r = row.value;
   if (c === "budget") return r.budget ? go("/budgets") : r.canBudget ? setBudget(r) : explain(colTip(c));
@@ -167,8 +164,5 @@ const renOn = computed({ get: () => !!ren.value, set: (v) => { if (!v) ren.value
       <template #foot><button type="button" class="ph-btn" @click="doRename">{{ t("cats.rename") }}</button></template>
     </PhoneSheet>
 
-    <PhoneSheet v-model:open="tipOpen" cls="ph-explain">
-      <div ref="tipBox" class="tip rich on ph-tipbox" :class="{ one: !tipText.includes('\n') }" />
-    </PhoneSheet>
   </PhoneScreen>
 </template>

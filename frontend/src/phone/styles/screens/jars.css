@@ -63,11 +63,6 @@ html.phone .ph-jars-fill .ph-btn {
   inline-size: 100%;
 }
 
-/* the jars: a ring in the jar's colour with how full it is; the status first on the second line */
-html.phone .ph-jars .ph-ring .val {
-  stroke: var(--ring, var(--acc));
-}
-
 html.phone .ph-jars-ring .ph-ring-in {
   font-size: 11px;
   font-variant-numeric: tabular-nums;
@@ -132,10 +127,6 @@ html.phone .ph-jars-gb {
   flex-direction: column;
   gap: 8px;
   padding: 0 16px 14px;
-}
-
-html.phone .ph-jars-gb .ph-prog i {
-  background: var(--bar, var(--acc));
 }
 
 html.phone .ph-jars-gb p {

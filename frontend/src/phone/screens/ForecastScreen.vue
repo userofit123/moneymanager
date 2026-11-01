@@ -149,7 +149,7 @@ const openJar = (id) => nav.push("jar", String(id));
       <section class="ph-group">
         <div class="ph-group-h"><h3>{{ P("ahead") }}</h3></div>
         <div class="ph-group-b">
-          <div v-for="a in ahead" :key="a.k" class="ph-row two ph-fc-ah" :class="{ hero: a.k == H }">
+          <div v-for="a in ahead" :key="a.k" class="ph-row ph-two ph-fc-ah" :class="{ hero: a.k == H }">
             <span class="ph-row-main">
               <span class="ph-row-t"><span :data-tip="a.tip || null">{{ a.title }}</span></span>
               <span v-if="a.when" class="ph-row-s">{{ a.when }}</span>
@@ -168,7 +168,7 @@ const openJar = (id) => nav.push("jar", String(id));
       <section ref="howEl" class="ph-group ph-fc-how">
         <div class="ph-group-h"><h3>{{ t("forecast.how.title") }}</h3></div>
         <div class="ph-group-b">
-          <div v-for="(x, i) in steps" :key="i" class="ph-row two ph-fc-step" :class="'s-' + x.k">
+          <div v-for="(x, i) in steps" :key="i" class="ph-row ph-two ph-fc-step" :class="'s-' + x.k">
             <span class="ph-fc-op" aria-hidden="true"><PIcon v-if="x.op == 'go'" :svg="DOWN" /><template v-else>{{ x.op }}</template></span>
             <span class="ph-tile"><PIcon :svg="SUMI[x.k]" /></span>
             <span class="ph-row-main">
@@ -189,7 +189,7 @@ const openJar = (id) => nav.push("jar", String(id));
       <section v-for="(g, gi) in groups" :key="gi" class="ph-group">
         <div class="ph-group-h"><h3>{{ g[0].label }}</h3></div>
         <div class="ph-group-b">
-          <button v-for="e in g" :key="e.x.key" type="button" class="ph-row two ph-fc-line" :class="{ tot: !!e.tr }" @click="showRow(e)">
+          <button v-for="e in g" :key="e.x.key" type="button" class="ph-row ph-two ph-fc-line" :class="{ tot: !!e.tr }" @click="showRow(e)">
             <span class="ph-row-main">
               <span class="ph-row-t">{{ e.tr ? t(gi ? "forecast.totalOut" : "forecast.totalIn") : e.label }}</span>
               <span class="ph-row-s ph-fc-dir" :class="e.x.dr.none ? '' : DIR[e.x.dr.cls]"><template v-if="e.x.dr.none">{{ t("forecast.dir.none") }}</template><template v-else><PIcon :svg="ARROW[e.x.dr.word]" />{{ tk("forecast.dir." + e.x.dr.word) }}</template></span>
@@ -201,7 +201,7 @@ const openJar = (id) => nav.push("jar", String(id));
       </section>
       <section class="ph-group">
         <div class="ph-group-b">
-          <button type="button" class="ph-row two ph-fc-line tot" @click="showRow(saved)">
+          <button type="button" class="ph-row ph-two ph-fc-line tot" @click="showRow(saved)">
             <span class="ph-row-main">
               <span class="ph-row-t"><span :data-tip="saved.tip">{{ P("saved") }}</span></span>
               <span class="ph-row-s">{{ P("savedSub") }}</span>
@@ -209,7 +209,7 @@ const openJar = (id) => nav.push("jar", String(id));
             <span class="ph-amt" :class="rowVal(saved, saved.vals[col])">{{ amt(saved.vals[col]) }}</span>
             <PIcon name="chevron" dir class="ph-chev" />
           </button>
-          <div v-if="endV != null" class="ph-row two ph-fc-line tot">
+          <div v-if="endV != null" class="ph-row ph-two ph-fc-line tot">
             <span class="ph-row-main"><span class="ph-row-t ph-fc-wrap"><span :data-tip="t('forecast.endTip')">{{ t("forecast.endRow") }}</span></span></span>
             <span class="ph-amt" :class="{ neg: endV < -0.5 }">{{ sg(endV) }}</span>
           </div>

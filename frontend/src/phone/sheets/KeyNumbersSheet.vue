@@ -2,11 +2,11 @@
 // Key numbers in the phone app: the main sums of the month in their groups (Known now, Your plans, This month so far,
 // the likely ones), each group adding up to its last line, the same list and amounts as the computer's panel
 // (keyNums in core/derived.js). A tap on a line opens how it is worked out (the computer's tooltip text).
-import { computed, ref, watch, nextTick } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { keyNums } from "../../core/derived.js";
 import { formatMoney } from "../../format.js";
-import { tipFill } from "../../core/tooltip.js";
+import { explain } from "../../core/tooltip.js";
 import { helpShown } from "../help.js";
 import PhoneSheet from "../components/PhoneSheet.vue";
 import ListGroup from "../components/ListGroup.vue";
@@ -22,9 +22,7 @@ const numName = (x) => t(x.name, x.mk ? { month: monthOf(x.mk) } : {});
 const rowName = (x) => (x.id === "free" && x.a < 0 ? t("num.shortBy") : x.from && x.short ? t(x.short, x.mk ? { month: monthOf(x.mk) } : {}) : numName(x));
 
 // how a line is worked out, in a sheet over this one
-const tipText = ref(""), tipOpen = ref(false), tipBox = ref(null);
-const explain = (x) => { tipText.value = t(x.tip); tipOpen.value = true; };
-watch([tipOpen, tipText], () => nextTick(() => { if (tipOpen.value && tipBox.value) tipFill(tipBox.value, tipText.value); }));
+const explainNum = (x) => explain(t(x.tip));
 </script>
 
 <template>
@@ -32,7 +30,7 @@ watch([tipOpen, tipText], () => nextTick(() => { if (tipOpen.value && tipBox.val
     <template v-if="keyNums">
       <p class="ph-nums-lead">{{ t("phone.sheets.numsIntro") }}</p>
       <ListGroup v-for="g in keyNums.groups" :key="g.id" :title="t(g.name)" :class="{ guess: g.id.startsWith('likely') }">
-        <button v-for="x in g.items" :key="x.id" type="button" class="ph-row ph-num" :class="{ from: x.from, res: x.op === '=' }" @click="explain(x)">
+        <button v-for="x in g.items" :key="x.id" type="button" class="ph-row ph-num" :class="{ from: x.from, res: x.op === '=' }" @click="explainNum(x)">
           <span class="ph-num-op" aria-hidden="true">{{ x.op && x.op !== "=" ? x.op : "" }}</span>
           <span class="ph-row-main"><span class="ph-num-t">{{ rowName(x) }}</span></span>
           <span class="ph-row-end"><b class="ph-amt num" :class="{ neg: x.a < 0 }" dir="ltr">{{ formatMoney(x.a) }}</b></span>
@@ -40,8 +38,5 @@ watch([tipOpen, tipText], () => nextTick(() => { if (tipOpen.value && tipBox.val
       </ListGroup>
     </template>
     <EmptyState v-else :icon="ICONS.numbers" :text="t('num.none')" />
-  </PhoneSheet>
-  <PhoneSheet v-model:open="tipOpen" cls="ph-explain">
-    <div ref="tipBox" class="tip rich on ph-tipbox" :class="{ one: !tipText.includes('\n') }" />
   </PhoneSheet>
 </template>

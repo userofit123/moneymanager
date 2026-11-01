@@ -1,5 +1,6 @@
 <script setup>
 // A group of rows on a rounded surface, with an optional title above, a note below, and a "See all" link in the title line.
+// Slot "top": a control above the rows (a switch between two lists), or what shows instead of them (an empty state).
 defineProps({ title: { type: String, default: "" }, note: { type: String, default: "" }, more: { type: String, default: "" } });
 defineEmits(["more"]);
 </script>
@@ -10,7 +11,8 @@ defineEmits(["more"]);
       <h3>{{ title }}</h3>
       <button v-if="more" type="button" class="ph-link" @click="$emit('more')">{{ more }}</button>
     </div>
-    <div class="ph-group-b"><slot /></div>
+    <div v-if="$slots.top" class="ph-group-top"><slot name="top" /></div>
+    <div v-if="$slots.default" class="ph-group-b"><slot /></div>
     <p v-if="note || $slots.note" class="ph-group-n"><slot name="note">{{ note }}</slot></p>
   </section>
 </template>

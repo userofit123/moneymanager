@@ -125,10 +125,7 @@ function applyDates() {
 const held = ref(null);
 const heldActs = computed(() => (held.value ? [{ label: P("seePayments"), run: () => goActivity({ q: held.value }) }, { label: P("hide"), danger: true, run: () => hideMerch(held.value) }] : []));
 const heldOpen = computed({ get: () => !!held.value, set: (v) => { if (!v) held.value = null; } });
-let timer = 0, fired = false;
-const press = (n) => { fired = false; clearTimeout(timer); timer = setTimeout(() => { fired = true; held.value = n; navigator.vibrate?.(10); }, 500); };
-const unpress = () => clearTimeout(timer);
-const tapMerch = (n) => { if (fired) { fired = false; return; } goActivity({ q: n }); };
+const tapMerch = (n) => goActivity({ q: n });
 const hiddenOpen = ref(false);
 const hiddenActs = computed(() => (merch.value?.hidden || []).map((n) => ({ label: P("showName", { name: n }), run: () => showMerch(n) })));
 
@@ -271,8 +268,8 @@ const lineTotals = computed(() => (lD.value ? [...lD.value.lines].sort((a, b) =>
         </div>
         <div class="ph-group-b">
           <p v-if="!merch.rows.length" class="ph-rep-none">{{ t("rep.noSpendPeriod") }}</p>
-          <SwipeRow v-for="r in merch.rows" :key="r.n" :end="[{ label: P('hide'), tone: 'neg', run: () => hideMerch(r.n) }]">
-            <button type="button" class="ph-row ph-rep-m" @click="tapMerch(r.n)" @contextmenu.prevent="held = r.n" @touchstart.passive="press(r.n)" @touchmove.passive="unpress" @touchend="unpress" @touchcancel="unpress">
+          <SwipeRow v-for="r in merch.rows" :key="r.n" :end="[{ label: P('hide'), tone: 'neg', run: () => hideMerch(r.n) }]" @hold="held = r.n">
+            <button type="button" class="ph-row ph-rep-m" @click="tapMerch(r.n)">
               <span class="ph-rep-m-h"><span class="ph-row-t">{{ r.n }}</span><span v-if="merch.prev && dlt(r.v, r.before)" class="ph-rep-pill" :class="dlt(r.v, r.before).cls">{{ dlt(r.v, r.before).text }}</span><span class="ph-amt">{{ fm(r.v) }}</span></span>
               <span class="ph-rep-bar"><i :style="{ inlineSize: (r.v / merch.mx) * 100 + '%' }" /></span>
               <span class="ph-row-s ph-rep-m-s">
@@ -358,9 +355,9 @@ const lineTotals = computed(() => (lD.value ? [...lD.value.lines].sort((a, b) =>
     </template>
 
     <!-- sheets -->
-    <PickerSheet v-model:open="whatOpen" :title="t('rep.whatToShow')" :options="whatOpts" :model-value="trM" @update:model-value="pickWhat" />
-    <PickerSheet v-model:open="styleOpen" :title="P('options')" :options="styles.map(([value, label]) => ({ value, label }))" :model-value="TR.v" @update:model-value="(v) => v && (TR.v = v)" />
-    <PickerSheet v-model:open="pickOpen" :title="pickTitle" :options="pickOpts" :model-value="pickVal" @update:model-value="picked" />
+    <PickerSheet v-model:open="whatOpen" required :title="t('rep.whatToShow')" :options="whatOpts" :model-value="trM" @update:model-value="pickWhat" />
+    <PickerSheet v-model:open="styleOpen" required :title="P('options')" :options="styles.map(([value, label]) => ({ value, label }))" :model-value="TR.v" @update:model-value="(v) => v && (TR.v = v)" />
+    <PickerSheet v-model:open="pickOpen" required :title="pickTitle" :options="pickOpts" :model-value="pickVal" @update:model-value="picked" />
     <ActionSheet v-model:open="more" :title="P('options')" :actions="moreActs" />
     <ActionSheet v-model:open="heldOpen" :title="held || ''" :actions="heldActs" />
     <ActionSheet v-model:open="hiddenOpen" :title="t('rep.hiddenFrom')" :actions="hiddenActs" />

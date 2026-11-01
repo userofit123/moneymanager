@@ -16,5 +16,16 @@
   "reviewHero": "{n} thing needs a look. | {n} things need a look.",
   "custom": "Choose dates",
   "noAccount": "Not from an account",
-  "howCounted": "How is this counted?"
+  "howCounted": "How is this counted?",
+  "groupV": {
+    "none": "None",
+    "day": "Day",
+    "week": "Week",
+    "month": "Month",
+    "cat": "Category",
+    "type": "Type",
+    "acct": "Account",
+    "merchant": "Merchant",
+    "tag": "Tag"
+  }
 }
