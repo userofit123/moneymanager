@@ -122,6 +122,15 @@ test("an English history sentence is written again in Hebrew, the same as the li
   assert.ok(seen.length >= 7);
 });
 
+test("a history sentence with direction marks around its numbers and names is still written again in Hebrew", async () => {
+  const E = await ctxOf("en"), table = reverseTable(en), x = newAlerts(STATES[1][2]).find((a) => /\d/.test(alertTexts(a, E)[0]));
+  const [et] = alertTexts(x, E), H = await ctxOf("he"), fix = { catName: H.catName, an: H.an, monthYear: (d) => String(d) };
+  const marked = et.replace(/\d[\d,.]*/g, (m) => "\u2066" + m + "\u2069");
+  assert.notEqual(marked, et);
+  assert.equal(reverseText(table, H.t, marked, fix)?.text, reverseText(table, H.t, et, fix)?.text);
+  assert.ok(reverseText(table, H.t, marked, fix));
+});
+
 test("a large amount's title follows what the money is: money back, salary, income", async () => {
   const S = demoState(); let id = 95000;
   const add = (o) => S.tx.push({ id: id++, c: "", tags: [], docs: [], note: "", d: "2026-10-15", ...o });

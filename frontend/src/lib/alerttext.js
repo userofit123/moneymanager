@@ -37,7 +37,9 @@ export function reverseTable(en) {
   }
   return L.sort((a, b) => b.size - a.size);
 }
+// Newer sentences keep their numbers and names inside direction marks (U+2066–2069); these are taken out before matching.
 export function reverseText(table, t, text, c) {
+  text = String(text ?? "").replace(/[\u2066-\u2069]/g, "");
   for (const r of table) {
     const m = r.re.exec(text); if (!m) continue;
     const p = {}; r.names.forEach((n, i) => { p[n] = m[i + 1]; });
