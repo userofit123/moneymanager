@@ -226,10 +226,10 @@ html.phone .ph-syncline.run .ph-ic {
   to { transform: rotate(360deg); }
 }
 
-/* ---- Offline pill ---- */
+/* ---- Offline pill: just above the tab bar, so it never covers a screen's large title (toasts move up over it) ---- */
 html.phone .ph-offline {
   position: fixed;
-  inset-block-start: calc(var(--st) + var(--p-bar) + 6px);
+  inset-block-end: calc(var(--p-tab) + var(--sb) + 10px);
   inset-inline: 0;
   margin-inline: auto;
   inline-size: max-content;
@@ -244,7 +244,7 @@ html.phone .ph-offline {
   font-size: 13px;
   font-weight: 500;
   z-index: 30;
-  transform: translateY(-12px);
+  transform: translateY(12px);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--p-t-fade), transform var(--p-t-fade) var(--p-ease);
@@ -1027,6 +1027,19 @@ html.phone .ph-chip-b {
   font: inherit;
   font-size: 14px;
   font-weight: 600;
+}
+
+/* the chip stays 36px high, but a finger gets 44px (its 4px margins above and below) */
+html.phone .ph-chip-b,
+html.phone .ph-syncline {
+  position: relative;
+}
+
+html.phone .ph-chip-b::after,
+html.phone .ph-syncline::after {
+  content: "";
+  position: absolute;
+  inset: -4px 0;
 }
 
 html.phone .ph-chip.on .ph-chip-b {

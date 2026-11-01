@@ -39,6 +39,9 @@ const SEG = { c1: "var(--c1)", c2: "var(--c2)", c3: "var(--c3)", c4: "var(--c4)"
 const open = (e, link) => { const a = e.target.closest?.("[data-a='recapGo']"); if (a) return recapGo(a.dataset.k); if (link) recapGo(link); };
 const upOpen = (x) => (x[3] != null ? billOpen(x[3]) : x[4] != null ? recapGo("tx:" + x[4]) : null);
 const segOf = (it) => { const L0 = it.filter((x) => x[1] >= 1), tot = L0.reduce((s, x) => s + x[1], 0) || 1; return L0.map((x) => ({ x, f: x[1] / tot })); };
+// "Sonol · 19 Oct": each part keeps its own order, so a date never joins an English name in a Hebrew line,
+// and a short part (a date) stays on one line
+const dots = (h) => String(h).split(" · ").map((p) => (p.length <= 12 ? '<bdi class="ph-rc-nw">' : "<bdi>") + p + "</bdi>").join(" · ");
 const mon = (d) => dshort(d).replace(/[0-9\s]/g, "");
 
 // the days: the strip under the greeting and the bars in "So far this month"; touching one opens what it held
@@ -154,7 +157,7 @@ const pathPts = (s) => {
                   </component>
                   <div v-if="g.subs && g.subs.length" class="ph-rc-subs">
                     <component :is="x[2] ? 'button' : 'div'" v-for="(x, k) in g.subs" :key="k" :type="x[2] ? 'button' : null" class="ph-rc-sub" @click="open($event, x[2])">
-                      <span class="ph-rc-wrap" v-html="x[0]" /><b class="ph-amt" v-html="mi(x[1])" />
+                      <span class="ph-rc-wrap" v-html="dots(x[0])" /><b class="ph-amt" v-html="mi(x[1])" />
                     </component>
                   </div>
                 </div>
@@ -245,7 +248,7 @@ const pathPts = (s) => {
                   <b class="ph-amt" dir="ltr"><bdi>{{ SIGN[g.k] }}</bdi><bdi v-html="mi(g.amt)" /></b>
                 </button>
                 <div v-if="g.subs.length" class="ph-rc-subs">
-                  <button v-for="(x, k) in g.subs" :key="k" type="button" class="ph-rc-sub" @click="recapGo(x[2])"><span class="ph-rc-wrap" v-html="x[0]" /><b class="ph-amt" v-html="mi(x[1])" /></button>
+                  <button v-for="(x, k) in g.subs" :key="k" type="button" class="ph-rc-sub" @click="recapGo(x[2])"><span class="ph-rc-wrap" v-html="dots(x[0])" /><b class="ph-amt" v-html="mi(x[1])" /></button>
                 </div>
               </div>
               <div class="ph-row ph-rc-end" :style="{ '--tile': KIND.end }">

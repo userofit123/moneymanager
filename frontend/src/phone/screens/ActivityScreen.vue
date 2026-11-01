@@ -147,6 +147,8 @@ onMounted(watchEnd); onActivated(watchEnd);
 onDeactivated(() => io?.disconnect()); onBeforeUnmount(() => io?.disconnect());
 
 // ---- Needs review ----
+// a name inside a sentence keeps its own order (an English name after a Hebrew "from" or "to")
+const bdi = (s) => "\u2068" + s + "\u2069";
 const revEmpty = computed(() => !revXf.value.length && !revDups.value.length && !revGaps.value.length);
 </script>
 
@@ -198,7 +200,7 @@ const revEmpty = computed(() => !revXf.value.length && !revDups.value.length && 
                 <span class="ph-row-lead"><span class="ph-av" :style="avStyle(x)" aria-hidden="true">{{ (name(x) || "?")[0] }}</span></span>
                 <span class="ph-row-main">
                   <span class="ph-row-t">{{ name(x) }}</span>
-                  <span class="ph-row-s ph-txr-s"><span class="num">{{ day(x) }}</span><span>{{ catLabel(x.c) }}</span><span v-if="acct(x)" class="ph-txr-acc">{{ acct(x) }}</span></span>
+                  <span class="ph-row-s ph-txr-s"><span class="num">{{ day(x) }}</span><span>{{ catLabel(x.c) }}</span><span v-if="acct(x)" class="ph-txr-acc" dir="auto">{{ acct(x) }}</span></span>
                   <span v-if="chips(x).length || x.docs?.length" class="ph-txr-chips">
                     <span v-for="c in chips(x)" :key="c.cls" class="bd pc" :class="c.cls"><svg v-if="c.icon" class="pi" viewBox="0 0 24 24" v-html="CHIP_ICON[c.icon]"></svg>{{ c.label }}</span>
                     <span v-if="x.docs?.length" class="bd pc ph-txr-doc"><svg class="pi" viewBox="0 0 24 24"><path d="M20 12l-8 8a5 5 0 0 1-7-7l8.5-8.5a3.5 3.5 0 0 1 5 5L10 18a2 2 0 0 1-3-3l7.5-7.5" /></svg>{{ x.docs.length }}</span>
@@ -225,7 +227,7 @@ const revEmpty = computed(() => !revXf.value.length && !revDups.value.length && 
           <div v-for="r in revXf" :key="r.x.o" class="ph-rv">
             <div class="ph-rv-h"><b>{{ r.o.from }}</b><PIcon name="chevron" dir class="ph-rv-to" /><b>{{ r.i.to }}</b></div>
             <span class="ph-row-s">{{ dstr(r.o.d) }}</span>
-            <p class="ph-rv-p"><EmText :text="t('activity.r.xfLine2', { sent: fm(-r.o.a), out: r.o.from, arrived: r.i.orig ? (SYM[r.i.orig.cur] || '') + f0(r.i.orig.amt) + ' (≈ ' + fm(r.i.a) + ')' : fm(r.i.a), in: r.i.to })" :em="[r.o.from, r.i.to]" /></p>
+            <p class="ph-rv-p"><EmText :text="t('activity.r.xfLine2', { sent: fm(-r.o.a), out: bdi(r.o.from), arrived: r.i.orig ? (SYM[r.i.orig.cur] || '') + f0(r.i.orig.amt) + ' (≈ ' + fm(r.i.a) + ')' : fm(r.i.a), in: bdi(r.i.to) })" :em="[r.o.from, r.i.to]" /></p>
             <span class="bd" :class="r.cost > 0.5 ? 'am2' : 'dn'">{{ r.cost > 0.5 ? t("activity.r.cost2", { amt: fm(r.cost), pc: ((r.cost / -r.o.a) * 100).toFixed(1) }) : t("activity.r.noCost") }}</span>
             <p class="ph-rv-p mu"><EmText :text="r.cost > 0.5 ? t('activity.r.costText') : t('activity.r.noCostText')" :em="['Fees & FX costs']" /></p>
             <div class="ph-rv-b"><button type="button" class="ph-btn ph-sm" @click="run(A.xfOk, r.x.o)">{{ t("activity.r.confirm") }}</button><button type="button" class="ph-btn tonal ph-sm" @click="run(A.xfNo, r.x.o)">{{ t("activity.r.notXf") }}</button></div>
@@ -234,7 +236,7 @@ const revEmpty = computed(() => !revXf.value.length && !revDups.value.length && 
         <ListGroup v-if="revDups.length" :title="t('activity.r.dupTitle')">
           <div v-for="x in revDups" :key="x.id" class="ph-rv">
             <div class="ph-rv-h"><b>{{ name(x) }}</b><b class="ph-rv-amt" dir="ltr">{{ fm(x.a) }}</b></div>
-            <p class="ph-rv-p mu"><EmText :text="x.from + ', ' + dstr(x.d) + '. ' + t('activity.r.dupWhy')" :em="[x.from]" /></p>
+            <p class="ph-rv-p mu"><EmText :text="x.from + ' · ' + dstr(x.d) + ' · ' + t('activity.r.dupWhy')" :em="[x.from]" /></p>
             <div class="ph-rv-b"><button type="button" class="ph-btn ph-sm danger" @click="run(A.dupDel, x.id)">{{ t("activity.r.dupDel") }}</button><button type="button" class="ph-btn tonal ph-sm" @click="run(A.dupKeep, x.id)">{{ t("activity.r.dupKeep") }}</button></div>
           </div>
         </ListGroup>
@@ -255,8 +257,8 @@ const revEmpty = computed(() => !revXf.value.length && !revDups.value.length && 
     </template>
 
     <!-- sheets -->
-    <PickerSheet v-model:open="pickOpen" :required="picker === 'group' || picker === 'sort'" :title="PICK[picker]?.title || ''" :options="PICK[picker]?.options || []" :model-value="pickVal" @update:model-value="picked" />
-    <PickerSheet v-model:open="catOpen" :title="catFor ? name(catFor) : ''" :options="catOptions" :model-value="catNow" @update:model-value="catPicked" />
+    <PickerSheet v-model:open="pickOpen" :required="picker === 'group' || picker === 'sort' || picker === 'p'" :title="PICK[picker]?.title || ''" :options="PICK[picker]?.options || []" :model-value="pickVal" @update:model-value="picked" />
+    <PickerSheet v-model:open="catOpen" required :title="catFor ? name(catFor) : ''" :options="catOptions" :model-value="catNow" @update:model-value="catPicked" />
     <ActionSheet v-model:open="optsOpen" :actions="optActs" />
     <ActionSheet v-model:open="heldOpen" :title="held ? name(held) : ''" :actions="heldActs" />
     <PhoneSheet :open="!!dates" :title="t('phone.activity.custom')" @update:open="(v) => !v && (dates = null)">

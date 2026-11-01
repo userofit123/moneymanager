@@ -64,7 +64,8 @@ const tileVal = (c) => (c.key === "net" && c.v < 0 ? "−" : "") + "₪" + n0(c.
 const accOpen = (n) => { const a = (S.value?.accounts || []).find((x) => x.n == n); if (a?.id != null) nav.push("account", String(a.id)); else accGo(n); };
 const ACC_N = 4;
 const accounts = computed(() => [...M.value.groups].sort((a, b) => b.total - a.total).slice(0, ACC_N));
-const accLine = (g) => { const s = accSub(g); return s.lines ? s.chips : [s.text, s.chips].filter(Boolean).join(", "); };
+// (an account's own line may already say "Manual": then it is not said twice)
+const accLine = (g) => { const s = accSub(g); if (s.lines) return s.chips; const has = s.chips && s.text.toLowerCase().includes(s.chips.toLowerCase()); return [s.text, has ? "" : s.chips].filter(Boolean).join(", "); };
 
 // spending by category: the five biggest, the rest in one row
 const spendTop = computed(() => donut.value.parts.slice(0, 5));
@@ -90,7 +91,7 @@ const isEnd = (c) => c.kind === "end";
       <SkeletonRows :rows="4" />
     </template>
 
-    <EmptyState v-else-if="!M.any && !fxKeys.length" :icon="ICONS.more4" :title="t('home.emptyTitle')" :text="t('home.emptyText')" :action="t('home.connect')" @action="nav.push('settingsSection', 'conn')">
+    <EmptyState v-else-if="!M.any" :icon="ICONS.more4" :title="t('home.emptyTitle')" :text="t('home.emptyText')" :action="t('home.connect')" @action="nav.push('settingsSection', 'conn')">
       <button type="button" class="ph-btn tonal" @click="openForm('tx')">{{ t("home.addTx") }}</button>
     </EmptyState>
 
@@ -188,28 +189,30 @@ const isEnd = (c) => c.kind === "end";
         </ListRow>
       </ListGroup>
 
-      <section v-if="fxKeys.length && fxView" class="ph-group ph-home-fx">
-        <div class="ph-group-h"><h3>{{ t("home.fx") }}</h3><button type="button" class="ph-link" @click="nav.push('settingsSection', 'cur')">{{ P("currencies") }}</button></div>
-        <Segmented v-if="fxKeys.length > 1" v-model="fxCur" :options="fxOpts" :label="t('home.fx')" />
-        <div class="ph-group-b ph-home-fxb">
-          <div class="ph-home-fxh">
-            <p class="ph-home-fxr" dir="ltr"><span>{{ currencySymbol(fxCur) }}1 =</span> <b>₪{{ fxView.last.toFixed(4) }}</b></p>
-            <span class="ph-home-chg" dir="ltr" :class="Math.abs(fxView.ch) < .005 ? '' : fxView.ch > 0 ? 'ph-up' : 'ph-dn'">{{ P("change", { pc: (fxView.ch > 0 ? "+" : fxView.ch < 0 ? "−" : "") + Math.abs(fxView.ch).toFixed(2) }) }}</span>
-          </div>
-          <p v-if="fxKeys.length < 2" class="ph-home-fxp">{{ pair(fxCur) }}</p>
-          <svg class="ph-home-fxl" :viewBox="`${fxView.P} 8 ${fxView.Wd - fxView.P - 12} ${fxView.H - 26}`" preserveAspectRatio="none" aria-hidden="true">
-            <polygon :points="fxView.area" /><polyline :points="fxView.pts" vector-effect="non-scaling-stroke" />
-          </svg>
-          <div class="ph-home-fxs">
-            <span><small>{{ t("home.low") }}</small><b>{{ fxView.mn.toFixed(3) }}</b></span>
-            <span><small>{{ t("home.average") }}</small><b>{{ fxView.av.toFixed(3) }}</b></span>
-            <span><small>{{ t("home.high") }}</small><b>{{ fxView.mx.toFixed(3) }}</b></span>
-          </div>
-          <div class="ph-home-range" :aria-label="P('rangeNote')" role="img"><i :style="{ insetInlineStart: fxView.pos.toFixed(1) + '%' }" /></div>
-        </div>
-        <p class="ph-group-n">{{ fx.stale ? t("home.fxStaleAt", { date: fx.asOf }) : t("home.fxSource", { date: fx.asOf }) }} {{ t("home.fxUse") }}</p>
-      </section>
     </template>
+
+    <!-- exchange rates show even before there is any money data (a first look still has them) -->
+    <section v-if="S && fxKeys.length && fxView" class="ph-group ph-home-fx">
+      <div class="ph-group-h"><h3>{{ t("home.fx") }}</h3><button type="button" class="ph-link" @click="nav.push('settingsSection', 'cur')">{{ P("currencies") }}</button></div>
+      <Segmented v-if="fxKeys.length > 1" v-model="fxCur" :options="fxOpts" :label="t('home.fx')" />
+      <div class="ph-group-b ph-home-fxb">
+        <div class="ph-home-fxh">
+          <p class="ph-home-fxr" dir="ltr"><span>{{ currencySymbol(fxCur) }}1 =</span> <b>₪{{ fxView.last.toFixed(4) }}</b></p>
+          <span class="ph-home-chg" dir="ltr" :class="Math.abs(fxView.ch) < .005 ? '' : fxView.ch > 0 ? 'ph-up' : 'ph-dn'">{{ P("change", { pc: (fxView.ch > 0 ? "+" : fxView.ch < 0 ? "−" : "") + Math.abs(fxView.ch).toFixed(2) }) }}</span>
+        </div>
+        <p v-if="fxKeys.length < 2" class="ph-home-fxp">{{ pair(fxCur) }}</p>
+        <svg class="ph-home-fxl" :viewBox="`${fxView.P} 8 ${fxView.Wd - fxView.P - 12} ${fxView.H - 26}`" preserveAspectRatio="none" aria-hidden="true">
+          <polygon :points="fxView.area" /><polyline :points="fxView.pts" vector-effect="non-scaling-stroke" />
+        </svg>
+        <div class="ph-home-fxs">
+          <span><small>{{ t("home.low") }}</small><b>{{ fxView.mn.toFixed(3) }}</b></span>
+          <span><small>{{ t("home.average") }}</small><b>{{ fxView.av.toFixed(3) }}</b></span>
+          <span><small>{{ t("home.high") }}</small><b>{{ fxView.mx.toFixed(3) }}</b></span>
+        </div>
+        <div class="ph-home-range" :aria-label="P('rangeNote')" role="img"><i :style="{ insetInlineStart: fxView.pos.toFixed(1) + '%' }" /></div>
+      </div>
+      <p class="ph-group-n">{{ fx.stale ? t("home.fxStaleAt", { date: fx.asOf }) : t("home.fxSource", { date: fx.asOf }) }} {{ t("home.fxUse") }}</p>
+    </section>
 
     <AvailWhy v-if="S" v-model:open="avail" :M="M" />
   </PhoneScreen>

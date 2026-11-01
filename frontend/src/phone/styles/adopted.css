@@ -64,13 +64,14 @@ html.phone .ph-adopt .ph-sheet-b > .sm:first-of-type {
   line-height: 20px;
 }
 
-/* the window's last row of buttons (Cancel, Save) stays at the bottom, above the home bar, each button half the width */
+/* the window's last row of buttons (Cancel, Save) stays at the bottom, above the home bar, each button half the width;
+   a label too long for half the width gets the whole line, so it never breaks over three lines (Hebrew) */
 html.phone .ph-adopt .ph-sheet-b > :is(.flex, .dlg-actions):last-child {
   position: sticky;
   inset-block-end: 0;
   z-index: 2;
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 10px;
   margin: 16px calc(-1 * var(--p-gut)) 0;
   padding: 12px var(--p-gut) calc(var(--sb) + 12px);
@@ -84,6 +85,7 @@ html.phone[data-mode="dark"] .ph-adopt .ph-sheet-b > :is(.flex, .dlg-actions):la
 
 html.phone .ph-adopt .ph-sheet-b > :is(.flex, .dlg-actions):last-child > :is(.btn, button) {
   flex: 1 1 0;
+  min-inline-size: fit-content;
   min-block-size: 48px;
   font-size: 16px;
 }
@@ -297,6 +299,10 @@ html.phone #toasts {
   max-inline-size: var(--p-max);
   margin-inline: auto;
   flex-direction: column-reverse;
+}
+
+html.phone.ph-off #toasts {
+  inset-block-end: calc(var(--p-tab) + var(--sb) + 58px);
 }
 
 html.phone #toasts .toast {

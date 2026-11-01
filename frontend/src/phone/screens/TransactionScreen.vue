@@ -46,7 +46,12 @@ const moreActions = () => [
   { label: t("activity.d.copy"), icon: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>', run: copyDetails },
   ...(cur.value && !cur.value.virtual ? [{ label: t("activity.w.attach"), icon: TIC.clip, run: () => fileIn.value?.click() }] : []),
 ];
-const fromTo = (x) => (x.from && x.to ? nohtml(x.from) + " → " + nohtml(x.to) : nohtml(x.from || x.to || ""));
+// where the money went from and to: each name keeps its own order, and in Hebrew the arrow points the way the line reads
+const fromTo = (x) => {
+  if (!(x.from && x.to)) return nohtml(x.from || x.to || "");
+  const he = document.documentElement.classList.contains("he");
+  return "\u2068" + nohtml(x.from) + "\u2069" + (he ? " ← " : " → ") + "\u2068" + nohtml(x.to) + "\u2069";
+};
 const tone = (r) => (r.cls === "amber" ? "warn" : "acc");
 </script>
 
@@ -114,7 +119,7 @@ const tone = (r) => (r.cls === "amber" ? "warn" : "acc");
       </ListGroup>
 
       <ListGroup v-if="facts.length || rawFields.length || det === 'load'" :title="t('activity.d.details')">
-        <div v-for="r in facts" :key="r.k" class="ph-tx-kv"><span>{{ tk("activity.d." + r.k) }}</span><b :class="{ mono: r.mono }">{{ factText(r.v) }}</b></div>
+        <div v-for="r in facts" :key="r.k" class="ph-tx-kv"><span>{{ tk("activity.d." + r.k) }}</span><b :class="{ mono: r.mono }">{{ typeof r.v === "string" ? heTx(r.v) : factText(r.v) }}</b></div>
         <ListRow v-if="rawFields.length" :title="t(cur.src === 'wise' ? 'activity.d.allWise' : 'activity.d.allBank')" :value="String(rawFields.length)" link @tap="pick = 'raw'" />
         <template #note>
           <span v-if="det === 'load'">{{ t("activity.d.loading") }}</span>
@@ -140,7 +145,7 @@ const tone = (r) => (r.cls === "amber" ? "warn" : "acc");
 
     </template>
 
-    <PickerSheet v-if="cur" :open="pick === 'cat'" :title="t('activity.category')" :options="catOptions()" :model-value="catValue()" @update:open="shut" @update:model-value="pickCat" />
+    <PickerSheet v-if="cur" :open="pick === 'cat'" required :title="t('activity.category')" :options="catOptions()" :model-value="catValue()" @update:open="shut" @update:model-value="pickCat" />
 
     <PhoneSheet v-if="cur" :open="pick === 'tags'" :title="t('activity.w.tags')" @update:open="shut">
       <div class="fld ph-tx-tags"><TagEditor :tags="cur.tags || []" @add="(L) => addTags(cur, L)" @remove="(i) => removeTag(cur, cur.tags[i])" @go="(g) => { shut(); goTag(g); }" /></div>

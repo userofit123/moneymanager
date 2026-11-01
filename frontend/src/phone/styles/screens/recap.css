@@ -775,3 +775,8 @@ html.phone .ph-rc-tip .m {
   color: var(--tx2);
   font-size: 14px;
 }
+
+/* a date inside a row's name stays on one line */
+html.phone .ph-rc-nw {
+  white-space: nowrap;
+}
