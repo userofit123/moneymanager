@@ -1,6 +1,6 @@
 <script setup>
 // The menu: a rail on a computer (<nav>), with each page's icon and badge;
-// the gliding highlight moves to the open page. At the bottom of the rail: update, sync status and Appearance.
+// the gliding highlight moves to the open page. At the bottom of the rail: update, sync status, Appearance and Settings.
 import { ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import { pages } from "../../routes.js";
@@ -13,7 +13,9 @@ import AppLogo from "../AppLogo.vue";
 import UpdateButton from "./UpdateButton.vue";
 
 const { t } = useI18n();
-const navPages = pages.filter((p) => p.nav);
+// Settings sits at the very bottom of the rail, under Appearance
+const navPages = pages.filter((p) => p.nav && p.name !== "settings");
+const setPage = pages.find((p) => p.name === "settings");
 // the short page names the stylesheet uses in data-v
 const NAV_ID = { recap: "recap", home: "dash", accounts: "acc", activity: "tx", jars: "jars", bills: "bills", budgets: "budg", reports: "rep", forecast: "fc", alerts: "alerts", categories: "cats", settings: "set" };
 const badge = (p) => (p.name === "alerts" ? alertList.value.length : p.name === "activity" ? reviewCount.value : 0);
@@ -65,6 +67,7 @@ onBeforeUnmount(() => { removeEventListener("resize", onResize); ro?.disconnect(
       <UpdateButton />
       <button type="button" class="syncb" :class="{ spinning: !!job }" @click="syncOpen = true"><i class="live" :class="syncState.live" /><span id="sync">{{ syncState.top }}<br><b style="color:var(--tx);font-size:12px">{{ syncState.sub }}</b></span></button>
       <button id="themeBtn" type="button" class="nb" @click="appearanceOpen = !appearanceOpen"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 3v18a9 9 0 0 0 0-18z" fill="currentColor" /></svg></span>{{ t("shell.appearance") }}</button>
+      <button type="button" class="nb" :class="{ on: current.name === setPage.name, sec: !setPage.main }" :data-v="NAV_ID.settings" :aria-current="current.name === setPage.name ? 'page' : undefined" @click="go(hrefOf(setPage))"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" v-html="setPage.icon" /></span>{{ t("nav.settings") }}</button>
     </div>
   </nav>
 </template>
