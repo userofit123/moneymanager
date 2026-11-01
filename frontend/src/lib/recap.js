@@ -128,7 +128,9 @@ export function recapModel(M, now) {
   // Free to use and its parts, the same whole shekels as Home's money flow (homeModel's free; toComeRows: what is still to come
   // in each budget or usual month, the money flow's rows)
   const W = F.aside != null ? flowSteps(F, "left") : null;
-  const freeParts = { cards: Math.round(Math.max(0, F.cards || 0)), up: Math.round(billsTot), aside: F.aside ?? 0, toCome: F.toCome ?? 0, free: F.freeRaw ?? 0,
+  // cards: card purchases not paid yet, in two parts: later (charged after this month) and cardBills (still due this month)
+  const cardsW = Math.round(Math.max(0, F.cards || 0)), laterW = Math.round(F.cardsLater ?? Math.max(0, cardsNext));
+  const freeParts = { cards: cardsW, later: laterW, cardBills: cardsW - laterW, up: Math.round(billsTot), aside: F.aside ?? 0, toCome: F.toCome ?? 0, free: F.freeRaw ?? 0,
     toComeRows: W ? W.src.filter((r) => r.left >= 0.5).sort((a, b) => b.left - a.left).map((r) => ({ k: r.k, amt: r.left, kind: r.kind })) : [] };
   // what jars still hold at the end, after paying their part of what is still to come
   const heldEnd = Math.max(0, F.inJars - jarCov) + F.buffer;

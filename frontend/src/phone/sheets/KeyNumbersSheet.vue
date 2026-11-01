@@ -30,7 +30,7 @@ const explainNum = (x) => explain(t(x.tip));
     <template v-if="keyNums">
       <p class="ph-nums-lead">{{ t("phone.sheets.numsIntro") }}</p>
       <ListGroup v-for="g in keyNums.groups" :key="g.id" :title="t(g.name)" :class="{ guess: g.id.startsWith('likely') }">
-        <button v-for="x in g.items" :key="x.id" type="button" class="ph-row ph-num" :class="{ from: x.from, res: x.op === '=' }" @click="explainNum(x)">
+        <button v-for="x in g.items" :key="x.id" type="button" class="ph-row ph-num" :class="{ from: x.from, res: x.op === '=', part: x.part }" @click="explainNum(x)">
           <span class="ph-num-op" aria-hidden="true">{{ x.op && x.op !== "=" ? x.op : "" }}</span>
           <span class="ph-row-main"><span class="ph-num-t">{{ rowName(x) }}</span></span>
           <span class="ph-row-end"><b class="ph-amt num" :class="{ neg: x.a < 0 }" dir="ltr">{{ formatMoney(x.a) }}</b></span>

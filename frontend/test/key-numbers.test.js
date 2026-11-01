@@ -25,6 +25,8 @@ const FX = { USD: 3.62 };
 
 const cases = [["demo", demoState()], ["little money, low buffer", demoState({ jarsBuffer: 0, accounts: demoState().accounts.map((a) => (a.kind === "bank" ? { ...a, v: 800 } : a)) })],
   ["start of the month", demoState({}, new Date(2026, 9, 2, 12)), new Date(2026, 9, 2, 12)],
+  // 2 November: a card bill is still due this month and a few purchases are already on December's bill
+  ["start of the month, card bills in two months", demoState({}, new Date(2026, 10, 2, 12)), new Date(2026, 10, 2, 12)],
   ["hand-added accounts", withCustom()]];
 
 // Made-up hand-added accounts: one marked to count (ILS), one in USD marked to count, one not counted.
@@ -44,6 +46,14 @@ for (const [name, S, at = NOW] of cases) test("every page shows the key numbers'
   assert.equal(a.cardsUnpaid, FC.d.eom.cards, "Forecast: card purchases"); assert.equal(a.cardsUnpaid, P.cards, "Recap: card purchases");
   assert.equal(a.upcoming, FC.d.eom.due, "Forecast: upcoming payments"); assert.equal(a.upcoming, P.up, "Recap: upcoming payments"); assert.equal(a.upcoming, J.F.up, "Jars: upcoming payments");
   assert.equal(a.afterKnown, a.inAccounts - a.cardsUnpaid - a.upcoming, "after known payments adds up");
+  // card purchases not paid yet, in two parts: the card bills still due this month and the purchases charged after it
+  assert.ok(a.cardBills >= 0 && a.cardsLater >= 0); assert.equal(a.cardBills + a.cardsLater, a.cardsUnpaid, "the two card parts add up");
+  assert.equal(a.cardBills, P.cardBills, "Recap: card bills still due this month"); assert.equal(a.cardsLater, P.later, "Recap: charged after this month");
+  assert.equal(a.cardBills + a.upcoming, R.sure, "Recap: You still have to pay = card bills this month + bills still due");
+  // Recap's card purchases charged after this month start from what is left after this month's payments and end at after known payments
+  assert.equal((R.sure >= 1 ? R.afterSure : Math.round(R.cash)) - a.cardsLater, a.afterKnown, "Recap: after the later card bills = after known payments");
+  const parts = K.groups[0].items.filter((x) => x.part).map((x) => x.id);
+  assert.deepEqual(parts, a.cardBills >= 1 && a.cardsLater >= 1 ? ["cardBills", "cardsLater"] : [], "the two parts show only when both are there");
   const act = flowSteps(F, "actual"), plan = flowSteps(F, "left");
   assert.equal(a.afterKnown, act.eOver > 0 ? -act.eOver : act.eFree, "Home Current ends at after known payments"); assert.equal(a.afterKnown, R.reallyNow, "Recap: after known payments"); assert.equal(a.afterKnown, FC.d.start, "Forecast: after known payments");
   assert.equal(a.putAside, Math.round(plan.jarsA + F.buffer), "Home: put aside tile"); assert.equal(a.putAside, P.aside, "Recap: put aside"); assert.equal(a.putAside, J.F.aside, "Jars: put aside");
@@ -60,6 +70,8 @@ for (const [name, S, at = NOW] of cases) test("every page shows the key numbers'
   assert.equal(a.likely, FC.d.eom.usual, "Forecast: the end of this month's usual spending part"); assert.equal(a.likely, R.likely, "Recap: likely spending");
   assert.equal(a.likely, FC.d.shown.out.total.lk, "Forecast: money out, usually still to come this month");
   assert.equal(a.endMonth, a.inAccounts - a.cardsUnpaid - a.upcoming - a.likely + FC.d.eom.inc, "end of this month adds up from its parts");
+  assert.equal(a.incLeft, R.incLeft, "Recap: likely money in for the rest of the month"); assert.equal(a.incLeft, FC.d.eom.inc, "Forecast: income still to come");
+  assert.equal(a.endMonth, a.afterKnown + a.incLeft - a.likely, "end of this month = after known payments + likely money in − likely spending");
   assert.equal(a.endMonth, R.endMonth, "Recap: end of this month"); assert.equal(a.endMonth, FC.d.endMonth, "Forecast: end of this month");
   assert.equal(a.endMonth, FC.d.shown.next.really, "Forecast strip and Recap's next month start there"); assert.equal(a.endMonth, FC.d.eom.end, "Forecast tip ends there");
   // next month
@@ -74,7 +86,7 @@ test("the key numbers come in groups, in order, with their names in English and 
   // each group that adds up does so on screen: the start (or the group before's result) and its parts make the "=" row
   for (const g of K.groups) {
     const res = g.items.find((x) => x.op == "="); if (!res) continue;
-    const sum = g.items.filter((x) => x.op != "=").reduce((t, x) => t + (x.op == "−" ? -x.a : x.a), 0);
+    const sum = g.items.filter((x) => x.op != "=" && !x.part).reduce((t, x) => t + (x.op == "−" ? -x.a : x.a), 0);
     assert.equal(sum, res.a, g.id + " adds up");
   }
   assert.ok(K.groups[1].items[0].from && K.groups[1].items[0].id == "afterKnown", "Your plans starts from after known payments");
@@ -88,8 +100,8 @@ test("the key numbers come in groups, in order, with their names in English and 
   }
   const en = loadLocale("en").num, he = loadLocale("he").num;
   const sayLikely = (id) => /likely/i.test(en[numText(id).name.slice(4)]);
-  for (const id of ["likely", "endMonth", "nextIn", "nextOut", "endNext"]) assert.ok(sayLikely(id) && he[numText(id).name.slice(4)].includes("כנראה"), id + " says likely");
-  for (const id of ["inAccounts", "cardsUnpaid", "upcoming", "afterKnown", "leftBudgets", "putAside", "free", "moneyIn", "moneyOut", "saved"]) assert.ok(!sayLikely(id) && !/צפוי|כנראה/.test(he[id]), id + " never says likely");
+  for (const id of ["incLeft", "likely", "endMonth", "nextIn", "nextOut", "endNext"]) assert.ok(sayLikely(id) && he[numText(id).name.slice(4)].includes("כנראה"), id + " says likely");
+  for (const id of ["inAccounts", "cardsUnpaid", "cardBills", "cardsLater", "upcoming", "afterKnown", "leftBudgets", "putAside", "free", "moneyIn", "moneyOut", "saved"]) assert.ok(!sayLikely(id) && !/צפוי|כנראה/.test(he[id]), id + " never says likely");
   assert.equal(K.byId.likely.mk, "2026-10"); assert.equal(K.byId.endMonth.mk, "2026-10"); assert.equal(K.byId.endNext.mk, "2026-11"); assert.equal(K.byId.endNext.name, K.byId.endMonth.name);
 });
 

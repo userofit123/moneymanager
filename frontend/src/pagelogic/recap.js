@@ -88,7 +88,7 @@ export function useRecap() {
   // the jars chip's follow-up: the same kind of chip, but it acts (opens the take-back window)
   const relOf = (m) => (m.over0 > 0 ? { lab: L("jarsH"), txt: L("relBtn", { a: mi(Math.min(m.over0, m.inJars)) }), tip: L("relX") } : null);
   const nowBar = (m) => { const P = m.freeParts; return [[N("cardsUnpaid"), P.cards, "c4", "now"], [N("upcomingS"), P.up, "c5", "ahead"], [N("leftBudgets"), P.toCome, "c2", "budg"], [N("putAside"), P.aside, "c3", "jars"], [N("free"), Math.max(0, P.free), "c1", "now"]]; };
-  const aheadBar = (m) => [[L("cards"), m.cardsThis, "c1", "now"], [N("upcomingS"), m.billsTot, "c2", "bills"]];
+  const aheadBar = (m) => [[N("cardBillsS"), m.freeParts.cardBills, "c1", "now"], [N("upcomingS"), m.freeParts.up, "c2", "bills"]];
   // the payments still due this month: each card's bill and each bill or listed payment, with its day (yyyy-mm-dd)
   const ymd = (d) => (d instanceof Date ? `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}` : d || null);
   const aheadRows = (m) => [...m.cardsNow.map((c) => ({ card: true, n: c.n, a: c.a, d: c.d })), ...m.bills.map((b) => ({ n: b.n, a: b.amt, d: ymd(b.nx), idx: b.idx, id: b.id, cov: b.cov || 0 }))];
@@ -182,8 +182,10 @@ export function useRecap() {
       return { step: "out", ic: "out", tone: "tn", label: lab, go: "rng:" + rg + "@expense", big: { amt: x.a }, line: came ? [{ html: came }] : [], vis: [{ sum: { had: had ? [L("hadThen"), x.b0] : null, groups, end: had ? ends() : null } }] };
     },
     now: (m) => {
+      // card purchases not paid yet: with both parts there, the card bills still due this month and the purchases charged after it
+      const cardsGroup = (P) => ({ k: "out", label: N("cardsUnpaid"), amt: P.cards, link: "now", ...(P.cardBills >= 1 && P.later >= 1 ? { subs: [[N("cardBills"), P.cardBills, "ahead", "s"], [N("cardsLater"), P.later, "now", "s"]] } : { note: L("cardsLeaveX") }) });
       // what you have today, and what is yours once the card spending still to come leaves the accounts
-      const P = m.freeParts, cash = Math.round(m.cash), sum = P.cards >= 1 ? [{ sum: { had: [N("inAccounts"), cash, "now"], groups: [{ k: "out", label: N("cardsUnpaid"), amt: P.cards, link: "now", note: L("cardsLeaveX") }], end: [L("yoursAfter"), cash - P.cards] } }] : [];
+      const P = m.freeParts, cash = Math.round(m.cash), sum = P.cards >= 1 ? [{ sum: { had: [N("inAccounts"), cash, "now"], groups: [cardsGroup(P)], end: [L("yoursAfter"), cash - P.cards] } }] : [];
       // this month so far, compared with the same day last month (or the last 7 days with the 7 before), then each day's spending
       const d = m.same - m.ex, sp = mi(m.ex); let tone = "", txt = L("monthOnly", { a: sp });
       if (m.same >= 100 && m.ex >= 100) { if (Math.abs(d) < Math.max(100, m.same * 0.08)) txt = L("monthSame", { a: sp }); else if (d > 0) (txt = L("monthLess", { a: sp, b: mi(d) })), (tone = "good"); else (txt = L("monthMore", { a: sp, b: mi(-d) })), (tone = "warn"); }
@@ -216,22 +218,24 @@ export function useRecap() {
     ahead: (m) => {
       // only what leaves the accounts this month: card charges due this month and the bills still due
       // the line says only what is there: card bills, other bills, or both, and the sum shows each
-      const cards = m.cardsThis >= 1, bills = m.billsTot >= 1, ba = m.freeParts.up, ca = m.sure - ba; // the upcoming payments: the same number as everywhere
+      const ba = m.freeParts.up, ca = m.freeParts.cardBills, cards = ca >= 1, bills = ba >= 1; // the key numbers' amounts: the same everywhere
       const AR = aheadRows(m), cardSubs = payRows(AR.filter((x) => x.card).sort(byDay), ca, "ahead"), billSubs = payRows(AR.filter((x) => !x.card).sort(byDay), ba, "bills");
       // the part a jar pays for, so it is clear why "Free to use" does not take it off again
       const jarLine = m.sureJar >= 1 ? " " + L(m.jarsUsed.length == 1 ? "fromJar" : "fromJars", { a: mi(m.sureJar), jar: nm(m.jarsUsed[0]) }) : "";
-      const groups = [...(cards ? [{ k: "out", label: L("cardBill", {}, 2), amt: ca, link: "ahead", subs: cardSubs }] : []), ...(bills ? [{ k: "out", label: N("upcomingS"), amt: ba, link: "bills", subs: billSubs }] : [])];
+      const groups = [...(cards ? [{ k: "out", label: N("cardBills"), amt: ca, link: "ahead", subs: cardSubs }] : []), ...(bills ? [{ k: "out", label: N("upcomingS"), amt: ba, link: "bills", subs: billSubs }] : [])];
       return { ic: "ahead", tone: "", label: L("stillPay"), go: "ahead", big: { amt: m.sure }, line: [{ html: L(cards && bills ? "stillPayX" : cards ? "stillPayC" : "stillPayB") + jarLine }],
         vis: [{ seg: aheadBar(m) }, { sum: { had: [N("inAccounts"), m.cash, "now"], groups: groups.length ? groups : [{ k: "out", label: L("toPay"), amt: m.sure, link: "ahead" }], end: [L("willLeft"), m.afterSure] } }, { up: upItems(m) }] };
     },
-    // the card purchases that leave the accounts next month, by card, with the day each card's bill comes
+    // the card purchases charged after this month, by card, with the day each card's bill comes (the key numbers' "charged after
+    // this month": early in the month, a card bill is often still due this month, so this is not always the next bill)
     nextcard: (m) => {
-      const first = m.nextCards.reduce((d, c) => (c.d < d ? c.d : d), m.nextCards[0].d), amts = roundParts(m.nextCards.map((c) => c.a), m.cardsNext);
+      const later = m.freeParts.later, first = m.nextCards.reduce((d, c) => (c.d < d ? c.d : d), m.nextCards[0].d), amts = roundParts(m.nextCards.map((c) => c.a), later);
       const subs = m.nextCards.map((c, i) => [`${nm(c.n)} · ${dshort(c.d)}`, amts[i], "now"]);
-      // your balance now, the card bills, and what is really yours once they are paid
-      const one = m.nextCards.length == 1, sameDay = m.nextCards.every((c) => c.d == first);
-      const sum = { had: [N("inAccounts"), m.cash, "now"], groups: [{ k: "out", label: one ? nm(m.nextCards[0].n) : L("cardBill", {}, 2), amt: m.cardsNext, link: "now", subs: one ? [] : subs }], end: [L("yoursAfter"), Math.round(m.cash) - Math.round(m.cardsNext), "", null, L("reallyX", { date: dlong(first) })] };
-      return { ic: "card", tone: "", label: L("nextT"), go: "now", big: { amt: m.cardsNext }, line: [{ html: one || !sameDay ? L("nextX", { date: dlong(first) }, m.nextCards.length) : L("nextXs", { date: dlong(first) }) }], vis: [{ sum }] };
+      // what is left after the payments of this month (the part before), these card bills, and your money after known payments
+      // once they are paid: the same number as Where you stand now
+      const one = m.nextCards.length == 1, sameDay = m.nextCards.every((c) => c.d == first), had = m.sure >= 1 ? [L("willLeft"), m.afterSure, "ahead"] : [N("inAccounts"), Math.round(m.cash), "now"];
+      const sum = { had, groups: [{ k: "out", label: one ? nm(m.nextCards[0].n) : L("cardBill", {}, 2), amt: later, link: "now", subs: one ? [] : subs }], end: [N("afterKnown"), had[1] - later, "", null, L("reallyX", { date: dlong(first) })] };
+      return { ic: "card", tone: "", label: N("cardsLater"), go: "now", big: { amt: later }, line: [{ html: one || !sameDay ? L("nextX", { date: dlong(first) }, m.nextCards.length) : L("nextXs", { date: dlong(first) }) }], vis: [{ sum }] };
     },
     attn: (m) => {
       const it = attnList(m);
@@ -241,7 +245,7 @@ export function useRecap() {
     },
     // the summary of the page: what is in your accounts today and what is expected at the end of the month, small, side by side;
     // then the money you really have, big: today's balance less the card purchases already made and the payments already due
-    end: (m) => ({ kind: "end", tone: m.reallyNow < 0 ? "tn" : "", label: L("statusT"), go: "now", two: [[N("inAccounts"), m.cash, "now"], [N("endMonth", { month: mname(m.MK) }), m.endMonth, "ahead"]], rl: N("afterKnown"), big: { amt: m.reallyNow }, line: L("stReallyX"), path: pathVals(m), pathL: [L("pStart"), L("pToday"), L("pEnd")] }),
+    end: (m) => ({ kind: "end", tone: m.reallyNow < 0 ? "tn" : "", label: L("statusT"), go: "now", two: [[N("inAccounts"), m.cash, "now"], [N("endMonth", { month: mname(m.MK) }), m.endMonth, "ahead"]], rl: N("afterKnown"), big: { amt: m.reallyNow }, line: L("stReallyX") + " " + L("stEndX", { mon: mname(m.MK), inc: mi(m.incLeft), out: mi(m.likely), end: mi(m.endMonth) }), path: pathVals(m), pathL: [L("pStart"), L("pToday"), L("pEnd")] }),
     next: (m) => {
       // a prediction for next month, exactly the Forecast page's first month (forecastModel's d.month1): what is really yours
       // on the last day of this month (the balance predicted then, less this month's card purchases not paid yet), plus next

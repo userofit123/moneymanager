@@ -157,8 +157,12 @@ function reveal(el, animate) {
   if (animate && !REDUCE()) el.querySelectorAll(".cnt").forEach((n) => { if (+n.dataset.v) n.textContent = "0"; });
   const items = [...el.querySelectorAll(".rr:not(.z):not(.zend)")];
   if (!animate || REDUCE() || !("IntersectionObserver" in window)) { items.forEach((x) => showIn(x, false)); return; }
-  IO = new IntersectionObserver((es) => es.forEach((e) => { if (!e.isIntersecting) return; showIn(e.target, true); IO.unobserve(e.target); }), { threshold: 0.3, rootMargin: "0px 0px -18% 0px" });
-  items.forEach((x) => IO.observe(x));
+  // a part shows once 30% of it is well inside the window; a look at next month (tall, and last on the page, so it could only
+  // show at the very end) starts to show as soon as its top comes into view
+  const io = (o) => { const ob = new IntersectionObserver((es) => es.forEach((e) => { if (!e.isIntersecting) return; showIn(e.target, true); ob.unobserve(e.target); }), o); return ob; };
+  const main = io({ threshold: 0.3, rootMargin: "0px 0px -18% 0px" }), early = io({ threshold: 0, rootMargin: "0px 0px -4% 0px" });
+  IO = { disconnect: () => { main.disconnect(); early.disconnect(); } };
+  items.forEach((x) => (x.classList.contains("rknext") ? early : main).observe(x));
 }
 const SVGNS = "http://www.w3.org/2000/svg";
 const cl01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x), q3 = (x) => Math.round(x * 1000) / 1000;

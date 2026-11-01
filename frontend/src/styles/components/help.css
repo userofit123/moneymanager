@@ -332,6 +332,19 @@ html.help-on .help {
   font-weight: 500;
 }
 
+/* a part of the row above (not counted again): set in, smaller and quieter, with no line between it and its row */
+.knr.part {
+  padding-block: 0 8px;
+  padding-inline-start: 1.1em;
+  font-size: 13px;
+  border-top: 0;
+}
+
+.knr.part > b {
+  color: var(--tx2);
+  font-weight: 500;
+}
+
 .knr.res {
   border-top: 2px solid var(--ol);
 }

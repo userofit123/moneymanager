@@ -5,6 +5,7 @@ What changed in each version. The web app (Docker) and the Windows app share one
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
 ## [0.12.13] - 2026-11-01
+- **Recap and Key numbers at the start of a month:** card purchases not paid yet show their two parts, **Card bills still due this month** and **Card purchases charged after this month**, so Recap no longer calls the later part the next card bill while a bill is still due this month. Upcoming payments are now called **Bills still due this month**. Key numbers show how the end of the month follows from your money after known payments (plus **Likely money in for the rest of the month**, minus likely spending). Free to use says that income still to come, like your salary, counts only once it arrives, so it can be below zero before payday. A look at next month on Recap starts to show as soon as it comes into view.
 
 ### App
 - **A failed sync says what happened in plain words:** the phone alert and the app (Settings → Connections, the sync window, Home alerts) no longer show the bank's raw error. They say whether the bank's website had a problem (it tries again on its own), the bank did not accept the login, the bank wants a new password or blocked the account, or a one-time code is needed. The alert comes in the language chosen in the app. The full error is still in Settings → Automatic sync (Past syncs) and Problems and support.

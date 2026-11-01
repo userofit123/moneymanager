@@ -146,7 +146,8 @@ export function homeModel(S, now = new Date(), fx = {}) {
   const jarsHeld = jarsS.filter((j) => heldOf(j) > 0).sort((a, b) => heldOf(b) - heldOf(a)).map((j) => ({ n: j.n, v: heldOf(j) }));
   // Free to use: worked out once, here, as the end of the Planned money flow (flowSteps): your money after known payments, less what is
   // put aside (jars and the safety cushion) and what is still to come this month. Home, Recap and the Jars page all read it.
-  const flow0 = { cash: cashNow, cards: cardsOwed, up, really, inJars, buffer, R, jarsHeld, spend };
+  // cardsLater: the part of cards on card bills after this month (the rest leaves the bank this month)
+  const flow0 = { cash: cashNow, cards: cardsOwed, cardsLater: Math.min(cardsOwed, Math.max(0, owed.later)), up, really, inJars, buffer, R, jarsHeld, spend };
   const W0 = flowSteps(flow0, "left"), aside = Math.round(W0.jarsA + buffer), toCome = Math.round(W0.leftTot), raw = really - aside - toCome;
   const free = Math.max(0, raw), over = -raw >= 1 ? Math.round(-raw) : 0;
   const monthsTo = (d) => Math.max(1, Math.ceil((new Date(d) - NOW) / (864e5 * 30.44)));

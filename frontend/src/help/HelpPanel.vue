@@ -53,7 +53,7 @@ onBeforeUnmount(() => stop());
         <section v-for="g in keyNums.groups" :key="g.id" class="hs">
           <h4>{{ t(g.name) }}</h4>
           <div class="knl" :class="{ guess: g.id.startsWith('likely') }">
-            <div v-for="x in g.items" :key="x.id" class="knr" :class="{ from: x.from, res: x.op === '=' }" :data-tip="t(x.tip)"><span><i v-if="x.op && x.op !== '='" class="kno">{{ x.op }}</i>{{ rowName(x) }}</span><b class="num" :class="{ neg: x.a < 0 }">{{ formatMoney(x.a) }}</b></div>
+            <div v-for="x in g.items" :key="x.id" class="knr" :class="{ from: x.from, res: x.op === '=', part: x.part }" :data-tip="t(x.tip)"><span><i v-if="x.op && x.op !== '='" class="kno">{{ x.op }}</i>{{ rowName(x) }}</span><b class="num" :class="{ neg: x.a < 0 }">{{ formatMoney(x.a) }}</b></div>
           </div>
         </section>
       </template>

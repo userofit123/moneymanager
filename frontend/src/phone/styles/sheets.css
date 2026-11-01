@@ -191,6 +191,18 @@ html.phone .ph-num.from :is(.ph-num-t, .ph-amt) {
   font-weight: 500;
 }
 
+/* a part of the line above (not counted again): set in and quieter */
+html.phone .ph-num.part {
+  min-block-size: 44px;
+  padding-inline-start: 28px;
+}
+
+html.phone .ph-num.part :is(.ph-num-t, .ph-amt) {
+  color: var(--tx2);
+  font-size: 14px;
+  font-weight: 500;
+}
+
 /* the line the group adds up to */
 html.phone .ph-num.res {
   border-block-start: 1px solid var(--p-line);
