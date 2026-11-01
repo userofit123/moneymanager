@@ -236,7 +236,6 @@
     },
     "nothing": "Nothing matches",
     "balance": "balance",
-    "sumIncluded": "Included in In, Out and Net",
     "lot": {
       "transfers": "Transfers",
       "cardPays": "Card payments",
@@ -244,8 +243,6 @@
       "balance": "Balance updates",
       "ignored": "Left out by you"
     },
-    "sumAll": "The totals cover all your activity, not only the rows loaded below.",
-    "sumFilt": "The totals follow your filters and cover every match, not only the rows loaded below.",
     "g": {
       "expIn": "Likely in",
       "expOut": "Likely out",
@@ -357,14 +354,16 @@
       "hShow": "Show in Activity",
       "hNone": "No payments found"
     },
-    "notIn": "1 not in the totals | {n} not in the totals",
-    "notInT": "Not in the totals",
+    "notIn": "1 not counted in In and Out | {n} not counted in In and Out",
+    "notInT": "Listed, but not counted",
+    "notIntro": "These rows are listed, but In, Out and Net leave them out, so no money is counted twice:",
+    "notCounted": "In, Out and Net count the other {n}.",
     "notWhy": {
-      "transfers": "**Transfers between your accounts: {n}**. Your own money moving.",
-      "cardPays": "**Card bill payments: {n}**. The purchases are already counted.",
-      "upcoming": "**Still to come: {n}**. They count once they happen.",
-      "balance": "**Balance updates: {n}**. A note, not money in or out.",
-      "ignored": "**Left out by you: {n}**. You chose not to count them."
+      "transfers": "**Moves between your own accounts: {n}**. The money stays yours.",
+      "cardPays": "**Card bill payments: {n}**. Each purchase on the card is already counted.",
+      "upcoming": "**Not happened yet: {n}**. Counted on the day they happen.",
+      "balance": "**Balance notes: {n}**. Not real money in or out.",
+      "ignored": "**Left out by you: {n}**."
     }
   },
   "nav": {
@@ -1480,7 +1479,48 @@
     "failed": "Could not sign in",
     "downT": "Cannot reach the server",
     "down": "Your data lives on the server. Check that you are on the home network or Tailscale, then reload.",
-    "offline": "You are offline · showing saved data"
+    "offline": "You are offline · showing saved data",
+    "f": {
+      "forgot": "Forgot password?",
+      "title": "Get back in",
+      "sub": "First show it is you, then choose a new password. Your data stays as it is.",
+      "useKey": "I have my recovery key",
+      "useKeyD": "The key you saved when you chose the password.",
+      "useCode": "Send a code to my phone",
+      "useCodeD": "It arrives where the app's alerts go.",
+      "neither": "Neither works?",
+      "neitherDocker": "On a server (Docker), run this command there, then sign in with the new password:",
+      "neitherApp": "On the Windows or Linux app: install it fresh, then restore a backup (Settings → Backup and restore).",
+      "keyT": "Enter your recovery key",
+      "keyS": "Type it as it is written. Dashes and spaces do not matter.",
+      "keyLbl": "Recovery key",
+      "codeT": "Enter the code",
+      "codeS": "A 6-digit code was sent to your phone. It works for 10 minutes.",
+      "codeLbl": "Code from your phone",
+      "sendAgain": "Send a new code",
+      "next": "Next",
+      "pwT": "Choose a new password",
+      "pwS": "Use at least 10 characters. Every device is signed out, and you are signed in here.",
+      "newPw": "New password",
+      "newPw2": "New password again",
+      "save": "Save and sign in",
+      "back": "Back",
+      "toSignIn": "Back to sign in"
+    },
+    "rk": {
+      "setupT": "Save your recovery key",
+      "setupS": "If you ever forget the password, this key lets you choose a new one. It is shown only now. Keep it somewhere safe, away from this device: on paper or in a password manager.",
+      "resetT": "Password changed. Save your new key",
+      "resetS": "The old recovery key is used up. This new one replaces it, and it is shown only now. Keep it somewhere safe, away from this device.",
+      "copy": "Copy",
+      "copied": "Recovery key copied",
+      "download": "Download",
+      "print": "Print",
+      "saved": "I saved it, continue",
+      "fileT": "Money · recovery key",
+      "fileS": "If you forget the Money password, press \"Forgot password?\" on the sign-in screen and enter this key to choose a new one. It works once. Anyone who has it can do the same, so keep it somewhere safe.",
+      "made": "Made on {d}"
+    }
   },
   "sync": {
     "testing": "Testing",

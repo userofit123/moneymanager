@@ -1,5 +1,5 @@
 <script setup>
-// Settings → Password and sign-in: app lock, the password, two-step sign-in and the signed-in devices.
+// Settings → Password and sign-in: app lock, the password, the recovery key, two-step sign-in and the signed-in devices.
 import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import SetSection from "./SetSection.vue";
@@ -7,6 +7,8 @@ import SetRow from "./SetRow.vue";
 import { api, sendJson, toast, toastErr } from "./shared.js";
 import { request } from "../../core/http.js";
 import { signOut } from "../../core/boot.js";
+import { dstr } from "../../dates.js";
+import RecoveryKey from "../../components/RecoveryKey.vue";
 
 const { t, locale } = useI18n();
 const tk = (k) => t("settings.sec." + k);
@@ -49,6 +51,14 @@ async function changePw() {
 async function tfaStart() { const r = await call("/api/auth/2fa/start"); if (r) { start.value = r; code.value = ""; } }
 async function tfaEnable() { const r = await call("/api/auth/2fa/enable", { code: code.value }, tk("tfaIsOn")); if (r) { start.value = null; await status(); } }
 async function tfaDisable() { const r = await call("/api/auth/2fa/disable", { password: offPw.value }, tk("tfaIsOff")); if (r) { offPw.value = ""; await status(); } }
+// ---- the recovery key: lets a forgotten password be reset on the sign-in screen ----
+const rk = ref({ has: true, at: null }), rkAsk = ref(false), rkPw = ref(""), rkNew = ref("");
+async function rkLoad() { try { const r = await request("/api/auth/recovery-key", { cache: "no-store" }); if (r.ok) rk.value = await r.json(); } catch { /* keep what we had */ } }
+onMounted(rkLoad);
+async function rkMake() {
+  const r = await call("/api/auth/recovery-key", { password: rkPw.value }, tk("rkDone"));
+  if (r) { rkNew.value = r.key; rkPw.value = ""; rkAsk.value = false; await rkLoad(); }
+}
 // Signing out shows the sign-in screen (core/boot.js).
 const logout = (all) => signOut(all);
 </script>
@@ -67,6 +77,22 @@ const logout = (all) => signOut(all);
         </div>
         <div class="sact"><button type="button" class="btn s" data-a="pwChange" @click="changePw">{{ tk("pwChange") }}</button></div>
       </form>
+    </SetSection>
+    <SetSection icon="shield" :title="tk('rkTitle')" :desc="tk('rkDesc')">
+      <div v-if="!rk.has && !rkNew" class="sinfo" data-a="rkNudge">{{ tk("rkNudge") }}</div>
+      <SetRow :title="tk('rkRow')" :desc="rk.has ? t('settings.sec.rkHas', { d: rk.at ? dstr(rk.at) : '' }) : tk('rkNone')">
+        <button v-if="!rkAsk && !rkNew" type="button" class="btn s" :class="{ o: rk.has }" data-a="rkStart" @click="rkAsk = true">{{ rk.has ? tk("rkMakeNew") : tk("rkMake") }}</button>
+      </SetRow>
+      <SetRow v-if="rkAsk" stack :title="tk('rkPwT')" :desc="rk.has ? tk('rkPwD') : tk('rkPwD1')">
+        <input id="rkPw" v-model="rkPw" type="password" autocomplete="current-password" :aria-label="tk('tfaPwPh')" :placeholder="tk('tfaPwPh')" @keydown.enter.prevent="rkMake">
+        <button type="button" class="btn s" data-a="rkMake" @click="rkMake">{{ tk("rkGo") }}</button>
+        <button type="button" class="btn o s" @click="rkAsk = false; rkPw = ''">{{ tk("rkCancel") }}</button>
+      </SetRow>
+      <div v-if="rkNew" class="rknew">
+        <p class="sm">{{ tk("rkShow") }}</p>
+        <RecoveryKey :value="rkNew" />
+        <div class="sact"><button type="button" class="btn s" data-a="rkSaved" @click="rkNew = ''">{{ tk("rkSaved") }}</button></div>
+      </div>
     </SetSection>
     <SetSection icon="phone" :title="tk('tfaTitle')" :desc="tk('tfaDesc')">
       <SetRow :title="tk('tfaRow')" :desc="totp ? tk('tfaOnDesc') : tk('tfaOffDesc')" :badge="totp">

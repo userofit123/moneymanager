@@ -14,7 +14,8 @@ import { go, current } from "../router.js";
 import { pages, SHORT } from "../routes.js";
 
 // phase: "start" (splash) | "auth" (sign-in screen) | "ready" | "down" (the server cannot be reached)
-export const app = reactive({ phase: "start", authMode: "login", need2fa: false, error: "" });
+// newKey: a recovery key to show once before the app opens (after the first password, or after a reset with the old key)
+export const app = reactive({ phase: "start", authMode: "login", need2fa: false, error: "", newKey: "", keyWhy: "" });
 // a bank verification window that was already open when the app started (Settings → Connections shows it)
 export const assistWaiting = ref("");
 
@@ -58,11 +59,19 @@ export async function signIn({ pw, pw2, code }) {
   if (setup && pw !== pw2) { app.error = "differ"; return; }
   const r = await request(setup ? "/api/auth/setup" : "/api/auth/login", sendJson("POST", { password: pw, code })).catch(() => null);
   const j = r ? await r.json().catch(() => ({})) : {};
-  if (r && r.ok) { signedOut.value = false; await afterLogin(); return; }
+  if (r && r.ok) { await enterApp(j.recoveryKey, "setup"); return; }
   if (j.need2fa) { app.need2fa = true; app.error = j.error || ""; return; }
   if (j.setup) { showAuth("setup"); return; }
   app.error = j.error || "failed";
 }
+
+// Signed in (by the password, or by "Forgot password?"): a new recovery key is shown first, until "I saved it".
+export async function enterApp(key, why = "reset") {
+  signedOut.value = false;
+  if (key) { app.newKey = key; app.keyWhy = why; return; }
+  await afterLogin();
+}
+export async function keySaved() { app.newKey = ""; await afterLogin(); }
 
 // "Sign out" / "Sign out everywhere" (Settings → Security): the saved offline copy goes, and the sign-in screen shows.
 export async function signOut(all) {

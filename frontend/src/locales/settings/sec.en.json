@@ -50,5 +50,21 @@
   "tfaCodeT": "Code from the app",
   "tfaCodeD": "Type the 6-digit code the app shows.",
   "tfaOffT": "Turn it off",
-  "tfaOffD": "Type your password to stop asking for a code."
+  "tfaOffD": "Type your password to stop asking for a code.",
+  "rkTitle": "Recovery key",
+  "rkDesc": "If you forget the password, this key lets you choose a new one on the sign-in screen (\"Forgot password?\").",
+  "rkNudge": "You have no recovery key yet. Make one now, so a forgotten password does not lock you out.",
+  "rkRow": "Your recovery key",
+  "rkHas": "Made on {d}. It works once.",
+  "rkNone": "None yet.",
+  "rkMake": "Make a key",
+  "rkMakeNew": "Make a new recovery key",
+  "rkPwT": "Type your password",
+  "rkPwD": "The old key stops working as soon as the new one is made.",
+  "rkPwD1": "The key is shown once, right after this.",
+  "rkGo": "Make key",
+  "rkCancel": "Cancel",
+  "rkDone": "New recovery key made",
+  "rkShow": "Save this key now. It is shown only once. Keep it somewhere safe, away from this device: on paper or in a password manager.",
+  "rkSaved": "I saved it"
 }

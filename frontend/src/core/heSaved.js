@@ -232,6 +232,9 @@ const HISTORY = {
   "Updated past transactions": "עודכנו תנועות קודמות",
   "Updated pension": "עודכנה הפנסיה",
   "Updated profile": "הפרופיל עודכן",
+  "Recovery key made": "נוצר מפתח שחזור",
+  "Password reset with the recovery key": "הסיסמה אופסה בעזרת מפתח השחזור",
+  "Password reset with a phone code": "הסיסמה אופסה בעזרת קוד שנשלח לטלפון",
 };
 
 // Names of the colour themes (Settings → Appearance). Built-in category, bank and card names come from catnames.js.
@@ -450,6 +453,15 @@ const SERVER = {
   "Wrong password for this backup.": "סיסמה שגויה לגיבוי הזה.",
   "Wrong password.": "הסיסמה שגויה.",
   "Yes": "כן",
+  "Too many tries. Try again in 15 minutes.": "יותר מדי ניסיונות. נסו שוב בעוד 15 דקות.",
+  "That recovery key does not work.": "מפתח השחזור הזה לא עובד.",
+  "That code does not work. It may be wrong or too old: ask for a new one.": "הקוד הזה לא עובד. אולי הוא שגוי או ישן מדי: בקשו קוד חדש.",
+  "No phone is set up for alerts.": "לא הוגדר טלפון להתראות.",
+  "Wait a minute before asking for another code.": "המתינו דקה לפני שמבקשים קוד נוסף.",
+  "Too many codes were asked for. Try again in an hour.": "התבקשו יותר מדי קודים. נסו שוב בעוד שעה.",
+  "The code could not be sent. Try again in a minute, or use the recovery key.": "לא ניתן היה לשלוח את הקוד. נסו שוב בעוד דקה, או השתמשו במפתח השחזור.",
+  "Enter the code from your authenticator app.": "הזינו את הקוד מאפליקציית האימות.",
+  "Password is wrong.": "הסיסמה שגויה.",
 };
 
 // Texts in the small pictures of the help guide (help/demo.js).

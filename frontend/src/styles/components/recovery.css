@@ -1,0 +1,203 @@
+/* "Forgot password?" on the sign-in screen (components/AuthForgot.vue) and the recovery key shown once (components/RecoveryKey.vue,
+   also in Settings → Security). The phone's sign-in screen adds its own sizes in phone/styles/auth.css. */
+
+/* the two ways back in: a row each, with a chevron that points forward (mirrored in Hebrew) */
+.fpw-ways {
+  display: grid;
+  gap: 8px;
+}
+
+.fpw-way {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  inline-size: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--ol);
+  border-radius: var(--r-md);
+  background: var(--s1);
+  color: var(--tx);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+
+.fpw-way:hover {
+  border-color: var(--acc);
+}
+
+.fpw-way:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+.fpw-way > span {
+  display: grid;
+  gap: 2px;
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.fpw-way b {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.fpw-way span span {
+  color: var(--tx2);
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+}
+
+.fpw-chev {
+  flex: none;
+  inline-size: 18px;
+  block-size: 18px;
+  fill: none;
+  stroke: var(--tx2);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html.he .fpw-chev {
+  transform: scaleX(-1);
+}
+
+.fpw-err {
+  min-block-size: 18px;
+  margin: 8px 0;
+  color: var(--neg);
+}
+
+.fpw-go {
+  inline-size: 100%;
+}
+
+/* "Back", "Forgot password?", "Send a new code": quiet text buttons under the main one */
+.fpw-link {
+  display: block;
+  margin: 10px auto 0;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: var(--pill);
+  background: none;
+  color: var(--acc);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fpw-link:hover {
+  background: color-mix(in srgb, var(--acc) 10%, transparent);
+}
+
+.fpw-link:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+/* when neither way works: the last resort, in small type */
+.fpw-none {
+  margin-block: 14px 6px;
+  padding: 11px 13px;
+  border-radius: var(--r-md);
+  background: var(--s2);
+  color: var(--tx2);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+
+.fpw-none b {
+  color: var(--tx);
+}
+
+.fpw-none p {
+  margin: 4px 0;
+}
+
+.fpw-none code {
+  display: block;
+  margin-block: 4px 8px;
+  padding: 6px 8px;
+  border-radius: var(--r-sm);
+  background: var(--s1);
+  color: var(--tx);
+  font-size: 12px;
+  text-align: start; /* the command is dir="ltr", so it starts at the left */
+  overflow-wrap: anywhere;
+}
+
+.fpw-key {
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+/* the recovery key itself: large, easy to read and copy, left to right in both languages */
+.rkey {
+  margin-block-end: 14px;
+}
+
+.rkey-v {
+  padding: 14px 12px;
+  border: 1px dashed var(--ol);
+  border-radius: var(--r-md);
+  background: var(--s2);
+  color: var(--tx);
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  letter-spacing: .08em;
+  line-height: 1.5;
+  text-align: center;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.rkey-acts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-block-start: 10px;
+}
+
+.rkey-p {
+  display: none;
+}
+
+/* Print: only the key and its note */
+@media print {
+  html.rkprint body * {
+    visibility: hidden;
+  }
+
+  html.rkprint .rkey,
+  html.rkprint .rkey * {
+    visibility: visible;
+  }
+
+  html.rkprint .rkey {
+    position: fixed;
+    inset: 0;
+    padding: 20mm;
+    background: #fff;
+    color: #000;
+  }
+
+  html.rkprint .rkey-p {
+    display: block;
+    order: -1;
+  }
+
+  html.rkprint .rkey-v {
+    border-color: #000;
+    background: #fff;
+    color: #000;
+  }
+
+  html.rkprint .rkey-acts {
+    display: none;
+  }
+}

@@ -115,3 +115,55 @@ html.phone .ph-auth-logo.logo svg {
   inline-size: 38px;
   block-size: 38px;
 }
+
+/* "Forgot password?" and the recovery key on a phone (components/AuthForgot.vue, RecoveryKey.vue): the fields sit straight in the column */
+html.phone .ph-auth .fpw {
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  text-align: start;
+}
+
+html.phone .ph-auth .fld {
+  display: contents;
+}
+
+html.phone .ph-auth .fpw-way {
+  min-block-size: 64px;
+  padding: 14px 16px;
+  border-radius: 16px;
+}
+
+html.phone .ph-auth .fpw-way b {
+  font-size: 16px;
+}
+
+html.phone .ph-auth .fpw-link {
+  min-block-size: 44px;
+  margin-block-start: 8px;
+  font-size: 15px;
+}
+
+html.phone .ph-auth .fpw-none {
+  margin-block-start: 0;
+  border-radius: 16px;
+}
+
+html.phone .ph-auth .rkey {
+  inline-size: 100%;
+  margin-block-end: 20px;
+}
+
+html.phone .ph-auth .rkey-v {
+  border-radius: 16px;
+  font-size: 20px;
+}
+
+html.phone .ph-auth .rkey-acts .btn {
+  min-block-size: 40px;
+  font-size: 14px;
+}
+
+html.phone .ph-auth .rkey + .ph-auth-go {
+  inline-size: 100%;
+}

@@ -34,7 +34,12 @@ What protects your data, and what does not. Plain version first, the full audit 
 - Sessions are random tokens in an `HttpOnly`, `SameSite=Strict` cookie (`Secure` when served over HTTPS). Only a hash of the token is stored. Default lifetime 14 days; "Sign out everywhere" ends all of them. Changing the password signs out every other device.
 - Five wrong passwords from one address, or thirty overall, block sign-in for 15 minutes.
 - Every `/api` call needs a valid session. Calls that change data also need a custom header (on top of `SameSite=Strict`). The page itself is public but contains no data.
-- Forgot the password: `docker compose exec app node src/cli.js set-password`. Lost the phone with 2FA: `docker compose exec app node src/cli.js disable-2fa`.
+- **Forgot the password** (sign-in screen, no email): either the **recovery key** or a **code sent to the phone**.
+  - The recovery key: 20 characters from 31 that cannot be confused (no 0/O, 1/I/L), shown in 5 groups of 4, about 99 bits. It is shown once (when the password is first set, after a reset with the old key, or when a new one is made in Settings with the current password) and stored only as a scrypt hash, like the password. Making a new one ends the old one; using it ends it too.
+  - The code: 6 digits, sent only through channels that reach the person (ntfy, Telegram, web push, the Android app's inbox), never the shared webhook. Stored only as a scrypt hash, it works for 10 minutes, once, with at most 5 tries; a new code or any password change ends it. One code a minute, at most 5 an hour. The signed-out screen learns only whether a code can be sent, never where.
+  - Errors are the same whether a key exists or not, and every check takes the same slow hash. Five wrong keys, codes or authenticator codes from one address (or 20 overall) lock resets for 15 minutes. Every attempt is logged (server log) and counted.
+  - With two-step sign-in on, a reset also needs the authenticator code. A reset signs out every device, writes "Password reset with the recovery key" / "with a phone code" to the change history and sends "Your Money password was changed" through every alert channel.
+- Last resort on Docker: `docker compose exec app node src/cli.js set-password`. Lost the phone with 2FA: `docker compose exec app node src/cli.js disable-2fa`.
 
 ## Credentials for Wise, Hapoalim, Max, Isracard
 - Entered in Settings → Connections. Stored with AES-256-GCM. The key is in `/data/app.key` (a Docker volume, mode 600) or `APP_KEY`, **not in the database**, so a database dump alone reveals nothing.

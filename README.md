@@ -109,7 +109,7 @@ Honest limits: whoever can open your computer or server can use the app as you, 
 
 | Problem | Fix |
 |---|---|
-| Forgot the app password | `docker compose exec app node src/cli.js set-password` |
+| Forgot the app password | On the sign-in screen: **Forgot password?** (recovery key, or a code to your phone). Otherwise `docker compose exec app node src/cli.js set-password` |
 | Lost the authenticator | `docker compose exec app node src/cli.js disable-2fa` |
 | A source says **Locked** | Fix the login in Settings → Connections, then **Unlock** |
 | The bank wants a one-time code | Settings → Connections → **Verify this device** |

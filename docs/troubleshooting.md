@@ -11,7 +11,7 @@ Find your problem below. Most are one step.
 
 | Problem | Fix |
 |---|---|
-| Forgot the app password (Docker) | `docker compose exec app node src/cli.js set-password` |
+| Forgot the app password | **Forgot password?** on the sign-in screen. Docker, as a last resort: `docker compose exec app node src/cli.js set-password` |
 | Lost the authenticator phone (Docker) | `docker compose exec app node src/cli.js disable-2fa` |
 | A source says **Locked** | Fix the login in **Settings → Connections**, then press **Unlock** |
 | The bank wants a one-time code | **Settings → Connections → Verify this device** (below) |
@@ -22,7 +22,13 @@ Find your problem below. Most are one step.
 
 ## Passwords and sign-in
 
-**Forgot the password.** On Docker: `docker compose exec app node src/cli.js set-password`. The Windows and Linux apps have no reset command: if you forget the password, install fresh, choose a new one and restore a backup (**Settings → Backup and restore**). Backups never contain passwords or bank logins, so you type the bank logins again.
+**Forgot the password.** On the sign-in screen press **Forgot password?**, then:
+- **I have my recovery key**: type the key you saved when you chose the password (or made in **Settings → Password and sign-in**). Dashes, spaces and small letters do not matter. The key works once, so a new one is shown right after: save it.
+- **Send a code to my phone**: shown only when alerts already reach your phone (ntfy, Telegram, web push or the Android app; **Settings → Where alerts go**). The 6-digit code works for 10 minutes, once. One code a minute, at most five an hour.
+
+Then choose a new password (with two-step sign-in on, the authenticator code too). Every device is signed out and an alert says the password was changed. Five wrong keys or codes lock the reset for 15 minutes.
+
+Neither works? On Docker: `docker compose exec app node src/cli.js set-password`. The Windows and Linux apps have no reset command: install fresh, choose a new password and restore a backup (**Settings → Backup and restore**). Backups never contain passwords or bank logins, so you type the bank logins again.
 
 **Lost the phone with the authenticator.** On Docker: `docker compose exec app node src/cli.js disable-2fa`, then set it up again.
 
