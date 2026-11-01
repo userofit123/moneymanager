@@ -1,1 +1,127 @@
-/* categories screen (phone/screens). Every rule starts with html.phone. */
+/* Phone Categories and tags screen (phone/screens/CategoriesScreen.vue). Every rule starts with html.phone.
+   The letter tile and the change line (.ph-cats-mic, .ph-cats-chg) are also used by the Category screen. */
+
+/* Categories / Tags under the title */
+html.phone .ph-cats-head {
+  padding: 0 var(--p-gut) 16px;
+}
+
+html.phone .ph-cats-err {
+  margin: 0;
+  color: var(--neg);
+  font-size: 15px;
+  line-height: 22px;
+}
+
+/* the months the sentence is about, right under it */
+html.phone .ph-cats-when {
+  margin: calc(-1 * var(--p-gap) + 6px) 0 0;
+  color: var(--tx2);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* the search and the order */
+html.phone .ph-cats-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-block-end: calc(-1 * var(--p-gap) + 12px);
+}
+
+html.phone .ph-cats-tools .ph-chip-b {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+html.phone .ph-cats-tools .ph-chip-b .ph-ic {
+  inline-size: 16px;
+  block-size: 16px;
+}
+
+html.phone .ph-cats-down {
+  transform: rotate(90deg);
+}
+
+/* the first letter of the name, on the category's own colour */
+html.phone .ph-cats-mic {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: var(--p-r-tile);
+  background: color-mix(in srgb, var(--mc) 16%, transparent);
+  color: var(--mc);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+html.phone .ph-cats-mic.big {
+  inline-size: 56px;
+  block-size: 56px;
+  border-radius: 16px;
+  font-size: 22px;
+}
+
+/* the second line: the change, then how many transactions */
+html.phone .ph-cats-row .ph-row-s {
+  display: flex;
+  gap: 10px;
+}
+
+html.phone .ph-cats-row .ph-row-s > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* a category with nothing in the months looked at is quieter */
+html.phone .ph-cats-row.zero .ph-row-t,
+html.phone .ph-cats-row.zero .ph-amt {
+  color: var(--tx2);
+}
+
+/* the change against the months before: more spending (or less income) in red, the other way in green */
+html.phone .ph-cats-chg {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-cats-chg.good {
+  color: var(--pos);
+}
+
+html.phone .ph-cats-chg.bad {
+  color: var(--neg);
+}
+
+html.phone .ph-cats-chg svg {
+  inline-size: 14px;
+  block-size: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html.phone .ph-cats-chg svg.dn {
+  transform: rotate(180deg);
+}
+
+html.phone .ph-cats-none {
+  margin: 0;
+  padding: 14px 16px;
+  color: var(--tx2);
+  font-size: 15px;
+}
+
+html.phone .ph-cats-p {
+  margin: 0 0 16px;
+  color: var(--tx2);
+  font-size: 15px;
+  line-height: 22px;
+}
