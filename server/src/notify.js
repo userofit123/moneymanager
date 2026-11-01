@@ -24,7 +24,9 @@ export async function sendNtfyOnly(title, body, priority = "default") {
   const url = await ntfyUrl();
   if (!url || ntfyProblem(url)) return false;
   try {
-    const r = await fetch(url, { method: "POST", body, headers: { Title: title, Priority: priority }, signal: AbortSignal.timeout(8000) });
+    // a header carries only plain ASCII: a Hebrew title goes in the encoded form ntfy reads (RFC 2047)
+    const head = /^[\x20-\x7e]*$/.test(title) ? title : `=?UTF-8?B?${Buffer.from(title).toString("base64")}?=`;
+    const r = await fetch(url, { method: "POST", body, headers: { Title: head, Priority: priority }, signal: AbortSignal.timeout(8000) });
     return r.ok;
   } catch { return false; }
 }
@@ -124,6 +126,19 @@ export async function sendNtfy(title, body, priority = "default") {
   const alive = await inboxAlive();
   if (alive) await inboxAdd(title, body, priority);
   const res = await Promise.all([sendNtfyOnly(title, body, priority), sendChannel("telegram", title, body), sendChannel("webhook", title, body), sendPush(title, body)]);
+  return alive || res.some(Boolean);
+}
+
+// The channels that reach only the person's own phone or browser (ntfy, Telegram, web push, the phone app's inbox), not a shared webhook.
+// "Forgot password?" sends its code only through these.
+export async function hasPrivateChannel() {
+  const url = await ntfyUrl();
+  return (!!url && !ntfyProblem(url)) || !!(await getChannels()).telegram || (await getSet(PUSH_SUBS, [])).length > 0 || (await inboxAlive());
+}
+export async function sendPrivate(title, body) {
+  const alive = await inboxAlive();
+  if (alive) await inboxAdd(title, body, "high");
+  const res = await Promise.all([sendNtfyOnly(title, body, "high"), sendChannel("telegram", title, body), sendPush(title, body)]);
   return alive || res.some(Boolean);
 }
 

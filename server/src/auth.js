@@ -53,7 +53,8 @@ export async function createUser(pw) {
 }
 export async function setPassword(pw) {
   const bad = passwordProblem(pw); if (bad) throw new Error(bad);
-  await q("UPDATE auth_user SET password_hash=$1 WHERE id=1", [hashPassword(pw)]);
+  // a code sent by "Forgot password?" stops working too
+  await q("UPDATE auth_user SET password_hash=$1, reset_code_hash=NULL, reset_code_expires=NULL, reset_code_tries=0 WHERE id=1", [hashPassword(pw)]);
   await q("DELETE FROM sessions"); // everyone signs in again
 }
 

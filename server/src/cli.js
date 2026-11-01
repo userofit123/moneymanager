@@ -14,7 +14,7 @@ if (cmd === "set-password") {
   rl.close();
   const bad = passwordProblem(pw);
   if (bad) { console.error(bad); process.exit(1); }
-  await q("INSERT INTO auth_user (id,password_hash) VALUES (1,$1) ON CONFLICT (id) DO UPDATE SET password_hash=$1", [hashPassword(pw)]);
+  await q("INSERT INTO auth_user (id,password_hash) VALUES (1,$1) ON CONFLICT (id) DO UPDATE SET password_hash=$1, reset_code_hash=NULL, reset_code_expires=NULL", [hashPassword(pw)]);
   await q("DELETE FROM sessions");
   console.log("Password set. All sessions were signed out.");
 } else if (cmd === "disable-2fa") {

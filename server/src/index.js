@@ -20,6 +20,7 @@ import { fillJars, readJars } from "./jars.js";
 import { sendNtfy, sendNtfyOnly, ntfyProblem, ntfyUrl, channelStatus, saveChannel, removeChannel, sendChannel, pushKey, pushSubscribe, pushUnsubscribe, pushStatus, sendPush, inboxAdd, inboxRead } from "./notify.js";
 import { listConnections, saveCreds, removeCreds, unlock, getCreds, markAssisted, FIELDS, PROVIDERS, baseOf, validId, nextId, setNickname } from "./connections.js";
 import * as auth from "./auth.js";
+import * as recovery from "./passwordRecovery.js";
 import * as bk from "./backup.js";
 import { createAccount, updateAccount, setBalance, deleteAccount, alertsSeen, alertsOpen, alertHistory } from "./accounts.js";
 
@@ -60,7 +61,7 @@ app.post("/api/auth/setup", json, wrap(async (req, res) => {
   if (await auth.getUser()) return res.status(409).json({ error: "Already set up" });
   try { await auth.createUser(req.body?.password); } catch (e) { return res.status(400).json({ error: e.message }); }
   setCookie(req, res, await auth.startSession(req.get("user-agent")));
-  res.json({ ok: true });
+  res.json({ ok: true, recoveryKey: await recovery.makeRecoveryKey() }); // shown once on the next screen
 }));
 app.post("/api/auth/login", json, wrap(async (req, res) => {
   const ip = req.ip;
@@ -75,6 +76,22 @@ app.post("/api/auth/login", json, wrap(async (req, res) => {
   await auth.noteAttempt(ip, true);
   setCookie(req, res, await auth.startSession(req.get("user-agent"), req.get("x-mm-client")));
   res.json({ ok: true });
+}));
+
+// "Forgot password?" (signed out): the recovery key or a code sent to the phone, then a new password (passwordRecovery.js)
+const resetFail = (res, e) => { if (!(e instanceof recovery.ResetError)) throw e; res.status(e.status).json({ error: e.message, need2fa: e.need2fa || undefined, wrong: e.wrong || undefined }); };
+app.get("/api/auth/reset", wrap(async (_req, res) => res.set("Cache-Control", "no-store").json(await recovery.resetOptions())));
+app.post("/api/auth/reset/code", wrap(async (req, res) => { try { await recovery.sendCode({ ip: req.ip }); res.json({ ok: true }); } catch (e) { resetFail(res, e); } }));
+app.post("/api/auth/reset/check", json, wrap(async (req, res) => {
+  try { res.json(await recovery.checkSecret({ ip: req.ip, way: req.body?.way, secret: req.body?.secret })); } catch (e) { resetFail(res, e); }
+}));
+app.post("/api/auth/reset/finish", json, wrap(async (req, res) => {
+  const b = req.body || {};
+  try {
+    const { newKey } = await recovery.finishReset({ ip: req.ip, way: b.way, secret: b.secret, password: b.password, code: b.code });
+    setCookie(req, res, await auth.startSession(req.get("user-agent"), req.get("x-mm-client")));
+    res.json({ ok: true, recoveryKey: newKey || undefined });
+  } catch (e) { resetFail(res, e); }
 }));
 
 // Everything else under /api needs a session; changes also need the custom header (on top of SameSite=Strict).
@@ -97,6 +114,13 @@ app.post("/api/auth/password", json, wrap(async (req, res) => {
   try { await auth.setPassword(req.body?.next); } catch (e) { return res.status(400).json({ error: e.message }); }
   setCookie(req, res, await auth.startSession(req.get("user-agent"), req.get("x-mm-client"))); // other sessions were signed out
   res.json({ ok: true });
+}));
+// The recovery key (Settings → Security): whether there is one, and a new one (the old one stops working; needs the password)
+app.get("/api/auth/recovery-key", wrap(async (_req, res) => res.set("Cache-Control", "no-store").json(await recovery.recoveryKeyStatus())));
+app.post("/api/auth/recovery-key", json, wrap(async (req, res) => {
+  const u = await auth.getUser();
+  if (!auth.checkPassword(String(req.body?.password || ""), u.password_hash)) return res.status(400).json({ error: "Password is wrong." });
+  res.json({ key: await recovery.makeRecoveryKey() });
 }));
 app.post("/api/auth/2fa/start", wrap(async (_req, res) => {
   // starting over replaces the secret and switches 2FA off, so with 2FA on it needs the password first (the disable route)
