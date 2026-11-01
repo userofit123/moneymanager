@@ -1,14 +1,20 @@
 // Touch gestures of the phone app, with pointer and touch events (passive where the page may still scroll).
-// pullToRefresh: pull the page down from its top; past `need` px a release runs onRun. onMove(dist, ready) draws the ring.
-export function pullToRefresh(el, { onMove, onRun, need = 72 }) {
-  let y0 = null, d = 0, on = false;
-  const start = (e) => { if (scrollY > 0 || e.touches.length > 1 || document.documentElement.classList.contains("sl")) return; y0 = e.touches[0].clientY; d = 0; on = false; };
+// pullToRefresh: pull the page down from its top; past `need` px a release runs onRun. onMove(dist, ready) moves the page.
+// The page follows the finger with a rubber band: 1:1 at first, slower the further it goes, never past `max`.
+// Crossing the line gives a short buzz (where the phone has one).
+export function pullToRefresh(el, { onMove, onRun, need = 88, max = 200 }) {
+  let y0 = null, d = 0, on = false, was = false;
+  const band = (dy) => max * (1 - 1 / (1 + dy * 0.9 / max));
+  const start = (e) => { if (scrollY > 0 || e.touches.length > 1 || document.documentElement.classList.contains("sl")) return; y0 = e.touches[0].clientY; d = 0; on = false; was = false; };
   const move = (e) => {
     if (y0 == null) return;
     const dy = e.touches[0].clientY - y0;
     if (dy <= 0 || scrollY > 0) { if (on) onMove(0, false); y0 = dy <= 0 ? y0 : null; on = false; return; }
-    on = true; d = Math.min(need * 1.6, dy * 0.5); // the ring follows at half the finger's speed, and stops a bit past the line
-    onMove(d, d >= need);
+    on = true; d = band(dy);
+    const ready = d >= need;
+    if (ready && !was) navigator.vibrate?.(8);
+    was = ready;
+    onMove(d, ready);
     if (e.cancelable) e.preventDefault();
   };
   const end = () => { if (y0 == null) return; y0 = null; const go = on && d >= need; on = false; d = 0; onMove(0, false); if (go) onRun(); };

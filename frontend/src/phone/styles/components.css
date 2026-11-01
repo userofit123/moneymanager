@@ -134,34 +134,59 @@ html.phone .ph-content {
 
 /* ---- Pull to sync and the sync bar ---- */
 html.phone .ph-body {
+  position: relative;
   transition: transform .3s var(--p-ease-out);
 }
 
+/* Pull to sync: sits just above the page's top, in the gap the pull opens, and moves with the page */
 html.phone .ph-pull {
   position: absolute;
   inset-inline: 0;
-  inset-block-start: calc(var(--st) + var(--p-bar) - 34px);
+  inset-block-end: 100%;
+  block-size: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--tx2);
+  pointer-events: none;
+  transition: opacity .3s var(--p-ease-out);
+}
+
+html.phone .ph-pull.drag {
+  transition: none;
+}
+
+html.phone .ph-pull-ic {
   display: grid;
   place-items: center;
-  pointer-events: none;
-  opacity: min(1, calc(var(--pull) / 40px));
-  transform: translateY(calc(var(--pull) * .55));
-  z-index: 1;
 }
 
-html.phone .ph-pull svg {
-  inline-size: 28px;
-  block-size: 28px;
-  fill: none;
-  stroke: var(--tx2);
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  transform: rotate(-90deg);
-  transition: stroke var(--p-t-press);
+html.phone .ph-pull .ph-ic {
+  inline-size: 22px;
+  block-size: 22px;
+  transition: color var(--p-t-press);
 }
 
-html.phone .ph-pull.ready svg {
-  stroke: var(--acc);
+html.phone .ph-pull.ready .ph-ic,
+html.phone .ph-pull.run .ph-ic {
+  color: var(--acc);
+}
+
+html.phone .ph-pull.run .ph-ic {
+  animation: ph-spin 1s linear infinite;
+}
+
+html.phone .ph-pull-tx {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.phone .ph-pull.run .ph-ic {
+    animation: none;
+  }
 }
 
 html.phone .ph-syncbar {

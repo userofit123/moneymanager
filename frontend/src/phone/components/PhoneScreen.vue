@@ -56,15 +56,28 @@ const watchTitle = () => {
   io.observe(sentinel.value);
 };
 
-// pull to sync: the ring grows as the page is pulled, and spins while the sync runs
-const pull = ref(0), ready = ref(false), root = ref(null);
+// pull to sync: the sync icon turns with the pull and a line says what letting go will do; let go past the line and
+// the page stays down a little, the icon spinning, until the sync is over, then eases back up
+const REST = 64; // how far the page stays down while syncing
+const pull = ref(0), ready = ref(false), hold = ref(false), turn = ref(0), root = ref(null);
+const gap = computed(() => Math.max(pull.value, hold.value ? REST : 0));
+const pullText = computed(() => t(hold.value ? "phone.shell.syncing" : ready.value ? "phone.shell.release" : "phone.shell.pull"));
 let stopPull = null;
-const runSync = () => { if (!job.value) syncNow(); };
+const jobDone = () => new Promise((res) => { const stop = watch(job, (v) => { if (!v) { stop(); res(); } }, { immediate: true }); });
+const runSync = async () => {
+  if (hold.value) return;
+  hold.value = true;
+  const t0 = performance.now();
+  try { await (job.value ? jobDone() : syncNow()); } finally {
+    await new Promise((res) => setTimeout(res, Math.max(0, 600 - (performance.now() - t0)))); // a very quick sync still shows
+    hold.value = false;
+  }
+};
 onMounted(() => {
   watchTitle();
   if (backBox.value) { ro = new ResizeObserver(fitBack); ro.observe(backBox.value); }
   if (guide.value.startsWith("set.")) loadGuide(false).catch(() => {});
-  if (props.refresh) stopPull = pullToRefresh(root.value, { onMove: (d, r) => { pull.value = d; ready.value = r; }, onRun: runSync });
+  if (props.refresh) stopPull = pullToRefresh(root.value, { onMove: (d, r) => { pull.value = d; ready.value = r; if (d) turn.value = d * 3; }, onRun: runSync });
 });
 onActivated(watchTitle);
 onDeactivated(() => io?.disconnect());
@@ -82,10 +95,11 @@ onBeforeUnmount(() => { io?.disconnect(); ro?.disconnect(); stopPull?.(); });
       <h2 class="ph-bar-title" :aria-hidden="large && !small ? 'true' : undefined">{{ name }}</h2>
       <div class="ph-bar-end"><slot name="actions" /><button v-if="hasGuide" type="button" class="ph-ib ph-guide-b" :aria-label="t('phone.shell.guide')" @click="showGuide"><PIcon name="help" /></button></div>
     </div>
-    <div v-if="refresh" class="ph-pull" :class="{ ready, run: !!job }" :style="{ '--pull': pull + 'px' }" aria-hidden="true">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" :style="{ strokeDasharray: 57, strokeDashoffset: 57 - Math.min(1, pull / 72) * 52 }" /></svg>
-    </div>
-    <div class="ph-body" :style="refresh && pull ? { transform: `translateY(${pull}px)`, transition: 'none' } : null">
+    <div class="ph-body" :style="refresh && gap ? { transform: `translateY(${gap}px)`, transition: pull ? 'none' : null } : null">
+      <div v-if="refresh" class="ph-pull" :class="{ ready, run: hold, drag: !!pull }" :style="{ opacity: Math.min(1, Math.max(0, (gap - 16) / 36)) }" aria-hidden="true">
+        <span class="ph-pull-ic" :style="{ transform: `rotate(${turn}deg)` }"><PIcon name="sync" /></span>
+        <span class="ph-pull-tx">{{ pullText }}</span>
+      </div>
       <div v-if="large" class="ph-titlebox">
         <h1 class="ph-title">{{ name }}</h1>
         <div ref="sentinel" class="ph-sentinel" />
