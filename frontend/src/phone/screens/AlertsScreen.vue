@@ -17,7 +17,7 @@ import SkeletonRows from "../components/SkeletonRows.vue";
 import PIcon from "../components/PIcon.vue";
 defineProps({ id: { type: String, default: null } });
 
-const { t, data, S, since, rows, dismiss, open, tab, hist, loadHist, pick, when, dur, histRows } = useAlerts();
+const { t, data, S, since, rows, dismiss, open, tab, hist, loadHist, pick, when, dur, said } = useAlerts();
 const nav = usePhoneNav();
 const P = (k, o, n) => t("phone.alerts." + k, o || {}, n);
 // a sentence with a date and time in it: the date is set apart (<bdi>), so its time keeps its order in Hebrew
@@ -25,7 +25,10 @@ const P = (k, o, n) => t("phone.alerts." + k, o || {}, n);
 const withWhen = (text, at) => { const [a, b = ""] = text.split("\u0000"); return { a, at: when(at), b }; };
 const appeared = (at) => withWhen(t("alerts.appeared", { when: "\u0000" }), at);
 const ended = (r) => withWhen(P("gone", { when: "\u0000", dur: dur(r.first_seen, r.resolved_at) }), r.resolved_at);
-const histList = computed(() => histRows.value.map((r) => ({ ...r, ap: appeared(r.first_seen), end: r.resolved_at ? ended(r) : null })));
+// the history keeps each alert's English words; newer ones hold invisible marks around their numbers (⁦1⁩), which are
+// taken out first so the words are found and shown in Hebrew
+const plain = (s) => String(s ?? "").replace(/[\u2066-\u2069]/g, "");
+const histList = computed(() => hist.value.rows.map((r) => ({ ...r, title2: said(plain(r.title)), detail2: said(plain(r.detail)), ap: appeared(r.first_seen), end: r.resolved_at ? ended(r) : null })));
 const BELL = pages.find((p) => p.name === "alerts").icon;
 const SETTINGS = pages.find((p) => p.name === "settings").icon;
 

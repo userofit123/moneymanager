@@ -114,3 +114,9 @@ html.phone .ph-alerts-more {
   justify-content: center;
   margin-block-start: 12px;
 }
+
+/* an alert's title wraps instead of being cut: a cut in Hebrew can hide the start of an English name in it */
+html.phone .ph-alerts :is(.ph-al-open, .ph-alh) .ph-row-t {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
