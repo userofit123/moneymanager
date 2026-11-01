@@ -332,3 +332,79 @@ html.phone .ph-wn-f {
   flex-direction: column;
   gap: 8px;
 }
+
+/* Appearance: the computer's panel, shown as a bottom sheet (full width, rounded top, the page dimmed behind it; a tap on
+   the dimmed page closes it, as on the computer). The Layout tab only holds computer settings (density, spacing, the menu),
+   so it is hidden here (the 4th tab: Colours, Backdrop, Style, Layout, Saved). */
+html.phone #pop {
+  inset-inline: 0;
+  inset-block-end: 0;
+  inline-size: auto;
+  max-inline-size: var(--p-max);
+  block-size: min(640px, 86dvh);
+  margin-inline: auto;
+  border: 0;
+  border-radius: var(--p-r-sheet) var(--p-r-sheet) 0 0;
+  padding-block-end: env(safe-area-inset-bottom);
+  z-index: 61;
+  box-shadow: var(--shadow-sheet), 0 0 0 100vmax var(--scrim);
+}
+
+html.phone[data-mode="dark"] #pop {
+  background: color-mix(in srgb, var(--tx) 5%, var(--bg));
+}
+
+html.phone #pop.on {
+  animation: ph-ap-up var(--p-t-sheet) var(--p-ease-out);
+}
+
+html.phone #pop.out {
+  animation: ph-ap-down .18s forwards;
+}
+
+@keyframes ph-ap-up {
+  from { transform: translateY(100%); }
+}
+
+@keyframes ph-ap-down {
+  to { transform: translateY(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.phone #pop.on {
+    animation-name: fi;
+  }
+
+  html.phone #pop.out {
+    animation-name: popOut;
+  }
+}
+
+html.phone #pop .aph {
+  padding: 18px var(--p-gut) 14px;
+}
+
+html.phone #pop .aph b {
+  font-size: 17px;
+}
+
+html.phone #pop .aph .btn {
+  min-block-size: 40px;
+}
+
+html.phone #pop #apTabs {
+  margin-inline: var(--p-gut);
+}
+
+html.phone #pop #apTabs button {
+  min-block-size: 40px;
+}
+
+html.phone #pop #apTabs button:nth-of-type(4),
+html.phone #pop .only-d {
+  display: none;
+}
+
+html.phone #pop .apb {
+  padding-inline: var(--p-gut);
+}
