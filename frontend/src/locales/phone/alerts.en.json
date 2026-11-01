@@ -1,0 +1,11 @@
+{
+  "hero": "{n} alert needs a look. | {n} alerts need a look.",
+  "tabs": "Alerts now or before",
+  "clearTitle": "All clear",
+  "clearText": "Nothing needs your attention right now.",
+  "openHint": "Tap an alert to go to it. Dismiss hides it; it comes back only as a new alert.",
+  "still": "Still showing",
+  "gone": "Gone {when}, after {dur}",
+  "histNote": "Every alert is kept here, with when it came and when it went.",
+  "settingsSub": "Which alerts show, and where"
+}

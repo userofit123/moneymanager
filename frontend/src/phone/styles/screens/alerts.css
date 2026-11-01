@@ -1,1 +1,126 @@
-/* alerts screen (phone/screens). Every rule starts with html.phone. */
+/* alerts screen (phone/screens/AlertsScreen.vue). Every rule starts with html.phone. */
+
+html.phone .ph-alerts .ph-hero {
+  padding: 4px 4px 0;
+}
+
+html.phone .ph-alerts-err {
+  margin: 0;
+  padding: 16px 4px;
+  color: var(--neg);
+}
+
+/* an alert: the row that opens it, and Dismiss under its text */
+html.phone .ph-al {
+  padding-block-end: 2px;
+}
+
+html.phone .ph-al-open {
+  align-items: flex-start;
+  padding-block-end: 0;
+}
+
+html.phone .ph-al-open .ph-row-end {
+  align-self: center;
+}
+
+/* the whole sentence shows: it holds the numbers */
+html.phone .ph-al-text {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+html.phone .ph-al-when {
+  font-size: 12px;
+  white-space: normal;
+}
+
+html.phone .ph-al-when > * {
+  display: inline-block;
+}
+
+html.phone .ph-al-when > * + * {
+  margin-inline-start: 10px;
+}
+
+html.phone .ph-al-dis {
+  margin-inline-start: 52px;
+  padding-inline: 12px;
+  min-block-size: 40px;
+  font-size: 14px;
+}
+
+/* separators between alerts start where the text starts */
+html.phone .ph-alerts .ph-swipe + .ph-swipe::before {
+  inset-inline-start: 64px;
+  z-index: 1;
+}
+
+/* how urgent: a dot in the lead, the colours of the alert icons */
+html.phone .ph-alh {
+  align-items: flex-start;
+}
+
+html.phone .ph-alh .ph-row-lead {
+  inline-size: 36px;
+  justify-content: center;
+  padding-block-start: 7px;
+}
+
+html.phone .ph-alh-dot {
+  inline-size: 10px;
+  block-size: 10px;
+  border-radius: 50%;
+  background: var(--acc);
+}
+
+html.phone .ph-alh-dot.high {
+  background: var(--neg);
+}
+
+html.phone .ph-alh-dot.med {
+  background: var(--warn);
+}
+
+html.phone .ph-alh .ph-row-end {
+  align-self: flex-start;
+  padding-block-start: 2px;
+}
+
+/* still showing, dismissed or gone by itself */
+html.phone .ph-alh-st {
+  padding: 2px 8px;
+  border-radius: var(--pill);
+  background: var(--p-press);
+  color: var(--tx2);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+html.phone .ph-alh-st.act {
+  background: color-mix(in srgb, var(--warn) 18%, transparent);
+  color: color-mix(in srgb, var(--warn) 70%, var(--tx));
+}
+
+html.phone .ph-alh-st.res {
+  background: color-mix(in srgb, var(--pos) 15%, transparent);
+  color: var(--pos);
+}
+
+html.phone .ph-alerts-more {
+  display: flex;
+  justify-content: center;
+  margin-block-start: 12px;
+}
+
+/* the swipe's Dismiss stays hidden while the row is at rest (its colour would show at the group's rounded corners) */
+html.phone .ph-alerts .ph-swipe:has(> .ph-swipe-row[style*="translateX(0px)"]) .ph-swipe-a {
+  visibility: hidden;
+}
+
+/* the switch sits on top of the list it switches */
+html.phone .ph-alerts-tabs .ph-segwrap {
+  margin-block-end: 14px;
+}
