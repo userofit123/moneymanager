@@ -1,6 +1,6 @@
 <script setup>
 // Settings → Password and sign-in: app lock, the password, the recovery key, two-step sign-in and the signed-in devices.
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import SetSection from "./SetSection.vue";
 import SetRow from "./SetRow.vue";
@@ -9,6 +9,9 @@ import { request } from "../../core/http.js";
 import { signOut } from "../../core/boot.js";
 import { dstr } from "../../dates.js";
 import RecoveryKey from "../../components/RecoveryKey.vue";
+import { qrPath, keyGroups } from "../../lib/qr.js";
+import { copyText } from "./errlog.js";
+import { isPhone } from "../../mobile.js";
 
 const { t, locale } = useI18n();
 const tk = (k) => t("settings.sec." + k);
@@ -22,9 +25,14 @@ const sWhere = (s) => [s.browser, s.os].filter(Boolean).join(" · ");
 async function endSession(s) { await request("/api/sessions/" + s.id + "/end", { method: "POST" }); toast(tk("ended")); loadSessions(); }
 const totp = ref(false);
 const start = ref(null); // { secret, uri } while two-factor is being set up
+// The setup link as a QR code for the authenticator app, drawn here so the secret never leaves the page
+const qr = computed(() => (start.value ? qrPath(start.value.uri) : null));
+const copyKey = () => copyText(start.value.secret, tk("tfaCopied"));
 // The phone app can ask for a fingerprint, face or screen lock when it opens (the app tells us whether the phone has one)
 const MM = typeof window !== "undefined" ? window.mmApp : null;
 const lock = ref({ available: false, enabled: false, delay: 30 });
+// A phone cannot scan its own screen: in the browser the otpauth:// link opens the authenticator app (the phone app only opens web links)
+const canOpen = computed(() => isPhone.value && !MM);
 onMounted(async () => { if (MM) { try { lock.value = await MM.lock(); } catch { /* no lock option */ } } });
 // A failed switch is drawn again from `lock` (lockKey), so it shows Off.
 const lockKey = ref(0);
@@ -99,7 +107,17 @@ const logout = (all) => signOut(all);
         <button v-if="!totp && !start" type="button" class="btn s" data-a="tfaStart" @click="tfaStart">{{ tk("setUp") }}</button>
       </SetRow>
       <template v-if="start">
-        <div class="sinfo"><div>{{ tk("tfaKey") }}<div class="num tfakey">{{ start.secret }}</div><div class="tfauri">{{ start.uri }}</div></div></div>
+        <div class="sinfo tfaset" :class="{ tfaph: isPhone }">
+          <p class="tfahow">{{ tk(!isPhone ? "tfaHow" : canOpen ? "tfaHowTap" : "tfaHowType") }}</p>
+          <a v-if="canOpen" class="btn s tfaopen" :href="start.uri" data-a="tfaOpen">{{ tk("tfaOpen") }}</a>
+          <svg v-if="!isPhone" class="tfaqr" role="img" :aria-label="tk('tfaQr')" :viewBox="`-4 -4 ${qr.size + 8} ${qr.size + 8}`" shape-rendering="crispEdges"><rect x="-4" y="-4" :width="qr.size + 8" :height="qr.size + 8" fill="#fff" /><path :d="qr.d" fill="#000" /></svg>
+          <div v-if="!isPhone || canOpen" class="tfaalt">{{ tk(isPhone ? "tfaTypePhone" : "tfaType") }}</div>
+          <div class="tfakeyrow"><span class="tfakey" data-a="tfaKey"><bdi dir="ltr">{{ keyGroups(start.secret) }}</bdi></span><button type="button" class="btn o s" data-a="tfaCopy" @click="copyKey">{{ tk("tfaCopy") }}</button></div>
+          <template v-if="isPhone">
+            <div class="tfaalt">{{ tk("tfaQrPhone") }}</div>
+            <svg class="tfaqr" role="img" :aria-label="tk('tfaQr')" :viewBox="`-4 -4 ${qr.size + 8} ${qr.size + 8}`" shape-rendering="crispEdges"><rect x="-4" y="-4" :width="qr.size + 8" :height="qr.size + 8" fill="#fff" /><path :d="qr.d" fill="#000" /></svg>
+          </template>
+        </div>
         <SetRow stack :title="tk('tfaCodeT')" :desc="tk('tfaCodeD')"><input id="tfaCode" v-model="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" :aria-label="tk('tfaCodeT')" :placeholder="tk('tfaCodePh')"><button type="button" class="btn s" data-a="tfaEnable" @click="tfaEnable">{{ tk("turnOn") }}</button></SetRow>
       </template>
       <SetRow v-else-if="totp" stack :title="tk('tfaOffT')" :desc="tk('tfaOffD')"><input id="tfaPw" v-model="offPw" type="password" autocomplete="current-password" :aria-label="tk('tfaPwPh')" :placeholder="tk('tfaPwPh')"><button type="button" class="btn r s" data-a="tfaDisable" @click="tfaDisable">{{ tk("turnOff") }}</button></SetRow>

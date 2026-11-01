@@ -706,17 +706,52 @@ html.he .csplit select {
   margin-bottom: 12px;
 }
 
-/* Two-step sign-in: the key to add to the phone app, and its link in small type */
+/* Two-step sign-in setup: the steps, the QR code (black on white with its border in every look, so a phone can read it), the key to type */
+.tfaset {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.tfahow {
+  margin: 0;
+  color: var(--tx);
+}
+
+.tfaqr {
+  display: block;
+  inline-size: 192px;
+  block-size: 192px;
+  border-radius: 8px;
+}
+
+.tfaset.tfaph .tfaqr {
+  inline-size: 150px;
+  block-size: 150px;
+}
+
+.tfaopen {
+  align-self: flex-start;
+  text-decoration: none;
+}
+
+.tfaalt {
+  margin-block-start: 4px;
+}
+
+.tfakeyrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
 .tfakey {
   font-size: var(--fs-lg);
   color: var(--tx);
-  word-break: break-all;
-  margin-block: 8px 4px;
-}
-
-.tfauri {
-  font-size: var(--fs-sm);
-  word-break: break-all;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  word-break: break-word;
 }
 
 /* Backup and restore: the folder path breaks anywhere, a failed last backup in red, the "what a backup contains" note, the windows */
