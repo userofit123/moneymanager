@@ -650,3 +650,175 @@ html.he .fcsum .op svg {
   color: var(--tx2);
 }
 
+
+/* Years ahead: the answer card, then the card to try other amounts (controls beside the chart, under it on a narrow screen) */
+.ya-ans p {
+  margin: 0;
+}
+
+.ya-l1 {
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -.01em;
+}
+
+.ya-ans .ya-l2 {
+  font-size: 15.5px;
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+.ya-ans b,
+.ya-res b {
+  font-variant-numeric: tabular-nums;
+  color: var(--acc);
+}
+
+.ya-ans .ya-basis {
+  margin-top: 10px;
+  line-height: 1.5;
+}
+
+.ya-inv {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--s2);
+  font-size: 13.5px;
+}
+
+.ya-inv svg {
+  inline-size: 20px;
+  block-size: 20px;
+  flex: none;
+  fill: none;
+  stroke: var(--acc);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.ya-inv span {
+  flex: 1;
+  min-width: 180px;
+}
+
+.ya-play {
+  margin-top: var(--spg);
+  container-type: inline-size;
+}
+
+.ya-h {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: 14px;
+}
+
+.ya-h h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.ya-grid {
+  display: grid;
+  grid-template-columns: minmax(230px, 280px) minmax(0, 1fr);
+  gap: 26px;
+}
+
+.ya-ctl .fld {
+  margin-bottom: 14px;
+}
+
+.ya-ctl input[type=range] {
+  inline-size: 100%;
+  accent-color: var(--acc);
+  margin-top: 8px;
+  min-height: 0;
+  block-size: 22px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.ya-rng {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ya-rng input[type=range] {
+  flex: 1;
+  margin-top: 0;
+}
+
+.ya-rng output {
+  flex: none;
+  min-inline-size: 64px;
+  text-align: end;
+  font-weight: 600;
+}
+
+.ya-back {
+  border: 0;
+  background: none;
+  padding: 2px 0;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--acc);
+  cursor: pointer;
+}
+
+.ya-back:hover {
+  text-decoration: underline;
+}
+
+.ya-ctl .seg.ya-g {
+  margin: 6px 0 0;
+}
+
+.ya-leg {
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.ya-axis {
+  text-align: center;
+  margin-top: 2px;
+}
+
+.ya-res {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.ya-res li {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--s2);
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.ya-res small {
+  display: block;
+  color: var(--tx2);
+  font-size: 12.5px;
+}
+
+@container (max-width: 700px) {
+  .ya-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

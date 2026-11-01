@@ -584,3 +584,181 @@ html.phone .ph-fc-skel i + i {
   inline-size: 55%;
 }
 
+
+/* ---- Years ahead (phone/components/ForecastYears.vue): the answer, then a place to try other amounts ---- */
+html.phone .ph-ya-ans {
+  padding: 14px 16px;
+}
+
+html.phone .ph-ya-ans p {
+  margin: 0;
+}
+
+html.phone .ph-ya-ans .ph-ya-l1 {
+  font-size: 18px;
+  line-height: 25px;
+  font-weight: 600;
+  text-wrap: pretty;
+}
+
+html.phone .ph-ya-ans .ph-ya-l2 {
+  margin-block-start: 6px;
+  font-size: 15px;
+  line-height: 21px;
+}
+
+html.phone .ph-ya b {
+  color: var(--acc);
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-ya-ans .ph-ya-basis {
+  margin-block-start: 10px;
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+/* no age yet: a row that opens the profile */
+html.phone .ph-ya-inv {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  inline-size: 100%;
+  margin-block-start: 10px;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: var(--p-r-group);
+  background: color-mix(in srgb, var(--acc) 10%, var(--p-surf));
+  color: var(--tx);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: start;
+}
+
+html.phone .ph-ya-inv > .ph-ic:first-child {
+  color: var(--acc);
+}
+
+html.phone .ph-ya-inv span {
+  flex: 1;
+}
+
+html.phone .ph-ya-inv b {
+  display: block;
+  margin-block-start: 2px;
+  font-weight: 600;
+}
+
+html.phone .ph-ya-play {
+  padding: 14px 16px 2px;
+}
+
+html.phone .ph-ya-play .fld {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-block-end: 16px;
+}
+
+html.phone .ph-ya-play .fld label {
+  font-size: 13px;
+  color: var(--tx2);
+}
+
+html.phone .ph-ya-play input[type=range] {
+  inline-size: 100%;
+  block-size: 28px;
+  min-block-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  accent-color: var(--acc);
+}
+
+html.phone .ph-ya-rng {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+html.phone .ph-ya-rng input[type=range] {
+  flex: 1;
+}
+
+html.phone .ph-ya-rng output {
+  flex: none;
+  min-inline-size: 64px;
+  text-align: end;
+  font-weight: 600;
+}
+
+html.phone .ph-ya-back {
+  align-self: flex-start;
+  font-size: 14px;
+}
+
+html.phone .ph-ya-chart,
+html.phone .ph-ya-res {
+  margin-block-start: 10px;
+}
+
+html.phone .ph-ya-chart {
+  padding: 12px 8px 10px;
+}
+
+html.phone .ph-ya-axis {
+  margin: 2px 0 0;
+  text-align: center;
+  color: var(--tx2);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+html.phone .ph-ya-leg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding: 8px 8px 0;
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+html.phone .ph-ya-leg > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+html.phone .ph-ya-leg i.ln {
+  inline-size: 14px;
+  block-size: 3px;
+  border-radius: 2px;
+  background: var(--acc);
+}
+
+html.phone .ph-ya-res {
+  padding: 4px 16px;
+}
+
+html.phone .ph-ya-r {
+  margin: 0;
+  padding: 10px 0;
+  font-size: 15px;
+  line-height: 21px;
+}
+
+html.phone .ph-ya-r + .ph-ya-r {
+  border-block-start: 1px solid var(--ol);
+}
+
+html.phone .ph-ya-r small {
+  display: block;
+  margin-block-start: 2px;
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+}

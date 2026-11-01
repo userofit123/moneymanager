@@ -37,6 +37,7 @@ export default [
   ["fc", "#fc", "h2", "How much money you will really have", "The chart", "", "כמה כסף באמת יהיה לכם"],
   ["fc", "#fc", "h2", "What drives the forecast", "What drives the forecast", "", "מה משפיע על התחזית"],
   ["fc", "#fc", "h2", "Jar forecast", "Jar forecast", "", "תחזית הקופות"],
+  ["fc", "#fc", "h2", "Years ahead", "Years ahead", "", "השנים הבאות"],
   ["alerts", "#alTabs", "", "", "Two tabs", "after", ""],
   ["set.ai", "#aiSort", ".ssh b", "Let an AI make your categories", "Let an AI make your categories", "", "תנו לבינה מלאכותית ליצור לכם קטגוריות"],
   ["set.crules", "#setRules", ".ssh b", "Category rules", "Category rules", "", "כללי קטגוריות"],

@@ -1,7 +1,7 @@
 <script setup>
 // Forecast (in More): where the money is heading. It opens with one sentence (what is likely yours at the end of next
 // month), the months it learns from, the chart (touch it to read each month), the months ahead, how next month is worked
-// out, what drives it (money in and out, each line opens its months) and what each jar will hold.
+// out, what drives it (money in and out, each line opens its months), what each jar will hold and the years ahead.
 // Every number comes from pagelogic/forecast.js, the same as the computer page.
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { data } from "../../stores/data.js";
@@ -18,6 +18,7 @@ import EmptyState from "../components/EmptyState.vue";
 import PhoneSheet from "../components/PhoneSheet.vue";
 import PIcon from "../components/PIcon.vue";
 import LoadError from "../components/LoadError.vue";
+import ForecastYears from "../components/ForecastYears.vue";
 defineProps({ id: { type: String, default: null } });
 
 const {
@@ -244,6 +245,9 @@ const openJar = (id) => nav.push("jar", String(id));
           <span v-if="c.warn" class="ph-fc-jar-w"><PIcon :svg="WARN" />{{ c.warn }}</span>
         </button>
       </section>
+
+      <!-- the years ahead: what today's pace adds up to, and a place to try other amounts -->
+      <ForecastYears :model="M" />
     </template>
 
     <!-- one line of what drives it: its three amounts, its trend and each month -->

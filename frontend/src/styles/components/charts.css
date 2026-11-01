@@ -363,3 +363,53 @@ html.he .spark {
   right: auto; /* fixed side */
   left: 0; /* fixed side */
 }
+
+/* Years ahead's chart (components/charts/YearsChart.vue, Forecast on the computer and the phone) */
+.yac .yac-mine {
+  fill: none;
+  stroke: var(--acc);
+  stroke-width: 3;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.yac .yac-pace {
+  fill: none;
+  stroke: var(--tx2);
+  stroke-opacity: .7;
+  stroke-width: 1.6;
+  stroke-dasharray: 5 5;
+}
+
+.yac .yac-goal {
+  stroke: var(--pos);
+  stroke-width: 1.6;
+  stroke-dasharray: 6 5;
+}
+
+.yac .yac-hit {
+  fill: var(--pos);
+  stroke: var(--bg);
+  stroke-width: 2.5;
+}
+
+.yac .yac-hit-h {
+  fill: var(--pos);
+  opacity: .2;
+}
+
+.yac-tip {
+  transform: translateX(-50%); /* fixed side: centred over the point of a left-to-right chart */
+}
+
+/* its legend's dashed lines: today's pace and the goal */
+.ya-dash {
+  display: inline-block;
+  inline-size: 16px;
+  vertical-align: middle;
+  border-block-start: 2px dashed var(--tx2);
+}
+
+.ya-dash.goal {
+  border-color: var(--pos);
+}

@@ -1,10 +1,11 @@
 <script setup>
 // Forecast: where the money is heading:
-// the choices at the top, the balance now and ahead, what it is based on, the chart, what drives it and what each jar will hold.
+// the choices at the top, the balance now and ahead, what it is based on, the chart, what drives it, what each jar will hold and the years ahead.
 // What it knows and does lives in pagelogic/forecast.js (shared with the phone's Forecast screen).
 import { data } from "../stores/data.js";
 import PageHeader from "../components/PageHeader.vue";
 import BaseCard from "../components/BaseCard.vue";
+import YearsAhead from "./forecast/YearsAhead.vue";
 import { useForecast } from "../pagelogic/forecast.js";
 import "../styles/pages/forecast.css"; // this page's own styles
 
@@ -128,6 +129,8 @@ const {
         </div>
         <div v-else class="card sm">{{ t("forecast.j.none") }}</div>
       </div>
+
+      <YearsAhead :model="M" />
     </template>
   </section>
 </template>
