@@ -4,6 +4,7 @@
   "version": "0.12.13",
   "description": "Money Manager for Windows, Linux and Mac: the same app, with its own database and bank scraper built in",
   "private": true,
+  "license": "PolyForm-Noncommercial-1.0.0",
   "main": "main.js",
   "desktopName": "money-manager.desktop",
   "scripts": {

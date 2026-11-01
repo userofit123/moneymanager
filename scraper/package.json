@@ -2,6 +2,7 @@
   "name": "money-manager-scraper",
   "version": "0.1.0",
   "private": true,
+  "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
   "dependencies": {
     "israeli-bank-scrapers": "6.12.2",

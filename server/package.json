@@ -2,6 +2,7 @@
   "name": "money-manager-server",
   "version": "0.12.13",
   "private": true,
+  "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
   "scripts": {
     "start": "node src/index.js",

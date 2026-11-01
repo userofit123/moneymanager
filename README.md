@@ -133,3 +133,7 @@ Releases are automatic: `node scripts/bump.mjs minor`, fill in both changelogs, 
 Built: sign-in with two-factor, encrypted write-only bank logins, the scraper service, Wise (API and CSV), bank CSV import, duplicate handling, rules, transfers, missing-money detection, exchange rates, receipts, the scheduler, alerts and phone push, the PWA, Docker, the Windows and Linux apps with automatic updates and a choice of this computer or your own server, backup, Hebrew.
 
 **Not verified:** the scrapers and the Wise token have been tested against fake services only, not the real banks, so expect to adjust once you try your own. Hapoalim one-time codes need **Verify this device**. **Not built:** split transactions, budget rollover, Excel (non-CSV) import.
+
+## License
+
+[PolyForm Noncommercial 1.0.0](LICENSE): free to use, change and share for any non-commercial purpose (personal use, charities, schools, research). Commercial use, such as selling it or running it as a paid service, needs permission from the author.
