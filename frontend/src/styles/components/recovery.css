@@ -167,6 +167,18 @@ html.he .fpw-chev {
   display: none;
 }
 
+/* Settings → Security: the note, the key and "I saved it" spaced evenly */
+.rknew {
+  display: grid;
+  gap: 14px;
+}
+
+.rknew > p,
+.rknew > .rkey,
+.rknew > .sact {
+  margin: 0;
+}
+
 /* Print: only the key and its note */
 @media print {
   html.rkprint body * {
