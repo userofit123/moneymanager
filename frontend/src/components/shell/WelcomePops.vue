@@ -1,46 +1,14 @@
 <script setup>
 // After signing in: the "has been updated" window with what is new since the last visit then, once, "Make it yours"
-// asking for the profile. Styled as .wnp in styles/components/app-windows.css.
-import { ref, onMounted, nextTick } from "vue";
-import { useI18n } from "vue-i18n";
-import { data } from "../../stores/data.js";
-import { whatsNew, markSeen } from "../../core/updates.js";
-import { toast } from "../../core/toast.js";
-import { go } from "../../router.js";
-import { openSettingsTab } from "../../views/settings/tab.js";
-import { profRead } from "../../views/settings/profile.js";
-import { sheetsOpen } from "../../core/sheets.js";
+// asking for the profile (core/welcome.js, shared with the phone). Styled as .wnp in styles/components/app-windows.css.
+import { ref } from "vue";
 import { escLayer } from "../../core/layers.js";
+import { useWelcome } from "../../core/welcome.js";
 import ProfileFields from "../ProfileFields.vue";
 
-const { t } = useI18n();
-const news = ref(null), ask = ref(false), form = ref({ name: "", age: "", gender: "", goal: "" });
+const { t, news, ask, form, closeNews, fullLog, skip, save } = useWelcome();
 const box = ref(null);
-
-function profileAsk() {
-  const S = data.state.value;
-  if (!S || (S.cfg && S.cfg.profile) || news.value || sheetsOpen()) return;
-  ask.value = true;
-  nextTick(() => document.getElementById("ppName")?.focus());
-}
-function closeNews(then) { if (news.value) markSeen(news.value.cur); news.value = null; setTimeout(then || profileAsk, 350); }
-const fullLog = () => closeNews(() => { openSettingsTab("rel"); go("/settings"); });
-function skip() {
-  ask.value = false;
-  data.change((S) => { S.cfg = S.cfg || {}; if (!S.cfg.profile) S.cfg.profile = { asked: 1 }; return []; });
-  toast(t("upd.later"), { kind: "info" });
-}
-function save() {
-  const n = profRead(form.value);
-  ask.value = false;
-  data.change((S) => { S.cfg = S.cfg || {}; S.cfg.profile = n; return [["Updated profile", n.name ? n.name : "no name"]]; });
-}
 escLayer(() => !!(news.value || ask.value), () => { if (news.value) closeNews(); else if (ask.value) skip(); });
-onMounted(async () => {
-  news.value = await whatsNew(!!data.state.value?.tx?.length);
-  // "Got it" is not focused: the loading screen may still hide the page, and a focus ring there would look odd
-  if (!news.value) setTimeout(profileAsk, 500);
-});
 </script>
 
 <template>

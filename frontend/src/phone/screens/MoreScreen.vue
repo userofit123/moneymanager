@@ -26,6 +26,8 @@ const MONEY = ["recap", "accounts", "budgets", "reports", "forecast", "categorie
 const pageName = (n) => (n === "reports" ? t("shell.moreRep") : t("nav." + n));
 const update = computed(() => ["available", "downloading", "ready", "installing"].includes(UP.status));
 const openUpdate = () => nav.push("settingsSection", "app");
+// the update row says where the update is: ready to get, coming down, waiting for a restart, being put in
+const updateText = computed(() => (UP.status === "installing" ? t("upd.installing") : UP.status === "ready" ? t("upd.restart") : UP.status === "downloading" ? t("upd.updating", { p: UP.percent }) : r("update")));
 </script>
 
 <template>
@@ -43,9 +45,9 @@ const openUpdate = () => nav.push("settingsSection", "app");
       <ListRow :title="t('nav.settings')" :sub="r('settings')" :icon="icon('settings')" tone="var(--c6)" link @tap="nav.push('settings')" />
       <ListRow :title="t('shell.appearance')" :sub="r('appearance')" :icon="ICONS.look" tone="var(--c5)" @tap="appearanceOpen = true" />
       <ListRow :title="t('shell.syncStatus')" :sub="r('syncStatus')" :icon="ICONS.sync" tone="var(--c3)" @tap="syncOpen = true" />
-      <ListRow :title="t('shell.aboutPage')" :sub="r('help')" :icon="ICONS.help" tone="var(--c6)" @tap="helpOn('guide')" />
+      <ListRow :title="t('phone.sheets.help')" :sub="r('help')" :icon="ICONS.help" tone="var(--c6)" @tap="helpOn('guide')" />
       <ListRow v-if="installPrompt" :title="t('shell.install')" :sub="r('install')" :icon="ICONS.install" tone="pos" @tap="install()" />
-      <ListRow v-if="update" :title="t('upd.available')" :sub="r('update')" :icon="ICONS.update" tone="pos" link @tap="openUpdate" />
+      <ListRow v-if="update" :title="t('upd.available')" :sub="updateText" :icon="ICONS.update" tone="pos" link @tap="openUpdate" />
     </ListGroup>
   </PhoneScreen>
 </template>

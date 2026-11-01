@@ -8,7 +8,7 @@ import { createNav, showUrl, top, pushUrl, rootUrl, NAV_KEY } from "./navigation
 import { txOpenId } from "../core/txwin.js";
 import { settingsTab, settingsAsked } from "../views/settings/tab.js";
 import { job } from "../core/jobs.js";
-import { helpUsed } from "./help.js";
+import { app } from "../core/boot.js";
 import { edgeBack } from "./gestures.js";
 import { sign } from "./dir.js";
 import ScreenHost from "./ScreenHost.vue";
@@ -20,13 +20,15 @@ import "./styles/index.css";
 // Windows shared with the computer, until the phone has its own (they open as the computer's windows for now).
 const AppearancePanel = defineAsyncComponent(() => import("../components/AppearancePanel.vue"));
 const SyncSheet = defineAsyncComponent(() => import("../components/shell/SyncSheet.vue"));
-const Suggestions = defineAsyncComponent(() => import("../components/shell/Suggestions.vue"));
 const TxPops = defineAsyncComponent(() => import("../components/tx/TxPops.vue"));
 const DocViewer = defineAsyncComponent(() => import("../components/tx/DocViewer.vue"));
 const AssistWindow = defineAsyncComponent(() => import("../views/settings/AssistWindow.vue"));
-const HelpPanel = defineAsyncComponent(() => import("../help/HelpPanel.vue"));
 const AddSheet = defineAsyncComponent(() => import("./sheets/AddSheet.vue"));
 const ExplainSheet = defineAsyncComponent(() => import("./sheets/ExplainSheet.vue"));
+const HelpSheet = defineAsyncComponent(() => import("./sheets/HelpSheet.vue"));
+const KeyNumbersSheet = defineAsyncComponent(() => import("./sheets/KeyNumbersSheet.vue"));
+const SuggestionsSheet = defineAsyncComponent(() => import("./sheets/SuggestionsSheet.vue"));
+const WelcomeSheet = defineAsyncComponent(() => import("./sheets/WelcomeSheet.vue"));
 
 const here = () => location.pathname + location.search;
 const url = ref(here());
@@ -138,11 +140,13 @@ onBeforeUnmount(() => { stopEdge?.(); document.documentElement.classList.remove(
     <AddSheet />
     <ExplainSheet />
     <SyncSheet />
-    <HelpPanel v-if="helpUsed" />
+    <HelpSheet />
+    <KeyNumbersSheet />
     <FormHost />
     <TxPops />
     <DocViewer />
     <AssistWindow />
-    <Suggestions />
+    <SuggestionsSheet />
+    <WelcomeSheet v-if="app.phase === 'ready'" />
   </div>
 </template>

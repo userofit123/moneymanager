@@ -75,3 +75,260 @@ html.phone .ph-add-i[data-k="tx"] .ph-add-h {
   color: inherit;
   opacity: .8;
 }
+
+/* ---- Help: the list of topics, then one guide (help/help.js) in the computer's words, at phone sizes ---- */
+html.phone .ph-help .ph-sheet-b {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-gap);
+}
+
+html.phone .ph-help-back {
+  margin-inline-start: -8px;
+}
+
+html.phone :is(.ph-help-lead, .ph-nums-lead, .ph-sugg-lead) {
+  margin: 0;
+  color: var(--tx2);
+  font-size: 15px;
+  line-height: 22px;
+}
+
+html.phone .ph-guide .hlead {
+  margin-block-end: 16px;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+/* the guide's "jump to" buttons scroll sideways in one line */
+html.phone .ph-guide .hjump {
+  flex-wrap: nowrap;
+  gap: 8px;
+  margin-inline: calc(var(--p-gut) * -1);
+  padding-inline: var(--p-gut);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+html.phone .ph-guide .hjump button {
+  flex: none;
+  min-block-size: 36px;
+  padding: 0 14px;
+  border-radius: var(--pill);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+html.phone .ph-guide .hs {
+  margin-block-end: 24px;
+  scroll-margin-block-start: 8px;
+}
+
+html.phone .ph-guide .hs h4 {
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 600;
+}
+
+html.phone .ph-guide .hs p {
+  font-size: 15px;
+  line-height: 23px;
+}
+
+html.phone .ph-guide :is(.hex, .htip) {
+  font-size: 14px;
+  line-height: 21px;
+  border-radius: var(--p-r-tile);
+}
+
+/* "Example" and "Tip" in sentence case, as every label on the phone */
+html.phone .ph-guide :is(.hex, .htip) > b {
+  font-size: 13px;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+/* the little pictures: shrunk to the sheet's width, never wider */
+html.phone .ph-guide .hdemo {
+  border-radius: var(--p-r-tile);
+  overflow-x: hidden;
+  zoom: .9;
+}
+
+/* ---- Key numbers: groups that add up to their last line ---- */
+html.phone .ph-nums .ph-sheet-b {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-gap);
+}
+
+html.phone .ph-num {
+  gap: 4px;
+  min-block-size: 48px;
+}
+
+html.phone .ph-num-op {
+  flex: none;
+  inline-size: 16px;
+  color: var(--tx2);
+  font-weight: 600;
+  text-align: center;
+}
+
+html.phone .ph-num-t {
+  font-size: 15px;
+  line-height: 20px;
+}
+
+html.phone .ph-num .ph-amt.neg {
+  color: var(--neg);
+}
+
+/* the group before's result, repeated as this group's start */
+html.phone .ph-num.from :is(.ph-num-t, .ph-amt) {
+  color: var(--tx2);
+  font-weight: 500;
+}
+
+/* the line the group adds up to */
+html.phone .ph-num.res {
+  border-block-start: 1px solid var(--p-line);
+}
+
+html.phone .ph-num.res .ph-num-t {
+  font-weight: 600;
+}
+
+html.phone .ph-num.res::before {
+  display: none;
+}
+
+/* the likely ones are guesses: a dashed edge, as on the computer */
+html.phone .ph-nums .guess .ph-group-b {
+  background: transparent;
+  border: 1px dashed var(--p-line);
+}
+
+/* ---- Ideas ---- */
+html.phone .ph-sugg .ph-sheet-b {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+html.phone .ph-sugg-i {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px 10px;
+}
+
+html.phone .ph-sugg-i + .ph-sugg-i::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 64px 0;
+  border-block-start: 1px solid var(--p-line);
+}
+
+html.phone .ph-sugg-i > .ph-tile {
+  flex: none;
+}
+
+html.phone .ph-sugg-w {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+html.phone .ph-sugg-t {
+  display: block;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
+}
+
+html.phone .ph-sugg-x {
+  margin: 2px 0 8px;
+  color: var(--tx2);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+html.phone .ph-sugg-a {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+html.phone .ph-sugg-a .ph-btn {
+  min-block-size: 40px;
+  padding-inline: 16px;
+  font-size: 15px;
+}
+
+/* ---- Welcome: what is new, then "Make it yours" ---- */
+html.phone .ph-wn-h {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-inline-size: 0;
+}
+
+html.phone .ph-wn-h > .ph-tile {
+  flex: none;
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 50%;
+}
+
+html.phone .ph-wn-ht {
+  min-inline-size: 0;
+}
+
+html.phone .ph-wn-ht p {
+  margin: 2px 0 0;
+  color: var(--tx2);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+html.phone .ph-wn-v {
+  margin: 20px 0 6px;
+  color: var(--tx2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+html.phone .ph-wn-v:first-child {
+  margin-block-start: 4px;
+}
+
+html.phone .ph-wn-notes {
+  font-size: 15px;
+  line-height: 23px;
+}
+
+html.phone .ph-wn-notes :is(h3, h4) {
+  margin: 16px 0 6px;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
+}
+
+html.phone .ph-wn-notes ul {
+  margin: 0;
+  padding-inline-start: 20px;
+}
+
+html.phone .ph-wn-notes li + li {
+  margin-block-start: 6px;
+}
+
+html.phone .ph-wn-f {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
