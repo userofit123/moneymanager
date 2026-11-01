@@ -1,1 +1,777 @@
-/* recap screen (phone/screens). Every rule starts with html.phone. */
+/* Phone Recap screen (phone/screens/RecapScreen.vue). Every rule starts with html.phone. */
+
+/* ---- the greeting, where the month stands and its days ---- */
+html.phone .ph-rc-hero {
+  padding: 8px 4px 0;
+}
+
+html.phone .ph-rc-greet {
+  margin: 0;
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 700;
+  letter-spacing: -.4px;
+}
+
+html.phone.he .ph-rc-greet {
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+html.phone .ph-rc-lead {
+  margin: 6px 0 0;
+  color: var(--tx2);
+  font-size: 15px;
+  line-height: 22px;
+}
+
+/* one pill a day: days gone filled, today taller; a touch opens what the day held */
+html.phone .ph-rc-days {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  block-size: 36px;
+  margin-block-start: 14px;
+  touch-action: manipulation;
+}
+
+html.phone .ph-rc-days button {
+  flex: 1;
+  min-inline-size: 0;
+  block-size: 14px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--pill);
+  background: color-mix(in srgb, var(--tx) 11%, transparent);
+}
+
+html.phone .ph-rc-days button.p {
+  background: color-mix(in srgb, var(--acc) 45%, transparent);
+}
+
+html.phone .ph-rc-days button.n {
+  block-size: 24px;
+  background: var(--acc);
+}
+
+html.phone .ph-rc-days button:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+html.phone .ph-rc-dayl {
+  display: flex;
+  justify-content: space-between;
+  margin-block-start: 8px;
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+/* ---- the steps, joined by a thin line down the start side ---- */
+html.phone .ph-rc-path {
+  margin: var(--p-gap) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+html.phone .ph-rc-step {
+  position: relative;
+  padding-block-end: var(--p-gap);
+}
+
+/* the line from this step's picture to the next one's (behind the lists) */
+html.phone .ph-rc-path .ph-rc-step:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  inset-block: 40px 0;
+  inset-inline-start: 21px;
+  border-inline-start: 2px dotted color-mix(in srgb, var(--acc) 35%, transparent);
+}
+
+html.phone .ph-rc-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  inline-size: 100%;
+  min-block-size: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--tx);
+  font: inherit;
+  text-align: start;
+}
+
+html.phone button.ph-rc-head:active .ph-rc-label {
+  opacity: .6;
+}
+
+html.phone .ph-rc-dot {
+  flex: none;
+  position: relative;
+  background: color-mix(in srgb, var(--tile) 15%, var(--bg));
+}
+
+html.phone[data-mode="dark"] .ph-rc-dot {
+  background: color-mix(in srgb, var(--tile) 24%, var(--bg));
+}
+
+html.phone .ph-rc-label {
+  flex: 1;
+  min-inline-size: 0;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+html.phone .ph-rc-body {
+  position: relative;
+}
+
+/* the amount and its sentence line up with the step's name */
+html.phone .ph-rc-big,
+html.phone .ph-rc-line,
+html.phone .ph-rc-rl {
+  padding-inline: 52px 4px;
+}
+
+html.phone .ph-rc-big {
+  margin-block-start: 2px;
+  font-size: 32px;
+  line-height: 38px;
+  font-weight: 700;
+  letter-spacing: -.4px;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone.he .ph-rc-big {
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+html.phone .ph-rc-big.neg {
+  color: var(--neg);
+}
+
+html.phone .ph-rc-big.word {
+  font-size: 22px;
+  line-height: 28px;
+  letter-spacing: 0;
+}
+
+html.phone .ph-rc-line {
+  margin: 4px 0 0;
+  color: var(--tx2);
+  font-size: 15px;
+  line-height: 22px;
+}
+
+html.phone .ph-rc-line .rkc,
+html.phone .ph-rc-note .rkc,
+html.phone .ph-rc-a-p .rkc,
+html.phone .ph-rc-tip .rkc {
+  color: var(--tx);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+html.phone .ph-rc-line .qd2 {
+  color: var(--tx2);
+}
+
+html.phone .ph-rc-rl {
+  margin: 14px 0 0;
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+html.phone .ph-rc-body > * + :is(.ph-group-b, .ph-rc-note, .ph-rc-pills, .ph-rc-bars, .ph-rc-seg, .ph-rc-up, .ph-rc-two, .ph-rc-pathc) {
+  margin-block-start: 14px;
+}
+
+/* ---- notes: this month so far, more or less than at the start, take back from the jars ---- */
+html.phone .ph-rc-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  inline-size: 100%;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: var(--p-r-group);
+  background: color-mix(in srgb, var(--acc) 8%, var(--p-surf));
+  color: var(--tx);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: start;
+}
+
+html.phone .ph-rc-note.good {
+  background: color-mix(in srgb, var(--pos) 10%, var(--p-surf));
+}
+
+html.phone .ph-rc-note.warn {
+  background: color-mix(in srgb, var(--warn) 13%, var(--p-surf));
+}
+
+html.phone .ph-rc-note > .ph-ic {
+  flex: none;
+  inline-size: 18px;
+  block-size: 18px;
+  margin-block-start: 1px;
+  color: var(--acc);
+}
+
+html.phone .ph-rc-note.good > .ph-ic {
+  color: var(--pos);
+}
+
+html.phone .ph-rc-note.warn > .ph-ic {
+  color: var(--warn);
+}
+
+html.phone .ph-rc-note small {
+  display: block;
+  color: var(--tx2);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+}
+
+html.phone .ph-rc-note.act {
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--warn) 45%, transparent);
+}
+
+html.phone button.ph-rc-note:active {
+  filter: brightness(.96);
+}
+
+/* the names that paid, each opening its payment */
+html.phone .ph-rc-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-inline-start: 52px;
+}
+
+html.phone .ph-rc-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-inline-size: 100%;
+  min-block-size: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--pill);
+  background: var(--p-surf);
+  color: var(--tx);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+html.phone .ph-rc-pill span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+html.phone .ph-rc-pill b {
+  color: var(--tx2);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- a sum: what you had, each change with its parts, the result ---- */
+html.phone .ph-rc-sum .ph-row {
+  min-block-size: 52px;
+}
+
+html.phone .ph-rc-had .ph-row-t {
+  color: var(--tx2);
+  font-size: 15px;
+}
+
+html.phone .ph-rc-sum > * + *::before,
+html.phone .ph-rc-sub + .ph-rc-sub::before,
+html.phone .ph-rc-upr + .ph-rc-upr::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 16px 0;
+  border-block-start: 1px solid var(--p-line);
+}
+
+html.phone .ph-rc-g,
+html.phone .ph-rc-sum > .ph-row {
+  position: relative;
+}
+
+html.phone .ph-rc-wrap {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+html.phone .ph-rc-sum .ph-amt {
+  flex: none;
+  font-size: 16px;
+  line-height: 22px;
+}
+
+html.phone .ph-rc-sum .ph-amt.quiet {
+  color: var(--tx2);
+  font-weight: 500;
+}
+
+html.phone .ph-rc-tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: var(--pill);
+  background: var(--s2);
+  color: var(--tx2);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+}
+
+html.phone .ph-rc-subs {
+  padding-block-end: 6px;
+}
+
+html.phone .ph-rc-sub {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  inline-size: 100%;
+  min-block-size: 40px;
+  padding: 8px 16px 8px 64px;
+  border: 0;
+  background: none;
+  color: var(--tx2);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: start;
+}
+
+html.phone .ph-rc-sub + .ph-rc-sub::before {
+  inset-inline-start: 64px;
+}
+
+html.phone .ph-rc-sub > span {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+html.phone .ph-rc-sub .ph-amt {
+  color: var(--tx2);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+html.phone .ph-rc-sub .rklk {
+  color: var(--acc);
+  font-weight: 600;
+}
+
+html.phone button.ph-rc-sub:active,
+html.phone button.ph-rc-gr:active,
+html.phone button.ph-rc-had:active,
+html.phone button.ph-rc-legr:active,
+html.phone button.ph-rc-upr:active,
+html.phone .ph-rc-a:active {
+  background: var(--p-press);
+}
+
+html.phone .ph-rc-end {
+  background: color-mix(in srgb, var(--acc) 7%, transparent);
+}
+
+html.phone .ph-rc-end .ph-row-t,
+html.phone .ph-rc-end .ph-amt {
+  font-weight: 700;
+}
+
+html.phone .ph-rc-after {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  white-space: normal;
+}
+
+html.phone .ph-rc-after b {
+  flex: none;
+  color: var(--tx);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- each day's spending ---- */
+html.phone .ph-rc-bars {
+  padding: 16px 16px 14px;
+  border-radius: var(--p-r-group);
+  background: var(--p-surf);
+}
+
+html.phone .ph-rc-bars svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 96px;
+  direction: ltr;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+html.phone .ph-rc-bars rect.b {
+  fill: color-mix(in srgb, var(--acc) 50%, transparent);
+}
+
+html.phone .ph-rc-bars rect.t {
+  fill: var(--acc);
+}
+
+html.phone .ph-rc-bars rect.f {
+  fill: color-mix(in srgb, var(--tx) 12%, transparent);
+}
+
+html.phone .ph-rc-cap {
+  margin: 8px 4px 0;
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+/* ---- how the money is split ---- */
+html.phone .ph-rc-segbar {
+  display: flex;
+  gap: 3px;
+  block-size: 12px;
+  margin-block-end: 12px;
+  border-radius: var(--pill);
+  overflow: hidden;
+}
+
+html.phone .ph-rc-segbar i {
+  min-inline-size: 4px;
+}
+
+html.phone .ph-rc-sw {
+  flex: none;
+  inline-size: 12px;
+  block-size: 12px;
+  border-radius: 50%;
+}
+
+/* ---- the payments still due, by date ---- */
+html.phone .ph-rc-up h3 {
+  margin: 0 4px 8px;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+html.phone .ph-rc-date {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  inline-size: 40px;
+  block-size: 44px;
+  border-radius: var(--p-r-tile);
+  background: color-mix(in srgb, var(--acc) 10%, transparent);
+  color: var(--acc);
+}
+
+html.phone .ph-rc-date b {
+  font-size: 17px;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-rc-date small {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+}
+
+html.phone .ph-rc-upr + .ph-rc-upr::before {
+  inset-inline-start: 68px;
+}
+
+/* ---- what needs a look ---- */
+html.phone .ph-rc-a {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  inline-size: 100%;
+  padding: 14px 16px;
+  border: 0;
+  background: none;
+  color: var(--tx);
+  font: inherit;
+  text-align: start;
+  --tone: var(--warn);
+}
+
+html.phone .ph-rc-a.o {
+  --tone: var(--neg);
+}
+
+html.phone .ph-rc-a + .ph-rc-a::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 16px 0;
+  border-block-start: 1px solid var(--p-line);
+}
+
+html.phone .ph-rc-a-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+html.phone .ph-rc-a-h b {
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
+}
+
+html.phone .ph-rc-a-h span {
+  flex: none;
+  padding: 2px 10px;
+  border-radius: var(--pill);
+  background: color-mix(in srgb, var(--tone) 14%, transparent);
+  color: var(--tone);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+}
+
+html.phone .ph-rc-a-bar {
+  position: relative;
+  display: block;
+  block-size: 6px;
+  border-radius: var(--pill);
+  background: var(--s2);
+}
+
+html.phone .ph-rc-a-bar i {
+  display: block;
+  block-size: 100%;
+  border-radius: inherit;
+  background: var(--tone);
+}
+
+html.phone .ph-rc-a-bar em {
+  position: absolute;
+  inset-block: -3px;
+  inline-size: 2px;
+  border-radius: 1px;
+  background: var(--tx);
+}
+
+html.phone .ph-rc-a-p {
+  color: var(--tx2);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* ---- where you stand ---- */
+html.phone .ph-rc-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+html.phone .ph-rc-two .ph-stat-l {
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+html.phone .ph-rc-two .ph-stat-v {
+  font-size: 20px;
+  line-height: 26px;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-rc-pathc {
+  padding: 14px 16px 12px;
+  border-radius: var(--p-r-group);
+  background: var(--p-surf);
+}
+
+/* time runs left to right, as on every chart over time */
+html.phone .ph-rc-pathc svg {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  direction: ltr;
+  overflow: visible;
+}
+
+html.phone .ph-rc-pathc .ax {
+  stroke: var(--p-line);
+}
+
+html.phone .ph-rc-pathc .ln {
+  fill: none;
+  stroke: var(--acc);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+html.phone .ph-rc-pathc .ln.d {
+  stroke-dasharray: 2 6;
+  opacity: .7;
+}
+
+html.phone .ph-rc-pathc .dt {
+  fill: var(--p-surf);
+  stroke: var(--acc);
+  stroke-width: 2;
+}
+
+html.phone .ph-rc-pathc .dn {
+  fill: var(--acc);
+  stroke: color-mix(in srgb, var(--acc) 25%, transparent);
+  stroke-width: 6;
+}
+
+html.phone .ph-rc-pathl {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-block-start: 10px;
+}
+
+html.phone .ph-rc-pathl span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+html.phone .ph-rc-pathl span:nth-child(2) {
+  align-items: center;
+  text-align: center;
+}
+
+html.phone .ph-rc-pathl span:nth-child(3) {
+  align-items: flex-end;
+  text-align: end;
+}
+
+html.phone .ph-rc-pathl small {
+  color: var(--tx2);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+}
+
+html.phone .ph-rc-pathl b {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- a look at next month ---- */
+html.phone .ph-rc-cue {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  inline-size: 100%;
+  min-block-size: 44px;
+  border: 0;
+  background: none;
+  color: var(--acc);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+html.phone .ph-rc-cue .down {
+  inline-size: 18px;
+  block-size: 18px;
+  transform: rotate(90deg);
+}
+
+html.phone .ph-rc-next {
+  scroll-margin-block-start: calc(var(--p-bar) + env(safe-area-inset-top) + 8px);
+  padding-block-start: 8px;
+}
+
+/* ---- loading ---- */
+html.phone .ph-rc-skel {
+  display: grid;
+  gap: 10px;
+  padding: 8px 4px 20px;
+}
+
+html.phone .ph-rc-skel i {
+  display: block;
+  block-size: 22px;
+  border-radius: 8px;
+  background: var(--s2);
+}
+
+html.phone .ph-rc-skel i:first-child {
+  inline-size: 70%;
+  block-size: 30px;
+}
+
+html.phone .ph-rc-skel i:last-child {
+  block-size: 14px;
+}
+
+/* ---- what a day held (the sheet) ---- */
+html.phone .ph-rc-tip {
+  display: grid;
+  gap: 6px;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+html.phone .ph-rc-tip .h {
+  display: none;
+}
+
+html.phone .ph-rc-tip .s {
+  margin-block-start: 8px;
+  font-weight: 600;
+}
+
+html.phone .ph-rc-tip .s:first-of-type {
+  margin-block-start: 0;
+}
+
+html.phone .ph-rc-tip .s.pos b .rkc {
+  color: var(--pos);
+}
+
+html.phone .ph-rc-tip .r {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--tx2);
+}
+
+html.phone .ph-rc-tip .r b {
+  color: var(--tx);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-rc-tip .m {
+  color: var(--tx2);
+  font-size: 14px;
+}
