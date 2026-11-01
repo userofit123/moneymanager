@@ -22,6 +22,7 @@
   "gone": "This is no longer here",
   "goneSub": "It may have been renamed, merged or deleted.",
   "sorting": "Automatic sorting",
+  "sortingNote": "Rules sort new entries by themselves, so you sort less by hand.",
   "aiTitle": "Get suggestions from an AI",
   "monthOut": "{amount} out",
   "monthIn": "{amount} in",

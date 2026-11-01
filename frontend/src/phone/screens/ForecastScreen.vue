@@ -8,6 +8,7 @@ import { data } from "../../stores/data.js";
 import { pages } from "../../routes.js";
 import { chartOf } from "../../lib/forecast.js";
 import { useForecast } from "../../pagelogic/forecast.js";
+import { openForm } from "../../core/forms.js";
 import { usePhoneNav } from "../navigation.js";
 import PhoneScreen from "../components/PhoneScreen.vue";
 import HeroSentence from "../components/HeroSentence.vue";
@@ -98,6 +99,9 @@ const openJar = (id) => nav.push("jar", String(id));
       <div class="ph-fc-skel" aria-hidden="true"><i /><i /></div>
       <SkeletonRows :rows="4" />
     </template>
+    <EmptyState v-else-if="!S.tx?.length" :icon="icon" :title="P('nothing')" :text="P('nothingText')" :action="t('home.connect')" @action="nav.push('settingsSection', 'conn')">
+      <button type="button" class="ph-btn tonal" @click="openForm('tx')">{{ t("home.addTx") }}</button>
+    </EmptyState>
 
     <template v-else>
       <HeroSentence :class="{ short: d.shown.next.end < -0.5 }" :parts="hero" :link="P('how')" @link="toHow" />

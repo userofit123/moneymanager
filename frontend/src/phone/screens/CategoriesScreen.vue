@@ -127,7 +127,7 @@ const AI = '<path d="M12 3l1.8 4.6L18.5 9.5l-4.7 1.9L12 16l-1.8-4.6L5.5 9.5l4.7-
         </ListGroup>
       </template>
 
-      <ListGroup :title="P('sorting')" :note="t('cats.rulesAt')">
+      <ListGroup :title="P('sorting')" :note="P('sortingNote')">
         <ListRow :title="t(tab === 'cats' ? 'cats.c.goRules' : 'cats.g.goRules')" :icon="RULES" link @tap="goRules(L.rules)" />
         <ListRow :title="P('aiTitle')" :sub="t('cats.ai.text')" :icon="AI" link @tap="goRules('ai')" />
       </ListGroup>

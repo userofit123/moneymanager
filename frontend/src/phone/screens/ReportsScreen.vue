@@ -6,6 +6,8 @@
 import { ref, computed, onMounted } from "vue";
 import { data } from "../../stores/data.js";
 import { useReports } from "../../pagelogic/reports.js";
+import { openForm } from "../../core/forms.js";
+import { usePhoneNav } from "../navigation.js";
 import PhoneScreen from "../components/PhoneScreen.vue";
 import IconButton from "../components/IconButton.vue";
 import HeroSentence from "../components/HeroSentence.vue";
@@ -30,6 +32,7 @@ const {
 } = useReports();
 onMounted(() => data.start());
 const P = (k, o, n) => t("phone.reports." + k, o || {}, n);
+const nav = usePhoneNav();
 const icon = pages.find((p) => p.name === "reports")?.icon || "";
 const money = (v) => (v < 0 ? "−" : "") + fm(Math.abs(v));
 // a month as "Oct 2026"
@@ -167,7 +170,9 @@ const lineTotals = computed(() => (lD.value ? [...lD.value.lines].sort((a, b) =>
       <div class="ph-rep-skel" aria-hidden="true"><i /><i /></div>
       <SkeletonRows :rows="4" />
     </template>
-    <EmptyState v-else-if="!trm || !trD" :icon="icon" :title="P('nothing')" :text="P('nothingText')" />
+    <EmptyState v-else-if="!trm || !trD || !S.tx?.length" :icon="icon" :title="P('nothing')" :text="P('nothingText')" :action="S.tx?.length ? '' : t('home.connect')" @action="nav.push('settingsSection', 'conn')">
+      <button v-if="!S.tx?.length" type="button" class="ph-btn tonal" @click="openForm('tx')">{{ t("home.addTx") }}</button>
+    </EmptyState>
 
     <template v-else>
       <!-- what the main chart shows, then its answer in one sentence -->
@@ -304,7 +309,8 @@ const lineTotals = computed(() => (lD.value ? [...lD.value.lines].sort((a, b) =>
                 <template v-else><b class="ph-amt">{{ fm(b.D.tot) }}</b><span>{{ t("rep.spentPeriod") }}</span></template>
               </div>
             </div>
-            <ListRow v-for="(k, i) in rowsOf(b).slice(0, allRows[b.id] ? 999 : 6)" :key="k" :title="b.name(k)" :class="{ on: ringSel[b.id] === k }" link @tap="b.go(k)">
+            <ListRow v-for="(k, i) in rowsOf(b).slice(0, allRows[b.id] ? 999 : 6)" :key="k" :class="{ on: ringSel[b.id] === k }" link @tap="b.go(k)">
+              <template #title><bdi>{{ b.name(k) }}</bdi></template>
               <template #lead><span class="ph-rep-dot" :style="{ '--d': b.color(k, i) }" /></template>
               <template v-if="b.B.prev" #sub><span>{{ t("rep.beforeAmt", { amt: fm(b.B.prev[k] || 0) }) }}</span></template>
               <template #end>

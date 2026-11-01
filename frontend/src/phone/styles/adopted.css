@@ -484,3 +484,8 @@ html.phone .ph-set .rlrows .rule > :is(select, input:not([type=checkbox])) {
   flex: 1 1 140px;
   min-inline-size: 0;
 }
+
+/* the small (i) next to a label opens its explanation: on a phone its touch area is 44px (the icon stays its size) */
+html.phone .tinfo::after {
+  inset: -16px;
+}

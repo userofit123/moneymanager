@@ -22,6 +22,12 @@ html.phone .ph-rep-pick {
   gap: 4px;
 }
 
+/* the months link beside a group title: 44px to touch, without making the title row taller */
+html.phone .ph-group-h .ph-rep-pick {
+  min-block-size: var(--p-hit);
+  margin-block: -8px;
+}
+
 html.phone .ph-rep .ph-chip.on .ph-chip-b {
   padding-inline-end: 12px;
 }
