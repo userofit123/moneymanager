@@ -1149,8 +1149,8 @@
     "totalIn": "Total coming in",
     "out": "Money going out",
     "totalOut": "Total going out",
-    "left": "Saved each month (money in − money out)",
-    "leftTip": "Saved each month\n++Money in++ minus ~~money out~~, each month.\n**Below zero:** more went out than came in.",
+    "left": "Likely saved each month",
+    "leftTip": "Likely saved each month\nThe money that will likely be left over each month: ++money coming in++ minus ~~money going out~~. It is a likely amount, not a sure one.\n**It is worked out from:** the money that came in and went out in the months chosen in **Based on the last**, this month so far included, plus the income that usually still comes later this month. A month with very unusual spending counts closer to a normal month.\n**Below zero:** more will likely go out than come in.",
     "dir": {
       "steady": "Steady",
       "up": "Going up",
