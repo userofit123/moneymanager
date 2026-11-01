@@ -217,7 +217,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun openExternal(url: String) {
-        if (!url.startsWith("https://") && !url.startsWith("http://")) return
+        // web links, and otpauth:// so two-step sign-in setup can hand its key to the authenticator app
+        if (!url.startsWith("https://") && !url.startsWith("http://") && !url.startsWith("otpauth://")) return
         try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) } catch (e: Exception) { /* no app to open it */ }
     }
 

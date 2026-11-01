@@ -22,6 +22,9 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ### Windows app
 - **Side menu in Hebrew:** its edge line no longer runs up behind the window buttons (minimise, maximise, close). It starts just below them and fades in softly.
 
+### Android app
+- **Open in authenticator app** now works in the Android app too: it hands the two-step sign-in key to your authenticator app.
+
 ## [0.12.12] - 2026-11-01
 
 ### App

@@ -12,6 +12,7 @@ import RecoveryKey from "../../components/RecoveryKey.vue";
 import { qrPath, keyGroups } from "../../lib/qr.js";
 import { copyText } from "./errlog.js";
 import { isPhone } from "../../mobile.js";
+import { vNewer } from "../../core/updates.js";
 
 const { t, locale } = useI18n();
 const tk = (k) => t("settings.sec." + k);
@@ -31,8 +32,8 @@ const copyKey = () => copyText(start.value.secret, tk("tfaCopied"));
 // The phone app can ask for a fingerprint, face or screen lock when it opens (the app tells us whether the phone has one)
 const MM = typeof window !== "undefined" ? window.mmApp : null;
 const lock = ref({ available: false, enabled: false, delay: 30 });
-// A phone cannot scan its own screen: in the browser the otpauth:// link opens the authenticator app (the phone app only opens web links)
-const canOpen = computed(() => isPhone.value && !MM);
+// A phone cannot scan its own screen: the otpauth:// link opens the authenticator app (the Android app passes it on from 0.12.13)
+const canOpen = computed(() => isPhone.value && (!MM || !vNewer("0.12.13", String(MM.version).split("-")[0])));
 onMounted(async () => { if (MM) { try { lock.value = await MM.lock(); } catch { /* no lock option */ } } });
 // A failed switch is drawn again from `lock` (lockKey), so it shows Off.
 const lockKey = ref(0);
