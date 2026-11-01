@@ -446,6 +446,13 @@ html[data-mode=dark] body.glass :is(.card,table,.bgrp,.jhero,.fcard,.setnav,.rke
   box-shadow: 0 1px 1px #0005, 0 12px 26px -14px #000b;
 }
 
+/* headings that stay in view while rows scroll under them (Activity's column names and month rows, Categories' column names,
+   the AI sorting list): frosted with a strong blur, so the rows behind never show sharply through their see-through colour */
+html:not(.phone) body.glass :is(#txTab thead,#txTab tr.ghead > td,.csh,#aiSort .aitbl th) {
+  -webkit-backdrop-filter: var(--gpfx);
+  backdrop-filter: var(--gpfx);
+}
+
 /* the Recap graph's "Today" label floats on its own (its pointer is .rkpa), so it blurs directly */
 body.glass .rkpt {
   -webkit-backdrop-filter: var(--gfx);
