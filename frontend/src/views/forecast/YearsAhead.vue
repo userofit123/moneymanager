@@ -74,6 +74,5 @@ const fill = (e) => { if (!e.target.value.trim()) redo.value++; };
       <YearsChart :chart="Y.chart" :name="ptName" :axis="axisLabel" :label="Y_('chartLabel')" :pace-label="Y_('legPace')" />
       <div class="sm ya-axis">{{ Y.hasAge ? Y_("axisAge") : Y_("axisYears") }}</div>
     </div>
-    <p class="sm ya-note">{{ Y_("playNote") }}</p>
   </div>
 </template>

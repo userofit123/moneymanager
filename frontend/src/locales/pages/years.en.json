@@ -44,7 +44,6 @@
   "avgTip": "**Not counted:** transfers between your own accounts, card bill payments (the purchases themselves are counted), payments that have not happened yet and rows you left out.\n**This month** is counted once it is over.\n**How many months:** the choice in **Based on the last** at the top of the Forecast page.\nIt can differ from **Saved each month** in **How next month is worked out**, which also counts this month and evens out unusual months.",
   "noAge": "Add your age to see this by age. Until then, it counts in years from today.",
   "addAge": "Add your age",
-  "playNote": "These choices are only for trying out amounts. They never change your accounts or your saved data.",
   "m": "Set aside each month",
   "mTip": "Set aside each month\nThe amount you put away every month.\n**Starts at your average:** {amount}, money in minus money out in your last full months.\nType or drag another amount to see what it would change.",
   "back": "Back to my average",

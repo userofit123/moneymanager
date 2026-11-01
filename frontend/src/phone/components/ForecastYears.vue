@@ -76,6 +76,5 @@ const PERSON = '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2
         <span><i class="ya-dash goal" />{{ Y_("legGoal") }}</span>
       </div>
     </div>
-    <p class="ph-group-n">{{ Y_("playNote") }}</p>
   </section>
 </template>
