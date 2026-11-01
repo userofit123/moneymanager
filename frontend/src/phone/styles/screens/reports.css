@@ -1,1 +1,437 @@
-/* reports screen (phone/screens). Every rule starts with html.phone. */
+/* Phone Reports screen (phone/screens/ReportsScreen.vue). Every rule starts with html.phone. */
+
+/* the opening sentence; a total below zero: the amount in red */
+html.phone .ph-rep .ph-hero {
+  padding: 0 4px;
+}
+
+html.phone .ph-rep .ph-hero.neg .ph-hero-a:first-of-type {
+  color: var(--neg);
+}
+
+/* what the main chart shows: one chip, above the sentence it changes */
+html.phone .ph-rep-what {
+  margin-block-end: -12px;
+}
+
+/* a chip or link that opens a list: a small chevron pointing down after its value */
+html.phone .ph-rep .ph-chip-b,
+html.phone .ph-rep-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+html.phone .ph-rep .ph-chip.on .ph-chip-b {
+  padding-inline-end: 12px;
+}
+
+html.phone .ph-rep-down.ph-ic {
+  inline-size: 16px;
+  block-size: 16px;
+  transform: rotate(90deg);
+  transition: transform var(--p-t-fade) var(--p-ease);
+}
+
+html.phone .ph-rep-down.ph-ic.up {
+  transform: rotate(-90deg);
+}
+
+html.phone .ph-rep-ctl {
+  margin-block: -4px 4px;
+}
+
+/* a chart's card: the month under the finger on top, the chart, then what to open */
+html.phone .ph-rep-card {
+  padding-block-start: 12px;
+}
+
+html.phone .ph-rep-read {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-block-size: 40px;
+  padding-inline: 16px;
+}
+
+html.phone .ph-rep-read-m {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+html.phone .ph-rep-read-m small {
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-rep-read > .ph-amt {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 700;
+}
+
+/* the chart itself: drawn at its real width, a slide along it picks a month while up and down still scrolls the page */
+html.phone .ph-rep-chart {
+  padding-inline: 8px 12px;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+html.phone .ph-rep-chart svg {
+  display: block;
+  max-inline-size: 100%;
+  block-size: auto;
+  overflow: visible;
+}
+
+html.phone .ph-rep-chart .gl {
+  stroke: var(--p-line);
+  stroke-width: 1;
+  stroke-dasharray: 2 5;
+}
+
+html.phone .ph-rep-chart .gl.z {
+  stroke-dasharray: none;
+}
+
+html.phone .ph-rep-chart .ax {
+  fill: var(--tx2);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-rep-chart .sel {
+  stroke: var(--tx);
+  stroke-opacity: .3;
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+}
+
+html.phone .ph-rep-chart .prev {
+  fill: none;
+  stroke: var(--tx);
+  stroke-opacity: .5;
+  stroke-width: 2;
+  stroke-dasharray: 4 4;
+  stroke-linecap: round;
+}
+
+html.phone .ph-rep-chart .band {
+  fill: var(--tx);
+  fill-opacity: .06;
+}
+
+html.phone .ph-rep-see {
+  display: flex;
+  justify-content: flex-end;
+  inline-size: 100%;
+  min-block-size: 44px;
+  padding-inline: 16px;
+}
+
+html.phone .ph-rep-main .ph-segwrap {
+  margin-block-start: 8px;
+}
+
+/* number tiles, two a row */
+html.phone .ph-rep-tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+html.phone .ph-rep-tiles .ph-stat {
+  min-inline-size: 0;
+  justify-content: flex-start;
+  cursor: default;
+}
+
+html.phone .ph-rep-tiles .ph-stat.cur {
+  background: var(--accc);
+  color: var(--onc);
+}
+
+html.phone .ph-rep-tiles .ph-stat-n {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+html.phone .ph-rep-tiles .ph-stat.neg .ph-stat-v {
+  color: var(--neg);
+}
+
+html.phone .ph-rep-line {
+  margin: 12px 4px;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+/* this month against last month: two bars a category */
+html.phone .ph-rep-cmp {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding-block: 12px 14px;
+}
+
+html.phone .ph-rep-cmp-h,
+html.phone .ph-rep-m-h {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-inline-size: 0;
+}
+
+html.phone .ph-rep-cmp-h .ph-row-t,
+html.phone .ph-rep-m-h .ph-row-t {
+  flex: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html.phone .ph-rep-vs {
+  flex: none;
+  color: var(--tx2);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-rep-two {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+html.phone .ph-rep-two i,
+html.phone .ph-rep-bar i {
+  display: block;
+  min-inline-size: 2px;
+  block-size: 6px;
+  border-radius: 3px;
+  background: var(--acc);
+}
+
+html.phone .ph-rep-two i.b {
+  background: color-mix(in srgb, var(--tx) 28%, transparent);
+}
+
+html.phone .ph-rep-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
+html.phone .ph-rep-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+html.phone .ph-rep-key i {
+  inline-size: 12px;
+  block-size: 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--tx) 28%, transparent);
+}
+
+html.phone .ph-rep-key i.a {
+  background: var(--acc);
+}
+
+/* a colour dot in a 36px lead, like the other screens */
+html.phone .ph-rep-dot {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 36px;
+  block-size: 36px;
+}
+
+html.phone .ph-rep-dot::before {
+  content: "";
+  inline-size: 10px;
+  block-size: 10px;
+  border-radius: 50%;
+  background: var(--d);
+}
+
+/* a merchant: name, change and amount; its share as a bar; then its category, payments and the amount before */
+html.phone .ph-rep-m {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding-block: 12px;
+}
+
+html.phone .ph-rep-bar {
+  display: block;
+}
+
+html.phone .ph-rep-bar i {
+  block-size: 4px;
+  opacity: .75;
+}
+
+html.phone .ph-rep-m-s {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  white-space: normal;
+}
+
+html.phone .ph-rep-m-s > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+html.phone .ph-rep-cd {
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+}
+
+/* more or less than before */
+html.phone .ph-rep-pill {
+  flex: none;
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: var(--pill);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--tx2);
+  background: color-mix(in srgb, var(--tx) 8%, transparent);
+}
+
+html.phone .ph-rep-pill.up {
+  color: var(--neg);
+  background: color-mix(in srgb, var(--neg) 12%, transparent);
+}
+
+html.phone .ph-rep-pill.dn {
+  color: var(--pos);
+  background: color-mix(in srgb, var(--pos) 12%, transparent);
+}
+
+html.phone .ph-rep-pill.am2 {
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 14%, transparent);
+}
+
+html.phone .ph-rep-end {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+/* the ring: tap a part to see it in the middle */
+html.phone .ph-rep-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding-block: 16px 8px;
+}
+
+html.phone .ph-rep-ring path {
+  cursor: pointer;
+  transition: opacity var(--p-t-fade);
+}
+
+html.phone .ph-rep-ring path.dim {
+  opacity: .25;
+}
+
+html.phone .ph-rep-ring-c {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-inline-size: 96px;
+  text-align: center;
+  pointer-events: none;
+}
+
+html.phone .ph-rep-ring-c b {
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 700;
+}
+
+html.phone .ph-rep-ring-c span,
+html.phone .ph-rep-ring-c small {
+  color: var(--tx2);
+  font-size: 12px;
+  line-height: 15px;
+}
+
+html.phone .ph-rep .ph-row.on {
+  background: var(--p-press);
+}
+
+html.phone .ph-rep-fold {
+  justify-content: center;
+  gap: 6px;
+  color: var(--acc);
+  font-weight: 600;
+}
+
+html.phone .ph-rep-none {
+  margin: 0;
+  padding: 14px 16px;
+  color: var(--tx2);
+  font-size: 15px;
+  line-height: 22px;
+}
+
+html.phone .ph-rep-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* while loading, and when it could not load */
+html.phone .ph-rep-skel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 4px;
+}
+
+html.phone .ph-rep-skel i {
+  display: block;
+  block-size: 28px;
+  inline-size: 85%;
+  border-radius: 8px;
+  background: var(--s2);
+}
+
+html.phone .ph-rep-skel i + i {
+  inline-size: 55%;
+}
+
+html.phone .ph-rep-err {
+  margin: 0;
+  padding: 16px;
+  border-radius: var(--p-r-group);
+  background: color-mix(in srgb, var(--neg) 10%, transparent);
+  color: var(--neg);
+}
+
+/* the amounts in the opening sentence flow with the words, so a full stop after one never starts the next line */
+html.phone .ph-rep .ph-hero-a {
+  display: inline;
+}
