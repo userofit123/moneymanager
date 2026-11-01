@@ -1,1 +1,207 @@
-/* jar screen (phone/screens). Every rule starts with html.phone. */
+/* Phone Jar screen (phone/screens/JarScreen.vue). Every rule starts with html.phone. */
+
+/* the top: the ring with how full it is, the name, the amount large, what it is and what it is for */
+html.phone .ph-jar-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0 0;
+  margin-block-end: -8px;
+  text-align: center;
+}
+
+html.phone .ph-jar-ring {
+  margin-block-end: 8px;
+}
+
+html.phone .ph-jar-ring svg {
+  stroke-width: 3.2;
+}
+
+html.phone .ph-jar-ring .val {
+  stroke: var(--ring, var(--acc));
+}
+
+html.phone .ph-jar-pc {
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-jar-ki {
+  inline-size: 32px;
+  block-size: 32px;
+  fill: none;
+  stroke: var(--ring, var(--acc));
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html.phone .ph-jar-name {
+  margin: 0;
+  max-inline-size: 100%;
+  font-size: 19px;
+  line-height: 24px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+html.phone .ph-jar-amt {
+  font-size: 40px;
+  line-height: 46px;
+  font-weight: 700;
+  letter-spacing: -.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-jar-sub,
+html.phone .ph-jar-kind {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 2px 12px;
+  margin: 0;
+  color: var(--tx2);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+html.phone .ph-jar-sub span + span {
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-jar-kind {
+  gap: 6px;
+  margin-block-start: 4px;
+}
+
+html.phone .ph-jar-kind svg {
+  inline-size: 16px;
+  block-size: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html.phone .ph-jar-desc {
+  margin: 4px 0 0;
+  max-inline-size: 34ch;
+  color: var(--tx);
+  font-size: 15px;
+  line-height: 22px;
+}
+
+/* a completed jar: a soft green check in place of the ring, and Reopen under the text */
+html.phone .ph-jar-donec {
+  display: grid;
+  place-items: center;
+  inline-size: 64px;
+  block-size: 64px;
+  margin-block-end: 8px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--pos) 14%, transparent);
+  color: var(--pos);
+}
+
+html.phone .ph-jar-donec .ph-ic {
+  inline-size: 30px;
+  block-size: 30px;
+}
+
+html.phone .ph-jar-reopen {
+  margin-block-start: 12px;
+}
+
+/* the status pill in a section's title line */
+html.phone .ph-jar-pill {
+  padding: 3px 10px;
+  border-radius: var(--pill);
+  background: var(--s2);
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+}
+
+html.phone .ph-jar-pill.pos {
+  background: color-mix(in srgb, var(--pos) 14%, transparent);
+  color: var(--pos);
+}
+
+html.phone .ph-jar-pill.warn {
+  background: color-mix(in srgb, var(--warn) 16%, transparent);
+  color: var(--tx);
+}
+
+html.phone .ph-jar-pill.acc {
+  background: var(--accc);
+  color: var(--onc);
+}
+
+/* what this month means, written out inside the group */
+html.phone .ph-jar-tip.ph-tipbox.tip {
+  padding: 14px 16px;
+}
+
+html.phone .ph-jar-tip .tt {
+  display: none;
+}
+
+html.phone .ph-jar-late {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--warn) 14%, transparent);
+  color: var(--tx);
+}
+
+/* details: long category lists stay on one line */
+html.phone .ph-jar-cats {
+  max-inline-size: 50vw;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* the goal: bar in the jar's colour, the plain line and its one action */
+html.phone .ph-jar-gb {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+}
+
+html.phone .ph-jar-gb .ph-prog i {
+  background: var(--bar, var(--acc));
+}
+
+html.phone .ph-jar-gb p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+html.phone .ph-jar-gb .ph-btn {
+  align-self: flex-start;
+}
+
+/* history: the kinds above the list */
+html.phone .ph-jar-hist .ph-segwrap {
+  margin-block-end: 8px;
+}
+
+html.phone div.ph-jar-h:active {
+  background: none;
+}
+
+
+html.phone .ph-jar-none {
+  margin: 0;
+  padding: 14px 16px;
+  color: var(--tx2);
+  font-size: 15px;
+}

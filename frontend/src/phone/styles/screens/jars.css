@@ -1,1 +1,185 @@
-/* jars screen (phone/screens). Every rule starts with html.phone. */
+/* Phone Jars screen (phone/screens/JarsScreen.vue). Every rule starts with html.phone. */
+
+/* the opening sentence: a little air; too much in the jars: the amount in red, Take back right under it */
+html.phone .ph-jars .ph-hero {
+  padding: 4px 4px 0;
+}
+
+html.phone .ph-jars .ph-hero.over .ph-hero-a {
+  color: var(--neg);
+}
+
+html.phone .ph-jars-back {
+  align-self: flex-start;
+  margin-block-start: calc(12px - var(--p-gap));
+}
+
+html.phone .ph-jars-err {
+  margin: 0;
+  padding: 16px;
+  border-radius: var(--p-r-group);
+  background: color-mix(in srgb, var(--neg) 10%, transparent);
+  color: var(--neg);
+}
+
+/* this month: the amount put in of what is planned, the bar, what it means, then the three numbers and Fill now */
+html.phone .ph-jars-mh {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 16px 14px;
+}
+
+html.phone .ph-jars-mv {
+  margin: 0;
+  font-size: 20px;
+  line-height: 26px;
+}
+
+html.phone .ph-jars-ms {
+  margin: 0;
+  color: var(--tx2);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+html.phone .ph-jars-ms.warn {
+  color: var(--tx);
+}
+
+html.phone .ph-jars-mh + .ph-row::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 16px 0;
+  border-block-start: 1px solid var(--p-line);
+}
+
+html.phone .ph-jars-fill {
+  padding: 8px 16px 16px;
+}
+
+html.phone .ph-jars-fill .ph-btn {
+  inline-size: 100%;
+}
+
+/* the jars: a ring in the jar's colour with how full it is; the status first on the second line */
+html.phone .ph-jars .ph-ring .val {
+  stroke: var(--ring, var(--acc));
+}
+
+html.phone .ph-jars-ring .ph-ring-in {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-jars .ph-row-s {
+  display: flex;
+  gap: 10px;
+}
+
+html.phone .ph-jars .ph-row-s > span {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html.phone .ph-jars .ph-row-s > span:first-child {
+  flex: none;
+}
+
+html.phone .ph-jars-st {
+  font-weight: 600;
+}
+
+html.phone .ph-jars-st.pos {
+  color: var(--pos);
+}
+
+html.phone .ph-jars-st.warn {
+  color: var(--warn);
+}
+
+html.phone .ph-jars-st.acc {
+  color: var(--acc);
+}
+
+html.phone .ph-jars-add .ph-row-t {
+  color: var(--acc);
+  font-weight: 600;
+}
+
+html.phone .ph-jars-none {
+  margin: 0;
+  padding: 14px 16px;
+  color: var(--tx2);
+  font-size: 15px;
+  line-height: 22px;
+}
+
+/* goals: name and status, the bar in the jar's colour, the plain line, and its one action */
+html.phone .ph-jars-goal + .ph-jars-goal,
+html.phone .ph-jars-goal + .ph-row {
+  border-block-start: 1px solid var(--p-line);
+}
+
+html.phone .ph-jars-gh {
+  padding-block-end: 4px;
+}
+
+html.phone .ph-jars-gb {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 16px 14px;
+}
+
+html.phone .ph-jars-gb .ph-prog i {
+  background: var(--bar, var(--acc));
+}
+
+html.phone .ph-jars-gb p {
+  margin: 0;
+  color: var(--tx2);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+html.phone .ph-jars-gb .ph-btn {
+  align-self: flex-start;
+  margin-block-start: 2px;
+}
+
+/* completed jars: the line can be long, so it wraps */
+html.phone .ph-jars-done .ph-row-s {
+  white-space: normal;
+}
+
+/* keep untouched: the amounts as chips, then the field for another amount */
+html.phone .ph-jars-kp {
+  margin: 0 0 12px;
+  color: var(--tx2);
+  font-size: 15px;
+  line-height: 22px;
+}
+
+html.phone .ph-jars-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin-block-end: 16px;
+}
+
+html.phone .ph-jars-chips .ph-chip {
+  gap: 6px;
+  padding-inline: 14px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-jars-chips .ph-chip .ph-ic {
+  inline-size: 18px;
+  block-size: 18px;
+}
