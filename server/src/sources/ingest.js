@@ -18,10 +18,15 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
     const seen = {};
     // A card balance already includes a charge the bank lists as pending. Pending rows are replaced by the bank's current list on every import, so when one of them
     // comes back settled it is a new row: remember those whose money an earlier balance reading already counted, so the settled row is not counted a second time.
+    // Only a charge listed before the balance the gap check starts from (gapbase) is in that balance: one listed after it still counts when it settles.
     const counted = (await c.query(
       `SELECT COALESCE(orig_amount,amount)::float AS a, date::text AS d FROM transactions WHERE pending AND source=$1 AND (from_name=$2 OR to_name=$2)
-         AND created_at < COALESCE((SELECT max(s.taken_at) FROM balance_snapshots s JOIN accounts ac ON ac.id=s.account_id WHERE ac.name=$2 AND ac.currency=$3), '-infinity'::timestamptz)`,
+         AND created_at < COALESCE((SELECT max(s.taken_at) FROM balance_snapshots s JOIN accounts ac ON ac.id=s.account_id WHERE ac.name=$2 AND ac.currency=$3), '-infinity'::timestamptz)
+         AND created_at <= COALESCE((SELECT (st.value->>'upto')::timestamptz FROM settings st JOIN accounts ac ON st.key='gapbase:'||ac.id WHERE ac.name=$2 AND ac.currency=$3), 'infinity'::timestamptz)`,
       [account.source, account.name, normCur(account.currency)])).rows;
+    // A pending charge listed again keeps the time it was first listed, so the check above knows which balance first had it.
+    const firstListed = new Map((await c.query("SELECT external_id, created_at FROM transactions WHERE pending AND source=$1 AND (from_name=$2 OR to_name=$2) AND external_id IS NOT NULL",
+      [account.source, account.name])).rows.map((x) => [x.external_id, x.created_at]));
     await c.query("DELETE FROM transactions WHERE pending AND source=$1 AND (from_name=$2 OR to_name=$2)", [account.source, account.name]);
     for (const r of rows) {
       const cur = normCur(r.currency) || normCur(account.currency);
@@ -90,9 +95,10 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
         }
       }
       const ins = await c.query(
-        `INSERT INTO transactions (date,description,from_name,to_name,amount,orig_currency,orig_amount,rate,source,external_id,pending,bank_category,inst_n,inst_total,details)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id`,
-        [r.date, r.description, from, to, ils, foreign ? cur : null, foreign ? r.amount : null, rate, account.source, ext, !!r.pending, r.bankCategory || null, r.instN || null, r.instTotal || null, r.details ? JSON.stringify(r.details) : null]);
+        `INSERT INTO transactions (date,description,from_name,to_name,amount,orig_currency,orig_amount,rate,source,external_id,pending,bank_category,inst_n,inst_total,details,created_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,COALESCE($16::timestamptz,now())) RETURNING id`,
+        [r.date, r.description, from, to, ils, foreign ? cur : null, foreign ? r.amount : null, rate, account.source, ext, !!r.pending, r.bankCategory || null, r.instN || null, r.instTotal || null, r.details ? JSON.stringify(r.details) : null,
+          (r.pending && firstListed.get(ext)) || null]);
       added++;
       fresh.push(ins.rows[0].id);
       const was = !r.pending && r.amount ? counted.findIndex((x) => Math.abs(x.a - r.amount) <= 0.01 && Math.abs(Date.parse(x.d) - Date.parse(r.date)) <= 10 * 864e5) : -1;

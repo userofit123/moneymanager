@@ -111,12 +111,15 @@ export async function resetGapBase(c, accountId) {
 // already in a card balance, so the answer that fits better (with or without pending ones) is the one that counts.
 // timing: when it does not add up, true if leaving out one or a few new charges dated near the start or the newest reading makes it add up
 // (the card's list and the card's total do not always show a new charge at the same time).
+// A later payment of an instalment purchase dated after the newest reading is not new money: the card's total held the whole purchase from the start
+// (Max), or it belongs to a later bill (Cal). Cards list these at the start of a new card month.
 async function leftOver(c, account, base, last) {
   const rows = async (pending) => (await c.query(
     `SELECT (CASE WHEN orig_amount IS NULL THEN amount ELSE abs(orig_amount) * sign(amount) END - COALESCE(gap_explained,0))::float AS a, date::text AS d FROM transactions
      WHERE ($4 OR NOT pending) AND (created_at > $2 OR id > COALESCE($5::bigint, 9223372036854775807)) AND date >= ($2::timestamptz - interval '${OLD_DAYS} days')::date
-       AND ((amount<0 AND from_name=$1) OR (amount>0 AND to_name=$1)) AND COALESCE(orig_currency,'ILS')=$3`,
-    [account.name, base.upto, account.currency, pending, base.maxId ?? null])).rows;
+       AND ((amount<0 AND from_name=$1) OR (amount>0 AND to_name=$1)) AND COALESCE(orig_currency,'ILS')=$3
+       AND NOT (COALESCE(inst_n,0) > 1 AND date > ($6::timestamptz AT TIME ZONE 'Asia/Jerusalem')::date)`,
+    [account.name, base.upto, account.currency, pending, base.maxId ?? null, last.at])).rows;
   const near = (d, at) => Math.abs(new Date(d + "T12:00:00Z") - new Date(at)) <= TIMING_DAYS * 864e5;
   let U = null, timing = false;
   for (const pending of [false, true]) {

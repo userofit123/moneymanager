@@ -625,6 +625,29 @@ test("a change that no new charge or group of charges explains still opens a bal
   assert.deepEqual(await openGaps(), [100]);
 });
 
+test("at the start of a card month: charges that were pending after the starting balance still count when they settle, and later instalment payments are not new money", async () => {
+  const { card } = await cardAndBank();
+  const acc = { name: "Card", currency: "ILS", source: "max" };
+  const at = (h) => new Date(Date.now() + h * 36e5), day = (d) => new Date(Date.now() + d * 864e5).toISOString().slice(0, 10);
+  await tx((c) => recordSnapshot(c, card, -1000, at(0))); // the starting balance
+  await ingest(acc, [
+    { date: day(0), description: "Shop A", amount: -30, currency: "ILS", externalId: "c:s1" }, // listed, not yet in the card's total
+    { date: day(0), description: "Shop B", amount: -100, currency: "ILS", pending: true, externalId: "c:p1" },
+    { date: day(0), description: "Shop C", amount: -200, currency: "ILS", pending: true, externalId: "c:p2" },
+  ]);
+  await tx((c) => recordSnapshot(c, card, -1300, at(1)));
+  assert.deepEqual(await openGaps(), []);
+  // the new card month: both settle under new ids, and the next payment of an older instalment purchase is listed
+  await ingest(acc, [
+    { date: day(0), description: "Shop A", amount: -30, currency: "ILS", externalId: "c:s1" },
+    { date: day(0), description: "Shop B", amount: -100, currency: "ILS", externalId: "c:s2" },
+    { date: day(0), description: "Shop C", amount: -200, currency: "ILS", externalId: "c:s3" },
+    { date: day(40), description: "Shop D", amount: -50, currency: "ILS", externalId: "c:i3", instN: 3, instTotal: 5 },
+  ]);
+  await tx((c) => recordSnapshot(c, card, -1330, at(2)));
+  assert.deepEqual(await openGaps(), []);
+});
+
 test("salary texts move once into money coming in rules (→ Salary) and are kept; no rule gives a category", async () => {
   await reset();
   const { moveSalaryRules } = await import("../src/state.js");
