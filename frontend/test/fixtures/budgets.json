@@ -873,7 +873,7 @@
    "Do not suggest a budget for this category again",
    "Do not suggest a budget for this category again",
    "Likely to go over\nBudget\t₪1,000\nSpent so far\t₪600\nLeft\t₪400\nIf you keep this pace\t₪1,094\n---\nYou are fine today, but at your current pace you will pass the budget before the month ends.",
-   "Last 3 months\nJul\t~~₪1,400~~\nAug\t~~₪1,500~~\nSept\t~~₪1,600~~\n---\nIn September you spent ₪150 more than in the months before.\nAbout ₪1,500 a month on average.\nRed: more than this budget.",
+   "Last 3 months\nJul\t~~₪1,400~~\nAug\t~~₪1,500~~\nSept\t~~₪1,600~~\n---\nIn September you spent ₪150 more than in the months before.\nAbout ₪1,500 a month on average.\nA month in red went over this budget (₪1,000).",
    "Where the month is now: today is day 17 of 31. If the colour reaches past this line, you are spending faster than the month is passing.",
    "Within budget\nBudget\t₪2,000\nSpent so far\t₪100\nLeft\t₪1,900\nIf you keep this pace\t₪182\n---\nAt your current pace you will stay inside the budget.",
    "Last 3 months\nJul\t₪220\nAug\t₪200\nSept\t₪190\n---\nSeptember was about the same as the months before.\nAbout ₪203 a month on average.",
@@ -891,7 +891,7 @@
    "Last 3 months\nJul\t₪100\nAug\t₪100\nSept\t₪100\n---\nSeptember was about the same as the months before.\nAbout ₪100 a month on average.",
    "Where the month is now: today is day 17 of 31. If the colour reaches past this line, you are spending faster than the month is passing.",
    "Within budget\nBudget\t₪1,200\nSpent so far\t₪400\nLeft\t₪800\nIf you keep this pace\t₪729\n---\nAt your current pace you will stay inside the budget.",
-   "Last 3 months\nJul\t~~₪1,700~~\nAug\t~~₪1,700~~\nSept\t~~₪1,700~~\n---\nSeptember was about the same as the months before.\nAbout ₪1,700 a month on average.\nRed: more than this budget.",
+   "Last 3 months\nJul\t~~₪1,700~~\nAug\t~~₪1,700~~\nSept\t~~₪1,700~~\n---\nSeptember was about the same as the months before.\nAbout ₪1,700 a month on average.\nA month in red went over this budget (₪1,200).",
    "Where the month is now: today is day 17 of 31. If the colour reaches past this line, you are spending faster than the month is passing."
   ]
  },
@@ -1235,7 +1235,7 @@
    "Do not suggest a budget for this category again",
    "Do not suggest a budget for this category again",
    "Likely to go over\nBudget\t₪1,000\nSpent so far\t₪600\nLeft\t₪400\nIf you keep this pace\t₪1,094\n---\nYou are fine today, but at your current pace you will pass the budget before the month ends.",
-   "Last 3 months\nJul\t~~₪1,400~~\nAug\t~~₪1,500~~\nSept\t~~₪1,600~~\n---\nIn September you spent ₪150 more than in the months before.\nAbout ₪1,500 a month on average.\nRed: more than this budget.",
+   "Last 3 months\nJul\t~~₪1,400~~\nAug\t~~₪1,500~~\nSept\t~~₪1,600~~\n---\nIn September you spent ₪150 more than in the months before.\nAbout ₪1,500 a month on average.\nA month in red went over this budget (₪1,000).",
    "Where the month is now: today is day 17 of 31. If the colour reaches past this line, you are spending faster than the month is passing.",
    "Within budget\nBudget\t₪2,000\nSpent so far\t₪100\nLeft\t₪1,900\nIf you keep this pace\t₪182\n---\nAt your current pace you will stay inside the budget.",
    "Last 3 months\nJul\t₪220\nAug\t₪200\nSept\t₪190\n---\nSeptember was about the same as the months before.\nAbout ₪203 a month on average.",
@@ -1253,7 +1253,7 @@
    "Last 3 months\nJul\t₪100\nAug\t₪100\nSept\t₪100\n---\nSeptember was about the same as the months before.\nAbout ₪100 a month on average.",
    "Where the month is now: today is day 17 of 31. If the colour reaches past this line, you are spending faster than the month is passing.",
    "Within budget\nBudget\t₪1,200\nSpent so far\t₪400\nLeft\t₪800\nIf you keep this pace\t₪729\n---\nAt your current pace you will stay inside the budget.",
-   "Last 3 months\nJul\t~~₪1,700~~\nAug\t~~₪1,700~~\nSept\t~~₪1,700~~\n---\nSeptember was about the same as the months before.\nAbout ₪1,700 a month on average.\nRed: more than this budget.",
+   "Last 3 months\nJul\t~~₪1,700~~\nAug\t~~₪1,700~~\nSept\t~~₪1,700~~\n---\nSeptember was about the same as the months before.\nAbout ₪1,700 a month on average.\nA month in red went over this budget (₪1,200).",
    "Where the month is now: today is day 17 of 31. If the colour reaches past this line, you are spending faster than the month is passing."
   ]
  },

@@ -51,7 +51,7 @@ export function useBudgets() {
   const trendTip = (b) => {
     const r = b.trend; if (!r) return "";
     return [t("budgets.trend.title", { n: r.vals.length }), ...r.vals.map((v, i) => mnames.value[i] + "\t" + (v > b.lim ? "~~" + fm(v) + "~~" : fm(v))), "---",
-      trendLine(b), t("budgets.trend.avg", { amount: fm(r.avg) }), ...(r.vals.some((v) => v > b.lim) ? [t("budgets.trend.over")] : [])].join("\n");
+      trendLine(b), t("budgets.trend.avg", { amount: fm(r.avg) }), ...(r.vals.some((v) => v > b.lim) ? [t("budgets.trend.over", { amount: fm(b.lim) })] : [])].join("\n");
   };
   const lastVals = (b) => M.value.budMonths.map((m) => (M.value.M[b.k] || {})[m] || 0);
 

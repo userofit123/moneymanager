@@ -1064,7 +1064,7 @@
     "overLine": "Over budget",
     "paceLine": "at this pace you will spend {amount}",
     "inc": "Includes a bill | Includes {n} bills",
-    "billIrr": "irregular",
+    "billIrr": "No set date",
     "billPaid": "paid {date}",
     "billOver": "overdue",
     "billDue": "due {date}",
@@ -1099,7 +1099,7 @@
       "less": "In {month} you spent {amount} less than in the months before.",
       "same": "{month} was about the same as the months before.",
       "avg": "About {amount} a month on average.",
-      "over": "Red: more than this budget."
+      "over": "A month in red went over this budget ({amount})."
     },
     "options": "Budget options",
     "menu": {
