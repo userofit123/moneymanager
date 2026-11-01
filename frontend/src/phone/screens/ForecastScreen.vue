@@ -131,7 +131,7 @@ const openJar = (id) => nav.push("jar", String(id));
               <polyline class="ln" :points="C.line" />
               <template v-for="p in C.pts" :key="'p' + p.k">
                 <circle :cx="p.x" :cy="p.y" :r="big(p.k) ? 4.5 : 3" :class="big(p.k) ? 'pt big' : 'pt'" />
-                <text v-if="ptLabel(p)" class="ml" :x="p.k === 'e' ? 0 : p.x" :y="C.Ht - 9" :text-anchor="p.k === 'e' ? 'start' : 'middle'">{{ ptLabel(p) }}</text>
+                <text v-if="ptLabel(p)" class="ml" :x="p.k === 'e' ? 0 : p.k === H ? C.W : p.x" :y="C.Ht - 9" :text-anchor="p.k === 'e' ? 'start' : p.k === H ? 'end' : 'middle'">{{ ptLabel(p) }}</text>
               </template>
               <circle class="sel" :cx="selP.x" :cy="selP.y" r="7" />
             </svg>
