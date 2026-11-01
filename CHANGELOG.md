@@ -4,7 +4,7 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
-## [0.12.12] - 2026-10-24
+## [0.12.12] - 2026-11-01
 
 ### App
 - **Money coming in:** every amount that comes in is Income, Salary or Money back, and nothing is guessed from words. Salary is only what you or your rules mark. Money back is money returned to a card, or what you mark, and has its own total: it is not counted as income. Choose the kind in the transaction window ("What is this money?"). Settings → Money coming in (was Salary) holds the rules.
