@@ -144,7 +144,7 @@ export function useActivity() {
   const loN = computed(() => LO_KEYS.reduce((n, key) => n + (lo.value[key] || 0), 0));
   const sumTip = computed(() => {
     const o = lo.value, k = K.value, cnt = rows.value.filter((x) => counts(x, k)).length;
-    return TP(t("activity.notInT"), [[t("activity.sumIncluded"), String(cnt)]], [...LO_KEYS.filter((key) => o[key]).map((key) => "• " + t("activity.notWhy." + key, { n: o[key] })), t(filtered.value ? "activity.sumFilt" : "activity.sumAll")].join("\n"));
+    return TP(t("activity.notInT"), [], [t("activity.notIntro"), ...LO_KEYS.filter((key) => o[key]).map((key) => "• " + t("activity.notWhy." + key, { n: o[key] })), t("activity.notCounted", { n: cnt })].join("\n"));
   });
   // A group that is all upcoming shows what is expected; one with bills still to come says "Out so far".
   function grpParts(g) {
