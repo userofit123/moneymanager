@@ -652,7 +652,8 @@ html.he .fcsum .op svg {
 
 
 /* Years ahead: one card. Three tiles for the choices as they are now (the same tiles as "How next month is worked out", without
-   the sum's badges), then the choices beside the chart (under it on a narrow card). */
+   the sum's badges), then the four choices in one row (two by two on a narrower card, one under the other on a narrow one),
+   then the chart across the card. */
 .ya {
   container-type: inline-size;
 }
@@ -681,13 +682,22 @@ html.he .fcsum .op svg {
   white-space: normal;
 }
 
-/* your average under "Set aside each month", and the way back to it */
-.ya-avg {
+/* a choice's heading: its name, and at the end "Back to my average" when the amount differs from it */
+.ya-lh {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 10px;
-  margin-top: 6px;
+  min-block-size: 20px;
+}
+
+.ya-lh label {
+  white-space: nowrap;
+}
+
+/* your average under "Set aside each month" */
+.ya-avg {
+  margin-top: 2px;
 }
 
 .ya-back {
@@ -698,6 +708,9 @@ html.he .fcsum .op svg {
   background: none;
   padding: 0;
   font: inherit;
+  margin-inline-start: auto;
+  font-size: 12px;
+  white-space: nowrap;
   color: var(--acc);
   font-weight: 600;
   cursor: pointer;
@@ -715,10 +728,6 @@ html.he .fcsum .op svg {
 
 html.he .ya-back svg {
   transform: scaleX(-1);
-}
-
-.ya-back.off {
-  visibility: hidden;
 }
 
 .ya-back:hover {
@@ -752,43 +761,31 @@ html.he .ya-back svg {
   min-width: 180px;
 }
 
-.ya-grid {
+.ya-ctl {
   display: grid;
-  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
-  gap: 28px;
+  /* "Set aside each month" gets a little more room, for "Back to my average" at the end of its heading */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 4px 20px;
   margin-top: 18px;
   padding-top: 18px;
   border-top: 1px solid var(--ol);
 }
 
 .ya-ctl .fld {
-  margin-bottom: 14px;
-}
-
-.ya-rng {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.ya-rng .ya-sl {
-  flex: 1;
-  min-width: 0;
-}
-
-.ya-rng output {
-  flex: none;
-  min-inline-size: 64px;
-  text-align: end;
-  font-weight: 600;
+  margin-bottom: 0;
 }
 
 .ya-ctl .seg.ya-g {
   margin: 0;
 }
 
+.ya-out {
+  margin-top: 18px;
+}
+
 .ya-note {
-  margin: 4px 0 0;
+  margin: 10px 0 0;
 }
 
 .ya-leg {
@@ -802,8 +799,15 @@ html.he .ya-back svg {
   margin-top: 2px;
 }
 
-@container (max-width: 700px) {
-  .ya-grid {
+@container (max-width: 1000px) {
+  .ya-ctl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 24px;
+  }
+}
+
+@container (max-width: 480px) {
+  .ya-ctl {
     grid-template-columns: minmax(0, 1fr);
   }
 }

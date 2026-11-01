@@ -629,13 +629,17 @@ html.phone .ph-ya-e small {
   line-height: 18px;
 }
 
-/* your average under "Set aside each month", and the way back to it */
-html.phone .ph-ya-avg {
+/* a choice's heading: its name, and at the end "Back to my average" when the amount differs from it */
+html.phone .ph-ya-lh {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0 12px;
+  min-block-size: 20px;
+}
+
+/* your average under "Set aside each month" */
+html.phone .ph-ya-avg {
   color: var(--tx2);
   font-size: 13px;
   line-height: 18px;
@@ -644,10 +648,6 @@ html.phone .ph-ya-avg {
 html.phone .ph-ya-back {
   font-size: 14px;
   gap: 4px;
-}
-
-html.phone .ph-ya-back.off {
-  visibility: hidden;
 }
 
 /* no age yet: a row that opens the profile */
@@ -705,24 +705,6 @@ html.phone .ph-ya-play .fld label {
 
 html.phone .ph-ya-play .ya-sl {
   block-size: 32px;
-}
-
-html.phone .ph-ya-rng {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-html.phone .ph-ya-rng .ya-sl {
-  flex: 1;
-  min-width: 0;
-}
-
-html.phone .ph-ya-rng output {
-  flex: none;
-  min-inline-size: 64px;
-  text-align: end;
-  font-weight: 600;
 }
 
 html.phone .ph-ya-chart {

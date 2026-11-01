@@ -36,6 +36,14 @@ export function useYearsAhead(M) {
   // the age (or years from now) box: with an age the choice is kept as an age, without one as years
   const atKey = computed(() => (Y.value.hasAge ? "at" : "yrs"));
   const pc = (g) => Math.round(g * 1000) / 10;
+  // the age (or years) box: a whole number within the slider's range is used while typing; when the box is left it shows a
+  // number in that range again (the nearest one, or the last one when it was left empty)
+  const typeAt = (e) => { const v = +e.target.value; if (e.target.value.trim() && Number.isInteger(v) && v >= Y.value.lo && v <= Y.value.hi) set(atKey.value, v); };
+  const leaveAt = (e) => {
+    const raw = e.target.value.trim(), v = raw && isFinite(+raw) ? Math.min(Y.value.hi, Math.max(Y.value.lo, Math.round(+raw))) : Y.value.at;
+    if (v !== Y.value.at) set(atKey.value, v);
+    e.target.value = String(v);
+  };
   // the most years looked ahead (40, or up to age 100)
   const limit = computed(() => (Y.value.hasAge ? Math.min(MAX_YEARS, MAX_AGE - Y.value.age) : MAX_YEARS));
 
@@ -77,5 +85,5 @@ export function useYearsAhead(M) {
   const axisLabel = (i) => (Y.value.hasAge ? String(Y.value.age + i) : String(i));
   const legMine = computed(() => Y_("legMine", { m: fm(Y.value.m) }));
 
-  return { YAI, Y, Y_, set, back, atKey, answer, avg, ptName, axisLabel, legMine, pc, GROWTH, fm };
+  return { YAI, Y, Y_, set, back, atKey, typeAt, leaveAt, answer, avg, ptName, axisLabel, legMine, pc, GROWTH, fm };
 }

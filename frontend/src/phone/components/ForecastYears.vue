@@ -11,7 +11,7 @@ import { useYearsAhead } from "../../pagelogic/yearsAhead.js";
 import { usePhoneNav } from "../navigation.js";
 
 const props = defineProps({ model: { type: Object, required: true } });
-const { YAI, Y, Y_, set, back, atKey, answer, avg, ptName, axisLabel, legMine, pc, GROWTH, fm } = useYearsAhead(computed(() => props.model));
+const { YAI, Y, Y_, set, back, atKey, typeAt, leaveAt, answer, avg, ptName, axisLabel, legMine, pc, GROWTH, fm } = useYearsAhead(computed(() => props.model));
 const nav = usePhoneNav();
 const growth = computed(() => GROWTH.map((g) => ({ value: g, label: pc(g) + "%" })));
 // an amount box left empty while typing keeps the last amount
@@ -30,7 +30,8 @@ const PERSON = '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2
       <div v-for="r in answer" :key="r.k" class="ph-row ph-two ph-ya-r" :class="'r-' + r.k">
         <span class="ph-tile"><PIcon :svg="YAI[r.k]" /></span>
         <span class="ph-row-main">
-          <span class="ph-row-t ph-fc-wrap"><span :data-tip="r.tip">{{ r.label }}</span></span>
+          <!-- the label's text sits in its own span, so a new label never removes the tooltip's (i) after it -->
+          <span class="ph-row-t ph-fc-wrap"><span :data-tip="r.tip"><span>{{ r.label }}</span></span></span>
           <span class="ph-row-s ph-fc-wrap">{{ r.sub }}</span>
         </span>
         <span class="ph-ya-e"><b class="ph-amt"><bdi>{{ r.value }}</bdi></b> <small v-if="r.unit">{{ r.unit }}</small></span>
@@ -43,22 +44,23 @@ const PERSON = '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2
     </button>
     <div class="ph-group-b ph-ya-play">
       <div class="fld">
-        <label for="phYaGoal">{{ Y_("goal") }}</label>
+        <label for="phYaGoal"><span :data-tip="Y_('goalTip')">{{ Y_("goal") }}</span></label>
         <MoneyInput id="phYaGoal" :key="'goal' + redo" @blur="fill" :model-value="String(Y.goal)" @update:model-value="setNum('goal', $event)" />
       </div>
       <div class="fld">
-        <label for="phYaM"><span :data-tip="Y_('mTip', { amount: fm(Y.kept) })">{{ Y_("m") }}</span></label>
+        <!-- the way back to your average, at the end of the heading, only when the amount differs from it -->
+        <div class="ph-ya-lh">
+          <label for="phYaM"><span :data-tip="Y_('mTip', { amount: fm(Y.kept) })">{{ Y_("m") }}</span></label>
+          <button v-if="Y.changed" type="button" class="ph-link ph-ya-back" @click="back"><PIcon :svg="BACK" dir />{{ Y_("back") }}</button>
+        </div>
         <MoneyInput id="phYaM" :key="'m' + redo" @blur="fill" :model-value="String(Y.m)" @update:model-value="setNum('m', $event)" />
         <input type="range" class="ya-sl" min="0" :max="Y.slider.max" :step="Y.slider.step" :value="Math.min(Y.m, Y.slider.max)" :aria-label="Y_('m')" @input="set('m', +$event.target.value)">
-        <!-- your average, and the way back to it in the same place whenever the amount differs -->
-        <div class="ph-ya-avg">
-          <span :data-tip="avg.tip">{{ avg.text }}</span>
-          <button type="button" class="ph-link ph-ya-back" :class="{ off: !Y.changed }" :disabled="!Y.changed" :aria-hidden="!Y.changed" @click="back"><PIcon :svg="BACK" dir />{{ Y_("back") }}</button>
-        </div>
+        <div class="ph-ya-avg"><span :data-tip="avg.tip"><span>{{ avg.text }}</span></span></div>
       </div>
       <div class="fld">
-        <label for="phYaAt">{{ Y.hasAge ? Y_("byAge") : Y_("inYears") }}</label>
-        <div class="ph-ya-rng"><input id="phYaAt" type="range" class="ya-sl" :min="Y.lo" :max="Y.hi" step="1" :value="Y.at" @input="set(atKey, +$event.target.value)"><output class="ph-amt" for="phYaAt">{{ Y.hasAge ? Y.at : Y_("years", { n: Y.at }, Y.at) }}</output></div>
+        <label for="phYaAt"><span :data-tip="Y.hasAge ? Y_('atTip') : Y_('yrsTip')"><span>{{ Y.hasAge ? Y_("byAge") : Y_("inYears") }}</span></span></label>
+        <input id="phYaAt" type="text" inputmode="numeric" :value="Y.at" @input="typeAt" @change="leaveAt">
+        <input type="range" class="ya-sl" :min="Y.lo" :max="Y.hi" step="1" :value="Y.at" :aria-label="Y.hasAge ? Y_('byAge') : Y_('inYears')" @input="set(atKey, +$event.target.value)">
       </div>
       <div class="fld">
         <label><span :data-tip="Y_('gTip')">{{ Y_("g") }}</span></label>

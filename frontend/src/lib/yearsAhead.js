@@ -64,10 +64,11 @@ export const aboutUp = (v) => (v == null ? null : Math.ceil(Math.max(0, v) / 10)
 // A round number at or above v: 1, 2, 2.5 or 5 times a power of ten.
 export const niceUp = (v) => { if (!(v > 0)) return 0; const p = Math.pow(10, Math.floor(Math.log10(v))); return [1, 2, 2.5, 5, 10].map((f) => f * p).find((x) => x >= v - 1e-9); };
 
-// The "Set aside each month" slider: from ₪0 to a round amount well above both your average (3 times it) and the amount
-// needed for the goal (1.5 times it), at least ₪5,000. It does not depend on the amount chosen, so it never moves while dragging.
-export function sliderOf(kept, need) {
-  const max = niceUp(Math.max(5000, 3 * Math.max(0, +kept || 0), 1.5 * Math.max(0, +need || 0)));
+// The "Set aside each month" slider: from ₪0 to a round amount above 3 times your average, at least ₪5,000. It depends only on
+// your average (never on the amount chosen, the goal or the age), so it stays the same while any choice changes. A larger
+// amount typed in the box is kept; the slider then sits at its end.
+export function sliderOf(kept) {
+  const max = niceUp(Math.max(5000, 3 * Math.max(0, +kept || 0)));
   return { max, step: max <= 10000 ? 50 : max <= 50000 ? 100 : max <= 250000 ? 500 : 1000 };
 }
 
@@ -115,7 +116,7 @@ export function yearsAheadModel({ start = 0, pace = 0, age = 0, pick = {} } = {}
   const span = Math.min(lim / 12, Math.max(Math.min(5, lim / 12), years, reach ? Math.ceil(reach.k / 12) : 0));
   const chart = { years: span, mine: pathOf(start, m, g, span), pace: changed ? pathOf(start, kept, g, span) : null, goal, at: years, hit: reach ? reach.k / 12 : null, age: hasAge ? age : null };
 
-  return { start, pace, kept, age: hasAge ? age : 0, hasAge, m, goal, g, at, lo, hi, years, total, reach, need, needDiff: need == null ? null : need - m, sooner, changed, chart, slider: sliderOf(kept, need) };
+  return { start, pace, kept, age: hasAge ? age : 0, hasAge, m, goal, g, at, lo, hi, years, total, reach, need, needDiff: need == null ? null : need - m, sooner, changed, chart, slider: sliderOf(kept) };
 }
 
 // The chart's shapes for one width: lines through the points, the goal line, where the goal is reached and the labels on the

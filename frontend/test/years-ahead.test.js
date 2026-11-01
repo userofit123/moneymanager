@@ -45,11 +45,12 @@ test("rounding as shown, the slider's round end, the path by year and the age ai
   assert.equal(goalAgeOf(34), 50); assert.equal(goalAgeOf(48), 55); assert.equal(goalAgeOf(62), 70); assert.equal(goalAgeOf(95), 100); assert.equal(goalAgeOf(98), 100);
 });
 
-test("the slider runs from ₪0 to a round amount above 3 × the average and 1.5 × the amount needed, at least ₪5,000", () => {
-  assert.deepEqual(sliderOf(0, null), { max: 5000, step: 50 });
-  assert.deepEqual(sliderOf(3000, 5000), { max: 10000, step: 50 }); // 3 × 3,000 = 9,000 → 10,000
-  assert.deepEqual(sliderOf(12000, 30000), { max: 50000, step: 100 }); // 1.5 × 30,000 = 45,000 → 50,000
-  assert.deepEqual(sliderOf(3000, 100000), { max: 200000, step: 500 }); // 150,000 → 200,000
+test("the slider runs from ₪0 to a round amount above 3 × the average, at least ₪5,000", () => {
+  assert.deepEqual(sliderOf(0), { max: 5000, step: 50 });
+  assert.deepEqual(sliderOf(1000), { max: 5000, step: 50 }); // 3,000 → at least 5,000
+  assert.deepEqual(sliderOf(3000), { max: 10000, step: 50 }); // 3 × 3,000 = 9,000 → 10,000
+  assert.deepEqual(sliderOf(5646), { max: 20000, step: 100 }); // 16,938 → 20,000
+  assert.deepEqual(sliderOf(12000), { max: 50000, step: 100 }); // 36,000 → 50,000
 });
 
 test("what you kept each month: the last full months only, never this month or a month before the data starts", () => {
@@ -76,7 +77,9 @@ test("the model at your average: every sentence's number, worked out by hand", (
   assert.equal(Y.need, 5000); // 960,000 / 192 = 5,000
   assert.equal(Y.needDiff, 2000); // 5,000 − 3,000
   assert.equal(Y.sooner, null); // the same as your average
-  assert.deepEqual(Y.slider, { max: 10000, step: 50 }); // 3 × 3,000 = 9,000; 1.5 × 5,000 = 7,500 → 10,000
+  assert.deepEqual(Y.slider, { max: 10000, step: 50 }); // 3 × 3,000 = 9,000 → 10,000
+  // the slider stays the same whatever the age, the goal or the amount chosen
+  for (const pick of [{ at: 35 }, { at: 75 }, { goal: 5000000 }, { goal: 1000 }, { m: 50000 }]) assert.deepEqual(yearsAheadModel({ start: 40000, pace: 3000, age: 34, pick }).slider, Y.slider);
   assert.equal(Y.chart.pace, null); // no second line when it is your average
   assert.equal(Y.chart.years, 27); // on to when the goal is reached: 320 / 12 = 26.7 → 27 years
 });
