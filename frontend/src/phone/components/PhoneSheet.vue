@@ -16,14 +16,20 @@ const { t } = useI18n();
 const el = ref(null), body = ref(null);
 const close = () => { emit("update:open", false); emit("close"); };
 let stopDrag = null;
-// the on-screen keyboard: the sheet sits on top of it (--kb is its height), and the field being typed in stays in sight
+// the on-screen keyboard: the sheet sits on top of it (--kb is its height, --vvh the height left above it), and the field
+// being typed in stays in sight, also when the next field is tapped while the keyboard stays open
 const vv = typeof window !== "undefined" ? window.visualViewport : null;
+let kbNow = 0;
+const showField = () => {
+  const f = document.activeElement;
+  if (kbNow && f && el.value?.contains(f) && f.matches("input,textarea,select")) requestAnimationFrame(() => f.scrollIntoView({ block: "nearest" }));
+};
 const onKb = () => {
   if (!el.value || !vv) return;
-  const kb = Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop));
-  el.value.style.setProperty("--kb", kb + "px");
-  const f = document.activeElement;
-  if (kb && f && el.value.contains(f) && f.matches("input,textarea,select")) f.scrollIntoView({ block: "nearest" });
+  kbNow = Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop));
+  el.value.style.setProperty("--kb", kbNow + "px");
+  el.value.style.setProperty("--vvh", Math.round(vv.height) + "px");
+  showField();
 };
 watch(() => props.open, (o, was) => {
   if (o) { sheetOpened(close); layerOpen(close); vv?.addEventListener("resize", onKb); nextTick(() => { if (el.value) { stopDrag?.(); stopDrag = dragDown(el.value, { onClose: close, body: body.value }); el.value.focus({ preventScroll: true }); onKb(); } }); }
@@ -36,7 +42,7 @@ onBeforeUnmount(() => { stopDrag?.(); vv?.removeEventListener("resize", onKb); i
   <Teleport to="body">
     <Transition name="ph-fade"><div v-if="open" class="ph-scrim" @click="close" @touchmove.prevent /></Transition>
     <Transition name="ph-rise">
-      <div v-if="open" ref="el" class="ph-sheet" :class="[size, cls]" role="dialog" aria-modal="true" :aria-label="label || title || undefined" tabindex="-1">
+      <div v-if="open" ref="el" class="ph-sheet" :class="[size, cls]" role="dialog" aria-modal="true" :aria-label="label || title || undefined" tabindex="-1" @focusin="showField">
         <div class="ph-grab" aria-hidden="true"><i /></div>
         <div v-if="title || $slots.head" class="ph-sheet-h">
           <slot name="head"><h2>{{ title }}</h2></slot>

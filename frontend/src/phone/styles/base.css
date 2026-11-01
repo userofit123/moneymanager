@@ -7,6 +7,11 @@ html.phone body {
   overscroll-behavior-y: none;
 }
 
+/* a field the browser scrolls into sight (the keyboard opens) is never left under the top bar */
+html.phone {
+  scroll-padding-block: calc(var(--p-bar) + env(safe-area-inset-top) + 8px) 16px;
+}
+
 html.phone:not(.ph-glow)::before {
   display: none;
 }

@@ -4,12 +4,6 @@ html.phone .ph-alerts .ph-hero {
   padding: 4px 4px 0;
 }
 
-html.phone .ph-alerts-err {
-  margin: 0;
-  padding: 16px 4px;
-  color: var(--neg);
-}
-
 /* an alert: the row that opens it, and Dismiss under its text */
 html.phone .ph-al {
   padding-block-end: 2px;

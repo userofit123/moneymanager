@@ -104,11 +104,12 @@ export function useCategories() {
   const colHead = (c) => t("cats.col." + c, { n: nM.value });
   const colTip = (c) => t("cats.tip." + c, periodWords.value);
   // one sort per tab, not remembered; a column that is hidden is no longer sorted by
+  // (anyCol: the phone has no columns to hide, so it sorts by any of them)
   const sorts = ref({ cats: null, tags: null });
   const sortBy = (tab, key) => { sorts.value[tab] = nextSort(sorts.value[tab], key); };
-  function sorted(tab) {
+  function sorted(tab, anyCol = false) {
     const s = sorts.value[tab], L = LISTS.value[tab];
-    if (s && s.key != "name" && !colsOf(tab).includes(s.key)) return L.L.rows;
+    if (!anyCol && s && s.key != "name" && !colsOf(tab).includes(s.key)) return L.L.rows;
     return sortRows(L.L.rows, s, (r, c) => (c == "name" ? L.name(r.k) : colValue(r, c)), new Intl.Collator(loc.value, { sensitivity: "base", numeric: true }));
   }
   const sortIs = (tab, key) => { const s = sorts.value[tab]; return s && s.key == key ? s.ord : ""; };

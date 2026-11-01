@@ -22,6 +22,7 @@ import ListGroup from "../components/ListGroup.vue";
 import ListRow from "../components/ListRow.vue";
 import EmptyState from "../components/EmptyState.vue";
 import SkeletonRows from "../components/SkeletonRows.vue";
+import LoadError from "../components/LoadError.vue";
 defineProps({ id: { type: String, default: null } });
 
 const none = computed(() => null);
@@ -67,7 +68,7 @@ const desc = (c) => (c.card || c.g.L.some((x) => x.cur != "ILS") ? "" : an(c.a.s
       <IconButton :label="P('add')" icon-name="add" @tap="openForm('account')" />
     </template>
 
-    <p v-if="data.error.value && !S" class="ph-accs-err">{{ P("loadError") }}</p>
+    <LoadError v-if="data.error.value && !S" :text="P('loadError')" />
     <SkeletonRows v-else-if="!S" :rows="5" />
 
     <EmptyState v-else-if="!sections.length" :icon="ACC_ICON" :title="t('acc.noneT')" :text="t('acc.noneX')" :action="t('acc.connect')" @action="goConn">

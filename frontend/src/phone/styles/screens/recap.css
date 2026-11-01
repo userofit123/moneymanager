@@ -705,8 +705,8 @@ html.phone .ph-rc-cue .down {
   transform: rotate(90deg);
 }
 
+/* (scrolled to under the top bar by the page's own scroll padding, base.css) */
 html.phone .ph-rc-next {
-  scroll-margin-block-start: calc(var(--p-bar) + env(safe-area-inset-top) + 8px);
   padding-block-start: 8px;
 }
 

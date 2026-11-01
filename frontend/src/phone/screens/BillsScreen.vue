@@ -22,6 +22,7 @@ import EmptyState from "../components/EmptyState.vue";
 import SkeletonRows from "../components/SkeletonRows.vue";
 import PhoneSheet from "../components/PhoneSheet.vue";
 import PIcon from "../components/PIcon.vue";
+import LoadError from "../components/LoadError.vue";
 defineProps({ id: { type: String, default: null } });
 
 const { t, tk, S, M, kpis, groups, cad, freq, avStyle, cc, monYr, priceChange, openAdd, makeRegular, keepIrregular } = useBills();
@@ -64,7 +65,7 @@ const soonSorted = computed(() => M.value.rec.filter((b) => M.value.soon.include
       <IconButton :label="P('add')" icon-name="add" @tap="openAdd" />
     </template>
 
-    <p v-if="data.error.value && !S" class="ph-bills-err">{{ t("bills.loadError") }}</p>
+    <LoadError v-if="data.error.value && !S" :text="t('bills.loadError')" />
     <SkeletonRows v-else-if="!S || !M" :rows="5" />
 
     <template v-else>

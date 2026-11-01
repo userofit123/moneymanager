@@ -22,6 +22,7 @@ import PhoneSheet from "../components/PhoneSheet.vue";
 import PickerSheet from "../components/PickerSheet.vue";
 import ActionSheet from "../components/ActionSheet.vue";
 import PIcon from "../components/PIcon.vue";
+import LoadError from "../components/LoadError.vue";
 import { pages } from "../../routes.js";
 defineProps({ id: { type: String, default: null } });
 
@@ -165,7 +166,7 @@ const lineTotals = computed(() => (lD.value ? [...lD.value.lines].sort((a, b) =>
       <IconButton :label="P('options')" icon-name="more" @tap="more = true" />
     </template>
 
-    <p v-if="data.error.value && !S" class="ph-rep-err">{{ t("home.loadError") }}</p>
+    <LoadError v-if="data.error.value && !S" :text="t('home.loadError')" />
     <template v-else-if="!M">
       <div class="ph-rep-skel" aria-hidden="true"><i /><i /></div>
       <SkeletonRows :rows="4" />

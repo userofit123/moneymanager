@@ -22,6 +22,7 @@ import EmptyState from "../components/EmptyState.vue";
 import SkeletonRows from "../components/SkeletonRows.vue";
 import PhoneSheet from "../components/PhoneSheet.vue";
 import PIcon from "../components/PIcon.vue";
+import LoadError from "../components/LoadError.vue";
 defineProps({ id: { type: String, default: null } });
 
 const {
@@ -66,7 +67,7 @@ const seeSpending = (k) => { open.value = false; goCat(k); };
       <IconButton :label="t('phone.shell.open.budgets')" icon-name="add" @tap="openAdd('')" />
     </template>
 
-    <p v-if="data.error.value && !S" class="ph-bud-err">{{ t("budgets.loadError") }}</p>
+    <LoadError v-if="data.error.value && !S" :text="t('budgets.loadError')" />
     <template v-else-if="!S">
       <div class="ph-bud-skel" aria-hidden="true"><i /><i /></div>
       <SkeletonRows :rows="4" />

@@ -4,12 +4,6 @@ html.phone .ph-bills .ph-hero {
   padding: 4px 4px 0;
 }
 
-html.phone .ph-bills-err {
-  margin: 0;
-  padding: 16px 4px;
-  color: var(--neg);
-}
-
 /* due soon and price changes, side by side */
 html.phone .ph-bills-tiles {
   display: grid;

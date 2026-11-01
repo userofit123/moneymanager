@@ -6,13 +6,6 @@ html.phone .ph-cats-head {
   padding: 0 var(--p-gut) 16px;
 }
 
-html.phone .ph-cats-err {
-  margin: 0;
-  color: var(--neg);
-  font-size: 15px;
-  line-height: 22px;
-}
-
 /* the months the sentence is about, right under it */
 html.phone .ph-cats-when {
   margin: calc(-1 * var(--p-gap) + 6px) 0 0;

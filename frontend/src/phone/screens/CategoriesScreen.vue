@@ -19,10 +19,11 @@ import EmptyState from "../components/EmptyState.vue";
 import PhoneSheet from "../components/PhoneSheet.vue";
 import PickerSheet from "../components/PickerSheet.vue";
 import PIcon from "../components/PIcon.vue";
+import LoadError from "../components/LoadError.vue";
 defineProps({ id: { type: String, default: null } });
 
 const {
-  t, S, setTab, goRules, months, MONTHS, MLABEL, nM, periodWords, signed, change, colsOf, colHead, sorts, sorted,
+  t, S, setTab, goRules, months, MONTHS, MLABEL, nM, periodWords, signed, change, colHead, sorts, sorted, CAT_COLS,
   noCats, newCat, catAdd, newTag, tagAdd, LISTS, catTab, searches, moneyCell, totalCell, fm,
 } = useCategories();
 const nav = usePhoneNav();
@@ -46,13 +47,14 @@ const totals = computed(() => ["out", "in", "net"].map((c) => ({ c, label: t("ca
 // the search (kept with the computer's search boxes) and the order
 const q = computed({ get: () => searches[tab.value] || "", set: (v) => { searches[tab.value] = v; } });
 const rows = computed(() => {
-  const s = q.value.trim().toLowerCase(), all = sorted(tab.value);
+  const s = q.value.trim().toLowerCase(), all = sorted(tab.value, true);
   return s ? all.filter((r) => L.value.name(r.k).toLowerCase().includes(s) || String(r.k).toLowerCase().includes(s)) : all;
 });
 const empty = computed(() => (tab.value === "cats" ? noCats.value : !L.value.L.rows.length));
 const sortOpen = ref(false);
-// the order: the list's own, by name, or the largest (the newest date) first in one of the columns shown on the computer
-const sortOpts = computed(() => [{ value: "", label: P("sortUsual") }, { value: "name", label: L.value.head }, ...colsOf(tab.value).map((c) => ({ value: c, label: colHead(c) }))]);
+// the order: the list's own, by name, or the largest (the newest date) first by any of the numbers a category shows
+// (the computer picks which columns its table shows; the phone shows them all on the category's screen, so it can sort by each)
+const sortOpts = computed(() => [{ value: "", label: P("sortUsual") }, { value: "name", label: L.value.head }, ...CAT_COLS.filter((c) => !(tab.value === "tags" && c === "budget")).map((c) => ({ value: c, label: colHead(c) }))]);
 const sortNow = computed(() => sorts.value[tab.value]?.key || "");
 const sortName = computed(() => sortOpts.value.find((o) => o.value === sortNow.value)?.label || P("sortUsual"));
 const pickSort = (v) => { sorts.value[tab.value] = v ? { key: v, ord: v === "name" ? "asc" : "desc" } : null; };
@@ -86,7 +88,7 @@ const AI = '<path d="M12 3l1.8 4.6L18.5 9.5l-4.7 1.9L12 16l-1.8-4.6L5.5 9.5l4.7-
       <div class="ph-cats-head"><Segmented v-model="tab" :options="tabs" :label="t('nav.categories')" /></div>
     </template>
 
-    <p v-if="data.error.value && !S" class="ph-cats-err">{{ t("home.loadError") }}</p>
+    <LoadError v-if="data.error.value && !S" :text="t('home.loadError')" />
     <SkeletonRows v-else-if="!L" :rows="6" />
 
     <template v-else>

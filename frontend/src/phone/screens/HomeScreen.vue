@@ -31,6 +31,7 @@ import ProgressRing from "../components/ProgressRing.vue";
 import EmptyState from "../components/EmptyState.vue";
 import SkeletonRows from "../components/SkeletonRows.vue";
 import PIcon from "../components/PIcon.vue";
+import LoadError from "../components/LoadError.vue";
 defineProps({ id: { type: String, default: null } });
 
 const {
@@ -85,7 +86,7 @@ const isEnd = (c) => c.kind === "end";
     </template>
     <template #sub><SyncLine /></template>
 
-    <p v-if="data.error.value && !S" class="ph-home-err">{{ t("home.loadError") }}</p>
+    <LoadError v-if="data.error.value && !S" :text="t('home.loadError')" />
     <template v-else-if="!S">
       <div class="ph-home-skel" aria-hidden="true"><i /><i /></div>
       <SkeletonRows :rows="4" />

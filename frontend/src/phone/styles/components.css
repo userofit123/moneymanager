@@ -1050,6 +1050,11 @@ html.phone .ph-syncline::after {
   inset: -4px 0;
 }
 
+/* the sync line under a title is 32px high: a finger gets 44px, and a little room at its ends */
+html.phone .ph-syncline::after {
+  inset: -6px -8px;
+}
+
 html.phone .ph-chip.on .ph-chip-b {
   padding-inline-end: 4px;
 }
@@ -1072,6 +1077,13 @@ html.phone .ph-chip-x .ph-ic {
 html.phone .ph-segwrap {
   overflow-x: auto;
   scrollbar-width: none;
+  border-radius: 99px;
+}
+
+/* only when it scrolls: the side with more choices out of sight fades (--fl/--fr from edgeFade.js) */
+html.phone .ph-segwrap.fades {
+  /* fixed side: the fades are left and right, set for the side with more choices */
+  mask-image: linear-gradient(to right, transparent, #000 var(--fl, 0px), #000 calc(100% - var(--fr, 0px)), transparent);
 }
 
 html.phone .ph-seg.seg {
@@ -1083,6 +1095,7 @@ html.phone .ph-seg.seg {
 html.phone .ph-seg.seg > button {
   flex: 1 0 auto;
   min-block-size: 36px;
+  padding-inline: 12px;
   font-size: 14px;
 }
 
@@ -1138,11 +1151,11 @@ html.phone .ph-sheet.ph-explain {
 html.phone .ph-sheet {
   position: fixed;
   inset-inline: 0;
-  inset-block-end: 0;
+  inset-block-end: var(--kb, 0px);
   z-index: 61;
   display: flex;
   flex-direction: column;
-  max-block-size: 92dvh;
+  max-block-size: min(92dvh, calc(var(--vvh, 100dvh) - 12px));
   max-inline-size: var(--p-max);
   margin-inline: auto;
   border-radius: var(--p-r-sheet) var(--p-r-sheet) 0 0;
@@ -1157,7 +1170,16 @@ html.phone[data-mode="dark"] .ph-sheet {
 }
 
 html.phone .ph-sheet.large {
-  block-size: 92dvh;
+  block-size: min(92dvh, calc(var(--vvh, 100dvh) - 12px));
+}
+
+/* a field scrolled into sight inside a sheet keeps a little room, and never ends up under a window's buttons row */
+html.phone .ph-sheet-b :is(input, select, textarea) {
+  scroll-margin-block: 16px;
+}
+
+html.phone .ph-adopt .ph-sheet-b :is(input, select, textarea) {
+  scroll-margin-block-end: 96px;
 }
 
 html.phone .ph-grab {
@@ -1323,4 +1345,21 @@ html.phone :is(.ph-bar-title, .ph-sheet-h h2) {
   color: var(--tx);
   letter-spacing: normal;
   text-transform: none;
+}
+
+/* ---- Data that could not be loaded (LoadError.vue): the message in the warning colour and Try again under it ---- */
+html.phone .ph-loaderr {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--p-r-group);
+  background: color-mix(in srgb, var(--neg) 10%, transparent);
+  color: var(--neg);
+}
+
+html.phone .ph-loaderr p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
 }

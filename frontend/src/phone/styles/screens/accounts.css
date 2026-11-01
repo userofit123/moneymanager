@@ -15,12 +15,6 @@ html.phone .ph-accs-note + .ph-accs-note {
   margin-block-start: 2px;
 }
 
-html.phone .ph-accs-err {
-  margin: 0;
-  padding: 16px 4px;
-  color: var(--neg);
-}
-
 html.phone .ph-accs .ph-empty .ph-btn + .ph-btn {
   margin-block-start: 8px;
 }

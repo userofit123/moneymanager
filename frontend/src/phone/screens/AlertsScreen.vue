@@ -15,6 +15,7 @@ import SwipeRow from "../components/SwipeRow.vue";
 import EmptyState from "../components/EmptyState.vue";
 import SkeletonRows from "../components/SkeletonRows.vue";
 import PIcon from "../components/PIcon.vue";
+import LoadError from "../components/LoadError.vue";
 defineProps({ id: { type: String, default: null } });
 
 const { t, data, S, since, rows, dismiss, open, tab, hist, loadHist, pick, when, dur, said } = useAlerts();
@@ -46,7 +47,7 @@ const settings = () => nav.push("settingsSection", "alr");
 
 <template>
   <PhoneScreen class="ph-alerts">
-    <p v-if="data.error.value && !S" class="ph-alerts-err">{{ t("alerts.loadError") }}</p>
+    <LoadError v-if="data.error.value && !S" :text="t('alerts.loadError')" />
     <SkeletonRows v-else-if="!S" :rows="4" />
 
     <template v-else>

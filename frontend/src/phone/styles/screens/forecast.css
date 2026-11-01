@@ -584,10 +584,3 @@ html.phone .ph-fc-skel i + i {
   inline-size: 55%;
 }
 
-html.phone .ph-fc-err {
-  margin: 0;
-  padding: 16px;
-  border-radius: var(--p-r-group);
-  background: color-mix(in srgb, var(--neg) 10%, transparent);
-  color: var(--neg);
-}

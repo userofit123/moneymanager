@@ -295,10 +295,12 @@ html.phone .ph-wn-ht p {
   line-height: 20px;
 }
 
+/* each version reads like the phone's own group titles; its notes are set apart enough to skim */
 html.phone .ph-wn-v {
-  margin: 20px 0 6px;
-  color: var(--tx2);
-  font-size: 13px;
+  margin: 24px 0 8px;
+  color: var(--tx);
+  font-size: 15px;
+  line-height: 20px;
   font-weight: 600;
 }
 
@@ -324,7 +326,7 @@ html.phone .ph-wn-notes ul {
 }
 
 html.phone .ph-wn-notes li + li {
-  margin-block-start: 6px;
+  margin-block-start: 10px;
 }
 
 html.phone .ph-wn-f {

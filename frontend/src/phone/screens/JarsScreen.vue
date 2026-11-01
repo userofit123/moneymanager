@@ -21,6 +21,7 @@ import ProgressRing from "../components/ProgressRing.vue";
 import SkeletonRows from "../components/SkeletonRows.vue";
 import PhoneSheet from "../components/PhoneSheet.vue";
 import PIcon from "../components/PIcon.vue";
+import LoadError from "../components/LoadError.vue";
 defineProps({ id: { type: String, default: null } });
 
 const {
@@ -73,7 +74,7 @@ const LOCK = '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a
       <IconButton :label="P('newJar')" icon-name="add" @tap="openNew" />
     </template>
 
-    <p v-if="data.error.value && !M" class="ph-jars-err">{{ t("jars.loadError") }}</p>
+    <LoadError v-if="data.error.value && !M" :text="t('jars.loadError')" />
     <SkeletonRows v-else-if="!M" :rows="5" />
 
     <template v-else>

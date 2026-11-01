@@ -14,14 +14,6 @@ html.phone .ph-jars-back {
   margin-block-start: calc(12px - var(--p-gap));
 }
 
-html.phone .ph-jars-err {
-  margin: 0;
-  padding: 16px;
-  border-radius: var(--p-r-group);
-  background: color-mix(in srgb, var(--neg) 10%, transparent);
-  color: var(--neg);
-}
-
 /* this month: the amount put in of what is planned, the bar, what it means, then the three numbers and Fill now */
 html.phone .ph-jars-mh {
   display: flex;

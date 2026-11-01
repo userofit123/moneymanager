@@ -10,6 +10,6 @@
   "chartHintUpd": "Tap or slide along the chart to see each update.",
   "gone": "This account is not here any more",
   "goneSub": "It was removed or hidden.",
-  "loadError": "The accounts could not be loaded. Pull down to try again.",
+  "loadError": "The accounts could not be loaded. Check that the app is running, then try again.",
   "cardsNote": "Each card's amount is what it was charged so far this month."
 }

@@ -2,24 +2,14 @@
 // A row of filter chips that scrolls sideways (from the start side). A chip that is on shows its value and an × to clear it.
 // The side with more chips out of sight fades out, so the row never looks cut off at the screen's edge.
 // chips: [{ id, label, value? }]. Emits "open" (tap a chip) and "clear" (its ×).
-import { ref, onMounted, onBeforeUnmount, onActivated, watch, nextTick } from "vue";
+import { ref, watch, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import PIcon from "./PIcon.vue";
+import { useEdgeFade } from "../edgeFade.js";
 const props = defineProps({ chips: { type: Array, default: () => [] } });
 defineEmits(["open", "clear"]);
 const { t } = useI18n();
-const el = ref(null), fade = ref({});
-const FADE = "40px";
-function edges() {
-  const e = el.value; if (!e) return;
-  const rtl = getComputedStyle(e).direction === "rtl", max = e.scrollWidth - e.clientWidth, s = Math.abs(e.scrollLeft);
-  const start = s > 2, end = s < max - 2; // more out of sight on that side
-  fade.value = { "--fl": (rtl ? end : start) ? FADE : "0px", "--fr": (rtl ? start : end) ? FADE : "0px" };
-}
-let ro = null;
-onMounted(() => { edges(); ro = new ResizeObserver(edges); ro.observe(el.value); });
-onActivated(edges);
-onBeforeUnmount(() => ro?.disconnect());
+const el = ref(null), { fade, edges } = useEdgeFade(el, "40px");
 watch(() => props.chips, () => nextTick(edges), { deep: true });
 </script>
 

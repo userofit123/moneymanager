@@ -17,6 +17,7 @@ import SkeletonRows from "../components/SkeletonRows.vue";
 import EmptyState from "../components/EmptyState.vue";
 import PhoneSheet from "../components/PhoneSheet.vue";
 import PIcon from "../components/PIcon.vue";
+import LoadError from "../components/LoadError.vue";
 defineProps({ id: { type: String, default: null } });
 
 const {
@@ -94,7 +95,7 @@ const openJar = (id) => nav.push("jar", String(id));
 
 <template>
   <PhoneScreen class="ph-fc">
-    <p v-if="data.error.value && !S" class="ph-fc-err">{{ t("forecast.loadError") }}</p>
+    <LoadError v-if="data.error.value && !S" :text="t('forecast.loadError')" />
     <template v-else-if="!S">
       <div class="ph-fc-skel" aria-hidden="true"><i /><i /></div>
       <SkeletonRows :rows="4" />
