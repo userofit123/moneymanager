@@ -359,7 +359,7 @@
     "notIntro": "These rows are listed, but In, Out and Net leave them out, so no money is counted twice:",
     "notCounted": "In, Out and Net count the other {n}.",
     "notWhy": {
-      "transfers": "**Moves between your own accounts: {n}**. The money stays yours.",
+      "transfers": "**Money moved between your own accounts: {n}**. It is still yours, so it is not money in or out.",
       "cardPays": "**Card bill payments: {n}**. Each purchase on the card is already counted.",
       "upcoming": "**Not happened yet: {n}**. Counted on the day they happen.",
       "balance": "**Balance notes: {n}**. Not real money in or out.",

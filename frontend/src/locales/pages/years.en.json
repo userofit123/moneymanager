@@ -40,7 +40,7 @@
   "needSame": "about what you set aside each month now",
   "avgNeg": "In the last full month ({range}), about {amount} more went out than came in, so it counts as ₪0. | In the last {n} full months ({range}), about {amount} a month more went out than came in, so it counts as ₪0.",
   "avgNone": "There isn't a full month yet, so it counts as ₪0 for now.",
-  "avgTip": "**Not counted:** moves between your own accounts, card bill payments (each purchase is already counted), payments that have not happened yet, and rows you left out.\n**Number of months:** follows **Based on the last** on the Forecast page.",
+  "avgTip": "**Not counted:** money you moved between your own accounts, card bill payments (each card purchase is already counted), payments that have not happened yet, and rows you chose to leave out.\n**Number of months:** follows **Based on the last** on the Forecast page.",
   "noAge": "Add your age to see this by age. Until then, it counts in years from today.",
   "addAge": "Add your age",
   "m": "Set aside each month",
