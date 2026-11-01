@@ -1,0 +1,108 @@
+/* The summary at the top of a page (.jhero): two halves, a big number on the left, a number with a bar and small stats on the right.
+   Used by Jars and Budgets. The looks (Raised, Glass, spacing) style it in theme.css. */
+
+.jbar {
+  height: 10px;
+  background: var(--s2);
+  border-radius: 99px;
+  overflow: hidden;
+  margin: 14px 0 10px;
+}
+
+.jbar i {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--acc), var(--acc2));
+  transition: width .5s;
+}
+
+.jbar i.d {
+  background: var(--pos);
+}
+
+.jstats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.jstats > div {
+  background: var(--s1);
+  border: 1px solid var(--ol);
+  border-radius: 14px;
+  padding: 10px 12px;
+  min-width: 0;
+}
+
+.jstats span {
+  display: block;
+  font-size: 11px;
+  color: var(--tx2);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.jstats b {
+  display: block;
+  font-size: 15px;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jhero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-radius: 26px;
+  overflow: hidden;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--acc) 16%, var(--s1)), color-mix(in srgb, var(--acc2) 10%, var(--s1)));
+  border: 1px solid color-mix(in srgb, var(--acc) 22%, var(--ol));
+}
+
+.jhero > div {
+  padding: 24px 28px;
+}
+
+.jhero .jh2 {
+  border-inline-start: 1px solid color-mix(in srgb, var(--acc) 20%, var(--ol));
+}
+
+.jhero .lbl {
+  text-transform: none;
+}
+
+.jhero .jh1 .val {
+  font-size: 46px;
+  margin: 10px 0 6px;
+}
+
+.jhero .jh2 .val {
+  font-size: 34px;
+  margin: 10px 0 0;
+}
+
+.jhero .jh2 .val .of {
+  font-size: 16px;
+}
+
+.jhero .jbar {
+  background: color-mix(in srgb, var(--tx) 10%, transparent);
+  margin: 14px 0 10px;
+}
+
+.jhero .jstats > div {
+  flex: 1;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0 14px;
+  border-inline-start: 1px solid color-mix(in srgb, var(--acc) 20%, var(--ol));
+}
+
+.jhero .jstats > div:first-child {
+  padding-inline-start: 0;
+  border: 0;
+}
