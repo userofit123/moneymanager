@@ -392,3 +392,28 @@ html.phone .ph-adopt .exp .exlay {
 html.phone .ph-adopt .exp .exside {
   position: static;
 }
+
+/* its section titles read like the phone's own group titles: sentence case, not small upper-case letters */
+html.phone .ph-adopt .exp .exh {
+  margin-block-end: 10px;
+  color: var(--tx);
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+html.phone .ph-adopt .exp .exgh .exh {
+  margin: 0;
+}
+
+html.phone .ph-adopt .exp .exgh .exh span {
+  color: var(--tx2);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+html.phone .ph-adopt .exp .exd > summary {
+  font-size: 15px;
+}

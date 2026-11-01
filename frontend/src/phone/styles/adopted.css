@@ -90,6 +90,13 @@ html.phone .ph-adopt .ph-sheet-b > :is(.flex, .dlg-actions):last-child > :is(.bt
   font-size: 16px;
 }
 
+/* "Count in another month": a month is chosen by its own buttons, so the closing Cancel is the plain secondary button, not the main one */
+html.phone .ph-adopt .ph-sheet-b:has(input[type=month]) > .flex:last-child > .btn:not(.o) {
+  background: none;
+  border: 1px solid var(--ol);
+  color: var(--acc);
+}
+
 /* a window with only its content (no buttons at the end) keeps room above the home bar */
 html.phone .ph-adopt .ph-sheet-b > :last-child:not(.flex):not(.dlg-actions) {
   margin-block-end: calc(var(--sb) + 20px);
