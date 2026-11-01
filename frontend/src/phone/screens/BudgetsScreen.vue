@@ -26,7 +26,7 @@ import LoadError from "../components/LoadError.vue";
 defineProps({ id: { type: String, default: null } });
 
 const {
-  t, tk, S, M, cc, mlab, perDayLeft, kpis, billSt, rvOf, lastVals, propOf, typed, accept, acceptEvery, dismiss, later, resetNo, apply, edit, remove, openAdd, goCat, billOpen,
+  t, tk, S, M, cc, mlab, perDayLeft, kpis, billSt, rvOf, trendTag, trendLine, lastVals, propOf, typed, accept, acceptEvery, dismiss, later, resetNo, apply, edit, remove, openAdd, goCat, billOpen,
 } = useBudgets();
 onMounted(() => data.start());
 const P = (k, o, n) => t("phone.budgets." + k, o || {}, n);
@@ -45,6 +45,8 @@ const tone = (b) => (b.st == "over" ? "neg" : b.st == "warn" || b.st == "pace" ?
 const status = (b) => (b.st == "over" ? t("budgets.st.overBy", { amount: fm(-b.left) }) : tk("budgets.st." + b.st));
 const today = computed(() => (M.value.DAYN / M.value.DIM) * 100);
 const months = computed(() => mlab.value.split(", "));
+// the trend tag on each budget: an arrow up or down, or a flat line for steady (vertical arrows, so nothing to mirror in Hebrew)
+const TI = { up: "M12 19V5M6 11l6-6 6 6", down: "M12 5v14M6 13l6 6 6-6", steady: "M5 12h14" };
 
 // one budget's sheet: follows the budget by its category, so it shows fresh numbers after a change and closes when it is removed
 const sel = ref(""), open = ref(false);
@@ -119,7 +121,7 @@ const seeSpending = (k) => { open.value = false; goCat(k); };
               <PIcon name="chevron" dir class="ph-chev" />
             </span>
             <ProgressBar class="ph-bud-bar" :value="b.s" :max="b.lim" :tone="tone(b)" :mark="today" :label="catLabel(b.k)" />
-            <span class="ph-bud-row-s"><span class="ph-bud-st" :class="tone(b)">{{ status(b) }}</span><span v-if="review(b)" class="ph-bud-idea"><PIcon name="idea" />{{ P("idea") }}</span></span>
+            <span class="ph-bud-row-s"><span class="ph-bud-st" :class="tone(b)">{{ status(b) }}</span><span v-if="b.trend" class="ph-bud-tr" :class="'tr-' + b.trend.change"><svg viewBox="0 0 24 24" aria-hidden="true"><path :d="TI[b.trend.change]" /></svg>{{ trendTag(b) }}</span><span v-if="review(b)" class="ph-bud-idea"><PIcon name="idea" />{{ P("idea") }}</span></span>
           </button>
         </div>
         <p class="ph-group-n">{{ t("budgets.markTip", { day: M.DAYN, days: M.DIM }) }}</p>
@@ -173,7 +175,7 @@ const seeSpending = (k) => { open.value = false; goCat(k); };
           <p class="ph-bud-none"><b>{{ M.catJars[cur.k].j.n }}</b>{{ t("budgets.jarPays", { amount: fm(M.catJars[cur.k].j.bal) }) }}</p>
         </ListGroup>
 
-        <ListGroup :title="P('lastMonths')">
+        <ListGroup :title="P('lastMonths')" :note="trendLine(cur)">
           <p v-if="!M.budMonths.length" class="ph-bud-none">{{ t("budgets.noHist") }}</p>
           <div v-else class="ph-bud-months">
             <span v-for="(v, i) in lastVals(cur)" :key="i"><small>{{ months[i] }}</small><b class="ph-amt" :class="{ neg: v > cur.lim }">{{ fm(v) }}</b></span>

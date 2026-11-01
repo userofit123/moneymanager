@@ -134,6 +134,34 @@ html.phone .ph-bud-idea {
   font-weight: 600;
 }
 
+/* the trend of the last complete months: going up (red), going down (green) or steady (grey) */
+html.phone .ph-bud-tr {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--tx2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+html.phone .ph-bud-tr.tr-up {
+  color: var(--neg);
+}
+
+html.phone .ph-bud-tr.tr-down {
+  color: var(--pos);
+}
+
+html.phone .ph-bud-tr svg {
+  inline-size: 14px;
+  block-size: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 html.phone .ph-bud-idea .ph-ic {
   inline-size: 16px;
   block-size: 16px;
