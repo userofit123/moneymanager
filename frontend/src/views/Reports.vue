@@ -100,7 +100,7 @@ const {
             <span v-else class="sm">{{ t("rep.noTagged") }}</span></div>
           <div id="tagCmp" style="margin-top:12px"><template v-if="tagB && tagB.ents.length && tagB.prev"><div class="sm" style="margin-bottom:6px">{{ t("rep.comparedWith") }} <b>{{ cmpName(tagB.B.cr) }}</b>{{ t("rep.totalVs", { a: fm(totalOf(tagB.cur)), b: fm(totalOf(tagB.prev)) }) }} <span v-if="dlt(totalOf(tagB.cur), totalOf(tagB.prev))" class="bd" :class="dlt(totalOf(tagB.cur), totalOf(tagB.prev)).cls">{{ dlt(totalOf(tagB.cur), totalOf(tagB.prev)).text }}</span></div>
             <div class="cmprow hd"><span>{{ t("rep.tag") }}</span><span>{{ t("rep.thisPeriod") }}</span><span>{{ t("rep.before") }}</span><span></span></div>
-            <div v-for="k in tagB.keys.slice(0, 10)" :key="k" class="cmprow"><span><span class="catl" @click="goActivity({ tag: k })">#{{ k }}</span></span><b class="num">{{ fm(tagB.cur[k] || 0) }}</b><span class="sm num">{{ fm(tagB.prev[k] || 0) }}</span><span v-if="dlt(tagB.cur[k] || 0, tagB.prev[k] || 0)" class="bd" :class="dlt(tagB.cur[k] || 0, tagB.prev[k] || 0).cls">{{ dlt(tagB.cur[k] || 0, tagB.prev[k] || 0).text }}</span><span v-else></span></div></template></div></div>
+            <div v-for="k in tagB.keys.slice(0, 10)" :key="k" class="cmprow"><span><span class="catl" @click="goActivity({ tag: k })"><bdi>#{{ k }}</bdi></span></span><b class="num">{{ fm(tagB.cur[k] || 0) }}</b><span class="sm num">{{ fm(tagB.prev[k] || 0) }}</span><span v-if="dlt(tagB.cur[k] || 0, tagB.prev[k] || 0)" class="bd" :class="dlt(tagB.cur[k] || 0, tagB.prev[k] || 0).cls">{{ dlt(tagB.cur[k] || 0, tagB.prev[k] || 0).text }}</span><span v-else></span></div></template></div></div>
       </div>
 
       <!-- category trend -->

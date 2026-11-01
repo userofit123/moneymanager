@@ -31,6 +31,7 @@ import BaseDialog from "../../components/BaseDialog.vue";
 import BaseButton from "../../components/BaseButton.vue";
 import ExportPanel from "../../components/ExportPanel.vue";
 import EmText from "../../components/EmText.vue";
+import { tagName } from "../../core/polish.js";
 import "../../styles/pages/activity.css"; // the Export window's own styles (shared with the computer)
 defineProps({ id: { type: String, default: null } });
 
@@ -53,7 +54,7 @@ const chipList = computed(() => [
   { id: "cat", label: t("activity.category"), value: f.value.cat ? labelOf(catOpts.value, f.value.cat) : "" },
   { id: "src", label: t("activity.source"), value: f.value.src ? labelOf(srcOpts.value, f.value.src) : "" },
   { id: "type", label: t("activity.typeLabel"), value: f.value.type ? labelOf(typeOpts.value, f.value.type) : "" },
-  { id: "tag", label: t("activity.tag"), value: f.value.tag ? "#" + f.value.tag : "" },
+  { id: "tag", label: t("activity.tag"), value: f.value.tag ? tagName(f.value.tag) : "" },
 ]);
 const picker = ref(""); // the filter whose list is open
 const PICK = computed(() => ({

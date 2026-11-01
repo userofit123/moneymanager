@@ -18,6 +18,7 @@ import { now, dayOf } from "../../core/clock.js";
 import { dstr } from "../../dates.js";
 import BaseSheet from "../BaseSheet.vue";
 import MoneyInput from "../MoneyInput.vue";
+import { tagName } from "../../core/polish.js";
 
 const { t, locale } = useI18n();
 const tk = (k, ...a) => t(k, ...a);
@@ -120,7 +121,7 @@ function taSave() {
   if (r.err) { toast(t("txw.needKw"), { kind: "err" }); return; }
   closePop(); toast(r.n ? t("txw.tagRuleDone", { n: r.n }, r.n) : t("txw.tagRuleDone0"));
 }
-const tagsText = computed(() => (P.value?.tags || []).map((g) => "#" + g).join(" "));
+const tagsText = computed(() => (P.value?.tags || []).map(tagName).join(" "));
 </script>
 
 <template>

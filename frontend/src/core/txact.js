@@ -8,6 +8,7 @@ import { openPop } from "./txwin.js";
 import * as A from "../lib/txactions.js";
 import { ruleText } from "../lib/ruleFields.js";
 import { guessKw, tagSimilar, ruleTags, cardInfo, transferIds, displayName, normD } from "../lib/activity.js";
+import { tagName } from "./polish.js";
 
 const t = (...a) => i18n.global.t(...a);
 const S = () => data.state.value;
@@ -45,7 +46,7 @@ function tagOffer(x, tags) {
   if (kw.length < 3 || !tags.length) return;
   const ex = (S().tagRules || []).find((r) => r.k.toLowerCase() == kw);
   if (ex && tags.every((g) => ruleTags(ex).includes(g))) return;
-  const n = tagSimilar(S(), kw, x.id, tags).length, tg = tags.map((g) => "#" + g).join(" ");
+  const n = tagSimilar(S(), kw, x.id, tags).length, tg = tags.map(tagName).join(" ");
   addSuggestion({ key: "tag|" + kw, title: t("activity.offer.title"), text: n ? t("activity.offer.text", { n, kw, tags: tg }, n) : t("activity.offer.none", { kw, tags: tg }), actions: [{ label: t("txw.createRule"), kind: "tagRule", arg: { id: x.id, tags } }] });
 }
 // ---- card payment, with "Always count these as card payments?" afterwards (cpMark + cpOffer) ----

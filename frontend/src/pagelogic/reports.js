@@ -6,6 +6,7 @@ import { ref, computed, reactive, watch, onMounted, onBeforeUnmount, nextTick } 
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
 import { now } from "../core/clock.js";
+import { tagName } from "../core/polish.js";
 import { home } from "../core/derived.js";
 import { dshort } from "../dates.js";
 import { dateFormat, readJson, weekStart, writeJson } from "../core/prefs.js";
@@ -95,7 +96,7 @@ export function useReports() {
     [t("rep.gTypes"), [["bills", t("rep.oBills")]]],
     [t("rep.gSpendCat"), opts.value.cat.map((k) => ["cat:" + k, catName(k)])],
     [t("rep.gIncSrc"), opts.value.src.map((k) => ["src:" + k, k.length > 34 ? k.slice(0, 34) + "…" : k])],
-    [t("rep.gSpendTag"), opts.value.tag.map((k) => ["tag:" + k, "#" + k])],
+    [t("rep.gSpendTag"), opts.value.tag.map((k) => ["tag:" + k, tagName(k)])],
   ].filter((g) => g[1].length));
   const flatOpts = computed(() => optGroups.value.flatMap((g) => g[1].map((x) => x[0])));
   const trM = computed(() => (flatOpts.value.includes(TR.m) ? TR.m : "nw"));
@@ -189,7 +190,7 @@ export function useReports() {
   function donutOf(ents, colFn, nameFn, tagMode) {
     const tot = ents.reduce((s, x) => s + x[1], 0) || 1, R = 84, r = 58, gap = 0.03; let a = -Math.PI / 2; const p = (x, y) => [100 + x * Math.cos(y), 100 + x * Math.sin(y)];
     return { tot, parts: ents.map(([n, v], i) => { const b = a + (v / tot) * 2 * Math.PI, l = b - a - gap > Math.PI ? 1 : 0, a2 = a + gap / 2, b2 = b - gap / 2; const [x1, y1] = p(R, a2), [x2, y2] = p(R, b2), [x3, y3] = p(r, b2), [x4, y4] = p(r, a2); a = b;
-      return { n, v, label: (tagMode ? "#" : "") + nameFn(n), color: colFn(n, i), tip: `${(tagMode ? "#" : "") + nameFn(n)}: ₪${f0(v)} (${Math.round((v / tot) * 100)}%)`, d: `M${x1} ${y1}A${R} ${R} 0 ${l} 1 ${x2} ${y2}L${x3} ${y3}A${r} ${r} 0 ${l} 0 ${x4} ${y4}Z` }; }) };
+      return { n, v, label: tagMode ? tagName(nameFn(n)) : nameFn(n), color: colFn(n, i), tip: `${tagMode ? tagName(nameFn(n)) : nameFn(n)}: ₪${f0(v)} (${Math.round((v / tot) * 100)}%)`, d: `M${x1} ${y1}A${R} ${R} 0 ${l} 1 ${x2} ${y2}L${x3} ${y3}A${r} ${r} 0 ${l} 0 ${x4} ${y4}Z` }; }) };
   }
   const catDonut = computed(() => (catB.value ? donutOf(catB.value.ents, (n) => cc(n), catName, false) : null));
   const tagDonut = computed(() => (tagB.value && tagB.value.ents.length ? donutOf(tagB.value.ents, tcol, (n) => n, true) : null));

@@ -15,11 +15,12 @@ import TagEditor from "../../components/TagEditor.vue";
 import RuleList from "./RuleList.vue";
 import RuleWhen from "./RuleWhen.vue";
 import { save, err, ok, newRuleTags } from "./sorting.js";
+import { tagName } from "../../core/polish.js";
 
 const { t } = useI18n();
 const tk = (k, ...a) => t("settings.sorting." + k, ...a);
 const S = computed(() => data.state.value);
-const tags = (L) => L.map((g) => "#" + g).join(" ");
+const tags = (L) => L.map(tagName).join(" ");
 const goTag = (g) => goActivity({ tag: g });
 
 const trk = ref(""), trf = ref(USUAL.tag), trm = ref("in"), newEd = ref(null), ask = ref(null);
@@ -58,7 +59,7 @@ function trAdd() {
       <BaseSheet :open="!!ask" @close="ask = null">
         <template v-if="ask">
           <h3>{{ tk("tr.askTitle") }}</h3>
-          <div class="sm trq">{{ ask.isNew ? tk("tr.saved") : "" }}{{ tk("tr.from", { k: ask.k }) }} <template v-for="(g, j) in ask.tags" :key="g"><b>#{{ g }}</b>{{ j < ask.tags.length - 1 ? " " : "" }}</template>. <b>{{ ask.n }}</b> {{ tk("tr.have", ask.n) }}</div>
+          <div class="sm trq">{{ ask.isNew ? tk("tr.saved") : "" }}{{ tk("tr.from", { k: ask.k }) }} <template v-for="(g, j) in ask.tags" :key="g"><b><bdi>#{{ g }}</bdi></b>{{ j < ask.tags.length - 1 ? " " : "" }}</template>. <b>{{ ask.n }}</b> {{ tk("tr.have", ask.n) }}</div>
           <div class="trex">
             <div v-for="x in ask.rows" :key="x.id"><span>{{ dstr(x.d) }}</span><b>{{ displayName(S, x) }}</b><span class="num">{{ fm(Math.abs(x.a)) }}</span></div>
             <div v-if="ask.n > 4" class="sm">{{ tk("tr.more", { n: ask.n - 4 }) }}</div>

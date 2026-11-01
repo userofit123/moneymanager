@@ -25,6 +25,7 @@ import ActionSheet from "../components/ActionSheet.vue";
 import EmptyState from "../components/EmptyState.vue";
 import PIcon from "../components/PIcon.vue";
 import TagEditor from "../../components/TagEditor.vue";
+import { tagName } from "../../core/polish.js";
 
 const props = defineProps({ id: { type: String, default: null } });
 const { t } = useI18n();
@@ -81,7 +82,7 @@ const tone = (r) => (r.cls === "amber" ? "warn" : "acc");
         <ListRow :title="t('activity.category')" link @tap="pick = 'cat'">
           <template #end><span class="ph-tx-val"><i class="ph-tx-dot" :style="{ background: catColor(S, cur.c || 'Uncategorized') }" />{{ catLabel(cur.c || "Uncategorized") }}</span></template>
         </ListRow>
-        <ListRow :title="t('activity.w.tags')" :value="(cur.tags || []).length ? cur.tags.map((g) => '#' + g).join(' ') : t('phone.tx.noTags')" link @tap="pick = 'tags'" />
+        <ListRow :title="t('activity.w.tags')" :value="(cur.tags || []).length ? cur.tags.map(tagName).join(' ') : t('phone.tx.noTags')" link @tap="pick = 'tags'" />
         <ListRow :title="t('activity.d.displayName')" :value="S.cfg?.renames?.[cur.id] || ''" link @tap="pick = 'name'" />
       </ListGroup>
 
