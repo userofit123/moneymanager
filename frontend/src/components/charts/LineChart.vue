@@ -2,10 +2,11 @@
 // A line with a soft area under it (the account chart),
 // with its hover: a dashed line and a dot follow the pointer to the nearest point and a small box shows that point's name and amount
 // Touch shows it too. box: the width the chart may use (the page's width).
+// scrub (phone): a tap or a sideways drag moves the dashed line, and the small box stays after the finger lifts.
 import { ref, computed } from "vue";
 import { fm } from "../../format.js";
 
-const props = defineProps({ vals: { type: Array, required: true }, labels: { type: Array, required: true }, full: { type: Array, default: null }, color: { type: String, default: "var(--acc)" }, box: { type: Number, default: 0 }, gid: { type: String, default: "accg" } });
+const props = defineProps({ vals: { type: Array, required: true }, labels: { type: Array, required: true }, full: { type: Array, default: null }, color: { type: String, default: "var(--acc)" }, box: { type: Number, default: 0 }, gid: { type: String, default: "accg" }, scrub: { type: Boolean, default: false } });
 const G = computed(() => {
   const v = props.vals, cw = props.box || Math.min((typeof innerWidth == "number" ? innerWidth : 1200) - 110, 1100), W = Math.max(300, Math.round(cw - 48)), H = W < 520 ? 190 : 230, Pl = W < 520 ? 38 : 46, Pr = 10, Pt = 14, Pb = 26;
   const mx = Math.max(1, ...v), mn = Math.min(0, ...v), x = (i) => Pl + (i * (W - Pl - Pr)) / Math.max(1, v.length - 1), y = (n) => H - Pb - ((n - mn) / (mx - mn || 1)) * (H - Pb - Pt);
@@ -16,6 +17,7 @@ const G = computed(() => {
 });
 const svg = ref(null), tip = ref(null), hv = ref(null);
 function show(e) {
+  if (props.scrub && e.type === "pointerdown" && e.pointerType !== "mouse") try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* a pointer that is gone */ }
   const r = svg.value?.getBoundingClientRect(); if (!r || !r.width) return;
   const k = G.value.W / r.width, vx = (e.clientX - r.left) * k; let i = 0, best = 1e9;
   G.value.xs.forEach((x, j) => { const d = Math.abs(x - vx); if (d < best) { best = d; i = j; } });
@@ -30,7 +32,7 @@ const tipStyle = computed(() => {
 
 <template>
   <div class="trw tight">
-    <svg ref="svg" :viewBox="`0 0 ${G.W} ${G.H}`" :width="G.W" :height="G.H" style="display:block;max-width:100%;height:auto" aria-hidden="true" @pointermove="show" @pointerdown="show" @pointerleave="hv = null">
+    <svg ref="svg" :viewBox="`0 0 ${G.W} ${G.H}`" :width="G.W" :height="G.H" style="display:block;max-width:100%;height:auto" aria-hidden="true" @pointermove="show" @pointerdown="show" @pointerleave="scrub || (hv = null)">
       <defs><linearGradient :id="gid" x1="0" x2="0" y1="0" y2="1"><stop offset="0" :stop-color="color" stop-opacity=".32" /><stop offset="1" :stop-color="color" stop-opacity="0" /></linearGradient></defs>
       <template v-for="(g, k) in G.grid" :key="k"><line class="gl" :x1="G.Pl" :x2="G.W - G.Pr" :y1="g.y" :y2="g.y" stroke-dasharray="3 5" /><text :x="G.Pl - 6" :y="g.y + 4" text-anchor="end">{{ g.t }}</text></template>
       <polygon :fill="`url(#${gid})`" :points="G.area" />
