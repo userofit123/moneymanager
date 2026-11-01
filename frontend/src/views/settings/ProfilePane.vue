@@ -1,5 +1,5 @@
 <script setup>
-// Settings → Profile: name, age, gender and what matters most, all optional, kept in the user's own data (cfg.profile).
+// Settings → Profile: name, age and gender, all optional, kept in the user's own data (cfg.profile).
 import { ref, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
@@ -13,10 +13,10 @@ const { t } = useI18n();
 const tk = (k) => t("settings.prof." + k);
 const S = computed(() => data.state.value);
 const root = ref(null);
-const form = ref({ name: "", age: "", gender: "", goal: "" });
+const form = ref({ name: "", age: "", gender: "" });
 const fill = () => {
   const p = (S.value && S.value.cfg && S.value.cfg.profile) || {};
-  form.value = { name: p.name || "", age: profAge(p) || "", gender: p.gender || "", goal: p.goal || "" };
+  form.value = { name: p.name || "", age: profAge(p) || "", gender: p.gender || "" };
 };
 onMounted(() => { data.start(); fill(); });
 // A change that arrives while you are typing here does not replace what you typed.

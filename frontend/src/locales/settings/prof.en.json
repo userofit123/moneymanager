@@ -12,13 +12,6 @@
   "genderNone": "Prefer not to say",
   "genderF": "Female",
   "genderM": "Male",
-  "goal": "What matters most to you",
-  "goalHint": "Helps the app decide what to point out first. Nothing changes without you.",
-  "goalNone": "Not sure yet",
-  "goalSave": "Save more",
-  "goalDebt": "Pay off debt",
-  "goalSpend": "Understand my spending",
-  "goalRetire": "Plan for the future",
   "clear": "Clear profile",
   "save": "Save",
   "clearAsk": "Clear your profile?"

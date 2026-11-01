@@ -13,7 +13,7 @@ import { sheetsOpen } from "./sheets.js";
 
 export function useWelcome({ openLog = () => { openSettingsTab("rel"); go("/settings"); } } = {}) {
   const { t } = useI18n();
-  const news = ref(null), ask = ref(false), form = ref({ name: "", age: "", gender: "", goal: "" });
+  const news = ref(null), ask = ref(false), form = ref({ name: "", age: "", gender: "" });
 
   function profileAsk() {
     const S = data.state.value;
