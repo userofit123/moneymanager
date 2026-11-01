@@ -1,7 +1,7 @@
 // Years ahead, on the Forecast (computer page and phone screen): what the money could add up to over the years with the
 // choices made (goal, each month, age, growth). The numbers come from lib/yearsAhead.js. It starts from Home's
 // "In your accounts" and what you really kept on average in the last full months (keptEachMonth, the months chosen at the top
-// of the Forecast). The sentences always describe the choices as they are now. The choices are only remembered as a preference
+// of the Forecast). The tiles always describe the choices as they are now. The choices are only remembered as a preference
 // ("moneyYears"), never written to the data; while a slider is dragged they are saved a moment after it stops, so dragging
 // stays smooth.
 import { ref, computed, onBeforeUnmount } from "vue";
@@ -15,6 +15,9 @@ import { profAge } from "../views/settings/profile.js";
 import { yearsAheadModel, keptEachMonth, MAX_YEARS, MAX_AGE } from "../lib/yearsAhead.js";
 
 export const GROWTH = [0, 0.03, 0.05];
+// the tiles' icons: money growing, the goal's flag, each month
+export const YAI = { total: '<path d="M4 17l6-6 4 4 6-7"/><path d="M15 8h5v5"/>', reach: '<path d="M6 21V4M6 4h11l-2 4 2 4H6"/>',
+  need: '<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>' };
 
 // M: the Forecast model (pagelogic/forecast.js): its months (FH) and the months chosen at the top (fc.n).
 export function useYearsAhead(M) {
@@ -36,30 +39,37 @@ export function useYearsAhead(M) {
   // the most years looked ahead (40, or up to age 100)
   const limit = computed(() => (Y.value.hasAge ? Math.min(MAX_YEARS, MAX_AGE - Y.value.age) : MAX_YEARS));
 
-  // The answer: three sentences about the choices as they are now (each with a smaller second line when there is more to say).
+  // The answer: up to three tiles about the choices as they are now (a small label, a big value, a short line under it and a
+  // tooltip that says how it is worked out). The label follows the choices (the age or years, the goal).
+  const lines = (...a) => a.filter(Boolean).join("\n");
   const answer = computed(() => {
-    const y = Y.value, goal = fm(y.goal), m = fm(y.m), by = y.hasAge ? "Age" : "Years", o = { goal, m, age: y.at, n: y.years };
-    const cnt = y.hasAge ? undefined : y.years;
-    const total = { k: "total", text: Y_((y.m > 0 ? "total" : "totalNone") + by, { ...o, amount: fm(y.total) }, cnt) };
+    const y = Y.value, goal = fm(y.goal), m = fm(y.m), by = y.hasAge ? "Age" : "Years", cnt = y.hasAge ? undefined : y.years;
+    const o = { goal, m, age: y.at, n: y.years, start: fm(y.start), pc: pc(y.g) };
+    const grow = y.g > 0 ? Y_("tipGrow", o) : Y_("tipNoGrow");
+    const total = { k: "total", label: Y_("total" + by, o, cnt), value: fm(y.total), sub: y.m > 0 ? Y_("atM", o) : Y_("atNone"),
+      tip: lines(Y_("totalTipH"), Y_("tipStart", o), y.m > 0 ? Y_("tipAdd", o) : null, grow, Y_("tipGuess")) };
     const r = y.reach, s = y.sooner;
-    const reach = { k: "reach", text: !r ? Y_("reachNever", { goal, n: limit.value }, limit.value) : r.k == 0 ? Y_("reachHave", { goal }) : r.soon ? Y_("reachSoon", { goal }) : y.hasAge ? Y_("reachAge", { goal, age: r.age }) : Y_("reachYears", { goal, n: r.years }, r.years) };
-    if (s) reach.sub = s.never ? Y_("avgNever", { n: limit.value }, limit.value) : s.months ? Y_(s.months > 0 ? "soonerLt" : "laterLt") : Y_(s.n > 0 ? "sooner" : "later", { n: Math.abs(s.n) }, Math.abs(s.n));
+    const value = !r ? (y.hasAge ? Y_("neverAge", { age: y.age + limit.value }) : Y_("neverYears", { n: limit.value }, limit.value))
+      : r.k == 0 ? Y_("have") : r.soon ? Y_("soon") : y.hasAge ? Y_("ageV", { age: r.age }) : Y_("yearsV", { n: r.years }, r.years);
+    const sub = r && r.k == 0 ? Y_("haveSub") : !s ? (y.m > 0 ? Y_("atM", o) : Y_("atNone"))
+      : s.never ? Y_("avgNever") : s.months ? Y_(s.months > 0 ? "soonerLt" : "laterLt") : Y_(s.n > 0 ? "sooner" : "later", { n: Math.abs(s.n) }, Math.abs(s.n));
+    const reach = { k: "reach", label: Y_("reach", o), value, sub, tip: lines(Y_("reachTipH"), Y_("reachTip", o), Y_("reachTipAvg", { amount: fm(y.kept) }), grow) };
     const out = [total, reach];
-    if (y.need === 0) out.push({ k: "need", text: Y_("needNone" + by, o, cnt) });
-    else if (y.need != null && (!r || r.k > 0)) {
+    if (y.need != null && (!r || r.k > 0 || y.need === 0)) {
       const d = y.needDiff;
-      out.push({ k: "need", text: Y_("need" + by, { ...o, amount: fm(y.need) }, cnt), sub: Math.abs(d) < 10 ? Y_("needSame") : Y_(d > 0 ? "needMore" : "needLess", { amount: fm(Math.abs(d)), m }) });
+      out.push({ k: "need", label: Y_("need" + by, o, cnt), value: fm(y.need), unit: Y_("aMonth"),
+        sub: y.need === 0 ? Y_("needNone") : Math.abs(d) < 10 ? Y_("needSame") : Y_(d > 0 ? "needMore" : "needLess", { amount: fm(Math.abs(d)) }),
+        tip: lines(Y_("needTipH"), Y_("needTip" + by, o, cnt), Y_("tipStart", o), grow) });
     }
     return out;
   });
 
-  // What it starts from: your average (the full months it comes from) and the money in your accounts today.
+  // Your average, shown under "Set aside each month": the amount, and in its tooltip the full months it comes from.
   const monthName = (k) => new Date(+k.slice(0, 4), +k.slice(5, 7) - 1, 1).toLocaleDateString(locale.value === "he" ? "he-IL" : "en-GB", { month: "short" });
-  const basis = computed(() => {
+  const avg = computed(() => {
     const y = Y.value, ks = kept.value.months, n = ks.length, range = n > 1 ? monthName(ks[0]) + " – " + monthName(ks[n - 1]) : n ? monthName(ks[0]) : "";
-    const avg = !n ? Y_("avgNone") : y.pace > 0 ? Y_("avg", { amount: fm(y.pace), n, range }, n) : y.pace < 0 ? Y_("avgNeg", { amount: fm(-y.pace), n, range }, n) : Y_("avgZero", { n, range }, n);
-    const start = y.g > 0 ? Y_("startG", { start: fm(y.start), pc: pc(y.g) }) : Y_("start", { start: fm(y.start) });
-    return { avg, start };
+    const from = !n ? Y_("avgNone") : y.pace < 0 ? Y_("avgNeg", { amount: fm(-y.pace), n, range }, n) : Y_("avgFrom", { n, range }, n);
+    return { text: Y_("avg", { amount: fm(y.kept) }), tip: lines(Y_("avgTipH"), from, Y_("avgTip")) };
   });
 
   // a point's name on the chart: "Age 45", "In 11 years" or "Today"
@@ -67,5 +77,5 @@ export function useYearsAhead(M) {
   const axisLabel = (i) => (Y.value.hasAge ? String(Y.value.age + i) : String(i));
   const legMine = computed(() => Y_("legMine", { m: fm(Y.value.m) }));
 
-  return { Y, Y_, set, back, atKey, answer, basis, ptName, axisLabel, legMine, pc, GROWTH, fm };
+  return { YAI, Y, Y_, set, back, atKey, answer, avg, ptName, axisLabel, legMine, pc, GROWTH, fm };
 }

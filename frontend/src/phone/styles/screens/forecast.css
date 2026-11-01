@@ -585,53 +585,69 @@ html.phone .ph-fc-skel i + i {
 }
 
 
-/* ---- Years ahead (phone/components/ForecastYears.vue): the answer for the choices as they are now, then the choices and the chart ---- */
-html.phone .ph-ya-ans {
-  padding: 4px 16px 14px;
-}
-
+/* ---- Years ahead (phone/components/ForecastYears.vue): three rows for the choices as they are now (like "How next month is
+   worked out"), then the choices and the chart ---- */
 html.phone .ph-ya-r {
-  margin: 0;
-  padding: 10px 0;
-  font-size: 15px;
-  line-height: 21px;
-  text-wrap: pretty;
+  gap: 10px;
+  align-items: flex-start;
 }
 
-html.phone .ph-ya-r + .ph-ya-r {
-  border-block-start: 1px solid var(--ol);
+html.phone .ph-ya-r .ph-tile {
+  --tile: var(--acc);
+  flex: none;
 }
 
-html.phone .ph-ya-r.r-total {
-  font-size: 18px;
-  line-height: 25px;
-  font-weight: 600;
+html.phone .ph-ya-r.r-reach .ph-tile {
+  --tile: var(--pos);
 }
 
-html.phone .ph-ya-r small {
-  display: block;
-  margin-block-start: 2px;
+html.phone .ph-ya-r.r-need .ph-tile {
+  --tile: var(--acc2);
+}
+
+html.phone .ph-ya-e {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex: none;
+  max-inline-size: 45%;
+  text-align: end;
+}
+
+html.phone .ph-ya-e .ph-amt {
+  font-size: 17px;
+  line-height: 22px;
+}
+
+html.phone .ph-ya-r.r-total .ph-ya-e .ph-amt {
+  color: var(--acc);
+}
+
+html.phone .ph-ya-e small {
   color: var(--tx2);
   font-size: 13px;
   line-height: 18px;
-  font-weight: 400;
 }
 
-html.phone .ph-ya b {
-  color: var(--acc);
-  font-variant-numeric: tabular-nums;
-}
-
-html.phone .ph-ya-basis {
-  margin: 4px 0 0;
+/* your average under "Set aside each month", and the way back to it */
+html.phone .ph-ya-avg {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 12px;
   color: var(--tx2);
   font-size: 13px;
   line-height: 18px;
 }
 
 html.phone .ph-ya-back {
-  margin-block-start: 8px;
   font-size: 14px;
+  gap: 4px;
+}
+
+html.phone .ph-ya-back.off {
+  visibility: hidden;
 }
 
 /* no age yet: a row that opens the profile */

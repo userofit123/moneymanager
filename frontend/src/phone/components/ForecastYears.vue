@@ -1,10 +1,9 @@
 <script setup>
-// The phone's Forecast → Years ahead: the answer for the choices as they are now (what they add up to by an age, when the
-// goal is reached and what it would take) and what it starts from, then the choices and the chart. The same numbers as the
+// The phone's Forecast → Years ahead: three rows for the choices as they are now (what they add up to by an age, when the goal
+// is reached and what it would take each month), each explained in its tooltip, then the choices and the chart. The same numbers as the
 // computer page (pagelogic/yearsAhead.js). Nothing here changes the data.
 import { ref, computed } from "vue";
 import MoneyInput from "../../components/MoneyInput.vue";
-import EmText from "../../components/EmText.vue";
 import YearsChart from "../../components/charts/YearsChart.vue";
 import Segmented from "./Segmented.vue";
 import PIcon from "./PIcon.vue";
@@ -12,7 +11,7 @@ import { useYearsAhead } from "../../pagelogic/yearsAhead.js";
 import { usePhoneNav } from "../navigation.js";
 
 const props = defineProps({ model: { type: Object, required: true } });
-const { Y, Y_, set, back, atKey, answer, basis, ptName, axisLabel, legMine, pc, GROWTH, fm } = useYearsAhead(computed(() => props.model));
+const { YAI, Y, Y_, set, back, atKey, answer, avg, ptName, axisLabel, legMine, pc, GROWTH, fm } = useYearsAhead(computed(() => props.model));
 const nav = usePhoneNav();
 const growth = computed(() => GROWTH.map((g) => ({ value: g, label: pc(g) + "%" })));
 // an amount box left empty while typing keeps the last amount
@@ -20,16 +19,22 @@ const setNum = (k, v) => { if (v !== "" && isFinite(+v)) set(k, +v); };
 // …and shows it again when the box is left empty
 const redo = ref(0);
 const fill = (e) => { if (!e.target.value.trim()) redo.value++; };
+const BACK = '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>';
 const PERSON = '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>';
 </script>
 
 <template>
   <section class="ph-group ph-ya">
     <div class="ph-group-h"><h3>{{ Y_("title") }}</h3></div>
-    <div class="ph-group-b ph-ya-ans">
-      <p v-for="r in answer" :key="r.k" class="ph-ya-r" :class="'r-' + r.k"><EmText :text="r.text" /><small v-if="r.sub">{{ r.sub }}</small></p>
-      <p class="ph-ya-basis"><span :data-tip="Y_('avgTip')">{{ basis.avg }}</span> <span :data-tip="Y_('startTip')">{{ basis.start }}</span></p>
-      <button v-if="Y.changed" type="button" class="ph-link ph-ya-back" @click="back">{{ Y_("back", { amount: fm(Y.kept) }) }}</button>
+    <div class="ph-group-b ph-ya-ans" aria-live="polite">
+      <div v-for="r in answer" :key="r.k" class="ph-row ph-two ph-ya-r" :class="'r-' + r.k">
+        <span class="ph-tile"><PIcon :svg="YAI[r.k]" /></span>
+        <span class="ph-row-main">
+          <span class="ph-row-t ph-fc-wrap"><span :data-tip="r.tip">{{ r.label }}</span></span>
+          <span class="ph-row-s ph-fc-wrap">{{ r.sub }}</span>
+        </span>
+        <span class="ph-ya-e"><b class="ph-amt"><bdi>{{ r.value }}</bdi></b> <small v-if="r.unit">{{ r.unit }}</small></span>
+      </div>
     </div>
     <button v-if="!Y.hasAge" type="button" class="ph-ya-inv" @click="nav.push('settingsSection', 'prof')">
       <PIcon :svg="PERSON" />
@@ -45,6 +50,11 @@ const PERSON = '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2
         <label for="phYaM"><span :data-tip="Y_('mTip', { amount: fm(Y.kept) })">{{ Y_("m") }}</span></label>
         <MoneyInput id="phYaM" :key="'m' + redo" @blur="fill" :model-value="String(Y.m)" @update:model-value="setNum('m', $event)" />
         <input type="range" class="ya-sl" min="0" :max="Y.slider.max" :step="Y.slider.step" :value="Math.min(Y.m, Y.slider.max)" :aria-label="Y_('m')" @input="set('m', +$event.target.value)">
+        <!-- your average, and the way back to it in the same place whenever the amount differs -->
+        <div class="ph-ya-avg">
+          <span :data-tip="avg.tip">{{ avg.text }}</span>
+          <button type="button" class="ph-link ph-ya-back" :class="{ off: !Y.changed }" :disabled="!Y.changed" :aria-hidden="!Y.changed" @click="back"><PIcon :svg="BACK" dir />{{ Y_("back") }}</button>
+        </div>
       </div>
       <div class="fld">
         <label for="phYaAt">{{ Y.hasAge ? Y_("byAge") : Y_("inYears") }}</label>

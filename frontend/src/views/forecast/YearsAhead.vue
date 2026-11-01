@@ -1,18 +1,17 @@
 <script setup>
-// Forecast → Years ahead (computer): one card. At the top the answer for the choices as they are now (what they add up to by
-// an age, when the goal is reached and what it would take), what it starts from and the way back to your average; under it
-// the choices (goal, each month, age, growth) beside the chart.
+// Forecast → Years ahead (computer): one card. At the top three tiles for the choices as they are now (what they add up to by
+// an age, when the goal is reached and what it would take each month), each explained in its tooltip; under them the choices
+// (goal, each month with your average and the way back to it, age, growth) beside the chart.
 // What it knows lives in pagelogic/yearsAhead.js (shared with the phone's Forecast screen). Nothing here changes the data.
 import { ref, computed } from "vue";
 import MoneyInput from "../../components/MoneyInput.vue";
-import EmText from "../../components/EmText.vue";
 import YearsChart from "../../components/charts/YearsChart.vue";
 import { useYearsAhead } from "../../pagelogic/yearsAhead.js";
 import { openSettingsTab } from "../settings/tab.js";
 import { go } from "../../router.js";
 
 const props = defineProps({ model: { type: Object, required: true } });
-const { Y, Y_, set, back, atKey, answer, basis, ptName, axisLabel, legMine, pc, GROWTH, fm } = useYearsAhead(computed(() => props.model));
+const { YAI, Y, Y_, set, back, atKey, answer, avg, ptName, axisLabel, legMine, pc, GROWTH, fm } = useYearsAhead(computed(() => props.model));
 const toProfile = () => { openSettingsTab("prof"); go("/settings"); };
 // an amount box left empty while typing keeps the last amount
 const setNum = (k, v) => { if (v !== "" && isFinite(+v)) set(k, +v); };
@@ -24,14 +23,16 @@ const fill = (e) => { if (!e.target.value.trim()) redo.value++; };
 <template>
   <h2 id="fcYears"><span>{{ Y_("title") }}</span></h2>
   <div class="card ya">
-    <ul class="ya-ans" aria-live="polite">
-      <li v-for="r in answer" :key="r.k" :class="'r-' + r.k"><EmText :text="r.text" /><small v-if="r.sub">{{ r.sub }}</small></li>
-    </ul>
-    <p class="sm ya-basis">
-      <span class="tipd" :data-tip="Y_('avgTip')">{{ basis.avg }}</span>
-      <button v-if="Y.changed" type="button" class="ya-back" data-a="yaBack" @click="back">{{ Y_("back", { amount: fm(Y.kept) }) }}</button>
-      <br><span class="tipd" :data-tip="Y_('startTip')">{{ basis.start }}</span>
-    </p>
+    <ol class="fcsum ya-sum" aria-live="polite">
+      <li v-for="r in answer" :key="r.k" :class="'r-' + r.k">
+        <span class="qb" aria-hidden="true"><svg viewBox="0 0 24 24" v-html="YAI[r.k]" /></span>
+        <div class="d">
+          <span class="k tipd" :data-tip="r.tip">{{ r.label }}</span>
+          <b class="v"><bdi>{{ r.value }}</bdi> <small v-if="r.unit">{{ r.unit }}</small></b>
+          <small class="s">{{ r.sub }}</small>
+        </div>
+      </li>
+    </ol>
     <div v-if="!Y.hasAge" class="ya-inv">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" /></svg>
       <span>{{ Y_("noAge") }}</span>
@@ -48,6 +49,11 @@ const fill = (e) => { if (!e.target.value.trim()) redo.value++; };
           <label for="yaM"><span class="tipd" :data-tip="Y_('mTip', { amount: fm(Y.kept) })">{{ Y_("m") }}</span></label>
           <MoneyInput id="yaM" :key="'m' + redo" @blur="fill" :model-value="String(Y.m)" @update:model-value="setNum('m', $event)" />
           <input type="range" class="ya-sl" min="0" :max="Y.slider.max" :step="Y.slider.step" :value="Math.min(Y.m, Y.slider.max)" :aria-label="Y_('m')" @input="set('m', +$event.target.value)">
+          <!-- your average, and the way back to it in the same place whenever the amount differs -->
+          <div class="sm ya-avg">
+            <span class="tipd" :data-tip="avg.tip">{{ avg.text }}</span>
+            <button type="button" class="ya-back" data-a="yaBack" :class="{ off: !Y.changed }" :disabled="!Y.changed" :aria-hidden="!Y.changed" @click="back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" /></svg>{{ Y_("back") }}</button>
+          </div>
         </div>
         <div class="fld">
           <label for="yaAt">{{ Y.hasAge ? Y_("byAge") : Y_("inYears") }}</label>
