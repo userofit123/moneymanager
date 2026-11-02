@@ -7,6 +7,7 @@ import { ref, computed, watch, onMounted } from "vue";
 import { ask } from "../../core/ask.js";
 import { explain } from "../../core/tooltip.js";
 import { useJars } from "../../pagelogic/jars.js";
+import { keyNums } from "../../core/derived.js";
 import AvailWhy from "../../views/AvailWhy.vue";
 import MoneyInput from "../../components/MoneyInput.vue";
 import { usePhoneNav } from "../navigation.js";
@@ -26,7 +27,7 @@ defineProps({ id: { type: String, default: null } });
 
 const {
   t, tk, data, M, home, save, ctx, fm, tx, bufText, setBuffer, bufShown, BUF_PRESETS, filling, fill,
-  openNew, askDone, doDone, doneAsk, relAmt, doRelease, why, kindOf, stLabel, statTips, col, monthLine, goalLine, doneLine, goalFix, KI,
+  openNew, askDone, doDone, doneAsk, relAmt, doRelease, why, kindOf, stLabel, statTips, col, monthLine, pay, goalLine, doneLine, goalFix, KI,
 } = useJars();
 const nav = usePhoneNav();
 onMounted(() => data.start());
@@ -34,10 +35,12 @@ const P = (k, o, n) => t("phone.jars." + k, o || {}, n);
 
 // the sentence at the top: safe to put in jars (the same number as "Free to use" on Home and the computer's Jars page),
 // or how much the jars hold beyond what the accounts cover
+// (right before payday, when the income still to come this month covers it: the jars wait, and what will likely be free after)
+const paid = computed(() => (pay.value?.covered ? keyNums.value.payday : null));
 const hero = computed(() => {
-  const F = M.value.F, over = F.over > 0;
-  const [a, b = ""] = P(over ? "over" : "safe", { amount: "\u0000" }).split("\u0000");
-  return [{ text: a }, { amount: fm(over ? F.over : F.free) }, { text: b }];
+  const F = M.value.F, over = F.over > 0, k = paid.value ? "payday" : over ? "over" : "safe";
+  const [a, b = ""] = P(k, { amount: "\u0000" }).split("\u0000");
+  return [{ text: a }, { amount: fm(paid.value ? paid.value.after : over ? F.over : F.free) }, { text: b }];
 });
 
 // a tooltip's text, opened by a tap (the computer shows it on hover)
@@ -78,8 +81,8 @@ const LOCK = '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a
     <SkeletonRows v-else-if="!M" :rows="5" />
 
     <template v-else>
-      <HeroSentence :class="{ over: M.F.over > 0 }" :parts="hero" :link="t('jars.howWorked')" @link="why = true" />
-      <button v-if="M.F.over > 0 && M.F.inJars > 0" type="button" class="ph-btn tonal ph-jars-back" @click="askRelease">{{ t("jars.takeBack", { amount: fm(relAmt) }) }}</button>
+      <HeroSentence :class="{ over: M.F.over > 0 && !paid }" :parts="hero" :link="t('jars.howWorked')" @link="why = true" />
+      <button v-if="M.F.over > 0 && !paid && M.F.inJars > 0" type="button" class="ph-btn tonal ph-jars-back" @click="askRelease">{{ t("jars.takeBack", { amount: fm(relAmt) }) }}</button>
 
       <section class="ph-group ph-jars-month">
         <div class="ph-group-h"><h3>{{ t("jars.thisMonth") }}</h3></div>
@@ -87,11 +90,11 @@ const LOCK = '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a
           <div class="ph-jars-mh">
             <p class="ph-jars-mv"><b class="ph-amt">{{ M.month.planned > 0 ? P("monthOf", { got: fm(M.month.got), planned: fm(M.month.planned) }) : fm(M.month.got) }}</b></p>
             <ProgressBar :value="M.month.pct" :max="100" :tone="M.month.waiting ? 'warn' : 'acc'" :label="t('jars.thisMonth')" />
-            <p class="ph-jars-ms" :class="{ warn: M.month.waiting }">{{ monthLine }}</p>
+            <p class="ph-jars-ms" :class="{ warn: M.month.waiting && !paid }">{{ monthLine }}</p>
           </div>
           <ListRow :title="t('jars.putIn')" @tap="explain(statTips.putIn)"><template #end><span class="ph-amt">{{ fm(M.month.got) }}</span></template></ListRow>
           <ListRow :title="t('jars.still')" @tap="explain(statTips.still)"><template #end><span class="ph-amt">{{ fm(M.month.still) }}</span></template></ListRow>
-          <ListRow :title="t('num.free')" @tap="explain(statTips.avail)"><template #end><span class="ph-amt" :class="{ neg: M.month.waiting }">{{ fm(M.F.free) }}</span></template></ListRow>
+          <ListRow :title="t('num.free')" @tap="explain(statTips.avail)"><template #end><span class="ph-amt" :class="{ neg: M.month.waiting && !paid }">{{ fm(M.F.free) }}</span></template></ListRow>
           <!-- Fill now stands out only while the jars still need money this month and there is free money to put in -->
           <div v-if="M.has.any" class="ph-jars-fill"><button type="button" class="ph-btn" :class="{ tonal: M.month.done || M.month.waiting }" :disabled="filling" @click="fill">{{ t("jars.fill") }}</button></div>
         </div>

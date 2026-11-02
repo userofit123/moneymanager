@@ -5,13 +5,18 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import BaseSheet from "../components/BaseSheet.vue";
 import { fm } from "../format.js";
+import { keyNums } from "../core/derived.js";
+import { paydayWords } from "../pagelogic/payday.js";
+import { vTip } from "../core/tooltip.js";
 
 const props = defineProps({ open: Boolean, M: { type: Object, required: true } });
 const emit = defineEmits(["update:open"]);
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const F = computed(() => props.M.flow);
 // the lines of Free to use, in whole shekels that add up exactly (the same parts as Home's money flow and the Jars page)
 const K = computed(() => { const f = F.value, cash = Math.round(f.cash), cards = Math.round(Math.max(0, f.cards || 0)); return { cash, cards, up: cash - cards - f.really, aside: f.aside, toCome: f.toCome }; });
+// right before payday (lib/payday.js): what it will likely be after payday; covered by the income still to come, a calm note
+const pay = computed(() => (F.value.over > 0 ? paydayWords(t, keyNums.value?.payday, locale.value === "he") : null));
 const close = () => emit("update:open", false);
 </script>
 
@@ -26,7 +31,9 @@ const close = () => emit("update:open", false);
       <div v-if="K.toCome" class="chn"><span>{{ t("num.leftBudgets") }}</span><b class="num">{{ fm(-K.toCome) }}</b></div>
       <div v-if="K.aside" class="chn"><span>{{ t("num.putAside") }}</span><b class="num">{{ fm(-K.aside) }}</b></div>
       <div class="chn tot"><span>{{ t("num.free") }}</span><b class="num">{{ fm(F.free) }}</b></div>
-      <div v-if="F.over > 0" class="sm" style="padding:8px 2px 0;color:var(--neg)">{{ t("jars.av.short", { amount: fm(F.over) }) }}</div>
+      <div v-if="pay" class="chn" v-tip="pay.tip"><span>{{ t("num.afterPay") }}</span><b class="num">{{ fm(keyNums.payday.after) }}</b></div>
+      <div v-if="F.over > 0 && !pay?.covered" class="sm" style="padding:8px 2px 0;color:var(--neg)">{{ t("jars.av.short", { amount: fm(F.over) }) }}</div>
+      <div v-if="pay" class="sm" style="padding:8px 2px 0">{{ pay.note }}</div>
     </div></div>
     <div class="sm" style="line-height:1.5"><b>{{ t("jars.av.howTitle") }}</b><ul class="blist"><li>{{ t("jars.av.how1") }}</li><li>{{ t("jars.av.how2") }}</li><li>{{ t("jars.av.how3") }}</li><li>{{ t("jars.av.how4") }}</li></ul></div>
     <div class="flex" style="justify-content:flex-end;margin-top:14px"><button type="button" class="btn" data-a="close" @click="close">{{ t("jars.av.done") }}</button></div>

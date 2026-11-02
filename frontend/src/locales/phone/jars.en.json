@@ -1,6 +1,7 @@
 {
   "safe": "{amount} is safe to put in jars.",
   "over": "Your jars and the money kept untouched are {amount} more than your accounts can cover.",
+  "payday": "The jars wait for payday. About {amount} will be free to use once your usual income comes in.",
   "monthOf": "{got} of {planned}",
   "tabJars": "Jars",
   "tabGoals": "Goals",

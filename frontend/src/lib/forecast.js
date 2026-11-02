@@ -15,7 +15,7 @@ export function forecastModel(S, now = new Date(), fx = {}, fcOpt = {}, H = null
   S = S || {}; H = H || homeModel(S, now, fx);
   const fc = fcChoices(fcOpt), L = forecastLine(S, H, now, fc), FH = L.FH, MK = H.MK;
   const d = { inc: L.inc, ex: L.ex, start: L.start, cash: L.cash, endThis: L.endThis, really: L.really, cardBill: L.cardBill, bal: L.bal, lo: L.lo, hi: L.hi, net: L.net, nm: L.nm, sd: L.sd, nEff: L.nEff, W: L.W, month1: L.month1, IR: L.IR, last: FH.last, incAt: L.incAt, outAt: L.outAt,
-    R0: { cash: L.R.cash, cardsThis: L.R.cardsThis, billsTot: L.R.billsTot, likely: L.R.likely, cardsNext: L.R.cardsNext, sure: L.R.sure, likelyBank: L.R.likelyBank, incLeft: L.R.incLeft, daysLeft: L.R.daysLeft } };
+    R0: { cash: L.R.cash, cardsThis: L.R.cardsThis, billsTot: L.R.billsTot, likely: L.R.likely, cardsNext: L.R.cardsNext, sure: L.R.sure, likelyBank: L.R.likelyBank, incLeft: L.R.incLeft, daysLeft: L.R.daysLeft, payday: L.R.payday } };
 
   // The end of this month, part by part: today's money in the accounts (Home's "In your accounts"), less the card purchases
   // not paid yet and the bills due (Home's amounts), less the usual spending still to come, plus income still to come

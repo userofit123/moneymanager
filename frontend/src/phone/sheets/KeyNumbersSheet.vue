@@ -5,6 +5,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { keyNums } from "../../core/derived.js";
+import { paydayWords } from "../../pagelogic/payday.js";
 import { formatMoney } from "../../format.js";
 import { explain } from "../../core/tooltip.js";
 import { helpShown } from "../help.js";
@@ -18,11 +19,16 @@ const open = computed({ get: () => helpShown.value === "nums", set: (v) => { if 
 const loc = computed(() => (locale.value === "he" ? "he-IL" : "en-GB"));
 const monthOf = (key) => new Date(+key.slice(0, 4), +key.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, { month: "long" });
 const numName = (x) => t(x.name, x.mk ? { month: monthOf(x.mk) } : {});
+// Free to use below zero before payday (lib/payday.js): covered by the income still to come, it reads Free to use, not in red;
+// the line under it says what it will likely be after payday
+const pay = computed(() => paydayWords(t, keyNums.value?.payday, locale.value === "he"));
+const calm = (x) => x.id === "free" && pay.value?.covered;
+const tipOf = (x) => (x.pay ? pay.value?.tip : t(x.tip));
 // a line's name: Free to use below zero reads "Short by" (its amount stays below zero, so the lines still add up)
-const rowName = (x) => (x.id === "free" && x.a < 0 ? t("num.shortBy") : x.from && x.short ? t(x.short, x.mk ? { month: monthOf(x.mk) } : {}) : numName(x));
+const rowName = (x) => (x.id === "free" && x.a < 0 && !pay.value?.covered ? t("num.shortBy") : x.from && x.short ? t(x.short, x.mk ? { month: monthOf(x.mk) } : {}) : numName(x));
 
 // how a line is worked out, in a sheet over this one
-const explainNum = (x) => explain(t(x.tip));
+const explainNum = (x) => explain(tipOf(x));
 </script>
 
 <template>
@@ -33,7 +39,7 @@ const explainNum = (x) => explain(t(x.tip));
         <button v-for="x in g.items" :key="x.id" type="button" class="ph-row ph-num" :class="{ from: x.from, res: x.op === '=', part: x.part }" @click="explainNum(x)">
           <span class="ph-num-op" aria-hidden="true">{{ x.op && x.op !== "=" ? x.op : "" }}</span>
           <span class="ph-row-main"><span class="ph-num-t">{{ rowName(x) }}</span></span>
-          <span class="ph-row-end"><b class="ph-amt num" :class="{ neg: x.a < 0 }" dir="ltr">{{ formatMoney(x.a) }}</b></span>
+          <span class="ph-row-end"><b class="ph-amt num" :class="{ neg: x.a < 0 && !calm(x) }" dir="ltr">{{ formatMoney(x.a) }}</b></span>
         </button>
       </ListGroup>
     </template>

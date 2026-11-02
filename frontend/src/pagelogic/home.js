@@ -6,7 +6,8 @@ import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
 import { openAlert as openAlertFrom } from "../core/shell.js";
 import { openSettingsTab } from "../views/settings/tab.js";
-import { home, fcSaved } from "../core/derived.js";
+import { home, fcSaved, keyNums } from "../core/derived.js";
+import { paydayWords } from "./payday.js";
 import { now } from "../core/clock.js";
 import { readPref, writePref } from "../core/prefs.js";
 import { go } from "../router.js";
@@ -113,9 +114,13 @@ export function useHome() {
   watch(flowMode, (v) => { try { writePref(FLOWKEY, v); } catch { /* not remembered */ } });
   const flowOpts = computed(() => [{ value: "actual", label: t("home.actual") }, { value: "left", label: t("home.planned") }]);
   const W = computed(() => flowSteps(M.value.flow, flowMode.value));
-  const colName = (c) => c.kind === "start" ? t("num.inAccounts") : c.kind === "end" ? (W.value.eOver > 0 ? t("home.short") : W.value.ACT ? t("num.afterKnown") : t("num.free"))
+  // Free to use below zero before payday (lib/payday.js), in the Planned view: what it will likely be after payday, and
+  // calm (not "Short", not red) when the income still to come this month covers it
+  const pay = computed(() => (W.value.ACT || !(W.value.eOver > 0) ? null : paydayWords(t, keyNums.value?.payday, locale.value === "he")));
+  const calm = computed(() => !!pay.value?.covered);
+  const colName = (c) => c.kind === "start" ? t("num.inAccounts") : c.kind === "end" ? (W.value.eOver > 0 && !calm.value ? t("home.short") : W.value.ACT ? t("num.afterKnown") : t("num.free"))
     : c.k === "cards" ? t("num.cardsUnpaid") : c.k === "up" ? t("num.upcoming") : c.k === "jars" ? t("home.inNJars", { n: c.n }, c.n) : c.k === "cushion" ? t("home.cushion") : c.k === "other" ? t("home.otherN", { n: c.rest.length }) : catName(c.k);
-  const cols = computed(() => W.value.cols.map((c) => ({ ...c, name: colName(c) })));
+  const cols = computed(() => W.value.cols.map((c) => ({ ...c, name: colName(c), ...(c.kind === "end" && calm.value ? { tone: "none" } : {}) })));
   const six = (rows, extra) => [...rows.slice(0, 6), ...(rows.length > 6 ? [[t("tip.more", { n: rows.length - 6 }), ""]] : [])];
   const startTip = (step) => TP(t("num.inAccounts"), [...M.value.flow.cashAccts.map((a) => [lblOf(a), fm(a.ils)]), "---", [t("tip.total"), fm(W.value.start)]], tk("tip." + (step ? "startStep" : "startBar") + (W.value.ACT ? "Act" : "Plan")));
   const cardsTip = computed(() => { const F = M.value.flow; return TP(t("num.cardsUnpaid"), [[t("num.inAccounts"), fm(F.cash)], [t("num.cardsUnpaid"), "−" + fm(F.cards)], "---", [W.value.upTot >= 1 ? t("home.whatsLeft") : t("num.afterKnown"), fm(F.cash - F.cards)]], t("tip.cardsOwedNote")); });
@@ -123,7 +128,9 @@ export function useHome() {
   const endTip = computed(() => {
     const F = M.value.flow, w = W.value;
     if (w.ACT) return TP(w.eOver > 0 ? t("tip.shortTitle") : t("num.afterKnown"), [[t("num.inAccounts"), fm(F.cash)], ...(F.cards >= 1 ? [[t("num.cardsUnpaid"), fm(F.cards)]] : []), ...(w.upTot >= 1 ? [[t("num.upcoming"), fm(w.upTot)]] : []), "---", [w.eOver > 0 ? t("tip.shortBy") : t("num.afterKnown"), fm(w.eOver > 0 ? w.eOver : w.eFree)]], t("tip.availNote1") + "\n" + t("tip.availNote2"));
-    return TP(w.eOver > 0 ? t("tip.shortTitle") : t("num.free"), [[t("num.inAccounts"), fm(F.cash)], ...(F.cards >= 1 ? [[t("num.cardsUnpaid"), fm(F.cards)]] : []), ...(w.upTot >= 1 ? [[t("num.upcoming"), fm(w.upTot)]] : []), [t("num.leftBudgets"), fm(w.leftTot)], [t("num.putAside"), fm(w.jarsA + F.buffer)], "---", [w.eOver > 0 ? t("tip.shortBy") : t("num.free"), fm(w.eOver > 0 ? w.eOver : w.eFree)]], w.eOver > 0 ? "!" + t("tip.shortNote") : t("tip.freeNote1") + "\n" + t("tip.freeNote2"));
+    const P = pay.value, short = w.eOver > 0 && !calm.value;
+    return TP(short ? t("tip.shortTitle") : t("num.free"), [[t("num.inAccounts"), fm(F.cash)], ...(F.cards >= 1 ? [[t("num.cardsUnpaid"), fm(F.cards)]] : []), ...(w.upTot >= 1 ? [[t("num.upcoming"), fm(w.upTot)]] : []), [t("num.leftBudgets"), fm(w.leftTot)], [t("num.putAside"), fm(w.jarsA + F.buffer)], "---", [short ? t("tip.shortBy") : t("num.free"), short ? fm(w.eOver) : calm.value ? fm(-w.eOver) : fm(w.eFree)], ...(P ? [[t("num.afterPay"), fm(keyNums.value.payday.after)]] : [])],
+      P ? (short ? "!" + t("tip.shortNote") + "\n" : "") + P.note : w.eOver > 0 ? "!" + t("tip.shortNote") : t("tip.freeNote1") + "\n" + t("tip.freeNote2"));
   });
   const colTip = (c) => {
     const F = M.value.flow;
@@ -173,6 +180,6 @@ export function useHome() {
   const openBill = (b) => { const bl = M.value.billsAll[b.idx]; const last = bl && M.value.rows.filter((x) => x.a < 0 && (bl.mode == "once" ? (bl.ids || []).includes(x.id) : (x.desc + " " + x.to).toLowerCase().includes(bl.match))).sort((p, q) => p.d.localeCompare(q.d)).pop(); if (last) openTxId(last.id); else if (bl) openPop("hist", { title: bl.n, rows: [], sub: t("txw.chip.bill"), q: bl.match }); };
 
   return {
-    t, locale, tk, fm, n0, an, subOf, cur, pair, lblOf, fx, S, M, loc, monthName, catName, catColor, nm, esc, accTail, accLbl, friendly, alertList, monthYear, alerts3, alertText, openTxId, openAlert, accGo, goConn, kpis, money2, accSub, cardRows, FLOWKEY, flowMode, flowOpts, W, colName, cols, six, startTip, cardsTip, upTip, endTip, colTip, asideTip, tileTip, leftOf, donut, fxCur, fxKeys, fxView, fxOpts, openBill,
+    t, locale, tk, fm, n0, an, subOf, cur, pair, lblOf, fx, S, M, loc, monthName, catName, catColor, nm, esc, accTail, accLbl, friendly, alertList, monthYear, alerts3, alertText, openTxId, openAlert, accGo, goConn, kpis, money2, accSub, cardRows, FLOWKEY, flowMode, flowOpts, W, pay, calm, colName, cols, six, startTip, cardsTip, upTip, endTip, colTip, asideTip, tileTip, leftOf, donut, fxCur, fxKeys, fxView, fxOpts, openBill,
   };
 }

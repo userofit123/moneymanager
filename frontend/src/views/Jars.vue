@@ -20,7 +20,7 @@ const {
   t, tk, data, M, home, save, ctx, fm, f0, tx, dstr, catLabel, bufText, setBuffer, bufShown, filling, fill,
   menu, toggleMenu, hist, histName, noteText, amtText, histOpen, HIST_N, allOf, allKind, openAll, allName, allHist, allKinds,
   openNew, openEdit, doneAsk, askDone, doDone, delAsk, askDel, doDel, relAmt, relAsk, doRelease, why,
-  payoff, kindOf, stLabel, stTip, priTip, catTip, etaShow, etaTip, statTips, lateText, ringText, RC, KI, col,
+  payoff, kindOf, stLabel, stTip, priTip, catTip, etaShow, etaTip, statTips, lateText, ringText, RC, KI, col, monthLine, pay,
   goalLine, GCLS, doneLine, goalFix, moveJar, moveJarTo, reopenJar,
 } = useJars();
 onMounted(() => { data.start(); });
@@ -41,7 +41,8 @@ onMounted(() => { data.start(); });
           <div class="val"><small>₪</small><span>{{ f0(M.F.free) }}</span></div>
           <div id="availSub" class="sm">
             <div class="sm">{{ t("jars.safeSub") }}</div>
-            <div v-if="M.F.over > 0" class="jover"><b>{{ t("jars.tooMuch", { amount: fm(M.F.over) }) }}</b> {{ t("jars.tooMuchText") }}<div v-if="M.F.inJars > 0" class="flex" style="gap:8px;margin-top:8px"><button type="button" class="btn s" data-a="jarRelease" @click="relAsk = true">{{ t("jars.takeBack", { amount: fm(relAmt) }) }}</button></div></div>
+            <div v-if="pay?.covered" class="jpay"><b v-tip="pay.tip">{{ pay.after }}</b> {{ pay.note }}</div>
+            <div v-else-if="M.F.over > 0" class="jover"><b>{{ t("jars.tooMuch", { amount: fm(M.F.over) }) }}</b> {{ t("jars.tooMuchText") }}<template v-if="pay"> {{ pay.note }}</template><div v-if="M.F.inJars > 0" class="flex" style="gap:8px;margin-top:8px"><button type="button" class="btn s" data-a="jarRelease" @click="relAsk = true">{{ t("jars.takeBack", { amount: fm(relAmt) }) }}</button></div></div>
             <button type="button" class="btn o s" style="margin-top:10px" data-a="availWhy" @click="why = true">{{ t("jars.howWorked") }}</button>
           </div>
         </div>
@@ -49,11 +50,11 @@ onMounted(() => { data.start(); });
           <div class="lbl">{{ t("jars.thisMonth") }}</div>
           <div class="val"><small>₪</small>{{ f0(M.month.got) }}<span v-if="M.month.planned > 0" class="of">{{ " " + t("jars.of", { amount: fm(M.month.planned) }) }}</span></div>
           <div class="jbar"><i :class="M.month.waiting ? 'w' : M.month.done ? 'd' : ''" :style="{ width: M.month.pct + '%' }" /></div>
-          <div class="sm">{{ M.month.done ? t("jars.allDone") : M.month.waiting ? (M.F.buffer > 0 ? t("jars.waitingKept", { amount: fm(M.month.still), kept: fm(M.F.buffer) }) : t("jars.waiting", { amount: fm(M.month.still) })) : t("jars.filling") }}</div>
+          <div class="sm">{{ monthLine }}</div>
           <div class="jstats">
             <div v-tip="statTips.putIn"><span>{{ t("jars.putIn") }}</span><b class="num">{{ fm(M.month.got) }}</b></div>
             <div v-tip="statTips.still"><span>{{ t("jars.still") }}</span><b class="num">{{ fm(M.month.still) }}</b></div>
-            <div v-tip="statTips.avail"><span>{{ t("num.free") }}</span><b class="num" :class="{ neg: M.month.waiting }">{{ fm(M.F.free) }}</b></div>
+            <div v-tip="statTips.avail"><span>{{ t("num.free") }}</span><b class="num" :class="{ neg: M.month.waiting && !pay?.covered }">{{ fm(M.F.free) }}</b></div>
           </div>
         </div>
       </div>

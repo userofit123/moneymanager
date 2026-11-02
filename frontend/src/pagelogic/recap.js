@@ -5,6 +5,7 @@
 // Words with an amount inside come as markup (amounts in <bdi class="rkc">), the same on both.
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
+import { paydayWords } from "./payday.js";
 import { data } from "../stores/data.js";
 import { home, jars as jarsM } from "../core/derived.js";
 import { now } from "../core/clock.js";
@@ -213,7 +214,11 @@ export function useRecap() {
         ...(P.toCome >= 1 ? [{ k: "out", label: N("leftBudgets"), amt: P.toCome, link: "budg", tip: L("plannedX"), subs: likely() }] : []),
         ...(P.aside >= 1 ? [{ k: "out", label: N("putAside"), amt: P.aside, link: "jars", subs: aside.length > 1 ? aside : [] }] : []),
       ];
-      return { ic: "pie", tone: free < 0 ? "tn" : "", label: N("free"), go: "jars", big: { amt: free }, line: [{ html: L(free < 0 ? "splitShort" : "splitX") }], vis: [{ seg: nowBar(m) }, { sum: { had: [N("inAccounts"), R0(m.cash), "now"], groups, end: [N("free"), free] } }] };
+      // below zero right before payday (lib/payday.js): what it will likely be after payday under the result; when the income
+      // still to come this month covers it, a calm note instead of the warning
+      const pw = paydayWords(t, m.payday, locale.value === "he"), calm = !!pw?.covered;
+      const line = pw ? (calm ? esc(pw.note) : L("splitShort") + " " + esc(pw.note)) : L(free < 0 ? "splitShort" : "splitX");
+      return { ic: "pie", tone: free < 0 && !calm ? "tn" : "", label: N("free"), go: "jars", big: { amt: free }, line: [{ html: line }], vis: [{ seg: nowBar(m) }, { sum: { had: [N("inAccounts"), R0(m.cash), "now"], groups, end: [N("free"), free, null, ...(pw ? [[t("num.afterPay"), m.payday.after]] : [])] } }] };
     },
     ahead: (m) => {
       // only what leaves the accounts this month: card charges due this month and the bills still due

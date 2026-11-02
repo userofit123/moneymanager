@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 import { current } from "../router.js";
 import { helpOpen, helpMode, helpSet, guideOf, guideHtml, watchDots, guideReady, loadGuide } from "./help.js";
 import { keyNums } from "../core/derived.js";
+import { paydayWords } from "../pagelogic/payday.js";
 import { formatMoney } from "../format.js";
 import { escLayer } from "../core/layers.js";
 import { settingsTab } from "../views/settings/tab.js";
@@ -25,8 +26,13 @@ const title = computed(() => (nums.value ? t("num.title") : (guide.value && guid
 const loc = computed(() => (locale.value === "he" ? "he-IL" : "en-GB"));
 const monthOf = (key) => new Date(+key.slice(0, 4), +key.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, { month: "long" });
 const numName = (x) => t(x.name, x.mk ? { month: monthOf(x.mk) } : {});
+// Free to use below zero before payday (lib/payday.js): covered by the income still to come, it reads Free to use, not in red;
+// the line under it says what it will likely be after payday
+const pay = computed(() => paydayWords(t, keyNums.value?.payday, locale.value === "he"));
+const calm = (x) => x.id === "free" && pay.value?.covered;
+const tipOf = (x) => (x.pay ? pay.value?.tip : t(x.tip));
 // a row's name: Free to use below zero reads "Short by" (its amount stays below zero, so the rows still add up)
-const rowName = (x) => (x.id === "free" && x.a < 0 ? t("num.shortBy") : x.from && x.short ? t(x.short, x.mk ? { month: monthOf(x.mk) } : {}) : numName(x));
+const rowName = (x) => (x.id === "free" && x.a < 0 && !pay.value?.covered ? t("num.shortBy") : x.from && x.short ? t(x.short, x.mk ? { month: monthOf(x.mk) } : {}) : numName(x));
 const body = computed((prev) => (!ready.value ? prev || "" : guide.value ? guideHtml(guide.value, he.value, tx) : `<div class="hlead">${t("help.noGuide")}</div>`));
 // The guide is loaded quietly a few seconds after start (so the panel opens at once), right away when the panel was left open,
 // and in the other language once the language changes.
@@ -53,7 +59,7 @@ onBeforeUnmount(() => stop());
         <section v-for="g in keyNums.groups" :key="g.id" class="hs">
           <h4>{{ t(g.name) }}</h4>
           <div class="knl" :class="{ guess: g.id.startsWith('likely') }">
-            <div v-for="x in g.items" :key="x.id" class="knr" :class="{ from: x.from, res: x.op === '=', part: x.part }" :data-tip="t(x.tip)"><span><i v-if="x.op && x.op !== '='" class="kno">{{ x.op }}</i>{{ rowName(x) }}</span><b class="num" :class="{ neg: x.a < 0 }">{{ formatMoney(x.a) }}</b></div>
+            <div v-for="x in g.items" :key="x.id" class="knr" :class="{ from: x.from, res: x.op === '=', part: x.part }" :data-tip="tipOf(x)"><span><i v-if="x.op && x.op !== '='" class="kno">{{ x.op }}</i>{{ rowName(x) }}</span><b class="num" :class="{ neg: x.a < 0 && !calm(x) }">{{ formatMoney(x.a) }}</b></div>
           </div>
         </section>
       </template>

@@ -513,6 +513,7 @@
     "of": "of {amount}",
     "allDone": "Every jar has its share for this month.",
     "waiting": "{amount} more is due this month, but there is no free money to put in.",
+    "waitPay": "{amount} more is due this month. The jars fill once your usual income comes in.",
     "waitingKept": "{amount} more is due this month, but there is no free money to put in ({kept} is kept untouched).",
     "filling": "Jars fill up as free money comes in.",
     "putIn": "Put in so far",
@@ -1701,6 +1702,12 @@
     "putAside": "Put aside",
     "free": "Free to use",
     "shortBy": "Short by",
+    "afterPay": "After payday",
+    "afterPayAbout": "After payday: about {amount}",
+    "payNote": "Tight until payday. Your usual income of about {inc}, still to come this month, should cover it.",
+    "payPart": "Your usual income still to come this month, about {inc}, covers only part of this. About {missing} would still be missing after payday.",
+    "payOn": "It usually comes around the {a} of the month.",
+    "payBetween": "It usually comes between the {a} and the {b} of the month.",
     "moneyIn": "Money in so far",
     "moneyInS": "Money in",
     "moneyOut": "Money out so far",
@@ -1732,6 +1739,7 @@
     "endMonthTip": "Money you'll likely have at the end of this month\n**Your money after known payments**\n+ **likely money in for the rest of the month**\n− **likely spending for the rest of the month**\nBased on your usual income and spending in the last 2 months, not on budgets.",
     "nextInTip": "Likely money in next month\nYour usual income in a month.",
     "nextOutTip": "Likely money out next month\nYour usual spending in a month.",
-    "endNextTip": "Money you'll likely have at the end of next month\n**End of this month** + **likely money in** − **likely money out**."
+    "endNextTip": "Money you'll likely have at the end of next month\n**End of this month** + **likely money in** − **likely money out**.",
+    "afterPayTip": "After payday\n**Free to use** + **likely money in for the rest of the month**.\n**Payday:** when your usual income comes in. About {inc} of it has not come yet this month.\n{when}\nA likely amount, learned from the last 2 full months."
   }
 }

@@ -3,6 +3,7 @@
 import { addM, rdOf, nameOf, flowSteps } from "./home.js";
 import { cardInfo, cardOf, acctOf } from "./activity.js";
 import { isIn, isOut } from "./moneyIn.js";
+import { paydayOf } from "./payday.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
 const sum = (a) => a.reduce((s, x) => s + x, 0);
@@ -37,7 +38,8 @@ export const incKey = (S, t) => {
 // comes later in the month and has not come yet counts as coming; one paid in each of those months that has not come yet this
 // month counts its usual amount, whatever its usual day.
 // Pending rows count, the same way the Activity page counts them.
-// Gives the spending by category (out: { k, a, card }) and the incomes by name (inc: { k, a }).
+// Gives the spending by category (out: { k, a, card }) and the incomes by name (inc: { k, a, days }; days: the days of the
+// month it came on in those 2 months, for "it usually comes around …").
 export function afterToday(S, A, MK, day, CC, due = []) {
   const B = [addM(MK, -2), addM(MK, -1)], dueN = new Set(due.map((b) => plainOf(b.n).toLowerCase())), P = {}, had = [0, 0];
   A.forEach((t) => {
@@ -45,21 +47,21 @@ export function afterToday(S, A, MK, day, CC, due = []) {
     if (i >= 0) had[i] = 1;
     if (t.back) return;
     const inc = t.a > 0, k = inc ? incKey(S, t) : t.c || "Uncategorized", nm = plainOf(nameOf(S, t)).toLowerCase(), v = Math.abs(t.a);
-    const p = (P[(inc ? "i|" : "o|") + k + "|" + nm] = P[(inc ? "i|" : "o|") + k + "|" + nm] || { inc, k, nm, tot: [0, 0], late: [0, 0], card: [0, 0], now: 0 });
-    if (now) p.now += v; else { p.tot[i] += v; if (+r.slice(8, 10) > day) p.late[i] += v; if (CC.has(t.from)) p.card[i] += v; }
+    const p = (P[(inc ? "i|" : "o|") + k + "|" + nm] = P[(inc ? "i|" : "o|") + k + "|" + nm] || { inc, k, nm, tot: [0, 0], late: [0, 0], card: [0, 0], now: 0, days: [] });
+    if (now) p.now += v; else { p.tot[i] += v; if (+r.slice(8, 10) > day) p.late[i] += v; if (CC.has(t.from)) p.card[i] += v; if (inc) p.days.push(+r.slice(8, 10)); }
   });
-  const nb = had[0] + had[1], avg = (x) => (nb ? (x[0] + x[1]) / nb : 0), out = {}, inc = {};
+  const nb = had[0] + had[1], avg = (x) => (nb ? (x[0] + x[1]) / nb : 0), out = {}, inc = {}, days = {};
   Object.values(P).forEach((p) => {
     if (!p.inc && dueN.has(p.nm)) return;
     // an income paid in each of those months that has not come yet this month counts its usual amount until the month ends,
     // even when it usually comes earlier in the month (it may just be a few days late)
     const late = p.inc && p.now < 0.005 && B.every((_, i) => !had[i] || p.tot[i] > 0);
     const a = late ? avg(p.tot) : Math.min(avg(p.late), Math.max(0, avg(p.tot) - p.now)); if (a < 0.005) return;
-    if (p.inc) { inc[p.k] = (inc[p.k] || 0) + a; return; }
+    if (p.inc) { inc[p.k] = (inc[p.k] || 0) + a; days[p.k] = (days[p.k] || []).concat(p.days); return; }
     const o = (out[p.k] = out[p.k] || { k: p.k, a: 0, card: 0 }), tt = p.tot[0] + p.tot[1];
     o.a += a; o.card += tt > 0 ? (a * (p.card[0] + p.card[1])) / tt : 0;
   });
-  return { out: Object.values(out), inc: Object.entries(inc).map(([k, a]) => ({ k, a })) };
+  return { out: Object.values(out), inc: Object.entries(inc).map(([k, a]) => ({ k, a, days: days[k].sort((x, y) => x - y) })) };
 }
 
 // The payments still to leave this month (Recap's "You still have to pay", Home's "Upcoming payments this month"): the bills
@@ -162,7 +164,7 @@ export function recapModel(M, now) {
   const top = M.spend.filter(([c]) => !skip(c)).sort((a, b) => b[1] - a[1]).slice(0, 3);
   const steps = monthSteps({ A, S, k, MK, TODAY, CC, inc, dn, start, end: startReal ? cash : null });
   const phase = day <= 5 ? "start" : dim - day <= 6 ? "end" : "mid";
-  return { MK, today: TODAY, jarCov, rest, incRest: AT.inc, incLeft, daysLeft, day, dim, pm, nmk, cash, inc, ex, cardsU, cardsPrev, cardPaid, cardsThis, cardsNow, cardsNext, sureJar, sureOwn: sure - sureJar, jarsUsed, nextCards, bankSpent: ex - cardsU, cardsOwed, sure, likely, likelyBank, likelyCard, nextBill, afterNext, endMonth, freeParts, afterSure, reallyNow, same, incs, bills, billsTot, limitsLeft, end, toPay, heldEnd, top, start, startReal, startOn, over, risk, okB, above, below, w1, w0, days, nextBills, phase, steps, inJars: F.inJars, buffer: F.buffer, jarsHeld: F.jarsHeld || [], planned: R.total, plannedRows: R.rows.map((r) => ({ k: r.k, amt: r.amt, kind: r.kind })), over0: F.over };
+  return { MK, today: TODAY, jarCov, rest, incRest: AT.inc, incLeft, payday: paydayOf(freeParts.free, incLeft, AT.inc), daysLeft, day, dim, pm, nmk, cash, inc, ex, cardsU, cardsPrev, cardPaid, cardsThis, cardsNow, cardsNext, sureJar, sureOwn: sure - sureJar, jarsUsed, nextCards, bankSpent: ex - cardsU, cardsOwed, sure, likely, likelyBank, likelyCard, nextBill, afterNext, endMonth, freeParts, afterSure, reallyNow, same, incs, bills, billsTot, limitsLeft, end, toPay, heldEnd, top, start, startReal, startOn, over, risk, okB, above, below, w1, w0, days, nextBills, phase, steps, inJars: F.inJars, buffer: F.buffer, jarsHeld: F.jarsHeld || [], planned: R.total, plannedRows: R.rows.map((r) => ({ k: r.k, amt: r.amt, kind: r.kind })), over0: F.over };
 }
 
 // The day a card purchase leaves the bank: the charge date the card company gave (t.ch), or else the card's usual charge day,

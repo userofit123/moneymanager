@@ -5,7 +5,8 @@
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
-import { jars as M, home } from "../core/derived.js";
+import { jars as M, home, keyNums } from "../core/derived.js";
+import { paydayWords } from "./payday.js";
 import { openForm } from "../core/forms.js";
 import { openTx } from "../core/txwin.js";
 import { toast } from "../core/toast.js";
@@ -115,7 +116,10 @@ export function useJars() {
   const KI = { goal: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>', month: '<path d="M20 11a8 8 0 0 0-14-4L4 9M4 4v5h5M4 13a8 8 0 0 0 14 4l2-2M20 20v-5h-5"/>', bill: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/>' };
   const col = (p) => `var(--c${(p - 1) % 7})`;
   // what the month bar under "Put into jars this month" says
-  const monthLine = computed(() => { const m = M.value.month; return m.done ? t("jars.allDone") : m.waiting ? (M.value.F.buffer > 0 ? t("jars.waitingKept", { amount: fm(m.still), kept: fm(M.value.F.buffer) }) : t("jars.waiting", { amount: fm(m.still) })) : t("jars.filling"); });
+  // Free to use below zero right before payday (lib/payday.js): what it will likely be after payday, and whether the income
+  // still to come this month covers it (then the jars simply wait for it: no "too much" warning)
+  const pay = computed(() => (M.value && M.value.F.over > 0 ? paydayWords(t, keyNums.value?.payday, locale.value === "he") : null));
+  const monthLine = computed(() => { const m = M.value.month; return m.done ? t("jars.allDone") : m.waiting && pay.value?.covered ? t("jars.waitPay", { amount: fm(m.still) }) : m.waiting ? (M.value.F.buffer > 0 ? t("jars.waitingKept", { amount: fm(m.still), kept: fm(M.value.F.buffer) }) : t("jars.waiting", { amount: fm(m.still) })) : t("jars.filling"); });
 
   // One goal's line.
   function goalLine(g) {
@@ -132,7 +136,7 @@ export function useJars() {
     bufText, setBuffer, bufShown, BUF_PRESETS, filling, fill,
     menu, toggleMenu, histOf, hist, histName, noteText, amtText, amtCls, histOpen, HIST_N, allOf, allKind, openAll, allName, ofKind, allHist, allKinds,
     openNew, openEdit, doneAsk, askDone, doDone, delAsk, askDel, doDel, relAmt, relAsk, doRelease, why,
-    payoff, kindOf, stLabel, stBody, stTip, priTip, catTip, etaWhen, etaShow, etaTip, statTips, lateText, ringText, RC, KI, col, monthLine,
+    payoff, kindOf, stLabel, stBody, stTip, priTip, catTip, etaWhen, etaShow, etaTip, statTips, lateText, ringText, RC, KI, col, monthLine, pay,
     goalLine, GCLS, doneLine, goalFix, moveJar, moveJarTo, reopenJar, markDone, deleteJar,
   };
 }

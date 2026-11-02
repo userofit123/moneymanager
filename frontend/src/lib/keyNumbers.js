@@ -56,5 +56,9 @@ export function keyNumbers(H, FC) {
   const all = NUM_GROUPS.map(([id, es]) => ({ id, name: "num.g." + id, items: es.map((e) => { const [o, x] = split(e); return { ...item(x), ...(o == "^" ? { from: 1 } : o == "·" ? { part: 1 } : o ? { op: OPS[o] } : {}) }; }) }));
   const twoParts = a.cardBills >= 1 && a.cardsLater >= 1;
   const groups = all.map((g) => ({ ...g, items: g.items.filter((x) => !x.part || twoParts) }));
-  return { groups, byId: Object.fromEntries(all.flatMap((g) => g.items).filter((x) => !x.from).map((x) => [x.id, x])), a };
+  // Free to use below zero while income still usually comes this month (lib/payday.js, worked out once in recapModel):
+  // a line under it with what it will likely be after payday (not counted in the sum)
+  const payday = d.R0.payday || null;
+  if (payday) groups.find((g) => g.id == "plans").items.push({ id: "afterPay", a: payday.after, name: "num.afterPay", short: null, tip: "num.afterPayTip", part: 1, pay: 1 });
+  return { groups, byId: Object.fromEntries(all.flatMap((g) => g.items).filter((x) => !x.from).map((x) => [x.id, x])), a, payday };
 }

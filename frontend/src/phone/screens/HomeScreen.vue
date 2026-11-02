@@ -15,6 +15,7 @@ import { brandIcon } from "../../brands.js";
 import { currencySymbol } from "../../format.js";
 import { dcell, dstr, titleCase } from "../../dates.js";
 import { useHome } from "../../pagelogic/home.js";
+import { keyNums } from "../../core/derived.js";
 import { useGoalCard, openYearsNext } from "../../pagelogic/yearsAhead.js";
 import AvailWhy from "../../views/AvailWhy.vue";
 import { usePhoneNav } from "../navigation.js";
@@ -37,7 +38,7 @@ defineProps({ id: { type: String, default: null } });
 
 const {
   t, fm, n0, an, pair, fx, S, M, monthName, catName, catColor, nm, accLbl, alertList, alerts3, openTxId, openAlert, accGo,
-  kpis, accSub, cardRows, flowMode, flowOpts, W, cols, colTip, leftOf, donut, fxCur, fxKeys, fxView, fxOpts,
+  kpis, accSub, cardRows, flowMode, flowOpts, W, pay, calm, cols, colTip, leftOf, donut, fxCur, fxKeys, fxView, fxOpts,
 } = useHome();
 const nav = usePhoneNav();
 // an upcoming bill opens its own screen
@@ -47,11 +48,13 @@ const iso = (s) => "\u2066" + s + "\u2069"; // a date keeps its order inside a H
 const cap = (s) => String(s).charAt(0).toUpperCase() + String(s).slice(1);
 const P = (k, o, n) => t("phone.home." + k, o || {}, n);
 
-// the sentence at the top: what is free to use (the same number as "Free to use" on the computer and in Jars)
+// the sentence at the top: what is free to use (the same number as "Free to use" on the computer and in Jars); short of
+// money right before payday, when the income still to come this month covers it: what will likely be free after payday
+const paid = computed(() => (M.value.flow.over > 0 && keyNums.value?.payday?.covered ? keyNums.value.payday : null));
 const hero = computed(() => {
-  const F = M.value.flow, short = F.over > 0;
-  const text = P(short ? "short" : "free", { amount: "\u0000" }), [a, b = ""] = text.split("\u0000");
-  return [{ text: a }, { amount: fm(short ? F.over : F.free) }, { text: b }];
+  const F = M.value.flow, short = F.over > 0, k = paid.value ? "payday" : short ? "short" : "free";
+  const text = P(k, { amount: "\u0000" }), [a, b = ""] = text.split("\u0000");
+  return [{ text: a }, { amount: fm(paid.value ? paid.value.after : short ? F.over : F.free) }, { text: b }];
 });
 const avail = ref(false);
 
@@ -102,7 +105,7 @@ const isEnd = (c) => c.kind === "end";
     </EmptyState>
 
     <template v-else>
-      <HeroSentence v-if="M.has.flow" :class="{ short: M.flow.over > 0 }" :parts="hero" :link="P('how')" @link="avail = true" />
+      <HeroSentence v-if="M.has.flow" :class="{ short: M.flow.over > 0 && !paid }" :parts="hero" :link="P('how')" @link="avail = true" />
 
       <button v-if="suggestions.length" type="button" class="ph-home-ideas" @click="suggestOpen = true">
         <PIcon name="idea" /><span>{{ P("ideas", { n: suggestions.length }, suggestions.length) }}</span><PIcon name="chevron" dir class="ph-chev" />
@@ -140,10 +143,10 @@ const isEnd = (c) => c.kind === "end";
         <div class="ph-group-h"><h3>{{ t("home.flowTitle") }}</h3><button type="button" class="ph-link" @click="avail = true">{{ P("fullBreakdown") }}</button></div>
         <Segmented v-model="flowMode" :options="flowOpts" :label="t('home.flowMode')" />
         <div class="ph-group-b">
-          <ListRow v-for="(c, i) in cols" :key="i" class="ph-home-step" :class="[c.kind, { short: isEnd(c) && W.eOver > 0 }]" :title="flowName(c)" :sub="isEnd(c) ? '' : P('leftAfter', { amount: leftOf(c) })" @tap="explain(colTip(c))">
-            <template #lead><span class="ph-home-dot" :style="{ '--d': c.kind === 'start' ? 'var(--acc)' : isEnd(c) ? (W.eOver > 0 ? 'var(--neg)' : 'var(--pos)') : catColor(c.k) }" /></template>
+          <ListRow v-for="(c, i) in cols" :key="i" class="ph-home-step" :class="[c.kind, { short: isEnd(c) && W.eOver > 0 && !calm }]" :title="flowName(c)" :sub="isEnd(c) ? pay?.after || '' : P('leftAfter', { amount: leftOf(c) })" @tap="explain(colTip(c))">
+            <template #lead><span class="ph-home-dot" :style="{ '--d': c.kind === 'start' ? 'var(--acc)' : isEnd(c) ? (W.eOver > 0 && !calm ? 'var(--neg)' : 'var(--pos)') : catColor(c.k) }" /></template>
             <template #end>
-              <span v-if="isEnd(c)" class="ph-amt" :class="{ neg: W.eOver > 0 }">{{ leftOf(c) }}</span>
+              <span v-if="isEnd(c)" class="ph-amt" :class="{ neg: W.eOver > 0 && !calm }">{{ leftOf(c) }}</span>
               <span v-else class="ph-amt">{{ c.kind === "start" ? "" : "−" }}₪{{ n0(c.a) }}</span>
             </template>
           </ListRow>

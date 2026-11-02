@@ -26,7 +26,7 @@ import "../styles/pages/home.css"; // this page's own styles
 
 const {
   t, fm, n0, an, pair, fx, S, M, monthName, catName, catColor, nm, accLbl, alertList, alerts3, openTxId, openAlert, accGo, goConn,
-  kpis, money2, accSub, cardRows, flowMode, flowOpts, W, cols, startTip, cardsTip, upTip, endTip, colTip, asideTip, tileTip, leftOf,
+  kpis, money2, accSub, cardRows, flowMode, flowOpts, W, pay, calm, cols, startTip, cardsTip, upTip, endTip, colTip, asideTip, tileTip, leftOf,
   donut, fxCur, fxKeys, fxView, fxOpts, openBill,
 } = useHome();
 // your goal (saved in Forecast → Years ahead): the card opens the Forecast there
@@ -146,7 +146,7 @@ const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", 
               <template v-if="!W.ACT"><i>−</i>
               <div class="fst" v-tip="asideTip"><span>{{ t("num.putAside") }}</span><b class="num">{{ fm(W.jarsA + M.flow.buffer) }}</b></div></template>
               <i>=</i>
-              <div class="fst key end" :class="{ neg: W.eOver > 0 }" v-tip="endTip"><span>{{ W.eOver > 0 ? t("home.shortBy") : W.ACT ? t("num.afterKnown") : t("num.free") }}</span><b class="num" :class="{ neg: W.eOver > 0 }">{{ W.eOver > 0 ? "−₪" + n0(W.eOver) : fm(W.eFree) }}</b></div>
+              <div class="fst key end" :class="{ neg: W.eOver > 0 && !calm }" v-tip="endTip"><span>{{ W.eOver > 0 && !calm ? t("home.shortBy") : W.ACT ? t("num.afterKnown") : t("num.free") }}</span><b class="num" :class="{ neg: W.eOver > 0 && !calm }">{{ W.eOver > 0 ? "−₪" + n0(W.eOver) : fm(W.eFree) }}</b><small v-if="pay" v-tip="pay.tip">{{ pay.after }}</small></div>
             </div></div>
             <div class="wf2" :style="{ '--n': cols.length }">
               <div class="wrl w1" style="grid-row:1">{{ t("home.stepAmount") }}</div>
@@ -154,7 +154,7 @@ const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", 
               <div v-for="(c, i) in cols" :key="i" class="wc" :class="c.kind === 'end' ? 'end ' + c.tone : c.kind === 'item' ? '' : c.kind" :style="{ '--c': i + 2 }" v-tip="colTip(c)">
                 <div class="wca num" :data-l="t('num.leftBudgets')"><span v-if="c.kind === 'end'" class="dim">–</span><template v-else><small>₪</small>{{ n0(c.a) }}</template></div>
                 <div class="wcp"><i class="wcg" :style="{ '--b': c.b, '--h': c.h }" /><i class="wcs" :class="[c.kind === 'end' ? 'end ' + c.tone : c.kind === 'item' ? '' : c.kind, c.kind === 'start' || c.kind === 'end' ? '' : 'jn']" :style="{ '--h': c.s }" /></div>
-                <div class="wct" :data-l="t('home.whatsLeft')"><span v-if="c.kind === 'end' && W.eOver > 0" class="neg">−{{ fm(W.eOver) }}</span><template v-else>{{ leftOf(c) }}</template><small v-if="c.k === W.remain" class="wry">{{ t("num.afterKnownS") }}</small></div>
+                <div class="wct" :data-l="t('home.whatsLeft')"><span v-if="c.kind === 'end' && W.eOver > 0" :class="{ neg: !calm }">−{{ fm(W.eOver) }}</span><template v-else>{{ leftOf(c) }}</template><small v-if="c.k === W.remain" class="wry">{{ t("num.afterKnownS") }}</small></div>
                 <div class="wcn"><b>{{ c.name }}</b></div>
               </div>
             </div>

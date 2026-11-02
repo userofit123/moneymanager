@@ -1,6 +1,7 @@
 {
   "free": "{amount} is free to use until the end of the month.",
   "short": "Planned spending is {amount} more than the money there is this month.",
+  "payday": "Tight until payday. About {amount} will be free to use once your usual income comes in.",
   "how": "How is this worked out?",
   "ideas": "{n} idea to tidy up your data | {n} ideas to tidy up your data",
   "attention": "Needs a look",

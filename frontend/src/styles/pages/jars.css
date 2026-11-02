@@ -334,6 +334,22 @@
   color: var(--neg);
 }
 
+/* Free to use below zero right before payday, covered by the income still to come: the same box, calm (no red) */
+.jpay {
+  margin-top: 12px;
+  padding: 11px 13px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--acc) 9%, transparent);
+  color: var(--tx);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.jpay b {
+  display: block;
+  color: var(--tx);
+}
+
 .jin .jst {
   height: 30px;
   box-sizing: border-box;
