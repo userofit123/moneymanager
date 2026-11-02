@@ -1,17 +1,17 @@
 <script setup>
 // The phone's Forecast → Years ahead: three rows for the choices as they are now (what they add up to by an age, when the goal
 // is reached and what it would take each month), each explained in its tooltip, then the choices and the chart. The same numbers as the
-// computer page (pagelogic/yearsAhead.js). Nothing here changes the data.
+// computer page (pagelogic/yearsAhead.js). Only saving the goal (Save this goal, Update goal, Remove goal) changes the data.
 import { ref, computed } from "vue";
 import MoneyInput from "../../components/MoneyInput.vue";
 import YearsChart from "../../components/charts/YearsChart.vue";
 import Segmented from "./Segmented.vue";
 import PIcon from "./PIcon.vue";
-import { useYearsAhead } from "../../pagelogic/yearsAhead.js";
+import { useYearsAhead, useScrollToYears } from "../../pagelogic/yearsAhead.js";
 import { usePhoneNav } from "../navigation.js";
 
 const props = defineProps({ model: { type: Object, required: true } });
-const { YAI, Y, Y_, set, back, atKey, typeAt, leaveAt, answer, mTip, ptName, axisLabel, legMine, pc, GROWTH } = useYearsAhead(computed(() => props.model));
+const { YAI, Y, Y_, set, back, G, same, saveGoal, removeGoal, savedLine, atKey, typeAt, leaveAt, answer, mTip, ptName, axisLabel, legMine, pc, GROWTH } = useYearsAhead(computed(() => props.model));
 const nav = usePhoneNav();
 const growth = computed(() => GROWTH.map((g) => ({ value: g, label: pc(g) + "%" })));
 // an amount box left empty while typing keeps the last amount
@@ -21,10 +21,13 @@ const redo = ref(0);
 const fill = (e) => { if (!e.target.value.trim()) redo.value++; };
 const BACK = '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>';
 const PERSON = '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>';
+// opened from Home's goal card: Years ahead comes into view
+const top = ref(null);
+useScrollToYears(top);
 </script>
 
 <template>
-  <section class="ph-group ph-ya">
+  <section ref="top" class="ph-group ph-ya">
     <div class="ph-group-h"><h3>{{ Y_("title") }}</h3></div>
     <div class="ph-group-b ph-ya-ans" aria-live="polite">
       <div v-for="r in answer" :key="r.k" class="ph-row ph-two ph-ya-r" :class="'r-' + r.k">
@@ -64,6 +67,17 @@ const PERSON = '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2
       <div class="fld">
         <label><span :data-tip="Y_('gTip')">{{ Y_("g") }}</span></label>
         <Segmented :model-value="Y.g" :options="growth" :label="Y_('g')" @update:model-value="set('g', $event)" />
+      </div>
+    </div>
+    <!-- saving the goal: Save this goal, or (once saved) Update goal when the choices differ, and Remove goal -->
+    <div class="ph-ya-save">
+      <p v-if="savedLine">{{ savedLine }}</p>
+      <div class="ph-ya-save-b">
+        <template v-if="G">
+          <button type="button" class="ph-btn tonal" :disabled="same" @click="saveGoal">{{ Y_("update") }}</button>
+          <button type="button" class="ph-btn tonal" @click="removeGoal">{{ Y_("remove") }}</button>
+        </template>
+        <button v-else type="button" class="ph-btn tonal" @click="saveGoal">{{ Y_("save") }}</button>
       </div>
     </div>
     <div class="ph-group-b ph-ya-chart">

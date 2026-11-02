@@ -1,7 +1,7 @@
 <script setup>
 // Home (tab): how the month is going at a glance. It opens with one sentence (what is free to use until the month ends),
 // then what needs a look, the month's four totals, accounts, cards, the money flow, spending by category, budgets,
-// upcoming bills, recent activity, jars and exchange rates. Every number comes from pagelogic/home.js, the same as the
+// upcoming bills, recent activity, your goal (when one is saved), jars and exchange rates. Every number comes from pagelogic/home.js, the same as the
 // computer's Home page. The bell opens Alerts, + opens "Add or update". A block with nothing to show is hidden.
 import { ref, computed, onMounted } from "vue";
 import { data } from "../../stores/data.js";
@@ -15,6 +15,7 @@ import { brandIcon } from "../../brands.js";
 import { currencySymbol } from "../../format.js";
 import { dcell, dstr, titleCase } from "../../dates.js";
 import { useHome } from "../../pagelogic/home.js";
+import { useGoalCard, openYearsNext } from "../../pagelogic/yearsAhead.js";
 import AvailWhy from "../../views/AvailWhy.vue";
 import { usePhoneNav } from "../navigation.js";
 import { ICONS } from "../icons.js";
@@ -71,6 +72,10 @@ const accLine = (g) => { const s = accSub(g); if (s.lines) return s.chips; const
 // spending by category: the five biggest, the rest in one row
 const spendTop = computed(() => donut.value.parts.slice(0, 5));
 const spendRest = computed(() => donut.value.parts.slice(5).reduce((s, p) => s + p.v, 0));
+
+// your goal (saved in Forecast → Years ahead): tapping it opens the Forecast there
+const goal = useGoalCard();
+const openGoal = () => { openYearsNext(); nav.push("forecast"); };
 
 const budgets = computed(() => M.value.budgets.slice(0, 3));
 const budTone = (b) => (b.st == "over" ? "neg" : b.st == "warn" ? "warn" : "acc");
@@ -181,6 +186,15 @@ const isEnd = (c) => c.kind === "end";
           <template #lead><span class="ph-home-av" :style="{ '--d': catColor(x.c || 'Uncategorized') }">{{ (nm(x) || "?")[0] }}</span></template>
           <template #end><span class="ph-amt" :class="{ pos: x.a > 0 }">{{ amtText(x) }}</span></template>
         </ListRow>
+      </ListGroup>
+
+      <ListGroup v-if="goal" :title="t('home.goal.title')" :more="t('home.goal.open')" @more="openGoal">
+        <button type="button" class="ph-row ph-home-bud ph-home-goal" @click="openGoal">
+          <span class="ph-home-bud-h"><span class="ph-row-t"><span :data-tip="goal.tip">{{ goal.name }}</span></span><span class="ph-home-bud-v">{{ goal.pc }}%</span></span>
+          <ProgressBar :value="goal.pc" :max="100" :color="goal.on ? 'var(--pos)' : ''" :label="goal.name" />
+          <span class="ph-home-goal-l">{{ goal.have }}</span>
+          <span class="ph-home-goal-l"><b :class="goal.on ? 'pos' : 'neg'">{{ goal.lead }}</b> {{ goal.line }}</span>
+        </button>
       </ListGroup>
 
       <ListGroup v-if="M.has.jars" :title="t('home.jars')" :more="P('seeAll')" @more="nav.tab('jars')">

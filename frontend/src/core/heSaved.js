@@ -62,6 +62,8 @@ const RULES = [
   [/^(.+): browser profile saved for later automatic logins$/, (a) => a + ": פרופיל הדפדפן נשמר להתחברויות אוטומטיות בהמשך"],
   [/^(\w+ ?\w*) (\w{3}): (-?[\d.,]+) recorded as an unrecorded charge$/, (a, c, m) => a + " " + c + ": " + m + " נרשם כחיוב לא רשום"],
   [/^(\d+) jars? received ₪(\d+) for (\d{4}-\d{2})$/, (n, m, mo) => one(n, "קופה אחת קיבלה", n + " קופות קיבלו") + " ₪" + m + " עבור " + mo],
+  // Years ahead → Save this goal: "₪1,000,000 in 15 years" ("₪1,000,000 by age 50" is in HISTORY)
+  [/^(₪[\d,]+) in (\d+) years?$/, (a, n) => a + " בעוד " + one(n, "שנה", n + " שנים")],
   [/^(\d+) sample transactions?$/, (n) => one(n, "תנועה אחת לדוגמה", n + " תנועות לדוגמה")],
   [/^GitHub answered HTTP (.+)$/, (x) => "GitHub ענה HTTP " + x],
   [/^The scraper could not open the bank page: (.*)$/, (x) => "הדפדפן של האפליקציה לא הצליח לפתוח את דף הבנק: " + TM(x)],
@@ -235,6 +237,10 @@ const HISTORY = {
   "Recovery key made": "נוצר מפתח שחזור",
   "Password reset with the recovery key": "הסיסמה אופסה בעזרת מפתח השחזור",
   "Password reset with a phone code": "הסיסמה אופסה בעזרת קוד שנשלח לטלפון",
+  "Saved a goal": "נשמר יעד",
+  "Updated goal": "היעד עודכן",
+  "Removed goal": "היעד הוסר",
+  "{} by age {}": "{} עד גיל {}",
 };
 
 // Names of the colour themes (Settings → Appearance). Built-in category, bank and card names come from catnames.js.

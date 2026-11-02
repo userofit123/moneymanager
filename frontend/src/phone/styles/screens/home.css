@@ -234,6 +234,23 @@ html.phone .ph-home-bud-v.neg {
   font-weight: 600;
 }
 
+/* your goal: the lines under the bar wrap rather than be cut */
+html.phone .ph-home-goal-l {
+  color: var(--tx2);
+  font-size: 14px;
+  line-height: 20px;
+  text-align: start;
+  white-space: normal;
+}
+
+html.phone .ph-home-goal-l b.pos {
+  color: var(--pos);
+}
+
+html.phone .ph-home-goal-l b.neg {
+  color: var(--neg);
+}
+
 /* bills: the days left in a small tile */
 html.phone .ph-home-due {
   display: grid;

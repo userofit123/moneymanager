@@ -776,6 +776,26 @@ html.he .ya-back svg {
   margin: 0;
 }
 
+/* saving the goal: a short line at the start, the buttons at the end (under the line on a narrow card) */
+.ya-save {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-top: 16px;
+}
+
+.ya-save .sm {
+  flex: 1 1 240px;
+}
+
+.ya-save-b {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .ya-out {
   margin-top: 18px;
 }

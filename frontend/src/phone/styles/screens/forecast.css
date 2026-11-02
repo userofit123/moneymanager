@@ -705,6 +705,25 @@ html.phone .ph-ya-chart {
   padding: 12px 8px 10px;
 }
 
+/* saving the goal: a short line, then the buttons side by side */
+html.phone .ph-ya-save {
+  margin-block-start: 10px;
+  padding-inline: 4px;
+}
+
+html.phone .ph-ya-save p {
+  margin: 0 0 8px;
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+html.phone .ph-ya-save-b {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 html.phone .ph-ya-axis {
   margin: 2px 0 0;
   text-align: center;

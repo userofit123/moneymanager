@@ -116,7 +116,10 @@
   "Changed card payment rule": "שינוי כלל חיוב כרטיס",
   "Recovery key made": "נוצר מפתח שחזור",
   "Password reset with the recovery key": "הסיסמה אופסה בעזרת מפתח השחזור",
-  "Password reset with a phone code": "הסיסמה אופסה בעזרת קוד שנשלח לטלפון"
+  "Password reset with a phone code": "הסיסמה אופסה בעזרת קוד שנשלח לטלפון",
+  "Saved a goal": "נשמר יעד",
+  "Updated goal": "היעד עודכן",
+  "Removed goal": "היעד הוסר"
  },
  "history lines in saved results": {
   "#food → #Trip · 3 transactions": "#food ← #Trip · 3 תנועות",
@@ -288,7 +291,10 @@
   "3 categories, 10 rules, 2 tag rules, 12 sorted": "3 קטגוריות, 10 כללים, 2 כללי תגיות, 12 תנועות שויכו",
   "3 categories, 10 rules, 2 tag rules, 4 display names, 1 card payment rules, 1 salary rules, 12 sorted": "3 קטגוריות, 10 כללים, 2 כללי תגיות, 4 שמות תצוגה, 1 כללי תשלום כרטיס, 1 כללי משכורת, 12 תנועות שויכו",
   "1 rules now Salary, 2 rules removed, 3 choices moved to Income or automatic": "כלל אחד הוא עכשיו משכורת, 2 כללים הוסרו, 3 בחירות הועברו להכנסה או לאוטומטי",
-  "Acme pay → Income": "Acme pay ← הכנסה"
+  "Acme pay → Income": "Acme pay ← הכנסה",
+  "₪1,000,000 by age 50": "₪1,000,000 עד גיל 50",
+  "₪1,000,000 in 15 years": "₪1,000,000 בעוד 15 שנים",
+  "₪250,000 in 1 year": "₪250,000 בעוד שנה"
  },
  "server messages": {
   "\nAutomatic attempts are paused. Check the login, then unlock it in Settings.": "\nהניסיונות האוטומטיים מושהים. בדקו את פרטי ההתחברות ואז בטלו את הנעילה בהגדרות.",

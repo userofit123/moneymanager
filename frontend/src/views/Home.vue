@@ -1,6 +1,7 @@
 <script setup>
 // Home: the overview: alerts, the four totals, accounts, cards,
-// the money flow, spending by category, budgets, upcoming bills, recent activity, jars and exchange rates, with the same hover texts.
+// the money flow, spending by category, budgets, upcoming bills, recent activity, your goal (when one is saved), jars and exchange
+// rates, with the same hover texts.
 // It only reads: the shared data store and GET /api/fx. A block with nothing to show is hidden.
 // What it knows and does lives in pagelogic/home.js (shared with the phone's Home screen); here: the screen and its hover parts.
 import { ref, computed, onMounted } from "vue";
@@ -18,6 +19,8 @@ import AvailWhy from "./AvailWhy.vue";
 import { vTip } from "../core/tooltip.js";
 import { dcell, dstr, titleCase } from "../dates.js";
 import { useHome } from "../pagelogic/home.js";
+import { useGoalCard, openYearsNext } from "../pagelogic/yearsAhead.js";
+import { go } from "../router.js";
 import "../styles/pages/home.css"; // this page's own styles
 
 const {
@@ -25,6 +28,9 @@ const {
   kpis, money2, accSub, cardRows, flowMode, flowOpts, W, cols, startTip, cardsTip, upTip, endTip, colTip, asideTip, tileTip, leftOf,
   donut, fxCur, fxKeys, fxView, fxOpts, openBill,
 } = useHome();
+// your goal (saved in Forecast → Years ahead): the card opens the Forecast there
+const goal = useGoalCard();
+const openGoal = () => { openYearsNext(); go(link("forecast")); };
 const link = (name) => hrefOf(pages.find((p) => p.name === name));
 onMounted(async () => {
   data.start();
@@ -147,7 +153,7 @@ const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", 
           </div>
         </div>
 
-        <div v-show="M.has.bills || M.has.budg || M.has.jars || fxKeys.length || M.has.donut || M.has.recent" id="row-bb" class="grid g2">
+        <div v-show="goal || M.has.bills || M.has.budg || M.has.jars || fxKeys.length || M.has.donut || M.has.recent" id="row-bb" class="grid g2">
           <div v-if="M.has.donut" id="sec-donut">
             <h2 style="margin-top:0"><span>{{ t("home.byCategory") }}<span class="mo"> · {{ monthName(M.MK) }}</span></span><a class="sm hl" :href="link(H2.donut)" @click="onLink">{{ t("home.all") }}</a></h2>
             <div class="card"><div id="donutHome" class="flex dnt" :class="{ hv: hover }">
@@ -191,6 +197,16 @@ const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", 
                 <div style="flex:1;min-width:0"><div class="mer" style="font-size:14px">{{ nm(x) }}</div><div class="sm">{{ catName(x.c) }} · {{ dcell(x.d) }}</div></div>
                 <b class="num" :class="{ pos: x.a > 0 }">{{ amtText(x) }}</b>
               </div>
+            </div>
+          </div>
+
+          <div v-if="goal" id="sec-goal">
+            <h2 style="margin-top:0">{{ t("home.goal.title") }}<a class="sm hl" :href="link('forecast')" @click.prevent="openGoal">{{ t("home.goal.open") }}</a></h2>
+            <div id="goalHome" class="card click" role="button" tabindex="0" v-tip="goal.tip" @click="openGoal" @keydown.enter="openGoal">
+              <div style="display:flex;align-items:center;gap:8px;font-size:14px"><b style="flex:1">{{ goal.name }}</b><span class="num">{{ goal.pc }}%</span></div>
+              <div class="bar" style="margin:8px 0 5px"><i :style="{ width: goal.pc + '%', background: goal.on ? 'var(--pos)' : '' }" /></div>
+              <div class="sm num">{{ goal.have }}</div>
+              <div class="sm goal-st"><b :class="goal.on ? 'pos' : 'neg'">{{ goal.lead }}</b> {{ goal.line }}</div>
             </div>
           </div>
 
@@ -243,4 +259,5 @@ const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", 
 <style scoped>
 .gi { display: contents; }
 .hl, .card a, a.sm { text-decoration: none; }
+.goal-st { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--ol); line-height: 1.5; }
 </style>

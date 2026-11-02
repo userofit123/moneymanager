@@ -1,18 +1,20 @@
 // Years ahead, on the Forecast (computer page and phone screen): what the money could add up to over the years with the
 // choices made (goal, each month, age, growth). The numbers come from lib/yearsAhead.js. It starts from Home's
 // "In your accounts" and what you really kept on average in the last full months (keptEachMonth, the months chosen at the top
-// of the Forecast). The tiles always describe the choices as they are now. The choices are only remembered as a preference
-// ("moneyYears"), never written to the data; while a slider is dragged they are saved a moment after it stops, so dragging
-// stays smooth.
-import { ref, computed, onBeforeUnmount } from "vue";
+// of the Forecast). The tiles always describe the choices as they are now. The choices are remembered as a preference
+// ("moneyYears"); while a slider is dragged they are saved a moment after it stops, so dragging stays smooth.
+// "Save this goal" keeps the choices in the data (cfg.goal, with a history line and Undo), for Home's goal card; with a saved
+// goal the page starts from it.
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
+import { ask } from "../core/ask.js";
 import { now } from "../core/clock.js";
-import { home } from "../core/derived.js";
+import { home, forecast, fcSaved } from "../core/derived.js";
 import { readJson, writeJson } from "../core/prefs.js";
 import { fm } from "../format.js";
 import { profAge } from "../views/settings/profile.js";
-import { yearsAheadModel, keptEachMonth, MAX_YEARS, MAX_AGE } from "../lib/yearsAhead.js";
+import { yearsAheadModel, keptEachMonth, goalOf, goalPick, goalLine, sameGoal, goalStatus, MAX_YEARS, MAX_AGE } from "../lib/yearsAhead.js";
 
 export const GROWTH = [0, 0.03, 0.05];
 // the tiles' icons: money growing, the goal's flag, each month
@@ -23,16 +25,34 @@ export const YAI = { total: '<path d="M4 17l6-6 4 4 6-7"/><path d="M15 8h5v5"/>'
 export function useYearsAhead(M) {
   const { t, locale } = useI18n();
   const Y_ = (k, o, n) => (n == null ? t("years." + k, o || {}) : t("years." + k, o || {}, n));
-  const pick = ref(readJson("moneyYears", {}) || {});
+  const age = computed(() => profAge(data.state.value?.cfg?.profile, now.value));
+  // the saved goal (null when none); the page starts from it when there is one
+  const G = computed(() => data.state.value?.cfg?.goal || null);
+  const pick = ref((G.value && goalPick(G.value, age.value, now.value)) || readJson("moneyYears", {}) || {});
   let saveT = null;
   const save = () => { clearTimeout(saveT); saveT = null; writeJson("moneyYears", pick.value); };
   onBeforeUnmount(() => { if (saveT) save(); });
   const set = (k, v) => { pick.value = { ...pick.value, [k]: v }; clearTimeout(saveT); saveT = setTimeout(save, 400); };
   const back = () => { const p = { ...pick.value }; delete p.m; pick.value = p; save(); };
 
-  const age = computed(() => profAge(data.state.value?.cfg?.profile, now.value));
   const kept = computed(() => keptEachMonth(M.value?.FH, M.value?.fc?.n || 3));
   const Y = computed(() => yearsAheadModel({ start: home.value?.kpi?.cash || 0, pace: kept.value.avg || 0, age: age.value, pick: pick.value }));
+  // the saved goal as the model sees it today, and whether the choices are still the same as it
+  const Ys = computed(() => (G.value ? yearsAheadModel({ start: home.value?.kpi?.cash || 0, pace: kept.value.avg || 0, age: age.value, pick: goalPick(G.value, age.value, now.value) }) : null));
+  const same = computed(() => sameGoal(Y.value, Ys.value));
+  // Save this goal / Update goal: the choices as they are now go into the data, with a history line and Undo
+  const saveGoal = () => {
+    const g = goalOf(Y.value, now.value);
+    data.change((S) => { S.cfg = S.cfg || {}; const had = !!S.cfg.goal; S.cfg.goal = g; return [[had ? "Updated goal" : "Saved a goal", goalLine(g)]]; });
+  };
+  // the line next to the buttons: the goal is saved as it is, or what the saved goal is (when the choices differ); empty with none
+  const savedLine = computed(() => {
+    const S = Ys.value; if (!S) return "";
+    if (same.value) return Y_("savedSame");
+    return S.hasAge ? Y_("savedDiffAge", { goal: fm(S.goal), age: S.at }) : Y_("savedDiffYears", { goal: fm(S.goal), n: S.years }, S.years);
+  });
+  // Remove goal: asks first; the choices on the page stay as they are
+  const removeGoal = () => ask(Y_("rmTitle"), Y_("rmText"), () => data.change((S) => { const g = S.cfg?.goal; if (!g) return false; delete S.cfg.goal; return [["Removed goal", goalLine(g)]]; }), { danger: true, yes: Y_("remove") });
   // the age (or years from now) box: with an age the choice is kept as an age, without one as years
   const atKey = computed(() => (Y.value.hasAge ? "at" : "yrs"));
   const pc = (g) => Math.round(g * 1000) / 10;
@@ -85,5 +105,44 @@ export function useYearsAhead(M) {
   const axisLabel = (i) => (Y.value.hasAge ? String(Y.value.age + i) : String(i));
   const legMine = computed(() => Y_("legMine", { m: fm(Y.value.m) }));
 
-  return { YAI, Y, Y_, set, back, atKey, typeAt, leaveAt, answer, mTip, ptName, axisLabel, legMine, pc, GROWTH, fm };
+  return { YAI, Y, Y_, set, back, G, same, saveGoal, removeGoal, savedLine, atKey, typeAt, leaveAt, answer, mTip, ptName, axisLabel, legMine, pc, GROWTH, fm };
+}
+
+// Home's goal card opens the Forecast at Years ahead: the card sets this, and Years ahead scrolls itself into view once.
+const toYears = { on: false };
+export const openYearsNext = () => { toYears.on = true; };
+export function useScrollToYears(el) {
+  onMounted(() => { if (!toYears.on) return; toYears.on = false; nextTick(() => setTimeout(() => el.value?.scrollIntoView({ block: "start" }), 60)); });
+}
+
+// Home's goal card (computer and phone): only when a goal is saved. The goal, how much of it is in your accounts today (Home's
+// "In your accounts"), and whether setting aside your average gets there in time (goalStatus, the same numbers as Years ahead).
+export function useGoalCard() {
+  const { t } = useI18n();
+  const H_ = (k, o, n) => (n == null ? t("home.goal." + k, o || {}) : t("home.goal." + k, o || {}, n));
+  const st = computed(() => {
+    const G = data.state.value?.cfg?.goal;
+    if (!G || !home.value) return null;
+    const kept = keptEachMonth(forecast.value?.FH, fcSaved.value?.n || 3);
+    return goalStatus({ start: home.value.kpi?.cash || 0, pace: kept.avg || 0, age: profAge(data.state.value?.cfg?.profile, now.value), G, today: now.value });
+  });
+  return computed(() => {
+    const s = st.value;
+    if (!s) return null;
+    const goal = fm(s.goal), r = s.reach;
+    const name = s.hasAge ? H_("byAge", { goal, age: s.at }) : H_("inYears", { goal, n: s.years }, s.years);
+    const have = H_("have", { amount: fm(s.start) });
+    let line;
+    if (s.have) line = H_("done");
+    else if (s.on) line = r.soon ? H_("onSoon") : s.hasAge ? H_("onAge", { age: r.age }) : H_("onYears", { n: r.years }, r.years);
+    else {
+      // when your average gets there (or not at all), then what it would take each month to get there in time
+      const shown = r && (s.hasAge ? r.age : r.years), target = s.hasAge ? s.at : s.years;
+      const when = !r ? H_("behindNever") : shown <= target ? H_("behindLt") : s.hasAge ? H_("behindAge", { age: r.age }) : H_("behindYears", { n: r.years }, r.years);
+      line = when + " " + (s.hasAge ? H_("needAge", { need: fm(s.need), age: s.at }) : H_("needYears", { need: fm(s.need), n: s.years }, s.years));
+    }
+    const tip = [H_("tipH"), H_("tipGoal"), H_("tipHave", { amount: fm(s.start) }), H_("tipAvg", { amount: fm(s.kept) }),
+      s.g > 0 ? H_("tipGrow", { pc: Math.round(s.g * 1000) / 10 }) : H_("tipNoGrow"), H_("tipOn"), H_("tipGuess")].join("\n");
+    return { name, have, pc: s.pc, on: s.on, lead: s.have ? H_("doneLead") : s.on ? H_("onLead") : H_("behindLead"), line, tip };
+  });
 }

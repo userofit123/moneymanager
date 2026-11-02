@@ -142,3 +142,35 @@ export function yearsChartOf(c, W = 760, Ht = 240) {
   }
   return { W, Ht, Pl, Pr, Pt, Pb, X, Y, mine: line(c.mine), pace: pace ? line(pace) : null, area: `${X(0)},${Y(Math.max(0, mn))} ${line(c.mine)} ${X(n)},${Y(Math.max(0, mn))}`, goalY: Y(c.goal), atX: c.at <= n ? X(c.at) : null, ticks, xs: xs.map((i) => ({ i, x: X(i) })), hit, pts: c.mine.map((v, i) => ({ i, x: X(i), y: Y(v), v, p: pace ? pace[i] : null })) };
 }
+
+// A saved goal (Years ahead → Save this goal, kept in the data as cfg.goal):
+// { goal: the amount, age: the age to have it by (null when no age was known), yrs: the years from the day it was saved,
+//   m: the amount set aside each month, g: growth a year, d: the day it was saved ("YYYY-MM-DD") }.
+const isoDay = (t) => t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0");
+export const goalOf = (Y, today) => ({ goal: Y.goal, age: Y.hasAge ? Y.at : null, yrs: Y.years, m: Y.m, g: Y.g, d: isoDay(today) });
+// whole months from the day it was saved to today
+const monthsSince = (d, t) => { const [y, m, dd] = String(d || "").split("-").map(Number); if (!y) return 0; return Math.max(0, (t.getFullYear() - y) * 12 + t.getMonth() - (m - 1) - (t.getDate() < dd ? 1 : 0)); };
+// The choices a saved goal stands for today (the `pick` of yearsAheadModel): its age when both it and your age are known;
+// otherwise the years still left from the day it was saved (at least 1), as an age when your age is known now.
+export function goalPick(G, age, today) {
+  if (!G) return null;
+  const p = { goal: G.goal, m: G.m, g: G.g };
+  if (age > 0 && G.age) p.at = G.age;
+  else { const left = Math.max(1, Math.round(((+G.yrs || 0) * 12 - monthsSince(G.d, today)) / 12)); if (age > 0) p.at = age + left; else p.yrs = left; }
+  return p;
+}
+// Whether the choices on the page (Y, a yearsAheadModel) are the saved goal's (S, the model of goalPick): the same goal, amount
+// each month, age (or years) and growth.
+export const sameGoal = (Y, S) => !!S && Y.goal === S.goal && Y.m === S.m && Y.at === S.at && Y.g === S.g;
+// Home's goal card: the saved goal, how much of it you have today, and whether setting aside your average gets there in time.
+// start: the money in your accounts today (Home's "In your accounts"); pace: your average (keptEachMonth); age: your age now.
+// Returns { goal, at, years, hasAge, start, kept, pc (0–100), have (you have it already), on (on track), reach (when your
+// average gets there, as in yearsAheadModel, or null), need (each month to have it in time, rounded up to ₪10), g }.
+export function goalStatus({ start = 0, pace = 0, age = 0, G, today }) {
+  if (!G) return null;
+  const Z = yearsAheadModel({ start, pace, age, pick: { ...goalPick(G, age, today), m: undefined } });
+  const have = Z.start >= Z.goal, on = have || (!!Z.reach && Z.reach.k <= Z.years * 12);
+  return { goal: Z.goal, at: Z.at, years: Z.years, hasAge: Z.hasAge, age: Z.age, start: Z.start, kept: Z.kept, pc: Math.max(0, Math.min(100, Math.floor((Z.start / Z.goal) * 100))), have, on, reach: Z.reach, need: Z.need, g: Z.g };
+}
+// A saved goal in the change history, in English: "₪1,000,000 by age 50" or "₪1,000,000 in 15 years".
+export const goalLine = (G) => "₪" + Math.round(+G.goal || 0).toLocaleString("en-US") + (G.age ? " by age " + G.age : " in " + G.yrs + (G.yrs == 1 ? " year" : " years"));

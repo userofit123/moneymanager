@@ -1,27 +1,31 @@
 <script setup>
 // Forecast → Years ahead (computer): one card. At the top three tiles for the choices as they are now (what they add up to by
 // an age, when the goal is reached and what it would take each month), each explained in its tooltip; under them the choices in
-// one row (goal, each month with your average and the way back to it, age, growth), then the chart across the card.
-// What it knows lives in pagelogic/yearsAhead.js (shared with the phone's Forecast screen). Nothing here changes the data.
+// one row (goal, each month with your average and the way back to it, age, growth), then saving the goal (Save this goal, or
+// Update goal and Remove goal once one is saved) and the chart across the card.
+// What it knows lives in pagelogic/yearsAhead.js (shared with the phone's Forecast screen). Only saving the goal changes the data.
 import { ref, computed } from "vue";
 import MoneyInput from "../../components/MoneyInput.vue";
 import YearsChart from "../../components/charts/YearsChart.vue";
-import { useYearsAhead } from "../../pagelogic/yearsAhead.js";
+import { useYearsAhead, useScrollToYears } from "../../pagelogic/yearsAhead.js";
 import { openSettingsTab } from "../settings/tab.js";
 import { go } from "../../router.js";
 
 const props = defineProps({ model: { type: Object, required: true } });
-const { YAI, Y, Y_, set, back, atKey, typeAt, leaveAt, answer, mTip, ptName, axisLabel, legMine, pc, GROWTH } = useYearsAhead(computed(() => props.model));
+const { YAI, Y, Y_, set, back, G, same, saveGoal, removeGoal, savedLine, atKey, typeAt, leaveAt, answer, mTip, ptName, axisLabel, legMine, pc, GROWTH } = useYearsAhead(computed(() => props.model));
 const toProfile = () => { openSettingsTab("prof"); go("/settings"); };
 // an amount box left empty while typing keeps the last amount
 const setNum = (k, v) => { if (v !== "" && isFinite(+v)) set(k, +v); };
 // …and shows it again when the box is left empty
 const redo = ref(0);
 const fill = (e) => { if (!e.target.value.trim()) redo.value++; };
+// opened from Home's goal card: Years ahead comes into view
+const top = ref(null);
+useScrollToYears(top);
 </script>
 
 <template>
-  <h2 id="fcYears"><span>{{ Y_("title") }}</span></h2>
+  <h2 id="fcYears" ref="top"><span>{{ Y_("title") }}</span></h2>
   <div class="card ya">
     <ol class="fcsum ya-sum" aria-live="polite">
       <li v-for="r in answer" :key="r.k" :class="'r-' + r.k">
@@ -63,6 +67,17 @@ const fill = (e) => { if (!e.target.value.trim()) redo.value++; };
         <div class="ya-lh"><label><span class="tipd" :data-tip="Y_('gTip')">{{ Y_("g") }}</span></label></div>
         <div class="seg ya-g" role="group" :aria-label="Y_('g')"><button v-for="g in GROWTH" :key="g" type="button" :class="{ on: Y.g == g }" :aria-pressed="Y.g == g" @click="set('g', g)">{{ pc(g) }}%</button></div>
       </div>
+    </div>
+    <!-- saving the goal: Save this goal, or (once saved) Update goal when the choices differ, and Remove goal -->
+    <div class="ya-save">
+      <span class="sm">{{ savedLine }}</span>
+      <span class="ya-save-b">
+        <template v-if="G">
+          <button type="button" class="btn o s" data-a="yaRemove" @click="removeGoal">{{ Y_("remove") }}</button>
+          <button type="button" class="btn s" data-a="yaUpdate" :disabled="same" :data-tip="Y_('updateTip')" @click="saveGoal">{{ Y_("update") }}</button>
+        </template>
+        <button v-else type="button" class="btn s" data-a="yaSave" :data-tip="Y_('saveTip')" @click="saveGoal">{{ Y_("save") }}</button>
+      </span>
     </div>
     <div class="ya-out">
       <div class="flex sm ya-leg">

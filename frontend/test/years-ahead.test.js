@@ -2,7 +2,7 @@
 // Every expected number below is worked out by hand in the comment next to it, not by calling the same code.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { amountAfter, monthsToReach, monthlyFor, pathOf, about, aboutUp, niceUp, sliderOf, goalAgeOf, keptEachMonth, yearsAheadModel, yearsChartOf } from "../src/lib/yearsAhead.js";
+import { amountAfter, monthsToReach, monthlyFor, pathOf, about, aboutUp, niceUp, sliderOf, goalAgeOf, keptEachMonth, yearsAheadModel, yearsChartOf, goalOf, goalPick, sameGoal, goalStatus, goalLine } from "../src/lib/yearsAhead.js";
 
 const near = (a, b, d = 0.01) => assert.ok(Math.abs(a - b) <= d, `${a} ≉ ${b}`);
 
@@ -147,4 +147,47 @@ test("the chart: a point a year, the goal line and the dot where the line crosse
   assert.ok(c.ticks.length >= 3 && c.ticks.length <= 6, String(c.ticks.length)); assert.ok(c.ticks.every((x) => /^₪\d+(\.\d+)?[kM]?$/.test(x.label)), c.ticks.map((x) => x.label).join());
   // the chart's amount at the age chosen is the same rounded amount as the sentence
   assert.equal(about(Y.chart.mine[Y.years]), Y.total);
+});
+
+// a saved goal (Years ahead → Save this goal) and Home's goal card; no growth, so every number is plain arithmetic
+test("a saved goal: what is kept, the choices it stands for later, and whether the page still shows it", () => {
+  const today = new Date(2026, 10, 2);
+  const Y = yearsAheadModel({ start: 100000, pace: 5000, age: 40, pick: { goal: 500000, at: 50, m: 6000, g: 0.03 } });
+  assert.deepEqual(goalOf(Y, today), { goal: 500000, age: 50, yrs: 10, m: 6000, g: 0.03, d: "2026-11-02" });
+  assert.deepEqual(goalPick(goalOf(Y, today), 40, today), { goal: 500000, m: 6000, g: 0.03, at: 50 });
+  // saved without an age, 10 years from 2 Jan 2026: on 2 Nov 2026, 10 months later, 110 months are left: about 9 years
+  const G = { goal: 500000, age: null, yrs: 10, m: 5000, g: 0, d: "2026-01-02" };
+  assert.deepEqual(goalPick(G, 0, today), { goal: 500000, m: 5000, g: 0, yrs: 9 });
+  assert.deepEqual(goalPick(G, 40, today), { goal: 500000, m: 5000, g: 0, at: 49 }); // your age added since: 40 + 9
+  // the same choices are the saved goal; another amount each month is not
+  const S = yearsAheadModel({ start: 100000, pace: 5000, age: 0, pick: goalPick(G, 0, today) });
+  assert.equal(sameGoal(yearsAheadModel({ start: 100000, pace: 5000, age: 0, pick: { goal: 500000, yrs: 9, g: 0 } }), S), true); // m: your average, 5,000
+  assert.equal(sameGoal(yearsAheadModel({ start: 100000, pace: 5000, age: 0, pick: { goal: 500000, yrs: 9, g: 0, m: 5100 } }), S), false);
+  assert.equal(sameGoal(Y, null), false);
+  assert.equal(goalLine({ goal: 1000000, age: 50 }), "₪1,000,000 by age 50");
+  assert.equal(goalLine({ goal: 1000000, age: null, yrs: 1 }), "₪1,000,000 in 1 year");
+  assert.equal(goalLine({ goal: 1000000, age: null, yrs: 15 }), "₪1,000,000 in 15 years");
+});
+
+test("Home's goal card: on track or behind at your average, and what it would take", () => {
+  const today = new Date(2026, 10, 2), G = (goal, more = {}) => ({ goal, age: 50, yrs: 10, m: 9999, g: 0, d: "2026-11-02", ...more });
+  // 100,000 today, 5,000 a month: 400,000 more takes 80 months, about 7 years: age 47, before 50 (120 months)
+  let s = goalStatus({ start: 100000, pace: 5000, age: 40, G: G(500000), today });
+  assert.equal(s.on, true); assert.equal(s.reach.age, 47); assert.equal(s.pc, 20); assert.equal(s.at, 50);
+  assert.equal(s.need, 3340); // 400,000 / 120 = 3,333.33, up to the next ₪10
+  // the amount saved each month is not used: the card is always about your average
+  assert.equal(goalStatus({ start: 100000, pace: 5000, age: 40, G: G(500000, { m: 0 }), today }).on, true);
+  // 900,000 more takes 180 months: age 55, after 50; by 50 it takes 900,000 / 120 = 7,500 a month
+  s = goalStatus({ start: 100000, pace: 5000, age: 40, G: G(1000000), today });
+  assert.equal(s.on, false); assert.equal(s.reach.age, 55); assert.equal(s.need, 7500);
+  // 121 months: shown as about age 50 too, but a month late
+  s = goalStatus({ start: 0, pace: 1000, age: 40, G: G(121000), today });
+  assert.equal(s.on, false); assert.equal(s.reach.age, 50);
+  // already there
+  s = goalStatus({ start: 600000, pace: 0, age: 40, G: G(500000), today });
+  assert.equal(s.have, true); assert.equal(s.on, true); assert.equal(s.pc, 100);
+  // without an age: 10 years from today, about 7 years at your average
+  s = goalStatus({ start: 100000, pace: 5000, age: 0, G: G(500000, { age: null }), today });
+  assert.equal(s.hasAge, false); assert.equal(s.years, 10); assert.equal(s.reach.years, 7); assert.equal(s.on, true);
+  assert.equal(goalStatus({ start: 1, pace: 1, age: 40, G: null, today }), null);
 });
