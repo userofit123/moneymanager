@@ -41,6 +41,8 @@ export const POINTS = {
 const DAILY = ["visit", "cat", "tag"], KEEP_DAYS = 90;
 // Month results are counted from this day of the next month, so late bank and card rows are in first.
 export const COUNT_FROM_DAY = 3;
+// How many finished months back are counted when they were not counted yet (the first time points run).
+const BACK_MONTHS = 12;
 
 // ---- levels ----
 // Level 1 at 0 points; level 2 needs 100, level 3 250, level 4 450, level 5 700: each step needs 50 more than the last.
@@ -172,11 +174,22 @@ export function pointsUpkeep(S, today, rows) {
   const day = dayKey(today);
   let got = 0;
   setupDone(S).forEach((x) => { got += award(S, x.key, x.kind, x.pts, day, x.d); });
-  const pm = addM(day.slice(0, 7), -1), done = "month:" + pm;
-  if (+day.slice(8, 10) >= COUNT_FROM_DAY && !S.points[done]) {
+  // the finished months not counted yet, up to BACK_MONTHS back (so a first run counts the past year's results once),
+  // the month just ended only from day COUNT_FROM_DAY, so late bank and card rows are in
+  const pm = addM(day.slice(0, 7), -1);
+  const todo = [];
+  for (let i = BACK_MONTHS; i >= 1; i--) {
+    const m = addM(day.slice(0, 7), -i);
+    if (!S.points["month:" + m] && (m !== pm || +day.slice(8, 10) >= COUNT_FROM_DAY)) todo.push(m);
+  }
+  if (todo.length) {
     const R = rows || countedRows(S, day);
-    monthParts(R, S.budgets, pm).forEach((x) => { got += award(S, x.key, x.kind, x.pts, day, x.d); });
-    S.points[done] = { pts: 0, kind: "monthDone", day, d: pm }; // counted once, even when it earned nothing
+    const first = R.reduce((a, r) => (r.d && (!a || r.d < a) ? r.d : a), "").slice(0, 7); // the first month of bank data is usually only part of a month, so counting starts the month after
+    todo.forEach((m) => {
+      const at = m === pm ? day : addM(m, 1) + "-" + p2(COUNT_FROM_DAY); // an older month is dated the day it would have been counted
+      if (first && m > first) monthParts(R, S.budgets, m).forEach((x) => { got += award(S, x.key, x.kind, x.pts, at, x.d); });
+      S.points["month:" + m] = { pts: 0, kind: "monthDone", day: at, d: m }; // counted once, even when it earned nothing
+    });
   }
   const old = dayKey(new Date(new Date(day + "T12:00:00").getTime() - KEEP_DAYS * 864e5));
   entries(S).forEach(([k, e]) => {

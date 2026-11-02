@@ -149,6 +149,20 @@ test("points by month: actions by the day given, month results by the month they
   assert.equal(pointsSummary(S, "2026-11-04", []).total, 217);
 });
 
+test("past months are counted once: up to 12 back, from the first full month of bank data, dated when they would have been counted", () => {
+  const rows = [];
+  ["2026-06", "2026-07", "2026-08", "2026-09", "2026-10"].forEach((m) => { rows.push({ d: m + "-15", a: 10000, c: "Salary" }, { d: m + "-16", a: -9000, c: "Food" }); });
+  const S = { budgets: {}, points: {} };
+  pointsUpkeep(S, "2026-11-04", rows);
+  const done = Object.keys(S.points).filter((k) => /^month:\d{4}-\d{2}$/.test(k)).sort();
+  assert.equal(done.length, 12); // every month in the last year is marked counted, even those with no data
+  assert.equal(S.points["month:2026-06:kept"], undefined); // June is the first month of data: only part of a month
+  assert.deepEqual(S.points["month:2026-07:kept"], { pts: 10 * POINTS.keptPerPct, kind: "kept", day: "2026-08-03", d: "10" }); // d: the share kept
+  assert.equal(S.points["month:2026-10:kept"].day, "2026-11-04"); // the month just ended: given today
+  const again = pointsUpkeep(S, "2026-11-05", rows);
+  assert.equal(again, 0); // never counted twice
+});
+
 test("old daily points fold into their month", () => {
   const S = { points: { "visit:2026-06-10": { kind: "visit", pts: 5, day: "2026-06-10" } } };
   pointsUpkeep(S, "2026-11-02", []);
