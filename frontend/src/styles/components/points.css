@@ -1,0 +1,168 @@
+/* Points and levels: the badge (top of the side column on a computer, the top bar on the phone) and its window. */
+
+.ptb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  inline-size: 64px;
+  padding: 6px 4px 7px;
+  margin-block-end: 6px;
+  border: 1px solid var(--ol);
+  border-radius: 14px;
+  background: none;
+  color: var(--tx2);
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.2;
+  cursor: pointer;
+  flex: none;
+  transition: background .2s;
+}
+
+.ptb:hover {
+  background: var(--s2);
+}
+
+.ptb .ptl {
+  color: var(--tx);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ptb .ptn {
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ptbar {
+  display: block;
+  inline-size: 100%;
+  block-size: 4px;
+  border-radius: 99px;
+  background: var(--s2);
+  overflow: hidden;
+}
+
+.ptbar i {
+  display: block;
+  block-size: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--acc), var(--acc2));
+}
+
+html[data-nav="mini"]:not(.phone) .ptb {
+  inline-size: 52px;
+}
+
+/* the phone's top bar: one line with the bar under it, plain like the bar's other buttons */
+html.phone .ptb.phb {
+  inline-size: auto;
+  min-block-size: var(--p-hit);
+  justify-content: center;
+  align-items: stretch;
+  gap: 5px;
+  padding: 0 6px;
+  margin: 0;
+  margin-inline-start: -2px;
+  border: 0;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+html.phone .ptb.phb:hover {
+  background: none;
+}
+
+html.phone .ptb.phb:active {
+  background: var(--p-press);
+}
+
+html.phone .ptb.phb .ptbar {
+  block-size: 3px;
+  background: var(--p-line);
+}
+
+/* the window */
+.ptw .pth {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ptw .pth b {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -.3px;
+}
+
+.ptw .pth span {
+  color: var(--tx2);
+  font-variant-numeric: tabular-nums;
+}
+
+.ptw .bar {
+  margin: 10px 0 6px;
+}
+
+.ptw .ptg {
+  margin-block-start: 14px;
+  border-block-start: 1px solid var(--ol);
+}
+
+.ptw .ptg .row:first-child {
+  border-block-start: 0;
+}
+
+.ptw .ptm .grow .sm {
+  display: block;
+  margin-block-start: 2px;
+}
+
+.ptw .ptv {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ptw .pts {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 20px 0 6px;
+}
+
+.ptw .ptk {
+  font-size: 12.5px;
+  color: var(--tx2);
+  margin: 10px 0 2px;
+}
+
+.ptw .ptl2 {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 13.5px;
+}
+
+.ptw .ptl2 li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 5px 0;
+}
+
+.ptw .ptl2 li > span:first-child {
+  min-inline-size: 0;
+}
+
+.ptw .ptg .ptl2 {
+  padding-inline-start: 12px;
+  margin-block-end: 8px;
+  color: var(--tx2);
+}
+
+.ptw .ptem {
+  margin-block: 4px 8px;
+}

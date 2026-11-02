@@ -1,6 +1,6 @@
 <script setup>
 // The menu: a rail on a computer (<nav>), with each page's icon and badge;
-// the gliding highlight moves to the open page. At the bottom of the rail: update, sync status, Appearance and Settings.
+// the gliding highlight moves to the open page. Under the logo: the points badge. At the bottom of the rail: update, sync status, Appearance and Settings.
 import { ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import { pages } from "../../routes.js";
@@ -11,6 +11,7 @@ import { job } from "../../core/jobs.js";
 import { appearanceOpen, syncOpen } from "../../core/shell.js";
 import AppLogo from "../AppLogo.vue";
 import UpdateButton from "./UpdateButton.vue";
+import PointsBadge from "./PointsBadge.vue";
 
 const { t } = useI18n();
 // Settings sits at the very bottom of the rail, under Appearance
@@ -58,6 +59,7 @@ onBeforeUnmount(() => { removeEventListener("resize", onResize); ro?.disconnect(
   <nav ref="nav" :aria-label="t('shell.menu')">
     <i ref="pill" class="nbi" style="transform-origin:0 0" />
     <AppLogo shuffle />
+    <PointsBadge />
     <template v-for="p in navPages" :key="p.name">
       <button type="button" class="nb" :class="{ on: current.name === p.name, sec: !p.main }" :data-v="NAV_ID[p.name]" :aria-current="current.name === p.name ? 'page' : undefined" @click="go(hrefOf(p))">
         <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" v-html="p.icon" /></span>{{ t("nav." + p.name) }}<span v-if="p.name === 'activity' || p.name === 'alerts'" class="badge" :style="{ display: badge(p) ? 'grid' : 'none' }">{{ badge(p) }}</span>

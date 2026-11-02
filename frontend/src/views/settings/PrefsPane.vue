@@ -1,17 +1,20 @@
 <script setup>
-// Settings → Preferences: the "Language and region" and "App icon" cards. The choices are kept in this browser.
+// Settings → Preferences: the "Language and region", "App icon" and "Points and levels" cards. The choices are kept in this browser.
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { setLang } from "../../i18n.js";
 import SetSection from "./SetSection.vue";
 import SetRow from "./SetRow.vue";
 import { dateFormat, weekStart } from "../../core/prefs.js";
+import { pointsPref } from "../../core/points.js";
 import { DATE_FORMATS, ICONS, iconSvg, readIcon, saveDateFormat, saveWeekStart, saveIcon } from "./prefs.js";
 
 const { t, locale } = useI18n();
 const tk = (k) => t("settings.pref." + k);
 // the date order and the week start are shared by every page, so a change shows everywhere at once
 const df = dateFormat, ws = weekStart, icon = ref(readIcon());
+// points on or off: off hides the badge and gives no points
+const setPoints = (on) => (pointsPref.value = on ? "on" : "off");
 </script>
 
 <template>
@@ -29,6 +32,9 @@ const df = dateFormat, ws = weekStart, icon = ref(readIcon());
     </SetSection>
     <SetSection icon="app" :title="tk('iconTitle')" :desc="tk('iconDesc')" pad>
       <div class="apg c6"><button v-for="[v, l] in ICONS" :key="v" type="button" class="apt" :class="{ on: icon === v }" data-a="opt" data-k="sym" :data-v="v" @click="icon = saveIcon(v)"><span class="apv symv" :data-ss="v" v-html="iconSvg(v)" /><span class="apl">{{ tk(l) }}</span></button></div>
+    </SetSection>
+    <SetSection icon="sparkle" :title="tk('pointsTitle')" :desc="tk('pointsDesc')">
+      <SetRow toggle data-k="points" :title="tk('pointsOn')" :desc="tk('pointsOnDesc')" :model-value="pointsPref !== 'off'" @update:model-value="setPoints" />
     </SetSection>
   </div>
 </template>

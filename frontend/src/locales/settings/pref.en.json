@@ -16,5 +16,9 @@
   "pound": "Pound",
   "yen": "Yen",
   "coin": "Coin",
-  "dfDesc": "How dates are written everywhere in the app."
+  "dfDesc": "How dates are written everywhere in the app.",
+  "pointsTitle": "Points and levels",
+  "pointsDesc": "Points for using the app well and for good months. They add up to levels.",
+  "pointsOn": "Show points and levels",
+  "pointsOnDesc": "When off, your level is not shown and no points are given."
 }

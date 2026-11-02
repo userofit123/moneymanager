@@ -1,5 +1,5 @@
 <script setup>
-// Every phone screen's frame: the top bar (Back to the screen under it, the small title, up to two buttons), the large title
+// Every phone screen's frame: the top bar (Back to the screen under it, or on a first screen the points badge, the small title, up to two buttons), the large title
 // that slides up into the bar as the page scrolls, an optional part under the title (slot "head"), the content,
 // and pull down to sync (refresh). A screen with a guide gets a ? in the bar that opens it in the Help sheet. The page itself scrolls (the document), so the browser's own bars hide as on any site.
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount, onActivated, onDeactivated } from "vue";
@@ -12,6 +12,7 @@ import { job } from "../../core/jobs.js";
 import { HELP_PAGE, guideOf, loadGuide } from "../../help/help.js";
 import { helpOn } from "../help.js";
 import PIcon from "./PIcon.vue";
+import PointsBadge from "../../components/shell/PointsBadge.vue";
 
 const props = defineProps({
   title: { type: String, default: "" }, // the screen's name (default: its name in screens.js)
@@ -91,6 +92,7 @@ onBeforeUnmount(() => { io?.disconnect(); ro?.disconnect(); stopPull?.(); });
         <button v-if="here.under" type="button" class="ph-back" :aria-label="t('phone.shell.back')" @click="nav.back()">
           <PIcon name="back" dir /><span>{{ backFull ? backTo : t("phone.shell.back") }}</span>
         </button>
+        <PointsBadge v-else phone />
       </div>
       <h2 class="ph-bar-title" :aria-hidden="large && !small ? 'true' : undefined">{{ name }}</h2>
       <div class="ph-bar-end"><slot name="actions" /><button v-if="hasGuide" type="button" class="ph-ib ph-guide-b" :aria-label="t('phone.shell.guide')" @click="showGuide"><PIcon name="help" /></button></div>
