@@ -416,3 +416,18 @@ html.phone .ph-home-skel i + i {
 html.phone .ph-home-step .ph-row-t {
   white-space: normal;
 }
+
+/* under the four totals: how long the money in your accounts would last (tap: how it is worked out) */
+html.phone .ph-home-lasts {
+  display: block;
+  inline-size: 100%;
+  margin-block-start: 8px;
+  padding: 2px 4px;
+  border: 0;
+  background: none;
+  color: var(--tx2);
+  font: inherit;
+  font-size: 13px;
+  line-height: 18px;
+  text-align: start;
+}

@@ -96,6 +96,7 @@ const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", 
             <div class="lbl"><span class="gi" v-html="glyphIcon(c.key, { worth: 'var(--acc)', income: 'var(--pos)', expense: 'var(--neg)', net: 'var(--acc)' }[c.key])" /><span>{{ titleCase(c.label) }}</span></div>
             <div class="val"><small>₪</small>{{ c.key === "net" && c.v < 0 ? "−" : "" }}{{ n0(c.v) }}</div>
             <div class="sm">{{ c.sub }}</div>
+            <div v-if="c.lasts" class="sm lasts" v-tip="c.lasts.tip">{{ c.lasts.text }}</div>
             <svg v-if="c.spark" class="spark" viewBox="0 0 200 46" preserveAspectRatio="none">
               <defs><linearGradient :id="'sg' + c.key" x1="0" x2="0" y1="0" y2="1"><stop offset="0" :stop-color="c.col" stop-opacity=".35" /><stop offset="1" :stop-color="c.col" stop-opacity="0" /></linearGradient></defs>
               <polygon :points="sparkPath(c.spark).area" :fill="'url(#sg' + c.key + ')'" /><polyline :points="sparkPath(c.spark).line" fill="none" :stroke="c.col" stroke-width="2" vector-effect="non-scaling-stroke" />

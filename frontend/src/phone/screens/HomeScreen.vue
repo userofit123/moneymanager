@@ -119,6 +119,7 @@ const isEnd = (c) => c.kind === "end";
         <div class="ph-home-tiles">
           <StatTile v-for="c in tiles" :key="c.key" :class="'k-' + c.key" :label="cap(c.label)" :value="tileVal(c)" :note="c.sub" :tone="c.key === 'net' && c.v < 0 ? 'neg' : ''" @tap="explain(c.tip)" />
         </div>
+        <button v-if="tiles[0]?.lasts" type="button" class="ph-home-lasts" @click="explain(tiles[0].lasts.tip)">{{ tiles[0].lasts.text }}</button>
       </section>
 
       <ListGroup v-if="M.has.accts" :title="t('home.accounts')" :more="P('seeAll')" @more="nav.push('accounts')">

@@ -226,3 +226,11 @@ html.he .fxbar i {
   font-weight: 500;
   color: var(--tx2);
 }
+
+/* "In your accounts": how long the money would last, a second quiet line under the first */
+#kpis .lasts {
+  margin-block-start: 3px;
+  inline-size: fit-content;
+  position: relative; /* above the small chart, so pointing at it shows its tooltip */
+  z-index: 1;
+}

@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
 import { openAlert as openAlertFrom } from "../core/shell.js";
 import { openSettingsTab } from "../views/settings/tab.js";
-import { home, fcSaved, keyNums } from "../core/derived.js";
+import { home, fcSaved, keyNums, forecast } from "../core/derived.js";
 import { paydayWords } from "./payday.js";
 import { now } from "../core/clock.js";
 import { readPref, writePref } from "../core/prefs.js";
@@ -14,6 +14,7 @@ import { go } from "../router.js";
 import { formatMoney, currencySymbol } from "../format.js";
 import { flowSteps } from "../lib/home.js";
 import { numText } from "../lib/keyNumbers.js";
+import { spentEachMonth, moneyLasts } from "../lib/moneyLasts.js";
 import { alertsModel } from "../lib/alerts.js";
 import { openTx, openPop } from "../core/txwin.js";
 import { TP } from "../core/tooltip.js";
@@ -82,6 +83,16 @@ export function useHome() {
   const accGo = (n) => go("/accounts?n=" + encodeURIComponent(n));
   const goConn = () => { openSettingsTab("conn"); go("/settings"); };
 
+  // Under "In your accounts": how long that money would last at your usual spending (lib/moneyLasts.js), with how it is
+  // worked out. Hidden with no money in the accounts or no full month of spending yet.
+  const lasts = computed(() => {
+    const cash = Math.round(M.value?.kpi?.cash || 0), sp = spentEachMonth(forecast.value?.FH, fcSaved.value?.n || 3), L = moneyLasts(cash, sp.avg);
+    if (!L) return null;
+    const n = sp.months.length, text = L.less ? t("home.lastsLess") : L.months ? t("home.lastsMonths", { n: L.months }, L.months) : t("home.lastsYears", { n: L.years });
+    const tip = TP(t("home.lastsTitle"), [[t("num.inAccounts"), fm(cash)], [t("home.lastsSpend"), fm(sp.avg)]], [t("home.lastsHow"), t("home.lastsWhat", { n }, n), t("home.lastsLeft"), t("home.lastsMeans")].join("\n"));
+    return { text, tip };
+  });
+
   // The four totals at the top, each with its hover text.
   const kpis = computed(() => {
     const K = M.value.kpi, pm = M.value.pm, inc = K.inc, ex = K.ex, net = K.net;
@@ -89,7 +100,7 @@ export function useHome() {
     const tipWorth = TP(t("num.inAccounts"), [...K.cashAccts.map((a) => [lblOf(a), fm(a.ils)]), "---", [t("tip.total"), fm(K.cash)], ...(K.pen > 0 ? [[t("tip.withPension"), fm(K.withPension)]] : []), ...K.notCounted.map((n) => [an(n), t("tip.notCounted")]), ...(K.noRate || []).map((n) => [an(n), t("tip.noRate")]), ...K.missing.map((n) => [an(n), t("tip.notRead")])],
       t("tip.worthNote") + (K.pen > 0 ? t("tip.pensionNote") : "") + (K.missing.length ? t("tip.missingNote") : ""));
     return [
-      { key: "worth", hero: true, label: t("num.inAccounts"), v: K.cash, sub: sub0, spark: K.nwSpark, col: "var(--onc)", tip: tipWorth },
+      { key: "worth", hero: true, label: t("num.inAccounts"), v: K.cash, sub: sub0, lasts: lasts.value, spark: K.nwSpark, col: "var(--onc)", tip: tipWorth },
       { key: "income", label: t(numText("moneyIn").short), v: inc, sub: t("home.vsLast", { amount: fm(K.incLast), month: monthName(pm) }), spark: K.incSpark, col: "var(--pos)", tip: TP(t(numText("moneyIn").name), [[t("tip.soFarMonth"), fm(inc)], ...(K.sal >= 1 ? [[t("tip.salaryPart"), fm(K.sal)]] : []), [t("tip.lastMonth"), fm(K.incLast)], ...(K.back >= 1 ? ["---", [t("tip.moneyBack"), fm(K.back)]] : [])], t("tip.incomeNote")) },
       { key: "expense", label: t(numText("moneyOut").short), v: ex, sub: t("home.lastMonthAmount", { amount: fm(K.exLast) }), spark: K.exSpark, col: "var(--neg)", tip: TP(t(numText("moneyOut").name), [[t("tip.soFarMonth"), fm(ex)], [t("tip.lastMonth"), fm(K.exLast)]], t("tip.expensesNote")) },
       { key: "net", label: t("num.saved"), v: net, sub: t("home.netSub"), spark: null, tip: TP(t("tip.netTitle"), [[t(numText("moneyIn").name), fm(inc)], [t(numText("moneyOut").name), fm(ex)], "---", [t("num.savedS"), fm(net)]], t("tip.netNote")) },
