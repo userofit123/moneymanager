@@ -16,6 +16,7 @@ import { activityGo } from "../core/shell.js";
 import { openTx, openPop } from "../core/txwin.js";
 import { openForm } from "../core/forms.js";
 import { setCategory } from "../core/txact.js";
+import { gapReviewed } from "../core/points.js";
 import { catNames, catColor, catLabel } from "../core/cats.js";
 import { go } from "../router.js";
 import * as A from "../lib/txactions.js";
@@ -165,7 +166,7 @@ export function useActivity() {
   const gapOrig = (r) => (r.amount != r.diff ? t("txw.a.gapPart", { amt: (SYM[r.cur] || r.cur + " ") + f0(r.amount) }) : "");
   const gapB = (r) => gapBill(r, BC.value);
   async function gapCall(id, what, msg, body) {
-    try { await data.api(`/api/gaps/${id}/${what}`, sendJson("POST", body || {})); await data.load(); toast(msg); } catch (e) { toast(e.message, { kind: "err" }); }
+    try { await data.api(`/api/gaps/${id}/${what}`, sendJson("POST", body || {})); await data.load(); gapReviewed(id); toast(msg); } catch (e) { toast(e.message, { kind: "err" }); }
   }
   const gapNote = ref(null); // the gap being dismissed, with the user's note
   const gapAdd = (r) => openForm("tx", { gap: { acc: r.n, cur: r.cur, amt: r.diff, date: String(r.to).slice(0, 10) } });

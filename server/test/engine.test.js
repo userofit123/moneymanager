@@ -726,3 +726,16 @@ test("a gap left by settled charges wrongly taken as already in the starting bal
   await tx((c) => recordSnapshot(c, card, -1175, at(-1)));
   assert.deepEqual(await openGaps(), [-75]);
 });
+
+test("points earned are saved and loaded back, kept small; an app that sends none keeps them", async () => {
+  await reset();
+  let S = await getState();
+  assert.deepEqual(S.points, {});
+  S.points = { "visit:2026-10-05": { pts: 5, kind: "visit", day: "2026-10-05", extra: "x" }, "alert:a1": { pts: 10.4, kind: "alert", day: "2026-10-05", d: "a1" }, bad: 3, _old: { cat: 40 } };
+  await putState(S);
+  S = await getState();
+  assert.deepEqual(S.points, { "visit:2026-10-05": { pts: 5, kind: "visit", day: "2026-10-05" }, "alert:a1": { pts: 10, kind: "alert", day: "2026-10-05", d: "a1" }, _old: { cat: 40 } });
+  delete S.points;
+  await putState(S);
+  assert.equal(Object.keys((await getState()).points).length, 3);
+});

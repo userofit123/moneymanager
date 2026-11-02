@@ -178,6 +178,7 @@ export async function getState() {
     jarsTotal: await setting("jars_total", 0), jarsBuffer: await setting("jars_buffer", 0), jarsReserve: await setting("jars_reserve", 0),
     nwPension: await setting("nw_pension", false),
     hiddenMerchants: await setting("hidden_merchants", []), ccOverride: await setting("cc_override", {}), cardRules: await setting("card_rules", []), salaryRules: await setting("salary_rules", []), moneyInRules: await setting("money_in_rules", []), txIgnore: await setting("tx_ignore", {}), inMark: await setting("in_mark", {}), budgetNo: await setting("budget_no", []), tagList: await setting("tag_list", []),
+    points: await setting("points", {}),
     cfg,
     currencies: await configuredCurrencies(), fxCurrencies: await activeCurrencies(),
     accounts: accounts.rows.map((a) => ({
@@ -196,6 +197,19 @@ export async function getState() {
 }
 
 const sig = (o) => JSON.stringify(o);
+
+// Points earned, kept small and safe: key → { pts, kind, day, d? }, and "_old" (points of old entries folded into one total per kind).
+export function cleanPoints(P) {
+  const out = {}, num = (v) => (Number.isFinite(+v) ? Math.round(+v) : 0), str = (v, n) => String(v ?? "").slice(0, n);
+  for (const [k, v] of Object.entries(P).slice(0, 5000)) {
+    if (!v || typeof v !== "object") continue;
+    if (k === "_old") { out._old = Object.fromEntries(Object.entries(v).slice(0, 50).map(([kk, n]) => [str(kk, 30), num(n)])); continue; }
+    const e = { pts: num(v.pts), kind: str(v.kind, 30), day: str(v.day, 10) };
+    if (v.d != null && v.d !== "") e.d = str(v.d, 120);
+    out[str(k, 160)] = e;
+  }
+  return out;
+}
 
 export class StaleError extends Error {}
 
@@ -311,6 +325,8 @@ export async function putState(S) {
     // tags added by hand that no transaction has yet (a tag in use is kept with its transactions)
     // an older app that does not know this list sends none: then the saved list stays as it is
     if (Array.isArray(S.tagList)) await put("tag_list", [...new Set(S.tagList.map((x) => String(x).trim().slice(0, 60)).filter(Boolean))].slice(0, 500));
+    // points earned (lib/points.js in the app); an older app that does not know them sends none: then they stay
+    if (S.points && typeof S.points === "object" && !Array.isArray(S.points)) await put("points", cleanPoints(S.points));
     await c.query("DELETE FROM dismissed_alerts");
     for (const id of Object.keys(S.dismissed || {})) await c.query("INSERT INTO dismissed_alerts (id) VALUES ($1) ON CONFLICT DO NOTHING", [id]);
 

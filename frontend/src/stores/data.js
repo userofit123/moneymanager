@@ -27,7 +27,7 @@ async function getState(url) {
   return j;
 }
 
-export function createDataStore({ fetchJson = getState, connect = connectLive, send = putState, delay = 400, settle = null, notify = () => {} } = {}) {
+export function createDataStore({ fetchJson = getState, connect = connectLive, send = putState, delay = 400, settle = null, notify = () => {}, earn = null } = {}) {
   const state = shallowRef(null); // what GET /api/state returns (accounts, tx, jars, budgets...)
   const loading = ref(false);
   const error = ref(null);
@@ -39,7 +39,7 @@ export function createDataStore({ fetchJson = getState, connect = connectLive, s
   const last = readJson("moneyFxLast", null);
   const fx = shallowRef({ fx: (last && last.fx) || {}, series: {}, asOf: (last && last.asOf) || null, stale: !!last, live: false });
   let stop = null, listening = false, busy = null, dirty = false, timer = null, failed = false;
-  const hooks = { settle, notify };
+  const hooks = { settle, notify, earn };
 
   // Loads the data. Asking again while a load is running joins that load instead of starting another.
   function load() {
@@ -109,9 +109,15 @@ export function createDataStore({ fetchJson = getState, connect = connectLive, s
     const next = structuredClone(cur);
     const lines = edit(next);
     if (lines === false) return [];
+    // points a change by the person earns (core/points.js), given on the same copy so Undo of the change takes them back
+    if (hooks.earn && !quiet) hooks.earn(cur, next, lines || []);
+    const earned = Object.keys(next.points || {}).filter((k) => !(cur.points || {})[k]);
     // what the change replaced, so its history line can be undone (unless the line already says how)
     const mine0 = (lines || []).findIndex(([action, , undo, who]) => !undo && (who || "You") !== "System" && action !== "Undid a change");
     if (mine0 >= 0) { const p = makePatch(cur, next); if (p) lines[mine0] = [lines[mine0][0], lines[mine0][1], p, lines[mine0][3]]; }
+    // the points this change earned go with its undo, so Undo takes them back whatever kind of undo the line has
+    const own = (lines || []).findIndex(([action, , undo, who]) => undo && (who || "You") !== "System" && action !== "Undid a change");
+    if (earned.length && own >= 0) lines[own] = [lines[own][0], lines[own][1], { ...lines[own][2], pts: earned }, lines[own][3]];
     // after every change the app's upkeep runs on the result (core/settle.js)
     const upkeep = hooks.settle ? hooks.settle(next) || [] : [];
     const at = new Date().toISOString();
@@ -182,6 +188,7 @@ export function createDataStore({ fetchJson = getState, connect = connectLive, s
       const e = (S.audit || []).find((x) => (entry.id != null ? x.id === entry.id : x.t === entry.t && x.action === entry.action && x.detail === entry.detail));
       const u = e && e.undo;
       if (!u) return false;
+      if (u.pts && S.points) u.pts.forEach((k) => delete S.points[k]);
       if (u.type == "patch") applyPatch(S, u);
       else if (u.type == "tx") { const t = S.tx.find((x) => x.id == u.id); if (t) t[u.f] = u.old; }
       else if (u.type == "budget") { if (u.old == null) delete S.budgets[u.k]; else S.budgets[u.k] = u.old; }

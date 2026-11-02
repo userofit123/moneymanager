@@ -1,0 +1,129 @@
+// Points and levels (lib/points.js): levels, daily caps, once-only, by hand vs automatic, month results, and Undo.
+import test from "node:test";
+import assert from "node:assert/strict";
+import { POINTS, levelFor, award, earnFromChange, pointsUpkeep, pointsSummary, monthParts, setupDone } from "../src/lib/points.js";
+import { setField, addTags, roSave, xfOk, dupKeep } from "../src/lib/txactions.js";
+import { createDataStore } from "../src/stores/data.js";
+
+const DAY = "2026-11-02";
+const total = (S) => pointsSummary(S, DAY, []).total;
+// a change as the app makes it: edit a copy, then the points it earns (what the data store does)
+const act = (S, fn) => { const next = structuredClone(S); const r = fn(next); const lines = Array.isArray(r) ? r : r?.lines || []; earnFromChange(S, next, lines, DAY); return next; };
+
+test("levels: 100, 250, 450, 700 points, each step 50 more than the last", () => {
+  assert.deepEqual(levelFor(0), { level: 1, start: 0, next: 100, into: 0, need: 100 });
+  assert.equal(levelFor(99).level, 1);
+  assert.deepEqual(levelFor(100), { level: 2, start: 100, next: 250, into: 0, need: 150 });
+  assert.equal(levelFor(250).level, 3);
+  assert.equal(levelFor(449).level, 3);
+  assert.equal(levelFor(450).level, 4);
+  assert.deepEqual(levelFor(720), { level: 5, start: 700, next: 1000, into: 20, need: 280 });
+});
+
+test("award gives once per key and stops at the day's cap", () => {
+  const S = {};
+  assert.equal(award(S, "visit:" + DAY, "visit", 5, DAY), 5);
+  assert.equal(award(S, "visit:" + DAY, "visit", 5, DAY), 0);
+  for (let i = 0; i < 60; i++) award(S, "cat:" + i, "cat", 1, DAY);
+  assert.equal(pointsSummary(S, DAY, []).byKind.cat, POINTS.catDay);
+  assert.equal(S.points["cat:55"], undefined); // over the cap: not kept, so it can earn another day
+  assert.equal(award(S, "cat:55", "cat", 1, "2026-11-03"), 1);
+  for (let i = 0; i < 30; i++) award(S, "tag:" + i, "tag", 1, DAY);
+  assert.equal(pointsSummary(S, DAY, []).byKind.tag, POINTS.tagDay);
+});
+
+const base = () => ({ tx: [{ id: 1, desc: "Shop", c: "", a: -50, d: "2026-11-01", tags: [] }, { id: 2, desc: "Cafe", c: "", a: -20, d: "2026-11-01", tags: [] }], rules: [], budgets: {}, xf: [{ o: 1, i: 2, st: "auto" }], dismissed: {}, points: {} });
+
+test("a category by hand earns, once per payment; automatic sorting earns nothing", () => {
+  let S = act(base(), (n) => setField(n, 1, "c", "Food"));
+  assert.equal(total(S), 1);
+  S = act(S, (n) => setField(n, 1, "c", "Home")); // the same payment again
+  assert.equal(total(S), 1);
+  S = act(S, (n) => { n.tx[1].c = "Food"; return [["Added categories from an AI file", "x"]]; });
+  assert.equal(total(S), 1);
+  S = act(S, () => []); // settle's rules fill a category outside any change by hand
+  assert.equal(total(S), 1);
+});
+
+test("a tag by hand earns; a rule earns once; an alert only the first time it is cleared", () => {
+  let S = act(base(), (n) => addTags(n, 1, ["trip", "work"]));
+  assert.equal(total(S), 2);
+  S = act(S, (n) => roSave(n, 2, "cafe", "Food"));
+  assert.equal(S.points["rule:cafe"].pts, POINTS.rule);
+  S = act(S, (n) => { n.dismissed.a1 = 1; return []; });
+  const t1 = total(S);
+  assert.equal(t1, 2 + POINTS.rule + POINTS.alert);
+  S = act(S, (n) => { n.dismissed = {}; return []; }); // shown again
+  S = act(S, (n) => { n.dismissed.a1 = 1; return []; }); // and cleared again
+  assert.equal(total(S), t1);
+});
+
+test("Needs review: a transfer looked at and a kept duplicate earn once each", () => {
+  let S = act(base(), (n) => xfOk(n, 1));
+  S = act(S, (n) => dupKeep(n, 2));
+  assert.equal(total(S), 2 * POINTS.review);
+  S = act(S, (n) => { n.xf[0].st = "rej"; return [["Not a transfer", "x"]]; }); // changed its mind: nothing more
+  assert.equal(total(S), 2 * POINTS.review);
+});
+
+test("setup steps are recorded once and stay when the thing is deleted", () => {
+  const S = { tx: [], accounts: [{ n: "Main bank", kind: "bank" }, { n: "Pension", kind: "pension", manual: true, v: 0 }, { n: "Wallet", custom: true, ck: "cash", kind: "custom", manual: true }], budgets: { Food: 500 }, jars: [] };
+  assert.deepEqual(setupDone(S).map((x) => x.key), ["setup:bank", "setup:budget", "setup:cash"]);
+  pointsUpkeep(S, DAY, []);
+  assert.equal(total(S), 100 + 50 + 50);
+  S.budgets = {};
+  pointsUpkeep(S, DAY, []);
+  assert.equal(total(S), 200);
+});
+
+// made-up months: October income 10,000; out 8,000 (kept 20%). September: income 10,000, out 9,000 (kept 10%).
+const R = [
+  { d: "2026-09-01", a: 10000, c: "Salary" }, { d: "2026-09-05", a: -1000, c: "Food" }, { d: "2026-09-06", a: -100, c: "Fun" }, { d: "2026-09-07", a: -7900, c: "Rent" },
+  { d: "2026-10-01", a: 10000, c: "Salary" }, { d: "2026-10-05", a: -800, c: "Food" }, { d: "2026-10-06", a: -50, c: "Fun" }, { d: "2026-10-07", a: -7150, c: "Rent" },
+];
+
+test("month results: kept, kept more than last month, less spent by category, budgets kept, all with a category", () => {
+  const P = Object.fromEntries(monthParts(R, { Food: 900, Rent: 7000 }, "2026-10").map((x) => [x.key.slice(14), x.pts]));
+  assert.deepEqual(P, {
+    kept: 20 * POINTS.keptPerPct, // 20% kept
+    better: 10 * POINTS.betterPerPct, // 10 points better than 10%
+    "cat:Food": 40, // 20% less → 40 points
+    "cat:Rent": 18, // 9% less (7,900 → 7,150) → 18 points; Fun was under ₪200 last month, so it is left out
+    "bud:Food": POINTS.budgetKept, // 800 within 900; Rent went over 7,000
+    allcat: POINTS.allCat,
+  });
+  // kept is capped at 30%, and nothing for a month with no income
+  assert.equal(monthParts([{ d: "2026-10-01", a: 1000 }, { d: "2026-10-02", a: -100, c: "Food" }], {}, "2026-10").find((x) => x.kind == "kept").pts, 300);
+  assert.equal(monthParts([{ d: "2026-10-02", a: -100, c: "Food" }], {}, "2026-10").find((x) => x.kind == "kept"), undefined);
+});
+
+test("a month is on the way while it runs and counted once after it ends", () => {
+  const S = { tx: [], budgets: {}, points: {} };
+  const sum = pointsSummary(S, "2026-10-20", R);
+  assert.equal(sum.total, 0);
+  assert.equal(sum.monthPreview.month, "2026-10");
+  assert.ok(sum.monthPreview.total > 0);
+  pointsUpkeep(S, "2026-11-01", R); // too early: late bank rows may still come
+  assert.equal(total(S), 0);
+  assert.ok(pointsSummary(S, "2026-11-01", R).waiting.total > 0);
+  pointsUpkeep(S, "2026-11-03", R);
+  const got = total(S);
+  assert.equal(got, 200 + 50 + 40 + 18 + 50);
+  assert.equal(pointsSummary(S, "2026-11-03", R).waiting, null);
+  pointsUpkeep(S, "2026-11-04", R.slice(0, 4)); // the rows change later: the month stays as counted
+  assert.equal(total(S), got);
+});
+
+test("Undo of a change takes its points back; later points stay", async () => {
+  const D = createDataStore({ fetchJson: async () => ({ rev: 1, audit: [], ...base() }), connect: () => () => {}, send: async () => ({ ok: true, status: 200, json: { rev: 2, auditIds: [] } }), delay: 5, earn: (a, b, L) => earnFromChange(a, b, L, DAY) });
+  await D.load();
+  const [e] = D.change((S) => setField(S, 1, "c", "Food").lines);
+  D.change((S) => addTags(S, 2, ["trip"]).lines);
+  assert.equal(total(D.state.value), 2);
+  D.undo(e);
+  assert.equal(D.state.value.tx[0].c, "");
+  assert.deepEqual(Object.keys(D.state.value.points), ["tag:2:trip"]);
+  D.change((S) => { award(S, "visit:" + DAY, "visit", 5, DAY); return []; }, { quiet: true }); // saved quietly: no history line
+  assert.equal(D.state.value.audit.length, 3); // Edited category, Added tag, Undid a change
+  assert.equal(total(D.state.value), 1 + POINTS.visit);
+});
