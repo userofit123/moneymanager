@@ -34,6 +34,8 @@ function jarSuggest(S, X, XS, catJars, jarsS, t) {
   let best = null, bs = 0; sc.forEach((v, id) => { if (v > bs) { bs = v; best = id; } });
   return bs >= 2 ? jarsS.find((j) => j.id === best) || null : null;
 }
+// How long a new balance gap waits before it is an alert (hours), and how long a charge may stay pending before it is one (days).
+export const GAP_WAIT_H = 24, PENDING_DAYS = 5;
 const fmtWhen = (t) => new Date(t).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 // The connections list on Home's sync alerts.
 // Only the connections you set up: with none, the list is empty.
@@ -75,14 +77,16 @@ export function alertsModel(S, M, now = new Date(), fc = {}, friendly = (e) => e
   M.rows.filter((t) => Math.abs(t.a) >= c.largeAmt && (now - new Date(t.d)) / 864e5 <= 7 && !t.virtual).forEach((t) => add("lg-" + t.id, "large", "low", "large", { inc: t.a > 0 ? 1 : 0, k: t.a < 0 ? "Out" : t.back ? "Back" : t.sal ? "Salary" : "In", name: M.nameOf(t), amt: fm(t.a), date: t.d, lim: fm(c.largeAmt) }, "tx", { ids: [t.id] }));
   const xs = (S.xf || []).filter((x) => x.st == "auto").length; if (xs) add("xf-" + xs, "xfer", "med", "xfer", { n: xs }, "tx", { tab: "rev" });
   const dups = duplicateIds(S); if (dups.size) add("dp-" + dups.size, "xfer", "med", "dup", { n: dups.size }, "tx", { ids: [...dups] });
-  // balance gaps
-  balanceGaps(S).forEach((r) => {
+  // balance gaps: a new one waits a day (GAP_WAIT_H), since a bank and a card often list the same money a few hours apart and it closes at the next sync
+  balanceGaps(S).filter((r) => !r.opened || (now - new Date(r.opened)) / 36e5 >= GAP_WAIT_H).forEach((r) => {
     const old = (now - new Date(r.from)) / 864e5 >= c.gapDays, gb = gapBill(r, BC), amt = sym(r.cur) + f(Math.abs(r.diff));
     if (gb) { add("rc-" + r.id + "-" + r.diff, "recon", "low", "gapBill", { n: r.n, amt, bill: gb.n, bamt: fm(gb.pred), date: gb.pd }, "tx", { tab: "rev" }); return; }
     add("rc-" + r.id + "-" + r.diff, "recon", old ? "high" : "med", "gap", { n: r.n, down: r.diff < 0 ? 1 : 0, card: r.card ? 1 : 0, amt }, "tx", { tab: "rev" });
   });
-  { const pg = {}; (S.tx || []).forEach((t) => { if (t.pending && !t.virtual && t.a < 0 && !XS.has(t.id)) (pg[t.from] = pg[t.from] || []).push(t); });
-    Object.entries(pg).forEach(([n, L]) => { const tot = L.reduce((x, t) => x - t.a, 0); add("pd-" + n + "-" + L.length + "-" + Math.round(tot), "pending", "low", "pending", { n, c: L.length, tot: fm(tot) }, "tx", { ids: L.map((t) => t.id) }); }); }
+  // charges still pending after PENDING_DAYS: a pending charge is already in the balance and settles by itself within a few days, so only one that stays is worth a look
+  { const pg = {}, lim = ymd(new Date(now.getTime() - PENDING_DAYS * 864e5));
+    (S.tx || []).forEach((t) => { if (t.pending && !t.virtual && t.a < 0 && !XS.has(t.id) && t.d <= lim) (pg[t.from] = pg[t.from] || []).push(t); });
+    Object.entries(pg).forEach(([n, L]) => { const tot = L.reduce((x, t) => x - t.a, 0); add("pd-" + n + "-" + L.length + "-" + Math.round(tot), "pending", "low", "pending", { n, c: L.length, tot: fm(tot), d: PENDING_DAYS }, "tx", { ids: L.map((t) => t.id) }); }); }
   sources(S).filter((s) => s.failed || s.stale > 2).forEach((s) => add("sy-" + s.n + (s.t || ""), "sync", "low", s.failed ? "syncFail" : "syncOld", { n: s.n, d: Math.floor(s.stale), msg: s.failed ? friendly(s.error) || "Check the login" : s.key == "stale" ? "Last synced " + s.t + " (over 2 days ago)" : "" }, "set"));
   { const un = (S.tx || []).filter((t) => !t.c && !XS.has(t.id)); if (un.length) add("un-" + un.length, "uncat", "low", "uncat", { n: un.length }, "tx", { ids: un.map((t) => t.id) }); }
   try {

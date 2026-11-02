@@ -861,8 +861,8 @@
     "cardDown": "{n}: you owe {amt} more on this card with no matching purchase",
     "cardUp": "{n}: you owe {amt} less on this card with no matching payment",
     "cardUpX": "Usually the card bill was paid from an account that is not connected here, and then nothing is wrong. It can also be a refund the card has not listed yet.",
-    "pendingT": "{n}: {c} pending charges ({tot})",
-    "pendingX": "Pending charges are not settled by the bank yet. They are already counted in the balance and listed in Activity as pending. This goes away by itself when they settle.",
+    "pendingT": "{n}: {c} charges pending for more than {d} days ({tot})",
+    "pendingX": "The bank has not settled these charges yet, though a charge usually settles within a few days. They are already counted in the balance and listed in Activity as pending. If a charge stays pending, it is worth asking the bank about it.",
     "syncFailT": "{n} sync failed",
     "syncOldT": "{n} not updated for {d} days",
     "syncCheck": "Check the login",
@@ -880,7 +880,7 @@
     "dueT1": "{n} is due in 1 day",
     "xferT1": "1 transfer to review",
     "dupT1": "1 possible duplicate",
-    "pendingT1": "{n}: 1 pending charge ({tot})",
+    "pendingT1": "{n}: 1 charge pending for more than {d} days ({tot})",
     "uncatT1": "1 transaction needs a category"
   },
   "bills": {

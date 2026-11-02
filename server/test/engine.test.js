@@ -687,3 +687,42 @@ test("rules and choices of the older money coming in kinds are moved over once, 
   const L = (await q("SELECT detail FROM audit_log WHERE action='Money coming in kinds updated'")).rows;
   assert.deepEqual(L.map((r) => r.detail), ["1 rules now Salary, 2 rules removed, 3 choices moved to Income or automatic"]);
 });
+
+test("a card bill payment the bank still lists as pending explains the card's lower debt, also when the bank lists it after the card's balance, and stays linked when it settles", async () => {
+  const { card } = await cardAndBank();
+  const bank = { name: "Bank", currency: "ILS", source: "hapoalim" };
+  const at = (h) => new Date(Date.now() + h * 36e5), day = new Date().toISOString().slice(0, 10);
+  await q("INSERT INTO rules (keyword,category) VALUES ('Card company','Loans & credit payments')");
+  await tx((c) => recordSnapshot(c, card, -120, at(-2)));
+  await tx((c) => recordSnapshot(c, card, 0, at(-1))); // the card is paid off, the card lists no payment
+  assert.deepEqual(await openGaps(), [120]);
+  await ingest(bank, [{ date: day, description: "Card company", amount: -120, currency: "ILS", pending: true, externalId: "b:p1" }]);
+  assert.deepEqual(await openGaps(), []);
+  const linked = async () => (await q("SELECT t.pending FROM balance_gaps g JOIN transactions t ON t.id=g.paid_by")).rows.map((r) => r.pending);
+  assert.deepEqual(await linked(), [true]);
+  // the payment settles under another id: the gap stays explained by it, and it is not used again
+  await ingest(bank, [{ date: day, description: "Card company", amount: -120, currency: "ILS", externalId: "b:s1" }]);
+  assert.deepEqual(await linked(), [false]);
+  await tx((c) => recordSnapshot(c, card, -120, at(0)));
+  await ingest({ name: "Card", currency: "ILS", source: "max" }, [{ date: day, description: "Shop E", amount: -120, currency: "ILS", externalId: "c:e" }]);
+  await tx((c) => recordSnapshot(c, card, 0, at(1)));
+  assert.deepEqual(await openGaps(), [120]);
+});
+
+test("a gap left by settled charges wrongly taken as already in the starting balance closes by itself at the next check", async () => {
+  const { card } = await cardAndBank();
+  const acc = { name: "Card", currency: "ILS", source: "max" };
+  const at = (h) => new Date(Date.now() + h * 36e5), day = new Date().toISOString().slice(0, 10);
+  await tx((c) => recordSnapshot(c, card, -1000, at(-3))); // the starting balance
+  await ingest(acc, [
+    { date: day, description: "Shop F", amount: -40, currency: "ILS", externalId: "c:f" },
+    { date: day, description: "Shop G", amount: -60, currency: "ILS", externalId: "c:g" },
+  ]);
+  // as an older version did: both marked as already counted in an earlier balance, which they were not
+  await q("UPDATE transactions SET gap_explained=amount WHERE external_id IN ('c:f','c:g')");
+  await tx((c) => recordSnapshot(c, card, -1100, at(-2)));
+  assert.deepEqual(await openGaps(), []);
+  // and a real change is still a gap
+  await tx((c) => recordSnapshot(c, card, -1175, at(-1)));
+  assert.deepEqual(await openGaps(), [-75]);
+});

@@ -10,7 +10,7 @@
     "large": "Large transactions",
     "xfer": "Transfers and duplicates to review",
     "recon": "Books do not match the bank",
-    "pending": "Charges the bank still lists as pending",
+    "pending": "Charges still pending after 5 days",
     "sync": "A source is out of date",
     "uncat": "Uncategorized transactions",
     "forecast": "Forecast turns negative",

@@ -39,7 +39,7 @@ function busy() {
   add({ d: "2026-10-14", to: "Big furniture", desc: "Big furniture", a: -7400, c: "Shopping & home" });
   add({ d: "2026-10-15", to: "Mystery shop", desc: "Mystery shop", a: -88 });
   add({ d: "2026-10-16", from: "Work", to: "Bank Hapoalim", desc: "Bonus", a: 12000, c: "Income" });
-  add({ d: "2026-10-16", to: "Cafe", desc: "Cafe", a: -45, pending: true, from: "Max", c: "Eating out" });
+  add({ d: "2026-10-10", to: "Cafe", desc: "Cafe", a: -45, pending: true, from: "Max", c: "Eating out" });
   add({ d: "2026-10-12", to: "Twin", desc: "Twin", a: -33, c: "Eating out" }); add({ d: "2026-10-12", to: "Twin", desc: "Twin", a: -33, c: "Eating out" });
   S.tx = S.tx.filter((t) => !/netflix/i.test(t.desc) || t.d < "2026-08-01");
   S.gaps = [];
@@ -73,6 +73,15 @@ test("the busy state really has many kinds of alerts", () => {
   const k = new Set(newAlerts(STATES[1][2]).map((x) => x.key));
   for (const w of ["large", "uncat", "pending", "dup"]) assert.ok(k.has(w), "missing " + w);
   assert.ok(k.size >= 7, "only " + [...k].join(", "));
+});
+
+test("a new balance gap waits a day before it is an alert, and a pending charge waits 5 days", () => {
+  const S = busy(), gap = (id, opened) => ({ id, account: "Max", currency: "ILS", amount: -7777, remaining: -7777, window_from: "2026-10-16T04:00:00Z", window_to: "2026-10-17T04:00:00Z", opened, status: "open" });
+  S.gaps = [gap(1, "2026-10-17T04:00:00Z"), gap(2, "2026-10-16T08:00:00Z")];
+  S.tx.push({ id: 99999, c: "Eating out", tags: [], docs: [], note: "", from: "Max", to: "Bakery", desc: "Bakery", a: -12, d: "2026-10-15", pending: true });
+  const L = newAlerts(S);
+  assert.deepEqual(L.filter((a) => a.type === "recon").map((a) => a.id.split("-")[1]), ["2"]);
+  assert.deepEqual(L.find((a) => a.type === "pending").ids, [90003]);
 });
 
 // ---- the page ----

@@ -8,7 +8,7 @@ import { logError } from "./errlog.js";
 import { ingest } from "./sources/ingest.js";
 import { fetchWise } from "./sources/wise.js";
 import { scrape } from "./sources/scraper.js";
-import { recordSnapshot, detectTransfers } from "./engine.js";
+import { recordSnapshot, detectTransfers, GAP_WAIT_HOURS } from "./engine.js";
 import { getCreds, isLocked, recordResult, markTested, LABELS, KINDS, baseOf, validId, connName } from "./connections.js";
 import { scrub } from "./secrets.js";
 import { sendNtfy, notifyOnce, clearNotified, remindOldGaps } from "./notify.js";
@@ -271,7 +271,7 @@ async function syncAllInner(origin) {
   for (const s of ids) if (await getCreds(s)) setItem(s, { state: "waiting" }); // only connected sources count, so the total does not change while it runs
   for (const s of ids) out[s] = await syncInner(s, { origin });
   await fillJars().catch((e) => console.error("jars:", e.message));
-  const open = (await q("SELECT count(*)::int AS n FROM balance_gaps WHERE status='open'")).rows[0].n;
+  const open = (await q("SELECT count(*)::int AS n FROM balance_gaps WHERE status='open' AND created_at <= now() - make_interval(hours => $1)", [GAP_WAIT_HOURS])).rows[0].n;
   if (open) await notifyOnce(`gaps:${open}`, "Money · missing money", `${open} balance gap${open > 1 ? "s" : ""} to explain in Activity → Needs review`);
   return out;
 }

@@ -304,7 +304,7 @@ function pendCover(S, r) {
 }
 // Open balance gaps that pending charges do not already explain. card: on a card the balance is what you owe, so a rise means you owe less.
 export const balanceGaps = (S) => (S?.gaps || []).filter((g) => g.status === "open" && g.remaining != 0)
-  .map((g) => ({ id: g.id, n: g.account, cur: g.currency, diff: g.remaining, amount: g.amount, from: g.window_from, to: g.window_to,
+  .map((g) => ({ id: g.id, n: g.account, cur: g.currency, diff: g.remaining, amount: g.amount, from: g.window_from, to: g.window_to, opened: g.opened,
     card: (S.accounts || []).some((a) => a.kind === "card" && a.n === g.account) }))
   .filter((r) => !pendCover(S, r));
 // The expected bill (not seen yet) that a drop in an account's balance most likely is (gapBill). BC: every bill, worked out (home.billsAll).

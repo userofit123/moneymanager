@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 import { tx, audit, bumpRev } from "../db.js";
 import { rateOn, normCur } from "../fx.js";
 import { detectCardPayments } from "../autodetect.js";
-import { applyRules, applyTagRules, detectTransfers, healGaps } from "../engine.js";
+import { applyRules, applyTagRules, detectTransfers, healGaps, healCardPayments } from "../engine.js";
 
 const hash = (...p) => crypto.createHash("sha1").update(p.join("|")).digest("hex").slice(0, 20);
 
@@ -27,6 +27,10 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
     // A pending charge listed again keeps the time it was first listed, so the check above knows which balance first had it.
     const firstListed = new Map((await c.query("SELECT external_id, created_at FROM transactions WHERE pending AND source=$1 AND (from_name=$2 OR to_name=$2) AND external_id IS NOT NULL",
       [account.source, account.name])).rows.map((x) => [x.external_id, x.created_at]));
+    // A card bill payment still pending may already explain a card's balance gap (paid_by): the link moves to the same payment when it is listed again or settles.
+    const paidBy = (await c.query(
+      `SELECT g.id, t.external_id AS ext, t.amount::float AS a, t.date::text AS d FROM balance_gaps g JOIN transactions t ON t.id=g.paid_by
+       WHERE t.pending AND t.source=$1 AND t.from_name=$2`, [account.source, account.name])).rows;
     await c.query("DELETE FROM transactions WHERE pending AND source=$1 AND (from_name=$2 OR to_name=$2)", [account.source, account.name]);
     for (const r of rows) {
       const cur = normCur(r.currency) || normCur(account.currency);
@@ -107,13 +111,21 @@ export async function ingest(account, rows, { mergeManual = false } = {}) {
         await c.query("UPDATE transactions SET gap_explained=$2 WHERE id=$1", [ins.rows[0].id, r.amount]);
       } else if (r.amount && !r.pending) late.push({ id: ins.rows[0].id, cur, amt: r.amount, date: r.date });
     }
+    for (const g of paidBy) {
+      const n = (await c.query(
+        `SELECT id FROM transactions WHERE source=$1 AND from_name=$2 AND (external_id=$3 OR (abs(amount-$4)<=0.01 AND abs(date-$5::date)<=10))
+           AND NOT EXISTS (SELECT 1 FROM balance_gaps x WHERE x.paid_by=transactions.id) ORDER BY COALESCE(external_id=$3,false) DESC, id DESC LIMIT 1`,
+        [account.source, account.name, g.ext, g.a, g.d])).rows[0];
+      if (n) await c.query("UPDATE balance_gaps SET paid_by=$2 WHERE id=$1", [g.id, n.id]);
+    }
     await applyRules(c);
     await applyTagRules(c, fresh);
     const pairs = await detectTransfers(c);
     const found = await detectCardPayments(c);
     // Open gaps are checked again against the payments now in the app (a late or hand-added payment can explain one).
     const healed = await healGaps(c, account.name, normCur(account.currency));
-    if (added || merged || updated || pairs || healed || found) await bumpRev(c);
+    const paid = await healCardPayments(c); // a card bill payment the bank lists now explains a card gap opened before it was listed
+    if (added || merged || updated || pairs || healed || found || paid) await bumpRev(c);
     return { added, merged, migrated, updated, transfers: pairs };
   });
 }

@@ -132,7 +132,7 @@ export async function getState() {
     q("SELECT DISTINCT ON (source) source,finished_at,ok,added,message FROM sync_runs WHERE finished_at IS NOT NULL ORDER BY source, id DESC"),
     q("SELECT value FROM app_meta WHERE key='rev'"),
     q("SELECT month,bank,wise,pension,other FROM net_worth_snapshots ORDER BY month"),
-    q("SELECT g.id,a.name AS account,a.currency,g.amount,g.remaining,g.window_from,g.window_to,g.status,g.review_note FROM balance_gaps g JOIN accounts a ON a.id=g.account_id WHERE g.status='open' ORDER BY g.id"),
+    q("SELECT g.id,a.name AS account,a.currency,g.amount,g.remaining,g.window_from,g.window_to,g.created_at AS opened,g.status,g.review_note FROM balance_gaps g JOIN accounts a ON a.id=g.account_id WHERE g.status='open' ORDER BY g.id"),
   ]);
   const tagMap = {}, docMap = {};
   tags.rows.forEach((r) => (tagMap[r.transaction_id] ||= []).push(r.tag));
@@ -191,7 +191,7 @@ export async function getState() {
     nwSnaps: snaps.rows,
     monthStart: await monthStarts(),
     balUpdates: (await q("SELECT u.id,a.name AS acc,u.at,u.old_balance::float AS old,u.new_balance::float AS nu,u.note FROM account_updates u JOIN accounts a ON a.id=u.account_id ORDER BY u.at DESC, u.id DESC LIMIT 300")).rows,
-    gaps: gaps.rows.map((g) => ({ ...g, window_from: g.window_from.toISOString(), window_to: g.window_to.toISOString() })),
+    gaps: gaps.rows.map((g) => ({ ...g, window_from: g.window_from.toISOString(), window_to: g.window_to.toISOString(), opened: g.opened.toISOString() })),
   };
 }
 
