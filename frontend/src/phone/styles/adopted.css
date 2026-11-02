@@ -312,17 +312,75 @@ html.phone.ph-off #toasts {
   inset-block-end: calc(var(--p-tab) + var(--sb) + 58px);
 }
 
+/* a toast is a compact dark bar (light in dark mode), like a phone's own: no coloured side border, the icon tells the kind,
+   short so it covers little of the screen; a second one stacks above the first */
+html.phone #toasts {
+  gap: var(--p-s2);
+}
+
 html.phone #toasts .toast {
-  font-size: 15px;
+  align-items: center;
+  gap: var(--p-s3);
+  padding-block: 10px;
+  padding-inline: 12px 6px;
+  border: 0;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--tx) 92%, var(--bg));
+  color: var(--bg);
+  box-shadow: 0 10px 28px -10px rgba(0, 0, 0, .45);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+html.phone #toasts .toast .tm div {
+  color: color-mix(in srgb, var(--bg) 78%, var(--tx));
+}
+
+html.phone #toasts .toast .tm b {
+  font-size: 14px;
+  color: var(--bg);
+}
+
+html.phone #toasts .toast .ti {
+  inline-size: 24px;
+  block-size: 24px;
+  background: color-mix(in srgb, var(--bg) 16%, transparent);
+  color: var(--bg);
+}
+
+html.phone #toasts .toast:is(.err, .alert) .ti {
+  background: var(--neg);
+  color: #fff;
+}
+
+html.phone #toasts .tacts {
+  margin-block-start: 2px;
 }
 
 html.phone #toasts .tu {
   min-block-size: 36px;
+  color: color-mix(in srgb, var(--acc) 45%, var(--bg));
+}
+
+html.phone[data-mode="dark"] #toasts .tu {
+  color: var(--accc);
+}
+
+html.phone #toasts .tu:hover {
+  background: none;
 }
 
 html.phone #toasts .tx {
+  display: grid;
+  place-items: center;
+  flex: none;
   min-inline-size: 36px;
   min-block-size: 36px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 20px;
+  opacity: .7;
 }
 
 /* ---- A tooltip's text in a sheet (ExplainSheet) ---- */

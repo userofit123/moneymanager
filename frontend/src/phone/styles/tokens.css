@@ -1,25 +1,51 @@
-/* The phone app's sizes and timings, built on the app's own colours (styles/tokens.css), so every look and dark mode work. */
+/* The phone app's sizes, spacing, type and surfaces, built on the app's own colours (styles/tokens.css), so every look
+   and dark mode work. docs/design/phone-layout.md says which pattern uses which of these. */
 html.phone {
-  --p-gut: 16px;
-  --p-max: 680px;
+  /* layout */
+  --p-gut: 16px; /* the page's side margin */
+  --p-max: 680px; /* the column's widest (tablets, a phone turned sideways) */
   --p-bar: 52px;
   --p-tab: 58px;
-  --p-row: 56px;
-  --p-hit: 44px;
+  --p-row: 60px; /* a list row with two lines */
+  --p-hit: 44px; /* the smallest thing a finger taps */
+
+  /* spacing scale: 4 8 12 16 24 32 */
+  --p-s1: 4px;
+  --p-s2: 8px;
+  --p-s3: 12px;
+  --p-s4: 16px;
+  --p-s5: 24px;
+  --p-s6: 32px;
+  --p-gap: 32px; /* between sections */
+  --p-head: 10px; /* a section's heading to its card */
+  --p-pad: 16px; /* inside a card */
+
+  /* type scale (size / line) */
+  --p-f-title: 32px; /* the large title */
+  --p-f-hero: 22px; /* the opening sentence; its amounts are --p-f-amount */
+  --p-f-amount: 34px;
+  --p-f-sec: 19px; /* a section's heading */
+  --p-f-body: 16px; /* row titles, body text */
+  --p-f-meta: 13px; /* second lines, notes, labels */
+
+  /* surfaces: one card style, the same as the computer's cards (a raised surface with a hairline) */
   --p-r-group: var(--r-md);
   --p-r-sheet: var(--r-sheet);
-  --p-r-tile: 10px;
-  --p-gap: 24px;
+  --p-r-tile: 11px;
   --p-surf: var(--s1);
   --p-press: var(--s2);
   --p-line: var(--ol);
+  --p-card-line: var(--ol);
+  --p-sheet-bg: var(--bg);
+  --p-glass: color-mix(in srgb, var(--bg) 92%, transparent);
+
+  /* motion */
   --p-ease: cubic-bezier(.2, .8, .2, 1);
   --p-ease-out: cubic-bezier(.16, 1, .3, 1);
   --p-t-push: 320ms;
   --p-t-sheet: 300ms;
   --p-t-fade: 160ms;
   --p-t-press: 120ms;
-  --p-glass: color-mix(in srgb, var(--bg) 84%, transparent);
   --p-dir: 1;
 }
 
@@ -33,8 +59,10 @@ html.phone.he {
   }
 }
 
-/* in dark mode the grouped lists need a little more lift off the page */
+/* in dark mode cards need a little more lift off the page, and a sheet sits a step above the page */
 html.phone[data-mode="dark"] {
   --p-surf: color-mix(in srgb, var(--tx) 6%, var(--bg));
   --p-press: color-mix(in srgb, var(--tx) 11%, var(--bg));
+  --p-card-line: color-mix(in srgb, var(--tx) 9%, transparent);
+  --p-sheet-bg: color-mix(in srgb, var(--tx) 4%, var(--bg));
 }

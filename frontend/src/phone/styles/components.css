@@ -101,12 +101,39 @@ html.phone .ph-back .ph-ic {
   stroke-width: 2.2;
 }
 
+/* the level badge (PointsBadge phone) where a first screen's Back would be: a small pill, the level and a short bar beside it */
+html.phone .ph-bar .ptb.phb {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--p-s2);
+  align-self: center;
+  min-block-size: 0;
+  block-size: 32px;
+  margin-inline-start: 4px;
+  padding-inline: 12px;
+  border: 1px solid var(--p-card-line);
+  border-radius: var(--pill);
+  background: var(--p-surf);
+  color: var(--tx);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+html.phone .ph-bar .ptb.phb .ptbar {
+  inline-size: 28px;
+  block-size: 4px;
+  border-radius: var(--pill);
+  background: var(--s2);
+  overflow: hidden;
+}
+
 html.phone .ph-titlebox {
-  padding: 2px var(--p-gut) 16px;
+  padding: var(--p-s1) var(--p-gut) var(--p-s5);
 }
 
 html.phone .ph-title {
-  font-size: 32px;
+  font-size: var(--p-f-title);
   line-height: 38px;
   font-weight: 700;
   letter-spacing: -.4px;
@@ -438,6 +465,27 @@ html.phone .ph-btn:disabled {
   opacity: .4;
 }
 
+/* a button across the full width of its card or sheet */
+html.phone .ph-btn.block {
+  display: flex;
+  inline-size: 100%;
+}
+
+/* a quiet button: the app's colour on the card's surface */
+html.phone .ph-btn.plain {
+  background: var(--p-surf);
+  color: var(--acc);
+  box-shadow: inset 0 0 0 1px var(--p-card-line);
+}
+
+/* small grey text: a note under a number, a date, how something is worked out */
+html.phone .ph-meta {
+  margin: 0;
+  color: var(--tx2);
+  font-size: var(--p-f-meta);
+  line-height: 18px;
+}
+
 html.phone .ph-link {
   display: inline-flex;
   align-items: center;
@@ -471,19 +519,26 @@ html.phone .ph-group-top + .ph-group-b {
 
 html.phone .ph-group-h {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--p-s3);
   min-block-size: 28px;
-  padding-inline: 4px;
-  margin-block-end: 6px;
+  padding-inline: 2px;
+  margin-block-end: var(--p-head);
 }
 
 html.phone .ph-group-h h3 {
   margin: 0;
-  font-size: 15px;
-  line-height: 20px;
-  font-weight: 600;
+  color: var(--tx);
+  font-size: var(--p-f-sec);
+  line-height: 24px;
+  font-weight: 650;
+  letter-spacing: -.2px;
+  text-transform: none;
+}
+
+html.phone.he .ph-group-h h3 {
+  letter-spacing: 0;
 }
 
 html.phone .ph-group-h .ph-link {
@@ -499,14 +554,22 @@ html.phone .ph-group-h .ph-link::after {
   inset: -8px -8px;
 }
 
-html.phone .ph-group-b {
+/* the one card style: a raised surface with a hairline, as on the computer. .ph-card is the same card for content that
+   is not a list (a chart, a sentence, a form); ListGroup's "pad" gives its body the same inner room. */
+html.phone :is(.ph-group-b, .ph-card) {
   background: var(--p-surf);
+  border: 1px solid var(--p-card-line);
   border-radius: var(--p-r-group);
   overflow: hidden;
 }
 
+html.phone .ph-card,
+html.phone .ph-group-b.pad {
+  padding: var(--p-pad);
+}
+
 html.phone .ph-group-n {
-  margin: 8px 4px 0;
+  margin: var(--p-s2) 2px 0;
   color: var(--tx2);
   font-size: 13px;
   line-height: 18px;
@@ -518,8 +581,8 @@ html.phone .ph-row {
   align-items: center;
   gap: 12px;
   inline-size: 100%;
-  min-block-size: 48px;
-  padding: 10px 16px;
+  min-block-size: 52px;
+  padding: 10px var(--p-pad);
   border: 0;
   background: none;
   color: var(--tx);
@@ -552,7 +615,7 @@ html.phone .ph-swipe + .ph-swipe::before {
 }
 
 html.phone .ph-row:has(.ph-row-lead) + .ph-row::before {
-  inset-inline-start: 64px;
+  inset-inline-start: 68px;
 }
 
 html.phone .ph-row-lead {
@@ -563,10 +626,10 @@ html.phone .ph-row-lead {
 html.phone .ph-tile {
   display: grid;
   place-items: center;
-  inline-size: 36px;
-  block-size: 36px;
+  inline-size: 40px;
+  block-size: 40px;
   border-radius: var(--p-r-tile);
-  background: color-mix(in srgb, var(--tile) 15%, transparent);
+  background: color-mix(in srgb, var(--tile) 13%, transparent);
   color: var(--tile);
 }
 
@@ -824,12 +887,20 @@ html.phone .ph-amt.neg {
   color: var(--neg);
 }
 
+/* two number tiles side by side, the same height */
+html.phone .ph-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--p-s3);
+}
+
 html.phone .ph-stat {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 14px 16px;
-  border: 0;
+  min-inline-size: 0;
+  padding: 14px var(--p-pad);
+  border: 1px solid var(--p-card-line);
   border-radius: var(--p-r-group);
   background: var(--p-surf);
   color: var(--tx);
@@ -955,8 +1026,8 @@ html.phone .ph-skel i {
 }
 
 html.phone .ph-skel .a {
-  inline-size: 36px;
-  block-size: 36px;
+  inline-size: 40px;
+  block-size: 40px;
   border-radius: var(--p-r-tile);
 }
 
@@ -984,10 +1055,11 @@ html.phone .ph-search {
   display: flex;
   align-items: center;
   gap: 8px;
-  block-size: 40px;
+  block-size: var(--p-hit);
   padding-inline: 12px 4px;
+  border: 1px solid var(--p-card-line);
   border-radius: 12px;
-  background: var(--s2);
+  background: var(--p-surf);
   color: var(--tx2);
 }
 
@@ -1040,8 +1112,8 @@ html.phone .ph-chip {
   block-size: 36px;
   margin-block: 4px;
   border-radius: var(--pill);
-  border: 1px solid var(--p-line);
-  background: var(--bg);
+  border: 1px solid var(--p-card-line);
+  background: var(--p-surf);
   color: var(--tx);
 }
 
@@ -1117,11 +1189,44 @@ html.phone .ph-seg.seg {
   inline-size: max-content;
 }
 
+/* the phone's segmented control: a quiet track and the picked choice as a raised white (dark: lifted) pill, so it never
+   competes with the screen's main button */
+html.phone .ph-seg.seg {
+  margin: 0;
+  padding: 3px;
+  background: var(--s2);
+  box-shadow: none;
+}
+
 html.phone .ph-seg.seg > button {
   flex: 1 0 auto;
-  min-block-size: 36px;
+  min-block-size: 34px;
   padding-inline: 12px;
+  color: var(--tx2);
   font-size: 14px;
+  font-weight: 600;
+}
+
+html.phone .ph-seg.seg > button.on {
+  background: var(--bg);
+  color: var(--tx);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .12), 0 0 0 .5px rgba(0, 0, 0, .04);
+}
+
+html.phone .ph-seg.seg.sl > button.on {
+  background: none;
+  box-shadow: none;
+}
+
+html.phone .ph-seg .segi b {
+  background: var(--bg);
+  border-radius: var(--pill);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .12), 0 0 0 .5px rgba(0, 0, 0, .04);
+}
+
+html.phone[data-mode="dark"] .ph-seg.seg:not(.sl) > button.on,
+html.phone[data-mode="dark"] .ph-seg .segi b {
+  background: color-mix(in srgb, var(--tx) 16%, var(--bg));
 }
 
 html.phone .ph-info {
@@ -1184,14 +1289,11 @@ html.phone .ph-sheet {
   max-inline-size: var(--p-max);
   margin-inline: auto;
   border-radius: var(--p-r-sheet) var(--p-r-sheet) 0 0;
-  background: var(--bg);
+  background: var(--p-sheet-bg);
   box-shadow: var(--shadow-sheet);
+  --p-gap: var(--p-s5);
   outline: none;
   transition: transform var(--p-t-sheet) var(--p-ease-out);
-}
-
-html.phone[data-mode="dark"] .ph-sheet {
-  background: color-mix(in srgb, var(--tx) 5%, var(--bg));
 }
 
 html.phone .ph-sheet.large {
@@ -1226,7 +1328,7 @@ html.phone .ph-sheet-h {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 8px 4px var(--p-gut);
+  padding: 0 12px var(--p-s2) var(--p-gut);
   flex: none;
 }
 
@@ -1235,7 +1337,7 @@ html.phone .ph-sheet-h h2 {
   margin: 0;
   font-size: 20px;
   line-height: 26px;
-  font-weight: 600;
+  font-weight: 650;
 }
 
 html.phone .ph-close {
@@ -1254,7 +1356,7 @@ html.phone .ph-sheet-b {
   flex: 1;
   overflow-y: auto;
   overscroll-behavior-y: contain;
-  padding: 8px var(--p-gut) calc(var(--sb) + 16px);
+  padding: var(--p-s2) var(--p-gut) calc(var(--sb) + var(--p-s5));
 }
 
 html.phone .ph-sheet-f {
@@ -1303,6 +1405,7 @@ html.phone .ph-acts,
 html.phone .ph-pick {
   display: flex;
   flex-direction: column;
+  border: 1px solid var(--p-card-line);
   border-radius: var(--p-r-group);
   background: var(--p-surf);
   overflow: hidden;
@@ -1349,6 +1452,7 @@ html.phone .ph-act.danger {
 html.phone .ph-act-x {
   justify-content: center;
   margin-block-start: 8px;
+  border: 1px solid var(--p-card-line);
   border-radius: var(--p-r-group);
   background: var(--p-surf);
   font-weight: 600;

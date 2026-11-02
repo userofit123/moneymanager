@@ -42,10 +42,6 @@ watch([current, query], follow);
 addEventListener("popstate", follow);
 onBeforeUnmount(() => removeEventListener("popstate", follow));
 
-// html.ph-glow: the background glow shows behind the top of Home and More only, so lists stay calm
-const glow = (name) => document.documentElement.classList.toggle("ph-glow", name === "home" || name === "more");
-glow(screen.value.name);
-
 // A screen remembers where it was scrolled (kept as it scrolls: by the time the address changes, the router has already
 // gone to the top); the stacks follow the address.
 const keepScroll = () => { if (!moving) screen.value.y = scrollY; };
@@ -54,7 +50,6 @@ onBeforeUnmount(() => removeEventListener("scroll", keepScroll));
 watch(url, async (u) => {
   const how = showUrl(nav, u);
   if (how === "none") return;
-  glow(screen.value.name);
   await nextTick();
   scrollTo(0, screen.value.y || 0);
   if (!moving) slideIn(how);
@@ -123,7 +118,7 @@ onMounted(() => {
   document.documentElement.classList.add("ph-ready");
   if (standalone && stage.value) stopEdge = edgeBack(stage.value, { can: () => stack.value.length > 1, onBack: () => api.back(), sign });
 });
-onBeforeUnmount(() => { stopEdge?.(); document.documentElement.classList.remove("ph-ready", "ph-glow"); });
+onBeforeUnmount(() => { stopEdge?.(); document.documentElement.classList.remove("ph-ready"); });
 </script>
 
 <template>

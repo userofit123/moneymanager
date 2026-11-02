@@ -1,5 +1,5 @@
-/* The phone app's page: the document scrolls, the content is one calm column, the glow shows only behind the top of
-   Home and More, and a window that is open holds the page where it was (core/sheets.js sets the top). */
+/* The phone app's page: the document scrolls, the content is one calm column on the plain page colour (no glow: every
+   screen has the same background), and a window that is open holds the page where it was (core/sheets.js sets the top). */
 html.phone body {
   display: block;
   background: var(--bg);
@@ -12,14 +12,8 @@ html.phone {
   scroll-padding-block: calc(var(--p-bar) + env(safe-area-inset-top) + 8px) 16px;
 }
 
-html.phone:not(.ph-glow)::before {
+html.phone::before {
   display: none;
-}
-
-html.phone.ph-glow::before {
-  position: absolute;
-  block-size: 440px;
-  mask-image: linear-gradient(#000 35%, transparent);
 }
 
 html.phone.sl body {
@@ -29,7 +23,7 @@ html.phone.sl body {
 
 html.phone .ph-app {
   min-block-size: 100dvh;
-  padding-block-end: calc(var(--p-tab) + var(--sb) + 24px);
+  padding-block-end: calc(var(--p-tab) + var(--sb) + var(--p-s6));
 }
 
 html.phone .ph-app :is(button, a, input, select, textarea) {

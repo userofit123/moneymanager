@@ -14,7 +14,7 @@ html.phone .ph-add-i {
   gap: 10px;
   min-block-size: 112px;
   padding: 14px;
-  border: 0;
+  border: 1px solid var(--p-card-line);
   border-radius: var(--p-r-group);
   background: var(--p-surf);
   color: var(--tx);
