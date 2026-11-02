@@ -4,6 +4,9 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [Unreleased]
+- **Card bill on the day it is paid: no false "You owe less" alert:** when the bank lists the card bill payment while the card still has purchases waiting to go through, the payment now explains the lower amount you owe on the card. Before, those waiting purchases made the drop look smaller than the payment, so the two did not match. An alert like this that is already open closes by itself at the next sync once the bank shows the payment.
+
 ## [0.13.1] - 2026-11-02
 - **Docker: updates reach Docker again:** the Docker images of the last versions were never published, because building them got stuck. They are built faster now and a stuck build stops on its own, so Dockhand, Portainer, Watchtower and Docker Desktop see this version.
 - **Points from months long ago are kept:** after 90 days, the points of small daily things (using the app, categories and tags) are folded into one total per month to keep your data small. The server now keeps those totals, so they still count in your level and in **Points by month**.

@@ -739,3 +739,23 @@ test("points earned are saved and loaded back, kept small; an app that sends non
   await putState(S);
   assert.equal(Object.keys((await getState()).points).length, 3);
 });
+
+test("on the day a card bill is paid, the card's pending charges do not hide the payment, and a pending charge listed again is not counted twice", async () => {
+  const { card } = await cardAndBank();
+  const acc = { name: "Card", currency: "ILS", source: "max" }, bank = { name: "Bank", currency: "ILS", source: "hapoalim" };
+  const at = (h) => new Date(Date.now() + h * 36e5), day = new Date().toISOString().slice(0, 10);
+  await q("INSERT INTO rules (keyword,category) VALUES ('Card company','Loans & credit payments')");
+  await ingest(acc, [{ date: day, description: "Shop H", amount: -50, currency: "ILS", pending: true }]);
+  await tx((c) => recordSnapshot(c, card, -1050, at(-3))); // the starting balance already holds the pending charge
+  // the card lists it again, plus a new pending charge and a settled one; the bill (900) was paid: the card's total is 900 lower
+  await ingest(acc, [
+    { date: day, description: "Shop H", amount: -50, currency: "ILS", pending: true },
+    { date: day, description: "Shop J", amount: -80, currency: "ILS", pending: true },
+    { date: day, description: "Shop K", amount: -20, currency: "ILS", externalId: "c:k" },
+  ]);
+  await tx((c) => recordSnapshot(c, card, -1050 - 80 - 20 + 900, at(-2)));
+  assert.deepEqual(await openGaps(), [820]); // the smaller count, without the pending charges
+  await ingest(bank, [{ date: day, description: "Card company", amount: -900, currency: "ILS", pending: true, externalId: "b:bill" }]);
+  assert.deepEqual(await openGaps(), []);
+  assert.equal((await q("SELECT count(*)::int AS n FROM balance_gaps WHERE paid_by IS NOT NULL")).rows[0].n, 1);
+});

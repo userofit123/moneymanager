@@ -112,6 +112,7 @@ export async function resetGapBase(c, accountId) {
 
 // What the newest balance leaves unexplained, counting every payment added after the starting point. A charge the bank still lists as pending is
 // already in a card balance, so the answer that fits better (with or without pending ones) is the one that counts.
+// Pending charges are listed again (as new rows) at every import, but keep the time they were first listed: that time alone says whether one is new.
 // timing: when it does not add up, true if leaving out one or a few new charges dated near the start or the newest reading makes it add up
 // (the card's list and the card's total do not always show a new charge at the same time).
 // A later payment of an instalment purchase dated after the newest reading is not new money: the card's total held the whole purchase from the start
@@ -122,20 +123,22 @@ async function leftOver(c, account, base, last) {
   const rows = async (pending) => (await c.query(
     `SELECT (CASE WHEN orig_amount IS NULL THEN amount ELSE abs(orig_amount) * sign(amount) END - COALESCE(gap_explained,0))::float AS a, date::text AS d,
        COALESCE(gap_explained,0)::float AS ge FROM transactions
-     WHERE ($4 OR NOT pending) AND (created_at > $2 OR id > COALESCE($5::bigint, 9223372036854775807)) AND date >= ($2::timestamptz - interval '${OLD_DAYS} days')::date
+     WHERE ($4 OR NOT pending) AND (created_at > $2 OR (NOT pending AND id > COALESCE($5::bigint, 9223372036854775807))) AND date >= ($2::timestamptz - interval '${OLD_DAYS} days')::date
        AND ((amount<0 AND from_name=$1) OR (amount>0 AND to_name=$1)) AND COALESCE(orig_currency,'ILS')=$3
        AND NOT (COALESCE(inst_n,0) > 1 AND date > ($6::timestamptz AT TIME ZONE 'Asia/Jerusalem')::date)`,
     [account.name, base.upto, account.currency, pending, base.maxId ?? null, last.at])).rows;
   const near = (d, at) => Math.abs(new Date(d + "T12:00:00Z") - new Date(at)) <= TIMING_DAYS * 864e5;
   let U = null, timing = false, counted = false;
+  const both = [];
   for (const pending of [false, true]) {
     const R = await rows(pending), u = computeGap(base.balance, last.balance, R.reduce((x, r) => x + r.a, 0));
+    both.push(u);
     if (U === null || Math.abs(u) < Math.abs(U)) U = u;
     if (Math.abs(u) >= GAP_MIN && !timing) timing = leaveOutFits(R.filter((r) => near(r.d, base.from || base.upto) || near(r.d, last.at)).map((r) => r.a).slice(0, 40), -u);
     if (Math.abs(u) >= GAP_MIN && !counted) counted = leaveOutFits(R.map((r) => r.ge).filter((x) => x).slice(0, 40), u);
   }
   const big = Math.abs(U) >= GAP_MIN;
-  return { U, timing: big && timing, counted: big && counted };
+  return { U, both, timing: big && timing, counted: big && counted };
 }
 // A charge dated this close to a balance reading may be in the card's total before (or after) the card lists it.
 const TIMING_DAYS = 2;
@@ -216,6 +219,15 @@ export async function healGaps(c, accountName, currency) {
 // A card's debt that went down is usually the card bill, paid from the bank: the bank lists the payment, the card does not.
 // A bank payment of the same amount near the gap (a card payment, not one counted as spending) explains it, and only that one gap.
 // A payment the bank still lists as pending counts too: the card already shows it as paid, and the import keeps the link when the payment settles.
+// The bill paid can be the gap counted with or without the card's pending charges: the gap shown is the smaller one, but a card's total
+// already holds its pending charges, so on the day the bill is paid the gap without them is the bill less the charges still pending.
+async function billAmounts(c, accountId, rem) {
+  const account = (await c.query("SELECT id,name,currency FROM accounts WHERE id=$1", [accountId])).rows[0];
+  const base = await getBase(c, accountId), last = await latestSnapshot(c, accountId);
+  if (!account || !base || !last) return [rem];
+  const { both } = await leftOver(c, account, base, { balance: last.balance, at: last.taken_at });
+  return [rem, ...both.filter((u) => u >= GAP_MIN)];
+}
 export async function healCardPayments(c) {
   const gaps = (await c.query(
     `SELECT g.id,g.account_id,g.remaining::float AS rem,g.window_from,g.window_to,a.name FROM balance_gaps g JOIN accounts a ON a.id=g.account_id
@@ -224,12 +236,13 @@ export async function healCardPayments(c) {
   const ov = (await c.query("SELECT value FROM settings WHERE key='cc_override'")).rows[0]?.value || {};
   let n = 0;
   for (const g of gaps) {
+    const amounts = await billAmounts(c, g.account_id, g.rem);
     const pays = (await c.query(
       `SELECT t.id,t.from_name,t.category FROM transactions t JOIN accounts a ON a.name=t.from_name AND a.kind='bank'
-       WHERE t.amount<0 AND abs(-t.amount - $1) <= 1
+       WHERE t.amount<0 AND EXISTS (SELECT 1 FROM unnest($1::float8[]) v WHERE abs(-t.amount - v) <= 1)
          AND t.date >= ($2::timestamptz - interval '7 days')::date AND t.date <= ($3::timestamptz + interval '7 days')::date
          AND NOT EXISTS (SELECT 1 FROM balance_gaps x WHERE x.paid_by=t.id)
-       ORDER BY abs(-t.amount - $1), t.id`, [g.rem, g.window_from, g.window_to])).rows;
+       ORDER BY (SELECT min(abs(-t.amount - v)) FROM unnest($1::float8[]) v), t.id`, [amounts, g.window_from, g.window_to])).rows;
     const p = pays.find((t) => ov[t.id] != 1 && (ov[t.id] == 2 || t.category === "Loans & credit payments"));
     if (!p) continue;
     await c.query("UPDATE balance_gaps SET remaining=0, status='cleared', paid_by=$2 WHERE id=$1", [g.id, p.id]);
