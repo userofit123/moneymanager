@@ -94,3 +94,8 @@ test("every history action written by the app or the server has its Hebrew in co
   const missing = [...found].filter(([a]) => !/[א-ת]/.test(heSaved(a))).map(([a, f]) => a + " (" + f + ")");
   assert.deepEqual(missing, [], "history actions with no Hebrew: add them to HISTORY in src/core/heSaved.js");
 });
+
+test("an undone change's line (Action: detail) is in Hebrew too", () => {
+  assert.equal(heSaved("Removed goal: ₪1,500,000 in 15 years").startsWith("היעד הוסר: "), true);
+  assert.equal(heSaved("Updated profile: Dana"), "הפרופיל עודכן: Dana");
+});

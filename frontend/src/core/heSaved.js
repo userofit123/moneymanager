@@ -601,6 +601,9 @@ function find(s) {
   const r = look(s);
   if (r !== undefined) return r;
   for (const [re, fn] of RULES) { const m = s.match(re); if (m) return fn(...m.slice(1)).replace(DATE, (x, d, mo, y) => heDate(d, mo, y)); }
+  // an undone change keeps its line as "Action: detail" (stores/data.js): the action from HISTORY, the detail on its own
+  const ud = s.match(/^([^:\n]+): ([\s\S]+)$/);
+  if (ud && HISTORY[ud[1]] !== undefined) return HISTORY[ud[1]] + ": " + heSaved(ud[2]);
   // numbers, dates and months become {}, {d} and {m}, and are put back into the Hebrew in the same order
   const ds = [], ns = [], ms = [];
   const key = s.replace(DATE, (x, d, mo, y) => { ds.push(heDate(d, mo, y)); return "{d}"; })
