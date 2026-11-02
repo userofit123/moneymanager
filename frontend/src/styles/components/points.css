@@ -4,10 +4,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  inline-size: 64px;
-  padding: 8px 4px 7px;
-  margin-block-end: 6px;
+  inline-size: 56px;
+  padding: 6px;
+  margin-block-end: 8px;
+  margin-inline: auto;
   border: 0;
   border-radius: 16px;
   background: color-mix(in srgb, var(--tx) 5%, transparent);
@@ -27,11 +29,6 @@
 .ptb .ptl {
   color: var(--tx);
   font-weight: 600;
-  white-space: nowrap;
-}
-
-.ptb .ptn {
-  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
@@ -92,12 +89,17 @@ html.he .ptring::before {
 }
 
 html[data-nav="mini"]:not(.phone) .ptb {
-  inline-size: 52px;
+  inline-size: 48px;
+  padding: 4px;
 }
 
 html[data-nav="mini"]:not(.phone) .ptring {
   inline-size: 40px;
   block-size: 40px;
+}
+
+html[data-nav="mini"]:not(.phone) .ptring b {
+  font-size: 15px;
 }
 
 /* the phone's top bar: one line with the bar under it, plain like the bar's other buttons */
@@ -128,7 +130,7 @@ html.phone .ptb.phb .ptbar {
   background: var(--p-line);
 }
 
-/* the window: blocks for the level, this month, points by month, lately and how to earn (folded) */
+/* the window: blocks for the level, this month (with what it is made of), points by month, lately and how to earn (folded) */
 
 /* the level: the badge's ring, bigger, with the way to the next level beside it */
 .ptw .pthd {
@@ -236,12 +238,176 @@ html.phone .ptb.phb .ptbar {
   margin-inline-start: auto;
 }
 
-.ptw .ptwait {
-  margin-block-start: 4px;
-  padding: 10px 14px;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--acc) 8%, transparent);
+/* "This month" with the button for what it is made of at the end of the same line */
+.ptw .pthrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 22px 0 8px;
+}
+
+.ptw .pthrow .pts {
+  margin: 0;
+}
+
+.ptw .ptlink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding-block: 4px;
+  padding-inline: 10px 6px;
+  border: 0;
+  border-radius: 99px;
+  background: none;
+  color: var(--acc);
+  font: inherit;
   font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ptw .ptlink:hover,
+.ptw .ptlink.on {
+  background: color-mix(in srgb, var(--acc) 10%, transparent);
+}
+
+.ptw .ptlink:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 1px;
+}
+
+.ptw .ptchev {
+  inline-size: 16px;
+  block-size: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform .2s;
+}
+
+.ptw .ptlink.on .ptchev {
+  transform: rotate(180deg);
+}
+
+.ptw .ptparts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-block-start: 10px;
+}
+
+/* groups of items with a small picture each: what the month points are made of, and how to earn points */
+.ptw .ptgrp {
+  padding: 10px 14px 6px;
+  border: 1px solid var(--ol);
+  border-radius: 16px;
+  background: var(--s1);
+}
+
+.ptw .ptgh {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  padding-block-end: 4px;
+  font-size: 13.5px;
+}
+
+.ptw .ptgh > b:first-child {
+  font-weight: 600;
+}
+
+.ptw .ptits {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 13.5px;
+}
+
+.ptw .ptits li {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.ptw .ptits li + li {
+  border-block-start: 1px solid var(--ol);
+}
+
+.ptw .ptic {
+  box-sizing: border-box;
+  inline-size: 32px;
+  block-size: 32px;
+  padding: 7px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--acc) 12%, transparent);
+  fill: none;
+  stroke: var(--acc);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ptw .ptitl {
+  min-inline-size: 0;
+  line-height: 1.35;
+}
+
+.ptw .ptitl small,
+.ptw .ptpts small {
+  display: block;
+  margin-block-start: 2px;
+  color: var(--tx2);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.ptw .ptits .ptv {
+  text-align: end;
+}
+
+.ptw .ptpts {
+  max-inline-size: 150px;
+  text-align: end;
+}
+
+.ptw .ptpts .ptv {
+  font-size: 15px;
+}
+
+/* how to earn: the idea in one friendly block first */
+.ptw .ptintro {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-block: 6px 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--acc) 12%, var(--s1)), color-mix(in srgb, var(--acc2) 10%, var(--s1)));
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.ptw .ptintro .ptic {
+  flex: none;
+  background: color-mix(in srgb, var(--acc) 16%, var(--s1));
+}
+
+.ptw .ptintro b {
+  display: block;
+  margin-block-end: 2px;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.ptw .pthow .ptgrp + .ptgrp {
+  margin-block-start: 10px;
 }
 
 /* points by month: one row each, a bar split into things done and how the month went */
@@ -279,13 +445,53 @@ html.phone .ptb.phb .ptbar {
   font-size: 13.5px;
 }
 
-.ptw .ptmo li {
+/* each month row is a button that opens the month in Activity */
+.ptw .ptmr {
   display: grid;
-  grid-template-columns: 92px 1fr 56px;
+  grid-template-columns: 92px 1fr 56px 16px;
   align-items: center;
   gap: 10px;
-  padding: 5px 0;
-  cursor: default;
+  inline-size: calc(100% + 16px);
+  margin-inline: -8px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.ptw .ptmr:hover {
+  background: color-mix(in srgb, var(--tx) 6%, transparent);
+}
+
+.ptw .ptmr:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: -2px;
+}
+
+.ptw .ptgo {
+  inline-size: 16px;
+  block-size: 16px;
+  fill: none;
+  stroke: var(--tx2);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .55;
+  transition: opacity .15s;
+}
+
+.ptw .ptmr:hover .ptgo,
+.ptw .ptmr:focus-visible .ptgo {
+  opacity: 1;
+}
+
+html.he .ptw .ptgo {
+  transform: scaleX(-1);
 }
 
 .ptw .ptmo .ptv {
@@ -387,12 +593,10 @@ html.phone .ptb.phb .ptbar {
   font-weight: 600;
 }
 
-.ptw .ptk {
-  font-size: 12.5px;
-  color: var(--tx2);
-  margin: 10px 0 2px;
-}
-
 .ptw .ptem {
   margin-block: 4px 8px;
+}
+
+.ptw .pthow > .ptem {
+  margin-block-start: 10px;
 }
