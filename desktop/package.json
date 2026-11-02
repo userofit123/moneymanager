@@ -1,7 +1,7 @@
 {
   "name": "money-manager-desktop",
   "productName": "Money Manager",
-  "version": "0.13.1",
+  "version": "0.13.2",
   "description": "Money Manager for Windows, Linux and Mac: the same app, with its own database and bank scraper built in",
   "private": true,
   "license": "PolyForm-Noncommercial-1.0.0",

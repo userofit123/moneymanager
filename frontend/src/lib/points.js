@@ -43,6 +43,8 @@ const DAILY = ["visit", "cat", "tag"], KEEP_DAYS = 90;
 export const COUNT_FROM_DAY = 3;
 // How many finished months back are counted when they were not counted yet (the first time points run).
 const BACK_MONTHS = 12;
+// The mark of the one-time new count of the month results (0.13.2).
+const RECOUNT = "recount:1";
 
 // ---- levels ----
 // Level 1 at 0 points; level 2 needs 100, level 3 250, level 4 450, level 5 700: each step needs 50 more than the last.
@@ -173,6 +175,12 @@ export function pointsUpkeep(S, today, rows) {
   S.points = S.points || {};
   const day = dayKey(today);
   let got = 0;
+  // Once: the month results counted so far are cleared and counted again below, so every copy (a computer and a server
+  // with the same data) counts the past year with the same code. Points for things done are kept.
+  if (!S.points[RECOUNT]) {
+    Object.keys(S.points).forEach((k) => { if (k.startsWith("month:")) delete S.points[k]; });
+    S.points[RECOUNT] = { pts: 0, kind: "recount", day };
+  }
   setupDone(S).forEach((x) => { got += award(S, x.key, x.kind, x.pts, day, x.d); });
   // the finished months not counted yet, up to BACK_MONTHS back (so a first run counts the past year's results once),
   // the month just ended only from day COUNT_FROM_DAY, so late bank and card rows are in

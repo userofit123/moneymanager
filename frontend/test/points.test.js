@@ -163,6 +163,22 @@ test("past months are counted once: up to 12 back, from the first full month of 
   assert.equal(again, 0); // never counted twice
 });
 
+test("the month results are counted once more, one time only; points for things done stay", () => {
+  const rows = [];
+  ["2026-08", "2026-09"].forEach((m) => { rows.push({ d: m + "-15", a: 10000, c: "Salary" }, { d: m + "-16", a: -9000, c: "Food" }); });
+  const S = { budgets: {}, points: {
+    "month:2026-09:kept": { pts: 999, kind: "kept", day: "2026-10-03", d: "50" }, "month:2026-09": { pts: 0, kind: "monthDone", day: "2026-10-03" },
+    "alert:a1": { pts: 10, kind: "alert", day: "2026-10-20" },
+  } };
+  pointsUpkeep(S, "2026-11-04", rows);
+  assert.equal(S.points["month:2026-09:kept"].pts, 10 * POINTS.keptPerPct); // counted again from the data
+  assert.equal(S.points["alert:a1"].pts, 10);
+  assert.ok(S.points["recount:1"]);
+  S.points["month:2026-09:kept"].pts = 7; // later: never counted again
+  pointsUpkeep(S, "2026-11-05", rows);
+  assert.equal(S.points["month:2026-09:kept"].pts, 7);
+});
+
 test("old daily points fold into their month", () => {
   const S = { points: { "visit:2026-06-10": { kind: "visit", pts: 5, day: "2026-06-10" } } };
   pointsUpkeep(S, "2026-11-02", []);
