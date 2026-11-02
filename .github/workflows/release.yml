@@ -71,6 +71,7 @@ jobs:
   # The Docker version: the app and scraper images are published for every real release, so Docker Desktop, Portainer, Dockhand or Watchtower can update from them.
   docker:
     needs: [test, version]
+    timeout-minutes: 60   # a stuck image build fails within the hour instead of blocking the next releases for hours
     if: needs.version.outputs.publish == 'true' || github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions: { contents: read, packages: write }

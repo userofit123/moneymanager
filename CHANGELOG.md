@@ -4,7 +4,8 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
-## [Unreleased]
+## [0.13.1] - 2026-11-02
+- **Docker: updates reach Docker again:** the Docker images of the last versions were never published, because building them got stuck. They are built faster now and a stuck build stops on its own, so Dockhand, Portainer, Watchtower and Docker Desktop see this version.
 - **Points from months long ago are kept:** after 90 days, the points of small daily things (using the app, categories and tags) are folded into one total per month to keep your data small. The server now keeps those totals, so they still count in your level and in **Points by month**.
 
 ## [0.13.0] - 2026-11-02

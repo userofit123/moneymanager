@@ -1,5 +1,7 @@
-# Step 1: build the app (frontend/) with Vite into frontend/dist
-FROM node:22-alpine AS frontend
+# Step 1: build the app (frontend/) with Vite into frontend/dist. The built files are the same for every machine type,
+# so this step runs once on the build machine's own type instead of under emulation for each (much faster, and npm
+# under emulation can hang).
+FROM --platform=$BUILDPLATFORM node:22-alpine AS frontend
 WORKDIR /src/frontend
 COPY frontend/package*.json ./
 RUN npm ci
