@@ -21,8 +21,7 @@ const { t, te, locale } = useI18n();
 const tk = (k, p) => t("points." + k, p || {});
 const open = ref(false);
 const showParts = ref(false); // "What it is made of" under the month tiles
-// once a fold has slid open, bring all of it into view, gently
-const showOpened = (e) => { const d = e.target; if (d.open) setTimeout(() => d.scrollIntoView({ behavior: "smooth", block: "nearest" }), 280); };
+const olderOpen = ref(false), howOpen = ref(false); // the older months and How to earn points, folded
 
 const lv = computed(() => points.value?.level);
 const pct = computed(() => (lv.value ? clampPercent(lv.value.into, lv.value.next - lv.value.start) : 0));
@@ -193,9 +192,9 @@ const howGroups = computed(() => [
             </button>
           </li>
         </ul>
-        <details v-if="months.length > SHOWN" class="fold ptf">
-          <summary>{{ tk("olderMonths", { n: months.length - SHOWN }) }}</summary>
-          <ul class="ptmo">
+        <div v-if="months.length > SHOWN" class="ptf" :class="{ on: olderOpen }">
+          <button type="button" class="ptfs" :aria-expanded="olderOpen" @click="olderOpen = !olderOpen">{{ tk("olderMonths", { n: months.length - SHOWN }) }}<svg class="ptchev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></button>
+          <SlideOpen :open="olderOpen"><ul class="ptmo">
             <li v-for="x in months.slice(SHOWN)" :key="x.month">
               <button type="button" class="ptmr" :aria-label="tk('openMonth', { m: x.long })" @click="openMonth(x.month)">
                 <span class="ptmn">{{ x.name }}<svg v-if="x.best" class="ptstar" viewBox="0 0 24 24" role="img" :aria-label="tk('bestTip')" :data-tip="tk('bestTip')"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" /></svg></span>
@@ -204,8 +203,8 @@ const howGroups = computed(() => [
                 <svg class="ptgo" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
               </button>
             </li>
-          </ul>
-        </details>
+          </ul></SlideOpen>
+        </div>
       </template>
 
       <!-- lately -->
@@ -216,8 +215,9 @@ const howGroups = computed(() => [
       <div v-else class="sm">{{ tk("noRecent") }}</div>
 
       <!-- how to earn, folded: the idea in one block, then the month results and the actions, each with its points -->
-      <details class="fold ptf pthow" @toggle="showOpened">
-        <summary>{{ tk("howTitle") }}</summary>
+      <div class="ptf pthow" :class="{ on: howOpen }">
+        <button type="button" class="ptfs" :aria-expanded="howOpen" @click="howOpen = !howOpen">{{ tk("howTitle") }}<svg class="ptchev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></button>
+        <SlideOpen :open="howOpen"><div class="pthowi">
         <div class="ptintro">
           <svg class="ptic" viewBox="0 0 24 24" aria-hidden="true" v-html="icon('better')" />
           <div><b>{{ tk("introTitle") }}</b><span>{{ tk("introText") }}</span></div>
@@ -233,7 +233,8 @@ const howGroups = computed(() => [
           </ul>
         </section>
         <div class="sm ptem">{{ tk("howNote") }}</div>
-      </details>
+        </div></SlideOpen>
+      </div>
     </BaseDialog>
   </template>
 </template>

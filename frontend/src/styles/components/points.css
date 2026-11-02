@@ -223,19 +223,37 @@ html.phone .ptb.phb .ptbar {
   letter-spacing: -.3px;
 }
 
-/* the folds: a quiet line with the shared chevron at the end */
-.ptw .ptf > summary {
+/* the folds: a quiet line with the chevron at the end, pointing to the end side when shut and down when open;
+   the contents slide open with SlideOpen, all in one movement */
+.ptw .ptfs {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
+  inline-size: 100%;
   padding: 8px 0;
+  border: 0;
+  background: none;
   color: var(--tx2);
+  font: inherit;
   font-size: 13.5px;
+  text-align: start;
   cursor: pointer;
 }
 
-.ptw .ptf > summary::after {
-  margin-inline-start: auto;
+.ptw .ptfs .ptchev {
+  flex: none;
+  inline-size: 18px;
+  block-size: 18px;
+  transform: rotate(-90deg);
+}
+
+html.he .ptw .ptfs .ptchev {
+  transform: rotate(90deg);
+}
+
+.ptw .ptf.on > .ptfs .ptchev {
+  transform: none;
 }
 
 /* "This month" with the button for what it is made of at the end of the same line */
@@ -586,7 +604,7 @@ html.he .ptw .ptgo {
   border-block-start: 1px solid var(--ol);
 }
 
-.ptw .pthow > summary {
+.ptw .pthow > .ptfs {
   padding-block: 12px 4px;
   color: var(--tx);
   font-size: 15px;
@@ -597,40 +615,25 @@ html.he .ptw .ptgo {
   margin-block: 4px 8px;
 }
 
-.ptw .pthow > .ptem {
+.ptw .pthowi > .ptem {
   margin-block-start: 10px;
 }
 
-/* the folds' contents fade and rise in as they slide open (core/details.js), and fade out as they close */
-.ptw .ptf.opening > :not(summary) {
-  animation: ptRise .32s var(--ease) both;
-}
-
-.ptw .ptf.closing > :not(summary) {
-  opacity: 0;
-  transition: opacity .15s;
-}
-
-@keyframes ptRise {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-}
-
 /* what it is made of: the blocks rise in a little as they slide open (SlideOpen) */
-.ptw .slo > .sloi > .ptparts {
+.ptw .slo > .sloi > .ptparts,
+.ptw .slo > .sloi > .pthowi {
   transform: translateY(-6px);
   transition: transform .28s var(--ease);
 }
 
-.ptw .slo.on > .sloi > .ptparts {
+.ptw .slo.on > .sloi > .ptparts,
+.ptw .slo.on > .sloi > .pthowi {
   transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ptw .ptf.opening > :not(summary),
-  .ptw .slo > .sloi > .ptparts {
+  .ptw .slo > .sloi > .ptparts,
+  .ptw .slo > .sloi > .pthowi {
     animation: none;
     transition: none;
     transform: none;
