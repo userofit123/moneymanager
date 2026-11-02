@@ -600,3 +600,39 @@ html.he .ptw .ptgo {
 .ptw .pthow > .ptem {
   margin-block-start: 10px;
 }
+
+/* the folds' contents fade and rise in as they slide open (core/details.js), and fade out as they close */
+.ptw .ptf.opening > :not(summary) {
+  animation: ptRise .32s var(--ease) both;
+}
+
+.ptw .ptf.closing > :not(summary) {
+  opacity: 0;
+  transition: opacity .15s;
+}
+
+@keyframes ptRise {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+/* what it is made of: the blocks rise in a little as they slide open (SlideOpen) */
+.ptw .slo > .sloi > .ptparts {
+  transform: translateY(-6px);
+  transition: transform .28s var(--ease);
+}
+
+.ptw .slo.on > .sloi > .ptparts {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ptw .ptf.opening > :not(summary),
+  .ptw .slo > .sloi > .ptparts {
+    animation: none;
+    transition: none;
+    transform: none;
+  }
+}

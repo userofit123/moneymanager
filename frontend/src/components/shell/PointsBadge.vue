@@ -14,12 +14,15 @@ import { dshort } from "../../dates.js";
 import { categoryName } from "../../catnames.js";
 import { goActivity } from "../../core/shell.js";
 import BaseDialog from "../BaseDialog.vue";
+import SlideOpen from "../SlideOpen.vue";
 
 defineProps({ phone: Boolean }); // phone: the one-line look for the phone's top bar
 const { t, te, locale } = useI18n();
 const tk = (k, p) => t("points." + k, p || {});
 const open = ref(false);
 const showParts = ref(false); // "What it is made of" under the month tiles
+// once a fold has slid open, bring all of it into view, gently
+const showOpened = (e) => { const d = e.target; if (d.open) setTimeout(() => d.scrollIntoView({ behavior: "smooth", block: "nearest" }), 280); };
 
 const lv = computed(() => points.value?.level);
 const pct = computed(() => (lv.value ? clampPercent(lv.value.into, lv.value.next - lv.value.start) : 0));
@@ -160,7 +163,7 @@ const howGroups = computed(() => [
           <b class="ptv"><bdi dir="ltr">{{ plus(points.monthPreview.total) }}</bdi></b>
         </div>
       </div>
-      <div v-if="showParts" class="ptparts">
+      <SlideOpen :open="showParts"><div class="ptparts">
         <div class="ptgrp">
           <div class="ptgh"><b>{{ tk("partsNow") }}</b><b class="ptv"><bdi dir="ltr">{{ plus(points.monthPreview.total) }}</bdi></b></div>
           <ul v-if="monthParts.length" class="ptits">
@@ -174,7 +177,7 @@ const howGroups = computed(() => [
             <li v-for="(x, i) in waitParts" :key="i"><svg class="ptic" viewBox="0 0 24 24" aria-hidden="true" v-html="icon(x.kind)" /><span class="ptitl">{{ x.label }}</span><b class="ptv"><bdi dir="ltr">{{ plus(x.pts) }}</bdi></b></li>
           </ul>
         </div>
-      </div>
+      </div></SlideOpen>
 
       <!-- points by month: a click on a month opens it in Activity -->
       <template v-if="months.length">
@@ -213,7 +216,7 @@ const howGroups = computed(() => [
       <div v-else class="sm">{{ tk("noRecent") }}</div>
 
       <!-- how to earn, folded: the idea in one block, then the month results and the actions, each with its points -->
-      <details class="fold ptf pthow">
+      <details class="fold ptf pthow" @toggle="showOpened">
         <summary>{{ tk("howTitle") }}</summary>
         <div class="ptintro">
           <svg class="ptic" viewBox="0 0 24 24" aria-hidden="true" v-html="icon('better')" />
