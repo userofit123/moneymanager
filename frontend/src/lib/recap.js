@@ -71,7 +71,7 @@ export function stillToPay({ S, A, k, CC, BI, R, TODAY, MK }) {
   // the bills a jar pays (or whose budget row a jar covers in full) still leave the bank: listed like any other unpaid bill
   (R.due || []).filter((b) => !bills.some((x) => x.n == b.n)).forEach((b) => { const bi = BI.find((x) => x.n == b.n); bills.push({ n: b.n, amt: b.amt, nx: bi && bi.nx ? bi.nx : null, overdue: !!b.overdue, idx: bi ? bi.idx : null, cat: bi ? bi.cat : b.cat }); });
   // bills a budget pays for are not in R's bill rows; the ones still due this month are added, so "still to pay" lists every one
-  BI.filter((b) => !b.once && !b.irregular && b.nx && b.nx.toISOString().slice(0, 7) == MK && b.nx.toISOString().slice(0, 10) >= TODAY && !bills.some((x) => x.n == b.n)).forEach((b) => bills.push({ n: b.n, amt: b.pred, nx: b.nx, overdue: false, idx: b.idx, cat: b.cat }));
+  BI.filter((b) => !b.once && !b.irregular && b.nx && !b.ahead && b.nx.toISOString().slice(0, 7) == MK && b.nx.toISOString().slice(0, 10) >= TODAY && !bills.some((x) => x.n == b.n)).forEach((b) => bills.push({ n: b.n, amt: b.pred, nx: b.nx, overdue: false, idx: b.idx, cat: b.cat }));
   // a bill whose payment the bank or card company already lists for later this month (sched), and other payments listed
   // for later this month, so the list matches the upcoming payments in Activity (a listed payment counts its own amount)
   BI.filter((b) => b.sched && b.sched.slice(0, 7) == MK && b.sched >= TODAY && !bills.some((x) => x.n == b.n)).forEach((b) => bills.push({ n: b.n, amt: b.schedAmt ?? b.pred, nx: new Date(b.sched + "T12:00:00"), overdue: false, idx: b.idx, cat: b.cat }));
@@ -188,14 +188,43 @@ export function chargeOf(t, cd) {
   if (s < t.d) { x = new Date(x.getFullYear(), x.getMonth() + 1, 1); s = `${x.getFullYear()}-${p2d(x.getMonth() + 1)}-${p2d(Math.min(c.day, last(x)))}`; }
   return s;
 }
-// Card purchases not yet charged: those whose charge day is after today, split into this month and later
-export function cardsDue({ S, A, k, CC, TODAY, MK }) {
-  const cd = chargeDays(S, A, k, CC), endM = MK + "-31", by = {}, now = {}; let thisMonth = 0, later = 0;
+// A card bill is paid by the bank's payment row, not by its date: the bank may take it a few days late. LATE: how many days
+// after its charge day a bill still waits for that row; EARLY: how many days before its charge day a payment can be for it.
+const CARD_LATE = 10, CARD_EARLY = 4;
+const dayDiff = (a, b) => (Date.parse(a) - Date.parse(b)) / 864e5;
+// The card bills: each card's purchases grouped by the day they leave the bank (c), each with the bank's payment row that
+// paid it (pay), when that row is there by today. A payment that names the card goes to that card's bill nearest its day;
+// one that names no card goes to the bill closest in amount. due(D): the bill still has to leave the bank on day D:
+// before its charge day, or after it while no payment row came yet (up to LATE days, for a card whose bills the bank's
+// rows have paid before; a card paid from an account that is not connected never shows one, so its date counts).
+export function cardGroups({ S, A, k, CC, TODAY }) {
+  const cd = chargeDays(S, A, k, CC), ci = cardInfo(S), grp = {};
   A.forEach((t) => {
     // the card's purchases and the refunds that came into it (money in sits in "to"): a refund lowers its bill
-    const n = acctOf(t); if (!CC.has(n)) return; const c = chargeOf(t, cd); if (c <= TODAY) return;
-    if (c <= endM) { thisMonth -= t.a; const x = (now[n + "|" + c] = now[n + "|" + c] || { n, a: 0, d: c }); x.a -= t.a; return; }
-    later -= t.a; const x = (by[n] = by[n] || { n, a: 0, d: c }); x.a -= t.a; if (c < x.d) x.d = c;
+    const n = acctOf(t); if (!CC.has(n)) return; const c = chargeOf(t, cd), key = n + "|" + c;
+    const g = (grp[key] = grp[key] || { n, c, a: 0, last: "", pay: null, tx: [] }); g.a -= t.a; g.tx.push(t); if (t.d > g.last) g.last = t.d;
+  });
+  const G = Object.values(grp).sort((a, b) => (a.c < b.c ? -1 : a.c > b.c ? 1 : 0));
+  const pays = (S.tx || []).filter((t) => !t.virtual && k.isCp(t) && String(t.d) <= TODAY).map((t) => ({ t, n: cardOf(t, ci), d: String(t.d).slice(0, 10), a: -t.a }));
+  const fits = (p, g) => { const x = dayDiff(p.d, g.c); return x >= -CARD_EARLY && x <= CARD_LATE; };
+  pays.filter((p) => p.n).sort((a, b) => (a.d < b.d ? -1 : 1)).forEach((p) => {
+    const g = G.filter((g) => !g.pay && g.n == p.n && fits(p, g)).sort((a, b) => Math.abs(dayDiff(p.d, a.c)) - Math.abs(dayDiff(p.d, b.c)))[0]; if (g) g.pay = p;
+  });
+  pays.filter((p) => !p.n).sort((a, b) => (a.d < b.d ? -1 : 1)).forEach((p) => {
+    const g = G.filter((g) => !g.pay && fits(p, g)).sort((a, b) => Math.abs(a.a - p.a) - Math.abs(b.a - p.a) || Math.abs(dayDiff(p.d, a.c)) - Math.abs(dayDiff(p.d, b.c)))[0]; if (g) g.pay = p;
+  });
+  const followed = new Set(G.filter((g) => g.pay).map((g) => g.n));
+  G.forEach((g) => { g.due = (D) => !(g.pay && g.pay.d <= D) && (g.c > D || (followed.has(g.n) && dayDiff(D, g.c) <= CARD_LATE)); });
+  return { G, cd };
+}
+// Card purchases not paid yet, split into this month and later: the bills still to leave the bank this month (also one
+// whose day came and whose payment row has not, so the bank balance still holds that money) and those charged after it
+export function cardsDue({ S, A, k, CC, TODAY, MK }) {
+  const endM = MK + "-31", by = {}, now = {}; let thisMonth = 0, later = 0;
+  cardGroups({ S, A, k, CC, TODAY }).G.forEach((g) => {
+    if (!g.due(TODAY)) return; const n = g.n, c = g.c;
+    if (c <= endM) { thisMonth += g.a; const x = (now[n + "|" + c] = now[n + "|" + c] || { n, a: 0, d: c }); x.a += g.a; return; }
+    later += g.a; const x = (by[n] = by[n] || { n, a: 0, d: c }); x.a += g.a; if (c < x.d) x.d = c;
   });
   // now: each card's bill still to come this month, by its day; next: each card's purchases charged after this month,
   // with the first day they leave the bank
@@ -257,15 +286,9 @@ export function monthSteps({ A, S, k, MK, TODAY, CC, inc, dn, start, end = null 
   // (the money out of the accounts is what is left over once the other lines are rounded)
   // what is already spent on credit cards at the end of each step but has not left the bank yet: the balance after it is
   // what is really yours once those card bills come. Purchases are grouped by card and by the day they leave the bank; a
-  // group whose bill the bank has paid (that day, give or take 3 days) counts the amount actually paid, the rest count
-  // their purchases. Refunds lower a group.
-  const cd = chargeDays(S, A, k, CC), ci = cardInfo(S), grp = {};
-  A.forEach((t) => { const n = acctOf(t); if (!CC.has(n)) return; const c = chargeOf(t, cd), key = n + "|" + c; const g = (grp[key] = grp[key] || { n, c, a: 0, last: "", pay: null, tx: [] }); g.a -= t.a; g.tx.push(t); if (t.d > g.last) g.last = t.d; });
-  const pays = cps.map((t) => ({ t, n: cardOf(t, ci), d: String(t.d), a: -t.a, used: false }));
-  const near = (p, g) => Math.abs((Date.parse(p.d) - Date.parse(g.c)) / 864e5) <= 3;
-  const G = Object.values(grp);
-  G.forEach((g) => { const p = pays.find((p) => !p.used && p.n == g.n && near(p, g)); if (p) (p.used = true), (g.pay = p); });
-  G.forEach((g) => { if (g.pay) return; const p = pays.find((p) => !p.used && !p.n && near(p, g)); if (p) (p.used = true), (g.pay = p); });
+  // group whose bill the bank has paid (its payment row, cardGroups) counts the amount actually paid, the rest count their
+  // purchases. A bill whose day came stays owed until its payment row does. Refunds lower a group.
+  const { G, cd } = cardGroups({ S, A, k, CC, TODAY });
   // what each card bill paid for: the purchases of the groups its payments were matched to
   steps.forEach((x) => {
     if (x.kind != "card") return;
@@ -278,7 +301,7 @@ export function monthSteps({ A, S, k, MK, TODAY, CC, inc, dn, start, end = null 
     const cut = x.kind == "spend" ? x.to : prevDay(x.from);
     let owed = 0, billed = 0; const due = {}, add = (d, a) => (due[d] = (due[d] || 0) + a);
     G.forEach((g) => {
-      if (g.c <= x.to) return;
+      if (!g.due(x.to)) return;
       if (g.pay && g.last <= cut) { owed += g.pay.a; billed += g.pay.a; add(g.pay.d, g.pay.a); return; }
       const v = buys.reduce((s, b) => (b.key == g.n + "|" + g.c && b.d <= cut ? s + b.a : s), 0);
       owed += v; add(g.c, v);
