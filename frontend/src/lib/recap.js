@@ -69,9 +69,12 @@ export function afterToday(S, A, MK, day, CC, due = []) {
 // counts (cardsDue) is never listed here too. BI: the bills (billInfo), not canceled or ended. R: reserveCalc's rows.
 export function stillToPay({ S, A, k, CC, BI, R, TODAY, MK }) {
   const dn = (t) => nameOf(S, t), inA = new Set(A);
-  const bills = []; R.rows.forEach((r) => (r.bills || []).forEach((b) => { const bi = BI.find((x) => x.n == b.n); bills.push({ n: b.n, amt: b.amt, nx: bi && bi.nx ? bi.nx : null, overdue: !!b.overdue, idx: bi ? bi.idx : null, cat: bi ? bi.cat : "", inR: true }); }));
+  // the day of the payment a bill row stands for: a payment whose day passed and that has not come yet (pending or late) is
+  // that day's payment, not the next one (a bill due on the 1st, not seen yet on the 2nd, is the 1st of this month)
+  const dueOf = (bi) => (bi ? (bi.status != "paid" && bi.pd ? bi.pd : bi.nx) || null : null);
+  const bills = []; R.rows.forEach((r) => (r.bills || []).forEach((b) => { const bi = BI.find((x) => x.n == b.n); bills.push({ n: b.n, amt: b.amt, nx: dueOf(bi), overdue: !!b.overdue, idx: bi ? bi.idx : null, cat: bi ? bi.cat : "", inR: true }); }));
   // the bills a jar pays (or whose budget row a jar covers in full) still leave the bank: listed like any other unpaid bill
-  (R.due || []).filter((b) => !bills.some((x) => x.n == b.n)).forEach((b) => { const bi = BI.find((x) => x.n == b.n); bills.push({ n: b.n, amt: b.amt, nx: bi && bi.nx ? bi.nx : null, overdue: !!b.overdue, idx: bi ? bi.idx : null, cat: bi ? bi.cat : b.cat }); });
+  (R.due || []).filter((b) => !bills.some((x) => x.n == b.n)).forEach((b) => { const bi = BI.find((x) => x.n == b.n); bills.push({ n: b.n, amt: b.amt, nx: dueOf(bi), overdue: !!b.overdue, idx: bi ? bi.idx : null, cat: bi ? bi.cat : b.cat }); });
   // bills a budget pays for are not in R's bill rows; the ones still due this month are added, so "still to pay" lists every one
   BI.filter((b) => !b.once && !b.irregular && b.nx && !b.ahead && b.nx.toISOString().slice(0, 7) == MK && b.nx.toISOString().slice(0, 10) >= TODAY && !bills.some((x) => x.n == b.n)).forEach((b) => bills.push({ n: b.n, amt: b.pred, nx: b.nx, overdue: false, idx: b.idx, cat: b.cat }));
   // a bill whose payment the bank or card company already lists for later this month (sched), and other payments listed

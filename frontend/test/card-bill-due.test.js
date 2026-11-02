@@ -78,3 +78,18 @@ test("a bill paid early is not still to pay on its day", () => {
   const x = flow(S, day);
   assert.ok(!x.F.up.some((b) => b.n == "Rent")); addsUp(x);
 });
+
+// A monthly bill due on the 1st whose payment has not come yet on the 2nd: still to pay, dated the 1st of this month (not
+// next month's 1st), counted once; once its payment comes it is gone from the list.
+const gym = { n: "Gym", match: "gym", every: 1, anchor: 10, dom: 1, manual: true, mode: "rule", rec: "recurring", amt: 100, src: "Bank Hapoalim", cat: "Sport" };
+const gymPay = (id, d) => ({ id, d, desc: "Gym", from: "Bank Hapoalim", to: "Gym", a: -100, c: "Sport" });
+test("a bill due on the 1st, not paid yet on the 2nd: listed on this month's 1st, never on next month's", () => {
+  const S = state({ bills: [gym], extra: [gymPay(10, "2026-09-01"), gymPay(11, "2026-10-01")] });
+  const x = flow(S, at(2026, 11, 2)), rows = x.F.up.filter((b) => b.n == "Gym");
+  assert.equal(rows.length, 1); assert.equal(rows[0].amt, 100);
+  const d = rows[0].nx; assert.equal(d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(), "2026-11-1");
+  assert.ok(x.R.bills.every((b) => !b.nx || b.nx.getMonth() == 10), "no row in this month's list is dated next month");
+  addsUp(x);
+  const y = flow(state({ bills: [gym], extra: [gymPay(10, "2026-09-01"), gymPay(11, "2026-10-01"), gymPay(12, "2026-11-02")] }), at(2026, 11, 2));
+  assert.equal(y.F.up.filter((b) => b.n == "Gym").length, 0);
+});
