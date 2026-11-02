@@ -306,8 +306,18 @@ html.he .ptw .ptfs .ptchev {
   transition: transform .2s;
 }
 
-.ptw .ptlink.on .ptchev {
-  transform: rotate(180deg);
+/* like every fold in the app: points to the end side when shut, down when open */
+.ptw .ptlink .ptchev {
+  transform: rotate(-90deg);
+}
+
+html.he .ptw .ptlink .ptchev {
+  transform: rotate(90deg);
+}
+
+.ptw .ptlink.on .ptchev,
+html.he .ptw .ptlink.on .ptchev {
+  transform: none;
 }
 
 .ptw .ptparts {
