@@ -652,7 +652,7 @@ html.he .fcsum .op svg {
 
 
 /* Years ahead: one card. Three tiles for the choices as they are now (the same tiles as "How next month is worked out", without
-   the sum's badges), then the four choices in one row (two by two on a narrower card, one under the other on a narrow one),
+   the sum's badges) and a quieter fourth one for saving the goal, then the four choices in one row (two by two on a narrower card, one under the other on a narrow one),
    then the chart across the card. */
 .ya {
   container-type: inline-size;
@@ -776,24 +776,53 @@ html.he .ya-back svg {
   margin: 0;
 }
 
-/* saving the goal: a short line at the start, the buttons at the end (under the line on a narrow card) */
-.ya-save {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px 16px;
-  margin-top: 16px;
-}
-
-.ya-save .sm {
-  flex: 1 1 240px;
-}
-
-.ya-save-b {
-  display: flex;
+/* the goal tile at the end of the row: the same size as the three numbers but quieter (no colored icon block, an outline in
+   place of the fill); dashed while no goal is saved. Its buttons sit at the bottom, so tiles of different heights still line up. */
+.fcsum.ya-sum li.r-goal {
+  grid-template-columns: minmax(0, 1fr);
+  align-content: space-between;
   gap: 8px;
+  padding: 12px 14px;
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--ol);
+}
+
+.fcsum.ya-sum li.r-goal.g-none {
+  box-shadow: none;
+  outline: 1.5px dashed var(--ol);
+  outline-offset: -1.5px;
+}
+
+.ya-sum li.r-goal .d {
+  padding: 0;
+}
+
+.ya-sum li.r-goal .gh {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--tx);
+}
+
+.ya-sum li.r-goal.g-diff .gh {
+  color: var(--acc);
+}
+
+.ya-goal-b {
+  display: flex;
   flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* the buttons' small size is the class "s", which the tiles' small line also uses: keep the buttons' own size and color */
+.ya-goal-b .btn {
+  font-size: 12px;
+  color: var(--on);
+  white-space: nowrap;
+}
+
+.ya-goal-b .btn.o {
+  color: var(--acc);
 }
 
 .ya-out {
@@ -811,7 +840,13 @@ html.he .ya-back svg {
   margin-top: 2px;
 }
 
+/* a narrower card: the four tiles two by two */
 @container (max-width: 1000px) {
+  .fcsum.ya-sum {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .ya-ctl {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px 24px;
@@ -833,6 +868,6 @@ html.he .ya-back svg {
 
 @container (max-width: 560px) {
   .fcsum.ya-sum {
-    grid-auto-flow: row;
+    grid-template-columns: minmax(0, 1fr);
   }
 }

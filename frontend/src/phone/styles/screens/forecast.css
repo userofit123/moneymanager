@@ -586,7 +586,7 @@ html.phone .ph-fc-skel i + i {
 
 
 /* ---- Years ahead (phone/components/ForecastYears.vue): three rows for the choices as they are now (like "How next month is
-   worked out"), then the choices and the chart ---- */
+   worked out"), then saving the goal, the choices and the chart ---- */
 html.phone .ph-ya-r {
   gap: 10px;
   align-items: flex-start;
@@ -705,17 +705,43 @@ html.phone .ph-ya-chart {
   padding: 12px 8px 10px;
 }
 
-/* saving the goal: a short line, then the buttons side by side */
+/* saving the goal, right after the three rows: its state and the line under it, then the buttons side by side.
+   Quieter than the rows: an outline in place of the fill, dashed while no goal is saved. */
 html.phone .ph-ya-save {
   margin-block-start: 10px;
-  padding-inline: 4px;
+  padding: 14px 16px;
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--ol);
 }
 
-html.phone .ph-ya-save p {
-  margin: 0 0 8px;
+html.phone .ph-ya-save.g-none {
+  box-shadow: none;
+  outline: 1.5px dashed var(--ol);
+  outline-offset: -1.5px;
+}
+
+html.phone .ph-ya-save-t {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-block-end: 12px;
+}
+
+html.phone .ph-ya-save-k,
+html.phone .ph-ya-save-s {
   color: var(--tx2);
   font-size: 13px;
   line-height: 18px;
+}
+
+html.phone .ph-ya-save-t b {
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
+}
+
+html.phone .ph-ya-save.g-diff .ph-ya-save-t b {
+  color: var(--acc);
 }
 
 html.phone .ph-ya-save-b {

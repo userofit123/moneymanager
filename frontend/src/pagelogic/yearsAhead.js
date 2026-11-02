@@ -45,11 +45,13 @@ export function useYearsAhead(M) {
     const g = goalOf(Y.value, now.value);
     data.change((S) => { S.cfg = S.cfg || {}; const had = !!S.cfg.goal; S.cfg.goal = g; return [[had ? "Updated goal" : "Saved a goal", goalLine(g)]]; });
   };
-  // the line next to the buttons: the goal is saved as it is, or what the saved goal is (when the choices differ); empty with none
-  const savedLine = computed(() => {
-    const S = Ys.value; if (!S) return "";
-    if (same.value) return Y_("savedSame");
-    return S.hasAge ? Y_("savedDiffAge", { goal: fm(S.goal), age: S.at }) : Y_("savedDiffYears", { goal: fm(S.goal), n: S.years }, S.years);
+  // the goal block next to the three numbers: whether a goal is saved ("none", "same" as the choices, or "diff"), its heading
+  // and the line under it
+  const goalState = computed(() => {
+    const S = Ys.value;
+    if (!S) return { k: "none", head: Y_("goalNone"), sub: Y_("goalNoneSub") };
+    if (same.value) return { k: "same", head: S.hasAge ? Y_("goalSavedAge", { goal: fm(S.goal), age: S.at }) : Y_("goalSavedYears", { goal: fm(S.goal), n: S.years }, S.years), sub: Y_("goalSavedSub") };
+    return { k: "diff", head: Y_("goalChanged"), sub: S.hasAge ? Y_("savedDiffAge", { goal: fm(S.goal), age: S.at }) : Y_("savedDiffYears", { goal: fm(S.goal), n: S.years }, S.years) };
   });
   // Remove goal: asks first; the choices on the page stay as they are
   const removeGoal = () => ask(Y_("rmTitle"), Y_("rmText"), () => data.change((S) => { const g = S.cfg?.goal; if (!g) return false; delete S.cfg.goal; return [["Removed goal", goalLine(g)]]; }), { danger: true, yes: Y_("remove") });
@@ -105,7 +107,7 @@ export function useYearsAhead(M) {
   const axisLabel = (i) => (Y.value.hasAge ? String(Y.value.age + i) : String(i));
   const legMine = computed(() => Y_("legMine", { m: fm(Y.value.m) }));
 
-  return { YAI, Y, Y_, set, back, G, same, saveGoal, removeGoal, savedLine, atKey, typeAt, leaveAt, answer, mTip, ptName, axisLabel, legMine, pc, GROWTH, fm };
+  return { YAI, Y, Y_, set, back, G, same, saveGoal, removeGoal, goalState, atKey, typeAt, leaveAt, answer, mTip, ptName, axisLabel, legMine, pc, GROWTH, fm };
 }
 
 // Home's goal card opens the Forecast at Years ahead: the card sets this, and Years ahead scrolls itself into view once.
