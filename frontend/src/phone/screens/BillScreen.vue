@@ -60,6 +60,11 @@ const typeName = (v) => tk(TYPE_TEXT[v]);
 const typeOpen = computed({ get: () => !!typeFor.value, set: (v) => { if (!v) typeFor.value = null; } });
 const canType = computed(() => b.value && !b.value.once && !canceled.value);
 
+// past payments: the newest few, and all of them on request (a bill paid monthly for years has a long list)
+const FEW = 6;
+const allPays = ref(false);
+const rowsShown = computed(() => (pays.value ? (allPays.value ? pays.value.rows : pays.value.rows.slice(0, FEW)) : []));
+
 const histName = (y) => displayName(S.value, y) || b.value.n;
 const diffOf = (r) => (Math.abs(r.diff) > 0.5 ? r.diff : 0);
 </script>
@@ -89,7 +94,7 @@ const diffOf = (r) => (Math.abs(r.diff) > 0.5 ? r.diff : 0);
       <ListGroup v-if="canceled">
         <div class="ph-bill-box">
           <p><b v-if="b.canceledAt">{{ P("canceledNote", { date: iso(dstr(b.canceledAt)) }) }}</b> {{ t("bills.notCounted") }}</p>
-          <div class="ph-bill-btns"><button type="button" class="ph-btn" @click="restore(b)">{{ t("bills.restore") }}</button><button type="button" class="ph-btn tonal ph-bill-del" @click="remove(b)">{{ t("bills.remove") }}</button></div>
+          <div class="ph-bill-btns"><button type="button" class="ph-btn" @click="restore(b)">{{ t("bills.restore") }}</button><button type="button" class="ph-btn plain ph-bill-del" @click="remove(b)">{{ t("bills.remove") }}</button></div>
         </div>
       </ListGroup>
 
@@ -97,7 +102,7 @@ const diffOf = (r) => (Math.abs(r.diff) > 0.5 ? r.diff : 0);
       <ListGroup v-if="b.sug">
         <div class="ph-bill-box">
           <p>{{ t("bills.sug", { freq: freq(b.sug) }) }}</p>
-          <div class="ph-bill-btns"><button type="button" class="ph-btn" @click="makeRegular(b)">{{ t("bills.makeReg") }}</button><button type="button" class="ph-btn tonal" @click="keepIrregular(b)">{{ t("bills.keepIrr") }}</button></div>
+          <div class="ph-bill-btns"><button type="button" class="ph-btn" @click="makeRegular(b)">{{ t("bills.makeReg") }}</button><button type="button" class="ph-btn plain" @click="keepIrregular(b)">{{ t("bills.keepIrr") }}</button></div>
         </div>
       </ListGroup>
 
@@ -114,13 +119,12 @@ const diffOf = (r) => (Math.abs(r.diff) > 0.5 ? r.diff : 0);
           <template #end><span class="ph-bill-endcol"><span class="ph-amt" dir="ltr">{{ fm(b.amt) }}</span><small v-if="change" dir="ltr" :class="change > 0 ? 'up' : 'dn'">{{ (change > 0 ? "+" : "−") + fm(Math.abs(change)) }}</small></span></template>
         </ListRow>
         <ListRow v-else :title="P('last')" :value="P('noneYet')" />
+        <ListRow v-if="change" :title="P('priceChanged')" :sub="change > 0 ? P('priceUp', { amount: fm(change) }) : P('priceDown', { amount: fm(-change) })" />
         <ListRow v-if="!b.once && b.n_tx > 1 && b.hi > b.lo" :title="P('range')" :value="P('rangeVal', { lo: fm(b.lo), hi: fm(b.hi) })" />
         <ListRow v-if="b.irregular" :title="P('perMonth')" :value="fm(b.mo)" />
         <ListRow v-if="!b.once" :title="t('bills.tip.so')" :value="String(b.n_tx || 0)" />
         <ListRow v-if="canType" :title="P('changeType')" link @tap="openType(b.idx)" />
       </ListGroup>
-
-      <p v-if="change" class="ph-bill-note" :class="change > 0 ? 'up' : 'dn'">{{ change > 0 ? P("priceUp", { amount: fm(change) }) : P("priceDown", { amount: fm(-change) }) }}</p>
 
       <!-- past payments: the totals, a bar per payment, and the list -->
       <ListGroup :title="P('history')" :more="pays ? t('bills.h.show') : ''" @more="showInActivity(b.idx)">
@@ -133,9 +137,10 @@ const diffOf = (r) => (Math.abs(r.diff) > 0.5 ? r.diff : 0);
           </div>
           <div v-if="pays.bars.length" class="ph-bill-bars" aria-hidden="true"><i v-for="y in pays.bars" :key="y.id" :style="{ blockSize: Math.max(8, (Math.abs(y.a) / pays.mx) * 100) + '%' }" /></div>
           <p v-if="pays.mx - pays.mn > 0.5" class="ph-bill-range"><span>{{ t("bills.h.lowest") }} <b>{{ fm(pays.mn) }}</b></span><span>{{ t("bills.h.highest") }} <b>{{ fm(pays.mx) }}</b></span></p>
-          <ListRow v-for="r in pays.rows" :key="r.t.id" :title="iso(dstr(r.t.d))" :sub="[r.t.from, r.t.c ? catLabel(r.t.c) : ''].filter(Boolean).join(', ') || histName(r.t)" link @tap="nav.push('transaction', String(r.t.id))">
+          <ListRow v-for="r in rowsShown" :key="r.t.id" :title="iso(dstr(r.t.d))" :sub="[r.t.from, r.t.c ? catLabel(r.t.c) : ''].filter(Boolean).join(', ') || histName(r.t)" link @tap="nav.push('transaction', String(r.t.id))">
             <template #end><span class="ph-bill-endcol"><span class="ph-amt" :class="{ pos: r.t.a > 0 }" dir="ltr">{{ r.t.a < 0 ? "" : "+" }}{{ fm(Math.abs(r.t.a)) }}</span><small v-if="diffOf(r)" dir="ltr" :class="diffOf(r) > 0 ? 'up' : 'dn'">{{ (diffOf(r) > 0 ? "+" : "−") + fm(Math.abs(diffOf(r))) }}</small></span></template>
           </ListRow>
+          <ListRow v-if="pays.rows.length > FEW" class="ph-bill-all" :title="allPays ? P('showFewer') : P('showAll', { n: pays.rows.length })" @tap="allPays = !allPays" />
         </template>
         <template v-if="pays" #note>{{ P("historyNote") }}</template>
       </ListGroup>

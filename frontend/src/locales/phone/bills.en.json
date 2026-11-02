@@ -27,5 +27,15 @@
   "changeType": "Change bill type",
   "pickType": "How often it is charged",
   "canceledNote": "Canceled on {date}.",
-  "details": "Details"
+  "details": "Details",
+  "soonLabel": "Next 14 days",
+  "changesLabel": "Price changes",
+  "billsN": "1 bill | {n} bills",
+  "nothingSoon": "Nothing due",
+  "noChanges": "None lately",
+  "dueOn": "Due {date}",
+  "priceChanged": "Price changed",
+  "showAll": "Show all {n} payments",
+  "showFewer": "Show fewer",
+  "soonN": "1 bill due | {n} bills due"
 }

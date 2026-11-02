@@ -98,7 +98,6 @@ html.phone .ph-bill-btns .ph-btn {
 }
 
 html.phone .ph-bill-btns .ph-bill-del {
-  background: color-mix(in srgb, var(--neg) 12%, transparent);
   color: var(--neg);
 }
 
@@ -146,13 +145,6 @@ html.phone .ph-bill .dn {
 }
 
 /* a price change, said in a sentence */
-html.phone .ph-bill-note {
-  margin: calc(var(--p-gap) * -.5) 4px 0;
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 600;
-}
-
 /* past payments: three numbers, a bar per payment, lowest and highest */
 html.phone .ph-bill-stats {
   display: grid;
@@ -269,4 +261,10 @@ html.phone .ph-bill-ck {
 
 html.phone .ph-bill-save {
   inline-size: 100%;
+}
+
+/* "Show all payments": a text action in the list */
+html.phone .ph-bill-all .ph-row-t {
+  color: var(--acc);
+  font-weight: 600;
 }

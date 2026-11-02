@@ -19,20 +19,29 @@ html.phone .ph-jars-mh {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 16px 16px 14px;
+  padding: var(--p-pad) var(--p-pad) 14px;
 }
 
+/* the amount put in: tap it for how it is counted */
 html.phone .ph-jars-mv {
+  align-self: flex-start;
   margin: 0;
-  font-size: 20px;
-  line-height: 26px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tx);
+  font: inherit;
+  font-size: 22px;
+  line-height: 28px;
+  font-variant-numeric: tabular-nums;
+  text-align: start;
 }
 
 html.phone .ph-jars-ms {
   margin: 0;
   color: var(--tx2);
-  font-size: 14px;
-  line-height: 20px;
+  font-size: var(--p-f-meta);
+  line-height: 18px;
 }
 
 html.phone .ph-jars-ms.warn {
@@ -49,10 +58,6 @@ html.phone .ph-jars-mh + .ph-row::before {
 
 html.phone .ph-jars-fill {
   padding: 8px 16px 16px;
-}
-
-html.phone .ph-jars-fill .ph-btn {
-  inline-size: 100%;
 }
 
 html.phone .ph-jars-ring .ph-ring-in {
@@ -142,14 +147,7 @@ html.phone .ph-jars-gb {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 0 16px 14px;
-}
-
-html.phone .ph-jars-gb p {
-  margin: 0;
-  color: var(--tx2);
-  font-size: 14px;
-  line-height: 20px;
+  padding: 0 var(--p-pad) var(--p-pad);
 }
 
 html.phone .ph-jars-gb .ph-btn {

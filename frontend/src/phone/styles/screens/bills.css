@@ -4,27 +4,6 @@ html.phone .ph-bills .ph-hero {
   padding: 4px 4px 0;
 }
 
-/* due soon and price changes, side by side */
-html.phone .ph-bills-tiles {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-html.phone .ph-bills-tiles .ph-stat {
-  min-inline-size: 0;
-  justify-content: flex-start;
-}
-
-html.phone .ph-bills-tiles .ph-stat-n {
-  font-size: 12px;
-  line-height: 16px;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
 /* the kinds: the switch, then the kind's name and its total */
 html.phone .ph-bills-kinds .ph-segwrap {
   margin-block-end: 20px;
@@ -134,9 +113,9 @@ html.phone .ph-bills-btns {
 }
 
 html.phone .ph-bills-btns .ph-btn {
-  min-block-size: 40px;
+  min-block-size: var(--p-hit);
   padding-inline: 16px;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 /* instalments: name and amount, how many paid, a bar, what is left */

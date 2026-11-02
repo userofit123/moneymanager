@@ -1,7 +1,7 @@
 <script setup>
 // Jars (tab): money set aside for things. It opens with one sentence (how much is safe to put in jars, or how much the jars
-// hold too much, with Take back), then what went into the jars this month with Fill now, the amount kept untouched, and the
-// jars, goals and completed jars. Every number comes from pagelogic/jars.js, the same as the computer's Jars page.
+// hold too much, with Take back), then what went into the jars this month with Fill now, the jars (a switch for jars, goals
+// and completed jars right above their list), and last the amount kept untouched. Every number comes from pagelogic/jars.js, the same as the computer's Jars page.
 // A row opens the jar's own screen; + adds a jar.
 import { ref, computed, watch, onMounted } from "vue";
 import { ask } from "../../core/ask.js";
@@ -68,6 +68,9 @@ const open = (id) => nav.push("jar", String(id));
 // the status's colour: on its way (acc), waiting for money (warn), nothing to do (plain)
 const stTone = (s) => (s.key === "needs" ? "warn" : s.key === "partly" ? "acc" : s.cls === "dn" ? "pos" : "");
 const GTONE = { reached: "pos", ontrack: "pos", behind: "warn", saving: "acc", none: "" };
+// a goal's line from the computer joins its parts with " · "; on the phone it reads as one plain sentence
+const plain = (s) => String(s || "").replace(/ · /g, ", ");
+const iso = (s) => "\u2066" + s + "\u2069"; // an amount keeps its order inside a Hebrew sentence
 const LOCK = '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>';
 </script>
 
@@ -84,30 +87,29 @@ const LOCK = '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a
       <HeroSentence :class="{ over: M.F.over > 0 && !paid }" :parts="hero" :link="t('jars.howWorked')" @link="why = true" />
       <button v-if="M.F.over > 0 && !paid && M.F.inJars > 0" type="button" class="ph-btn tonal ph-jars-back" @click="askRelease">{{ t("jars.takeBack", { amount: fm(relAmt) }) }}</button>
 
+      <!-- this month: what went in of what is planned, what it means, the two numbers that decide it, and Fill now -->
       <section class="ph-group ph-jars-month">
         <div class="ph-group-h"><h3>{{ t("jars.thisMonth") }}</h3></div>
         <div class="ph-group-b">
           <div class="ph-jars-mh">
-            <p class="ph-jars-mv"><b class="ph-amt">{{ M.month.planned > 0 ? P("monthOf", { got: fm(M.month.got), planned: fm(M.month.planned) }) : fm(M.month.got) }}</b></p>
+            <button type="button" class="ph-jars-mv" @click="explain(statTips.putIn)"><b>{{ M.month.planned > 0 ? P("monthOf", { got: iso(fm(M.month.got)), planned: iso(fm(M.month.planned)) }) : iso(fm(M.month.got)) }}</b></button>
             <ProgressBar :value="M.month.pct" :max="100" :tone="M.month.waiting ? 'warn' : 'acc'" :label="t('jars.thisMonth')" />
             <p class="ph-jars-ms" :class="{ warn: M.month.waiting && !paid }">{{ monthLine }}</p>
           </div>
-          <ListRow :title="t('jars.putIn')" @tap="explain(statTips.putIn)"><template #end><span class="ph-amt">{{ fm(M.month.got) }}</span></template></ListRow>
           <ListRow :title="t('jars.still')" @tap="explain(statTips.still)"><template #end><span class="ph-amt">{{ fm(M.month.still) }}</span></template></ListRow>
           <ListRow :title="t('num.free')" @tap="explain(statTips.avail)"><template #end><span class="ph-amt" :class="{ neg: M.month.waiting && !paid }">{{ fm(M.F.free) }}</span></template></ListRow>
-          <!-- Fill now stands out only while the jars still need money this month and there is free money to put in -->
-          <div v-if="M.has.any" class="ph-jars-fill"><button type="button" class="ph-btn" :class="{ tonal: M.month.done || M.month.waiting }" :disabled="filling" @click="fill">{{ t("jars.fill") }}</button></div>
+          <!-- the screen's one main button while it can do something (jars still need money and there is free money);
+               otherwise a quiet button, so it never looks like the thing to press -->
+          <div v-if="M.has.any" class="ph-jars-fill"><button type="button" class="ph-btn block" :class="{ plain: M.month.done || M.month.waiting }" :disabled="filling" @click="fill">{{ t("jars.fill") }}</button></div>
         </div>
       </section>
 
-      <ListGroup :note="t('jars.keepSub')">
-        <ListRow :title="t('jars.keep')" :value="M.F.buffer ? fm(M.F.buffer) : t('jars.none')" :icon="LOCK" link @tap="keepOpen = true" />
-      </ListGroup>
+      <!-- the jars: one switch for jars, goals and completed ones, right above their list -->
+      <section class="ph-group">
+        <div class="ph-group-h"><h3>{{ P("yourJars") }}</h3></div>
+        <div class="ph-group-top"><Segmented v-model="seg" :options="segs" :label="t('nav.jars')" /></div>
 
-      <Segmented v-model="seg" :options="segs" :label="t('nav.jars')" />
-
-      <template v-if="seg === 'jars'">
-        <ListGroup>
+        <div v-if="seg === 'jars'" class="ph-group-b">
           <ListRow v-for="j in M.jars" :key="j.id" class="ph-jars-row" :title="tx(j.n)" link @tap="open(j.id)">
             <template #lead><ProgressRing class="ph-jars-ring" :value="j.open ? 0 : j.bal" :max="j.open ? 0 : j.need" :size="44" :color="col(j.p)"><PIcon v-if="!j.open && j.pc >= 100" class="ph-jars-ok" :style="{ color: col(j.p) }" name="check" /><span v-else-if="!j.open">{{ j.pc }}%</span><svg v-else class="ph-jars-ki" :style="{ stroke: col(j.p) }" viewBox="0 0 24 24" aria-hidden="true" v-html="KI[j.type]" /></ProgressRing></template>
             <template #sub><span :class="'ph-jars-st ' + stTone(j.state)">{{ stLabel(j.state) }}</span><span>{{ kindOf(j) }}</span></template>
@@ -115,11 +117,9 @@ const LOCK = '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a
           </ListRow>
           <p v-if="!M.jars.length" class="ph-jars-none">{{ P("noJars") }}</p>
           <ListRow :title="P('newJar')" icon-name="add" class="ph-jars-add" @tap="openNew" />
-        </ListGroup>
-      </template>
+        </div>
 
-      <template v-else-if="seg === 'goals'">
-        <ListGroup :note="t('jars.goalsNote')">
+        <div v-else-if="seg === 'goals'" class="ph-group-b">
           <div v-for="g in M.goals" :key="g.id" class="ph-jars-goal">
             <button type="button" class="ph-row ph-jars-gh" @click="open(g.id)">
               <span class="ph-row-main">
@@ -130,27 +130,31 @@ const LOCK = '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a
             </button>
             <div class="ph-jars-gb">
               <ProgressBar :value="g.pc" :max="100" :color="col(g.p)" :label="tx(g.n)" />
-              <p>{{ goalLine(g) }}</p>
-              <button v-if="g.st === 'reached'" type="button" class="ph-btn tonal" @click="askDoneOf(g)">{{ t("jars.markDone") }}</button>
-              <button v-else-if="g.fix" type="button" class="ph-btn tonal" @click="save((s) => goalFix(s, g.id, ctx()))">{{ t("jars.raise", { amount: fm(g.fix) }) }}</button>
+              <p class="ph-meta">{{ plain(goalLine(g)) }}</p>
+              <button v-if="g.st === 'reached'" type="button" class="ph-btn plain" @click="askDoneOf(g)">{{ t("jars.markDone") }}</button>
+              <button v-else-if="g.fix" type="button" class="ph-btn plain" @click="save((s) => goalFix(s, g.id, ctx()))">{{ t("jars.raise", { amount: fm(g.fix) }) }}</button>
             </div>
           </div>
           <p v-if="!M.goals.length" class="ph-jars-none">{{ t("jars.noGoals") }}</p>
           <ListRow :title="P('newGoal')" icon-name="add" class="ph-jars-add" @tap="openNew" />
-        </ListGroup>
-      </template>
+        </div>
 
-      <template v-else>
-        <ListGroup>
+        <div v-else class="ph-group-b">
           <ListRow v-for="d in M.done" :key="d.id" class="ph-jars-done" :title="tx(d.n)" icon-name="check" tone="pos" link @tap="open(d.id)">
             <template #sub><span>{{ doneLine(d) }}</span></template>
           </ListRow>
-        </ListGroup>
-      </template>
+        </div>
+        <p class="ph-group-n">{{ seg === "jars" ? P("jarsNote") : seg === "goals" ? t("jars.goalsNote") : P("doneNote") }}</p>
+      </section>
+
+      <!-- money the jars never touch: a setting, so it comes last -->
+      <ListGroup :note="t('jars.keepSub')">
+        <ListRow :title="t('jars.keep')" :value="M.F.buffer ? fm(M.F.buffer) : t('jars.none')" :icon="LOCK" link @tap="keepOpen = true" />
+      </ListGroup>
     </template>
 
     <PhoneSheet v-if="M" v-model:open="keepOpen" :title="t('jars.keep')">
-      <p class="ph-jars-kp">{{ t("jars.keepSub") }}</p>
+      <p class="ph-jars-kp">{{ t("jars.keepSub") }} {{ P("keepNote") }}</p>
       <div class="ph-jars-chips" role="radiogroup" :aria-label="t('jars.keep')">
         <button v-for="v in BUF_PRESETS" :key="v" type="button" class="ph-chip" :class="{ on: M.F.buffer == v }" role="radio" :aria-checked="M.F.buffer == v" @click="setBuffer(v)"><PIcon v-if="M.F.buffer == v" name="check" />{{ v ? fm(v) : t("jars.none") }}</button>
       </div>

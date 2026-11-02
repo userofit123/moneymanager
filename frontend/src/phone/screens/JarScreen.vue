@@ -104,12 +104,10 @@ const stTone = (s) => (s.key === "needs" ? "warn" : s.key === "partly" ? "acc" :
           <span class="ph-jar-pc">{{ jar.open ? "" : Math.min(999, jar.pc) + "%" }}</span>
           <svg v-if="jar.open" class="ph-jar-ki" :style="{ stroke: col(jar.p) }" viewBox="0 0 24 24" aria-hidden="true" v-html="KI[jar.type]" />
         </ProgressRing>
-        <h1 class="ph-jar-name">{{ tx(jar.n) }}</h1>
         <b class="ph-jar-amt">{{ fm(jar.bal) }}</b>
-        <p class="ph-jar-sub">
-          <span>{{ payoff(jar) ? t("jars.paidBack") : t("jars.saved") }}</span>
-          <span v-if="!jar.open">{{ (payoff(jar) ? t("jars.owed") : t("jars.goal")) + " " + fm(jar.need) }}</span>
-        </p>
+        <h1 class="ph-jar-name">{{ tx(jar.n) }}</h1>
+        <!-- one plain line: what the amount is, and of how much -->
+        <p class="ph-jar-sub">{{ jar.open ? (payoff(jar) ? t("jars.paidBack") : t("jars.saved")) : P(payoff(jar) ? "paidOfOwed" : "savedOfGoal", { amount: fm(jar.need) }) }}</p>
         <p class="ph-jar-kind"><svg viewBox="0 0 24 24" aria-hidden="true" v-html="KI[jar.type]" />{{ kindOf(jar) }}</p>
         <p v-if="jar.desc" class="ph-jar-desc">{{ jar.desc }}</p>
       </header>
@@ -137,9 +135,10 @@ const stTone = (s) => (s.key === "needs" ? "warn" : s.key === "partly" ? "acc" :
         <div class="ph-group-h"><h3>{{ P("goalTitle") }}</h3><span class="ph-jar-pill" :class="GTONE[goal.st]">{{ tk("jars.g." + goal.st) }}</span></div>
         <div class="ph-group-b ph-jar-gb">
           <ProgressBar :value="goal.pc" :max="100" :color="col(goal.p)" :label="tx(goal.n)" />
-          <p>{{ goalLine(goal) }}</p>
-          <button v-if="goal.st === 'reached'" type="button" class="ph-btn tonal" @click="askDoneHere">{{ t("jars.markDone") }}</button>
-          <button v-else-if="goal.fix" type="button" class="ph-btn tonal" @click="save((s) => goalFix(s, goal.id, ctx()))">{{ t("jars.raise", { amount: fm(goal.fix) }) }}</button>
+          <p>{{ goalLine(goal).replace(/ · /g, ", ") }}</p>
+          <!-- the screen's one main button (everything else is in ⋯) -->
+          <button v-if="goal.st === 'reached'" type="button" class="ph-btn block" @click="askDoneHere">{{ t("jars.markDone") }}</button>
+          <button v-else-if="goal.fix" type="button" class="ph-btn block" @click="save((s) => goalFix(s, goal.id, ctx()))">{{ t("jars.raise", { amount: fm(goal.fix) }) }}</button>
         </div>
       </section>
     </template>
@@ -148,12 +147,12 @@ const stTone = (s) => (s.key === "needs" ? "warn" : s.key === "partly" ? "acc" :
     <template v-else>
       <header class="ph-jar-hero">
         <span class="ph-jar-donec"><PIcon name="check" /></span>
-        <h1 class="ph-jar-name">{{ tx(done.n) }}</h1>
         <b v-if="done.count" class="ph-jar-amt">{{ fm(done.paid) }}</b>
+        <h1 class="ph-jar-name">{{ tx(done.n) }}</h1>
         <p v-if="done.count" class="ph-jar-sub"><span>{{ P("paidOut") }}</span></p>
         <p class="ph-jar-desc">{{ doneLine(done) }}</p>
         <p v-if="done.desc" class="ph-jar-desc">{{ done.desc }}</p>
-        <button type="button" class="ph-btn tonal ph-jar-reopen" @click="save((s) => reopenJar(s, done.id))">{{ t("jars.reopen") }}</button>
+        <button type="button" class="ph-btn ph-jar-reopen" @click="save((s) => reopenJar(s, done.id))">{{ t("jars.reopen") }}</button>
       </header>
     </template>
 

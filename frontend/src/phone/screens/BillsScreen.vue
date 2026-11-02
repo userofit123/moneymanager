@@ -1,6 +1,6 @@
 <script setup>
 // Bills (tab): payments that repeat. It opens with one sentence (what the bills come to in a month), then what is due in the
-// next 14 days and the price changes, the bills by kind (regular, irregular, instalments, one-off) and the canceled ones.
+// next 14 days and the price changes (two tiles), the bills by kind (regular, irregular, instalments, one-off) and the canceled ones.
 // Every number comes from pagelogic/bills.js, the same as the computer's Bills page. A bill opens its own screen
 // (/bills?bill=<billKey>: a bill is found by what it is, not by its place in the list). + adds a bill.
 import { ref, computed, watch, onMounted } from "vue";
@@ -25,7 +25,7 @@ import PIcon from "../components/PIcon.vue";
 import LoadError from "../components/LoadError.vue";
 defineProps({ id: { type: String, default: null } });
 
-const { t, tk, S, M, kpis, groups, cad, freq, avStyle, cc, monYr, priceChange, openAdd, makeRegular, keepIrregular } = useBills();
+const { t, tk, S, M, kpis, groups, freq, avStyle, cc, monYr, priceChange, openAdd, makeRegular, keepIrregular } = useBills();
 const nav = usePhoneNav();
 onMounted(() => data.start());
 const P = (k, o, n) => t("phone.bills." + k, o || {}, n);
@@ -47,7 +47,7 @@ const shown = computed(() => groups.value.find((g) => g.k === kind.value) || gro
 
 const open = (b) => nav.push("bill", billKey(b));
 const name = (b) => tx(b.n);
-const dueText = (b) => (b.status == "overdue" ? t("bills.overdue", { date: iso(dayMonth(b.pd)) }) : b.status == "pending" ? t("bills.dueNow") : b.days <= 7 ? t("bills.dueIn", { n: b.days }, b.days) : t("bills.nextCharge", { date: iso(dayMonth(b.nx)) }));
+const dueText = (b) => (b.status == "overdue" ? t("bills.overdue", { date: iso(dayMonth(b.pd)) }) : b.status == "pending" ? t("bills.dueNow") : b.days <= 7 ? t("bills.dueIn", { n: b.days }, b.days) : P("dueOn", { date: iso(dayMonth(b.nx)) }));
 const dueCls = (b) => (b.status == "overdue" ? "late" : b.status == "pending" ? "now" : b.days <= 7 ? "soon" : "");
 
 // the small windows: how the total is worked out, what is due soon, the price changes
@@ -74,12 +74,11 @@ const soonSorted = computed(() => M.value.rec.filter((b) => M.value.soon.include
       <template v-else>
         <HeroSentence :parts="hero" :link="P('how')" @link="sheet = 'how'" />
 
-        <section class="ph-group" :aria-label="t('nav.bills')">
-          <div class="ph-bills-tiles">
-            <StatTile :label="kpis[1].l" :value="fm(kpis[1].v)" :note="M.soon.length ? kpis[1].s : P('soonNone')" @tap="sheet = 'soon'" />
-            <StatTile :label="kpis[2].l" :value="fm(kpis[2].v)" :note="M.ch.length ? kpis[2].s : P('changesNone')" @tap="sheet = 'changes'" />
-          </div>
-        </section>
+        <!-- two numbers, each opening its list: short names and one short line each, so both tiles are the same height -->
+        <div class="ph-stats">
+          <StatTile :label="P('soonLabel')" :value="fm(kpis[1].v)" :note="M.soon.length ? P('soonN', { n: M.soon.length }, M.soon.length) : P('nothingSoon')" @tap="sheet = 'soon'" />
+          <StatTile :label="P('changesLabel')" :value="fm(kpis[2].v)" :note="M.ch.length ? P('billsN', { n: M.ch.length }, M.ch.length) : P('noChanges')" @tap="sheet = 'changes'" />
+        </div>
 
         <section class="ph-group ph-bills-kinds">
           <Segmented v-if="groups.length > 1" v-model="kind" :options="kindOpts" :label="P('kinds')" />
@@ -90,7 +89,7 @@ const soonSorted = computed(() => M.value.rec.filter((b) => M.value.soon.include
               <ListRow v-for="b in shown.L" :key="b.idx" :title="name(b)" link @tap="open(b)">
                 <template #lead><span class="ph-bills-av" :style="avStyle(b)">{{ (b.n || "?")[0] }}</span></template>
                 <template #title><span v-if="b.flag" class="ph-bills-flag">{{ t("bills.markedCancel") }}</span></template>
-                <template #sub><span :class="dueCls(b)">{{ dueText(b) }}</span><span>{{ cad(b.every) }}</span></template>
+                <template #sub><span :class="dueCls(b)">{{ dueText(b) }}</span><span v-if="b.every != 1">{{ freq(b.every) }}</span></template>
                 <template #end>
                   <span class="ph-bills-end"><span class="ph-amt" dir="ltr">{{ b.vari ? "≈ " : "" }}{{ fm(b.pred) }}</span><small v-if="priceChange(b)" dir="ltr" :class="priceChange(b) > 0 ? 'up' : 'dn'">{{ (priceChange(b) > 0 ? "+" : "−") + fm(Math.abs(priceChange(b))) }}</small></span>
                 </template>
@@ -106,7 +105,7 @@ const soonSorted = computed(() => M.value.rec.filter((b) => M.value.soon.include
                 </ListRow>
                 <div v-if="b.sug" class="ph-bills-sug">
                   <p>{{ t("bills.sug", { freq: freq(b.sug) }) }}</p>
-                  <div class="ph-bills-btns"><button type="button" class="ph-btn" @click="makeRegular(b)">{{ t("bills.makeReg") }}</button><button type="button" class="ph-btn tonal" @click="keepIrregular(b)">{{ t("bills.keepIrr") }}</button></div>
+                  <div class="ph-bills-btns"><button type="button" class="ph-btn plain" @click="makeRegular(b)">{{ t("bills.makeReg") }}</button><button type="button" class="ph-btn plain" @click="keepIrregular(b)">{{ t("bills.keepIrr") }}</button></div>
                 </div>
               </template>
             </template>

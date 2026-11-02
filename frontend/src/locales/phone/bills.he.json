@@ -27,5 +27,15 @@
   "changeType": "שינוי סוג התשלום הקבוע",
   "pickType": "באיזו תדירות הוא מחויב",
   "canceledNote": "בוטל ב־{date}.",
-  "details": "פרטים"
+  "details": "פרטים",
+  "soonLabel": "14 הימים הקרובים",
+  "changesLabel": "שינויי מחיר",
+  "billsN": "תשלום אחד | {n} תשלומים",
+  "nothingSoon": "אין מה לשלם",
+  "noChanges": "אין לאחרונה",
+  "dueOn": "לתשלום ב־{date}",
+  "priceChanged": "המחיר השתנה",
+  "showAll": "הצגת כל {n} התשלומים",
+  "showFewer": "הצגת פחות",
+  "soonN": "תשלום אחד לשלם | {n} תשלומים לשלם"
 }

@@ -24,5 +24,10 @@
   "history": "History",
   "noHistory": "Nothing has been put in or paid out yet.",
   "paidOut": "Paid out",
-  "payments": "Payments"
+  "payments": "Payments",
+  "yourJars": "Your jars",
+  "jarsNote": "A jar is money you set aside for one thing. The ring shows how full it is.",
+  "doneNote": "Jars you finished. Open one to see what was paid from it, or to use it again.",
+  "savedOfGoal": "Saved of a {amount} goal",
+  "paidOfOwed": "Paid back of {amount} owed"
 }
