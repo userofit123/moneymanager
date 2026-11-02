@@ -1,5 +1,6 @@
 {
   "badge": "רמה {level} · {total}",
+  "levelWord": "רמה",
   "level": "רמה {level}",
   "badgeTip": "**{total} נקודות**\nעוד {need} עד רמה {next}.\nלחצו כדי לראות איך צוברים אותן.",
   "badgeLabel": "רמה {level}, {total} נקודות. פתיחת נקודות ורמות",

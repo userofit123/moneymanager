@@ -18,6 +18,8 @@ const open = ref(false);
 
 const lv = computed(() => points.value?.level);
 const pct = computed(() => (lv.value ? clampPercent(lv.value.into, lv.value.next - lv.value.start) : 0));
+// the ring always shows a sliver, so a level just reached doesn't look empty
+const ring = computed(() => Math.max(pct.value, 4));
 const total = computed(() => f0(points.value?.total || 0));
 const head = computed(() => (lv.value ? { level: lv.value.level, total: total.value, need: f0(lv.value.need), next: lv.value.level + 1 } : {}));
 // points given since the first of this month
@@ -66,8 +68,11 @@ const howMonth = computed(() => [
   <template v-if="points && lv">
     <button type="button" class="ptb" :class="{ phb: phone }" :data-tip="phone ? null : tk('badgeTip', head)" :aria-label="tk('badgeLabel', head)" @click="open = true">
       <span v-if="phone" class="ptl">{{ tk("badge", head) }}</span>
-      <template v-else><span class="ptl">{{ tk("level", head) }}</span><span class="ptn">{{ total }}</span></template>
-      <span class="ptbar" aria-hidden="true"><i :style="{ inlineSize: pct + '%' }" /></span>
+      <span v-if="phone" class="ptbar" aria-hidden="true"><i :style="{ inlineSize: pct + '%' }" /></span>
+      <template v-else>
+        <span class="ptring" :style="{ '--p': ring }" aria-hidden="true"><small>{{ tk("levelWord") }}</small><b>{{ lv.level }}</b></span>
+        <span class="ptn">{{ tk("pts", { n: total }) }}</span>
+      </template>
     </button>
     <BaseDialog v-model:open="open" :title="tk('title')" cls="ptw">
       <div class="pth">

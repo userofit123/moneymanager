@@ -4,16 +4,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   inline-size: 64px;
-  padding: 6px 4px 7px;
+  padding: 8px 4px 7px;
   margin-block-end: 6px;
-  border: 1px solid var(--ol);
-  border-radius: 14px;
-  background: none;
+  border: 0;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--tx) 5%, transparent);
   color: var(--tx2);
   font: inherit;
-  font-size: 11px;
+  font-size: 10.5px;
   line-height: 1.2;
   cursor: pointer;
   flex: none;
@@ -21,7 +21,7 @@
 }
 
 .ptb:hover {
-  background: var(--s2);
+  background: color-mix(in srgb, var(--tx) 9%, transparent);
 }
 
 .ptb .ptl {
@@ -31,8 +31,47 @@
 }
 
 .ptb .ptn {
-  font-size: 10.5px;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* the level inside a ring that fills toward the next level */
+.ptring {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  inline-size: 44px;
+  block-size: 44px;
+}
+
+.ptring::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(var(--acc), var(--acc2) calc(var(--p) * 1%), color-mix(in srgb, var(--tx) 12%, transparent) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px));
+}
+
+/* Hebrew: the ring fills the other way round */
+html.he .ptring::before {
+  transform: scaleX(-1);
+}
+
+.ptring small {
+  font-size: 8.5px;
+  line-height: 1;
+}
+
+.ptring b {
+  color: var(--tx);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .ptbar {
@@ -53,6 +92,11 @@
 
 html[data-nav="mini"]:not(.phone) .ptb {
   inline-size: 52px;
+}
+
+html[data-nav="mini"]:not(.phone) .ptring {
+  inline-size: 40px;
+  block-size: 40px;
 }
 
 /* the phone's top bar: one line with the bar under it, plain like the bar's other buttons */

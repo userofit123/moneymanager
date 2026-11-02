@@ -1,5 +1,6 @@
 {
   "badge": "Level {level} · {total}",
+  "levelWord": "Level",
   "level": "Level {level}",
   "badgeTip": "**{total} points**\n{need} more to reach level {next}.\nClick to see how you earn them.",
   "badgeLabel": "Level {level}, {total} points. Open points and levels",
