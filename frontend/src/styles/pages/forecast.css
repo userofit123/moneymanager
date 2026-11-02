@@ -11,12 +11,6 @@
   margin: 6px 0 0;
 }
 
-.jfg {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
-  gap: var(--spg);
-}
-
 .jf {
   padding: 16px 18px;
 }

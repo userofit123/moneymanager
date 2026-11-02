@@ -15,6 +15,7 @@ import { currencySymbol } from "../format.js";
 import PageHeader from "../components/PageHeader.vue";
 import { brandIcon, glyphIcon } from "../brands.js";
 import BaseTabs from "../components/BaseTabs.vue";
+import CardColumns from "../components/CardColumns.vue";
 import AvailWhy from "./AvailWhy.vue";
 import { vTip } from "../core/tooltip.js";
 import { dcell, dstr, titleCase } from "../dates.js";
@@ -58,13 +59,11 @@ const hvStyle = computed(() => {
   return { direction: "ltr", insetInlineStart: Math.max(0, Math.min(W0 - w, hv.value.px - w / 2)) + "px", top: Math.max(0, hv.value.py - h - 12) + "px" };
 });
 
-// The lower blocks in two columns, each block straight under the one above it (no row lining up across).
-// Blocks go left and right in turn, in this order, so each one keeps its column while data loads.
-const bbCols = computed(() => {
+// The lower blocks shown, in this order (CardColumns puts them in two columns, each straight under the one above it).
+const bbKeys = computed(() => {
   const h = M.value?.has || {};
   const on = { donut: h.donut, budg: h.budg, bills: h.bills, recent: h.recent, goal: !!goal.value, jars: h.jars, fx: fxKeys.value.length > 0 };
-  const ks = Object.keys(on).filter((k) => on[k]);
-  return [ks.filter((_, i) => i % 2 === 0), ks.filter((_, i) => i % 2 === 1)];
+  return Object.keys(on).filter((k) => on[k]);
 });
 
 const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", donut: "reports", accts: "accounts", fx: "settings" };
@@ -162,9 +161,8 @@ const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", 
           </div>
         </div>
 
-        <div v-show="bbCols[0].length" id="row-bb" class="grid g2">
-          <div v-for="(col, ci) in bbCols" :key="ci" class="bbcol">
-          <template v-for="k in col" :key="k">
+        <CardColumns v-show="bbKeys.length" id="row-bb" class="grid" :items="bbKeys" :item-key="(k) => k">
+          <template #default="{ item: k }">
           <div v-if="k === 'donut'" id="sec-donut">
             <h2 style="margin-top:0"><span>{{ t("home.byCategory") }}<span class="mo"> · {{ monthName(M.MK) }}</span></span><a class="sm hl" :href="link(H2.donut)" @click="onLink">{{ t("home.all") }}</a></h2>
             <div class="card"><div id="donutHome" class="flex dnt" :class="{ hv: hover }">
@@ -261,8 +259,7 @@ const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", 
             </div>
           </div>
           </template>
-          </div>
-        </div>
+        </CardColumns>
       </template>
     </template>
     <AvailWhy v-if="S" v-model:open="avail" :M="M" />

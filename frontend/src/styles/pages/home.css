@@ -215,16 +215,9 @@ html.he .fxbar i {
   min-height: 0;
 }
 
-/* the lower blocks: two columns, each block right under the one above it (the same gaps as before: --spg across, 1.75 × down) */
+/* the lower blocks (CardColumns): --spg across, 1.75 × down, as before */
 #row-bb {
-  align-items: start;
-}
-
-#row-bb > .bbcol {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--spg) * 1.75);
-  min-width: 0;
+  --ccgap: calc(var(--spg) * 1.75);
 }
 
 .wct .wry {

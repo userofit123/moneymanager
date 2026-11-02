@@ -294,6 +294,20 @@ html.intro #dash .grid > .card {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+/* cards in columns, each keeping its own height (components/CardColumns.vue); the gap down a column is --ccgap, the same as across by default */
+.ccols {
+  display: grid;
+  align-items: start;
+  gap: var(--spg);
+}
+
+.ccol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ccgap, var(--spg));
+  min-width: 0;
+}
+
 #jobBar {
   display: none;
   position: fixed;

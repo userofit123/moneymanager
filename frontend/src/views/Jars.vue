@@ -6,6 +6,7 @@
 import { onMounted } from "vue";
 import { vTip } from "../core/tooltip.js";
 import BaseCard from "../components/BaseCard.vue";
+import CardColumns from "../components/CardColumns.vue";
 import BaseSheet from "../components/BaseSheet.vue";
 import BaseTabs from "../components/BaseTabs.vue";
 import MoneyInput from "../components/MoneyInput.vue";
@@ -66,8 +67,9 @@ onMounted(() => { data.start(); });
       </div>
 
       <h2>{{ t("jars.jars") }}<span class="flex" style="gap:8px"><button v-if="M.has.any" type="button" class="btn o s" data-a="jarFill" :disabled="filling" @click="fill">{{ t("jars.fill") }}</button><button type="button" class="btn o s" data-a="jarNew" @click="openNew">{{ t("jars.newJar") }}</button></span></h2>
-      <div class="grid g2" id="jarg">
-        <BaseCard v-for="j in M.jars" :key="j.id" class="jin">
+      <CardColumns id="jarg" :items="M.jars">
+        <template #default="{ item: j }">
+        <BaseCard class="jin">
           <div class="jhead">
             <div class="jhl">
               <div class="jname">{{ tx(j.n) }}</div>
@@ -96,7 +98,8 @@ onMounted(() => { data.start(); });
           </div>
           <div v-if="j.state.late" class="jwarn">{{ lateText(j.state.late) }}</div>
         </BaseCard>
-      </div>
+        </template>
+      </CardColumns>
 
       <h2>{{ t("jars.goals") }}<button type="button" class="btn o s" data-a="goalNew" @click="openNew">{{ t("jars.newGoal") }}</button></h2>
       <div class="sm gnote" style="line-height:1.5">{{ t("jars.goalsNote") }}</div>

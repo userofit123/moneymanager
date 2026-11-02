@@ -8,6 +8,7 @@ import { ref, computed, onMounted } from "vue";
 import { data } from "../stores/data.js";
 import { catLabel } from "../core/cats.js";
 import BaseCard from "../components/BaseCard.vue";
+import CardColumns from "../components/CardColumns.vue";
 import BaseSheet from "../components/BaseSheet.vue";
 import PageHeader from "../components/PageHeader.vue";
 import PopMenu from "../components/PopMenu.vue";
@@ -86,8 +87,9 @@ const saveChange = () => { if (setAmount(editing.value, amount.value)) editing.v
       </div>
 
       <h2>{{ t("budgets.byCat") }}<button type="button" class="btn o s" data-a="budNew" @click="openAdd('')">{{ t("budgets.addBudget") }}</button></h2>
-      <div class="grid g2" id="budL">
-        <BaseCard v-for="b in M.info" :key="b.k" class="bcard" :warn="b.st == 'over'">
+      <CardColumns id="budL" :items="M.info" item-key="k">
+        <template #default="{ item: b }">
+        <BaseCard class="bcard" :warn="b.st == 'over'">
           <div class="bhead">
             <div class="bname"><span class="dot" :style="{ background: cc(b.k) }"></span><span class="catl" data-a="goCat" :data-cat="b.k" @click="goCat(b.k)">{{ catLabel(b.k) }}</span></div>
             <div class="btools" data-menuanchor>
@@ -113,7 +115,8 @@ const saveChange = () => { if (setAmount(editing.value, amount.value)) editing.v
             <div v-if="M.catJars[b.k]" class="sm bjar"><span class="bjl">{{ t("budgets.jarT") }}:</span> <b>{{ M.catJars[b.k].j.n }}</b>{{ t("budgets.jarPays", { amount: fm(M.catJars[b.k].j.bal) }) }}</div>
           </div>
         </BaseCard>
-      </div>
+        </template>
+      </CardColumns>
 
       <div id="budU">
         <template v-if="M.un.length">

@@ -4,6 +4,7 @@
 // What it knows and does lives in pagelogic/forecast.js (shared with the phone's Forecast screen).
 import { data } from "../stores/data.js";
 import PageHeader from "../components/PageHeader.vue";
+import CardColumns from "../components/CardColumns.vue";
 import BaseCard from "../components/BaseCard.vue";
 import YearsAhead from "./forecast/YearsAhead.vue";
 import { useForecast } from "../pagelogic/forecast.js";
@@ -111,8 +112,9 @@ const {
 
       <h2>{{ t("forecast.jarTitle") }}</h2>
       <div id="fcJars">
-        <div v-if="jarCards.length" class="jfg">
-          <div v-for="c in jarCards" :key="c.j.id" class="card jf">
+        <CardColumns v-if="jarCards.length" :items="jarCards" :min="340" :item-key="(c) => c.j.id">
+          <template #default="{ item: c }">
+          <div class="card jf">
             <div class="jfh"><div style="min-width:0"><b>{{ tx(c.j.n) }}</b><div class="sm">{{ c.sub }}</div></div><span class="bd" :class="c.chip[0]"><span>{{ c.chip[1] }}</span></span></div>
             <div class="jfc">
               <svg :viewBox="`0 0 ${c.sp.W} ${c.sp.Ht}`" width="100%" :height="c.sp.Ht" preserveAspectRatio="none" aria-hidden="true">
@@ -126,7 +128,8 @@ const {
             <div class="jfs"><div v-for="x in c.tiles" :key="x.label"><span>{{ x.label }}</span><b class="num">{{ x.v }}</b><i :class="{ pos: x.pos }">{{ x.g }}</i></div></div>
             <div v-if="c.warn" class="jfw"><svg viewBox="0 0 24 24" aria-hidden="true" v-html="WARN" /><span>{{ c.warn }}</span></div>
           </div>
-        </div>
+          </template>
+        </CardColumns>
         <div v-else class="card sm">{{ t("forecast.j.none") }}</div>
       </div>
 
