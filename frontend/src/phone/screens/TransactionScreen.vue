@@ -46,6 +46,9 @@ const fileIn = ref(null);
 const moreActions = () => [
   { label: t("activity.d.copy"), icon: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>', run: copyDetails },
   ...(cur.value && !cur.value.virtual ? [{ label: t("activity.w.attach"), icon: TIC.clip, run: () => fileIn.value?.click() }] : []),
+  // the category and tags are rows below the top (to change them); listing everything with the same one is here
+  ...(cur.value && !cur.value.virtual && !isXf(cur.value) && cur.value.c ? [{ label: t("phone.activity.onlyCat"), value: catLabel(cur.value.c), run: () => goCat(cur.value.c) }] : []),
+  ...(cur.value?.tags || []).map((g) => ({ label: t("phone.activity.onlyTag", { tag: g }), run: () => goTag(g) })),
 ];
 // where the money went from and to: each name keeps its own order, and in Hebrew the arrow points the way the line reads
 const fromTo = (x) => {
@@ -72,9 +75,7 @@ const tone = (r) => (r.cls === "amber" ? "warn" : "acc");
         <p class="ph-tx-when"><span>{{ dstr(cur.d) }}</span><span v-if="fromTo(cur)">{{ fromTo(cur) }}</span></p>
         <div class="ph-tx-chips">
           <span class="tb" :class="kindCls(cur)">{{ kindText(cur) }}</span>
-          <button v-if="!cur.virtual && !isXf(cur) && cur.c" type="button" class="chip catl" @click="goCat(cur.c)"><span class="dot" :style="{ background: catColor(S, cur.c) }"></span>{{ catLabel(cur.c) }}</button>
           <span v-for="c in chips(cur)" :key="c.cls" class="bd pc" :class="c.cls" :data-tip="c.tip"><svg v-if="c.icon" class="pi" viewBox="0 0 24 24" v-html="CHIP_ICON[c.icon]"></svg>{{ c.label }}</span>
-          <button v-for="g in cur.tags || []" :key="g" type="button" class="tag catl" @click="goTag(g)">{{ g }}</button>
         </div>
       </header>
 
@@ -115,7 +116,7 @@ const tone = (r) => (r.cls === "amber" ? "warn" : "acc");
         </div>
       </ListGroup>
 
-      <ListGroup v-if="tiles.length" :title="t('activity.d.actions')">
+      <ListGroup v-if="tiles.length" class="ph-tx-acts" :title="t('activity.d.actions')">
         <ListRow v-for="x in tiles" :key="x.title" :title="x.title" :sub="x.sub" :icon="TIC[x.ic]" :tone="x.hot ? 'pos' : 'acc'" @tap="x.run()" />
       </ListGroup>
 

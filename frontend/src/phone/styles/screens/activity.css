@@ -21,13 +21,14 @@ html.phone .ph-actv-sum {
   padding-inline: 4px;
 }
 
+/* the small totals: the page's note style, one calm line (wraps when it must) */
 html.phone .ph-actv-facts {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 18px;
+  gap: var(--p-s1) var(--p-s4);
   color: var(--tx2);
-  font-size: 14px;
-  line-height: 20px;
+  font-size: var(--p-f-meta);
+  line-height: 18px;
 }
 
 html.phone .ph-actv-fact {
@@ -94,28 +95,29 @@ html.phone .ph-actv-gh {
   text-align: start;
 }
 
+/* the month's name in the section heading style, how many under it beside the name */
 html.phone .ph-actv-gt {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  font-size: 15px;
-  line-height: 20px;
+  gap: var(--p-s2);
+  min-inline-size: 0;
+  font-size: var(--p-f-sec);
+  line-height: 24px;
 }
 
 html.phone .ph-actv-gt b {
-  font-weight: 600;
+  font-weight: 650;
 }
 
-html.phone .ph-actv-gt > span {
-  color: var(--tx2);
-  font-size: 13px;
+html.phone.he .ph-actv-gt b {
+  font-weight: 600;
 }
 
 html.phone .ph-actv-gc {
   inline-size: 18px;
   block-size: 18px;
   grid-column: 2;
-  grid-row: 1 / span 2;
+  grid-row: 1;
   color: var(--tx2);
   transform: rotate(90deg);
   transition: transform var(--p-t-fade) var(--p-ease);
@@ -126,7 +128,7 @@ html.phone .ph-actv-g.closed .ph-actv-gc {
 }
 
 html.phone .ph-actv-gp {
-  grid-column: 1;
+  grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
   gap: 2px 14px;
@@ -137,22 +139,23 @@ html.phone .ph-actv-gp {
 
 html.phone .ph-actv-gp b {
   color: var(--tx);
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
 html.phone .ph-actv-g + .ph-actv-g {
-  margin-block-start: calc(-1 * var(--p-gap) + 8px);
+  margin-block-start: calc(var(--p-s5) - var(--p-gap));
 }
 
 html.phone .ph-actv-g .ph-group-b {
-  margin-block-start: 4px;
+  margin-block-start: var(--p-s1);
 }
 
 /* ---- a transaction row ---- */
 html.phone .ph-txr {
-  align-items: flex-start;
-  padding-block: 12px;
+  align-items: center;
+  min-block-size: var(--p-row);
+  padding-block: 10px;
 }
 
 html.phone .ph-txr.fut {
@@ -162,8 +165,8 @@ html.phone .ph-txr.fut {
 html.phone .ph-av {
   display: grid;
   place-items: center;
-  inline-size: 36px;
-  block-size: 36px;
+  inline-size: 40px;
+  block-size: 40px;
   border-radius: var(--p-r-tile);
   font-size: 15px;
   font-weight: 700;
@@ -179,29 +182,50 @@ html.phone .ph-txr-s > span {
   flex: none;
 }
 
-html.phone .ph-txr-s > .ph-txr-acc {
+/* when the line is short of room the account gives way first (never below a few letters), then the category */
+html.phone .ph-txr-s > :is(.ph-txr-acc, :nth-child(2)) {
   flex: 0 1 auto;
   min-inline-size: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+html.phone .ph-txr-s > .ph-txr-acc {
+  flex-shrink: 1000;
+  min-inline-size: 4ch;
+}
+
+/* a row's marks under its amount: small tinted labels, one line */
 html.phone .ph-txr-chips {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-block-start: 6px;
+  justify-content: flex-end;
+  gap: var(--p-s1);
+  max-inline-size: 132px;
+  overflow: hidden;
 }
 
 html.phone .ph-txr-chips .bd {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   margin: 0;
+  padding: 0 6px;
+  font-size: 11px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+html.phone .ph-txr-chips .bd .pi {
+  inline-size: 11px;
+  block-size: 11px;
 }
 
 html.phone .ph-txr-end {
   flex-direction: column;
   align-items: flex-end;
+  justify-content: center;
   gap: 2px;
-  padding-block-start: 1px;
 }
 
 html.phone .ph-txr-a {
@@ -225,14 +249,14 @@ html.phone .ph-txr-a.bal {
 
 html.phone .ph-txr-o {
   color: var(--tx2);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--p-f-meta);
+  line-height: 18px;
   font-variant-numeric: tabular-nums;
 }
 
 /* the swipe's separators: inset past the avatar, as in every list */
 html.phone .ph-actv-g .ph-swipe + .ph-swipe::before {
-  inset-inline-start: 64px;
+  inset-inline-start: 68px;
   z-index: 1;
 }
 

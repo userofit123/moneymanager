@@ -27,5 +27,7 @@
     "acct": "Account",
     "merchant": "Merchant",
     "tag": "Tag"
-  }
+  },
+  "markExp": "Expected",
+  "markLate": "Not seen yet"
 }

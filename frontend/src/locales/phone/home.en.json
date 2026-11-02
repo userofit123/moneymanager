@@ -21,6 +21,8 @@
   "currencies": "Currencies",
   "jarOf": "{amount} of {goal}, {pc}%",
   "jarNoGoal": "{amount} saved, no goal yet",
-  "dueOn": "Due {date}",
-  "noneYet": "Nothing yet this month."
+  "noneYet": "Nothing yet this month.",
+  "dueIn": "Due today | Due tomorrow | Due in {n} days",
+  "savedLabel": "Saved this month",
+  "savedNote": "Money in minus money out"
 }

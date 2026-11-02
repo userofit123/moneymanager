@@ -115,6 +115,11 @@ const loading = computed(() => !S.value && data.loading.value);
 const acct = (x) => String((x.a > 0 ? x.to : x.from) || "").replace(/<[^>]*>/g, "").trim();
 // a row's date: day and month this year, with the year before that
 const day = (x) => (String(x.d).slice(0, 4) === today.value.slice(0, 4) ? dshort(x.d) : dcell(x.d));
+// a row's marks (a bill, pending, documents) sit under its amount, so every row keeps two lines; the amount in its own
+// currency then moves to the second line
+// an expected bill's mark is said in one word here, so it fits under the amount
+const markText = (x, c) => (c.cls === "p-exp" ? t(x.late ? "phone.activity.markLate" : "phone.activity.markExp") : c.label);
+const marks = (x) => chips(x).length > 0 || x.docs?.length > 0;
 const canCat = (x) => x.upBill != null || !((x.virtual && !x.upInst) || isXf(x));
 
 // change a row's category in a list sheet
@@ -191,7 +196,7 @@ const revEmpty = computed(() => !revXf.value.length && !revDups.value.length && 
 
         <section v-for="g in lists" :key="g.key" class="ph-actv-g" :class="{ closed: g.label && closed.has(gkey(g)) }">
           <button v-if="g.label" type="button" class="ph-actv-gh" :aria-expanded="String(!closed.has(gkey(g)))" :aria-label="(closed.has(gkey(g)) ? t('phone.activity.groupOpen') : t('phone.activity.groupClose')) + ': ' + groupLabel(g.label)" @click="toggle(g)">
-            <span class="ph-actv-gt"><b>{{ groupLabel(g.label) }}</b><span>{{ t("activity.count", { n: g.rows.length }, g.rows.length) }}</span></span>
+            <span class="ph-actv-gt"><b>{{ groupLabel(g.label) }}</b><span class="ph-meta">{{ t("activity.count", { n: g.rows.length }, g.rows.length) }}</span></span>
             <PIcon name="chevron" class="ph-actv-gc" />
             <span class="ph-actv-gp"><span v-for="(p, i) in grpParts(g)" :key="i" :class="{ neg: p.neg }" :data-tip="p.tip || undefined">{{ p.l }} <b dir="ltr">{{ p.v }}</b></span></span>
           </button>
@@ -201,15 +206,15 @@ const revEmpty = computed(() => !revXf.value.length && !revDups.value.length && 
                 <span class="ph-row-lead"><span class="ph-av" :style="avStyle(x)" aria-hidden="true">{{ (name(x) || "?")[0] }}</span></span>
                 <span class="ph-row-main">
                   <span class="ph-row-t">{{ name(x) }}</span>
-                  <span class="ph-row-s ph-txr-s"><span class="num">{{ day(x) }}</span><span>{{ catLabel(x.c) }}</span><span v-if="acct(x)" class="ph-txr-acc" dir="auto">{{ acct(x) }}</span></span>
-                  <span v-if="chips(x).length || x.docs?.length" class="ph-txr-chips">
-                    <span v-for="c in chips(x)" :key="c.cls" class="bd pc" :class="c.cls"><svg v-if="c.icon" class="pi" viewBox="0 0 24 24" v-html="CHIP_ICON[c.icon]"></svg>{{ c.label }}</span>
-                    <span v-if="x.docs?.length" class="bd pc ph-txr-doc"><svg class="pi" viewBox="0 0 24 24"><path d="M20 12l-8 8a5 5 0 0 1-7-7l8.5-8.5a3.5 3.5 0 0 1 5 5L10 18a2 2 0 0 1-3-3l7.5-7.5" /></svg>{{ x.docs.length }}</span>
-                  </span>
+                  <span class="ph-row-s ph-txr-s"><span class="num">{{ day(x) }}</span><span>{{ catLabel(x.c) }}</span><span v-if="x.orig && marks(x)" class="ph-txr-o" dir="ltr">{{ SYM[x.orig.cur] }}{{ f0(x.orig.amt) }} {{ x.orig.cur }}</span><span v-else-if="acct(x)" class="ph-txr-acc" dir="auto">{{ acct(x) }}</span></span>
                 </span>
                 <span class="ph-row-end ph-txr-end">
                   <b class="ph-txr-a" :class="{ pos: isPos(x), bal: x.balUpd }" dir="ltr">{{ amtText(x) }}</b>
-                  <span v-if="x.orig" class="ph-txr-o" dir="ltr">{{ SYM[x.orig.cur] }}{{ f0(x.orig.amt) }} {{ x.orig.cur }}</span>
+                  <span v-if="marks(x)" class="ph-txr-chips">
+                    <span v-for="c in chips(x)" :key="c.cls" class="bd pc" :class="c.cls"><svg v-if="c.icon" class="pi" viewBox="0 0 24 24" v-html="CHIP_ICON[c.icon]"></svg>{{ markText(x, c) }}</span>
+                    <span v-if="x.docs?.length" class="bd pc ph-txr-doc" :aria-label="t('txw.a.attachN', { n: x.docs.length }, x.docs.length)"><svg class="pi" viewBox="0 0 24 24"><path d="M20 12l-8 8a5 5 0 0 1-7-7l8.5-8.5a3.5 3.5 0 0 1 5 5L10 18a2 2 0 0 1-3-3l7.5-7.5" /></svg>{{ x.docs.length }}</span>
+                  </span>
+                  <span v-else-if="x.orig" class="ph-txr-o" dir="ltr">{{ SYM[x.orig.cur] }}{{ f0(x.orig.amt) }} {{ x.orig.cur }}</span>
                 </span>
               </button>
             </SwipeRow>

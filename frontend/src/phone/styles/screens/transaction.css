@@ -76,6 +76,14 @@ html.phone .ph-tx-chips button {
   cursor: pointer;
 }
 
+/* what can be done: each action's line under it is read in full (two lines at most) */
+html.phone .ph-tx-acts .ph-row-s {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: normal;
+}
+
 /* the category's colour beside its name in the row */
 html.phone .ph-tx-val {
   display: inline-flex;

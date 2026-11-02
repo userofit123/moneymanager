@@ -37,7 +37,7 @@ import LoadError from "../components/LoadError.vue";
 defineProps({ id: { type: String, default: null } });
 
 const {
-  t, fm, n0, an, pair, fx, S, M, monthName, catName, catColor, nm, accLbl, alertList, alerts3, openTxId, openAlert, accGo,
+  t, locale, fm, n0, an, pair, fx, S, M, monthName, catName, catColor, nm, accLbl, alertList, alerts3, openTxId, openAlert, accGo,
   kpis, accSub, cardRows, flowMode, flowOpts, W, pay, calm, cols, colTip, leftOf, donut, fxCur, fxKeys, fxView, fxOpts,
 } = useHome();
 const nav = usePhoneNav();
@@ -45,6 +45,9 @@ const nav = usePhoneNav();
 const openBill = (b) => { const bl = M.value.billsAll[b.idx]; if (bl) nav.push("bill", billKey(bl)); };
 onMounted(() => data.start());
 const iso = (s) => "\u2066" + s + "\u2069"; // a date keeps its order inside a Hebrew sentence
+// a bill's day on a small calendar page: the month's short name over the day
+const dayOf = (d) => (d instanceof Date ? d.getDate() : "");
+const monShort = (d) => (d instanceof Date ? d.toLocaleDateString(locale.value === "he" ? "he-IL" : "en-GB", { month: "short" }) : "");
 const cap = (s) => String(s).charAt(0).toUpperCase() + String(s).slice(1);
 const P = (k, o, n) => t("phone.home." + k, o || {}, n);
 
@@ -63,6 +66,9 @@ const avail = ref(false);
 // the four totals: in your accounts and saved first (the month's answer), then money in and out
 const ORDER = ["worth", "net", "income", "expense"];
 const tiles = computed(() => ORDER.map((k) => kpis.value.find((c) => c.key === k)).filter(Boolean));
+// the phone's shorter names and lines where the computer's would wrap in a half-width tile (the full story is in the tap)
+const tileLabel = (c) => (c.key === "net" ? P("savedLabel") : cap(c.label));
+const tileNote = (c) => (c.key === "net" ? P("savedNote") : c.sub);
 const tileVal = (c) => (c.key === "net" && c.v < 0 ? "−" : "") + "₪" + n0(c.v);
 
 // accounts: an account's own screen (by the first account of that bank or wallet), else the Accounts screen
@@ -115,11 +121,12 @@ const isEnd = (c) => c.kind === "end";
         <ListRow v-for="x in alerts3.slice(0, 2)" :key="x.id" class="ph-home-al" :class="x.sev" :title="x.title" :sub="x.text" icon-name="bell" :tone="x.sev === 'high' ? 'neg' : x.sev === 'med' ? 'warn' : 'acc'" link @tap="openAlert(x)" />
       </ListGroup>
 
-      <section class="ph-group" :aria-label="P('totals')">
-        <div class="ph-home-tiles">
-          <StatTile v-for="c in tiles" :key="c.key" :class="'k-' + c.key" :label="cap(c.label)" :value="tileVal(c)" :note="c.sub" :tone="c.key === 'net' && c.v < 0 ? 'neg' : ''" @tap="explain(c.tip)" />
+      <section class="ph-group ph-home-nums">
+        <div class="ph-group-h"><h3>{{ P("totals") }}</h3></div>
+        <div class="ph-stats">
+          <StatTile v-for="c in tiles" :key="c.key" :class="'k-' + c.key" :label="tileLabel(c)" :value="tileVal(c)" :note="tileNote(c)" :tone="c.key === 'net' && c.v < 0 ? 'neg' : ''" @tap="explain(c.tip)" />
         </div>
-        <button v-if="tiles[0]?.lasts" type="button" class="ph-home-lasts" @click="explain(tiles[0].lasts.tip)">{{ tiles[0].lasts.text }}</button>
+        <p v-if="tiles[0]?.lasts" class="ph-group-n"><button type="button" class="ph-home-lasts" @click="explain(tiles[0].lasts.tip)">{{ tiles[0].lasts.text }}</button></p>
       </section>
 
       <ListGroup v-if="M.has.accts" :title="t('home.accounts')" :more="P('seeAll')" @more="nav.push('accounts')">
@@ -133,7 +140,7 @@ const isEnd = (c) => c.kind === "end";
         <ListRow v-for="c in cardRows" :key="c.n" v-tip="c.tip" link @tap="accOpen(c.wise ? 'Wise' : c.n)">
           <template #lead><span class="ph-home-logo" v-html="brandIcon(c.n, c.acc?.src, c.acc?.kind || 'card', c.acc?.ck)" /></template>
           <template #title><span v-if="c.wise">{{ titleCase(c.nme) }}</span><span v-else v-html="accLbl(c.n)" /></template>
-          <template #sub><span>{{ c.wise ? P("paidNow") : P("upcoming") }}</span><span>{{ t("home.lastMonthAmount", { amount: "₪" + n0(c.last) }) }}</span></template>
+          <template #sub><span>{{ c.wise ? P("paidNow") : P("upcoming") }}</span><span class="ph-home-sub2">{{ t("home.lastMonthAmount", { amount: "₪" + n0(c.last) }) }}</span></template>
           <template #end>
             <span class="ph-home-endcol"><span class="ph-amt">₪{{ n0(c.now) }}</span><small v-if="c.last" class="ph-home-chg" dir="ltr" :class="c.d > 0 ? 'ph-up' : 'ph-dn'">{{ (c.d > 0 ? "+" : "−") + c.p }}%</small></span>
           </template>
@@ -178,8 +185,8 @@ const isEnd = (c) => c.kind === "end";
       </ListGroup>
 
       <ListGroup v-if="M.has.bills" :title="t('home.upcomingBills')" :more="P('seeAll')" @more="nav.tab('bills')">
-        <ListRow v-for="b in M.upcoming" :key="b.idx" :title="an(b.n)" link :sub="b.status == 'overdue' ? t('home.overdueSince', { date: iso(dstr(b.pd)) }) : P('dueOn', { date: iso(dstr(b.nx)) })" @tap="openBill(b)">
-          <template #lead><span class="ph-home-due" :class="{ late: b.status == 'overdue' }"><b>{{ b.status == "overdue" ? "!" : b.days }}</b></span></template>
+        <ListRow v-for="b in M.upcoming" :key="b.idx" :title="an(b.n)" link :sub="b.status == 'overdue' ? t('home.overdueSince', { date: iso(dstr(b.pd)) }) : P('dueIn', { n: b.days }, b.days)" @tap="openBill(b)">
+          <template #lead><span class="ph-home-due" :class="{ late: b.status == 'overdue' }" aria-hidden="true"><small>{{ monShort(b.status == "overdue" ? b.pd : b.nx) }}</small><b>{{ dayOf(b.status == "overdue" ? b.pd : b.nx) }}</b></span></template>
           <template #end><span class="ph-amt">{{ b.vari ? "≈ " : "" }}{{ fm(b.pred) }}</span></template>
         </ListRow>
       </ListGroup>
