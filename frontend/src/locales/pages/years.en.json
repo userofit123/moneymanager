@@ -68,7 +68,7 @@
   "remove": "Remove goal",
   "saveTip": "Save this goal\nKeeps your goal, the amount set aside each month, the age and the growth. Home then shows how close you are to your goal.",
   "updateTip": "Update goal\nSaves the choices as they are now in place of your saved goal.",
-  "savedSame": "This goal is saved. Home shows how close you are to it.",
+  "savedSame": "Goal saved. You can follow your progress toward it on the Home page.",
   "savedDiffAge": "Your saved goal is {goal} by age {age}.",
   "savedDiffYears": "Your saved goal is {goal} in {n} year. | Your saved goal is {goal} in {n} years.",
   "rmTitle": "Remove your goal?",
