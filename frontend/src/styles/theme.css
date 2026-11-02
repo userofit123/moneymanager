@@ -354,9 +354,9 @@ body.glass {
   --s1: color-mix(in srgb, var(--gs1) var(--gop100), transparent);
   --s2: color-mix(in srgb, var(--gs2) var(--gop100), color-mix(in srgb, var(--tx) 7%, transparent));
   --gbg: color-mix(in srgb, var(--bg) var(--gop100), transparent);
-  /* windows, menus and tips stay frosted but nearly solid (95% when Opacity is 0, solid at 100%), with a strong blur,
-     so the text behind them never shows through */
-  --gpop100: calc((.95 + var(--gop) * .05) * 100%);
+  /* windows, menus and tips are frosted: mostly solid (80% when Opacity is 0, solid at 100%) over a strong blur, so what is
+     behind them shows only as soft colour and its text never reads through */
+  --gpop100: calc((.8 + var(--gop) * .2) * 100%);
   --gpfx: blur(calc(var(--gbl) + 14px)) saturate(var(--gsat));
   --gpbg: color-mix(in srgb, var(--bg) var(--gpop100), transparent);
   --gp1: color-mix(in srgb, var(--gs1) var(--gpop100), transparent);
@@ -385,10 +385,14 @@ body.glass :is(.card,table,.bgrp,.jhero,.fcard,.setnav,.rkeq)::before {
   backdrop-filter: var(--gfx);
 }
 
-/* windows, menus and pop-ups: nearly solid, with their colour on the box itself so it stays behind every line when they
-   scroll. The small menus and lists blur what is behind them; windows do not (a blur would trap the menus that open inside them) */
+/* windows, menus and pop-ups: frosted, with their colour and blur on the box itself so they stay behind every line when they
+   scroll. The blur makes the box hold anything fixed inside it, so menus, drop-downs and tips that open from a window are
+   put on <body> (PopMenu, AskPop, core/dropdown.js, core/tooltip.js) and still open where they should.
+   test/glass-windows.test.js checks every window keeps this look. */
 body.glass :is(.sheet,.pop,.askb,.help,.rcal,.dvbox) {
   background: var(--gpbg);
+  -webkit-backdrop-filter: var(--gpfx);
+  backdrop-filter: var(--gpfx);
 }
 
 body.glass :is(.tsug,.ddm,.cmenu,.toast,.sugb) {
