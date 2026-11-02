@@ -1,6 +1,6 @@
 {
-  "nwUp": "יש לך עכשיו {amount}. זה {change} יותר מאשר ב{month}.",
-  "nwDown": "יש לך עכשיו {amount}. זה {change} פחות מאשר ב{month}.",
+  "nwUp": "יש לכם עכשיו {amount}. זה {change} יותר מאשר ב{month}.",
+  "nwDown": "יש לכם עכשיו {amount}. זה {change} פחות מאשר ב{month}.",
   "sum": "{what}: {amount} ב-{n} החודשים האחרונים, בערך {avg} לחודש.",
   "options": "אפשרויות התרשים",
   "style": "סוג התרשים: {style}",

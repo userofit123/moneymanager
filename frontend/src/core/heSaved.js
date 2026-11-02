@@ -55,7 +55,7 @@ const RULES = [
   // "What is this money?" in the transaction window: "<name> → Money back"
   [/^(.+) → (Income|Earned|Salary|Money back|From a person|Your own money|Other income|Automatic)$/, (a, k) => a + " ← " + ({ Income: "הכנסה", Earned: "הכנסה מעבודה", Salary: "משכורת", "Money back": "החזר כספי", "From a person": "מאדם", "Your own money": "הכסף שלכם", "Other income": "הכנסה אחרת", Automatic: "אוטומטי" })[k]],
   // Settings → Automatic sorting: where a rule looks (lib/ruleFields.js WHERE_EN)
-  [/^(.+) looks in: (.+)$/, (k, f) => k + " · מחפש ב: " + ({ Everything: "הכול", "Transaction name": "שם התנועה", "Bank's note": "הערת הבנק", "Bank's description": "התיאור של הבנק", "Bank's category": "הקטגוריה של הבנק", "Who paid": "מי שילם", "Paid to": "למי שולם", "Your note": "ההערה שלך", "Your account": "החשבון שלך", "Currency paid in": "המטבע ששולם בו", "Name, from or to": "שם, ממי או למי", "Name or paid to": "שם או למי שולם", "Name, payer or bank's note": "שם, משלם או הערת הבנק" }[f] || f)],
+  [/^(.+) looks in: (.+)$/, (k, f) => k + " · מחפש ב: " + ({ Everything: "הכול", "Transaction name": "שם התנועה", "Bank's note": "הערת הבנק", "Bank's description": "התיאור של הבנק", "Bank's category": "הקטגוריה של הבנק", "Who paid": "מי שילם", "Paid to": "למי שולם", "Your note": "ההערה שלכם", "Your account": "החשבון שלכם", "Currency paid in": "המטבע ששולם בו", "Name, from or to": "שם, ממי או למי", "Name or paid to": "שם או למי שולם", "Name, payer or bank's note": "שם, משלם או הערת הבנק" }[f] || f)],
   [/^(.+) match: (contains|is exactly|starts with|ends with|does not contain)$/, (k, m) => k + " · התאמה: " + ({ contains: "מכיל", "is exactly": "זהה בדיוק", "starts with": "מתחיל ב", "ends with": "נגמר ב", "does not contain": "לא מכיל" })[m]],
   // history details written by the server
   [/^(.+): matched your hand-entered transaction$/, (a) => a + ": הותאם לתנועה שהזנתם ידנית"],
@@ -73,7 +73,7 @@ const RULES = [
   [/^(.+) · entered by you$/, (x) => TM(x) + " · הוזן על ידכם"],
   [/^(.+): it matches what the card charged on (.+), so it is not counted as spending$/, (d, dt) => d + ": זה תואם למה שהכרטיס חויב ב-" + dt + ", ולכן לא נספר כהוצאה"],
   [/^(\d+) income entr(?:y|ies) marked as Salary \(it says so, or the same payer pays a similar amount every month\)$/, (n) => (n == 1 ? "הכנסה אחת סומנה" : n + " הכנסות סומנו") + " כמשכורת (כתוב כך, או שאותו משלם מעביר סכום דומה כל חודש)"],
-  [/^(\d+) income entr(?:y|ies) marked as Salary \(it says so, or one of your rules says so\)$/, (n) => (n == 1 ? "הכנסה אחת סומנה" : n + " הכנסות סומנו") + " כמשכורת (כתוב כך, או שאחד הכללים שלך אומר כך)"],
+  [/^(\d+) income entr(?:y|ies) marked as Salary \(it says so, or one of your rules says so\)$/, (n) => (n == 1 ? "הכנסה אחת סומנה" : n + " הכנסות סומנו") + " כמשכורת (כתוב כך, או שאחד הכללים שלכם אומר כך)"],
   [/^(\d+) rules now Salary, (\d+) rules removed, (\d+) choices moved to Income or automatic$/, (a, b, c) => one(a, "כלל אחד הוא", a + " כללים הם") + " עכשיו משכורת, " + one(b, "כלל אחד הוסר", b + " כללים הוסרו") + ", " + one(c, "בחירה אחת הועברה", c + " בחירות הועברו") + " להכנסה או לאוטומטי"],
   [/^Salary texts that are now money coming in rules \(→ Salary\): (\d+)$/, (n) => "טקסטים של משכורת שהם עכשיו כללי כסף שנכנס (← משכורת): " + n],
   [/^(.+) ([A-Z]{3}): money (out|in) (.+) with no transaction \(between snapshots\)$/, (a, c, k, n) => a + " " + c + ": " + (k == "out" ? "כסף יצא " : "כסף נכנס ") + n + " ללא תנועה (בין צילומי יתרה)"],
@@ -481,7 +481,7 @@ const HELP = {
   "If it contains": "אם התיאור מכיל",
   "In accounts": "בחשבונות",
   "In jars": "בקופות",
-  "In your accounts": "בחשבונות שלך",
+  "In your accounts": "בחשבונות שלכם",
   "Large income: Salary": "הכנסה גדולה: משכורת",
   "Needs review": "לבדיקה",
   "Net worth": "שווי נקי",
