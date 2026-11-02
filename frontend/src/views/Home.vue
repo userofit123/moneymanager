@@ -58,6 +58,15 @@ const hvStyle = computed(() => {
   return { direction: "ltr", insetInlineStart: Math.max(0, Math.min(W0 - w, hv.value.px - w / 2)) + "px", top: Math.max(0, hv.value.py - h - 12) + "px" };
 });
 
+// The lower blocks in two columns, each block straight under the one above it (no row lining up across).
+// Blocks go left and right in turn, in this order, so each one keeps its column while data loads.
+const bbCols = computed(() => {
+  const h = M.value?.has || {};
+  const on = { donut: h.donut, budg: h.budg, bills: h.bills, recent: h.recent, goal: !!goal.value, jars: h.jars, fx: fxKeys.value.length > 0 };
+  const ks = Object.keys(on).filter((k) => on[k]);
+  return [ks.filter((_, i) => i % 2 === 0), ks.filter((_, i) => i % 2 === 1)];
+});
+
 const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", donut: "reports", accts: "accounts", fx: "settings" };
 </script>
 
@@ -153,8 +162,10 @@ const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", 
           </div>
         </div>
 
-        <div v-show="goal || M.has.bills || M.has.budg || M.has.jars || fxKeys.length || M.has.donut || M.has.recent" id="row-bb" class="grid g2">
-          <div v-if="M.has.donut" id="sec-donut">
+        <div v-show="bbCols[0].length" id="row-bb" class="grid g2">
+          <div v-for="(col, ci) in bbCols" :key="ci" class="bbcol">
+          <template v-for="k in col" :key="k">
+          <div v-if="k === 'donut'" id="sec-donut">
             <h2 style="margin-top:0"><span>{{ t("home.byCategory") }}<span class="mo"> · {{ monthName(M.MK) }}</span></span><a class="sm hl" :href="link(H2.donut)" @click="onLink">{{ t("home.all") }}</a></h2>
             <div class="card"><div id="donutHome" class="flex dnt" :class="{ hv: hover }">
               <svg width="200" height="200" viewBox="0 0 200 200" class="dsvg" style="max-width:100%">
@@ -168,7 +179,7 @@ const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", 
             </div></div>
           </div>
 
-          <div v-if="M.has.budg" id="sec-budg">
+          <div v-if="k === 'budg'" id="sec-budg">
             <h2 style="margin-top:0"><span>{{ t("home.budgets") }}<span class="mo"> · {{ monthName(M.MK) }}</span></span><a class="sm hl" :href="link(H2.budg)" @click="onLink">{{ t("home.all") }}</a></h2>
             <div id="budHome" class="card">
               <div v-for="b in M.budgets.slice(0, 8)" :key="b.k" style="margin-bottom:14px">
@@ -179,7 +190,7 @@ const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", 
             </div>
           </div>
 
-          <div v-if="M.has.bills" id="sec-bills">
+          <div v-if="k === 'bills'" id="sec-bills">
             <h2 style="margin-top:0">{{ t("home.upcomingBills") }}<a class="sm hl" :href="link(H2.bills)" @click="onLink">{{ t("home.all") }}</a></h2>
             <div id="billHome" class="card">
               <div v-for="b in M.upcoming" :key="b.idx" class="row" style="cursor:pointer" @click="openBill(b)">
@@ -189,7 +200,7 @@ const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", 
             </div>
           </div>
 
-          <div v-if="M.has.recent" id="sec-recent">
+          <div v-if="k === 'recent'" id="sec-recent">
             <h2 style="margin-top:0">{{ t("home.recent") }}<a class="sm hl" :href="link(H2.recent)" @click="onLink">{{ t("home.all") }}</a></h2>
             <div id="recent" class="card" style="padding:8px 12px">
               <div v-for="x in M.recent" :key="x.id" class="txi" @click="openTxId(x.id)">
@@ -200,7 +211,7 @@ const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", 
             </div>
           </div>
 
-          <div v-if="goal" id="sec-goal">
+          <div v-if="k === 'goal'" id="sec-goal">
             <h2 style="margin-top:0">{{ t("home.goal.title") }}<a class="sm hl" :href="link('forecast')" @click.prevent="openGoal">{{ t("home.goal.open") }}</a></h2>
             <div id="goalHome" class="card click" role="button" tabindex="0" v-tip="goal.tip" @click="openGoal" @keydown.enter="openGoal">
               <div style="display:flex;align-items:center;gap:8px;font-size:14px"><b style="flex:1">{{ goal.name }}</b><span class="num">{{ goal.pc }}%</span></div>
@@ -210,7 +221,7 @@ const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", 
             </div>
           </div>
 
-          <div v-if="M.has.jars" id="sec-jars">
+          <div v-if="k === 'jars'" id="sec-jars">
             <h2 style="margin-top:0">{{ t("home.jars") }}<a class="sm hl" :href="link(H2.jars)" @click="onLink">{{ t("home.all") }}</a></h2>
             <div id="jarHome" class="card">
               <div v-for="j in M.jars" :key="j.id" style="margin-bottom:16px">
@@ -222,14 +233,14 @@ const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", 
             </div>
           </div>
 
-          <div v-if="fxKeys.length" id="sec-fx">
+          <div v-if="k === 'fx'" id="sec-fx">
             <h2 style="margin-top:0">{{ t("home.fx") }}<a class="sm hl" :href="link(H2.fx)" @click="onLink">{{ t("home.currencies") }}</a></h2>
             <div id="fxc" class="card">
               <template v-if="fxView">
                 <div class="fxh"><BaseTabs v-if="fxKeys.length > 1" v-model="fxCur" style="margin:0" :options="fxOpts" :label="t('home.fx')" /><span v-else class="fxpair">{{ pair(fxCur) }}</span><span class="bd" :class="Math.abs(fxView.ch) < .005 ? '' : fxView.ch > 0 ? 'dn' : 'up'">{{ Math.abs(fxView.ch) < .005 ? "▬" : fxView.ch > 0 ? "▲" : "▼" }} {{ Math.abs(fxView.ch).toFixed(2) }}% · {{ t("home.days30") }}</span></div>
                 <div class="fxr"><span class="fxl">{{ currencySymbol(fxCur) }}1</span><span class="fxe">=</span><b class="num">₪{{ fxView.last.toFixed(4) }}</b></div>
-                <div ref="fxWrap" class="trw tight">
-                  <svg ref="fxSvg" width="100%" :viewBox="`0 0 ${fxView.Wd} ${fxView.H}`" style="margin-top:6px" @pointermove="hvShow" @pointerdown="hvShow" @pointerleave="hv = null">
+                <div :ref="(el) => (fxWrap = el)" class="trw tight">
+                  <svg :ref="(el) => (fxSvg = el)" width="100%" :viewBox="`0 0 ${fxView.Wd} ${fxView.H}`" style="margin-top:6px" @pointermove="hvShow" @pointerdown="hvShow" @pointerleave="hv = null">
                     <g v-for="(g, i) in fxView.grid" :key="i"><line class="gl" :x1="fxView.P" :x2="fxView.Wd - 12" :y1="g.y" :y2="g.y" stroke-dasharray="3 5" /><text :x="fxView.P - 6" :y="g.y + 4" text-anchor="end">{{ g.label }}</text></g>
                     <defs><linearGradient id="fxg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--acc)" stop-opacity=".35" /><stop offset="1" stop-color="var(--acc)" stop-opacity="0" /></linearGradient></defs>
                     <polygon fill="url(#fxg)" :points="fxView.area" /><polyline fill="none" stroke="var(--acc)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" :points="fxView.pts" />
@@ -248,6 +259,8 @@ const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", 
                 <div class="fxf"><span>{{ fx.stale ? t("home.fxStaleAt", { date: fx.asOf }) : t("home.fxSource", { date: fx.asOf }) }}</span><span>{{ t("home.fxUse") }}</span></div>
               </template>
             </div>
+          </div>
+          </template>
           </div>
         </div>
       </template>
