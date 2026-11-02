@@ -74,7 +74,7 @@ export function stillToPay({ S, A, k, CC, BI, R, TODAY, MK }) {
   const dueOf = (bi) => (bi ? (bi.status != "paid" && bi.pd ? bi.pd : bi.nx) || null : null);
   const bills = []; R.rows.forEach((r) => (r.bills || []).forEach((b) => { const bi = BI.find((x) => x.n == b.n); bills.push({ n: b.n, amt: b.amt, nx: dueOf(bi), overdue: !!b.overdue, idx: bi ? bi.idx : null, cat: bi ? bi.cat : "", inR: true }); }));
   // the bills a jar pays (or whose budget row a jar covers in full) still leave the bank: listed like any other unpaid bill
-  (R.due || []).filter((b) => !bills.some((x) => x.n == b.n)).forEach((b) => { const bi = BI.find((x) => x.n == b.n); bills.push({ n: b.n, amt: b.amt, nx: dueOf(bi), overdue: !!b.overdue, idx: bi ? bi.idx : null, cat: bi ? bi.cat : b.cat }); });
+  (R.due || []).filter((b) => !bills.some((x) => x.n == b.n)).forEach((b) => { const bi = BI.find((x) => x.n == b.n); bills.push({ n: b.n, amt: b.amt, nx: dueOf(bi), overdue: !!b.overdue, idx: bi ? bi.idx : null, cat: bi ? bi.cat : b.cat, byJar: !!b.byJar }); });
   // bills a budget pays for are not in R's bill rows; the ones still due this month are added, so "still to pay" lists every one
   BI.filter((b) => !b.once && !b.irregular && b.nx && !b.ahead && b.nx.toISOString().slice(0, 7) == MK && b.nx.toISOString().slice(0, 10) >= TODAY && !bills.some((x) => x.n == b.n)).forEach((b) => bills.push({ n: b.n, amt: b.pred, nx: b.nx, overdue: false, idx: b.idx, cat: b.cat }));
   // a bill whose payment the bank or card company already lists for later this month (sched), and other payments listed
@@ -86,6 +86,10 @@ export function stillToPay({ S, A, k, CC, BI, R, TODAY, MK }) {
   // twice: once in the jar and once as a payment still due (the bills reserveCalc lists are what its jars did not cover)
   const pool = {}; (S.jars || []).forEach((j) => { pool[j.id] = Math.max(0, +j.bal || 0); });
   bills.forEach((b) => { if (b.inR) return; const j = (S.jars || []).find((j) => (j.cats || []).some((x) => x.c == b.cat)); const take = j ? Math.min(pool[j.id], b.amt) : 0; if (take >= 1) { pool[j.id] -= take; b.jar = j.n; b.cov = take; } });
+  // a bill paid by credit card (its last payment was on the card) leaves the bank later, with that card's bill: card is the
+  // card, cd the day the bank takes it. One a jar pays stays a payment still due, so the jar money is not counted twice.
+  const cd = chargeDays(S, A, k, CC);
+  bills.forEach((b) => { const bi = b.idx != null ? BI.find((x) => x.idx == b.idx) : null; if (!bi || !CC.has(bi.acct) || b.cov || b.byJar || !b.nx) return; const d = b.nx.toISOString().slice(0, 10); b.card = bi.acct; b.cd = chargeOf({ d: d > TODAY ? d : TODAY, a: -1, from: bi.acct }, cd); });
   return bills;
 }
 
@@ -101,11 +105,13 @@ export function recapModel(M, now) {
   const cardsU = onCard(MK), cardsPrev = onCard(pm);
   const cardPaid = (S.tx || []).filter((t) => !t.virtual && k.isCp(t) && String(t.d).startsWith(MK) && String(t.d) <= TODAY).reduce((s, t) => s - t.a, 0);
   // card purchases still to leave the bank: the ones charged later this month, and the ones charged next month or after
-  const due = cardsDue({ S, A, k, CC, TODAY, MK }), cardsThis = due.thisMonth, cardsNow = due.now, cardsNext = due.later, nextCards = due.next;
+  // bills paid by credit card go on the card bill of their charge day (Home's model already has them)
+  const upAll = F.up ? null : stillToPay({ S, A, k, CC, BI, R, TODAY, MK }), cardUp = F.cardUp || (upAll ? upAll.filter((b) => b.card) : []);
+  const due = cardsDue({ S, A, k, CC, TODAY, MK, extra: cardUp }), cardsThis = due.thisMonth, cardsNow = due.now, cardsNext = due.later, nextCards = due.next;
   const same = A.filter((t) => isOut(t) && rdOf(t).startsWith(pm) && +rdOf(t).slice(8) <= day).reduce((s, t) => s - t.a, 0);
   const incs = A.filter((t) => isIn(t) && rdOf(t).startsWith(MK)).sort((a, b) => b.a - a.a);
   const spendNow = Object.fromEntries(M.spend);
-  const bills = F.up || stillToPay({ S, A, k, CC, BI, R, TODAY, MK }); // Home's model already has the list
+  const bills = F.up || upAll.filter((b) => !b.card); // Home's model already has the list
   const billsTot = sum(bills.map((b) => b.amt)), limitsLeft = sum(R.rows.filter((r) => r.kind != "bill").map((r) => r.amt));
   // what jars pay of the money still to go out (reserveCalc's jarCov; rows a jar covers in full are only in R.jarCov)
   const jarCov = R.jarCov ? sum(R.jarCov.map((x) => x.cov)) : sum(R.rows.map((r) => r.jarCov || 0));
@@ -118,7 +124,7 @@ export function recapModel(M, now) {
   // what you will probably still spend this month, and the income still to come: what usually happens after today's date
   // (afterToday, the same as the Forecast's this month). The known bills still due are counted above. Its usual card part
   // leaves the bank next month, with the card bill.
-  const AT = afterToday(S, A, MK, day, CC, bills), daysLeft = Math.max(0, dim - day);
+  const AT = afterToday(S, A, MK, day, CC, bills.concat(cardUp)), daysLeft = Math.max(0, dim - day);
   const rest = AT.out.filter((x) => x.k != "Income" && S.cats?.[x.k] !== 99 && x.a >= 0.5).sort((a, b) => b.a - a.a), incLeft = Math.round(sum(AT.inc.map((x) => x.a)));
   // whole shekels, rounded once here, so every sum shown with them adds up (the Forecast's tiles and tips use the same ones)
   const likely = Math.round(sum(rest.map((x) => x.a))), likelyCard = Math.round(sum(rest.map((x) => x.card))), likelyBank = likely - likelyCard;
@@ -167,7 +173,7 @@ export function recapModel(M, now) {
   const top = M.spend.filter(([c]) => !skip(c)).sort((a, b) => b[1] - a[1]).slice(0, 3);
   const steps = monthSteps({ A, S, k, MK, TODAY, CC, inc, dn, start, end: startReal ? cash : null });
   const phase = day <= 5 ? "start" : dim - day <= 6 ? "end" : "mid";
-  return { MK, today: TODAY, jarCov, rest, incRest: AT.inc, incLeft, payday: paydayOf(freeParts.free, incLeft, AT.inc), daysLeft, day, dim, pm, nmk, cash, inc, ex, cardsU, cardsPrev, cardPaid, cardsThis, cardsNow, cardsNext, sureJar, sureOwn: sure - sureJar, jarsUsed, nextCards, bankSpent: ex - cardsU, cardsOwed, sure, likely, likelyBank, likelyCard, nextBill, afterNext, endMonth, freeParts, afterSure, reallyNow, same, incs, bills, billsTot, limitsLeft, end, toPay, heldEnd, top, start, startReal, startOn, over, risk, okB, above, below, w1, w0, days, nextBills, phase, steps, inJars: F.inJars, buffer: F.buffer, jarsHeld: F.jarsHeld || [], planned: R.total, plannedRows: R.rows.map((r) => ({ k: r.k, amt: r.amt, kind: r.kind })), over0: F.over };
+  return { MK, today: TODAY, jarCov, rest, incRest: AT.inc, incLeft, payday: paydayOf(freeParts.free, incLeft, AT.inc), daysLeft, day, dim, pm, nmk, cash, inc, ex, cardsU, cardsPrev, cardPaid, cardsThis, cardsNow, cardsNext, sureJar, sureOwn: sure - sureJar, jarsUsed, nextCards, bankSpent: ex - cardsU, cardsOwed, sure, likely, likelyBank, likelyCard, nextBill, afterNext, endMonth, freeParts, afterSure, reallyNow, same, incs, bills, cardUp, billsTot, limitsLeft, end, toPay, heldEnd, top, start, startReal, startOn, over, risk, okB, above, below, w1, w0, days, nextBills, phase, steps, inJars: F.inJars, buffer: F.buffer, jarsHeld: F.jarsHeld || [], planned: R.total, plannedRows: R.rows.map((r) => ({ k: r.k, amt: r.amt, kind: r.kind })), over0: F.over };
 }
 
 // The day a card purchase leaves the bank: the charge date the card company gave (t.ch), or else the card's usual charge day,
@@ -224,9 +230,11 @@ export function cardGroups({ S, A, k, CC, TODAY }) {
 }
 // Card purchases not paid yet, split into this month and later: the bills still to leave the bank this month (also one
 // whose day came and whose payment row has not, so the bank balance still holds that money) and those charged after it
-export function cardsDue({ S, A, k, CC, TODAY, MK }) {
+// extra: the bills still to come that are paid by credit card (stillToPay's card bills), on the card bill of their charge day
+export function cardsDue({ S, A, k, CC, TODAY, MK, extra = [] }) {
   const endM = MK + "-31", by = {}, now = {}; let thisMonth = 0, later = 0;
-  cardGroups({ S, A, k, CC, TODAY }).G.forEach((g) => {
+  const G = cardGroups({ S, A, k, CC, TODAY }).G.concat(extra.map((b) => ({ n: b.card, c: b.cd, a: b.amt, due: () => true })));
+  G.forEach((g) => {
     if (!g.due(TODAY)) return; const n = g.n, c = g.c;
     if (c <= endM) { thisMonth += g.a; const x = (now[n + "|" + c] = now[n + "|" + c] || { n, a: 0, d: c }); x.a += g.a; return; }
     later += g.a; const x = (by[n] = by[n] || { n, a: 0, d: c }); x.a += g.a; if (c < x.d) x.d = c;

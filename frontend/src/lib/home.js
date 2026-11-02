@@ -103,7 +103,8 @@ export function homeModel(S, now = new Date(), fx = {}) {
   { const g = {}; A.filter((t) => t.a < 0 && !t.virtual).forEach((t) => { const kk = String(t.to || t.desc).toLowerCase().trim(); (g[kk] = g[kk] || []).push(t); });
     Object.entries(g).forEach(([kk, L]) => { if (L.length < 2 || (S.ignoredBills || []).includes(kk) || bills.some((b) => b.mode != "once" && b.match == kk)) return; L.sort((a, b) => a.d.localeCompare(b.d)); const c = cadenceOf(L); if (!c) return; const last = L[L.length - 1]; bills.push({ n: last.to, every: c.every, anchor: c.anchor, dom: c.dom, src: last.from, match: kk, cat: last.c || "Subscriptions", manual: false, mode: "rule", rec: "recurring" }); }); }
   const billTx = (b) => (b.mode == "once" ? tx.filter((t) => (b.ids || []).includes(t.id)) : A.filter((t) => t.a < 0 && (t.desc + " " + t.to).toLowerCase().includes(b.match))).sort((a, b) => a.d.localeCompare(b.d));
-  const F = futTx(S, k), BC = bills.map((b, idx) => billInfo(b, idx, billTx(b), NOW, billFut(b, F))).map((b) => { const L = billTx(bills[b.idx]).filter((t) => t.c && t.c != "Uncategorized"), lc = L.length ? L[L.length - 1].c : null; return { ...b, cat: lc || (b.manual ? b.cat : "") || "" }; });
+  // acct: the account its last payment came from (a credit card: the money leaves the bank later, with the card bill)
+  const F = futTx(S, k), BC = bills.map((b, idx) => billInfo(b, idx, billTx(b), NOW, billFut(b, F))).map((b) => { const L0 = billTx(bills[b.idx]), L = L0.filter((t) => t.c && t.c != "Uncategorized"), lc = L.length ? L[L.length - 1].c : null; return { ...b, cat: lc || (b.manual ? b.cat : "") || "", acct: L0.length ? acctOf(L0[L0.length - 1]) : bills[b.idx].src || "" }; });
   const activeBills = BC.filter((b) => b.flag != "canceled" && !b.ended);
 
   const budgetInfo = Object.entries(budgets).map(([kk, lim]) => {
@@ -137,9 +138,10 @@ export function homeModel(S, now = new Date(), fx = {}) {
   // card purchases already made and not paid yet: the bank still holds that money, but the card bill will take it
   // (the same amount Recap and the Forecast take off)
   const CC = new Set((S.accounts || []).filter((a) => a.kind == "card").map((a) => a.n));
-  const owed = cardsDue({ S, A, k, CC, TODAY, MK }), cardsOwed = Math.max(0, owed.thisMonth + owed.later);
-  // the payments still to leave this month (the same list as Recap's "You still have to pay")
-  const up = stillToPay({ S, A, k, CC, BI: activeBills, R, TODAY, MK });
+  // the payments still to leave this month (the same list as Recap's "You still have to pay"); a bill paid by credit card
+  // (cardUp) is not among them: it goes on that card's next bill, like any card purchase, and leaves the bank on its charge day
+  const upAll = stillToPay({ S, A, k, CC, BI: activeBills, R, TODAY, MK }), up = upAll.filter((b) => !b.card), cardUp = upAll.filter((b) => b.card);
+  const owed = cardsDue({ S, A, k, CC, TODAY, MK, extra: cardUp }), cardsOwed = Math.max(0, owed.thisMonth + owed.later);
   // really yours today (accounts − card purchases not paid yet − payments still due): Home, Recap and the Forecast share it
   const really = reallyYours(cashNow, cardsOwed, sum(up.map((b) => b.amt)));
   const inJars = sum(jarsS.map(heldOf)), buffer = Math.max(0, +S.jarsBuffer || 0);
@@ -147,7 +149,7 @@ export function homeModel(S, now = new Date(), fx = {}) {
   // Free to use: worked out once, here, as the end of the Planned money flow (flowSteps): your money after known payments, less what is
   // put aside (jars and the safety cushion) and what is still to come this month. Home, Recap and the Jars page all read it.
   // cardsLater: the part of cards on card bills after this month (the rest leaves the bank this month)
-  const flow0 = { cash: cashNow, cards: cardsOwed, cardsLater: Math.min(cardsOwed, Math.max(0, owed.later)), up, really, inJars, buffer, R, jarsHeld, spend };
+  const flow0 = { cash: cashNow, cards: cardsOwed, cardsLater: Math.min(cardsOwed, Math.max(0, owed.later)), up, cardUp, really, inJars, buffer, R, jarsHeld, spend };
   const W0 = flowSteps(flow0, "left"), aside = Math.round(W0.jarsA + buffer), toCome = Math.round(W0.leftTot), raw = really - aside - toCome;
   const free = Math.max(0, raw), over = -raw >= 1 ? Math.round(-raw) : 0;
   const monthsTo = (d) => Math.max(1, Math.ceil((new Date(d) - NOW) / (864e5 * 30.44)));
@@ -214,7 +216,8 @@ export function flowSteps(F, mode = "left") {
   let upJar = 0;
   const byJar = new Map((F.R.due || []).filter((b) => b.byJar).map((b) => [b.n, b.amt]));
   const src = F.R.rows.map((r) => { const bl = sum((r.bills || []).map((b) => b.amt)), upIn = Math.min(r.amt, bl); upJar += bl - upIn; return { ...r, upIn }; });
-  up.filter((b) => !b.inR).forEach((b) => { if (byJar.has(b.n)) { upJar += byJar.get(b.n); return; } const r = src.find((x) => x.k == b.cat), x = r ? Math.min(r.amt - r.upIn, b.amt) : 0; if (r) r.upIn += x; upJar += Math.min(b.cov || 0, b.amt - x); });
+  // a bill paid by card is in the cards step, so its budget row keeps only the rest too
+  [...up, ...(F.cardUp || [])].filter((b) => !b.inR).forEach((b) => { if (byJar.has(b.n)) { upJar += byJar.get(b.n); return; } const r = src.find((x) => x.k == b.cat), x = r ? Math.min(r.amt - r.upIn, b.amt) : 0; if (r) r.upIn += x; upJar += Math.min(b.cov || 0, b.amt - x); });
   src.forEach((r) => { r.left = Math.max(0, r.amt - r.upIn); });
   const jarsA = Math.max(0, F.inJars - upJar);
   const spentAll = sum(F.spend.map((e) => e[1])), leftTot = sum(src.map((r) => r.left)), start = F.cash, scale = Math.max(start, 1);

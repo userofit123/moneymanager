@@ -138,3 +138,16 @@ test("each spending step says what came in during it: money in and money back; a
   assert.equal(s.b1, 6230);
   assert.equal(s.owed, 200); // the card's bill: 300 bought, 100 back
 });
+
+// A bill paid by credit card is not a payment still to leave the bank this month: it goes on that card's next bill
+// (the month's end after the card bills stays the same, only the day the money leaves the bank moves)
+test("Recap: a bill paid by card counts with that card's next bill", () => {
+  const NOW = new Date(2026, 9, 3, 12), S = demoState(NOW), M = homeModel(structuredClone(S), NOW, FX), m = recapModel(M, NOW);
+  assert.ok(m.cardUp.length > 0);
+  m.cardUp.forEach((b) => { assert.ok(b.card && b.cd > m.today); assert.ok(!m.bills.some((x) => x.n == b.n)); });
+  const card = m.cardUp.reduce((s, b) => s + b.amt, 0);
+  assert.equal(Math.round(M.flow.cards), Math.round(m.cardsOwed));
+  assert.ok(m.cardsNext >= card - 0.5);
+  // the same money is counted once: Free to use takes off the card bills and the payments still due together
+  assert.equal(M.flow.really, Math.round(M.flow.cash) - Math.round(M.flow.cards) - Math.round(m.billsTot));
+});

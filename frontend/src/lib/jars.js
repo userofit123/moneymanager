@@ -113,6 +113,8 @@ export function forecastLine(S, H, now, fcOpt = {}) {
   const addOut = {}, addCard = {}, addIn = {}, UP = {}, put = (o, k, v) => (o[k] = (o[k] || 0) + v);
   R.rest.forEach((x) => { put(addOut, lineOf(x.k), x.a); put(addCard, lineOf(x.k), x.card); });
   R.bills.forEach((b) => { put(addOut, lineOf(b.cat), b.amt); put(UP, lineOf(b.cat), b.amt); });
+  // the bills paid by credit card: spent this month too, on the card (the bank pays them with the card bill)
+  R.cardUp.forEach((b) => { put(addOut, lineOf(b.cat), b.amt); put(UP, lineOf(b.cat), b.amt); put(addCard, lineOf(b.cat), b.amt); });
   R.incRest.forEach((x) => put(addIn, srcOf(x.k), x.a));
   const whole = (a, v) => a.map((x, i) => (i == L ? x + (v || 0) : x));
   const IR = {}, IA = {}; Object.keys(FH.incSrc).forEach((k) => { IR[k] = FH.incSrc[k]; IA[k] = whole(FH.incSrc[k], addIn[k]); });

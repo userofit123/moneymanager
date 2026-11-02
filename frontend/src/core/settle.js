@@ -45,7 +45,8 @@ export function settle(S, now = new Date(), fx = {}) {
   // 6. the money held back this month, kept for the server (it fills the jars from what is left):
   //    bills and planned spending, and the card purchases not paid yet (the card bill will take that money)
   H = homeModel(S, now, fx);
-  S.jarsReserve = Math.round(H.flow.R.total + (H.flow.cards || 0));
+  // (the bills paid by card are in cards too, and already in R.total's rows or budgets: counted once)
+  S.jarsReserve = Math.round(H.flow.R.total + (H.flow.cards || 0) - (H.flow.cardUp || []).reduce((s, b) => s + b.amt, 0));
   return lines;
 }
 
