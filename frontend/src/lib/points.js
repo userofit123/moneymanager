@@ -5,7 +5,8 @@
 // What is saved: S.points = { [key]: { pts, kind, day, d? } } — one entry per thing that earned points, so the same
 // thing never earns twice (the key says what it was: "visit:2026-11-02", "alert:<id>", "month:2026-10:kept" ...).
 // day: the day it was earned (YYYY-MM-DD); d: a short detail (a category, an alert id, a month).
-// "_old": { [kind]: pts } holds the points of old daily entries folded into one total per kind, so the saved data stays small.
+// "_old": { [month]: { [kind]: pts } } holds the points of old daily entries folded into one total per month and kind,
+// so the saved data stays small and the points by month still add up.
 import { withTransfers, addM, rdOf } from "./home.js";
 import { countedTx } from "./bills.js";
 import { isIn, isOut } from "./moneyIn.js";
@@ -179,19 +180,39 @@ export function pointsUpkeep(S, today, rows) {
   }
   const old = dayKey(new Date(new Date(day + "T12:00:00").getTime() - KEEP_DAYS * 864e5));
   entries(S).forEach(([k, e]) => {
-    if (DAILY.includes(e.kind) && e.day < old) { S.points._old = S.points._old || {}; S.points._old[e.kind] = (S.points._old[e.kind] || 0) + (+e.pts || 0); delete S.points[k]; }
+    if (!DAILY.includes(e.kind) || e.day >= old) return;
+    const o = (S.points._old = S.points._old || {}), m = (o[e.day.slice(0, 7)] = o[e.day.slice(0, 7)] || {});
+    m[e.kind] = (m[e.kind] || 0) + (+e.pts || 0);
+    delete S.points[k];
   });
   return got;
+}
+
+// The month a saved entry belongs to: month results ("month:2026-10:kept") to the month they are about, the rest to the day given.
+const monthOf = (k, e) => (k.startsWith("month:") ? k.slice(6, 13) : e.day?.slice(0, 7));
+
+// Points by month, newest first: [{ month, actions, results, total, best }]. actions: points for things done (visits, alerts,
+// categories ...); results: points for how the month went. best: the month with the most points (the newest one on a tie).
+export function pointsByMonth(S) {
+  const by = {}, at = (m) => (by[m] = by[m] || { month: m, actions: 0, results: 0 });
+  Object.entries(S?.points?._old || {}).forEach(([m, kinds]) => { if (kinds && typeof kinds === "object") Object.values(kinds).forEach((v) => { at(m).actions += +v || 0; }); });
+  entries(S).forEach(([k, e]) => { const m = monthOf(k, e); if (m && e.pts > 0) at(m)[k.startsWith("month:") ? "results" : "actions"] += +e.pts; });
+  const out = Object.values(by).map((x) => ({ ...x, total: x.actions + x.results, best: false })).sort((a, b) => b.month.localeCompare(a.month));
+  const top = out.reduce((b, x) => (x.total > (b?.total || 0) ? x : b), null);
+  if (top && out.length > 1) top.best = true;
+  return out;
 }
 
 // ---- what the screens show ----
 // { total, level: levelFor(total), byKind: { kind: pts }, recent: [{ key, kind, pts, day, d }] (newest first, up to 10),
 //   monthPreview: { month, total, parts: [{ kind, pts, detail }] } (this month so far: "on the way", not counted yet),
 //   waiting: the same for last month while it is not counted yet (before day COUNT_FROM_DAY), or null,
-//   month: the points given this calendar month (each saved entry keeps the day it was given) }
+//   month: the points given this calendar month (each saved entry keeps the day it was given),
+//   months: pointsByMonth(S) }
 // rows: countedRows, when the caller has them already.
 export function pointsSummary(S, today, rows) {
-  const day = dayKey(today), E = entries(S), byKind = { ...(S?.points?._old || {}) };
+  const day = dayKey(today), E = entries(S), byKind = {};
+  Object.values(S?.points?._old || {}).forEach((kinds) => { if (kinds && typeof kinds === "object") Object.entries(kinds).forEach(([k, v]) => { byKind[k] = (byKind[k] || 0) + (+v || 0); }); });
   E.forEach(([, e]) => { byKind[e.kind] = (byKind[e.kind] || 0) + (+e.pts || 0); });
   delete byKind.monthDone;
   const total = Object.values(byKind).reduce((s, v) => s + v, 0);
@@ -201,5 +222,5 @@ export function pointsSummary(S, today, rows) {
   const preview = (m, upTo) => { const parts = monthParts(R, S?.budgets, m, upTo).map((x) => ({ kind: x.kind, pts: x.pts, detail: x.d })); return { month: m, total: parts.reduce((s, x) => s + x.pts, 0), parts }; };
   const cm = day.slice(0, 7), pm = addM(cm, -1);
   const month = E.reduce((s, [, e]) => s + (e.day?.startsWith(cm) ? +e.pts || 0 : 0), 0);
-  return { total, level: levelFor(total), byKind, recent, monthPreview: preview(cm, +day.slice(8, 10)), waiting: S?.points?.["month:" + pm] ? null : preview(pm), month };
+  return { total, level: levelFor(total), byKind, recent, monthPreview: preview(cm, +day.slice(8, 10)), waiting: S?.points?.["month:" + pm] ? null : preview(pm), month, months: pointsByMonth(S) };
 }

@@ -1,7 +1,7 @@
 // Points and levels (lib/points.js): levels, daily caps, once-only, by hand vs automatic, month results, and Undo.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { POINTS, levelFor, award, earnFromChange, pointsUpkeep, pointsSummary, monthParts, setupDone } from "../src/lib/points.js";
+import { POINTS, levelFor, award, earnFromChange, pointsUpkeep, pointsSummary, pointsByMonth, monthParts, setupDone } from "../src/lib/points.js";
 import { setField, addTags, roSave, xfOk, dupKeep } from "../src/lib/txactions.js";
 import { createDataStore } from "../src/stores/data.js";
 
@@ -129,8 +129,31 @@ test("while a month runs, last month is compared up to the same day; once it end
 });
 
 test("points this month: only what was given since the first of the month", () => {
-  const S = { points: { a: { kind: "visit", pts: 5, day: "2026-10-31" }, b: { kind: "cat", pts: 2, day: "2026-11-01" }, c: { kind: "tag", pts: 3, day: "2026-11-02" }, _old: { visit: 40 } } };
+  const S = { points: { a: { kind: "visit", pts: 5, day: "2026-10-31" }, b: { kind: "cat", pts: 2, day: "2026-11-01" }, c: { kind: "tag", pts: 3, day: "2026-11-02" }, _old: { "2026-06": { visit: 40 } } } };
   assert.equal(pointsSummary(S, DAY, []).month, 5);
+});
+
+test("points by month: actions by the day given, month results by the month they are about, old folded points kept", () => {
+  const S = { points: {
+    "visit:2026-11-02": { kind: "visit", pts: 5, day: "2026-11-02" },
+    "month:2026-10:kept": { kind: "kept", pts: 150, day: "2026-11-03" }, // given in November, about October
+    "month:2026-10": { kind: "monthDone", pts: 0, day: "2026-11-03" },
+    "alert:x": { kind: "alert", pts: 10, day: "2026-10-20" },
+    _old: { "2026-06": { visit: 40, cat: 12 } },
+  } };
+  assert.deepEqual(pointsByMonth(S), [
+    { month: "2026-11", actions: 5, results: 0, total: 5, best: false },
+    { month: "2026-10", actions: 10, results: 150, total: 160, best: true },
+    { month: "2026-06", actions: 52, results: 0, total: 52, best: false },
+  ]);
+  assert.equal(pointsSummary(S, "2026-11-04", []).total, 217);
+});
+
+test("old daily points fold into their month", () => {
+  const S = { points: { "visit:2026-06-10": { kind: "visit", pts: 5, day: "2026-06-10" } } };
+  pointsUpkeep(S, "2026-11-02", []);
+  assert.deepEqual(S.points._old, { "2026-06": { visit: 5 } });
+  assert.equal(pointsByMonth(S)[0].month, "2026-06");
 });
 
 test("Undo of a change takes its points back; later points stay", async () => {
