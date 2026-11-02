@@ -6,8 +6,6 @@ import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { points } from "../../core/points.js";
 import { POINTS, COUNT_FROM_DAY } from "../../lib/points.js";
-import { data } from "../../stores/data.js";
-import { now, dayOf } from "../../core/clock.js";
 import { f0, clampPercent } from "../../format.js";
 import { dshort } from "../../dates.js";
 import { categoryName } from "../../catnames.js";
@@ -22,11 +20,8 @@ const lv = computed(() => points.value?.level);
 const pct = computed(() => (lv.value ? clampPercent(lv.value.into, lv.value.next - lv.value.start) : 0));
 const total = computed(() => f0(points.value?.total || 0));
 const head = computed(() => (lv.value ? { level: lv.value.level, total: total.value, need: f0(lv.value.need), next: lv.value.level + 1 } : {}));
-// points given since the first of this month (each saved entry keeps the day it was given)
-const monthSoFar = computed(() => {
-  const m = dayOf(now.value).slice(0, 7);
-  return Object.entries(data.state.value?.points || {}).reduce((s, [k, e]) => s + (k !== "_old" && e?.day?.startsWith(m) ? +e.pts || 0 : 0), 0);
-});
+// points given since the first of this month
+const monthSoFar = computed(() => points.value?.month || 0);
 
 // what an earned or coming item was for, in plain words
 function label(x) {

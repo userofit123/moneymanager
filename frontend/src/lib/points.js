@@ -127,12 +127,13 @@ export function setupDone(S) {
 // The counted rows (no transfers between your own accounts, card bill payments, upcoming or left-out rows): the same rows as Home.
 export const countedRows = (S, today) => countedTx(withTransfers(S), dayKey(today)).A;
 
-// Money in and money out of one month, and what was spent in each category.
-export function monthMoney(rows, m) {
+// Money in and money out of one month, and what was spent in each category. upTo: only days 1 to upTo of the month.
+export function monthMoney(rows, m, upTo = 31) {
   let inc = 0, out = 0, n = 0, uncat = 0;
   const cat = {};
   rows.forEach((t) => {
-    if (!rdOf(t).startsWith(m)) return;
+    const d = rdOf(t);
+    if (!d.startsWith(m) || +d.slice(8, 10) > upTo) return;
     n++;
     if (isIn(t)) inc += t.a;
     else if (isOut(t)) { out -= t.a; const k = t.c || "Uncategorized"; cat[k] = (cat[k] || 0) - t.a; if (NO_CAT(t.c)) uncat++; }
@@ -143,8 +144,10 @@ export function monthMoney(rows, m) {
 export const keptPct = (mm) => (mm.inc > 0 ? Math.round(((mm.inc - mm.out) / mm.inc) * 100) : null);
 
 // A month's results: [{ key, kind, pts, d }]. rows: countedRows; budgets: S.budgets.
-export function monthParts(rows, budgets, m) {
-  const cur = monthMoney(rows, m), prev = monthMoney(rows, addM(m, -1)), parts = [];
+// upTo: the day of the month it has reached while it still runs, so last month is compared up to the same day
+// (a few days into a month must not look like "spent less" than a whole month); left out once the month is over.
+export function monthParts(rows, budgets, m, upTo = 31) {
+  const cur = monthMoney(rows, m), prev = monthMoney(rows, addM(m, -1), upTo), parts = [];
   if (!cur.n) return parts;
   const put = (k, kind, pts, d) => { if (pts > 0) parts.push({ key: "month:" + m + ":" + k, kind, pts, d }); };
   const pc = keptPct(cur), pp = keptPct(prev);
@@ -184,7 +187,8 @@ export function pointsUpkeep(S, today, rows) {
 // ---- what the screens show ----
 // { total, level: levelFor(total), byKind: { kind: pts }, recent: [{ key, kind, pts, day, d }] (newest first, up to 10),
 //   monthPreview: { month, total, parts: [{ kind, pts, detail }] } (this month so far: "on the way", not counted yet),
-//   waiting: the same for last month while it is not counted yet (before day COUNT_FROM_DAY), or null }
+//   waiting: the same for last month while it is not counted yet (before day COUNT_FROM_DAY), or null,
+//   month: the points given this calendar month (each saved entry keeps the day it was given) }
 // rows: countedRows, when the caller has them already.
 export function pointsSummary(S, today, rows) {
   const day = dayKey(today), E = entries(S), byKind = { ...(S?.points?._old || {}) };
@@ -194,7 +198,8 @@ export function pointsSummary(S, today, rows) {
   const recent = E.filter(([, e]) => e.pts > 0).map(([key, e]) => ({ key, kind: e.kind, pts: e.pts, day: e.day, d: e.d ?? null })).reverse()
     .sort((a, b) => b.day.localeCompare(a.day)).slice(0, 10);
   const R = S && Array.isArray(S.tx) ? rows || countedRows(S, day) : [];
-  const preview = (m) => { const parts = monthParts(R, S?.budgets, m).map((x) => ({ kind: x.kind, pts: x.pts, detail: x.d })); return { month: m, total: parts.reduce((s, x) => s + x.pts, 0), parts }; };
-  const pm = addM(day.slice(0, 7), -1);
-  return { total, level: levelFor(total), byKind, recent, monthPreview: preview(day.slice(0, 7)), waiting: S?.points?.["month:" + pm] ? null : preview(pm) };
+  const preview = (m, upTo) => { const parts = monthParts(R, S?.budgets, m, upTo).map((x) => ({ kind: x.kind, pts: x.pts, detail: x.d })); return { month: m, total: parts.reduce((s, x) => s + x.pts, 0), parts }; };
+  const cm = day.slice(0, 7), pm = addM(cm, -1);
+  const month = E.reduce((s, [, e]) => s + (e.day?.startsWith(cm) ? +e.pts || 0 : 0), 0);
+  return { total, level: levelFor(total), byKind, recent, monthPreview: preview(cm, +day.slice(8, 10)), waiting: S?.points?.["month:" + pm] ? null : preview(pm), month };
 }

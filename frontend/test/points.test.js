@@ -114,6 +114,25 @@ test("a month is on the way while it runs and counted once after it ends", () =>
   assert.equal(total(S), got);
 });
 
+test("while a month runs, last month is compared up to the same day; once it ends, whole month to whole month", () => {
+  const rows = [
+    { d: "2026-10-01", a: 10000, c: "Salary" }, { d: "2026-10-02", a: -300, c: "Food" }, { d: "2026-10-20", a: -900, c: "Food" }, { d: "2026-10-31", a: -100, c: "Food" },
+    { d: "2026-11-01", a: 10000, c: "Salary" }, { d: "2026-11-02", a: -300, c: "Food" },
+  ];
+  // Nov 2: Food 300 against Oct 1-2 (300), not all of October (1,300): no "spent less" yet
+  const sum = pointsSummary({ tx: [], budgets: {}, points: {} }, "2026-11-02", rows);
+  assert.equal(sum.monthPreview.parts.find((x) => x.kind == "catLess"), undefined);
+  assert.equal(sum.monthPreview.parts.find((x) => x.kind == "better"), undefined); // 97% kept both ways
+  // a counted month still compares whole months: October against all of September
+  const prev = [{ d: "2026-09-01", a: 10000 }, { d: "2026-09-02", a: -300, c: "Food" }, { d: "2026-09-30", a: -1700, c: "Food" }];
+  assert.equal(monthParts([...prev, ...rows], {}, "2026-10").find((x) => x.kind == "catLess").pts, POINTS.catLessMax); // 2,000 → 1,300: 35% less
+});
+
+test("points this month: only what was given since the first of the month", () => {
+  const S = { points: { a: { kind: "visit", pts: 5, day: "2026-10-31" }, b: { kind: "cat", pts: 2, day: "2026-11-01" }, c: { kind: "tag", pts: 3, day: "2026-11-02" }, _old: { visit: 40 } } };
+  assert.equal(pointsSummary(S, DAY, []).month, 5);
+});
+
 test("Undo of a change takes its points back; later points stay", async () => {
   const D = createDataStore({ fetchJson: async () => ({ rev: 1, audit: [], ...base() }), connect: () => () => {}, send: async () => ({ ok: true, status: 200, json: { rev: 2, auditIds: [] } }), delay: 5, earn: (a, b, L) => earnFromChange(a, b, L, DAY) });
   await D.load();
