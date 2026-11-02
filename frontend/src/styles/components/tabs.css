@@ -102,4 +102,13 @@ html.he .sheet {
   direction: rtl;
 }
 
+/* a window's scrollbar stays on the right in Hebrew too, like the page's; only its content is mirrored */
+html.he .sheet-scroll {
+  direction: ltr;
+}
+
+html.he .sheet-content {
+  direction: rtl;
+}
+
 /* segmented controls and tab strips: full-width, scrollable, comfortable */

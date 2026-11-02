@@ -128,14 +128,22 @@
   height: fit-content;
   width: min(560px, 94vw);
   max-height: 88vh;
-  overflow: auto;
+  overflow: hidden;
   background: var(--bg);
   border: 1px solid var(--ol);
   border-radius: 26px;
-  padding: 22px;
+  padding: 12px 6px;
   z-index: 80;
   display: none;
   box-shadow: 0 30px 80px -20px #000a;
+}
+
+/* The part of the window that scrolls. It is set in from the window's edge (12px top and bottom, 6px at the sides), so the
+   scrollbar runs inside the window, clear of the border and the rounded corners. Window padding + this padding = 22px. */
+.sheet-scroll {
+  max-height: calc(88vh - 26px);
+  overflow: auto;
+  padding: 10px 16px;
 }
 
 .sheet.on {

@@ -450,9 +450,9 @@ tr.tot td {
 
 .txfoot {
   position: sticky;
-  bottom: -22px;
-  margin: 16px -22px -22px;
-  padding: 14px 22px 22px;
+  bottom: -10px; /* reaches the edges of the window's scrolling part (.sheet-scroll padding) */
+  margin: 16px -16px -10px;
+  padding: 14px 16px 10px;
   background: linear-gradient(to top, var(--bg) 78%, transparent);
   display: flex;
   justify-content: flex-end;

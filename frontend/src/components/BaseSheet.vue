@@ -3,6 +3,7 @@
 // a centred window that grows out of the button that opened it and fades out when closed.
 // Escape, a click outside and the Back button close it. Show it with v-if or v-model:open.
 // cls adds a size class: "xw" (wider) or "txw" (the wide entry window).
+// The window itself does not scroll: its inner part (.sheet-scroll) does, so the scrollbar sits inside the rounded window.
 // In the phone app (mobile.js) the same content shows in the phone's own sheet (phone/components/PhoneSheet.vue), loaded only there.
 import { ref, watch, nextTick, onBeforeUnmount, defineAsyncComponent } from "vue";
 import { isPhone } from "../mobile.js";
@@ -11,7 +12,7 @@ import { layerOpen, layerClose } from "../core/layers.js";
 
 const props = defineProps({ open: { type: Boolean, default: true }, cls: { type: String, default: "" }, label: { type: String, default: "" } });
 const emit = defineEmits(["update:open", "close"]);
-const el = ref(null), scrim = ref(null);
+const el = ref(null), scrim = ref(null), box = ref(null);
 const close = () => { emit("update:open", false); emit("close"); };
 const phone = isPhone.value;
 const PhoneSheet = phone ? defineAsyncComponent(() => import("../phone/components/PhoneSheet.vue")) : null;
@@ -23,7 +24,7 @@ function placeOrigin() {
 }
 watch(() => props.open, (o, was) => {
   if (phone) return;
-  if (o) { sheetOpened(close); layerOpen(close); nextTick(() => { placeOrigin(); swapIn(); if (el.value) el.value.scrollTop = 0; }); }
+  if (o) { sheetOpened(close); layerOpen(close); nextTick(() => { placeOrigin(); swapIn(); if (box.value) box.value.scrollTop = 0; }); }
   else if (was) { sheetClosed(close); layerClose(close); }
 }, { immediate: true });
 onBeforeUnmount(() => { if (!phone && props.open) { sheetClosed(close); layerClose(close); } });
@@ -53,8 +54,12 @@ const leave = (n) => {
     </Transition>
     <Transition leave-active-class="out" :duration="{ enter: 1, leave: 240 }" :css="!reduce()" @before-leave="leave">
       <div v-if="open" ref="el" class="sheet on" :class="cls" role="dialog" aria-modal="true" :aria-label="label || undefined">
-        <div class="grab" />
-        <slot :close="close" />
+        <div ref="box" class="sheet-scroll">
+          <div class="sheet-content">
+            <div class="grab" />
+            <slot :close="close" />
+          </div>
+        </div>
       </div>
     </Transition>
   </Teleport>
