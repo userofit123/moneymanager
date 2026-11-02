@@ -51,9 +51,13 @@ watch(sel, (n, was) => { if (!n && was) nav.back(); });
 const TONE = { green: "pos", yellow: "warn", red: "neg", gray: "" };
 // the large amount: the first summary number (the balance, or a card's charges this month); the rest go in the tiles
 const lead = computed(() => D.value.tiles[0]);
-const tiles = computed(() => D.value.tiles.slice(1));
-// money in is green; money out is plain (spending is normal), red only for a total below zero
-const tileTone = (x) => (x[3] == "pos" ? "pos" : x[3] == "neg" && !/Out/.test(x[0]) ? "neg" : "");
+// the tiles come in pairs: "Latest transaction" (a date, not an amount) goes to the top of the details instead
+const tiles = computed(() => D.value.tiles.slice(1).filter((x) => x[0] != "tLatest"));
+const details = computed(() => [...D.value.tiles.filter((x) => x[0] == "tLatest").map((x) => [x[0], x[1]]), ...D.value.rows]);
+// the account's own short description (like "Current account"), when it says more than its type
+const desc = computed(() => { const d = an(D.value.a.s || ""); return d && d.toLowerCase() != String(D.value.lbl).toLowerCase() ? d : ""; });
+// money in is green; money out is plain (spending is normal), red only for a total below zero; nothing (₪0) is plain
+const tileTone = (x) => (/^[−-]?₪0$/.test(x[1]) ? "" : x[3] == "pos" ? "pos" : x[3] == "neg" && !/Out/.test(x[0]) ? "neg" : "");
 const name = computed(() => an(D.value.a.n.replace(/\s*··\s*\S+$/, "")));
 
 // what each action does, as on the computer: custom accounts are updated, edited and removed by hand, a pension's balance
@@ -110,6 +114,7 @@ const iso = (s) => "⁦" + s + "⁩"; // a date keeps its order inside a Hebrew 
         <span class="ph-acc-logo big" v-html="brandIcon(D.name, D.a.src, D.a.kind, D.a.ck)" />
         <h1 class="ph-acc-name">{{ name }}</h1>
         <p class="ph-acc-type">{{ D.lbl }}</p>
+        <p v-if="desc" class="ph-acc-type">{{ desc }}</p>
         <b class="ph-acc-amt" :class="lead[3] == 'neg' ? 'neg' : ''" dir="ltr">{{ lead[1] }}</b>
         <p class="ph-acc-under">{{ D.card ? t("acc.chargedMonth") : tk("acc." + lead[0]) }}</p>
         <p v-if="lead[2]" class="ph-acc-under small">{{ lead[2] }}</p>
@@ -131,13 +136,13 @@ const iso = (s) => "⁦" + s + "⁩"; // a date keeps its order inside a Hebrew 
 
       <section class="ph-group">
         <div class="ph-group-h"><h3>{{ P("summary") }}</h3></div>
-        <div class="ph-acc-tiles">
+        <div class="ph-stats ph-acc-tiles">
           <StatTile v-for="x in tiles" :key="x[0]" :label="tk('acc.' + x[0])" :value="x[1]" :note="x[2]" :tone="tileTone(x)" />
         </div>
       </section>
 
       <ListGroup :title="t('acc.details')" :note="t('acc.detailsX')">
-        <ListRow v-for="r in D.rows" :key="r[0] + r[1]" :class="{ 'ph-acc-tipr': r[2] }" @tap="r[2] && explain(r[2])">
+        <ListRow v-for="r in details" :key="r[0] + r[1]" :class="{ 'ph-acc-tipr': r[2] }" @tap="r[2] && explain(r[2])">
           <template #title>{{ tk("acc." + r[0]) }}<PIcon v-if="r[2]" class="ph-acc-i" name="info" /></template>
           <template #end><span class="ph-row-v ph-acc-v">{{ r[1] }}</span></template>
         </ListRow>

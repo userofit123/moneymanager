@@ -1,8 +1,8 @@
 <script setup>
 // Alerts (in More and the Home bell): what needs a look now, and every alert from before. It opens with one sentence (how
-// many alerts wait), then the alerts: a tap goes to the alert's place, Dismiss (the button, or a swipe) hides it. History lists
+// many alerts wait), then the alerts: a tap goes to the alert's place, the × (or a swipe, or the menu on a press and hold) hides it. History lists
 // each alert with when it came and when it went. Everything comes from pagelogic/alerts.js, the same as the computer's page.
-import { computed } from "vue";
+import { ref, computed } from "vue";
 import { pages } from "../../routes.js";
 import { useAlerts } from "../../pagelogic/alerts.js";
 import { usePhoneNav } from "../navigation.js";
@@ -16,6 +16,8 @@ import EmptyState from "../components/EmptyState.vue";
 import SkeletonRows from "../components/SkeletonRows.vue";
 import PIcon from "../components/PIcon.vue";
 import LoadError from "../components/LoadError.vue";
+import IconButton from "../components/IconButton.vue";
+import ActionSheet from "../components/ActionSheet.vue";
 defineProps({ id: { type: String, default: null } });
 
 const { t, data, S, since, rows, dismiss, open, tab, hist, loadHist, pick, when, dur, said } = useAlerts();
@@ -43,6 +45,10 @@ const tone = (sev) => (sev === "high" ? "neg" : sev === "med" ? "warn" : "acc");
 const swipe = (x) => [{ label: t("alerts.dismiss"), tone: "neg", run: () => dismiss(x) }];
 const status = (r) => (!r.resolved_at ? ["act", t("alerts.active")] : r.dismissed ? ["dis", t("alerts.dismissed")] : ["res", t("alerts.resolved")]);
 const settings = () => nav.push("settingsSection", "alr");
+// press and hold an alert (or right click): its menu, with Go to it and Dismiss
+const held = ref(null);
+const heldOpen = computed({ get: () => !!held.value, set: (v) => { if (!v) held.value = null; } });
+const heldActs = computed(() => (held.value ? [{ label: P("goTo"), run: ((x) => () => open(x))(held.value) }, { label: t("alerts.dismiss"), danger: true, run: ((x) => () => dismiss(x))(held.value) }] : []));
 </script>
 
 <template>
@@ -53,7 +59,7 @@ const settings = () => nav.push("settingsSection", "alr");
     <template v-else>
       <HeroSentence v-if="rows.length" :parts="hero" />
 
-      <!-- now: each alert opens its place; Dismiss (the button or a swipe) hides it. History: when each alert came and went -->
+      <!-- now: each alert opens its place; the ×, a swipe or the hold menu hides it. History: when each alert came and went -->
       <ListGroup :note="tab === 'now' ? (rows.length ? P('openHint') : '') : hist.loaded && histList.length ? P('histNote') : ''">
         <template #top>
           <Segmented v-model="tabModel" :options="tabOpts" :label="P('tabs')" />
@@ -63,7 +69,7 @@ const settings = () => nav.push("settingsSection", "alr");
         </template>
         <template v-if="tab === 'now' ? rows.length : hist.loaded && histList.length" #default>
           <template v-if="tab === 'now'">
-            <SwipeRow v-for="x in rows" :key="x.id" :end="swipe(x)">
+            <SwipeRow v-for="x in rows" :key="x.id" :end="swipe(x)" @hold="held = x">
               <div class="ph-al" :class="x.sev">
                 <button type="button" class="ph-row ph-two ph-al-open" @click="open(x)">
                   <span class="ph-row-lead"><span class="ph-tile" :style="{ '--tile': `var(--${tone(x.sev)})` }"><PIcon :svg="BELL" /></span></span>
@@ -72,9 +78,8 @@ const settings = () => nav.push("settingsSection", "alr");
                     <span class="ph-row-s ph-al-text">{{ x.text }}</span>
                     <span v-if="since[x.id]" class="ph-row-s ph-al-when"><span>{{ appeared(since[x.id]).a }}<bdi>{{ appeared(since[x.id]).at }}</bdi>{{ appeared(since[x.id]).b }}</span></span>
                   </span>
-                  <span class="ph-row-end"><PIcon class="ph-chev" name="chevron" dir /></span>
                 </button>
-                <button type="button" class="ph-link ph-al-dis" @click="dismiss(x)">{{ t("alerts.dismiss") }}</button>
+                <IconButton class="ph-al-dis" :label="t('alerts.dismiss')" icon-name="close" @tap="dismiss(x)" />
               </div>
             </SwipeRow>
           </template>
@@ -97,5 +102,7 @@ const settings = () => nav.push("settingsSection", "alr");
         <ListRow :title="t('phone.shell.open.alerts')" :sub="P('settingsSub')" :icon="SETTINGS" tone="var(--c6)" link @tap="settings" />
       </ListGroup>
     </template>
+
+    <ActionSheet v-model:open="heldOpen" :title="held ? held.title : ''" :actions="heldActs" />
   </PhoneScreen>
 </template>

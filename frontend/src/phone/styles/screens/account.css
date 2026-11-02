@@ -118,22 +118,7 @@ html.phone .ph-acc-cb .trtip {
   pointer-events: none;
 }
 
-/* the summary numbers, two to a row; the last one takes the whole row when they are odd */
-html.phone .ph-acc-tiles {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-html.phone .ph-acc-tiles .ph-stat {
-  min-inline-size: 0;
-  justify-content: flex-start;
-}
-
-html.phone .ph-acc-tiles .ph-stat:last-child:nth-child(odd) {
-  grid-column: 1 / -1;
-}
-
+/* the summary numbers, two to a row (.ph-stats), each pair the same height */
 html.phone .ph-acc-tiles .ph-stat-v {
   overflow-wrap: anywhere;
 }
@@ -150,6 +135,12 @@ html.phone .ph-acc-tiles .neg .ph-stat-v {
 html.phone .ph-acc .ph-acc-v {
   max-inline-size: 55vw;
   text-align: end;
+  white-space: normal;
+}
+
+/* a detail's name wraps instead of being cut when its value is long */
+html.phone .ph-acc .ph-acc-tipr .ph-row-t,
+html.phone .ph-acc .ph-row:has(.ph-acc-v) .ph-row-t {
   white-space: normal;
 }
 
@@ -173,8 +164,8 @@ html.phone .ph-acc-act .ph-search {
 html.phone .ph-acc-av {
   display: grid;
   place-items: center;
-  inline-size: 36px;
-  block-size: 36px;
+  inline-size: 40px;
+  block-size: 40px;
   border-radius: 50%;
   font-weight: 700;
   font-size: 15px;

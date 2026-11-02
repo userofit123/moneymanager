@@ -1,14 +1,7 @@
 /* Accounts screen (phone/screens/AccountsScreen.vue) and the parts the Account screen shares with it. Every rule starts with html.phone. */
 
-html.phone .ph-accs-top {
-  padding: 4px 4px 0;
-}
-
 html.phone .ph-accs-note {
-  margin: 6px 0 0;
-  color: var(--tx2);
-  font-size: 14px;
-  line-height: 20px;
+  margin-block-start: var(--p-s2);
 }
 
 html.phone .ph-accs-note + .ph-accs-note {
@@ -19,14 +12,14 @@ html.phone .ph-accs .ph-empty .ph-btn + .ph-btn {
   margin-block-start: 8px;
 }
 
-/* a bank's or card's logo, in the row's 36px tile */
+/* a bank's or card's logo, the size of a row's icon tile */
 html.phone .ph-acc-logo {
   display: flex;
 }
 
 html.phone .ph-acc-logo .bi {
-  inline-size: 36px;
-  block-size: 36px;
+  inline-size: 40px;
+  block-size: 40px;
   border-radius: var(--p-r-tile);
   font-size: 14px;
 }
@@ -42,15 +35,6 @@ html.phone .ph-accs-tail {
   color: var(--tx2);
   font-weight: 500;
   unicode-bidi: isolate;
-}
-
-/* the account's description, on its own line above how it is read */
-html.phone .ph-accs-row .ph-row-s:has(.ph-accs-desc) {
-  white-space: normal;
-}
-
-html.phone .ph-accs-desc {
-  display: block;
 }
 
 /* how the account is read: a coloured dot before the words */
@@ -96,8 +80,8 @@ html.phone .ph-accs-end {
 html.phone .ph-accs-end small {
   max-inline-size: 100%;
   color: var(--tx2);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--p-f-meta);
+  line-height: 18px;
   text-align: end;
   white-space: normal;
 }

@@ -1,21 +1,21 @@
 /* alerts screen (phone/screens/AlertsScreen.vue). Every rule starts with html.phone. */
 
-html.phone .ph-alerts .ph-hero {
-  padding: 4px 4px 0;
-}
-
-/* an alert: the row that opens it, and Dismiss under its text */
+/* an alert: the row that opens it, and a round × at its end that dismisses it */
 html.phone .ph-al {
-  padding-block-end: 2px;
+  display: flex;
+  align-items: flex-start;
 }
 
 html.phone .ph-al-open {
+  flex: 1;
+  min-inline-size: 0;
   align-items: flex-start;
-  padding-block-end: 0;
+  padding-inline-end: 0;
 }
 
-html.phone .ph-al-open .ph-row-end {
-  align-self: center;
+/* the tile lines up with the title */
+html.phone .ph-al-open .ph-row-lead {
+  padding-block-start: 2px;
 }
 
 /* the whole sentence shows: it holds the numbers */
@@ -25,7 +25,7 @@ html.phone .ph-al-text {
 }
 
 html.phone .ph-al-when {
-  font-size: 12px;
+  margin-block-start: var(--p-s1);
   white-space: normal;
 }
 
@@ -38,15 +38,20 @@ html.phone .ph-al-when > * + * {
 }
 
 html.phone .ph-al-dis {
-  margin-inline-start: 52px;
-  padding-inline: 12px;
-  min-block-size: 40px;
-  font-size: 14px;
+  flex: none;
+  margin-block-start: 4px;
+  margin-inline-end: 4px;
+  color: var(--tx2);
+}
+
+html.phone .ph-al-dis .ph-ic {
+  inline-size: 18px;
+  block-size: 18px;
 }
 
 /* separators between alerts start where the text starts */
 html.phone .ph-alerts .ph-swipe + .ph-swipe::before {
-  inset-inline-start: 64px;
+  inset-inline-start: 68px;
   z-index: 1;
 }
 
@@ -106,7 +111,7 @@ html.phone .ph-alh-st.res {
 html.phone .ph-alerts-more {
   display: flex;
   justify-content: center;
-  margin-block-start: 12px;
+  margin-block-start: calc(var(--p-s4) - var(--p-gap));
 }
 
 /* an alert's title wraps instead of being cut: a cut in Hebrew can hide the start of an English name in it */

@@ -1,7 +1,7 @@
 <script setup>
 // Accounts (in More): one sentence with what is in your accounts (the same number as Home), then every account by kind
-// (banks, cards, wallets, other) with its balance or what a card was charged this month, how it is read and how many
-// transactions it has. An account opens its own screen (/accounts?id=<id>; /accounts?n=<name> is turned into that).
+// (banks, cards, wallets, other) with its balance or what a card was charged this month and how it is read
+// (its own description shows on its screen). An account opens its own screen (/accounts?id=<id>; /accounts?n=<name> is turned into that).
 // Pull down to sync; + adds an account. Everything comes from pagelogic/accounts.js, the same as the computer's page.
 import { computed, watch, onMounted } from "vue";
 import { data } from "../../stores/data.js";
@@ -58,8 +58,6 @@ const goConn = () => openSettingsTab("conn");
 const endAmt = (c) => (c.card ? "₪" + f0(c.mo ? c.mo.now : 0) : c.g.L.some((x) => hasRate(x, fx.value)) ? (c.tot < 0 ? "−" : "") + "₪" + f0(c.tot) : "—");
 // under it: a card's last month, or the amounts of an account in another currency
 const endNote = (c) => (c.card ? (c.mo && c.mo.last ? t("acc.lastMonthAmt", { amount: "₪" + f0(c.mo.last) }) : "") : c.g.L.some((x) => x.cur != "ILS") ? curSub(c.g.L) : "");
-// the account's own short description (like "Current account"), on a line of its own under how it is read
-const desc = (c) => (c.card || c.g.L.some((x) => x.cur != "ILS") ? "" : an(c.a.s || ""));
 </script>
 
 <template>
@@ -78,14 +76,14 @@ const desc = (c) => (c.card || c.g.L.some((x) => x.cur != "ILS") ? "" : an(c.a.s
     <template v-else>
       <div v-if="K" class="ph-accs-top">
         <HeroSentence :parts="hero" />
-        <p v-for="(l, i) in heroNote" :key="i" class="ph-accs-note">{{ l }}</p>
+        <p v-for="(l, i) in heroNote" :key="i" class="ph-meta ph-accs-note">{{ l }}</p>
       </div>
 
       <ListGroup v-for="s in sections" :key="s.k" :title="tk('acc.' + s.k)" :note="s.k == 'secCard' ? P('cardsNote') : ''">
         <ListRow v-for="c in s.L.map(cardFor)" :key="c.g.n" link class="ph-accs-row" @tap="open(c)">
           <template #lead><span class="ph-acc-logo" v-html="brandIcon(c.g.n, c.a.src, c.a.kind, c.a.ck)" /></template>
           <template #title>{{ an(c.lbl.name) }}<span v-if="c.lbl.tail" class="ph-accs-tail" dir="ltr">·· {{ c.lbl.tail }}</span></template>
-          <template #sub><span v-if="desc(c)" class="ph-accs-desc">{{ desc(c) }}</span><span class="ph-acc-st" :class="TONE[c.st.tone]">{{ stLabel(c.st) }}</span></template>
+          <template #sub><span class="ph-acc-st" :class="TONE[c.st.tone]">{{ stLabel(c.st) }}</span></template>
           <template #end>
             <span class="ph-accs-end">
               <span class="ph-amt" :class="{ neg: !c.card && c.tot < 0 }" dir="ltr">{{ endAmt(c) }}</span>
