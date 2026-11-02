@@ -196,6 +196,11 @@
   transition: grid-template-rows .25s var(--ease), opacity .2s var(--ease);
 }
 
+/* a longer slide (SlideOpen's ms) moves evenly, so a tall part doesn't jump open in the first moment */
+.slo.slow {
+  transition: grid-template-rows var(--slo-ms) cubic-bezier(.4, 0, .2, 1), opacity var(--slo-ms) cubic-bezier(.4, 0, .2, 1);
+}
+
 .slo.on {
   grid-template-rows: 1fr;
   opacity: 1;
@@ -208,7 +213,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .slo {
+  .slo,
+  .slo.slow {
     transition: none;
   }
 }
