@@ -731,10 +731,10 @@ test("points earned are saved and loaded back, kept small; an app that sends non
   await reset();
   let S = await getState();
   assert.deepEqual(S.points, {});
-  S.points = { "visit:2026-10-05": { pts: 5, kind: "visit", day: "2026-10-05", extra: "x" }, "alert:a1": { pts: 10.4, kind: "alert", day: "2026-10-05", d: "a1" }, bad: 3, _old: { cat: 40 } };
+  S.points = { "visit:2026-10-05": { pts: 5, kind: "visit", day: "2026-10-05", extra: "x" }, "alert:a1": { pts: 10.4, kind: "alert", day: "2026-10-05", d: "a1" }, bad: 3, _old: { "2026-06": { cat: 40, visit: 5.2 }, bad: 7 } };
   await putState(S);
   S = await getState();
-  assert.deepEqual(S.points, { "visit:2026-10-05": { pts: 5, kind: "visit", day: "2026-10-05" }, "alert:a1": { pts: 10, kind: "alert", day: "2026-10-05", d: "a1" }, _old: { cat: 40 } });
+  assert.deepEqual(S.points, { "visit:2026-10-05": { pts: 5, kind: "visit", day: "2026-10-05" }, "alert:a1": { pts: 10, kind: "alert", day: "2026-10-05", d: "a1" }, _old: { "2026-06": { cat: 40, visit: 5 } } });
   delete S.points;
   await putState(S);
   assert.equal(Object.keys((await getState()).points).length, 3);

@@ -4,6 +4,9 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [Unreleased]
+- **Points from months long ago are kept:** after 90 days, the points of small daily things (using the app, categories and tags) are folded into one total per month to keep your data small. The server now keeps those totals, so they still count in your level and in **Points by month**.
+
 ## [0.13.0] - 2026-11-02
 - **Pop-up windows: the scrollbar stays inside the window:** in a long pop-up window on a computer, the scrollbar now runs inside the window, clear of its rounded corners and edge, instead of along the very edge. In Hebrew it stays on the right, like the page's scrollbar.
 - **Glass look: windows are frosted again:** pop-up windows (like Points and levels, the confirm window, Appearance, help, the date range and the document viewer) blur what is behind them again, with a slightly see-through colour, instead of looking solid. A check now fails if this look is taken out again.
