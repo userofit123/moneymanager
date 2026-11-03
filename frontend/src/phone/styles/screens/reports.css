@@ -1,213 +1,340 @@
-/* Phone Reports screen (phone/screens/ReportsScreen.vue). Every rule starts with html.phone. */
+/* Phone Reports (phone/screens/ReportsScreen.vue): the computer's Reports page (styles/pages/reports.css, which the screen
+   also loads) for one column. The pills (.tpill, .mpill), toggles (.trtog), tiles (.trstats), tips (.trtip), legends,
+   badges (.bd) and bars (.bar) are the computer's own classes; this file only sizes and lays them out for a phone.
+   Every rule starts with html.phone.
+   Motion as on the computer: the page fades up (its "fi"), bars fill (.bar's .6s width), the ring and the trend lines dim
+   the others when one is picked (the computer's hover); in addition each block comes in a little after the one before,
+   the chart lines draw in and the columns grow when a chart changes, and every tap gives press feedback. */
 
-/* the opening sentence; a total below zero: the amount in red */
-html.phone .ph-rep .ph-hero {
-  padding: 0;
+/* ---- motion ---- */
+
+@keyframes ph-rep-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 }
 
-html.phone .ph-rep .ph-hero.neg .ph-hero-g:first-of-type .ph-hero-a {
-  color: var(--neg);
+@keyframes ph-rep-fill {
+  from {
+    width: 0;
+  }
 }
 
-/* what the main chart shows: its section heading, with a chevron that says it can be changed */
-html.phone .ph-rep-what {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-block-size: var(--p-hit);
-  margin-block: -8px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--tx);
-  font: inherit;
-  text-align: start;
+@keyframes ph-rep-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
 }
 
-html.phone .ph-rep-what .ph-rep-down.ph-ic {
-  inline-size: 18px;
-  block-size: 18px;
-  color: var(--acc);
+@keyframes ph-rep-grow {
+  from {
+    transform: scaleY(0);
+  }
 }
 
-html.phone .ph-rep-what:active h3 {
-  opacity: .6;
+@keyframes ph-rep-fade {
+  from {
+    opacity: 0;
+  }
 }
 
-/* a switch above a chart's card, the card, its note and the number tiles under it */
-html.phone .ph-rep .ph-group > .ph-segwrap + .ph-group-b {
-  margin-block-start: var(--p-s3);
+@keyframes ph-rep-spin {
+  from {
+    opacity: 0;
+    transform: rotate(-90deg) scale(.85);
+  }
 }
 
-html.phone .ph-rep-main > .ph-group-n + .ph-stats {
-  margin-block-start: var(--p-s4);
+html.phone .ph-rep .ph-content > .ph-rep-in {
+  animation: ph-rep-up .35s var(--p-ease-out) both;
 }
 
-/* a chip or link that opens a list: a small chevron pointing down after its value */
-html.phone .ph-rep .ph-chip-b,
-html.phone .ph-rep-pick {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
+html.phone .ph-rep .ph-content > .ph-rep-in:nth-child(2) { animation-delay: 50ms; }
+html.phone .ph-rep .ph-content > .ph-rep-in:nth-child(3) { animation-delay: 100ms; }
+html.phone .ph-rep .ph-content > .ph-rep-in:nth-child(4) { animation-delay: 150ms; }
+html.phone .ph-rep .ph-content > .ph-rep-in:nth-child(n + 5) { animation-delay: 200ms; }
 
-/* the months link beside a group title: 44px to touch, without making the title row taller */
-html.phone .ph-group-h .ph-rep-pick {
-  min-block-size: var(--p-hit);
-  margin-block: -8px;
-}
-
-html.phone .ph-rep .ph-chip.on .ph-chip-b {
-  padding-inline-end: 12px;
-}
-
-html.phone .ph-rep-down.ph-ic {
-  inline-size: 16px;
-  block-size: 16px;
-  transform: rotate(90deg);
-  transition: transform var(--p-t-fade) var(--p-ease);
-}
-
-html.phone .ph-rep-down.ph-ic.up {
-  transform: rotate(-90deg);
-}
-
-html.phone .ph-rep-ctl {
-  margin-block: 0 var(--p-s3);
-}
-
-/* a chart's card: the month under the finger on top, the chart, then what to open */
-html.phone .ph-rep-card {
-  padding-block-start: 12px;
-}
-
-html.phone .ph-rep-read {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  min-block-size: 40px;
-  padding-inline: 16px;
-}
-
-html.phone .ph-rep-read-m {
-  display: flex;
-  flex-direction: column;
-  min-inline-size: 0;
-  font-size: 15px;
-  line-height: 20px;
-  font-weight: 600;
-}
-
-html.phone .ph-rep-read-m small {
-  color: var(--tx2);
-  font-size: 13px;
-  line-height: 18px;
-  font-weight: 400;
-  font-variant-numeric: tabular-nums;
-}
-
-html.phone .ph-rep-read > .ph-amt {
-  font-size: 22px;
-  line-height: 28px;
-  font-weight: 700;
-}
-
-/* the chart itself: drawn at its real width, a slide along it picks a month while up and down still scrolls the page */
-html.phone .ph-rep-chart {
-  padding-inline: 8px 12px;
-  touch-action: pan-y;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-html.phone .ph-rep-chart svg {
-  display: block;
-  max-inline-size: 100%;
-  block-size: auto;
-  overflow: visible;
-}
-
-html.phone .ph-rep-chart .gl {
-  stroke: var(--p-line);
-  stroke-width: 1;
-  stroke-dasharray: 2 5;
-}
-
-html.phone .ph-rep-chart .gl.z {
-  stroke-dasharray: none;
-}
-
-html.phone .ph-rep-chart .ax {
-  fill: var(--tx2);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-}
-
-html.phone .ph-rep-chart .sel {
-  stroke: var(--tx);
-  stroke-opacity: .3;
-  stroke-width: 1.5;
-  stroke-dasharray: 3 3;
-}
-
-html.phone .ph-rep-chart .prev {
-  fill: none;
-  stroke: var(--tx);
-  stroke-opacity: .5;
-  stroke-width: 2;
-  stroke-dasharray: 4 4;
-  stroke-linecap: round;
-}
-
-html.phone .ph-rep-chart .band {
-  fill: var(--tx);
-  fill-opacity: .06;
-}
-
-html.phone .ph-rep-see {
-  display: flex;
-  justify-content: flex-end;
-  inline-size: 100%;
-  min-block-size: 44px;
-  padding-inline: 16px;
-}
-
-/* number tiles, two a row (.ph-stats) */
-html.phone .ph-rep-tiles .ph-stat {
-  min-inline-size: 0;
-  justify-content: flex-start;
-}
-
-html.phone .ph-rep-tiles .ph-stat.neg .ph-stat-v {
-  color: var(--neg);
+html.phone .ph-rep .bar i {
+  animation: ph-rep-fill .8s var(--p-ease-out) .15s both;
 }
 
 html.phone .ph-rep-line {
-  margin: var(--p-s3) 2px;
+  stroke-dasharray: 1;
+  animation: ph-rep-draw .9s var(--p-ease-out) both;
+}
+
+html.phone :is(.ph-rep-area, .ph-rep-dotp, .ph-rep-end) {
+  animation: ph-rep-fade .4s ease .45s both;
+}
+
+html.phone .ph-rep-col {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: ph-rep-grow .5s var(--p-ease-out) both;
+  animation-delay: calc(min(var(--j, 0), 24) * 18ms);
+}
+
+html.phone .ph-rep-ring svg {
+  animation: ph-rep-spin .6s var(--p-ease-out) both;
+}
+
+html.phone .ph-rep-tip {
+  animation: ph-rep-fade .15s ease;
+}
+
+/* press feedback on everything that is tapped */
+html.phone :is(.ph-rep-sel, .ph-rep-i, .ph-rep-stats button, .ph-rep-crow, .ph-rep-mmain, .ph-rep-mh, .ph-rep-leg button, .ph-rep .cmprow:not(.hd), .ph-rep-tleg .lgi, .ph-rep-tipr, .ph-rep .trtog) {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--p-t-press), opacity var(--p-t-press), background-color var(--p-t-press);
+}
+
+html.phone :is(.ph-rep-sel, .ph-rep-i, .ph-rep-stats button, .ph-rep-crow, .ph-rep-mmain, .ph-rep-mh, .ph-rep-leg button, .ph-rep .cmprow:not(.hd), .ph-rep-tleg .lgi, .ph-rep-tipr, .ph-rep .trtog):active {
+  transform: scale(.97);
+  opacity: .75;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.phone :is(.ph-rep .ph-content > .ph-rep-in, .ph-rep .bar i, .ph-rep-line, .ph-rep-area, .ph-rep-dotp, .ph-rep-end, .ph-rep-col, .ph-rep-ring svg, .ph-rep-tip) {
+    animation: none;
+  }
+}
+
+/* ---- shared bits ---- */
+
+html.phone .ph-rep :where(button:not(.ph-btn, .ph-ib, .ph-link)) {
+  font: inherit;
+  color: inherit;
+  text-align: start;
+}
+
+/* the computer's drop-down box, as a button that opens the choices in a sheet */
+html.phone .ph-rep-sel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-block-size: 40px;
+  padding: 0 12px 0 14px;
+  border: 1px solid var(--ol);
+  border-radius: 12px;
+  background: var(--s1);
+  font-size: 14px;
+  font-weight: 500;
+  max-inline-size: 100%;
+}
+
+html.phone .ph-rep-sel span {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html.phone .ph-rep-sel.big {
+  inline-size: 100%;
+  min-block-size: 48px;
   font-size: 16px;
-  line-height: 22px;
+  font-weight: 650;
 }
 
-/* this month against last month: two bars a category */
-html.phone .ph-rep-cmp {
-  flex-direction: column;
-  align-items: stretch;
+html.phone .ph-rep-down.ph-ic {
+  flex: none;
+  inline-size: 16px;
+  block-size: 16px;
+  color: var(--tx2);
+  transform: rotate(90deg);
+}
+
+html.phone .ph-group-h .ph-rep-sel {
+  min-block-size: 36px;
+  font-size: 13px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* a block's two drop-downs side by side */
+html.phone .ph-rep-ctl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
-  padding-block: 12px 14px;
 }
 
-html.phone .ph-rep-cmp-h,
-html.phone .ph-rep-m-h {
+html.phone .ph-rep-ctl .ph-rep-sel {
+  inline-size: 100%;
+}
+
+/* a chart: as wide as its card, drawn left to right in both languages */
+html.phone .ph-rep-chart {
+  position: relative;
+  inline-size: 100%;
+  min-inline-size: 0;
+  touch-action: pan-y;
+}
+
+html.phone .ph-rep-draw {
+  display: block;
+  overflow: visible;
+}
+
+html.phone .ph-rep-draw text {
+  font-size: 10.5px;
+  fill: var(--tx2);
+}
+
+html.phone .ph-rep-draw .gl {
+  stroke: var(--ol);
+}
+
+/* the computer's tip, opened with a tap; its lines can be tapped */
+html.phone .ph-rep-tip {
+  pointer-events: auto;
+  gap: 2px;
+}
+
+html.phone .ph-rep-tip .ph-link {
+  margin-block-start: 4px;
+  font-size: 13px;
+  padding: 0;
+  min-block-size: 32px;
+}
+
+html.phone .ph-rep-tipr {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  gap: 0;
+  min-block-size: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 13px !important;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-rep-tipr .ph-ic {
+  inline-size: 14px;
+  block-size: 14px;
+  margin-inline-start: 4px;
+  color: var(--tx2);
+}
+
+html.phone .ph-rep-band {
+  fill: var(--s2);
+}
+
+/* ---- 1. the main chart ---- */
+
+html.phone .ph-rep-nw {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+html.phone .ph-rep-togs {
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+}
+
+html.phone .ph-rep-tog {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+html.phone .ph-rep .trtog {
+  min-block-size: 40px;
+  font-size: 14px;
+}
+
+html.phone .ph-rep-i {
+  display: grid;
+  place-items: center;
+  inline-size: 40px;
+  block-size: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--tx2);
+}
+
+html.phone .ph-rep-i .ph-ic {
+  inline-size: 18px;
+  block-size: 18px;
+}
+
+html.phone .ph-rep-head {
+  gap: 4px 10px;
+}
+
+html.phone .ph-rep-head .val {
+  font-size: 34px;
+  line-height: 1.1;
+}
+
+html.phone .ph-rep-head .trdelta {
+  font-size: 13px;
+}
+
+html.phone .ph-rep-stats {
+  grid-template-columns: 1fr 1fr;
+  margin: 0;
+}
+
+html.phone .ph-rep-stats button {
+  display: block;
+  inline-size: 100%;
+  background: var(--s1);
+  border: 1px solid var(--ol);
+  border-radius: 14px;
+  padding: 10px 12px;
   min-inline-size: 0;
 }
 
-html.phone .ph-rep-cmp-h .ph-row-t,
-html.phone .ph-rep-m-h .ph-row-t {
-  flex: 1;
+html.phone.he .ph-rep-stats span {
+  font-size: 12.5px;
+  letter-spacing: 0;
+}
+
+/* ---- 2. this month against last month ---- */
+
+html.phone .ph-rep-sub {
+  margin: 0 0 14px;
+  color: var(--tx2);
+}
+
+html.phone .ph-rep .cmpb .val {
+  font-size: 28px;
+}
+
+html.phone .ph-rep .cmpb.prev {
+  padding-block-end: 14px;
+}
+
+html.phone .ph-rep-cmpr {
+  padding-block-start: 14px;
+  border-block-start: 1px solid var(--ol);
+}
+
+html.phone .ph-rep-crow {
+  display: block;
+  inline-size: 100%;
+  padding: 6px 0;
+  border: 0;
+  background: none;
+}
+
+html.phone .ph-rep-crow-h {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 14px;
+}
+
+html.phone .ph-rep-crow-h .catl {
   min-inline-size: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -215,201 +342,295 @@ html.phone .ph-rep-m-h .ph-row-t {
 }
 
 html.phone .ph-rep-vs {
-  flex: none;
-  color: var(--tx2);
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
+  opacity: .6;
 }
 
-html.phone .ph-rep-two {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-html.phone .ph-rep-two i,
-html.phone .ph-rep-bar i {
+html.phone .ph-rep-crow .bar {
   display: block;
-  min-inline-size: 2px;
-  block-size: 6px;
-  border-radius: 3px;
-  background: var(--acc);
+  block-size: 7px;
 }
 
-html.phone .ph-rep-two i.b {
-  background: color-mix(in srgb, var(--tx) 28%, transparent);
+html.phone .ph-rep-crow .ph-rep-b1 {
+  margin: 6px 0 3px;
 }
+
+html.phone .ph-rep-crow .ph-rep-b2 {
+  margin: 0;
+}
+
+html.phone .ph-rep-crow .ph-rep-b2 i {
+  background: color-mix(in srgb, var(--tx) 30%, transparent);
+}
+
+/* ---- 3. income against expenses ---- */
 
 html.phone .ph-rep-key {
+  gap: 16px;
+  margin-block-start: 8px;
+}
+
+/* ---- 4. top merchants ---- */
+
+html.phone .ph-rep-mrow {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
+  align-items: flex-start;
+  gap: 4px;
+  padding-block: 10px;
+  border-block-start: 1px solid var(--p-line);
 }
 
-html.phone .ph-rep-key span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+html.phone .ph-rep-mrow:first-child {
+  border-block-start: 0;
+  padding-block-start: 0;
 }
 
-html.phone .ph-rep-key i {
-  inline-size: 12px;
-  block-size: 6px;
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--tx) 28%, transparent);
-}
-
-html.phone .ph-rep-key i.a {
-  background: var(--acc);
-}
-
-/* a colour dot in a 36px lead, like the other screens */
-html.phone .ph-rep-dot {
-  display: grid;
-  place-items: center;
-  flex: none;
-  inline-size: 36px;
-  block-size: 36px;
-}
-
-html.phone .ph-rep-dot::before {
-  content: "";
-  inline-size: 10px;
-  block-size: 10px;
-  border-radius: 50%;
-  background: var(--d);
-}
-
-/* a merchant: name, change and amount; its share as a bar; then its category, payments and the amount before */
-html.phone .ph-rep-m {
+html.phone .ph-rep-mmain {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 6px;
-  padding-block: 12px;
+  padding: 0;
+  border: 0;
+  background: none;
 }
 
-html.phone .ph-rep-bar {
+html.phone .ph-rep-mtop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+
+html.phone .ph-rep-mname {
+  flex: 1;
+  min-inline-size: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html.phone .ph-rep-mpills {
+  flex-wrap: wrap;
+  white-space: normal;
+  overflow: visible;
+}
+
+html.phone .ph-rep-mmain .bar {
   display: block;
+  margin: 2px 0 0;
 }
 
-html.phone .ph-rep-bar i {
-  block-size: 4px;
+html.phone .ph-rep-before {
   opacity: .75;
 }
 
-html.phone .ph-rep-m-s {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px 12px;
-  white-space: normal;
-}
-
-html.phone .ph-rep-m-s > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-html.phone .ph-rep-cd {
-  inline-size: 8px;
-  block-size: 8px;
-  border-radius: 50%;
-}
-
-/* more or less than before */
-html.phone .ph-rep-pill {
+html.phone .ph-rep-mh {
   flex: none;
-  display: inline-block;
-  padding: 1px 7px;
-  border-radius: var(--pill);
-  font-size: 12px;
-  line-height: 18px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--tx2);
-  background: color-mix(in srgb, var(--tx) 8%, transparent);
-}
-
-html.phone .ph-rep-pill.up {
-  color: var(--neg);
-  background: color-mix(in srgb, var(--neg) 12%, transparent);
-}
-
-html.phone .ph-rep-pill.dn {
-  color: var(--pos);
-  background: color-mix(in srgb, var(--pos) 12%, transparent);
-}
-
-html.phone .ph-rep-pill.am2 {
-  color: var(--warn);
-  background: color-mix(in srgb, var(--warn) 14%, transparent);
-}
-
-html.phone .ph-rep-end {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-}
-
-/* the ring: tap a part to see it in the middle */
-html.phone .ph-rep-ring {
-  position: relative;
   display: grid;
   place-items: center;
-  padding-block: 16px 8px;
+  inline-size: 36px;
+  block-size: 36px;
+  margin-block-start: -8px;
+  margin-inline-end: -8px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--tx2);
 }
 
-html.phone .ph-rep-ring path {
-  cursor: pointer;
-  transition: opacity var(--p-t-fade);
+html.phone .ph-rep-mh .ph-ic {
+  inline-size: 16px;
+  block-size: 16px;
 }
 
-html.phone .ph-rep-ring path.dim {
-  opacity: .25;
+html.phone .ph-rep-note,
+html.phone .ph-rep-hidden {
+  margin: 10px 0 0;
+}
+
+html.phone .ph-rep-hidden .chip {
+  margin-block-start: 4px;
+  margin-inline-end: 4px;
+  min-block-size: 32px;
+}
+
+/* ---- 5. spending by category and by tag: the ring, its legend and the comparison ---- */
+
+html.phone .ph-rep-dnt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+html.phone .ph-rep-ring {
+  position: relative;
+  inline-size: 200px;
+  block-size: 200px;
+}
+
+html.phone .ph-rep-ring svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  overflow: visible;
 }
 
 html.phone .ph-rep-ring-c {
   position: absolute;
+  inset: 50px 46px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-inline-size: 96px;
+  justify-content: center;
   text-align: center;
   pointer-events: none;
 }
 
 html.phone .ph-rep-ring-c b {
-  font-size: 20px;
-  line-height: 26px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 600;
 }
 
 html.phone .ph-rep-ring-c span,
 html.phone .ph-rep-ring-c small {
-  color: var(--tx2);
   font-size: 12px;
-  line-height: 15px;
-}
-
-html.phone .ph-rep .ph-row.on {
-  background: var(--p-press);
-}
-
-html.phone .ph-rep-fold {
-  justify-content: center;
-  gap: 6px;
-  color: var(--acc);
-  font-weight: 600;
-}
-
-html.phone .ph-rep-none {
-  margin: 0;
-  padding: 14px 16px;
   color: var(--tx2);
-  font-size: 15px;
-  line-height: 22px;
+  line-height: 1.3;
+  max-inline-size: 100%;
 }
+
+html.phone .ph-rep-leg {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+html.phone .ph-rep-leg button[data-k] {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-block-size: 44px;
+  margin: 0;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  font-size: 14px;
+}
+
+html.phone .ph-rep-leg .catl {
+  flex: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html.phone .ph-rep-leg .dot {
+  flex: none;
+  margin: 0;
+}
+
+html.phone .ph-rep-dnt.hv .ph-rep-leg button[data-k] {
+  opacity: .5;
+}
+
+html.phone .ph-rep-dnt.hv .ph-rep-leg button[data-k].on {
+  opacity: 1;
+  background: var(--s2);
+}
+
+html.phone .ph-rep-dnt.hv .ph-rep-leg button.on .catl {
+  font-weight: 600;
+  color: var(--acc);
+}
+
+html.phone .ph-rep-cmp {
+  margin-block-start: 14px;
+}
+
+html.phone .ph-rep-cmpline {
+  margin-block-end: 6px;
+  line-height: 1.5;
+}
+
+html.phone .ph-rep .cmprow {
+  inline-size: 100%;
+  min-block-size: 40px;
+  border: 0;
+  border-block-start: 1px solid var(--ol);
+  background: none;
+  gap: 8px;
+}
+
+html.phone .ph-rep .cmprow.hd {
+  min-block-size: 0;
+  border-block-start: 0;
+}
+
+html.phone .ph-rep-cn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-inline-size: 0;
+}
+
+html.phone .ph-rep-cn .dot {
+  flex: none;
+  margin: 0;
+}
+
+html.phone .ph-rep-cn .catl {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- 6. the category trend ---- */
+
+html.phone #ph-lines.hv .ls {
+  opacity: .14;
+  transition: opacity .15s;
+}
+
+html.phone #ph-lines.hv .ls.on {
+  opacity: 1;
+}
+
+html.phone #ph-lines.hv .ls.on polyline {
+  stroke-width: 3.6;
+}
+
+html.phone .ph-rep-tleg {
+  grid-template-columns: 1fr;
+}
+
+html.phone .ph-rep-tleg .lgi {
+  min-block-size: 44px;
+  inline-size: 100%;
+}
+
+html.phone #ph-lines.hv .ph-rep-tleg .lgi {
+  opacity: .5;
+}
+
+html.phone #ph-lines.hv .ph-rep-tleg .lgi.on {
+  opacity: 1;
+  border-color: var(--acc);
+}
+
+html.phone #ph-lines.hv .ph-rep-tleg .lgi.on .catl {
+  font-weight: 600;
+  color: var(--acc);
+}
+
+/* ---- the custom range sheet, loading ---- */
 
 html.phone .ph-rep-dates {
   display: flex;
@@ -417,7 +638,6 @@ html.phone .ph-rep-dates {
   gap: 12px;
 }
 
-/* while loading, and when it could not load */
 html.phone .ph-rep-skel {
   display: flex;
   flex-direction: column;
@@ -434,6 +654,41 @@ html.phone .ph-rep-skel i {
 }
 
 html.phone .ph-rep-skel i + i {
-  inline-size: 55%;
+  inline-size: 60%;
 }
 
+/* the change badges: the phone's chevron, turned up or down */
+html.phone .ph-rep-bd {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  direction: ltr;
+}
+
+html.phone .ph-rep-bdi {
+  inline-size: 12px;
+  block-size: 12px;
+  stroke-width: 3;
+}
+
+html.phone .ph-rep-bdi.u {
+  transform: rotate(-90deg);
+}
+
+html.phone .ph-rep-bdi.d {
+  transform: rotate(90deg);
+}
+
+/* the amount sits at the very end in both languages (it reads left to right, so no start padding) */
+html.phone .ph-rep-leg b {
+  padding: 0;
+}
+
+/* the comparison table: the same column widths on every line, so the heading sits over its numbers */
+html.phone .ph-rep .cmprow {
+  grid-template-columns: minmax(0, 1fr) 70px 62px 54px;
+}
+
+html.phone .ph-rep .cmprow > :nth-child(n + 2) {
+  justify-self: end;
+}
