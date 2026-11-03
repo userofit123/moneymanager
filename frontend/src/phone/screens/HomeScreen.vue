@@ -3,7 +3,7 @@
 // accounts, cards this month vs last, the money flow, spending by category, budgets, upcoming bills, recent activity,
 // your goal (when one is saved), jars and exchange rates. Every number comes from pagelogic/home.js, the same as the
 // computer. What the computer shows on hover opens in a sheet on a tap. A block with nothing to show is hidden.
-// The bell opens Alerts, + opens "Add or update", the bulb (when there are ideas) the ideas to tidy up the data.
+// + opens "Add or update", the bulb (when there are ideas) the ideas to tidy up the data.
 import { ref, computed, onMounted } from "vue";
 import { data } from "../../stores/data.js";
 import { goActivity, quickOpen } from "../../core/shell.js";
@@ -93,7 +93,6 @@ const fxBadge = computed(() => { const ch = fxView.value?.ch || 0; return Math.a
   <PhoneScreen class="ph-home" refresh>
     <template #actions>
       <IconButton v-if="suggestions.length" :label="t('txw.suggA')" icon-name="idea" :badge="suggestions.length" @tap="suggestOpen = true" />
-      <IconButton :label="t('shell.alerts')" icon-name="bell" :badge="alertList.length" @tap="nav.push('alerts')" />
       <IconButton :label="t('shell.add')" icon-name="add" @tap="quickOpen = true" />
     </template>
     <template #sub><SyncLine /></template>

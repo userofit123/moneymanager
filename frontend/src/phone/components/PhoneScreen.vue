@@ -1,17 +1,19 @@
 <script setup>
-// Every phone screen's frame: the top bar (Back to the screen under it, or on a first screen the points badge, the small title, up to two buttons), the large title
+// Every phone screen's frame: the top bar (Back to the screen under it, or on a first screen the points badge, the small title, the bell while there are alerts, up to two buttons), the large title
 // that slides up into the bar as the page scrolls, an optional part under the title (slot "head"), the content,
 // and pull down to sync (refresh). A screen with a guide gets a ? in the bar that opens it in the Help sheet. The page itself scrolls (the document), so the browser's own bars hide as on any site.
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount, onActivated, onDeactivated } from "vue";
 import { useI18n } from "vue-i18n";
-import { SCREENS } from "../screens.js";
+import { SCREENS, TABS } from "../screens.js";
 import { usePhoneNav, useScreen } from "../navigation.js";
 import { pullToRefresh } from "../gestures.js";
 import { syncNow } from "../../core/sources.js";
 import { job } from "../../core/jobs.js";
 import { HELP_PAGE, guideOf, loadGuide } from "../../help/help.js";
 import { helpOn } from "../help.js";
+import { alertList } from "../../core/derived.js";
 import PIcon from "./PIcon.vue";
+import IconButton from "./IconButton.vue";
 import PointsBadge from "../../components/shell/PointsBadge.vue";
 
 const props = defineProps({
@@ -34,6 +36,8 @@ const guide = computed(() => {
 // (the Settings sections' guides are known once the guide is loaded)
 const hasGuide = computed(() => !!guide.value && (!guide.value.startsWith("set.") || !!guideOf(guide.value, false)));
 const showGuide = () => helpOn("guide", guide.value);
+// the bell: on the first screen of every tab, only while there are alerts; it opens Alerts
+const bell = computed(() => (!here.under && TABS.includes(here.entry?.name) ? alertList.value.length : 0));
 
 // Back shows the name of the screen under it; when its side of the bar is too narrow for that name, just "Back"
 const backBox = ref(null), backFull = ref(true);
@@ -95,7 +99,7 @@ onBeforeUnmount(() => { io?.disconnect(); ro?.disconnect(); stopPull?.(); });
         <PointsBadge v-else phone />
       </div>
       <h2 class="ph-bar-title" :aria-hidden="large && !small ? 'true' : undefined">{{ name }}</h2>
-      <div class="ph-bar-end"><slot name="actions" /><button v-if="hasGuide" type="button" class="ph-ib ph-guide-b" :aria-label="t('phone.shell.guide')" @click="showGuide"><PIcon name="help" /></button></div>
+      <div class="ph-bar-end"><IconButton v-if="bell" :label="t('shell.alerts')" icon-name="bell" :badge="bell" @tap="nav.push('alerts')" /><slot name="actions" /><button v-if="hasGuide" type="button" class="ph-ib ph-guide-b" :aria-label="t('phone.shell.guide')" @click="showGuide"><PIcon name="help" /></button></div>
     </div>
     <div class="ph-body" :style="refresh && gap ? { transform: `translateY(${gap}px)`, transition: pull ? 'none' : null } : null">
       <div v-if="refresh" class="ph-pull" :class="{ ready, run: hold, drag: !!pull }" :style="{ opacity: Math.min(1, Math.max(0, (gap - 16) / 36)) }" aria-hidden="true">

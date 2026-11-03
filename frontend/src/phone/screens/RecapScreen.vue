@@ -97,7 +97,7 @@ const pathG = computed(() => {
 </script>
 
 <template>
-  <PhoneScreen ref="scr" class="ph-rc" :class="{ 'ph-rc-anim': anim }" :large="false">
+  <PhoneScreen ref="scr" class="ph-rc" :class="{ 'ph-rc-anim': anim }">
     <template v-if="!S">
       <div class="ph-rc-skel" aria-hidden="true"><i /><i /><i /></div>
       <SkeletonRows :rows="4" />
