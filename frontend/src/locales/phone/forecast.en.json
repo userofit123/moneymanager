@@ -1,22 +1,9 @@
 {
-  "hero": "By {date}, you will likely have {amount}.",
-  "heroShort": "By {date}, you will likely be {amount} short.",
-  "how": "How is this worked out?",
   "chartLabel": "Your money at the end of each month. Use the arrow keys to move between months.",
-  "chartNote": "Touch the chart, or slide along it, to see each month.",
-  "ahead": "The months ahead",
-  "aheadNote": "The arrows show the change from the end of {month}.",
   "colAvg": "Average",
   "colNext": "Next month",
   "colYear": "Next 12 months",
-  "saved": "Likely saved each month",
-  "savedSub": "Money coming in minus money going out",
-  "eachMonth": "Each month",
   "seeActivity": "See in Activity",
-  "colNote0": "Each line's average for one month.",
-  "colNote1": "Each line's likely amount next month.",
-  "colNote2": "Each line's likely amount over the next 12 months, added up.",
   "nothing": "Nothing to look ahead from yet",
-  "nothingText": "The forecast learns from your past months. It appears here once there are a few months of transactions.",
-  "tryOther": "Try other amounts"
+  "nothingText": "The forecast learns from your past months. It appears here once there are a few months of transactions."
 }

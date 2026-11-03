@@ -1,577 +1,847 @@
-/* Phone Forecast screen (phone/screens/ForecastScreen.vue). Every rule starts with html.phone. */
+/* Phone Forecast screen (phone/screens/ForecastScreen.vue and phone/components/ForecastYears.vue): the computer's Forecast
+   page for one column. Every rule starts with html.phone. The badges (.bd), dots (.dot), chart lines (svg .gl, .ya-dash)
+   and the slider (.ya-sl) are the computer's own app-wide classes; the tiles, the table's bars and its month cells copy the
+   computer's page styles (styles/pages/forecast.css), sized for a phone.
+   Motion: blocks fade up one after another, the chart and the jar lines draw from the start, the points pop in, the
+   table's bars grow, a line's months slide open (the computer's 250ms) with the chevron turning, and taps press. */
 
-/* the opening sentence; short of money: the amount in red */
-html.phone .ph-fc .ph-hero {
-  padding: 0;
+/* ---- motion ---- */
+
+@keyframes ph-fc-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 }
 
-html.phone .ph-fc .ph-hero.short .ph-hero-a {
-  color: var(--neg);
+/* a chart's line and shading come in from the start (charts are always drawn left to right) */
+@keyframes ph-fc-wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
 }
 
-/* the months it learns from: "Based on the last" and the months, then the switch */
+@keyframes ph-fc-pop {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+@keyframes ph-fc-rise {
+  from {
+    clip-path: inset(100% 0 0 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+html.phone .ph-fc-in {
+  animation: ph-fc-up .35s var(--p-ease-out) both;
+  animation-delay: calc(var(--d, 0) * 50ms);
+}
+
+html.phone .ph-fc-wipe {
+  animation: ph-fc-wipe .9s var(--p-ease-out) .15s both;
+}
+
+html.phone .ph-fc-pt {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ph-fc-pop .3s var(--p-ease-out) both;
+  animation-delay: calc(.2s + var(--i, 0) * 55ms);
+}
+
+html.phone .ph-fc-sum li {
+  animation: ph-fc-up .35s var(--p-ease-out) both;
+  animation-delay: calc(.15s + var(--i, 0) * 70ms);
+}
+
+html.phone .ph-fc .fcb {
+  animation: ph-fc-rise .5s var(--p-ease-out) .25s both;
+}
+
+html.phone .ph-fc .yac svg :is(polygon, .yac-mine, .yac-pace) {
+  animation: ph-fc-wipe .9s var(--p-ease-out) .1s both;
+}
+
+/* press feedback on everything that is tapped */
+html.phone :is(.ph-fc-sum li[role=button], .ph-fc-jar, .ph-fc-r) {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--p-t-press), background-color var(--p-t-press);
+}
+
+html.phone :is(.ph-fc-sum li[role=button], .ph-fc-jar):active {
+  transform: scale(.98);
+}
+
+html.phone button.ph-fc-r:active {
+  background: var(--p-press);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.phone :is(.ph-fc-in, .ph-fc-wipe, .ph-fc-pt, .ph-fc-sum li, .ph-fc .fcb, .ph-fc .yac svg *) {
+    animation: none;
+  }
+}
+
+/* ---- shared bits ---- */
+
+html.phone .ph-fc :where(button:not(.ph-btn, .ph-ib)) {
+  font: inherit;
+  color: inherit;
+}
+
+html.phone .ph-fc .bd {
+  white-space: nowrap;
+}
+
+/* a badge's direction: the chevron turned up or down, as on Home */
+html.phone .ph-fc-bd {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+html.phone .ph-fc-bdi {
+  inline-size: 12px;
+  block-size: 12px;
+  stroke-width: 3;
+}
+
+html.phone .ph-fc-bdi.u {
+  transform: rotate(-90deg);
+}
+
+html.phone .ph-fc-bdi.d {
+  transform: rotate(90deg);
+}
+
+html.phone .ph-fc-bdo {
+  inline-size: 5px;
+  block-size: 5px;
+  margin-inline-end: 3px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+html.phone .ph-fc .dot {
+  display: inline-block;
+  inline-size: 9px;
+  block-size: 9px;
+  margin-inline-end: 6px;
+  border-radius: 3px;
+  vertical-align: 0;
+}
+
+/* ---- the months it learns from ---- */
+
 html.phone .ph-fc-ctl-l {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--p-s3);
   margin: 0 2px var(--p-s2);
   color: var(--tx2);
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 12.5px;
+  font-weight: 650;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+html.phone.he .ph-fc-ctl-l {
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+/* ---- the four balance cards ---- */
+
+html.phone .ph-fc-kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--p-s3);
+  margin-block-start: calc(var(--p-s4) - var(--p-gap)); /* the months picked belong to the cards under them */
+}
+
+html.phone .ph-fc-kpis :is(.k-0, .k-12) {
+  grid-column: 1 / -1;
+}
+
+html.phone .ph-fc-kpis :is(.k-3, .k-6) .ph-acard-v {
+  font-size: 24px;
+  line-height: 30px;
+}
+
+html.phone .ph-fc-kpis .ph-acard-n {
+  white-space: normal;
+}
+
+html.phone .ph-fc-kpis .ph-acard-s {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+html.phone .ph-fc-vs {
+  line-height: 20px;
+}
+
+html.phone .ph-fc-rng {
+  opacity: .9;
 }
 
 /* no income found in some months */
 html.phone .ph-fc-warn,
-html.phone .ph-fc-jar-w {
+html.phone .ph-fc-jfw {
   display: flex;
   align-items: flex-start;
   gap: 8px;
   margin: 0;
-  padding: var(--p-s3) var(--p-pad);
-  border-radius: var(--p-r-group);
-  background: color-mix(in srgb, var(--warn) 13%, var(--p-surf));
   color: var(--tx);
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 13px;
+  line-height: 18px;
 }
 
-html.phone .ph-fc-warn .ph-ic,
-html.phone .ph-fc-jar-w .ph-ic {
+html.phone .ph-fc-warn {
+  margin-block-start: calc(var(--p-s3) - var(--p-gap));
+  padding: var(--p-s3) var(--p-pad);
+  border-radius: var(--p-r-group);
+  background: color-mix(in srgb, var(--neg) 10%, var(--p-surf));
+  color: var(--neg);
+}
+
+html.phone :is(.ph-fc-warn, .ph-fc-jfw) .ph-ic {
   flex: none;
-  inline-size: 18px;
-  block-size: 18px;
+  inline-size: 16px;
+  block-size: 16px;
   margin-block-start: 1px;
-  color: var(--warn);
 }
 
 /* ---- the chart ---- */
-html.phone .ph-fc-chart {
-  padding: 14px 0 12px;
+
+html.phone .ph-fc-leg {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
 }
 
-/* the month read out: its day, the amount, the likely range */
+html.phone .ph-fc-st {
+  display: inline-block;
+  margin-block-start: 10px;
+  white-space: normal !important;
+}
+
+/* the month picked on the chart, read out above it */
 html.phone .ph-fc-read {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  column-gap: 10px;
-  padding-inline: 16px;
-  min-block-size: 52px;
-}
-
-html.phone .ph-fc-read-d {
-  inline-size: 100%;
-  color: var(--tx2);
+  gap: 2px 10px;
+  margin-block: 14px 4px;
   font-size: 13px;
-  line-height: 18px;
-  font-weight: 500;
+  color: var(--tx2);
 }
 
-html.phone .ph-fc-read .ph-amt {
-  font-size: 24px;
-  line-height: 30px;
+html.phone .ph-fc-read b {
+  font-size: 22px;
+  line-height: 28px;
   font-weight: 700;
 }
 
-html.phone .ph-fc-read-r {
-  color: var(--tx2);
-  font-size: 13px;
-  line-height: 18px;
+html.phone .ph-fc-read b.neg {
+  color: var(--neg);
 }
 
-html.phone .ph-fc-plot {
-  padding-inline: 12px;
-  margin-block-start: 4px;
+html.phone .ph-fc-read small {
+  flex-basis: 100%;
+  font-size: 12px;
 }
 
-/* the drawing stays left to right in Hebrew too: time runs the same way as the computer's chart */
 html.phone .ph-fc-svg {
   display: block;
-  inline-size: 100%;
   block-size: auto;
   direction: ltr;
   touch-action: pan-y;
-  user-select: none;
-  -webkit-user-select: none;
   outline: none;
-  cursor: pointer;
-}
-
-html.phone .ph-fc-svg:focus-visible {
-  outline: 2px solid var(--acc);
-  outline-offset: 2px;
-  border-radius: 8px;
+  overflow: visible;
 }
 
 html.phone .ph-fc-svg text {
   font-size: 11px;
   fill: var(--tx2);
-  font-variant-numeric: tabular-nums;
 }
 
-html.phone .ph-fc-svg .gl {
-  stroke: var(--p-line);
-  stroke-dasharray: 3 5;
+html.phone .ph-fc-sel {
+  transition: cx .12s, cy .12s;
 }
 
-html.phone .ph-fc-svg .zero {
-  stroke: var(--neg);
-  stroke-width: 1.5;
-  stroke-dasharray: 6 4;
+/* ---- the tiles: How next month is worked out, and Years ahead's three (the computer's sum, one under the other) ---- */
+
+html.phone .ph-fc-sum {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-html.phone .ph-fc-svg text.zero {
-  stroke: none;
-  fill: var(--neg);
-}
-
-html.phone .ph-fc-svg .hz {
-  stroke: var(--tx2);
-  stroke-opacity: .3;
-  stroke-dasharray: 2 5;
-}
-
-html.phone .ph-fc-svg .hzt {
-  font-weight: 600;
-  fill: var(--tx);
-}
-
-html.phone .ph-fc-svg .ln {
-  fill: none;
-  stroke: var(--acc);
-  stroke-width: 2.5;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
-
-html.phone .ph-fc-svg .pt {
-  fill: var(--p-surf);
-  stroke: var(--acc);
-  stroke-width: 2;
-}
-
-html.phone .ph-fc-svg .pt.big {
-  fill: var(--acc);
-}
-
-html.phone .ph-fc-svg .cur {
-  stroke: var(--tx);
-  stroke-opacity: .35;
-  stroke-dasharray: 3 3;
-}
-
-html.phone .ph-fc-svg .sel {
-  fill: var(--acc);
-  stroke: var(--p-surf);
-  stroke-width: 3;
-}
-
-/* the key under the chart */
-html.phone .ph-fc-leg {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-  padding: 8px 16px 0;
-  color: var(--tx2);
-  font-size: 13px;
-  line-height: 18px;
-}
-
-html.phone .ph-fc-leg > span {
-  display: inline-flex;
+html.phone .ph-fc-sum li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 12px;
   align-items: center;
-  gap: 6px;
+  padding: 6px;
+  border-radius: 18px;
+  background: var(--bg);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--tx) 7%, transparent);
+  text-align: start;
 }
 
-html.phone .ph-fc-leg i {
-  flex: none;
-  inline-size: 14px;
-  block-size: 3px;
-  border-radius: 2px;
-  background: var(--acc);
-}
+html.phone .ph-fc-sum li.s-now,
+html.phone .ph-ya-sum li.r-total { --g1: color-mix(in srgb, var(--acc) 60%, #fff); --g2: var(--acc); }
+html.phone .ph-fc-sum :is(li.s-cal, li.s-out) { --g1: color-mix(in srgb, var(--neg) 60%, #fff); --g2: var(--neg); }
+html.phone .ph-fc-sum li.s-in,
+html.phone .ph-ya-sum li.r-reach { --g1: color-mix(in srgb, var(--pos) 60%, #fff); --g2: var(--pos); }
+html.phone .ph-ya-sum li.r-need { --g1: color-mix(in srgb, var(--acc2) 60%, #fff); --g2: var(--acc2); }
 
-html.phone .ph-fc-leg i.band {
-  block-size: 10px;
-  background: color-mix(in srgb, var(--acc) 25%, transparent);
-}
-
-/* stays above zero, may dip, or turns negative */
-html.phone .ph-fc-status {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin: 10px 16px 0;
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 500;
-}
-
-html.phone .ph-fc-status .ph-ic {
-  flex: none;
-  inline-size: 18px;
-  block-size: 18px;
-  margin-block-start: 1px;
-}
-
-html.phone .ph-fc-status.ok .ph-ic {
-  color: var(--pos);
-}
-
-html.phone .ph-fc-status.low .ph-ic {
-  color: var(--warn);
-}
-
-html.phone .ph-fc-status.bad {
-  color: var(--neg);
-}
-
-/* ---- the months ahead ---- */
-html.phone .ph-fc-wrap {
-  white-space: normal;
-}
-
-html.phone .ph-fc-ah {
-  align-items: flex-start;
-}
-
-html.phone .ph-fc-ah-e {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  flex: none;
-}
-
-html.phone .ph-fc-ah-e .ph-amt {
-  font-size: 17px;
-  line-height: 22px;
-}
-
-html.phone .ph-fc-ah.hero .ph-fc-ah-e .ph-amt {
-  color: var(--acc);
-}
-
-html.phone .ph-fc-ah.hero .ph-fc-ah-e .ph-amt.neg {
-  color: var(--neg);
-}
-
-html.phone .ph-fc-ah-e small,
-html.phone .ph-fc-dir {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 13px;
-  line-height: 18px;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-}
-
-html.phone .ph-fc-ah-e small .ph-ic,
-html.phone .ph-fc-dir .ph-ic {
-  inline-size: 14px;
-  block-size: 14px;
-  stroke-width: 2.2;
-}
-
-html.phone .ph-fc .pos,
-html.phone .ph-fc-sheet .pos {
-  color: var(--pos);
-}
-
-html.phone .ph-fc .neg,
-html.phone .ph-fc-sheet .neg {
-  color: var(--neg);
-}
-
-/* ---- how next month is worked out: a sum read from top to bottom ---- */
-html.phone .ph-fc-step {
-  gap: 10px;
-  padding-inline-start: 8px;
-}
-
-html.phone .ph-fc-how .ph-row + .ph-row::before {
-  inset-inline-start: 74px;
-}
-
-html.phone .ph-fc-op {
+/* the icon block, like Recap's sum */
+html.phone .ph-fc-sum .qb {
   display: grid;
   place-items: center;
-  flex: none;
-  inline-size: 18px;
-  color: var(--tx2);
-  font-size: 18px;
-  font-weight: 600;
+  block-size: 100%;
+  min-block-size: 58px;
+  border-radius: 13px;
+  border-start-end-radius: 22px 46%;
+  border-end-end-radius: 22px 46%;
+  background: linear-gradient(165deg, var(--g1), var(--g2));
+  color: #fff;
 }
 
-html.phone .ph-fc-op .ph-ic {
-  inline-size: 16px;
-  block-size: 16px;
+html.phone[data-mode=dark] .ph-fc-sum .qb {
+  color: #14152a;
 }
 
-html.phone .ph-fc-step .ph-tile {
-  --tile: var(--acc);
+html.phone .ph-fc-sum .qb .ph-ic {
+  inline-size: 20px;
+  block-size: 20px;
 }
 
-html.phone .ph-fc-step.s-in .ph-tile {
-  --tile: var(--pos);
-}
-
-html.phone .ph-fc-step.s-out .ph-tile {
-  --tile: var(--neg);
-}
-
-html.phone .ph-fc-step > .ph-amt {
-  flex: none;
-}
-
-html.phone .ph-fc-step.s-end {
-  background: color-mix(in srgb, var(--acc) 8%, transparent);
-}
-
-html.phone .ph-fc-step.s-end > .ph-amt {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-/* ---- what drives it ---- */
-html.phone .ph-fc-colnote {
-  margin: var(--p-s2) 2px 0;
-  color: var(--tx2);
-  font-size: 13px;
-  line-height: 18px;
-}
-
-html.phone .ph-fc-line {
-  gap: 8px;
-}
-
-html.phone .ph-fc-line > .ph-amt {
-  flex: none;
-}
-
-html.phone .ph-fc-line.tot .ph-row-t,
-html.phone .ph-fc-line.tot > .ph-amt {
-  font-weight: 700;
-}
-
-/* ---- jars ---- */
-html.phone .ph-fc-jars {
-  display: flex;
-  flex-direction: column;
-  gap: var(--p-s3);
-}
-
-html.phone .ph-fc-jars .ph-group-h {
-  margin-block-end: 0;
-}
-
-html.phone .ph-fc-nojar {
-  padding-block: 20px;
-  border: 1px solid var(--p-card-line);
-  border-radius: var(--p-r-group);
-  background: var(--p-surf);
-}
-
-html.phone .ph-fc-jar {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--p-s3);
-  inline-size: 100%;
-  padding: var(--p-pad);
-  border: 1px solid var(--p-card-line);
-  border-radius: var(--p-r-group);
-  background: var(--p-surf);
-  color: var(--tx);
-  font: inherit;
-  text-align: start;
-  transition: background-color var(--p-t-press);
-}
-
-html.phone .ph-fc-jar:active {
-  background: var(--p-press);
-  transition-duration: 0s;
-}
-
-html.phone .ph-fc-jar-h {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-html.phone .ph-fc-jar-sub {
-  display: flex;
-  flex-wrap: wrap;
-  column-gap: 12px;
-  color: var(--tx2);
-  font-size: 13px;
-  line-height: 18px;
-}
-
-html.phone .ph-fc-chip {
-  align-self: flex-start;
-  padding: 4px 10px;
-  border-radius: var(--pill);
-  background: var(--s2);
-  color: var(--tx2);
-  font-size: 13px;
-  line-height: 18px;
-  font-weight: 600;
-}
-
-html.phone .ph-fc .ph-fc-chip.pos {
-  background: color-mix(in srgb, var(--pos) 14%, transparent);
-}
-
-html.phone .ph-fc .ph-fc-chip.neg {
-  background: color-mix(in srgb, var(--neg) 12%, transparent);
-}
-
-html.phone .ph-fc-spark {
-  display: block;
-  inline-size: 100%;
-  block-size: 64px;
-}
-
-/* in Hebrew the months under it run from the right, so the line does too */
-html.phone.he .ph-fc-spark {
-  transform: scaleX(-1);
-}
-
-html.phone .ph-fc-jar-t {
+html.phone .ph-fc-sum .d {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
-}
-
-html.phone .ph-fc-jar-t > span {
-  display: flex;
-  flex-direction: column;
+  gap: 1px;
+  padding-block: 6px;
+  padding-inline-end: 6px;
   min-inline-size: 0;
 }
 
-html.phone .ph-fc-jar-t small,
-html.phone .ph-fc-jar-t i {
+html.phone .ph-fc-sum .k {
+  font-size: 13px;
   color: var(--tx2);
+}
+
+html.phone .ph-fc-sum .v {
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 700;
+  color: var(--tx);
+}
+
+html.phone .ph-fc-sum .v small {
+  margin-inline-start: 1px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tx2);
+}
+
+html.phone .ph-fc-sum .s {
   font-size: 12px;
   line-height: 16px;
-  font-style: normal;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--tx2);
 }
 
-html.phone .ph-fc-jar-t b {
-  font-size: 14px;
-  line-height: 20px;
-  white-space: nowrap;
-}
-
-html.phone .ph-fc-jar-t i.pos {
+html.phone .ph-fc-sum li.s-in .v {
   color: var(--pos);
 }
 
-/* ---- one line's sheet ---- */
+html.phone .ph-fc-sum li.s-out .v {
+  color: var(--neg);
+}
+
+/* the round badge on the seam above a tile, over its icon block */
+html.phone .ph-fc-sum .op {
+  position: absolute;
+  inset-inline-start: 15px;
+  inset-block-start: -18px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  inline-size: 26px;
+  block-size: 26px;
+  border-radius: 50%;
+  background: var(--bg);
+  box-shadow: 0 0 0 3px var(--p-surf);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--tx2);
+}
+
+/* "then": the next tile is under it */
+html.phone .ph-fc-sum .op .go {
+  transform: rotate(90deg);
+}
+
+html.phone .ph-fc-sum .op .ph-ic {
+  inline-size: 15px;
+  block-size: 15px;
+  stroke-width: 2.6;
+}
+
+/* the result: filled with the accent gradient */
+html.phone .ph-fc-sum li.s-end {
+  background: linear-gradient(120deg, var(--acc), var(--acc2));
+  box-shadow: 0 12px 26px -14px var(--acc);
+}
+
+html.phone .ph-fc-sum li.s-end :is(.k, .v, .s),
+html.phone .ph-fc-sum li.s-end .qb {
+  color: var(--on);
+}
+
+html.phone .ph-fc-sum li.s-end :is(.k, .s) {
+  opacity: .8;
+}
+
+html.phone .ph-fc-sum li.s-end .qb {
+  background: color-mix(in srgb, var(--on) 17%, transparent);
+}
+
+html.phone .ph-fc-sum li.s-end .op {
+  color: var(--acc);
+}
+
+/* ---- what drives the forecast: the table as lines ---- */
+
+html.phone .ph-fc-th,
+html.phone .ph-fc-r {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px 12px;
+  inline-size: 100%;
+  padding: 12px var(--p-pad);
+  border: 0;
+  border-block-start: 1px solid var(--p-line);
+  background: none;
+  text-align: start;
+}
+
+html.phone .ph-fc-th {
+  border: 0;
+  padding-block: 12px 10px;
+  background: var(--s2);
+  color: var(--tx2);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+html.phone .ph-fc-th > :first-child {
+  color: var(--tx);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+html.phone .ph-fc-th-e {
+  justify-self: end;
+  text-align: end;
+  font-weight: 650;
+}
+
+html.phone .ph-fc-r-n {
+  min-inline-size: 0;
+  font-size: 15px;
+  line-height: 20px;
+}
+
+html.phone .ph-fc-r-v {
+  font-size: 15px;
+}
+
+html.phone .ph-fc-r-v.pos {
+  color: var(--pos);
+}
+
+html.phone .ph-fc-r-v.neg {
+  color: var(--neg);
+}
+
+html.phone .ph-fc-r-d {
+  justify-self: end;
+  font-size: 12px;
+  color: var(--tx2);
+}
+
+/* the money in and money out rows: tinted, with the coloured edge, in small capitals */
+html.phone .ph-fc-r.r-grp {
+  border-inline-start: 4px solid var(--g);
+  padding-inline-start: calc(var(--p-pad) - 4px);
+  background: color-mix(in srgb, var(--g) 11%, var(--p-surf));
+}
+
+html.phone .ph-fc-r.r-in { --g: var(--pos); }
+html.phone .ph-fc-r.r-out { --g: var(--neg); }
+
+html.phone .ph-fc-r.r-grp .ph-fc-r-n {
+  color: var(--g);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+html.phone.he .ph-fc-r.r-grp .ph-fc-r-n {
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+html.phone .ph-fc-r.r-grp .ph-fc-r-v {
+  font-weight: 700;
+}
+
+/* saved: green (or red) as on the computer */
+html.phone .ph-fc-r.r-tot {
+  background: color-mix(in srgb, var(--pos) 11%, var(--p-surf));
+}
+
+html.phone .ph-fc-r.r-tot.r-bad {
+  background: color-mix(in srgb, var(--neg) 10%, var(--p-surf));
+}
+
+html.phone .ph-fc-r.r-tot .ph-fc-r-n {
+  color: var(--pos);
+  font-weight: 650;
+}
+
+html.phone .ph-fc-r.r-tot.r-bad .ph-fc-r-n {
+  color: var(--neg);
+}
+
+html.phone .ph-fc-r.r-end {
+  background: var(--s2);
+}
+
+html.phone .ph-fc-r.r-end .ph-fc-r-n {
+  font-weight: 650;
+}
+
+/* the months' bars (the computer's): one per month, oldest first; the chevron says the line opens */
+html.phone .ph-fc-r-b {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  inline-size: min(150px, 100%);
+}
+
+html.phone .ph-fc .fcb {
+  flex: 1;
+  display: flex;
+  gap: 2px;
+  block-size: 22px;
+  border-block-end: 1px solid color-mix(in srgb, var(--tx2) 35%, transparent);
+}
+
+html.phone .ph-fc .fcbar {
+  position: relative;
+  flex: 1;
+  min-inline-size: 3px;
+}
+
+html.phone .ph-fc .fcbar i {
+  position: absolute;
+  inset-inline: 0;
+  border-radius: 3px 3px 0 0;
+  background: color-mix(in srgb, var(--acc) 70%, var(--s1));
+}
+
+/* this month: the solid part is what happened so far, the striped part what usually still happens after today */
+html.phone .ph-fc .fcbar.now i.ex {
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--acc) 45%, transparent) 0 2px, color-mix(in srgb, var(--acc) 14%, transparent) 2px 4px);
+}
+
+html.phone .ph-fc .fcbar.now i.so {
+  background: var(--acc);
+}
+
+html.phone .ph-fc .fcbar.neg i {
+  border-radius: 0 0 3px 3px;
+  background: color-mix(in srgb, var(--neg) 75%, var(--s1));
+}
+
+html.phone .ph-fc .r-net .fcbar:not(.neg) i.so,
+html.phone .ph-fc .r-net .fcbar:not(.neg):not(.now) i {
+  background: color-mix(in srgb, var(--pos) 75%, var(--s1));
+}
+
+html.phone .ph-fc .r-net .fcbar.now:not(.neg) i.ex {
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--pos) 45%, transparent) 0 2px, color-mix(in srgb, var(--pos) 14%, transparent) 2px 4px);
+}
+
+html.phone .ph-fc .fccv {
+  flex: none;
+  inline-size: 16px;
+  block-size: 16px;
+  color: var(--tx2);
+  transform: rotate(90deg);
+  transition: transform .15s;
+}
+
+html.phone .ph-fc-r[aria-expanded="true"] .fccv {
+  transform: rotate(-90deg);
+}
+
+/* a line's months, opened under it: only the box slides (its height, 250ms) */
+html.phone .ph-fc-x {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 250ms ease;
+  background: color-mix(in srgb, var(--acc) 6%, var(--p-surf));
+}
+
+html.phone .ph-fc-x.on {
+  grid-template-rows: 1fr;
+}
+
+html.phone .ph-fc-xi {
+  min-block-size: 0;
+  overflow: hidden;
+  visibility: hidden;
+  transition: visibility 0s 250ms;
+}
+
+html.phone .ph-fc-x.on .ph-fc-xi {
+  visibility: visible;
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.phone :is(.ph-fc-x, .ph-fc-xi, .ph-fc .fccv) {
+    transition: none;
+  }
+}
+
+/* its three amounts, the picked column marked */
 html.phone .ph-fc-three {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 6px;
+  padding: 12px var(--p-pad) 0;
+  border-block-start: 1px dashed color-mix(in srgb, var(--acc) 22%, var(--p-line));
 }
 
 html.phone .ph-fc-three > span {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 12px;
-  border-radius: var(--p-r-tile);
+  padding: 7px 9px;
+  border-radius: 10px;
   background: var(--p-surf);
+  border: 1px solid color-mix(in srgb, var(--tx2) 14%, transparent);
   min-inline-size: 0;
 }
 
 html.phone .ph-fc-three > span.on {
-  background: var(--accc);
-  color: var(--onc);
+  border-color: color-mix(in srgb, var(--acc) 45%, transparent);
 }
 
 html.phone .ph-fc-three small {
-  font-size: 12px;
-  line-height: 16px;
-  color: inherit;
-  opacity: .8;
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--tx2);
 }
 
-html.phone .ph-fc-three .ph-amt {
-  font-size: 17px;
-  line-height: 22px;
-  color: inherit;
+html.phone .ph-fc-three b {
+  font-size: 14px;
+  white-space: nowrap;
 }
 
-html.phone .ph-fc-trend {
-  margin: 12px 4px 16px;
+html.phone .ph-fc-three b.pos {
+  color: var(--pos);
 }
 
-html.phone .ph-fc-mo {
-  position: relative;
+html.phone .ph-fc-three b.neg {
+  color: var(--neg);
+}
+
+/* the months: one small cell each (its name above its amount), this month in the accent colour */
+html.phone .ph-fc .fcml {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 8px var(--p-pad) 12px;
+  list-style: none;
+}
+
+html.phone .ph-fc .fcml li {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 12px 16px;
+  gap: 1px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--p-surf);
+  border: 1px solid color-mix(in srgb, var(--tx2) 14%, transparent);
+  min-inline-size: 0;
 }
 
-html.phone .ph-fc-mo + .ph-fc-mo::before {
-  content: "";
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline: 16px 0;
-  border-block-start: 1px solid var(--p-line);
+html.phone .ph-fc .fcml span {
+  font-size: 11.5px;
+  color: var(--tx2);
 }
 
-html.phone .ph-fc-mo-h {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: 15px;
-  line-height: 20px;
+html.phone .ph-fc .fcml b {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-html.phone .ph-fc-mo.now .ph-fc-mo-h > span {
+html.phone .ph-fc .fcml small {
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--tx2);
+}
+
+html.phone .ph-fc .fcml li.neg b {
+  color: var(--neg);
+}
+
+html.phone .ph-fc .fcml li.more {
+  grid-column: span 3;
+}
+
+html.phone .ph-fc .fcml li.now {
+  background: color-mix(in srgb, var(--acc) 12%, var(--p-surf));
+  border-color: color-mix(in srgb, var(--acc) 45%, transparent);
+}
+
+html.phone .ph-fc .fcml li.now span {
+  color: var(--acc);
   font-weight: 600;
 }
 
-html.phone .ph-fc-mo-bar {
-  position: relative;
-  display: block;
-  block-size: 6px;
-  border-radius: var(--pill);
-  background: var(--s2);
-  overflow: hidden;
+html.phone .ph-fc-see {
+  margin: 0 var(--p-pad) 12px;
+  min-block-size: 36px;
 }
 
-html.phone .ph-fc-mo-bar i,
-html.phone .ph-fc-mo-bar u {
-  position: absolute;
-  inset-block: 0;
-  inset-inline-start: 0;
-  border-radius: var(--pill);
-  background: var(--acc);
+/* ---- what each jar will hold ---- */
+
+html.phone .ph-fc-nojar {
+  color: var(--tx2);
+  font-size: 14px;
 }
 
-html.phone .ph-fc-mo.now .ph-fc-mo-bar i {
-  background: color-mix(in srgb, var(--acc) 35%, transparent);
+html.phone .ph-fc-jar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 8px;
+  inline-size: 100%;
+  text-align: start;
 }
 
-html.phone .ph-fc-mo-bar.neg i {
-  background: var(--neg);
+html.phone .ph-fc-jar-h {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
 }
 
-html.phone .ph-fc-mo small {
+html.phone .ph-fc-jar-t {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+html.phone .ph-fc-jar-t b {
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 650;
+}
+
+html.phone .ph-fc-jar-t small {
   color: var(--tx2);
   font-size: 13px;
   line-height: 18px;
 }
 
-/* ---- loading and error ---- */
+html.phone .ph-fc-jar .bd {
+  flex: none;
+  max-inline-size: 55%;
+  white-space: normal;
+  text-align: center;
+}
+
+html.phone .ph-fc-spark {
+  display: block;
+  inline-size: 100%;
+  block-size: 70px;
+}
+
+/* the four tiles two by two (four in a row would cut the amounts) */
+html.phone .ph-fc-jfs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+html.phone .ph-fc-jfs > span {
+  display: flex;
+  flex-direction: column;
+  padding: 7px 8px;
+  border-radius: 10px;
+  background: var(--s2);
+  min-inline-size: 0;
+}
+
+html.phone .ph-fc-jfs small {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--tx2);
+  white-space: nowrap;
+}
+
+html.phone .ph-fc-jfs b {
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+html.phone .ph-fc-jfs i {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--tx2);
+  white-space: nowrap;
+}
+
+html.phone .ph-fc-jfs i.pos {
+  color: var(--pos);
+}
+
+html.phone .ph-fc-jfw {
+  color: var(--neg);
+}
+
+/* ---- loading ---- */
+
 html.phone .ph-fc-skel {
   display: flex;
   flex-direction: column;
@@ -591,155 +861,114 @@ html.phone .ph-fc-skel i + i {
   inline-size: 55%;
 }
 
+/* ---- Years ahead (phone/components/ForecastYears.vue) ---- */
 
-/* ---- Years ahead (phone/components/ForecastYears.vue): three rows for the choices as they are now (like "How next month is
-   worked out"), then saving the goal, the choices and the chart ---- */
-html.phone .ph-ya-r {
+/* the goal tile: the same size as the three but quieter (an outline in place of the fill; dashed while none is saved) */
+html.phone .ph-ya-sum li.r-goal {
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
-  align-items: flex-start;
+  padding: 12px 14px;
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--p-line);
 }
 
-html.phone .ph-ya-r .ph-tile {
-  --tile: var(--acc);
-  flex: none;
+html.phone .ph-ya-sum li.r-goal.g-none {
+  box-shadow: none;
+  outline: 1.5px dashed var(--p-line);
+  outline-offset: -1.5px;
 }
 
-html.phone .ph-ya-r.r-reach .ph-tile {
-  --tile: var(--pos);
+html.phone .ph-ya-sum li.r-goal .d {
+  padding: 0;
 }
 
-html.phone .ph-ya-r.r-need .ph-tile {
-  --tile: var(--acc2);
-}
-
-html.phone .ph-ya-e {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  flex: none;
-  max-inline-size: 45%;
-  text-align: end;
-}
-
-html.phone .ph-ya-e .ph-amt {
-  font-size: 17px;
+html.phone .ph-ya-sum .gh {
+  font-size: 16px;
   line-height: 22px;
+  font-weight: 600;
 }
 
-html.phone .ph-ya-r.r-total .ph-ya-e .ph-amt {
+html.phone .ph-ya-sum li.r-goal.g-diff .gh {
   color: var(--acc);
 }
 
-html.phone .ph-ya-e small {
-  color: var(--tx2);
-  font-size: 13px;
-  line-height: 18px;
+html.phone .ph-ya-goal-b {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-/* a choice's heading: its name, and at the end "Back to my average" when the amount differs from it */
+/* no age saved yet */
+html.phone .ph-ya-inv {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-block-start: 14px;
+  padding: 12px;
+  border-radius: var(--r-sm);
+  background: var(--s2);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+html.phone .ph-ya-inv > .ph-ic {
+  flex: none;
+  inline-size: 20px;
+  block-size: 20px;
+  color: var(--acc);
+}
+
+html.phone .ph-ya-inv > span {
+  flex: 1;
+  min-inline-size: 180px;
+}
+
+/* the four choices, one under the other */
+html.phone .ph-ya-ctl {
+  display: grid;
+  gap: 16px;
+  margin-block-start: 18px;
+  padding-block-start: 18px;
+  border-block-start: 1px solid var(--p-line);
+}
+
+html.phone .ph-ya-ctl .fld {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
 html.phone .ph-ya-lh {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0 12px;
   min-block-size: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tx2);
 }
 
-/* your average under "Set aside each month" */
 html.phone .ph-ya-back {
   font-size: 14px;
   gap: 4px;
 }
 
-/* the cards under Years ahead sit 12px apart; "Try other amounts" heads the choices */
-html.phone .ph-ya > .ph-group-b + .ph-group-b {
-  margin-block-start: var(--p-s3);
-}
-
-html.phone .ph-ya-h {
-  margin: var(--p-s5) 2px var(--p-head);
-  font-size: 16px;
-  line-height: 22px;
-  font-weight: 600;
-}
-
-/* no age yet: a row that opens the profile */
-html.phone .ph-ya-inv .ph-tile {
-  --tile: var(--acc);
-}
-
-html.phone .ph-ya-play {
-  padding: var(--p-pad) var(--p-pad) 0;
-}
-
-html.phone .ph-ya-play .fld {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-block-end: 16px;
-}
-
-html.phone .ph-ya-play .fld label {
-  font-size: 13px;
-  color: var(--tx2);
-}
-
-html.phone .ph-ya-play .ya-sl {
+html.phone .ph-ya-ctl .ya-sl {
   block-size: 32px;
 }
 
-html.phone .ph-ya-chart {
-  padding: var(--p-s3) var(--p-s2) 10px;
-}
-
-/* saving the goal, after the choices: its state and the line under it, then the buttons side by side */
-html.phone .ph-ya-save {
-  padding: var(--p-pad);
-}
-
-html.phone .ph-ya-save-t {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-block-end: 12px;
-}
-
-html.phone .ph-ya-save-k,
-html.phone .ph-ya-save-s {
-  color: var(--tx2);
-  font-size: 13px;
-  line-height: 18px;
-}
-
-html.phone .ph-ya-save-t b {
-  font-size: 16px;
-  line-height: 22px;
-  font-weight: 600;
-}
-
-html.phone .ph-ya-save.g-diff .ph-ya-save-t b {
-  color: var(--acc);
-}
-
-html.phone .ph-ya-save-b {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-html.phone .ph-ya-axis {
-  margin: 2px 0 0;
-  text-align: center;
-  color: var(--tx2);
-  font-size: 12px;
-  line-height: 16px;
+html.phone .ph-ya-out {
+  margin-block-start: 18px;
 }
 
 html.phone .ph-ya-leg {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 16px;
-  padding: 8px 8px 0;
+  margin-block-end: 8px;
   color: var(--tx2);
   font-size: 13px;
   line-height: 18px;
@@ -751,9 +980,14 @@ html.phone .ph-ya-leg > span {
   gap: 6px;
 }
 
-html.phone .ph-ya-leg i.ln {
-  inline-size: 14px;
-  block-size: 3px;
-  border-radius: 2px;
-  background: var(--acc);
+html.phone .ph-ya-leg .dot {
+  margin: 0;
+}
+
+html.phone .ph-ya-axis {
+  margin: 2px 0 0;
+  text-align: center;
+  color: var(--tx2);
+  font-size: 12px;
+  line-height: 16px;
 }

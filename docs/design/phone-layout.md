@@ -59,8 +59,10 @@ name 13px, amount 28px (hero 34px, half-width 24px), line under 13px. Row title 
   with today marker); tabs → `Segmented`.
 - **Reports**: chart picker → `Segmented`/sheet; each chart full width in a `ListGroup pad`; KPI cards → `AmountCard`s;
   table → rows.
-- **Forecast**: KPI cards → `AmountCard`s; the line chart full width with tap readout; tabs → `Segmented`; the
-  table of months → rows.
+- **Forecast** (done): the four balance cards → `AmountCard`s (the year highlighted); the computer's chart at the
+  phone's width with the month read out above it; the sum tiles one under the other, their signs on the seams; the
+  table → one card of lines (name and amount, then month bars and trend), the column picked with `Segmented`, a line
+  opens in place; jar cards → `SwipeCards`; Years ahead → its tiles, choices and chart in one card.
 - **Alerts**: the computer's alert cards (severity dot, title, text, actions) → rows with the dot; actions in the
   alert's sheet.
 - **Categories**: category cards/table → `ListRow`s with the letter tile and colour, month amount and bar.
