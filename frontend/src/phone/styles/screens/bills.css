@@ -1,29 +1,172 @@
-/* bills screen (phone/screens/BillsScreen.vue). Every rule starts with html.phone. */
+/* Bills (phone/screens/BillsScreen.vue): the computer's Bills page (styles/pages/bills.css) for a phone.
+   The kinds' cards keep the computer's look: a tinted header with the kind's icon and colour, rows split by thin lines.
+   Every rule starts with html.phone. */
 
-html.phone .ph-bills .ph-hero {
-  padding: 4px 4px 0;
+/* the three numbers: Monthly total across the full width, the other two side by side */
+html.phone .ph-bills-kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--p-s3);
 }
 
-/* the kinds: the switch, then the kind's name and its total */
-html.phone .ph-bills-kinds .ph-segwrap {
-  margin-block-end: 20px;
+/* the computer's full names ("Due In The Next 14 Days") wrap instead of being cut */
+html.phone .ph-bills-kpis .ph-acard-n {
+  white-space: normal;
 }
 
-/* the switch's own computer margins are left out, so the space under it is the one above */
-html.phone .ph-bills-kinds .ph-seg.seg {
-  margin: 0;
+html.phone .ph-bills-kpis .k0 {
+  grid-column: 1 / -1;
 }
 
-html.phone .ph-bills-tot {
+html.phone .ph-bills-kpis .k0 .ph-acard-v {
+  font-size: 34px;
+  line-height: 40px;
+}
+
+html.phone .ph-bills-kpis :is(.k1, .k2) .ph-acard-v {
+  font-size: 24px;
+  line-height: 30px;
+}
+
+/* "+ Add bill" at the end, right under the numbers, as on the computer */
+html.phone .ph-bills-addw {
+  display: flex;
+  justify-content: flex-end;
+  margin-block: calc(var(--p-gap) * -1 + var(--p-s3)) calc(var(--p-gap) * -1 + var(--p-s3));
+}
+
+html.phone .ph-bills-add {
+  min-block-size: var(--p-hit);
+  padding-inline: 18px;
+  font-size: 15px;
+}
+
+/* a kind of bill: its own card with the kind's colour */
+html.phone .ph-bgrp {
+  --a: var(--acc);
+  background: var(--p-surf);
+  border: 1px solid var(--p-card-line);
+  border-radius: var(--p-r-group);
+  overflow: hidden;
+}
+
+html.phone .ph-bgrp.irr {
+  --a: var(--c2);
+}
+
+html.phone .ph-bgrp.one {
+  --a: var(--c3);
+}
+
+html.phone .ph-bgrp.ins {
+  --a: var(--c4);
+}
+
+html.phone .ph-bgh {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 8px;
+  padding: 14px 16px;
+  background: linear-gradient(to right, color-mix(in srgb, var(--a) 14%, transparent), transparent 75%);
+  border-block-end: 1px solid var(--p-line);
+}
+
+html.phone.he .ph-bgh {
+  background: linear-gradient(to left, color-mix(in srgb, var(--a) 14%, transparent), transparent 75%);
+}
+
+html.phone .ph-bgi {
+  display: grid;
+  place-items: center;
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--a) 20%, transparent);
+  color: var(--a);
+}
+
+html.phone .ph-bgi svg {
+  inline-size: 22px;
+  block-size: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html.phone .ph-bgt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-inline-size: 0;
+  font-size: 17px;
+}
+
+html.phone .ph-bgt b {
+  font-weight: 650;
+}
+
+/* how many: the computer's small count pill */
+html.phone .ph-bcnt {
+  padding: 0 8px;
+  border-radius: var(--pill);
+  background: color-mix(in srgb, var(--a) 18%, transparent);
+  color: var(--a);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+html.phone .ph-bgs {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.2;
+}
+
+html.phone .ph-bgs b {
+  font-size: 18px;
+  font-weight: 650;
+}
+
+html.phone .ph-bgs small {
   color: var(--tx2);
-  font-size: 14px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+
+html.phone .ph-bgd {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--tx2);
+  font-size: var(--p-f-meta);
+  line-height: 18px;
+}
+
+/* one bill: the letter tile, then the lines; amount and when at the end of the first two lines */
+html.phone .ph-brow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html.phone .ph-brow + .ph-brow {
+  border-block-start: 1px solid var(--p-line);
+}
+
+html.phone .ph-brow:active {
+  background: var(--p-press);
 }
 
 /* the first letter in the category's colour: the same tile as on Activity, Budgets and Categories */
 html.phone .ph-bills-av {
   display: grid;
+  flex: none;
   place-items: center;
   inline-size: 40px;
   block-size: 40px;
@@ -32,184 +175,308 @@ html.phone .ph-bills-av {
   font-size: 15px;
 }
 
-/* the second line holds two facts in two parts; when both do not fit, the second moves under the first instead of being cut */
-html.phone .ph-bills .ph-row-s {
+html.phone .ph-brow-m {
   display: flex;
-  flex-wrap: wrap;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+/* a line with a part at the start and one at the end (the name and the amount); a long name wraps, the amount stays */
+html.phone .ph-brow-l {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   column-gap: 10px;
 }
 
-html.phone .ph-bills .ph-row-s > * {
-  max-inline-size: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
+html.phone .ph-brow-t {
+  min-inline-size: 0;
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 22px;
 }
 
-html.phone .ph-bills .ph-row-s .late {
-  color: var(--neg);
-  font-weight: 600;
+/* the amount at the line's end (a box of its own: the amount inside reads left to right, also in Hebrew) */
+html.phone .ph-brow-a {
+  margin-inline-start: auto;
 }
 
-html.phone .ph-bills .ph-row-s .now {
-  color: var(--warn);
-  font-weight: 600;
+html.phone .ph-brow-a .ph-amt {
+  font-size: 17px;
+  font-weight: 650;
 }
 
-html.phone .ph-bills .ph-row-s .soon {
-  color: var(--tx);
-  font-weight: 600;
-}
-
-html.phone .ph-bills-flag {
-  display: inline-block;
-  margin-inline-start: 8px;
-  padding: 1px 8px;
-  border-radius: var(--pill);
-  background: color-mix(in srgb, var(--warn) 16%, transparent);
-  color: var(--warn);
-  font-size: 12px;
+html.phone .ph-brow-s {
+  color: var(--tx2);
+  font-size: var(--p-f-meta);
   line-height: 18px;
-  font-weight: 600;
-  vertical-align: 1px;
 }
 
-html.phone .ph-bills-end {
+html.phone .ph-btail {
+  font-weight: 500;
+  opacity: .8;
+}
+
+html.phone .ph-bstrong {
+  color: var(--tx);
+}
+
+/* when it is due: overdue red, due now amber, within a week bold (as on the computer) */
+html.phone .ph-bdue.late {
+  color: var(--neg);
+  font-weight: 600;
+}
+
+html.phone .ph-bdue.now {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+html.phone .ph-bdue.soon {
+  color: var(--tx);
+  font-weight: 650;
+}
+
+html.phone .ph-brow-chips {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-block-start: 6px;
 }
 
-html.phone .ph-bills-end small {
+/* "Found automatically" / "Why is this a bill?": the computer's grey chip; a tap explains */
+html.phone .ph-bq {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px 2px 10px;
+  border: 0;
+  border-radius: var(--pill);
+  background: var(--s2);
+  color: var(--tx2);
+  font: inherit;
   font-size: 12px;
-  line-height: 16px;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
+  line-height: 18px;
 }
 
-html.phone .ph-bills .up {
+html.phone .ph-bq::after {
+  content: "";
+  position: absolute;
+  inset: -10px -2px;
+}
+
+html.phone .ph-bq .ph-ic {
+  inline-size: 13px;
+  block-size: 13px;
+}
+
+/* a price change: the computer's badge with a chevron up (red, more) or down (green, less) */
+html.phone .ph-bbd {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 9px 2px 6px;
+  border-radius: var(--pill);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 18px;
+}
+
+html.phone .ph-bbd.up {
+  background: color-mix(in srgb, var(--neg) 14%, transparent);
   color: var(--neg);
 }
 
-html.phone .ph-bills .dn {
+html.phone .ph-bbd.dn {
+  background: color-mix(in srgb, var(--pos) 16%, transparent);
   color: var(--pos);
 }
 
-/* an irregular bill that now looks regular */
-html.phone .ph-bills-sug {
-  padding: 0 16px 14px;
-  padding-inline-start: calc(16px + 36px + 12px); /* lines up with the row text */
+html.phone .ph-bbd .ph-ic {
+  inline-size: 12px;
+  block-size: 12px;
+  stroke-width: 3;
 }
 
-html.phone .ph-bills-sug p {
+html.phone .ph-bbd .ph-ic.u {
+  transform: rotate(-90deg);
+}
+
+html.phone .ph-bbd .ph-ic.d {
+  transform: rotate(90deg);
+}
+
+/* Marked to cancel (amber) and Canceled (grey): small pills after the name */
+html.phone .ph-bpill {
+  display: inline-block;
+  margin-inline-start: 8px;
+  padding: 0 8px;
+  border-radius: var(--pill);
+  font-size: 11.5px;
+  font-weight: 650;
+  line-height: 20px;
+  vertical-align: 2px;
+}
+
+html.phone .ph-bpill.warn {
+  background: color-mix(in srgb, var(--warn) 18%, transparent);
+  color: var(--warn);
+}
+
+html.phone .ph-bpill.off {
+  background: var(--s2);
+  color: var(--tx2);
+}
+
+/* an irregular bill that now looks regular */
+html.phone .ph-bsug {
+  margin-block-start: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--acc) 8%, transparent);
+  cursor: default;
+}
+
+html.phone .ph-bsug p {
   margin: 0 0 10px;
   font-size: 14px;
   line-height: 20px;
 }
 
-html.phone .ph-bills-btns {
+html.phone .ph-bsug-b {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-html.phone .ph-bills-btns .ph-btn {
-  min-block-size: var(--p-hit);
-  padding-inline: 16px;
-  font-size: 15px;
+html.phone .ph-bsug-b .ph-btn {
+  flex: 1 1 auto;
+  min-block-size: 40px;
+  padding-inline: 14px;
+  font-size: 14px;
 }
 
-/* instalments: name and amount, how many paid, a bar, what is left */
-html.phone .ph-bills-ins {
-  align-items: flex-start;
+/* instalments: how much is paid, the computer's bar */
+html.phone .ph-bins-bar {
+  display: block;
+  block-size: 6px;
+  margin: 8px 0 6px;
 }
 
-html.phone .ph-bills-ins .ph-row-lead {
-  padding-block-start: 2px;
+html.phone .ph-bills-none {
+  text-align: center;
 }
 
-html.phone .ph-bills-ins .ph-row-main {
+/* canceled bills */
+html.phone .ph-bcan {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+html.phone .ph-bcan + .ph-bcan {
+  border-block-start: 1px solid var(--p-line);
+}
+
+html.phone .ph-bcan .ph-brow-m {
+  opacity: .8;
+}
+
+html.phone .ph-bcan-b {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   gap: 4px;
 }
 
-html.phone .ph-bills-insh {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
+html.phone .ph-bcan-b .ph-btn {
+  min-block-size: 40px;
+  padding-inline: 14px;
+  font-size: 14px;
 }
 
-html.phone .ph-bills-ins .ph-row-s b {
-  color: var(--tx);
-  font-weight: 600;
+html.phone .ph-bcan-x {
+  color: var(--neg);
 }
 
-html.phone .ph-bills-ins .ph-prog {
-  margin-block: 4px 2px;
+/* ===== motion, as on the computer: the page fades up as it comes in (the computer's .view "fi" .35s), here block after
+   block; the bills of each kind follow one another; bars fill from empty (the computer slides them .6s); a row, a chip and
+   a payment give a little under the finger (the computer's hover). The Bill screen (bill.css) uses the same steps.
+   Off with reduced motion. ===== */
+@keyframes ph-bills-in {
+  from { opacity: 0; transform: translateY(8px); }
 }
 
-html.phone .ph-bills-ins .ph-chev {
-  align-self: center;
+@keyframes ph-bills-bar {
+  from { width: 0; }
 }
 
-/* canceled bills: a title that opens and closes the list */
-html.phone .ph-bills-fold {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  inline-size: 100%;
-  min-block-size: var(--p-hit);
-  margin-block-end: 2px;
-  padding: 0 4px;
-  border: 0;
-  background: none;
-  color: var(--tx);
-  font: inherit;
-  text-align: start;
+@keyframes ph-bills-col {
+  from { transform: scaleY(0); }
 }
 
-html.phone .ph-bills-fold h3 {
-  margin: 0;
-  font-size: 15px;
-  line-height: 20px;
-  font-weight: 600;
-}
+@media (prefers-reduced-motion: no-preference) {
+  html.phone :is(.ph-bills, .ph-bill) .ph-content > * {
+    animation: ph-bills-in .35s var(--p-ease-out) both;
+  }
 
-html.phone .ph-bills-chev {
-  color: var(--tx2);
-  transform: rotate(90deg);
-  transition: transform var(--p-t-fade) var(--p-ease);
-}
+  html.phone :is(.ph-bills, .ph-bill) .ph-content > :nth-child(2) { animation-delay: 50ms; }
+  html.phone :is(.ph-bills, .ph-bill) .ph-content > :nth-child(3) { animation-delay: 100ms; }
+  html.phone :is(.ph-bills, .ph-bill) .ph-content > :nth-child(4) { animation-delay: 150ms; }
+  html.phone :is(.ph-bills, .ph-bill) .ph-content > :nth-child(n + 5) { animation-delay: 200ms; }
 
-html.phone .ph-bills-chev.on {
-  transform: rotate(-90deg);
-}
+  /* the three numbers come in one after another */
+  html.phone .ph-bills-kpis > .ph-acard {
+    animation: ph-bills-in .35s var(--p-ease-out) both;
+  }
 
-html.phone .ph-bills-off .ph-row-t,
-html.phone .ph-bills-off .ph-amt {
-  color: var(--tx2);
-}
+  html.phone .ph-bills-kpis > .ph-acard:nth-child(2) { animation-delay: 60ms; }
+  html.phone .ph-bills-kpis > .ph-acard:nth-child(3) { animation-delay: 120ms; }
 
-/* the small windows */
-html.phone .ph-bills-how {
-  margin: 0 0 14px;
-  font-size: 15px;
-  line-height: 22px;
-}
+  /* the first bills of a kind follow one another (the rest are below the fold) */
+  html.phone .ph-bgrp > .ph-brow {
+    animation: ph-bills-in .3s var(--p-ease-out) both;
+    animation-delay: 300ms;
+  }
 
-html.phone .ph-bills-how p {
-  margin: 0;
-}
+  html.phone .ph-bgrp > .ph-brow:nth-child(2) { animation-delay: 150ms; }
+  html.phone .ph-bgrp > .ph-brow:nth-child(3) { animation-delay: 190ms; }
+  html.phone .ph-bgrp > .ph-brow:nth-child(4) { animation-delay: 230ms; }
+  html.phone .ph-bgrp > .ph-brow:nth-child(5) { animation-delay: 270ms; }
 
-html.phone .ph-bills-how .ph-bills-big {
-  margin-block-end: 6px;
-  font-size: 34px;
-  line-height: 40px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
+  /* bars fill from empty: an instalment's paid part, the payment history's bar per payment */
+  html.phone .ph-bins-bar > i {
+    animation: ph-bills-bar .8s var(--p-ease-out) .2s both;
+  }
 
-html.phone .ph-bills-tot b {
-  color: var(--tx);
-  font-weight: 600;
+  html.phone .ph-bill-hist .phb i {
+    transform-origin: bottom;
+    animation: ph-bills-col .6s var(--p-ease-out) both;
+  }
+
+  html.phone .ph-bill-hist .phb i:nth-child(n + 4) { animation-delay: 60ms; }
+  html.phone .ph-bill-hist .phb i:nth-child(n + 8) { animation-delay: 120ms; }
+  html.phone .ph-bill-hist .phb i:nth-child(n + 12) { animation-delay: 180ms; }
+
+  /* press */
+  html.phone :is(.ph-brow, .ph-bill-hist .phi, .ph-bq, .ph-bcan-x) {
+    transition: transform var(--p-t-press), background-color var(--p-t-fade);
+  }
+
+  html.phone :is(.ph-brow, .ph-bill-hist .phi):active {
+    transform: scale(.985);
+  }
+
+  html.phone :is(.ph-bq, .ph-bcan-x):active {
+    transform: scale(.94);
+  }
+
+  html.phone .ph-bq:active {
+    background: color-mix(in srgb, var(--tx) 14%, var(--s2));
+  }
 }

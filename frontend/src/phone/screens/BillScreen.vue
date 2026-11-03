@@ -1,11 +1,15 @@
 <script setup>
-// One bill (pushed on Bills, /bills?bill=<billKey>): what it costs and how often, when it is next charged, a price change,
-// why it is a bill, its past payments (each opens its transaction), "Change bill type", and the ⋯ menu
-// (show in Activity, mark to cancel or as canceled, keep, remove). A canceled bill offers Restore and Remove.
+// One bill (pushed on Bills, /bills?bill=<billKey>): the computer's bill row and its payment history window together.
+// The top: letter tile, amount, name and the bill's pills ("Found automatically" explains on a tap, as the computer's tip).
+// Then a canceled bill's Restore / Remove, an irregular bill's "Make it regular", the row's details (how often, paid from,
+// next charge, last charge, price change) with "Change bill type", and the payment history as in the computer's window:
+// Payments / Total / Average, a bar per payment, lowest and highest, the payments by year (each opens its transaction)
+// and "Show in Activity". The ⋯ in the top bar is the computer's ⋯ menu for this bill.
 // The bill is found by what it is (billKey from lib/bills.js), so its address stays the same while the list changes.
 import { ref, computed, watch, onMounted } from "vue";
 import { data } from "../../stores/data.js";
 import { tx } from "../../core/heText.js";
+import { explain } from "../../core/tooltip.js";
 import { catLabel } from "../../core/cats.js";
 import { dstr } from "../../dates.js";
 import { displayName } from "../../lib/activity.js";
@@ -22,11 +26,11 @@ import EmptyState from "../components/EmptyState.vue";
 import PIcon from "../components/PIcon.vue";
 
 const props = defineProps({ id: { type: String, default: null } });
-const { t, tk, S, M, cad, freq, avStyle, srcOf, priceChange, menu, menuItems, MI, pick, showInActivity, typeFor, openType, saveType, makeRegular, keepIrregular, restore, remove } = useBills();
+const { t, tk, S, M, loc, cad, freq, avStyle, srcOf, dueText, priceChange, evTip, menu, menuItems, MI, pick, showInActivity, typeFor, openType, saveType, makeRegular, keepIrregular, restore, remove } = useBills();
 const nav = usePhoneNav();
 onMounted(() => data.start());
 const P = (k, o, n) => t("phone.bills." + k, o || {}, n);
-const iso = (s) => "⁦" + s + "⁩"; // a date keeps its order inside a Hebrew sentence
+const iso = (s) => "\u2066" + s + "\u2069"; // a date keeps its order beside another one in a Hebrew sentence
 
 // the bill this screen shows, and its payments (newest first)
 const b = computed(() => (M.value && props.id ? M.value.all.find((x) => billKey(x) === props.id) || null : null));
@@ -37,13 +41,14 @@ watch(b, (x, was) => { if (!x && was) nav.back(); });
 const kindKey = computed(() => (b.value.once ? "once" : b.value.irregular ? "irr" : "rec"));
 const canceled = computed(() => b.value.flag == "canceled");
 const amount = computed(() => (b.value.once ? "" : b.value.irregular || b.value.vari ? "≈ " : "") + fm(b.value.once ? b.value.amt : b.value.pred));
-const under = computed(() => (b.value.once ? t("bills.oneOff") : b.value.irregular ? t("bills.typical") : cad(b.value.every)));
-const src = computed(() => { const s = srcOf(b.value.src || ""); return s.name ? tx(s.name) + (s.tail ? " ⁦·· " + s.tail + "⁩" : "") : ""; });
+// the line under the amount: what the amount is, as at the end of the computer's row
+const under = computed(() => (b.value.once ? t("bills.oneOff") : b.value.irregular ? t("bills.typical") : b.value.vari ? t("bills.avg3") : t("bills.sameLast")));
+const src = computed(() => srcOf(b.value.src || ""));
 const due = computed(() => {
-  const x = b.value;
-  if (x.status == "overdue") return { text: t("bills.overdue", { date: iso(dstr(x.pd)) }), cls: "late" };
+  const x = b.value; // the row is named "Next payment", so a date further away is shown alone
+  if (x.status == "overdue") return { text: t("bills.overdue", { date: dstr(x.pd) }), cls: "late" };
   if (x.status == "pending") return { text: t("bills.dueNow"), cls: "now" };
-  return { text: x.days <= 7 ? t("bills.dueIn", { n: x.days }, x.days) + ", " + iso(dstr(x.nx)) : t("bills.nextCharge", { date: iso(dstr(x.nx)) }), cls: x.days <= 7 ? "soon" : "" };
+  return { text: x.days <= 7 ? dueText(x) + " · " + dstr(x.nx) : dstr(x.nx), cls: x.days <= 7 ? "soon" : "" };
 });
 const change = computed(() => priceChange(b.value));
 
@@ -60,13 +65,14 @@ const typeName = (v) => tk(TYPE_TEXT[v]);
 const typeOpen = computed({ get: () => !!typeFor.value, set: (v) => { if (!v) typeFor.value = null; } });
 const canType = computed(() => b.value && !b.value.once && !canceled.value);
 
-// past payments: the newest few, and all of them on request (a bill paid monthly for years has a long list)
-const FEW = 6;
-const allPays = ref(false);
-const rowsShown = computed(() => (pays.value ? (allPays.value ? pays.value.rows : pays.value.rows.slice(0, FEW)) : []));
-
+// the payment history as the computer's window lists it: a year heading when the year changes, a date tile per payment
+const items = computed(() => {
+  if (!pays.value) return [];
+  let lastY = "";
+  return pays.value.rows.map((r) => { const yr = r.t.d.slice(0, 4), head = yr !== lastY ? yr : ""; lastY = yr; return { ...r, head, diff: Math.abs(r.diff) > 0.5 ? r.diff : 0 }; });
+});
+const monShort = (d) => new Date(d + "T12:00:00").toLocaleDateString(loc.value, { month: "short" });
 const histName = (y) => displayName(S.value, y) || b.value.n;
-const diffOf = (r) => (Math.abs(r.diff) > 0.5 ? r.diff : 0);
 </script>
 
 <template>
@@ -84,16 +90,16 @@ const diffOf = (r) => (Math.abs(r.diff) > 0.5 ? r.diff : 0);
         <h1 class="ph-bill-name">{{ tx(b.n) }}</h1>
         <div class="ph-bill-chips">
           <span class="ph-bill-chip">{{ tk("bills.kind." + kindKey) }}</span>
-          <span v-if="canceled" class="ph-bill-chip off">{{ t("bills.canceled") }}</span>
-          <span v-else-if="b.flag" class="ph-bill-chip warn">{{ t("bills.markedCancel") }}</span>
-          <span class="ph-bill-chip">{{ b.manual ? t("bills.byYou") : t("bills.auto") }}</span>
+          <span v-if="canceled" class="ph-bpill off">{{ t("bills.canceled") }}</span>
+          <span v-else-if="b.flag" class="ph-bpill warn">{{ t("bills.markedCancel") }}</span>
+          <button type="button" class="ph-bq" @click="explain(evTip(b))">{{ b.irregular ? t("bills.whyQ") : b.manual ? t("bills.byYou") : t("bills.auto") }}<PIcon name="info" /></button>
         </div>
       </header>
 
       <!-- canceled: what that means, and the way back -->
       <ListGroup v-if="canceled">
         <div class="ph-bill-box">
-          <p><b v-if="b.canceledAt">{{ P("canceledNote", { date: iso(dstr(b.canceledAt)) }) }}</b> {{ t("bills.notCounted") }}</p>
+          <p><b v-if="b.canceledAt">{{ t("bills.canceledOn", { date: dstr(b.canceledAt) }) }}.</b> {{ t("bills.notCounted") }}</p>
           <div class="ph-bill-btns"><button type="button" class="ph-btn" @click="restore(b)">{{ t("bills.restore") }}</button><button type="button" class="ph-btn plain ph-bill-del" @click="remove(b)">{{ t("bills.remove") }}</button></div>
         </div>
       </ListGroup>
@@ -106,43 +112,44 @@ const diffOf = (r) => (Math.abs(r.diff) > 0.5 ? r.diff : 0);
         </div>
       </ListGroup>
 
-      <!-- regular: when it is next charged -->
-      <ListGroup v-if="kindKey == 'rec' && !canceled" :title="P('next')">
-        <ListRow :title="P('when')"><template #end><span class="ph-bill-v" :class="due.cls">{{ due.text }}</span></template></ListRow>
-        <ListRow :title="t('bills.tip.how')" :value="cad(b.every)" />
-        <ListRow :title="t('bills.tip.typical')" :sub="b.vari ? t('bills.avg3') : t('bills.sameLast')"><template #end><span class="ph-amt" dir="ltr">{{ b.vari ? "≈ " : "" }}{{ fm(b.pred) }}</span></template></ListRow>
-      </ListGroup>
-
+      <!-- the computer's row: how often, paid from, when next, the last charge and a price change -->
       <ListGroup :title="P('details')" :note="whyText(b, t)">
-        <ListRow v-if="src" :title="t('bills.add.from')" :value="src" />
-        <ListRow v-if="b.n_tx" :title="P('last')" :sub="iso(dstr(b.lp))">
-          <template #end><span class="ph-bill-endcol"><span class="ph-amt" dir="ltr">{{ fm(b.amt) }}</span><small v-if="change" dir="ltr" :class="change > 0 ? 'up' : 'dn'">{{ (change > 0 ? "+" : "−") + fm(Math.abs(change)) }}</small></span></template>
+        <ListRow :title="t('bills.tip.how')" :value="b.once ? t('bills.oneOff') : b.irregular ? t('bills.irregular') : cad(b.every)" />
+        <ListRow v-if="src.name" :title="t('bills.add.from')">
+          <template #end><span class="ph-row-v">{{ tx(src.name) }}<bdi v-if="src.tail" class="ph-btail" dir="ltr"> ·· {{ src.tail }}</bdi></span></template>
         </ListRow>
-        <ListRow v-else :title="P('last')" :value="P('noneYet')" />
+        <ListRow v-if="kindKey == 'rec' && !canceled" :title="P('next')"><template #end><span class="ph-bill-v" :class="due.cls">{{ due.text }}</span></template></ListRow>
+        <ListRow v-if="b.n_tx" :title="P('last')" :sub="dstr(b.lp)">
+          <template #end><span class="ph-bill-endcol"><span class="ph-amt" dir="ltr">{{ fm(b.amt) }}</span><span v-if="change" class="ph-bbd" :class="change > 0 ? 'up' : 'dn'"><PIcon name="chevron" :class="change > 0 ? 'u' : 'd'" /><bdi dir="ltr">{{ fm(Math.abs(change)) }}</bdi></span></span></template>
+        </ListRow>
+        <ListRow v-else :title="P('last')" :value="b.once ? t('bills.noPayFound') : t('bills.noCharge')" />
         <ListRow v-if="change" :title="P('priceChanged')" :sub="change > 0 ? P('priceUp', { amount: fm(change) }) : P('priceDown', { amount: fm(-change) })" />
         <ListRow v-if="!b.once && b.n_tx > 1 && b.hi > b.lo" :title="P('range')" :value="P('rangeVal', { lo: fm(b.lo), hi: fm(b.hi) })" />
         <ListRow v-if="b.irregular" :title="P('perMonth')" :value="fm(b.mo)" />
-        <ListRow v-if="!b.once" :title="t('bills.tip.so')" :value="String(b.n_tx || 0)" />
+        <ListRow v-if="!b.once" :title="t('bills.tip.so')" :sub="b.irregular && b.n_tx ? t('bills.irrSo', { n: b.n_tx, c: b.cnt12 }, b.n_tx) : ''" :value="String(b.n_tx || 0)" />
         <ListRow v-if="canType" :title="P('changeType')" link @tap="openType(b.idx)" />
       </ListGroup>
 
-      <!-- past payments: the totals, a bar per payment, and the list -->
-      <ListGroup :title="P('history')" :more="pays ? t('bills.h.show') : ''" @more="showInActivity(b.idx)">
-        <p v-if="!pays" class="ph-bill-none">{{ t("bills.h.none") }}</p>
-        <template v-else>
-          <div class="ph-bill-stats">
-            <span><small>{{ t("bills.h.payments") }}</small><b>{{ pays.L.length }}</b></span>
-            <span><small>{{ t("bills.h.total") }}</small><b>{{ fm(pays.tot) }}</b></span>
-            <span><small>{{ t("bills.h.average") }}</small><b>{{ fm(pays.avg) }}</b></span>
+      <!-- the computer's payment history window -->
+      <ListGroup :title="t('bills.menu.hist')" bare>
+        <p v-if="!pays" class="ph-meta ph-bill-none">{{ t("bills.h.none") }}</p>
+        <div v-else class="ph-bill-hist">
+          <p class="ph-meta">{{ b.once ? t("bills.h.once") : t("bills.h.bill") }} · {{ t("activity.w.hTo", { a: iso(dstr(pays.L[pays.L.length - 1].d)), b: iso(dstr(pays.L[0].d)) }) }}</p>
+          <div class="phs"><div><span>{{ t("bills.h.payments") }}</span><b>{{ pays.L.length }}</b></div><div><span>{{ t("bills.h.total") }}</span><b dir="ltr">{{ fm(pays.tot) }}</b></div><div><span>{{ t("bills.h.average") }}</span><b dir="ltr">{{ fm(pays.avg) }}</b></div></div>
+          <div v-if="pays.bars.length" class="phb" aria-hidden="true"><i v-for="y in pays.bars" :key="y.id" :style="{ height: Math.max(8, (Math.abs(y.a) / pays.mx) * 100) + '%' }" /></div>
+          <div v-if="pays.mx - pays.mn > 0.5" class="phr"><span>{{ t("bills.h.lowest") }} <b dir="ltr">{{ fm(pays.mn) }}</b></span><span>{{ t("bills.h.highest") }} <b dir="ltr">{{ fm(pays.mx) }}</b></span></div>
+          <div class="phl">
+            <template v-for="it in items" :key="it.t.id">
+              <div v-if="it.head" class="phy">{{ it.head }}</div>
+              <div class="phi" role="button" tabindex="0" @click="nav.push('transaction', String(it.t.id))" @keydown.enter="nav.push('transaction', String(it.t.id))">
+                <div class="phd"><span>{{ monShort(it.t.d) }}</span><b>{{ +it.t.d.slice(8, 10) }}</b></div>
+                <div class="phm"><div class="pht">{{ histName(it.t) }}</div><div class="sm">{{ it.t.from || "" }}{{ it.t.c ? (it.t.from ? " · " : "") + catLabel(it.t.c) : "" }}</div></div>
+                <div class="pha"><b class="ph-amt" :class="{ pos: it.t.a > 0 }" dir="ltr">{{ it.t.a < 0 ? "" : "+" }}{{ fm(Math.abs(it.t.a)) }}</b><span v-if="it.diff" class="ph-bbd" :class="it.diff > 0 ? 'up' : 'dn'"><PIcon name="chevron" :class="it.diff > 0 ? 'u' : 'd'" /><bdi dir="ltr">{{ fm(Math.abs(it.diff)) }}</bdi></span></div>
+              </div>
+            </template>
           </div>
-          <div v-if="pays.bars.length" class="ph-bill-bars" aria-hidden="true"><i v-for="y in pays.bars" :key="y.id" :style="{ blockSize: Math.max(8, (Math.abs(y.a) / pays.mx) * 100) + '%' }" /></div>
-          <p v-if="pays.mx - pays.mn > 0.5" class="ph-bill-range"><span>{{ t("bills.h.lowest") }} <b>{{ fm(pays.mn) }}</b></span><span>{{ t("bills.h.highest") }} <b>{{ fm(pays.mx) }}</b></span></p>
-          <ListRow v-for="r in rowsShown" :key="r.t.id" :title="iso(dstr(r.t.d))" :sub="[r.t.from, r.t.c ? catLabel(r.t.c) : ''].filter(Boolean).join(', ') || histName(r.t)" link @tap="nav.push('transaction', String(r.t.id))">
-            <template #end><span class="ph-bill-endcol"><span class="ph-amt" :class="{ pos: r.t.a > 0 }" dir="ltr">{{ r.t.a < 0 ? "" : "+" }}{{ fm(Math.abs(r.t.a)) }}</span><small v-if="diffOf(r)" dir="ltr" :class="diffOf(r) > 0 ? 'up' : 'dn'">{{ (diffOf(r) > 0 ? "+" : "−") + fm(Math.abs(diffOf(r))) }}</small></span></template>
-          </ListRow>
-          <ListRow v-if="pays.rows.length > FEW" class="ph-bill-all" :title="allPays ? P('showFewer') : P('showAll', { n: pays.rows.length })" @tap="allPays = !allPays" />
-        </template>
-        <template v-if="pays" #note>{{ P("historyNote") }}</template>
+          <button type="button" class="ph-btn plain block" @click="showInActivity(b.idx)">{{ t("bills.h.show") }}</button>
+        </div>
       </ListGroup>
     </template>
 
