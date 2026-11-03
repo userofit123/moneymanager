@@ -50,6 +50,12 @@ const periods = computed(() => MONTHS.map((n) => ({ value: String(n), label: t(M
 const period = computed({ get: () => String(nM.value), set: (v) => { months.value = v; } });
 const main = computed(() => (row.value ? moneyCell(row.value, row.value.main === "in" ? "in" : "out") : null));
 const chg = computed(() => (row.value ? change(row.value) : null));
+// the change said in full under the amount: "₪882 less than the 6 months before"
+const chgText = computed(() => {
+  const c = chg.value;
+  if (c.cls === "good" || c.cls === "bad") return P(c.up ? "chgMore" : "chgLess", { amount: c.text, n: nM.value });
+  return c.cls === "same" ? P("chgSame", { n: nM.value }) : c.text;
+});
 
 // month by month: the month picked (the last one at first), what went out and came in, and the way to its transactions
 const B = computed(() => (row.value ? bars(row.value) : []));
@@ -60,6 +66,12 @@ const atOut = computed(() => row.value?.outM[at.value] || 0), atIn = computed(()
 
 // the numbers the computer's columns show (tags have no budget); a tap explains one
 const cols = computed(() => CAT_COLS.filter((c) => !(tab.value === "tags" && c === "budget")));
+// split in two: the amounts, then the other facts (how many, the latest, its budget and rules)
+const FACTS = ["n", "last", "budget", "rules"];
+const groups = computed(() => [
+  { key: "money", title: P("numbers"), cols: cols.value.filter((c) => !FACTS.includes(c)), note: P("inPeriod", { n: nM.value }) + ": " + P("period", { from: monthName(ST.value.from, { month: "short", year: "numeric" }), to: monthName(ST.value.to, { month: "short", year: "numeric" }) }) },
+  { key: "facts", title: P(tab.value === "tags" ? "aboutTag" : "aboutCat"), cols: cols.value.filter((c) => FACTS.includes(c)), note: "" },
+]);
 const tapCol = (c) => {
   const r = row.value;
   if (c === "budget") return r.budget ? go("/budgets") : r.canBudget ? setBudget(r) : explain(colTip(c));
@@ -98,7 +110,7 @@ const renOn = computed({ get: () => !!ren.value, set: (v) => { if (!v) ren.value
         <b class="ph-cat-amt" :class="main.cls" dir="ltr">{{ signed(main.v) }}</b>
         <p class="ph-cat-sub">{{ colHead(row.main === "in" ? "in" : "out") }}</p>
         <p v-if="chg.text" class="ph-cats-chg ph-cat-chg" :class="chg.cls">
-          <svg v-if="chg.cls === 'good' || chg.cls === 'bad'" viewBox="0 0 24 24" aria-hidden="true" :class="{ dn: !chg.up }"><path d="M12 19V5M6 11l6-6 6 6" /></svg>{{ chg.text }}
+          <svg v-if="chg.cls === 'good' || chg.cls === 'bad'" viewBox="0 0 24 24" aria-hidden="true" :class="{ dn: !chg.up }"><path d="M12 19V5M6 11l6-6 6 6" /></svg>{{ chgText }}
         </p>
       </header>
 
@@ -117,13 +129,13 @@ const renOn = computed({ get: () => !!ren.value, set: (v) => { if (!v) ren.value
               <span class="ph-cat-bw"><i :style="{ blockSize: Math.max(b.h, 2) + '%' }" /></span><small>{{ b.label }}</small>
             </button>
           </div>
-          <button type="button" class="ph-btn tonal ph-cat-go" @click="L.act(row.k, B[at].m)">{{ P("seeMonth", { month: monthName(B[at].m, { month: "long" }) }) }}</button>
+          <button type="button" class="ph-btn plain block ph-cat-go" @click="L.act(row.k, B[at].m)">{{ P("seeMonth", { month: monthName(B[at].m, { month: "long" }) }) }}</button>
         </div>
       </section>
 
-      <!-- every number the computer's columns show -->
-      <ListGroup :title="P('numbers')" :note="P('inPeriod', { n: nM }) + ': ' + P('period', { from: monthName(ST.from, { month: 'short', year: 'numeric' }), to: monthName(ST.to, { month: 'short', year: 'numeric' }) })">
-        <ListRow v-for="c in cols" :key="c" :title="colHead(c)" :link="(c === 'budget' && (row.budget || row.canBudget)) || (c === 'rules' && !!row.rules)" @tap="tapCol(c)">
+      <!-- every number the computer's columns show: the amounts, then the other facts -->
+      <ListGroup v-for="g in groups" :key="g.key" :title="g.title" :note="g.note">
+        <ListRow v-for="c in g.cols" :key="c" :title="colHead(c)" :link="(c === 'budget' && (row.budget || row.canBudget)) || (c === 'rules' && !!row.rules)" @tap="tapCol(c)">
           <template v-if="c === 'budget' && row.budget" #sub>{{ t("cats.bud.used", { amt: fm(row.thisOut) }) }}</template>
           <template #end>
             <span v-if="c === 'change'" class="ph-cats-chg" :class="change(row).cls">

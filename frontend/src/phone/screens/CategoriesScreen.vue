@@ -1,7 +1,8 @@
 <script setup>
-// Categories and tags (in More): what the money went on, per category and per tag. It opens with one sentence (how much
-// went out in the months looked at), then the money out, in and the difference, the months to look at (3, 6 or 12), a search
-// and the order, and the list. A row opens its own screen (CategoryScreen). + adds a category or a tag.
+// Categories and tags (in More): what the money went on, per category (a kind of spending, like Groceries) and per tag
+// (the person's own label). It opens with one sentence (how much went out in the months looked at), the months to look at
+// (3, 6 or 12), the money out, in and the difference, then the list with a line on what a category is, a search and the
+// order. A row opens its own screen (CategoryScreen). + adds a category or a tag.
 // Every number comes from pagelogic/categories.js, the same as the computer's Categories and tags page.
 import { ref, computed, onMounted } from "vue";
 import { useCategories } from "../../pagelogic/categories.js";
@@ -96,36 +97,38 @@ const AI = '<path d="M12 3l1.8 4.6L18.5 9.5l-4.7 1.9L12 16l-1.8-4.6L5.5 9.5l4.7-
 
       <template v-else>
         <HeroSentence :parts="hero" />
-        <p class="ph-cats-when">{{ P("period", periodWords) }}</p>
+        <Segmented v-model="period" :options="periods" :label="t('cats.period.label')" />
 
-        <ListGroup>
+        <!-- the money of the months looked at -->
+        <ListGroup :title="P('totals')" :note="P('period', periodWords)">
           <ListRow v-for="x in totals" :key="x.c" :title="x.label">
             <template #end><span class="ph-amt" :class="x.cls" dir="ltr">{{ signed(x.v) }}</span></template>
           </ListRow>
         </ListGroup>
 
-        <Segmented v-model="period" :options="periods" :label="t('cats.period.label')" />
-
-        <div class="ph-cats-tools">
-          <SearchField v-model="q" :placeholder="t(tab === 'cats' ? 'cats.search.cats' : 'cats.search.tags')" />
-          <div class="ph-chips">
-            <span class="ph-chip" :class="{ on: !!sortNow }"><button type="button" class="ph-chip-b" :aria-label="P('sortTitle') + ': ' + sortName" @click="sortOpen = true"><PIcon name="filter" />{{ sortName }}<PIcon name="chevron" class="ph-cats-down" /></button></span>
-          </div>
-        </div>
-
-        <ListGroup>
-          <ListRow v-for="r in rows" :key="r.k" class="ph-cats-row" :class="{ zero: !r.n }" link @tap="open(r)">
+        <!-- the list: what a category (a tag) is, the search and the order, then a row each -->
+        <ListGroup :title="P(tab === 'cats' ? 'listCats' : 'listTags')">
+          <template #top>
+            <p class="ph-meta ph-cats-what">{{ P(tab === "cats" ? "whatCat" : "whatTag") }}</p>
+            <div class="ph-cats-tools">
+              <SearchField v-model="q" :placeholder="t(tab === 'cats' ? 'cats.search.cats' : 'cats.search.tags')" />
+              <button type="button" class="ph-cats-sort" :class="{ on: !!sortNow }" :aria-label="P('sortTitle') + ': ' + sortName" @click="sortOpen = true"><PIcon name="filter" /><span>{{ sortName }}</span></button>
+            </div>
+          </template>
+          <ListRow v-for="r in rows" :key="r.k" class="ph-cats-row" :class="{ zero: !r.n }" :sub="t('activity.count', { n: r.n }, r.n)" link @tap="open(r)">
             <template #title><bdi>{{ L.name(r.k) }}</bdi></template>
             <template #lead><span class="ph-cats-mic" :style="{ '--mc': L.color(r.k) }" aria-hidden="true">{{ letter(r.k) }}</span></template>
-            <template #sub>
-              <span v-if="change(r).text" class="ph-cats-chg" :class="change(r).cls">
-                <svg v-if="change(r).cls === 'good' || change(r).cls === 'bad'" viewBox="0 0 24 24" aria-hidden="true" :class="{ dn: !change(r).up }"><path d="M12 19V5M6 11l6-6 6 6" /></svg>{{ change(r).text }}
+            <template #end>
+              <span class="ph-cats-end">
+                <span class="ph-amt" :class="mainCell(r).cls" dir="ltr">{{ signed(mainCell(r).v) }}</span>
+                <span v-if="change(r).text" class="ph-cats-chg" :class="change(r).cls">
+                  <svg v-if="change(r).cls === 'good' || change(r).cls === 'bad'" viewBox="0 0 24 24" aria-hidden="true" :class="{ dn: !change(r).up }"><path d="M12 19V5M6 11l6-6 6 6" /></svg>{{ change(r).text }}
+                </span>
               </span>
-              <span>{{ t("activity.count", { n: r.n }, r.n) }}</span>
             </template>
-            <template #end><span class="ph-amt" :class="mainCell(r).cls" dir="ltr">{{ signed(mainCell(r).v) }}</span></template>
           </ListRow>
           <p v-if="!rows.length" class="ph-cats-none">{{ t("cats.search.none", { q }) }}</p>
+          <template #note>{{ P("chgNote", { n: nM }) }}</template>
         </ListGroup>
       </template>
 

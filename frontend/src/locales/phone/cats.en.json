@@ -26,5 +26,16 @@
   "aiTitle": "Get suggestions from an AI",
   "monthOut": "{amount} out",
   "monthIn": "{amount} in",
-  "seeMonth": "See {month} in Activity"
+  "seeMonth": "See {month} in Activity",
+  "totals": "Money in these months",
+  "listCats": "Your categories",
+  "listTags": "Your tags",
+  "whatCat": "A category is a kind of spending or income, like Groceries or Salary. Tap one to see what is in it.",
+  "whatTag": "A tag is your own label on transactions, like a trip. Tap one to see what is in it.",
+  "chgNote": "The small line under each amount is how it changed against the {n} months before.",
+  "chgMore": "{amount} more than the {n} months before",
+  "chgLess": "{amount} less than the {n} months before",
+  "chgSame": "About the same as the {n} months before",
+  "aboutCat": "About this category",
+  "aboutTag": "About this tag"
 }

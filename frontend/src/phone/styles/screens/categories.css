@@ -1,40 +1,71 @@
 /* Phone Categories and tags screen (phone/screens/CategoriesScreen.vue). Every rule starts with html.phone.
-   The letter tile and the change line (.ph-cats-mic, .ph-cats-chg) are also used by the Category screen. */
+   The letter tile (also on Budgets and the Category screen) and the change line (.ph-cats-mic, .ph-cats-chg) are also used by the Category screen. */
 
 /* Categories / Tags under the title */
 html.phone .ph-cats-head {
   padding: 0 var(--p-gut) 16px;
 }
 
-/* the months the sentence is about, right under it */
-html.phone .ph-cats-when {
-  margin: calc(-1 * var(--p-gap) + 6px) 0 0;
-  color: var(--tx2);
-  font-size: 14px;
-  line-height: 20px;
+/* the list's top: what a category (a tag) is, then the search and the order on one line */
+html.phone .ph-cats-what {
+  margin-block-end: var(--p-s3);
 }
 
-/* the search and the order */
 html.phone .ph-cats-tools {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-block-end: calc(-1 * var(--p-gap) + 12px);
+  align-items: center;
+  gap: var(--p-s2);
+  margin-block-end: var(--p-s3);
 }
 
-html.phone .ph-cats-tools .ph-chip-b {
+html.phone .ph-cats-tools .ph-search {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+/* the order: a button as high as the search box, tinted when it is not the usual order */
+html.phone .ph-cats-sort {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  flex: none;
+  max-inline-size: 45%;
+  block-size: var(--p-hit);
+  padding-inline: 14px;
+  border: 1px solid var(--p-card-line);
+  border-radius: var(--p-r-group);
+  background: var(--p-surf);
+  color: var(--tx);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
 }
 
-html.phone .ph-cats-tools .ph-chip-b .ph-ic {
-  inline-size: 16px;
-  block-size: 16px;
+html.phone .ph-cats-sort span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-html.phone .ph-cats-down {
-  transform: rotate(90deg);
+html.phone .ph-cats-sort .ph-ic {
+  flex: none;
+  inline-size: 18px;
+  block-size: 18px;
+  color: var(--acc);
+}
+
+html.phone .ph-cats-sort.on {
+  border-color: transparent;
+  background: var(--accc);
+  color: var(--onc);
+}
+
+html.phone .ph-cats-sort.on .ph-ic {
+  color: inherit;
+}
+
+html.phone .ph-cats-sort:active {
+  background: var(--p-press);
 }
 
 /* the first letter of the name, on the category's own colour */
@@ -42,8 +73,8 @@ html.phone .ph-cats-mic {
   display: grid;
   place-items: center;
   flex: none;
-  inline-size: 36px;
-  block-size: 36px;
+  inline-size: 40px;
+  block-size: 40px;
   border-radius: var(--p-r-tile);
   background: color-mix(in srgb, var(--mc) 16%, transparent);
   color: var(--mc);
@@ -58,15 +89,17 @@ html.phone .ph-cats-mic.big {
   font-size: 22px;
 }
 
-/* the second line: the change, then how many transactions */
-html.phone .ph-cats-row .ph-row-s {
+/* the end of a row: the amount, and under it the change against the months before */
+html.phone .ph-cats-end {
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
-html.phone .ph-cats-row .ph-row-s > span:last-child {
-  overflow: hidden;
-  text-overflow: ellipsis;
+html.phone .ph-cats-end .ph-cats-chg {
+  color: var(--tx2);
+  font-size: var(--p-f-meta);
+  line-height: 18px;
 }
 
 /* a category with nothing in the months looked at is quieter */
@@ -83,11 +116,13 @@ html.phone .ph-cats-chg {
   font-variant-numeric: tabular-nums;
 }
 
-html.phone .ph-cats-chg.good {
+html.phone .ph-cats-chg.good,
+html.phone .ph-cats-end .ph-cats-chg.good {
   color: var(--pos);
 }
 
-html.phone .ph-cats-chg.bad {
+html.phone .ph-cats-chg.bad,
+html.phone .ph-cats-end .ph-cats-chg.bad {
   color: var(--neg);
 }
 
