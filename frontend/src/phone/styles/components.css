@@ -526,7 +526,7 @@ html.phone .ph-group-top + .ph-group-b {
 
 html.phone .ph-group-h {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: var(--p-s3);
   min-block-size: 28px;
@@ -534,24 +534,35 @@ html.phone .ph-group-h {
   margin-block-end: var(--p-head);
 }
 
+/* a section's heading looks like the computer's: small, grey, spaced capitals (Hebrew has no capitals) */
 html.phone .ph-group-h h3 {
+  flex: 1;
+  min-inline-size: 0;
   margin: 0;
-  color: var(--tx);
-  font-size: var(--p-f-sec);
-  line-height: 24px;
+  color: var(--tx2);
+  font-size: 12.5px;
+  line-height: 18px;
   font-weight: 650;
-  letter-spacing: -.2px;
-  text-transform: none;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
 }
 
 html.phone.he .ph-group-h h3 {
+  font-size: 14px;
   letter-spacing: 0;
 }
 
 html.phone .ph-group-h .ph-link {
   position: relative;
+  flex: none;
   min-block-size: 28px;
   font-size: 14px;
+}
+
+html.phone .ph-group-h .ph-link .ph-ic {
+  inline-size: 16px;
+  block-size: 16px;
+  margin-inline-end: -4px;
 }
 
 /* the link stays small beside the title, but a finger gets the full 44px */
@@ -1499,4 +1510,207 @@ html.phone .ph-loaderr p {
   margin: 0;
   font-size: 15px;
   line-height: 22px;
+}
+
+/* ---- The computer's building blocks on the phone ---- */
+/* AmountCard: the computer's amount card (.card with .lbl and .val): icon and name, the amount large, a line under it,
+   and a trend line along the bottom edge. hero is the highlighted card (In your accounts), in the app's soft colour. */
+html.phone .ph-acard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  padding: 16px 16px 14px;
+  background: var(--p-surf);
+  border: 1px solid var(--p-card-line);
+  border-radius: var(--p-r-group);
+  overflow: hidden;
+  color: var(--tx);
+  text-align: start;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--p-t-press), background-color var(--p-t-press);
+}
+
+html.phone .ph-acard.tap:active {
+  transform: scale(.985);
+  background: var(--p-press);
+}
+
+html.phone .ph-acard.hero {
+  background: linear-gradient(140deg, var(--accc), color-mix(in srgb, var(--accc) 55%, var(--p-surf)));
+  border-color: color-mix(in srgb, var(--onc) 14%, transparent);
+  color: var(--onc);
+}
+
+html.phone .ph-acard-l {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-inline-size: 0;
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+}
+
+html.phone .ph-acard-n {
+  flex: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html.phone .ph-acard-i {
+  display: contents;
+}
+
+html.phone .ph-acard-chip {
+  flex: none;
+  padding: 1px 9px;
+  border: 1px solid var(--p-card-line);
+  border-radius: 99px;
+  font-size: 12px;
+  color: var(--tx2);
+}
+
+html.phone .ph-acard-v {
+  margin: 8px 0 2px;
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 600;
+  letter-spacing: -.8px;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-acard-v small {
+  font-size: .55em;
+  font-weight: 500;
+  opacity: .6;
+  margin-inline-end: 2px;
+}
+
+html.phone .ph-acard-s {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+html.phone .ph-acard.hero :is(.ph-acard-l, .ph-acard-s) {
+  color: color-mix(in srgb, var(--onc) 75%, transparent);
+}
+
+html.phone .ph-acard.hero .bi {
+  background: color-mix(in srgb, var(--onc) 18%, transparent);
+  color: var(--onc);
+}
+
+/* the trend line runs along the card's bottom edge, under the text */
+html.phone .ph-acard.spk {
+  padding-block-end: 0;
+}
+
+html.phone .ph-acard-spark {
+  display: block;
+  inline-size: calc(100% + 32px);
+  max-inline-size: none;
+  block-size: 40px;
+  margin: 8px -16px 0;
+  margin-block-start: auto;
+  padding-block-start: 8px;
+  opacity: .9;
+}
+
+/* SwipeCards: three or more cards slide sideways (the next one peeks); two or fewer stack */
+html.phone .ph-swipe {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-s3);
+}
+
+html.phone .ph-swipe.on {
+  flex-direction: row;
+  margin-inline: calc(var(--p-gut) * -1);
+  padding-inline: var(--p-gut);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--p-gut);
+  scrollbar-width: none;
+}
+
+html.phone .ph-swipe.on::-webkit-scrollbar {
+  display: none;
+}
+
+html.phone .ph-swipe.on > * {
+  flex: 0 0 82%;
+  scroll-snap-align: start;
+}
+
+/* DonutChart: the computer's ring chart, the ring above its legend */
+html.phone .ph-donut {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--p-s4);
+}
+
+html.phone .ph-donut-c {
+  inline-size: 180px;
+  block-size: 180px;
+}
+
+html.phone .ph-donut-c path {
+  cursor: pointer;
+}
+
+html.phone .ph-donut-t {
+  font-size: 22px;
+  font-weight: 600;
+  fill: var(--tx);
+}
+
+html.phone .ph-donut-s {
+  font-size: 12px;
+  fill: var(--tx2);
+}
+
+html.phone .ph-donut-l {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+}
+
+html.phone .ph-donut-r {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-block-size: var(--p-hit);
+  padding: 0;
+  border: 0;
+  border-block-start: 1px solid var(--p-line);
+  background: none;
+  color: var(--tx);
+  font: inherit;
+  font-size: 14px;
+  text-align: start;
+}
+
+html.phone .ph-donut-r:first-child {
+  border-block-start: 0;
+}
+
+html.phone .ph-donut-r i {
+  flex: none;
+  inline-size: 10px;
+  block-size: 10px;
+  border-radius: 50%;
+}
+
+html.phone .ph-donut-r span {
+  flex: 1;
+  min-inline-size: 0;
 }

@@ -1,21 +1,21 @@
 <script setup>
-// Home (tab): how the month is going at a glance. It opens with one sentence (what is free to use until the month ends),
-// then what needs a look, the month's four totals, accounts, cards, the money flow, spending by category, budgets,
-// upcoming bills, recent activity, your goal (when one is saved), jars and exchange rates. Every number comes from pagelogic/home.js, the same as the
-// computer's Home page. The bell opens Alerts, + opens "Add or update". A block with nothing to show is hidden.
+// Home (tab): the computer's Home page for a phone, block by block in the same order: what needs a look, the four totals,
+// accounts, cards this month vs last, the money flow, spending by category, budgets, upcoming bills, recent activity,
+// your goal (when one is saved), jars and exchange rates. Every number comes from pagelogic/home.js, the same as the
+// computer. What the computer shows on hover opens in a sheet on a tap. A block with nothing to show is hidden.
+// The bell opens Alerts, + opens "Add or update", the bulb (when there are ideas) the ideas to tidy up the data.
 import { ref, computed, onMounted } from "vue";
 import { data } from "../../stores/data.js";
 import { goActivity, quickOpen } from "../../core/shell.js";
 import { openForm } from "../../core/forms.js";
 import { suggestions, suggestOpen } from "../../core/suggest.js";
-import { vTip, explain } from "../../core/tooltip.js";
+import { explain } from "../../core/tooltip.js";
 import { amtText } from "../../lib/txrows.js";
 import { billKey } from "../../lib/bills.js";
-import { brandIcon } from "../../brands.js";
+import { brandIcon, glyphIcon } from "../../brands.js";
 import { currencySymbol } from "../../format.js";
 import { dcell, dstr, titleCase } from "../../dates.js";
 import { useHome } from "../../pagelogic/home.js";
-import { keyNums } from "../../core/derived.js";
 import { useGoalCard, openYearsNext } from "../../pagelogic/yearsAhead.js";
 import AvailWhy from "../../views/AvailWhy.vue";
 import { usePhoneNav } from "../navigation.js";
@@ -23,13 +23,12 @@ import { ICONS } from "../icons.js";
 import PhoneScreen from "../components/PhoneScreen.vue";
 import IconButton from "../components/IconButton.vue";
 import SyncLine from "../components/SyncLine.vue";
-import HeroSentence from "../components/HeroSentence.vue";
 import ListGroup from "../components/ListGroup.vue";
 import ListRow from "../components/ListRow.vue";
-import StatTile from "../components/StatTile.vue";
+import AmountCard from "../components/AmountCard.vue";
+import SwipeCards from "../components/SwipeCards.vue";
+import DonutChart from "../components/DonutChart.vue";
 import Segmented from "../components/Segmented.vue";
-import ProgressBar from "../components/ProgressBar.vue";
-import ProgressRing from "../components/ProgressRing.vue";
 import EmptyState from "../components/EmptyState.vue";
 import SkeletonRows from "../components/SkeletonRows.vue";
 import PIcon from "../components/PIcon.vue";
@@ -37,64 +36,63 @@ import LoadError from "../components/LoadError.vue";
 defineProps({ id: { type: String, default: null } });
 
 const {
-  t, locale, fm, n0, an, pair, fx, S, M, monthName, catName, catColor, nm, accLbl, alertList, alerts3, openTxId, openAlert, accGo,
-  kpis, accSub, cardRows, flowMode, flowOpts, W, pay, calm, cols, colTip, leftOf, donut, fxCur, fxKeys, fxView, fxOpts,
+  t, fm, n0, an, pair, fx, S, M, monthName, catName, catColor, nm, accLbl, alertList, alerts3, openTxId, openAlert, accGo,
+  kpis, money2, accSub, cardRows, flowMode, flowOpts, W, pay, calm, cols, startTip, cardsTip, upTip, endTip, colTip, asideTip, tileTip, leftOf,
+  donut, fxCur, fxKeys, fxView, fxOpts,
 } = useHome();
 const nav = usePhoneNav();
-// an upcoming bill opens its own screen
-const openBill = (b) => { const bl = M.value.billsAll[b.idx]; if (bl) nav.push("bill", billKey(bl)); };
-onMounted(() => data.start());
-const iso = (s) => "\u2066" + s + "\u2069"; // a date keeps its order inside a Hebrew sentence
-// a bill's day on a small calendar page: the month's short name over the day
-const dayOf = (d) => (d instanceof Date ? d.getDate() : "");
-const monShort = (d) => (d instanceof Date ? d.toLocaleDateString(locale.value === "he" ? "he-IL" : "en-GB", { month: "short" }) : "");
-const cap = (s) => String(s).charAt(0).toUpperCase() + String(s).slice(1);
 const P = (k, o, n) => t("phone.home." + k, o || {}, n);
-
-// the sentence at the top: what is free to use (the same number as "Free to use" on the computer and in Jars); short of
-// money right before payday, when the income still to come this month covers it: what will likely be free after payday
-const paid = computed(() => (M.value.flow.over > 0 && keyNums.value?.payday?.covered ? keyNums.value.payday : null));
-const hero = computed(() => {
-  const F = M.value.flow, short = F.over > 0, k = paid.value ? "payday" : short ? "short" : "free";
-  const text = P(k, { amount: "\u0000" }), [a, b = ""] = text.split("\u0000");
-  return [{ text: a }, { amount: fm(paid.value ? paid.value.after : short ? F.over : F.free) }, { text: b }];
-});
+onMounted(() => data.start());
 const avail = ref(false);
+const iso = (s) => "⁦" + s + "⁩"; // a date keeps its order inside a Hebrew sentence
 
-// a tooltip's text, opened by a tap (the computer shows it on hover)
-
-// the four totals: in your accounts and saved first (the month's answer), then money in and out
-const ORDER = ["worth", "net", "income", "expense"];
-const tiles = computed(() => ORDER.map((k) => kpis.value.find((c) => c.key === k)).filter(Boolean));
-// the phone's shorter names and lines where the computer's would wrap in a half-width tile (the full story is in the tap)
-const tileLabel = (c) => (c.key === "net" ? P("savedLabel") : cap(c.label));
-const tileNote = (c) => (c.key === "net" ? P("savedNote") : c.sub);
-const tileVal = (c) => (c.key === "net" && c.v < 0 ? "−" : "") + "₪" + n0(c.v);
+// the four totals, as on the computer: the same icons and colours; tapping one explains it
+const KPI_COL = { worth: "var(--acc)", income: "var(--pos)", expense: "var(--neg)", net: "var(--acc)" };
+const kpiVal = (c) => (c.key === "net" && c.v < 0 ? "−" : "") + n0(c.v);
 
 // accounts: an account's own screen (by the first account of that bank or wallet), else the Accounts screen
 const accOpen = (n) => { const a = (S.value?.accounts || []).find((x) => x.n == n); if (a?.id != null) nav.push("account", String(a.id)); else accGo(n); };
-const ACC_N = 4;
-const accounts = computed(() => [...M.value.groups].sort((a, b) => b.total - a.total).slice(0, ACC_N));
-// (an account's own line may already say "Manual": then it is not said twice)
-const accLine = (g) => { const s = accSub(g); if (s.lines) return s.chips; const has = s.chips && s.text.toLowerCase().includes(s.chips.toLowerCase()); return [s.text, has ? "" : s.chips].filter(Boolean).join(", "); };
 
-// spending by category: the five biggest, the rest in one row
-const spendTop = computed(() => donut.value.parts.slice(0, 5));
-const spendRest = computed(() => donut.value.parts.slice(5).reduce((s, p) => s + p.v, 0));
+// the money flow's steps, as on the computer: what is in the accounts, minus each part, equals what is free
+const isShort = computed(() => W.value.eOver > 0 && !calm.value);
+const steps = computed(() => {
+  const w = W.value, F = M.value.flow, L = [{ k: "start", label: t("num.inAccounts"), v: fm(w.start), tip: startTip(true) }];
+  if (F.cards >= 1) L.push({ k: "cards", label: t("num.cardsUnpaid"), v: fm(F.cards), tip: cardsTip.value });
+  if (w.upTot >= 1) L.push({ k: "up", label: t("num.upcoming"), v: fm(w.upTot), tip: upTip.value });
+  if (!w.ACT) L.push({ k: "left", label: t("num.leftBudgets"), v: fm(w.leftTot), tip: tileTip.value });
+  if (!w.ACT) L.push({ k: "aside", label: t("num.putAside"), v: fm(w.jarsA + F.buffer), tip: asideTip.value });
+  return L;
+});
+const endLabel = computed(() => (isShort.value ? t("home.shortBy") : W.value.ACT ? t("num.afterKnown") : t("num.free")));
+const endVal = computed(() => (W.value.eOver > 0 ? "−₪" + n0(W.value.eOver) : fm(W.value.eFree)));
+const colTone = (c) => (c.kind === "end" ? "end " + c.tone : c.kind === "item" ? "" : c.kind);
+
+// spending by category: the computer's ring chart and its legend
+const donutParts = computed(() => donut.value.parts.map((p) => ({ ...p, label: catName(p.n), amount: "₪" + n0(p.v) })));
+
+// upcoming bills open their own screen
+const openBill = (b) => { const bl = M.value.billsAll[b.idx]; if (bl) nav.push("bill", billKey(bl)); };
 
 // your goal (saved in Forecast → Years ahead): tapping it opens the Forecast there
 const goal = useGoalCard();
 const openGoal = () => { openYearsNext(); nav.push("forecast"); };
 
-const budgets = computed(() => M.value.budgets.slice(0, 3));
-const budTone = (b) => (b.st == "over" ? "neg" : b.st == "warn" ? "warn" : "acc");
-const flowName = (c) => c.name;
-const isEnd = (c) => c.kind === "end";
+// exchange rates: a tap on the chart shows that day's rate (the computer shows it on hover)
+const fxPick = ref(null), fxSvg = ref(null);
+function fxAt(e) {
+  const F = fxView.value, svg = fxSvg.value; if (!F || !svg) return;
+  const r = svg.getBoundingClientRect(); if (!r.width) return;
+  const vx = ((e.clientX - r.left) * F.Wd) / r.width; let i = 0, best = 1e9;
+  F.xs.forEach((x, j) => { const d = Math.abs(x - vx); if (d < best) { best = d; i = j; } });
+  fxPick.value = i;
+}
+const fxBadge = computed(() => { const ch = fxView.value?.ch || 0; return Math.abs(ch) < .005 ? "" : ch > 0 ? "dn" : "up"; });
 </script>
 
 <template>
   <PhoneScreen class="ph-home" refresh>
     <template #actions>
+      <IconButton v-if="suggestions.length" :label="t('txw.suggA')" icon-name="idea" :badge="suggestions.length" @tap="suggestOpen = true" />
       <IconButton :label="t('shell.alerts')" icon-name="bell" :badge="alertList.length" @tap="nav.push('alerts')" />
       <IconButton :label="t('shell.add')" icon-name="add" @tap="quickOpen = true" />
     </template>
@@ -106,139 +104,140 @@ const isEnd = (c) => c.kind === "end";
       <SkeletonRows :rows="4" />
     </template>
 
-    <EmptyState v-else-if="!M.any" :icon="ICONS.more4" :title="t('home.emptyTitle')" :text="t('home.emptyText')" :action="t('home.connect')" @action="nav.push('settingsSection', 'conn')">
-      <button type="button" class="ph-btn tonal" @click="openForm('tx')">{{ t("home.addTx") }}</button>
-    </EmptyState>
-
     <template v-else>
-      <HeroSentence v-if="M.has.flow" :class="{ short: M.flow.over > 0 && !paid }" :parts="hero" :link="P('how')" @link="avail = true" />
-
-      <button v-if="suggestions.length" type="button" class="ph-home-ideas" @click="suggestOpen = true">
-        <PIcon name="idea" /><span>{{ P("ideas", { n: suggestions.length }, suggestions.length) }}</span><PIcon name="chevron" dir class="ph-chev" />
-      </button>
-
-      <ListGroup v-if="alerts3.length" :title="P('attention')" :more="alertList.length > 2 ? P('seeAllN', { n: alertList.length }) : ''" @more="nav.push('alerts')">
-        <ListRow v-for="x in alerts3.slice(0, 2)" :key="x.id" class="ph-home-al" :class="x.sev" :title="x.title" :sub="x.text" icon-name="bell" :tone="x.sev === 'high' ? 'neg' : x.sev === 'med' ? 'warn' : 'acc'" link @tap="openAlert(x)" />
-      </ListGroup>
-
-      <section class="ph-group ph-home-nums">
-        <div class="ph-group-h"><h3>{{ P("totals") }}</h3></div>
-        <div class="ph-stats">
-          <StatTile v-for="c in tiles" :key="c.key" :class="'k-' + c.key" :label="tileLabel(c)" :value="tileVal(c)" :note="tileNote(c)" :tone="c.key === 'net' && c.v < 0 ? 'neg' : ''" @tap="explain(c.tip)" />
-        </div>
-        <p v-if="tiles[0]?.lasts" class="ph-group-n"><button type="button" class="ph-home-lasts" @click="explain(tiles[0].lasts.tip)">{{ tiles[0].lasts.text }}</button></p>
+      <!-- what needs a look: the computer's warning card with the first three alerts -->
+      <section v-if="alerts3.length" class="ph-card ph-home-al" :aria-label="t('shell.alerts')">
+        <button v-for="x in alerts3" :key="x.id" type="button" class="ph-home-alr" @click="openAlert(x)">
+          <i class="sev" :class="x.sev" />
+          <span class="ph-home-alt"><b>{{ x.title }}</b><span>{{ x.text }}</span></span>
+          <PIcon name="chevron" dir class="ph-chev" />
+        </button>
+        <button type="button" class="ph-link ph-home-all" @click="nav.push('alerts')">{{ P("allAlerts", { n: alertList.length }) }}<PIcon name="chevron" dir /></button>
       </section>
 
-      <ListGroup v-if="M.has.accts" :title="t('home.accounts')" :more="P('seeAll')" @more="nav.push('accounts')">
-        <ListRow v-for="g in accounts" :key="g.n" :title="an(g.n)" :sub="accLine(g)" link @tap="accOpen(g.n)">
-          <template #lead><span class="ph-home-logo" v-html="brandIcon(g.n, g.L[0].src, g.L[0].kind, g.L[0].ck)" /></template>
-          <template #end><span class="ph-amt">₪{{ n0(g.total) }}</span></template>
-        </ListRow>
-      </ListGroup>
+      <EmptyState v-if="!M.any && !fxKeys.length" :icon="ICONS.more4" :title="t('home.emptyTitle')" :text="t('home.emptyText')" :action="t('home.connect')" @action="nav.push('settingsSection', 'conn')">
+        <button type="button" class="ph-btn tonal" @click="openForm('tx')">{{ t("home.addTx") }}</button>
+      </EmptyState>
 
-      <ListGroup v-if="M.has.cards" :title="P('cards')" :more="P('seeAll')" @more="nav.push('accounts')">
-        <ListRow v-for="c in cardRows" :key="c.n" v-tip="c.tip" link @tap="accOpen(c.wise ? 'Wise' : c.n)">
-          <template #lead><span class="ph-home-logo" v-html="brandIcon(c.n, c.acc?.src, c.acc?.kind || 'card', c.acc?.ck)" /></template>
-          <template #title><span v-if="c.wise">{{ titleCase(c.nme) }}</span><span v-else v-html="accLbl(c.n)" /></template>
-          <template #sub><span>{{ c.wise ? P("paidNow") : P("upcoming") }}</span><span class="ph-home-sub2">{{ t("home.lastMonthAmount", { amount: "₪" + n0(c.last) }) }}</span></template>
-          <template #end>
-            <span class="ph-home-endcol"><span class="ph-amt">₪{{ n0(c.now) }}</span><small v-if="c.last" class="ph-home-chg" dir="ltr" :class="c.d > 0 ? 'ph-up' : 'ph-dn'">{{ (c.d > 0 ? "+" : "−") + c.p }}%</small></span>
-          </template>
-        </ListRow>
-      </ListGroup>
+      <template v-else-if="M.any">
+        <!-- the four totals -->
+        <div class="ph-home-kpis">
+          <AmountCard v-for="c in kpis" :key="c.key" :class="'k-' + c.key" :hero="c.hero" :icon="glyphIcon(c.key, KPI_COL[c.key])" :label="titleCase(c.label)" :value="kpiVal(c)" :sub="c.sub" :spark="c.spark" :spark-color="c.col" @tap="explain(c.tip)">
+            <template v-if="c.lasts" #foot><button type="button" class="ph-home-lasts" @click.stop="explain(c.lasts.tip)">{{ c.lasts.text }}</button></template>
+          </AmountCard>
+        </div>
 
-      <section v-if="M.has.flow" class="ph-group ph-home-flow">
-        <div class="ph-group-h"><h3>{{ t("home.flowTitle") }}</h3><button type="button" class="ph-link" @click="avail = true">{{ P("fullBreakdown") }}</button></div>
-        <Segmented v-model="flowMode" :options="flowOpts" :label="t('home.flowMode')" />
-        <div class="ph-group-b">
-          <ListRow v-for="(c, i) in cols" :key="i" class="ph-home-step" :class="[c.kind, { short: isEnd(c) && W.eOver > 0 && !calm }]" :title="flowName(c)" :sub="isEnd(c) ? pay?.after || '' : P('leftAfter', { amount: leftOf(c) })" @tap="explain(colTip(c))">
-            <template #lead><span class="ph-home-dot" :style="{ '--d': c.kind === 'start' ? 'var(--acc)' : isEnd(c) ? (W.eOver > 0 && !calm ? 'var(--neg)' : 'var(--pos)') : catColor(c.k) }" /></template>
-            <template #end>
-              <span v-if="isEnd(c)" class="ph-amt" :class="{ neg: W.eOver > 0 && !calm }">{{ leftOf(c) }}</span>
-              <span v-else class="ph-amt">{{ c.kind === "start" ? "" : "−" }}₪{{ n0(c.a) }}</span>
-            </template>
+        <ListGroup v-if="M.has.accts" :title="t('home.accounts')" :more="P('all')" bare @more="nav.push('accounts')">
+          <SwipeCards :count="M.groups.length">
+            <AmountCard v-for="g in M.groups" :key="g.n" :icon="brandIcon(g.n, g.L[0].src, g.L[0].kind, g.L[0].ck)" :label="an(g.n)" :chip="accSub(g).chips" :value="n0(g.total)" @tap="accOpen(g.n)">
+              <template #sub>
+                <template v-if="accSub(g).lines">
+                  <span v-for="x in accSub(g).lines" :key="x.cur" class="ph-home-cur"><span><template v-if="x.none">ILS · <i>{{ t("home.noShekel") }}</i></template><template v-else><bdi>{{ x.cur }} · {{ money2(x) }}</bdi><span v-if="x.cur != 'ILS'" class="ph-home-rate" dir="ltr"> × {{ (fx.fx[x.cur] || 1).toFixed(4) }}</span></template></span><b class="ph-amt">₪{{ n0(x.none ? 0 : x.v * M.rate(x.cur)) }}</b></span>
+                  <span v-if="accSub(g).stale" class="ph-home-stale">{{ fx.live ? t("home.fxStale") : t("home.fxNone") }}</span>
+                </template>
+                <template v-else>{{ accSub(g).text }}</template>
+              </template>
+            </AmountCard>
+          </SwipeCards>
+        </ListGroup>
+
+        <ListGroup v-if="M.has.cards" :title="t('home.cards')" :more="P('all')" bare @more="nav.push('accounts')">
+          <SwipeCards :count="cardRows.length">
+            <AmountCard v-for="c in cardRows" :key="c.n" :icon="brandIcon(c.n, c.acc?.src, c.acc?.kind || 'card', c.acc?.ck)" :value="n0(c.now)" @tap="explain(c.tip)">
+              <template #label><template v-if="c.wise">{{ titleCase(c.nme) }} · {{ titleCase(t("home.paidNow")) }}</template><template v-else><span v-html="accLbl(c.n)" /> · {{ titleCase(t("home.upcomingCharge")) }}</template></template>
+              <template #sub><span>{{ t("home.lastMonthAmount", { amount: "₪" + n0(c.last) }) }} <span v-if="c.last" class="ph-home-bd" dir="ltr" :class="c.d > 0 ? 'up' : 'dn'"><PIcon name="chevron" class="ph-home-bdi" :class="c.d > 0 ? 'u' : 'd'" />{{ c.p }}%</span></span></template>
+              <template #foot><span class="bar ph-home-bar"><i :style="{ width: Math.min(100, c.now / Math.max(c.now, c.last, 1) * 100) + '%', background: c.d > 0 ? 'var(--neg)' : 'var(--pos)' }" /></span></template>
+            </AmountCard>
+          </SwipeCards>
+        </ListGroup>
+
+        <!-- the money flow: the steps (In your accounts − … = Free to use), then the same steps as bars -->
+        <ListGroup v-if="M.has.flow" :title="t('home.flowTitle')" :more="P('fullBreakdown')" pad @more="avail = true">
+          <template #top><Segmented v-model="flowMode" :options="flowOpts" :label="t('home.flowMode')" /></template>
+          <div class="ph-home-steps">
+            <button v-for="(s, i) in steps" :key="s.k" type="button" class="ph-home-st" @click="explain(s.tip)"><span><i v-if="i" class="ph-home-op">−</i>{{ s.label }}</span><b class="ph-amt">{{ s.v }}</b></button>
+            <button type="button" class="ph-home-st key" :class="{ neg: isShort }" @click="explain(endTip)"><span><i class="ph-home-op">=</i>{{ endLabel }}</span><b class="ph-amt">{{ endVal }}</b><small v-if="pay">{{ pay.after }}</small></button>
+          </div>
+          <div class="ph-home-wf">
+            <p class="ph-home-wfk"><span><i class="lk s" />{{ t("home.whatsLeft") }}</span><span><i class="lk g" />{{ t("home.stepAmount") }}</span></p>
+            <button v-for="(c, i) in cols" :key="i" type="button" class="ph-home-wr" :class="colTone(c)" @click="explain(colTip(c))">
+              <span class="ph-home-wn">{{ c.name }}</span>
+              <span class="ph-home-wa ph-amt"><template v-if="c.kind === 'end'">–</template><template v-else>₪{{ n0(c.a) }}</template></span>
+              <span class="ph-home-wb"><i class="g" :style="{ '--b': c.b, '--h': c.h }" /><i class="s" :class="colTone(c)" :style="{ '--h': c.s }" /></span>
+              <span class="ph-home-wl ph-amt"><template v-if="c.kind === 'end' && W.eOver > 0"><span :class="{ neg: !calm }">−{{ fm(W.eOver) }}</span></template><template v-else>{{ leftOf(c) }}</template><small v-if="c.k === W.remain">{{ t("num.afterKnownS") }}</small></span>
+            </button>
+          </div>
+        </ListGroup>
+
+        <ListGroup v-if="M.has.donut" :title="t('home.byCategory') + ' · ' + monthName(M.MK)" :more="P('all')" pad @more="nav.push('reports')">
+          <DonutChart :parts="donutParts" :total="'₪' + n0(donut.tot)" :caption="t('home.spentThisMonth')" @pick="(n) => goActivity({ cat: n })" />
+        </ListGroup>
+
+        <ListGroup v-if="M.has.budg" :title="t('home.budgets') + ' · ' + monthName(M.MK)" :more="P('all')" pad @more="nav.push('budgets')">
+          <button v-for="b in M.budgets.slice(0, 8)" :key="b.k" type="button" class="ph-home-line" @click="goActivity({ cat: b.k })">
+            <span class="ph-home-lh"><b>{{ catName(b.k) }}</b><span class="ph-amt">{{ fm(b.s) }} / {{ fm(b.lim) }}</span></span>
+            <span class="bar"><i :style="{ width: Math.min(100, b.pc) + '%', background: b.st == 'over' ? 'var(--neg)' : b.st == 'warn' ? '#e68a00' : '' }" /><u :style="{ insetInlineStart: (M.DAYN / M.DIM) * 100 + '%' }" /></span>
+          </button>
+          <button v-if="M.budgets.length > 8" type="button" class="ph-link" @click="nav.push('budgets')">{{ P("moreBudgets", { n: M.budgets.length - 8 }) }}<PIcon name="chevron" dir /></button>
+        </ListGroup>
+
+        <ListGroup v-if="M.has.bills" :title="t('home.upcomingBills')" :more="P('all')" @more="nav.tab('bills')">
+          <ListRow v-for="b in M.upcoming" :key="b.idx" :title="an(b.n)" link :sub="b.status == 'overdue' ? t('home.overdueSince', { date: iso(dstr(b.pd)) }) : t('home.dueIn', { date: iso(dstr(b.nx)), n: b.days })" @tap="openBill(b)">
+            <template #end><span class="ph-amt">{{ b.vari ? "≈ " : "" }}{{ fm(b.pred) }}</span></template>
           </ListRow>
-        </div>
-        <p class="ph-group-n">{{ P("flowNote") }}</p>
-      </section>
+        </ListGroup>
 
-      <ListGroup v-if="M.has.donut" :title="t('home.byCategory')" :more="P('seeAll')" @more="nav.push('reports')">
-        <div class="ph-home-spend">
-          <p class="ph-home-spend-t"><b class="ph-amt">₪{{ n0(donut.tot) }}</b><span>{{ t("home.spentThisMonth") }}, {{ monthName(M.MK) }}</span></p>
-          <div class="ph-home-strip" aria-hidden="true"><i v-for="p in donut.parts" :key="p.n" :style="{ flexGrow: p.v, background: p.color }" /></div>
-        </div>
-        <ListRow v-for="p in spendTop" :key="p.n" :title="catName(p.n)" :sub="p.pc + '%'" link @tap="goActivity({ cat: p.n })">
-          <template #lead><span class="ph-home-dot" :style="{ '--d': p.color }" /></template>
-          <template #end><span class="ph-amt">₪{{ n0(p.v) }}</span></template>
-        </ListRow>
-        <ListRow v-if="spendRest > 0" :title="P('otherCats')" :sub="String(donut.parts.length - 5)" link @tap="nav.push('categories')">
-          <template #lead><span class="ph-home-dot" :style="{ '--d': 'var(--tx2)' }" /></template>
-          <template #end><span class="ph-amt">₪{{ n0(spendRest) }}</span></template>
-        </ListRow>
-      </ListGroup>
+        <ListGroup v-if="M.has.recent" :title="t('home.recent')" :more="P('all')" @more="nav.tab('activity')">
+          <ListRow v-for="x in M.recent" :key="x.id" :title="nm(x)" :sub="catName(x.c) + ' · ' + iso(dcell(x.d))" @tap="openTxId(x.id)">
+            <template #lead><span class="ph-home-av" :style="{ '--d': catColor(x.c || 'Uncategorized') }">{{ (nm(x) || "?")[0] }}</span></template>
+            <template #end><span class="ph-amt" :class="{ pos: x.a > 0 }">{{ amtText(x) }}</span></template>
+          </ListRow>
+        </ListGroup>
 
-      <ListGroup v-if="M.has.budg" :title="t('home.budgets')" :more="P('seeAll')" @more="nav.push('budgets')">
-        <button v-for="b in budgets" :key="b.k" type="button" class="ph-row ph-home-bud" @click="goActivity({ cat: b.k })">
-          <span class="ph-home-bud-h"><span class="ph-row-t">{{ catName(b.k) }}</span><span class="ph-home-bud-v" :class="{ neg: b.st == 'over' }">{{ P("budgetOf", { spent: fm(b.s), limit: fm(b.lim) }) }}</span></span>
-          <ProgressBar :value="b.s" :max="b.lim" :tone="budTone(b)" :label="catName(b.k)" />
-        </button>
-      </ListGroup>
+        <ListGroup v-if="goal" :title="t('home.goal.title')" :more="P('goalOpen')" pad @more="openGoal">
+          <button type="button" class="ph-home-line ph-home-goal" @click="openGoal">
+            <span class="ph-home-lh"><b>{{ goal.name }}</b><span class="ph-amt">{{ goal.pc }}%</span></span>
+            <span class="bar"><i :style="{ width: goal.pc + '%', background: goal.on ? 'var(--pos)' : '' }" /></span>
+            <span class="ph-home-lm ph-amt">{{ goal.have }}</span>
+            <span class="ph-home-gst"><b :class="goal.on ? 'pos' : 'neg'">{{ goal.lead }}</b> {{ goal.line }}</span>
+          </button>
+        </ListGroup>
 
-      <ListGroup v-if="M.has.bills" :title="t('home.upcomingBills')" :more="P('seeAll')" @more="nav.tab('bills')">
-        <ListRow v-for="b in M.upcoming" :key="b.idx" :title="an(b.n)" link :sub="b.status == 'overdue' ? t('home.overdueSince', { date: iso(dstr(b.pd)) }) : P('dueIn', { n: b.days }, b.days)" @tap="openBill(b)">
-          <template #lead><span class="ph-home-due" :class="{ late: b.status == 'overdue' }" aria-hidden="true"><small>{{ monShort(b.status == "overdue" ? b.pd : b.nx) }}</small><b>{{ dayOf(b.status == "overdue" ? b.pd : b.nx) }}</b></span></template>
-          <template #end><span class="ph-amt">{{ b.vari ? "≈ " : "" }}{{ fm(b.pred) }}</span></template>
-        </ListRow>
-      </ListGroup>
+        <ListGroup v-if="M.has.jars" :title="t('home.jars')" :more="P('all')" pad @more="nav.tab('jars')">
+          <button v-for="j in M.jars" :key="j.id" type="button" class="ph-home-line" @click="nav.push('jar', String(j.id))">
+            <span class="ph-home-lh"><b>{{ an(j.n) }}</b><span :class="{ pos: j.got }">{{ j.got ? t("home.gotThisMonth", { amount: "+₪" + n0(j.got) }) : j.want > 0 ? t("home.waiting") : "" }}</span></span>
+            <span v-if="!j.open" class="bar"><i :style="{ width: j.pc + '%', background: 'var(--c' + ((j.p - 1) % 7) + ')' }" /></span>
+            <span class="ph-home-lm ph-amt">{{ j.open ? t("home.savedNoGoal", { amount: "₪" + n0(j.bal) }) : t("home.ofGoal", { amount: "₪" + n0(j.bal), goal: "₪" + n0(j.need), pc: j.pc }) }}</span>
+          </button>
+          <div class="ph-home-free"><span>{{ t("num.free") }}</span><b class="ph-amt">₪{{ n0(M.flow.free) }}</b></div>
+        </ListGroup>
+      </template>
 
-      <ListGroup v-if="M.has.recent" :title="t('home.recent')" :more="P('seeAll')" @more="nav.tab('activity')">
-        <p v-if="!M.recent.length" class="ph-home-none">{{ P("noneYet") }}</p>
-        <ListRow v-for="x in M.recent" :key="x.id" :title="nm(x)" :sub="catName(x.c) + ', ' + iso(dcell(x.d))" @tap="openTxId(x.id)">
-          <template #lead><span class="ph-home-av" :style="{ '--d': catColor(x.c || 'Uncategorized') }">{{ (nm(x) || "?")[0] }}</span></template>
-          <template #end><span class="ph-amt" :class="{ pos: x.a > 0 }">{{ amtText(x) }}</span></template>
-        </ListRow>
-      </ListGroup>
-
-      <ListGroup v-if="goal" :title="t('home.goal.title')" :more="t('home.goal.open')" @more="openGoal">
-        <button type="button" class="ph-row ph-home-bud ph-home-goal" @click="openGoal">
-          <span class="ph-home-bud-h"><span class="ph-row-t"><span :data-tip="goal.tip">{{ goal.name }}</span></span><span class="ph-home-bud-v">{{ goal.pc }}%</span></span>
-          <ProgressBar :value="goal.pc" :max="100" :color="goal.on ? 'var(--pos)' : ''" :label="goal.name" />
-          <span class="ph-home-goal-l">{{ goal.have }}</span>
-          <span class="ph-home-goal-l"><b :class="goal.on ? 'pos' : 'neg'">{{ goal.lead }}</b> {{ goal.line }}</span>
-        </button>
-      </ListGroup>
-
-      <ListGroup v-if="M.has.jars" :title="t('home.jars')" :more="P('seeAll')" @more="nav.tab('jars')">
-        <ListRow v-for="j in M.jars" :key="j.id" :title="an(j.n)" :sub="j.open ? P('jarNoGoal', { amount: '₪' + n0(j.bal) }) : P('jarOf', { amount: '₪' + n0(j.bal), goal: '₪' + n0(j.need), pc: j.pc })" @tap="nav.push('jar', String(j.id))">
-          <template #lead><ProgressRing :value="j.open ? 0 : j.bal" :max="j.open ? 0 : j.need" :size="36" :color="'var(--c' + ((j.p - 1) % 7) + ')'" /></template>
-          <template #end><span v-if="j.got" class="ph-amt pos">+₪{{ n0(j.got) }}</span><span v-else-if="j.want > 0" class="ph-home-wait">{{ t("home.waiting") }}</span></template>
-        </ListRow>
-      </ListGroup>
-
-    </template>
-
-    <!-- exchange rates show even before there is any money data (a first look still has them) -->
-    <section v-if="S && fxKeys.length && fxView" class="ph-group ph-home-fx">
-      <div class="ph-group-h"><h3>{{ t("home.fx") }}</h3><button type="button" class="ph-link" @click="nav.push('settingsSection', 'cur')">{{ P("currencies") }}</button></div>
-      <Segmented v-if="fxKeys.length > 1" v-model="fxCur" :options="fxOpts" :label="t('home.fx')" />
-      <div class="ph-group-b ph-home-fxb">
+      <!-- exchange rates show even before there is any money data (a first look still has them) -->
+      <ListGroup v-if="fxKeys.length && fxView" :title="t('home.fx')" :more="P('currencies')" pad @more="nav.push('settingsSection', 'cur')">
         <div class="ph-home-fxh">
-          <p class="ph-home-fxr" dir="ltr"><span>{{ currencySymbol(fxCur) }}1 =</span> <b>₪{{ fxView.last.toFixed(4) }}</b></p>
-          <span class="ph-home-chg" dir="ltr" :class="Math.abs(fxView.ch) < .005 ? '' : fxView.ch > 0 ? 'ph-up' : 'ph-dn'">{{ P("change", { pc: (fxView.ch > 0 ? "+" : fxView.ch < 0 ? "−" : "") + Math.abs(fxView.ch).toFixed(2) }) }}</span>
+          <Segmented v-if="fxKeys.length > 1" v-model="fxCur" :options="fxOpts" :label="t('home.fx')" />
+          <span v-else class="ph-home-fxp">{{ pair(fxCur) }}</span>
+          <span class="ph-home-bd" :class="fxBadge"><bdi dir="ltr"><PIcon v-if="fxBadge" name="chevron" class="ph-home-bdi" :class="fxView.ch > 0 ? 'u' : 'd'" />{{ Math.abs(fxView.ch).toFixed(2) }}%</bdi>&nbsp;· {{ t("home.days30") }}</span>
         </div>
-        <p v-if="fxKeys.length < 2" class="ph-home-fxp">{{ pair(fxCur) }}</p>
-        <svg class="ph-home-fxl" :viewBox="`${fxView.P} 8 ${fxView.Wd - fxView.P - 12} ${fxView.H - 26}`" preserveAspectRatio="none" aria-hidden="true">
-          <polygon :points="fxView.area" /><polyline :points="fxView.pts" vector-effect="non-scaling-stroke" />
+        <p class="ph-home-fxr" dir="ltr"><span>{{ currencySymbol(fxCur) }}1</span><span>=</span><b>₪{{ (fxPick != null ? fxView.ser[fxPick][1] : fxView.last).toFixed(4) }}</b><small v-if="fxPick != null">{{ fxView.ser[fxPick][0] }}</small></p>
+        <svg ref="fxSvg" class="ph-home-fxc" :viewBox="`0 0 ${fxView.Wd} ${fxView.H}`" dir="ltr" @pointerdown="fxAt" @pointermove="fxAt">
+          <g v-for="(g, i) in fxView.grid" :key="i"><line class="gl" :x1="fxView.P" :x2="fxView.Wd - 12" :y1="g.y" :y2="g.y" stroke-dasharray="3 5" /><text :x="fxView.P - 6" :y="g.y + 4" text-anchor="end">{{ g.label }}</text></g>
+          <defs><linearGradient id="phfxg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--acc)" stop-opacity=".35" /><stop offset="1" stop-color="var(--acc)" stop-opacity="0" /></linearGradient></defs>
+          <polygon fill="url(#phfxg)" :points="fxView.area" /><polyline fill="none" stroke="var(--acc)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" :points="fxView.pts" />
+          <template v-if="fxPick != null"><line :x1="fxView.xs[fxPick]" :x2="fxView.xs[fxPick]" :y1="fxView.y0" :y2="fxView.y1" stroke="var(--tx)" stroke-opacity=".35" stroke-dasharray="3 3" /><circle :cx="fxView.xs[fxPick]" :cy="fxView.ys[fxPick]" r="5" fill="var(--acc)" stroke="var(--bg)" stroke-width="2" /></template>
+          <circle :cx="fxView.lastX" :cy="fxView.lastY" r="5" fill="var(--bg)" stroke="var(--acc)" stroke-width="2.5" />
+          <text :x="fxView.P" :y="fxView.H - 5">{{ fxView.first }}</text><text :x="fxView.Wd - 12" :y="fxView.H - 5" text-anchor="end">{{ fxView.end }}</text>
         </svg>
         <div class="ph-home-fxs">
-          <span><small>{{ t("home.low") }}</small><b>{{ fxView.mn.toFixed(3) }}</b></span>
-          <span><small>{{ t("home.average") }}</small><b>{{ fxView.av.toFixed(3) }}</b></span>
-          <span><small>{{ t("home.high") }}</small><b>{{ fxView.mx.toFixed(3) }}</b></span>
+          <span><small>{{ t("home.low") }}</small><b class="ph-amt">{{ fxView.mn.toFixed(3) }}</b></span>
+          <span><small>{{ t("home.average") }}</small><b class="ph-amt">{{ fxView.av.toFixed(3) }}</b></span>
+          <span><small>{{ t("home.high") }}</small><b class="ph-amt">{{ fxView.mx.toFixed(3) }}</b></span>
+          <span><small>{{ t("home.vsRange") }}</small><b class="ph-amt">{{ fxView.last.toFixed(3) }}</b><i class="ph-home-range"><i :style="{ insetInlineStart: fxView.pos.toFixed(1) + '%' }" /></i></span>
         </div>
-        <div class="ph-home-range" :aria-label="P('rangeNote')" role="img"><i :style="{ insetInlineStart: fxView.pos.toFixed(1) + '%' }" /></div>
-      </div>
-      <p class="ph-group-n">{{ fx.stale ? t("home.fxStaleAt", { date: fx.asOf }) : t("home.fxSource", { date: fx.asOf }) }} {{ t("home.fxUse") }}</p>
-    </section>
+        <p class="ph-home-fxf">{{ fx.stale ? t("home.fxStaleAt", { date: fx.asOf }) : t("home.fxSource", { date: fx.asOf }) }} {{ t("home.fxUse") }}</p>
+      </ListGroup>
+    </template>
 
     <AvailWhy v-if="S" v-model:open="avail" :M="M" />
   </PhoneScreen>

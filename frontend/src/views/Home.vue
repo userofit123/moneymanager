@@ -20,6 +20,7 @@ import AvailWhy from "./AvailWhy.vue";
 import { vTip } from "../core/tooltip.js";
 import { dcell, dstr, titleCase } from "../dates.js";
 import { useHome } from "../pagelogic/home.js";
+import { sparkPath } from "../lib/home.js";
 import { useGoalCard, openYearsNext } from "../pagelogic/yearsAhead.js";
 import { go } from "../router.js";
 import "../styles/pages/home.css"; // this page's own styles
@@ -37,12 +38,6 @@ onMounted(async () => {
   data.start();
 });
 const avail = ref(false);
-const sparkPath = (a) => {
-  const w = 200, h = 46, mn = Math.min(...a), mx = Math.max(...a);
-  const p = a.map((v, i) => [(i * w) / Math.max(1, a.length - 1), h - 6 - ((v - mn) / (mx - mn || 1)) * (h - 14)]);
-  const l = p.map((x) => x.join(",")).join(" ");
-  return { line: l, area: `0,${h} ${l} ${w},${h}` };
-};
 const hover = ref(null);
 // Hover over the chart: a dashed line, a dot and the day's rate.
 const hv = ref(null), fxSvg = ref(null), fxWrap = ref(null);

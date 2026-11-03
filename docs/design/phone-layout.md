@@ -1,89 +1,70 @@
-# Phone layout guide
+# Phone layout guide (round 2)
 
-The phone app (`frontend/src/phone`) is one calm column that reads like the computer version: the same colours, the
-same card (a raised surface with a hairline), plain headings. Every screen uses the same skeleton, spacing and parts,
-so a person learns it once. Sizes live in `phone/styles/tokens.css`; use the variables, never new numbers.
+**Every phone page is the computer page, adapted.** Same blocks, same order, same content, icons, colours, badges and
+charts; only the layout changes for one column and a finger. Nothing phone-only (no opening sentence, no extra rows),
+nothing missing. Drop a computer item only when it truly cannot work on a phone, and then give its phone form.
+Home (`phone/screens/HomeScreen.vue`) is the reference: compare it with `views/Home.vue` side by side.
 
-## Page skeleton (top to bottom)
+Method per page: screenshot the computer page, list its blocks, build each with the parts below, reuse the computer's
+numbers (`pagelogic/`, `lib/`) and icons (`glyphIcon`, `brandIcon`), then compare both screenshots (en+he, light+dark).
 
-1. **Top bar** (`PhoneScreen`): Back with the name of the screen under it, or on a tab's first screen the level pill.
-   At the end up to two icon buttons (`IconButton`, slot `actions`) plus `?` (the guide) added by the frame.
-2. **Large title** (`.ph-title`, 32px): the screen's name. It moves into the bar as the page scrolls.
-   A sync line (`SyncLine`) may sit under it (slot `sub`).
-3. **The one answer**: `HeroSentence`, a plain sentence with its amounts large ("₪4,210 is free to use until the 1st.")
-   and at most one "How is this worked out?" link. Detail screens (an account, a jar, a bill, a transaction) use their
-   centred heading instead (icon, the amount, the name).
-4. **Controls** that change the whole page, directly under the answer: `Segmented` (2–4 views), then `SearchField`,
-   then `ChipBar` (filters). When the answer itself changes with the switch or the filters (Activity, Categories and
-   Tags), the controls come first, right under the title, and the answer follows them.
-5. **Sections**: each one a `ListGroup` with a heading, one card, and an optional note under it.
+## The computer's building blocks on the phone
 
-`.ph-content` stacks the parts with `--p-gap` (32px) between them. A screen never adds its own outer margins.
-
-## Spacing
-
-| What | Size | Variable |
+| Computer | Phone | Where |
 |---|---|---|
-| Side margin of the page | 16px (20px from 400px wide) | `--p-gut` |
-| Between sections | 32px (24px inside a sheet) | `--p-gap` |
-| Section heading to its card | 10px | `--p-head` |
-| Inside a card | 16px | `--p-pad` |
-| Small steps | 4 8 12 16 24 32 | `--p-s1` … `--p-s6` |
-| Smallest tap target | 44px | `--p-hit` |
+| Section heading `h2` (small grey spaced capitals) with "All →" | `ListGroup` heading: same look, link "All" with a chevron. `bare` = no card (the slot brings its own) | `.ph-group-h` |
+| `.card` | `.ph-card`, or `ListGroup pad` (content) / `ListGroup` (rows) | `.ph-group-b` |
+| Amount card (`.card .lbl .val`): icon, name, chip, big amount, line under, sparkline; `.hero` highlighted | `AmountCard` (`icon`, `label`, `chip`, `value`, `sub`, `spark`, `hero`, `@tap`; slots `label`, `sub`, `foot`) | `.ph-acard` |
+| KPI row (4 cards) | `AmountCard`s in a 2-column grid; the highlighted one and one without a chart across the full width | `.ph-home-kpis` |
+| Grid of many cards (accounts) | `SwipeCards`: 3+ cards slide sideways (next one peeks, snaps); 1–2 stack | `.ph-swipe` |
+| Donut + legend | `DonutChart` (ring above, legend rows below, tap = pick) | `.ph-donut` |
+| Bars (`.bar`, with `u` marker) | the same `.bar` markup (computer CSS), `display: block` | |
+| Badges (▲/▼ %) | pill with a chevron turned up/down, same colours (green = good) | `.ph-home-bd` |
+| Tabs in a heading (`BaseTabs`) | `Segmented`, full width in `ListGroup`'s `top` slot | |
+| Rows of a list (bills, activity) | `ListRow` inside `ListGroup`; letter tile = rounded square in the category colour | |
+| Line chart with hover readout | same SVG and grid; touch/drag shows the day's value in the heading line | |
+| Steps with − and = (money flow) | step tiles in 2 columns, the result tile highlighted; a wide column chart becomes one bar per step | |
 
-Nothing touches the screen edge except a chip row scrolling sideways (it fades out at the edge).
+## Rules
 
-## Type
+- **Hover tooltip** → the same text on a tap (`explain(tip)`, a sheet). A card or row that had a tooltip is tappable.
+- **Wide table** → one row per line (`ListRow`: name and second line at the start, amount at the end); columns that
+  do not fit go into the second line or the item's own screen. Never scroll a table sideways.
+- **Toolbars and filters** → `Segmented` for 2–4 views, `SearchField`, `ChipBar` for filters, rare actions in the top
+  bar's ⋯ (`ActionSheet`). The computer's floating buttons (ideas, alerts, add) are top-bar icons.
+- **Two columns of blocks** → one column, in the computer's reading order (left column first, then right, as
+  `CardColumns` lists them).
+- Top bar, large title with `SyncLine`, tab bar, pull to sync and sheets stay as they are.
 
-| Role | Size / line | Weight |
-|---|---|---|
-| Large title | 32 / 38 | 700 (Hebrew 600) |
-| Opening sentence / its amounts | 22 / 30, amounts 34 / 40 | 500 / 700 |
-| Section heading (`ListGroup` title) | 19 / 24 | 650, sentence case, never capitals |
-| Row title, body | 16 / 22 | 500 |
-| Second line, notes, labels (`.ph-meta`) | 13 / 18 | 400, `--tx2` |
-| Small number in a tile | 20 / 26 | 600 |
+## Spacing and type
 
-Amounts use `AmountText` or `.ph-amt` (tabular figures, left to right in Hebrew).
+Side margin `--p-gut` (16px, 20px from 400px). Between sections `--p-gap` (32px); heading to card 10px; inside a card
+16px; tiles 8–12px apart. Section heading 12.5px/650 spaced capitals (`--tx2`; Hebrew 14px, no spacing). Amount card:
+name 13px, amount 28px (hero 34px, half-width 24px), line under 13px. Row title 16px, second line 13px. Amounts use
+`.ph-amt` (tabular, left to right in Hebrew). Tap targets 44px. Every rule starts with `html.phone`; logical sides only.
 
-## Parts and their classes
+## Plan per page
 
-- **Card**: `.ph-group-b` (inside `ListGroup`) or `.ph-card` for content that is not rows. Surface `--p-surf`, 1px
-  `--p-card-line`, radius 16px. One card style everywhere; no shadows on cards, no gradients, no coloured backgrounds
-  except a warning box.
-- **Section**: `<ListGroup title note more pad>`. `more` puts a "See all" link at the end of the heading line.
-  `pad` gives the card 16px inside, for a chart, a sentence or a form. Slot `top` holds a control or an empty state.
-- **List row**: `<ListRow>`. Icon tile 40px (`.ph-tile`, colour by `tone`), title, second line, value or amount at the
-  end, chevron when it opens a screen (`link`). One line 52px high, two lines 60px. Hairlines start after the icon.
-  A row for a transaction, bill, budget or category shows the first letter in the category's colour on the same 40px
-  rounded-square tile (never a circle); a bank or card shows its logo on that tile. Circles are for jar rings only.
-- **Number tiles**: `StatTile` inside `.ph-stats` (two columns, equal height, 12px apart). Use them for 2 or 4 numbers,
-  never 3.
-- **Segmented**: `Segmented` (the computer's tab row): a grey track with the picked choice as a raised pill. Full width.
-- **Chips**: `ChipBar` for filters; a chip that is on is tinted and has ×.
-- **Search**: `SearchField`, 44px high, card surface.
-- **Buttons**: `.ph-btn` (filled, the screen's one main action), `.ph-btn.tonal` (second), `.ph-btn.plain` (quiet, on
-  a card), `.block` for full width. `.ph-link` for text links. Icon buttons `IconButton` (44px).
-- **Progress**: `ProgressBar` (6px, the empty part a 10% tint of the text colour so it shows on a card) and
-  `ProgressRing`; warning and over use `warn` / `neg`.
-- **Empty state**: `EmptyState` (icon in a soft circle, one line, one sentence, the action that fills it). Inside a
-  section put it in the `top` slot, not in a card of its own.
-- **Loading / errors**: `SkeletonRows` inside the card; `LoadError` with Try again.
-- **Sheets (popups)**: `PhoneSheet` (handle, 20px title with a round Close, scrolling body, footer for the buttons).
-  `size="fit"` grows with its content; `large` for forms and long lists. Choices: `ActionSheet` and `PickerSheet`.
-  In an `ActionSheet` every action has an icon, or none of them does; a current value sits at the row's end.
-  Computer forms opened on the phone get `cls="ph-adopt"` (styled in `adopted.css`).
-- **Toasts**: a compact dark bar (light in dark mode) just above the tab bar; the icon tells the kind; Undo in the
-  app's colour. Placed by the shell; screens never move them.
-- **Tab bar**: five tabs, the open one's icon in a pill, counts as red badges. Nearly opaque, so content behind it
-  never shows through.
-
-## Light, dark, Hebrew
-
-- Page: `--bg` on every screen (no glow). Cards `--p-surf`; in dark mode they are lifted 6% and the hairline is softer.
-  Sheets use `--p-sheet-bg` (a step above the page in dark mode).
-- Colours only from the app's tokens (`--acc`, `--accc`, `--pos`, `--neg`, `--warn`, `--tx`, `--tx2`), so every
-  Appearance look works.
-- Hebrew: logical sides only (`inline-start/end`, `padding-inline`). Icons that point somewhere use `PIcon dir`.
-  Amounts stay left to right. Check every screen in both languages and both modes at 390px and 360px.
-- Every rule starts with `html.phone` (the test enforces it).
+- **Activity**: computer toolbar (search, filters, group/sort) → `SearchField` + `ChipBar` + ⋯; the table → month bands
+  with `ListRow`s (letter tile, name, category · date, amount); totals per month in the band.
+- **Recap**: each recap card → a `.ph-card` section in the same order; its charts as `AmountCard`/bars.
+- **Accounts**: totals cards → `AmountCard` grid; each bank group → section with `brandIcon` rows and balances;
+  cards → `AmountCard` with this-month bar and badge.
+- **Jars**: summary cards → `AmountCard`s; jar cards → `SwipeCards` of jar cards (ring, amount, goal bar) or a list
+  when many; free-to-use card as on the computer.
+- **Bills**: summary tiles → `AmountCard`s; the bills table → `ListRow`s grouped as on the computer (due date, amount,
+  badge for overdue/changed); calendar strip as a swipe row.
+- **Budgets**: month total card → hero `AmountCard`; each budget → the computer's line (name, spent / limit, `.bar`
+  with today marker); tabs → `Segmented`.
+- **Reports**: chart picker → `Segmented`/sheet; each chart full width in a `ListGroup pad`; KPI cards → `AmountCard`s;
+  table → rows.
+- **Forecast**: KPI cards → `AmountCard`s; the line chart full width with tap readout; tabs → `Segmented`; the
+  table of months → rows.
+- **Alerts**: the computer's alert cards (severity dot, title, text, actions) → rows with the dot; actions in the
+  alert's sheet.
+- **Categories**: category cards/table → `ListRow`s with the letter tile and colour, month amount and bar.
+- **Settings**: the computer's sidebar → the Settings list; each section's cards → `ListGroup pad` cards, same order.
+- **More**: the computer's sidebar items not in the tab bar, as `ListRow`s with the same icons.
+- **Pushed screens** (account, jar, bill, category, transaction): the computer's window/side panel → a screen with
+  the same header block (icon, amount, name) and the same sections.
+- **Popups**: the computer's forms (`components/forms/`) open as `PhoneSheet` (`cls="ph-adopt"`), same fields and order.

@@ -252,3 +252,12 @@ export function flowSteps(F, mode = "left") {
   // remain: the column after which "Your money after known payments" is left (the last of cards and upcoming payments)
   return { cols, src, spentAll, leftTot, start, eOver, eFree, ACT, upTot, upJar, jarsA, remain: upTot >= 1 ? "up" : "cards" };
 }
+
+// A small trend line (the totals on Home): the points of a line and of the shaded area under it, in a w×h box,
+// scaled so the lowest value sits near the bottom and the highest near the top.
+export function sparkPath(a, w = 200, h = 46) {
+  const mn = Math.min(...a), mx = Math.max(...a);
+  const p = a.map((v, i) => [(i * w) / Math.max(1, a.length - 1), h - 6 - ((v - mn) / (mx - mn || 1)) * (h - 14)]);
+  const l = p.map((x) => x.join(",")).join(" ");
+  return { line: l, area: `0,${h} ${l} ${w},${h}` };
+}
