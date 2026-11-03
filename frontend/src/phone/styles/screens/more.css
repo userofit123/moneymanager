@@ -1,1 +1,32 @@
-/* more screen (phone/screens/MoreScreen.vue). Every rule starts with html.phone. */
+/* More (phone/screens/MoreScreen.vue): the computer's side menu as rows. Every rule starts with html.phone. */
+
+/* sync status: the computer's coloured dot (green read, amber not yet, red failed) on the corner of the sync tile */
+html.phone .ph-more-sync .ph-tile {
+  position: relative;
+}
+
+html.phone .ph-more-sync .live {
+  position: absolute;
+  inset-block-start: 4px;
+  inset-inline-end: 4px;
+  inline-size: 9px;
+  block-size: 9px;
+  box-shadow: 0 0 0 2px var(--p-surf);
+}
+
+/* the groups fade up one after another when the screen opens, as the computer's pages do */
+@keyframes ph-more-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.phone .ph-more .ph-group {
+    animation: ph-more-in .35s var(--p-ease-out) both;
+  }
+
+  html.phone .ph-more .ph-group:nth-of-type(2) { animation-delay: 60ms; }
+  html.phone .ph-more .ph-group:nth-of-type(3) { animation-delay: 120ms; }
+}

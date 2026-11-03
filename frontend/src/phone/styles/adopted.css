@@ -472,149 +472,80 @@ html.phone .ph-tipbox.one {
 }
 
 /* ---- Settings sections (views/settings/*Pane.vue) on their own screen ----
-   Each of the computer's cards reads as a phone section: its title and short explanation as the section heading (no icon,
-   no shaded strip), its body as the one card, and its closing note as plain grey text under the card. */
+   Each of the computer's cards keeps its look: the title line (the round icon, the bold title with its count, the short
+   explanation) over a line, the rows under it, and the grey closing note at the bottom; sized for the phone. */
 html.phone .ph-set {
   display: flex;
   flex-direction: column;
-  gap: var(--p-gap);
+  gap: 16px;
   font-size: 15px;
 }
 
 html.phone .ph-set > * {
   display: flex;
   flex-direction: column;
-  gap: var(--p-gap);
+  gap: 16px;
   min-inline-size: 0;
 }
 
+html.phone .ph-set .card {
+  border: 1px solid var(--p-card-line);
+  border-radius: var(--p-r-group);
+  background: var(--p-surf);
+  box-shadow: none;
+}
+
 html.phone .ph-set .card:not(.ss) {
-  padding: 0;
-  border: 1px solid var(--p-card-line);
-  border-radius: var(--p-r-group);
-  background: var(--p-surf);
-  box-shadow: none;
-}
-
-html.phone .ph-set .ss:not(.ccard) {
-  display: flex;
-  flex-direction: column;
-  gap: var(--p-head);
-  border: 0;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-  overflow: visible;
-}
-
-html.phone .ph-set .ss:not(.ccard) > .ssh {
-  align-items: flex-end;
-  gap: var(--p-s3);
-  padding: 0 4px;
-  border: 0;
-  background: none;
-}
-
-html.phone .ph-set .ss:not(.ccard) > .ssh > .ssi {
-  display: none;
-}
-
-html.phone .ph-set .ss:not(.ccard) > .ssh b {
-  font-size: var(--p-f-sec);
-  line-height: 24px;
-  font-weight: 650;
-  letter-spacing: normal;
-}
-
-html.phone .ph-set .ss:not(.ccard) > .ssh .sm {
-  margin-block-start: 4px;
-  color: var(--tx2);
-  font-size: var(--p-f-meta);
-  line-height: 18px;
-}
-
-/* a button in the heading line (Add connection, Refresh) sits at its end, level with the explanation's last line */
-html.phone .ph-set .ss:not(.ccard) > .ssh > .btn {
-  flex: none;
-}
-
-html.phone .ph-set .ss:not(.ccard) > .ssb {
-  padding: 0 var(--p-pad);
-  border: 1px solid var(--p-card-line);
-  border-radius: var(--p-r-group);
-  background: var(--p-surf);
-}
-
-html.phone .ph-set .ss:not(.ccard) > .ssb.p {
   padding: var(--p-pad);
 }
 
-html.phone .ph-set .ss:not(.ccard) > .sfoot {
-  padding: 0 4px;
-  border: 0;
-  background: none;
+html.phone .ph-set .ss {
+  padding: 0;
+  overflow: hidden;
+}
+
+html.phone .ph-set .ss > .ssh {
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px var(--p-pad);
+}
+
+html.phone .ph-set .ss > .ssh > .ssi {
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: var(--p-r-tile);
+}
+
+html.phone .ph-set .ss > .ssh b {
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 650;
+}
+
+html.phone .ph-set .ss > .ssh .sm {
+  margin-block-start: 2px;
   color: var(--tx2);
   font-size: var(--p-f-meta);
   line-height: 18px;
 }
 
-/* the first section of a screen often has the screen's own name as its title: the large title already says it, so only its
-   explanation stays, as the screen's opening line */
-html.phone .ph-set:is([data-sec=prof], [data-sec=cur], [data-sec=conn], [data-sec=sync], [data-sec=crules], [data-sec=trules], [data-sec=nrules], [data-sec=cprules], [data-sec=srules], [data-sec=log], [data-sec=rel], [data-sec=app]) > * > .ss:first-child > .ssh b,
-html.phone .ph-set[data-sec=sync] > * > :first-child > .ss:first-child > .ssh b {
-  display: none;
+/* a button in the title line (Add connection, Refresh) stays at its end */
+html.phone .ph-set .ss > .ssh > .btn {
+  flex: none;
+  align-self: center;
 }
 
-html.phone .ph-set:is([data-sec=prof], [data-sec=cur], [data-sec=conn], [data-sec=sync], [data-sec=crules], [data-sec=trules], [data-sec=nrules], [data-sec=cprules], [data-sec=srules], [data-sec=log], [data-sec=rel], [data-sec=app]) > * > .ss:first-child > .ssh .sm,
-html.phone .ph-set[data-sec=sync] > * > :first-child > .ss:first-child > .ssh .sm {
-  margin: 0;
-  font-size: 15px;
-  line-height: 22px;
+html.phone .ph-set .ss > .ssb {
+  padding: 2px var(--p-pad) 6px;
 }
 
-/* a connection keeps its own card with its name at the top */
-html.phone .ph-set .ccard {
-  padding: 0;
-  border: 1px solid var(--p-card-line);
-  border-radius: var(--p-r-group);
-  background: var(--p-surf);
-  box-shadow: none;
+html.phone .ph-set .ss > .ssb.p {
+  padding: var(--p-pad);
 }
 
-html.phone .ph-set .ccard > .ssh {
-  gap: 12px;
-  padding: 16px 16px 12px;
-}
-
-html.phone .ph-set .ccard > .ssb {
-  padding-inline: 16px;
-}
-
-html.phone .ph-set .ccard > .sfoot {
-  padding: 12px 16px 16px;
-  background: none;
+html.phone .ph-set .ss > .sfoot {
+  padding: 12px var(--p-pad) 14px;
   font-size: var(--p-f-meta);
-  line-height: 18px;
-}
-
-/* a grey tip box inside a card (how logins are kept safe, how the AI set-up works) is plain text in the card, not a box in
-   a box */
-html.phone .ph-set .sinfo {
-  margin: 12px 0;
-  padding: 0;
-  background: none;
-  border-radius: 0;
-  font-size: 14px;
-  line-height: 20px;
-}
-
-/* how logins are kept safe: a short list in the card, not a grey box inside it */
-html.phone .ph-set .cnote {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 8px;
-  padding: 0;
-  background: none;
-  font-size: 13px;
   line-height: 18px;
 }
 
