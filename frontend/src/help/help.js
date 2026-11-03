@@ -11,7 +11,7 @@ import { SI } from "../views/settings/icons.js";
 import { ICONS } from "../phone/icons.js";
 
 // The guide's page key (its key in en.js / he.js) for each page of the app.
-export const HELP_PAGE = { home: "dash", activity: "tx", accounts: "acc", jars: "jars", bills: "bills", budgets: "budg", reports: "rep", forecast: "fc", alerts: "alerts", categories: "cats" };
+export const HELP_PAGE = { recap: "recap", home: "dash", activity: "tx", accounts: "acc", jars: "jars", bills: "bills", budgets: "budg", reports: "rep", forecast: "fc", alerts: "alerts", categories: "cats" };
 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 export const hMd = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
@@ -62,6 +62,9 @@ const XI = {
 };
 const PICK = [
   [/what .*(is|are) for|what this (page|tab)|first-time/, XI.compass],
+  [/step by step/, NAVI("activity")],
+  [/worth a look/, XI.checks],
+  [/where you stand|next month/, NAVI("forecast")],
   [/counted|left out|status|badges|mean|needs review/, XI.checks],
   [/alert|ntfy|telegram|webhook|this device/, SI.bell],
   [/pension|exchange|currenc/, SI.cur],
