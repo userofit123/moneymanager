@@ -1,10 +1,12 @@
 {
   "tabs": {
     "label": "Main screens",
+    "recap": "Recap",
     "home": "Home",
     "activity": "Activity",
     "jars": "Jars",
     "bills": "Bills",
+    "forecast": "Forecast",
     "more": "More"
   },
   "tryAgain": "Try again",

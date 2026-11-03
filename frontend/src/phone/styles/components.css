@@ -128,6 +128,17 @@ html.phone .ph-bar .ptb.phb .ptbar {
   overflow: hidden;
 }
 
+/* the fill starts at the start side (left in English, right in Hebrew); the computer's payment-history bars (.phb i)
+   share the class name, so their centring and width cap are undone here */
+html.phone .ph-bar .ptb.phb .ptbar i {
+  flex: none;
+  min-inline-size: 0;
+  max-inline-size: none;
+  margin: 0;
+  opacity: 1;
+  border-radius: inherit;
+}
+
 html.phone .ph-titlebox {
   padding: var(--p-s1) var(--p-gut) var(--p-s5);
 }
@@ -319,8 +330,8 @@ html.phone .ph-tabs {
   inset-block-end: 0;
   z-index: 25;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  padding: 6px max(4px, calc(50vw - var(--p-max) / 2)) calc(var(--sb) + 6px);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  padding: 6px max(2px, calc(50vw - var(--p-max) / 2)) calc(var(--sb) + 6px);
   min-block-size: var(--p-tab);
   background: var(--p-glass);
   -webkit-backdrop-filter: saturate(1.6) blur(20px);
@@ -339,6 +350,7 @@ html.phone .ph-tab {
   align-items: center;
   gap: 4px;
   min-inline-size: 0;
+  min-block-size: 44px;
   padding: 0;
   border: 0;
   background: none;
@@ -350,7 +362,7 @@ html.phone .ph-tab-ic {
   position: relative;
   display: grid;
   place-items: center;
-  inline-size: 56px;
+  inline-size: 44px;
   block-size: 32px;
   border-radius: var(--pill);
   transition: background-color var(--p-t-fade), color var(--p-t-fade);
@@ -371,9 +383,10 @@ html.phone .ph-tab.on .ph-tab-ic .ph-ic {
 }
 
 html.phone .ph-tab-l {
-  font-size: 11px;
+  font-size: 10.5px;
   line-height: 14px;
   font-weight: 600;
+  letter-spacing: -.1px;
   max-inline-size: 100%;
   overflow: hidden;
   white-space: nowrap;
@@ -387,7 +400,7 @@ html.phone .ph-tab.on .ph-tab-l {
 html.phone .ph-tab-ic .ph-badge {
   position: absolute;
   inset-block-start: -2px;
-  inset-inline-start: 32px;
+  inset-inline-start: 26px;
 }
 
 /* ---- Counts ---- */

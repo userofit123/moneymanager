@@ -1,5 +1,5 @@
 <script setup>
-// The tab bar: Home, Activity, Jars, Bills and More, each with its icon, its name and a count where something waits
+// The tab bar: Recap, Home, Activity, Jars, Bills, Forecast and More, each with its icon, its name and a count where something waits
 // (Activity: items to review; More: alerts). The open tab's icon sits in a pill. Tapping the open tab again goes to its top.
 // It hides while the keyboard is open, so the field being typed in stays in view.
 import { computed, ref, onMounted, onBeforeUnmount } from "vue";

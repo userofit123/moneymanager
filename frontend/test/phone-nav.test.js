@@ -15,7 +15,9 @@ test("an address is a tab and a stack of screens", () => {
   assert.deepEqual(names(acc.stack), ["more", "accounts", "account", "transaction"]);
   assert.deepEqual(acc.stack.map((s) => s.url), ["/more", "/accounts", "/accounts?id=4", "/accounts?id=4&tx=9"]);
   assert.equal(acc.stack[2].id, "4");
-  assert.deepEqual(names(stackOf("/fc").stack), ["more", "forecast"], "old short names still work");
+  assert.deepEqual(names(stackOf("/fc").stack), ["forecast"], "old short names still work");
+  assert.equal(tabOf("recap"), "recap");
+  assert.equal(tabOf("forecast"), "forecast");
   assert.deepEqual(names(stackOf("/settings?sec=conn").stack), ["more", "settings", "settingsSection"]);
   assert.deepEqual(names(stackOf("/jars?id=4").stack), ["jars"], "a pushed screen only opens on its own page");
   assert.deepEqual(names(stackOf("/?tx=7").stack), ["home", "transaction"], "a transaction opens on any tab");

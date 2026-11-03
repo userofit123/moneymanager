@@ -3,7 +3,7 @@
 // param: for a pushed screen, the ?part of the address that holds what it shows (/accounts?id=4 is the account 4 screen),
 // and on: the page it is pushed on (none: it can be pushed on any screen, like a transaction).
 // title: the text key of its name. load: the screen's file (each in a file of its own, loaded when first shown).
-export const TABS = ["home", "activity", "jars", "bills", "more"];
+export const TABS = ["recap", "home", "activity", "jars", "bills", "forecast", "more"];
 
 export const SCREENS = {
   home: { tab: "home", title: "nav.home", load: () => import("./screens/HomeScreen.vue") },
@@ -11,11 +11,11 @@ export const SCREENS = {
   jars: { tab: "jars", title: "nav.jars", load: () => import("./screens/JarsScreen.vue") },
   bills: { tab: "bills", title: "nav.bills", load: () => import("./screens/BillsScreen.vue") },
   more: { tab: "more", title: "shell.more", load: () => import("./screens/MoreScreen.vue") },
-  recap: { tab: "more", title: "nav.recap", load: () => import("./screens/RecapScreen.vue") },
+  recap: { tab: "recap", title: "nav.recap", load: () => import("./screens/RecapScreen.vue") },
   accounts: { tab: "more", title: "nav.accounts", load: () => import("./screens/AccountsScreen.vue") },
   budgets: { tab: "more", title: "nav.budgets", load: () => import("./screens/BudgetsScreen.vue") },
   reports: { tab: "more", title: "nav.reports", load: () => import("./screens/ReportsScreen.vue") },
-  forecast: { tab: "more", title: "nav.forecast", load: () => import("./screens/ForecastScreen.vue") },
+  forecast: { tab: "forecast", title: "nav.forecast", load: () => import("./screens/ForecastScreen.vue") },
   alerts: { tab: "more", title: "nav.alerts", load: () => import("./screens/AlertsScreen.vue") },
   categories: { tab: "more", title: "nav.categories", load: () => import("./screens/CategoriesScreen.vue") },
   settings: { tab: "more", title: "nav.settings", load: () => import("./screens/SettingsScreen.vue") },
