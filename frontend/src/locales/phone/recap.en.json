@@ -1,7 +1,5 @@
 {
   "barsLead": "Each bar is one day. Touch a bar to see that day.",
   "daysAria": "The days of this month. Touch a day to see what it held.",
-  "dayOpen": "See this day in Activity",
-  "sumShow": "See how it adds up",
-  "sumHide": "Hide how it adds up"
+  "dayOpen": "See this day in Activity"
 }

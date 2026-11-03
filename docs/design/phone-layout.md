@@ -47,7 +47,8 @@ name 13px, amount 28px (hero 34px, half-width 24px), line under 13px. Row title 
 
 - **Activity**: computer toolbar (search, filters, group/sort) → `SearchField` + `ChipBar` + ⋯; the table → month bands
   with `ListRow`s (letter tile, name, category · date, amount); totals per month in the band.
-- **Recap**: each recap card → a `.ph-card` section in the same order; its charts as `AmountCard`/bars.
+- **Recap** (done): the computer's zig-zag path of circles → one route down the start side (circle, then the part beside
+  it); the plain parts at the end centred as on the computer; sums always open as the same stack of gradient cards.
 - **Accounts**: totals cards → `AmountCard` grid; each bank group → section with `brandIcon` rows and balances;
   cards → `AmountCard` with this-month bar and badge.
 - **Jars**: summary cards → `AmountCard`s; jar cards → `SwipeCards` of jar cards (ring, amount, goal bar) or a list
