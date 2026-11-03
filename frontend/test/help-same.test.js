@@ -49,9 +49,9 @@ test("every page with a guide opens that guide", () => {
 // ---- the new pages carry the names the ?s look for ----
 globalThis.document = { documentElement: { lang: "", classList: { toggle() {} } }, addEventListener() {}, removeEventListener() {} };
 const PAGES = { home: "Home", activity: "Activity", jars: "Jars", bills: "Bills", budgets: "Budgets", reports: "Reports", forecast: "Forecast" };
-// Places a ? does not find by name (the Bills title and the Hebrew "Money flow · ahead" never start with the name it looks for), and boxes
+// Places a ? does not find by name (the Hebrew "Money flow · ahead" never starts with the name it looks for), and boxes
 // that show only when there is something to show (credit cards, exchange rates, items to review, completed jars): those must at least exist in the page file.
-const OLD_GAPS = ["#sec-flow / Money flow", "#bills / Bills and subscriptions"];
+const OLD_GAPS = ["#sec-flow / Money flow"];
 const ONLY_WITH_DATA = { "#sec-cards / Cards": "Home", "#sec-fx missing": "Home", "#txRev missing": "Activity", "#jars / Completed": "Jars" };
 const unesc = (x) => x.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&");
 const norm = (t) => String(t).replace(/\s+/g, " ").trim().toLowerCase();

@@ -130,7 +130,7 @@
     "balNow": "Balance now",
     "loanHint": "A loan or debt: enter what you owe as a negative number.",
     "nwT": "Count it in my net worth",
-    "nwX": "Its balance is added to your net worth. It is never counted as cash for jars.",
+    "nwX": "Its balance is added to your net worth and to In your accounts, so it also counts in Free to use on the Jars page.",
     "repT": "Count its transactions in reports",
     "repX": "Income and spending on this account show up in reports, budgets and the forecast. Turn it off for something you only want to track the balance of.",
     "addBtn": "Add account",

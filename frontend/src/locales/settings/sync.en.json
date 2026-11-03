@@ -26,7 +26,7 @@
   "r60": "60 days",
   "r90": "90 days",
   "firstImpT": "How far back a new bank or card reads",
-  "firstImpD": "Used once, when you add a bank or card. The app keeps whatever the bank still has (usually 1 to 2 years). To read further back later, use Import history on its card.",
+  "firstImpD": "Used once, when you add a bank or card. The app keeps whatever the bank still has (usually 1 to 2 years). To read further back later, open its card in Settings → Connections, pick 1 year, 2 years or 5 years in the list next to Sync now, then press Sync now.",
   "f90": "3 months",
   "f180": "6 months",
   "f365": "1 year",

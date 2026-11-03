@@ -42,7 +42,7 @@
     "delQ": "Delete the tag \"{g}\"? It is removed from {n} transaction and from tag rules. The transactions stay. | Delete the tag \"{g}\"? It is removed from {n} transactions and from tag rules. The transactions stay.",
     "dup": "There is already a tag named #{g}."
   },
-  "rulesAt": "Rules that sort entries automatically are in Settings → Automatic sorting.",
+  "rulesAt": "Rules that sort entries automatically are in Settings → Sorting.",
   "period": {
     "label": "Time to look at",
     "m3": "3 months",
