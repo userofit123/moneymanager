@@ -245,8 +245,18 @@ html.phone .ph-txr {
   padding-block: 10px;
 }
 
+/* a future payment: as on the computer, a light tint and a coloured line on the start side, name and amount in italics */
 html.phone .ph-txr.fut {
-  opacity: .62;
+  background: color-mix(in srgb, var(--acc) 3%, transparent);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--acc) 50%, transparent); /* fixed side: a shadow has no start/end */
+}
+
+html.phone.he .ph-txr.fut {
+  box-shadow: inset -3px 0 0 color-mix(in srgb, var(--acc) 50%, transparent); /* fixed side */
+}
+
+html.phone .ph-txr.fut :is(.ph-row-t, .ph-txr-a) {
+  font-style: italic;
 }
 
 html.phone .ph-av {
@@ -341,9 +351,9 @@ html.phone .ph-txr-o {
   font-variant-numeric: tabular-nums;
 }
 
-/* the swipe's separators: inset past the avatar, as in every list */
+/* the swipe's separators: across the whole row */
 html.phone .ph-actv-g .ph-swipe + .ph-swipe::before {
-  inset-inline-start: calc(var(--p-gut) + 52px);
+  inset-inline-start: 0;
   z-index: 1;
 }
 
