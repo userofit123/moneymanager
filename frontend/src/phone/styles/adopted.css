@@ -64,30 +64,64 @@ html.phone .ph-adopt .ph-sheet-b > .sm:first-of-type {
   line-height: 20px;
 }
 
-/* the window's last row of buttons (Cancel, Save) stays at the bottom, above the home bar, each button half the width;
-   a label too long for half the width gets the whole line, so it never breaks over three lines (Hebrew) */
+/* Close floats at the end of the window's own title (PhoneSheet), so the title leaves room for it */
+html.phone .ph-close-f {
+  position: absolute;
+  inset-block-start: 25px;
+  inset-inline-end: 12px;
+  z-index: 3;
+}
+
+/* the title stays at the top while the window's fields scroll under it, level with Close */
+html.phone .ph-adopt .ph-sheet-b:has(> h3:first-child) {
+  padding-block-start: 0;
+}
+
+html.phone .ph-adopt .ph-sheet-b > h3:first-child {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 2;
+  margin-block-end: 4px;
+  padding-block: 8px 8px;
+  padding-inline-end: 44px;
+  background: var(--p-sheet-bg);
+}
+
+/* the window's last row of buttons stays at the bottom, above the home bar: the main button (Save, Create) across the full
+   width, and the others (Cancel, Back) as quiet text buttons under it, so there is one clear thing to press */
 html.phone .ph-adopt .ph-sheet-b > :is(.flex, .dlg-actions):last-child {
   position: sticky;
   inset-block-end: 0;
   z-index: 2;
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  flex-direction: column-reverse;
+  gap: 2px;
   margin: 16px calc(-1 * var(--p-gut)) 0;
-  padding: 12px var(--p-gut) calc(var(--sb) + 12px);
-  background-color: var(--bg);
+  padding: 12px var(--p-gut) calc(var(--sb) + 8px);
+  background-color: var(--p-sheet-bg);
   border-block-start: 1px solid var(--p-line);
 }
 
-html.phone[data-mode="dark"] .ph-adopt .ph-sheet-b > :is(.flex, .dlg-actions):last-child {
-  background-color: color-mix(in srgb, var(--tx) 5%, var(--bg));
+html.phone .ph-adopt .ph-sheet-b > :is(.flex, .dlg-actions):last-child > :is(.btn, button) {
+  flex: none;
+  inline-size: 100%;
+  min-block-size: 48px;
+  margin: 0;
+  font-size: 16px;
 }
 
-html.phone .ph-adopt .ph-sheet-b > :is(.flex, .dlg-actions):last-child > :is(.btn, button) {
-  flex: 1 1 0;
-  min-inline-size: fit-content;
+html.phone .ph-adopt .ph-sheet-b > :is(.flex, .dlg-actions):last-child > .btn.o {
+  min-block-size: 44px;
+  border-color: transparent;
+  background: none;
+  color: var(--acc);
+  font-weight: 600;
+}
+
+/* a row with only quiet buttons (Back, Cancel) keeps them as outlined buttons, so the row still reads as buttons */
+html.phone .ph-adopt .ph-sheet-b > :is(.flex, .dlg-actions):last-child:not(:has(> .btn:not(.o))) > .btn.o {
   min-block-size: 48px;
-  font-size: 16px;
+  border-color: var(--ol);
 }
 
 /* "Count in another month": a month is chosen by its own buttons, so the closing Cancel is the plain secondary button, not the main one */
@@ -95,6 +129,23 @@ html.phone .ph-adopt .ph-sheet-b:has(input[type=month]) > .flex:last-child > .bt
   background: none;
   border: 1px solid var(--ol);
   color: var(--acc);
+}
+
+/* tick boxes (not switches): big enough for a finger, in the app's colour */
+html.phone :is(.ph-sheet, .ph-set) input[type=checkbox]:not(.tg input) {
+  inline-size: 22px;
+  block-size: 22px;
+  min-block-size: 0;
+  accent-color: var(--acc);
+}
+
+/* a window's grey hint box (how a jar's monthly amount is worked out) is a plain note under the fields, not a box in the sheet */
+html.phone .ph-adopt .jhint {
+  margin: -8px 0 16px;
+  padding: 0;
+  background: none;
+  font-size: 13px;
+  line-height: 18px;
 }
 
 /* a window with only its content (no buttons at the end) keeps room above the home bar */
@@ -420,7 +471,9 @@ html.phone .ph-tipbox.one {
   padding-block-start: 4px;
 }
 
-/* ---- Settings sections (views/settings/*Pane.vue) on their own screen ---- */
+/* ---- Settings sections (views/settings/*Pane.vue) on their own screen ----
+   Each of the computer's cards reads as a phone section: its title and short explanation as the section heading (no icon,
+   no shaded strip), its body as the one card, and its closing note as plain grey text under the card. */
 html.phone .ph-set {
   display: flex;
   flex-direction: column;
@@ -435,40 +488,219 @@ html.phone .ph-set > * {
   min-inline-size: 0;
 }
 
-html.phone .ph-set .card {
+html.phone .ph-set .card:not(.ss) {
   padding: 0;
-  border: 0;
+  border: 1px solid var(--p-card-line);
   border-radius: var(--p-r-group);
   background: var(--p-surf);
   box-shadow: none;
 }
 
-html.phone .ph-set .ss > .ssh {
+html.phone .ph-set .ss:not(.ccard) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-head);
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  overflow: visible;
+}
+
+html.phone .ph-set .ss:not(.ccard) > .ssh {
+  align-items: flex-end;
+  gap: var(--p-s3);
+  padding: 0 4px;
+  border: 0;
+  background: none;
+}
+
+html.phone .ph-set .ss:not(.ccard) > .ssh > .ssi {
+  display: none;
+}
+
+html.phone .ph-set .ss:not(.ccard) > .ssh b {
+  font-size: var(--p-f-sec);
+  line-height: 24px;
+  font-weight: 650;
+  letter-spacing: normal;
+}
+
+html.phone .ph-set .ss:not(.ccard) > .ssh .sm {
+  margin-block-start: 4px;
+  color: var(--tx2);
+  font-size: var(--p-f-meta);
+  line-height: 18px;
+}
+
+/* a button in the heading line (Add connection, Refresh) sits at its end, level with the explanation's last line */
+html.phone .ph-set .ss:not(.ccard) > .ssh > .btn {
+  flex: none;
+}
+
+html.phone .ph-set .ss:not(.ccard) > .ssb {
+  padding: 0 var(--p-pad);
+  border: 1px solid var(--p-card-line);
+  border-radius: var(--p-r-group);
+  background: var(--p-surf);
+}
+
+html.phone .ph-set .ss:not(.ccard) > .ssb.p {
+  padding: var(--p-pad);
+}
+
+html.phone .ph-set .ss:not(.ccard) > .sfoot {
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--tx2);
+  font-size: var(--p-f-meta);
+  line-height: 18px;
+}
+
+/* the first section of a screen often has the screen's own name as its title: the large title already says it, so only its
+   explanation stays, as the screen's opening line */
+html.phone .ph-set:is([data-sec=prof], [data-sec=cur], [data-sec=conn], [data-sec=sync], [data-sec=crules], [data-sec=trules], [data-sec=nrules], [data-sec=cprules], [data-sec=srules], [data-sec=log], [data-sec=rel]) > * > .ss:first-child > .ssh b {
+  display: none;
+}
+
+html.phone .ph-set:is([data-sec=prof], [data-sec=cur], [data-sec=conn], [data-sec=sync], [data-sec=crules], [data-sec=trules], [data-sec=nrules], [data-sec=cprules], [data-sec=srules], [data-sec=log], [data-sec=rel]) > * > .ss:first-child > .ssh .sm {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+/* a connection keeps its own card with its name at the top */
+html.phone .ph-set .ccard {
+  padding: 0;
+  border: 1px solid var(--p-card-line);
+  border-radius: var(--p-r-group);
+  background: var(--p-surf);
+  box-shadow: none;
+}
+
+html.phone .ph-set .ccard > .ssh {
   gap: 12px;
   padding: 16px 16px 12px;
 }
 
-html.phone .ph-set .ssh b {
-  font-size: 16px;
-}
-
-html.phone .ph-set .ssh .sm {
-  font-size: 13.5px;
-  line-height: 19px;
-}
-
-html.phone .ph-set .ssb {
+html.phone .ph-set .ccard > .ssb {
   padding-inline: 16px;
 }
 
-html.phone .ph-set .ssb.p {
-  padding: 4px 16px 16px;
+html.phone .ph-set .ccard > .sfoot {
+  padding: 12px 16px 16px;
+  background: none;
+  font-size: var(--p-f-meta);
+  line-height: 18px;
 }
 
-html.phone .ph-set .sfoot {
-  padding: 12px 16px 16px;
-  font-size: 13.5px;
-  line-height: 19px;
+/* a grey tip box inside a card (how logins are kept safe, how the AI set-up works) is plain text in the card, not a box in
+   a box */
+html.phone .ph-set .sinfo {
+  margin: 12px 0;
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* how logins are kept safe: a short list in the card, not a grey box inside it */
+html.phone .ph-set .cnote {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  padding: 0;
+  background: none;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+/* switches: when on, the knob is white on the app's colour (in dark mode too), so on and off are told apart at a glance */
+html.phone .ph-set .tg input[type=checkbox]:checked::after {
+  background: #fff;
+}
+
+html.phone[data-mode="dark"] .ph-set .tg input[type=checkbox]:not(:checked) {
+  background: color-mix(in srgb, var(--tx) 14%, transparent);
+}
+
+/* a row whose control is a short number (days, %, an amount): the field stays narrow so its label keeps one line */
+html.phone .ph-set .sr > .src:has(> input[type=number]:only-child) {
+  flex: none;
+  inline-size: 96px;
+}
+
+html.phone .ph-set .sr > .src > input[type=number]:only-child {
+  inline-size: 100%;
+  text-align: center;
+}
+
+/* choices in a row (language, date format): the phone's segmented look, a grey track with the picked one as a raised pill */
+html.phone .ph-set .seg {
+  margin: 0;
+  padding: 3px;
+  background: var(--s2);
+  box-shadow: none;
+}
+
+html.phone .ph-set .seg > button {
+  min-block-size: 36px;
+  padding-inline: 14px;
+  color: var(--tx2);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+html.phone .ph-set .seg > button.on,
+html.phone .ph-set .seg .segi b {
+  background: var(--bg);
+  color: var(--tx);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .12), 0 0 0 .5px rgba(0, 0, 0, .04);
+}
+
+html.phone .ph-set .seg.sl > button.on {
+  background: none;
+  box-shadow: none;
+}
+
+html.phone[data-mode="dark"] .ph-set .seg:not(.sl) > button.on,
+html.phone[data-mode="dark"] .ph-set .seg .segi b {
+  background: color-mix(in srgb, var(--tx) 16%, var(--bg));
+}
+
+/* the app icons: two rows of three, each fully in sight */
+html.phone .ph-set .apg.c6 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+html.phone .ph-set .apg.c6 .apt {
+  padding: 8px 4px;
+}
+
+html.phone .ph-set .apg.c6 .apl {
+  font-size: 13px;
+}
+
+/* a card's closing buttons (Clear, Save): the main one across the card's width, the other a quiet text button under it */
+html.phone .ph-set .sact {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: stretch;
+  gap: 4px;
+  margin-block-start: 8px;
+}
+
+html.phone .ph-set .sact > .btn {
+  min-block-size: 48px;
+  font-size: 16px;
+}
+
+html.phone .ph-set .sact > .btn.o {
+  min-block-size: 44px;
+  border-color: transparent;
+  background: none;
 }
 
 /* a row: the text on top when the control does not fit beside it */
@@ -553,4 +785,11 @@ html.phone .ph-set .rlrows .rule > :is(select, input:not([type=checkbox])) {
 /* the small (i) next to a label opens its explanation: on a phone its touch area is 44px (the icon stays its size) */
 html.phone .tinfo::after {
   inset: -16px;
+}
+
+/* ---- Points and levels: the level at the top is a plain card like every other, not a tinted panel ---- */
+html.phone .ptw .pthd {
+  border: 1px solid var(--p-card-line);
+  border-radius: var(--p-r-group);
+  background: var(--p-surf);
 }

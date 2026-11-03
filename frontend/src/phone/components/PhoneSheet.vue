@@ -2,8 +2,9 @@
 // The phone's window: a sheet that rises from the bottom, with a handle to drag it down, a title with Close, the content
 // (scrolls inside) and a footer that stays above the keyboard and the home bar. size "fit" grows with the content up to 92% of
 // the screen; "large" is always 92%. Escape, a tap on the dim area, the phone's Back and a pull down close it.
-// cls: extra classes (ph-adopt: a computer window's content, restyled by styles/adopted.css).
-import { ref, watch, nextTick, onBeforeUnmount } from "vue";
+// cls: extra classes (ph-adopt: a computer window's content, restyled by styles/adopted.css; its own first heading is the
+// title, with Close floating beside it).
+import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import { sheetOpened, sheetClosed } from "../../core/sheets.js";
 import { layerOpen, layerClose } from "../../core/layers.js";
@@ -14,6 +15,8 @@ const props = defineProps({ open: { type: Boolean, default: true }, title: { typ
 const emit = defineEmits(["update:open", "close"]);
 const { t } = useI18n();
 const el = ref(null), body = ref(null);
+// a computer window brings its own title as the first line of its content: Close then floats at the title's end
+const adopted = computed(() => /(^|\s)ph-adopt(\s|$)/.test(props.cls));
 const close = () => { emit("update:open", false); emit("close"); };
 let stopDrag = null;
 // the on-screen keyboard: the sheet sits on top of it (--kb is its height, --vvh the height left above it), and the field
@@ -48,6 +51,7 @@ onBeforeUnmount(() => { stopDrag?.(); vv?.removeEventListener("resize", onKb); i
           <slot name="head"><h2>{{ title }}</h2></slot>
           <button type="button" class="ph-ib ph-close" :aria-label="t('common.close')" @click="close"><PIcon name="close" /></button>
         </div>
+        <button v-else-if="adopted" type="button" class="ph-ib ph-close ph-close-f" :aria-label="t('common.close')" @click="close"><PIcon name="close" /></button>
         <div ref="body" class="ph-sheet-b"><slot :close="close" /></div>
         <div v-if="$slots.foot" class="ph-sheet-f"><slot name="foot" :close="close" /></div>
       </div>

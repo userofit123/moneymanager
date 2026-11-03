@@ -422,3 +422,62 @@ html.phone #pop .only-d {
 html.phone #pop .apb {
   padding-inline: var(--p-gut);
 }
+
+/* labels in sentence case, as every label on the phone */
+html.phone #pop :is(.aps h4, .cgp h5) {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+/* the tab row and the Light / Dark / Auto choice: the phone's segmented look (grey track, the picked one a raised pill) */
+html.phone #pop .seg.apseg {
+  background: var(--s2);
+  box-shadow: none;
+}
+
+html.phone #pop .seg.apseg > button {
+  color: var(--tx2);
+  font-weight: 600;
+}
+
+html.phone #pop .seg.apseg:not(.sl) > button.on,
+html.phone #pop .seg.apseg .segi b {
+  background: var(--bg);
+  color: var(--tx);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .12), 0 0 0 .5px rgba(0, 0, 0, .04);
+}
+
+html.phone #pop .seg.apseg.sl > button.on {
+  color: var(--tx);
+}
+
+html.phone[data-mode="dark"] #pop .seg.apseg:not(.sl) > button.on,
+html.phone[data-mode="dark"] #pop .seg.apseg .segi b {
+  background: color-mix(in srgb, var(--tx) 16%, var(--bg));
+}
+
+/* Help: the "jump to" row fades at the edges while it scrolls, so a cut chip reads as "more this way" */
+html.phone .ph-guide .hjump {
+  mask-image: linear-gradient(to right, transparent, #000 var(--p-gut), #000 calc(100% - var(--p-gut)), transparent); /* fixed side: both edges */
+}
+
+html.phone .ph-guide .hs + .hs {
+  padding-block-start: 4px;
+}
+
+/* an action with its current value at the end ("Show only this category   Food"): the name keeps one line, the value gives
+   way and ends in "…" */
+html.phone .ph-act-l {
+  flex: 1 0 auto;
+  max-inline-size: 72%;
+}
+
+html.phone .ph-act-v {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

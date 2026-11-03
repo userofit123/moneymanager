@@ -461,6 +461,13 @@ html.phone .ph-btn.tonal {
   min-block-size: 44px;
 }
 
+/* in dark mode the app's container colour is a strong blue that reads as a filled main button: the second button is a soft
+   tint of the app's colour instead, with the app's colour as its text */
+html.phone[data-mode="dark"] .ph-btn.tonal {
+  background: color-mix(in srgb, var(--acc) 14%, transparent);
+  color: var(--acc);
+}
+
 html.phone .ph-btn:disabled {
   opacity: .4;
 }
