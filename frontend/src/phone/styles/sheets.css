@@ -68,42 +68,41 @@ html.phone .ph-help-back {
 
 html.phone .ph-guide .hlead {
   margin-block-end: 16px;
+  padding: 14px 16px;
+  border-radius: var(--p-r-tile);
   font-size: 16px;
   line-height: 24px;
 }
 
-/* the guide's "jump to" buttons scroll sideways in one line */
-html.phone .ph-guide .hjump {
-  flex-wrap: nowrap;
-  gap: 8px;
-  margin-inline: calc(var(--p-gut) * -1);
-  padding-inline: var(--p-gut);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-html.phone .ph-guide .hjump button {
-  flex: none;
-  min-block-size: 36px;
-  padding: 0 14px;
-  border-radius: var(--pill);
-  font-size: 14px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-html.phone .ph-guide .hs {
+/* the list of sections: the computer's two columns, at phone sizes */
+html.phone .ph-guide .htoc {
+  column-gap: 8px;
   margin-block-end: 24px;
+  padding: 0;
+}
+
+html.phone .ph-guide .htoc button {
+  min-block-size: 40px;
+  align-items: center;
+  font-size: 14px;
+  line-height: 18px;
+}
+
+html.phone .ph-guide .hrail {
+  --hin: 52px;
+}
+
+html.phone .ph-guide .hs.hg {
+  margin-block-end: 30px;
   scroll-margin-block-start: 8px;
 }
 
-html.phone .ph-guide .hs h4 {
+html.phone .ph-guide .hs.hg > h4 {
   font-size: 17px;
   line-height: 22px;
-  font-weight: 600;
 }
 
-html.phone .ph-guide .hs p {
+html.phone .ph-guide .hs.hg p {
   font-size: 15px;
   line-height: 23px;
 }
@@ -114,19 +113,8 @@ html.phone .ph-guide :is(.hex, .htip) {
   border-radius: var(--p-r-tile);
 }
 
-/* "Example" and "Tip" in sentence case, as every label on the phone */
-html.phone .ph-guide :is(.hex, .htip) > b {
+html.phone .ph-guide .hlab {
   font-size: 13px;
-  letter-spacing: normal;
-  text-transform: none;
-}
-
-/* only the first bold word is the label; a bold word inside the sentence stays in the sentence */
-html.phone .ph-guide :is(.hex, .htip) > b:not(:first-child) {
-  display: inline;
-  margin: 0;
-  color: inherit;
-  font-size: inherit;
 }
 
 /* the little pictures: shrunk to the sheet's width, never wider */
@@ -391,15 +379,6 @@ html.phone #pop .seg.apseg.sl > button.on {
 html.phone[data-mode="dark"] #pop .seg.apseg:not(.sl) > button.on,
 html.phone[data-mode="dark"] #pop .seg.apseg .segi b {
   background: color-mix(in srgb, var(--tx) 16%, var(--bg));
-}
-
-/* Help: the "jump to" row fades at the edges while it scrolls, so a cut chip reads as "more this way" */
-html.phone .ph-guide .hjump {
-  mask-image: linear-gradient(to right, transparent, #000 var(--p-gut), #000 calc(100% - var(--p-gut)), transparent); /* fixed side: both edges */
-}
-
-html.phone .ph-guide .hs + .hs {
-  padding-block-start: 4px;
 }
 
 /* an action with its current value at the end ("Show only this category   Food"): the name keeps one line, the value gives

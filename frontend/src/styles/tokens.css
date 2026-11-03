@@ -70,6 +70,24 @@
   }
 }
 
+/* the page guide's section colours (help/help.js, styles/components/help.css): teal, slate, amber, coral, plum.
+   Each carries a white icon, so they stay mid-dark in both modes; the section title takes the same colour, mixed with the text colour. */
+:root {
+  --hg1: #0e8a7d;
+  --hg2: #5b6b7d;
+  --hg3: #c47f0a;
+  --hg4: #d4553f;
+  --hg5: #7a5ba8;
+}
+
+:root[data-mode=dark] {
+  --hg1: #23a091;
+  --hg2: #74859a;
+  --hg3: #c98c1e;
+  --hg4: #dc6a56;
+  --hg5: #9177c4;
+}
+
 :root {
   --gi: 1;
   --bg-glow: radial-gradient(70% 58% at 8% -8%,color-mix(in srgb,var(--acc) calc(20% * var(--gi)),transparent),transparent),radial-gradient(58% 58% at 100% 0,color-mix(in srgb,var(--acc2) calc(16% * var(--gi)),transparent),transparent),var(--bg);
