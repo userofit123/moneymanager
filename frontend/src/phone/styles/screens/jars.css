@@ -1,182 +1,179 @@
-/* Phone Jars screen (phone/screens/JarsScreen.vue). Every rule starts with html.phone. */
+/* Phone Jars screen (phone/screens/JarsScreen.vue) and the jar card it shares with the Jar screen (JarCard.vue).
+   The summary is the computer's .jhero (components/hero.css), its two halves one under the other.
+   Every rule starts with html.phone. */
 
-/* the opening sentence: a little air; too much in the jars: the amount in red, Take back right under it */
-html.phone .ph-jars .ph-hero {
-  padding: 4px 4px 0;
+/* the summary: the computer's tinted block; "this month" under "free to use", split by the same thin line */
+html.phone .ph-jars-hero {
+  grid-template-columns: minmax(0, 1fr);
+  border-radius: var(--p-r-group);
 }
 
-html.phone .ph-jars .ph-hero.over .ph-hero-a {
+html.phone .ph-jars-hero > div {
+  padding: 18px var(--p-pad);
+}
+
+html.phone .ph-jars-hero .jh2 {
+  border-inline-start: 0;
+  border-block-start: 1px solid color-mix(in srgb, var(--acc) 20%, var(--ol));
+}
+
+html.phone .ph-jars-hero .jh1 .val {
+  font-size: 40px;
+  margin: 6px 0 4px;
+}
+
+html.phone .ph-jars-hero .jh2 .val {
+  font-size: 30px;
+  margin: 6px 0 0;
+}
+
+html.phone .ph-jars-hero .jh2 .val .of {
+  font-size: 15px;
+}
+
+html.phone .ph-jars-hero .sm {
+  font-size: var(--p-f-meta);
+  line-height: 18px;
+}
+
+/* a block's name, with the (i) that opens what it means */
+html.phone .ph-jars-lbl {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-block-size: 28px;
+  margin: -4px 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tx2);
+  font: inherit;
+}
+
+html.phone .ph-jars-lbl .lbl {
+  font-size: 14px;
+}
+
+html.phone :is(.ph-jars-lbl, .ph-jcard .jst, .ph-jcard-st button span) .ph-ic {
+  inline-size: 15px;
+  block-size: 15px;
+  opacity: .7;
+}
+
+/* the three numbers: three tiles side by side, each a tap */
+html.phone .ph-jars-hero .jstats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 14px;
+}
+
+html.phone .ph-jars-hero .jstats > button {
+  min-inline-size: 0;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--acc) 18%, var(--ol));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--s1) 60%, transparent);
+  color: var(--tx);
+  font: inherit;
+  text-align: start;
+}
+
+html.phone .ph-jars-hero .jstats span {
+  display: block;
+  color: var(--tx2);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 14px;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+}
+
+html.phone.he .ph-jars-hero .jstats span {
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+html.phone .ph-jars-hero .jstats b {
+  display: block;
+  margin-top: 4px;
+  font-size: 15px;
+}
+
+html.phone .ph-jars-hero .neg {
   color: var(--neg);
 }
 
-html.phone .ph-jars-back {
-  align-self: flex-start;
-  margin-block-start: calc(12px - var(--p-gap));
+/* too much in the jars (red box), or waiting for payday (calm box), as on the computer */
+html.phone :is(.ph-jars-over, .ph-jars-pay) {
+  margin-top: 12px;
+  padding: 11px 13px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--neg) 10%, transparent);
+  font-size: var(--p-f-meta);
+  line-height: 1.5;
 }
 
-/* this month: the amount put in of what is planned, the bar, what it means, then the three numbers and Fill now */
-html.phone .ph-jars-mh {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: var(--p-pad) var(--p-pad) 14px;
+html.phone .ph-jars-over > b {
+  color: var(--neg);
 }
 
-/* the amount put in: tap it for how it is counted */
-html.phone .ph-jars-mv {
-  align-self: flex-start;
-  margin: 0;
+html.phone .ph-jars-pay {
+  background: color-mix(in srgb, var(--acc) 9%, transparent);
+}
+
+html.phone .ph-jars-pay button {
+  display: block;
   padding: 0;
   border: 0;
   background: none;
   color: var(--tx);
   font: inherit;
-  font-size: 22px;
-  line-height: 28px;
-  font-variant-numeric: tabular-nums;
   text-align: start;
 }
 
-html.phone .ph-jars-ms {
-  margin: 0;
+/* the computer's small buttons, sized for a finger */
+html.phone .ph-jars-sbtn {
+  min-block-size: 38px;
+  padding-inline: 14px;
+  font-size: 14px;
+  gap: 4px;
+}
+
+html.phone .ph-jars-sbtn .ph-ic {
+  inline-size: 18px;
+  block-size: 18px;
+  margin-inline-start: -4px;
+}
+
+html.phone .ph-jars-hero .ph-jars-sbtn {
+  margin-top: 12px;
+}
+
+html.phone .ph-jars-over .ph-jars-sbtn {
+  display: flex;
+}
+
+/* keep untouched: the name, what it is, the amounts and "Other amount" */
+html.phone .ph-jars-keep > b {
+  display: block;
+  font-size: 16px;
+}
+
+html.phone .ph-jars-keep > p {
+  margin: 2px 0 10px;
   color: var(--tx2);
   font-size: var(--p-f-meta);
   line-height: 18px;
 }
 
-html.phone .ph-jars-ms.warn {
-  color: var(--tx);
-}
-
-html.phone .ph-jars-mh + .ph-row::before {
-  content: "";
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline: 16px 0;
-  border-block-start: 1px solid var(--p-line);
-}
-
-html.phone .ph-jars-fill {
-  padding: 8px 16px 16px;
-}
-
-html.phone .ph-jars-ring .ph-ring-in {
-  font-size: 12px;
-  letter-spacing: -0.2px;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Jars / Goals / Completed: the computer's margins are left out, so the switch sits one section gap from what is above and below */
-html.phone .ph-jars .ph-seg.seg {
-  margin: 0;
-}
-
-/* a full jar: a check instead of 100%, which does not fit the small ring at a readable size */
-html.phone .ph-jars-ok {
-  display: block;
-  inline-size: 20px;
-  block-size: 20px;
-}
-
-/* a jar with no goal amount (monthly saving, a bill) shows what kind it is in its ring instead of a percent */
-html.phone .ph-jars-ki {
-  display: block;
-  inline-size: 20px;
-  block-size: 20px;
-  fill: none;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-html.phone .ph-jars .ph-row-s {
-  display: flex;
-  gap: 10px;
-}
-
-html.phone .ph-jars .ph-row-s > span {
-  min-inline-size: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-html.phone .ph-jars .ph-row-s > span:first-child {
-  flex: none;
-}
-
-html.phone .ph-jars-st {
-  font-weight: 600;
-}
-
-html.phone .ph-jars-st.pos {
-  color: var(--pos);
-}
-
-html.phone .ph-jars-st.warn {
-  color: var(--warn);
-}
-
-html.phone .ph-jars-st.acc {
-  color: var(--acc);
-}
-
-html.phone .ph-jars-add .ph-row-t {
-  color: var(--acc);
-  font-weight: 600;
-}
-
-html.phone .ph-jars-none {
-  margin: 0;
-  padding: 14px 16px;
-  color: var(--tx2);
-  font-size: 15px;
-  line-height: 22px;
-}
-
-/* goals: name and status, the bar in the jar's colour, the plain line, and its one action */
-html.phone .ph-jars-goal + .ph-jars-goal,
-html.phone .ph-jars-goal + .ph-row {
-  border-block-start: 1px solid var(--p-line);
-}
-
-html.phone .ph-jars-gh {
-  padding-block-end: 4px;
-}
-
-html.phone .ph-jars-gb {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 0 var(--p-pad) var(--p-pad);
-}
-
-html.phone .ph-jars-gb .ph-btn {
-  align-self: flex-start;
-  margin-block-start: 2px;
-}
-
-/* completed jars: the line can be long, so it wraps */
-html.phone .ph-jars-done .ph-row-s {
-  white-space: normal;
-}
-
-/* keep untouched: the amounts as chips, then the field for another amount */
-html.phone .ph-jars-kp {
-  margin: 0 0 12px;
-  color: var(--tx2);
-  font-size: 15px;
-  line-height: 22px;
-}
-
 html.phone .ph-jars-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 8px;
-  margin-block-end: 16px;
+  gap: 0 8px;
 }
 
 html.phone .ph-jars-chips .ph-chip {
-  gap: 6px;
   padding-inline: 14px;
   font: inherit;
   font-size: 14px;
@@ -184,7 +181,440 @@ html.phone .ph-jars-chips .ph-chip {
   font-variant-numeric: tabular-nums;
 }
 
-html.phone .ph-jars-chips .ph-chip .ph-ic {
-  inline-size: 18px;
-  block-size: 18px;
+html.phone .ph-jars-kin {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  border: 1px solid var(--ol);
+  border-radius: 14px;
+  background: var(--s1);
+  overflow: hidden;
+}
+
+html.phone .ph-jars-kin:focus-within {
+  border-color: var(--acc);
+}
+
+html.phone .ph-jars-kin > span {
+  padding-inline: 14px 4px;
+  color: var(--tx2);
+}
+
+html.phone .ph-jars-kin input {
+  flex: 1;
+  min-inline-size: 0;
+  min-block-size: 44px;
+  padding-block: 8px;
+  padding-inline: 4px 14px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+html.phone .ph-jars-kin input:focus {
+  outline: 0;
+}
+
+/* buttons at a heading's end */
+html.phone .ph-jars-hb {
+  display: flex;
+  gap: 6px;
+}
+
+html.phone .ph-group-h .ph-jars-sbtn {
+  min-block-size: 34px;
+  margin-block: -4px;
+}
+
+html.phone .ph-jars-cnt {
+  color: var(--tx2);
+  font-size: 13px;
+}
+
+/* the jar cards: one under the other when there are two or fewer, else a sliding row of equal-height cards */
+html.phone .ph-jars-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+html.phone .ph-jars-cards.on {
+  align-items: stretch;
+}
+
+html.phone .ph-jars-cards.on > * {
+  flex-basis: 88%;
+}
+
+html.phone .ph-jars-none {
+  margin: 0;
+  color: var(--tx2);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* goals and completed jars: the computer's lines, split by thin lines */
+html.phone .ph-jars-gnote {
+  margin: -2px 2px 0;
+  color: var(--tx2);
+  font-size: var(--p-f-meta);
+  line-height: 18px;
+}
+
+html.phone .ph-jars-goal {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+}
+
+html.phone .ph-jars-goal + .ph-jars-goal {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--p-line);
+}
+
+html.phone .ph-jars-goal > b {
+  font-size: 16px;
+}
+
+html.phone :is(.ph-jars-gh, .ph-jar-gh) {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tx);
+  font: inherit;
+  text-align: start;
+}
+
+html.phone :is(.ph-jars-gn, .ph-jar-gn) {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+html.phone :is(.ph-jars-gn, .ph-jar-gn) b {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+html.phone :is(.ph-jars-gn, .ph-jar-gn) .ph-amt {
+  color: var(--tx2);
+  font-size: var(--p-f-meta);
+}
+
+html.phone :is(.ph-jars-gh, .ph-jar-gh) .bd {
+  flex: none;
+}
+
+html.phone :is(.ph-jars-goal, .ph-jar-goal) .bar {
+  display: block;
+  margin: 6px 0 2px;
+}
+
+html.phone .ph-jars-goal > .ph-jars-sbtn {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+html.phone .ph-jars-db {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* ===== the jar card (JarCard.vue): the computer's jar card ===== */
+html.phone .ph-jcard {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  padding: var(--p-pad);
+  border: 1px solid var(--p-card-line);
+  border-radius: var(--p-r-group);
+  background: var(--p-surf);
+  color: var(--tx);
+  text-align: start;
+}
+
+html.phone .ph-jcard.tap:active {
+  background: var(--p-press);
+}
+
+html.phone .ph-jcard-h {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+html.phone .ph-jcard-n {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+html.phone .ph-jcard-n > b {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+  overflow-wrap: anywhere;
+}
+
+html.phone .ph-jcard-k {
+  color: var(--tx2);
+  font-size: var(--p-f-meta);
+  line-height: 20px;
+}
+
+html.phone .ph-jcard-k svg {
+  inline-size: 14px;
+  block-size: 14px;
+  margin-inline-end: 5px;
+  vertical-align: -2px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+/* ⋯ : a round button, as on the computer */
+html.phone .ph-jcard-i {
+  display: grid;
+  flex: none;
+  place-items: center;
+  inline-size: 40px;
+  block-size: 40px;
+  margin-block: -4px 0;
+  margin-inline: 0 -6px;
+  border: 1px solid var(--ol);
+  border-radius: 50%;
+  background: var(--s1);
+  color: var(--tx);
+}
+
+html.phone .ph-jcard-i .ph-ic {
+  inline-size: 20px;
+  block-size: 20px;
+}
+
+/* the status pill and the place in line */
+html.phone .ph-jcard-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+html.phone .ph-jcard .jst {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  block-size: 32px;
+  margin: 0;
+  padding-inline: 12px 10px;
+  border: 0;
+  border-radius: 99px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-transform: none;
+}
+
+html.phone .ph-jcard-pri {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  block-size: 32px;
+  padding-inline: 10px;
+  border: 1px solid var(--ol);
+  border-radius: 99px;
+  background: var(--s1);
+  color: var(--tx);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+html.phone .ph-jcard-pri svg {
+  inline-size: 14px;
+  block-size: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html.phone .ph-jcard-pri .ph-jcard-dn {
+  inline-size: 12px;
+  block-size: 12px;
+  stroke-width: 2.6;
+  color: var(--tx2);
+}
+
+html.phone .ph-jcard .jdesc {
+  margin-top: 10px;
+}
+
+html.phone .ph-jcard-cats {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  text-align: start;
+}
+
+/* the ring beside the numbers (saved, goal, monthly, full by), split by thin lines as on the computer */
+html.phone .ph-jcard-b {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+html.phone .ph-jcard-ring {
+  flex: none;
+  inline-size: 88px;
+  block-size: 88px;
+}
+
+html.phone .ph-jcard-st {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 0;
+  min-inline-size: 0;
+}
+
+html.phone .ph-jcard-st > * {
+  min-inline-size: 0;
+  padding: 6px 10px;
+  border: 0;
+  border-inline-start: 1px solid var(--ol);
+  background: none;
+  color: var(--tx);
+  font: inherit;
+  text-align: start;
+}
+
+html.phone .ph-jcard-st > :nth-child(odd) {
+  border-inline-start: 0;
+  padding-inline-start: 0;
+}
+
+
+html.phone .ph-jcard-st span {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--tx2);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+}
+
+html.phone.he .ph-jcard-st span {
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+html.phone .ph-jcard-st b {
+  display: block;
+  margin-top: 2px;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* late: the computer's red box */
+html.phone .ph-jcard-warn {
+  margin-top: 12px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--neg) 10%, transparent);
+  color: var(--neg);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* ===== motion, as on the computer: the page's blocks fade up as they come in (one after another), the bars and rings
+   fill from empty, amounts change with the bar's own slide; every tap gives a small press. Off with reduced motion. ===== */
+@keyframes ph-jars-in {
+  from { opacity: 0; transform: translateY(8px); }
+}
+
+@keyframes ph-jars-bar {
+  from { width: 0; }
+}
+
+@keyframes ph-jars-ring {
+  from { stroke-dasharray: 0 214; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.phone :is(.ph-jars, .ph-jar) .ph-content > * {
+    animation: ph-jars-in .35s var(--p-ease-out) both;
+  }
+
+  html.phone :is(.ph-jars, .ph-jar) .ph-content > :nth-child(2) { animation-delay: 50ms; }
+  html.phone :is(.ph-jars, .ph-jar) .ph-content > :nth-child(3) { animation-delay: 100ms; }
+  html.phone :is(.ph-jars, .ph-jar) .ph-content > :nth-child(4) { animation-delay: 150ms; }
+  html.phone :is(.ph-jars, .ph-jar) .ph-content > :nth-child(n + 5) { animation-delay: 200ms; }
+
+  /* the jar cards come in one after another */
+  html.phone .ph-jars-cards > .ph-jcard {
+    animation: ph-jars-in .35s var(--p-ease-out) both;
+  }
+
+  html.phone .ph-jars-cards > .ph-jcard:nth-child(2) { animation-delay: 160ms; }
+  html.phone .ph-jars-cards > .ph-jcard:nth-child(3) { animation-delay: 220ms; }
+  html.phone .ph-jars-cards > .ph-jcard:nth-child(n + 4) { animation-delay: 280ms; }
+
+  /* bars fill from empty (the computer slides them when they change: .5s / .6s) */
+  html.phone :is(.ph-jars, .ph-jar) :is(.jbar, .bar) > i {
+    animation: ph-jars-bar .8s var(--p-ease-out) .15s both;
+  }
+
+  /* the ring fills from empty, then follows changes */
+  html.phone .ph-jcard-ring circle + circle {
+    animation: ph-jars-ring .9s var(--p-ease-out) .15s both;
+    transition: stroke-dasharray .6s var(--p-ease-out);
+  }
+
+  /* a history kind picked: its lines fade up (the computer's tab switch) */
+  html.phone .ph-jar-hist .ph-group-b > * {
+    animation: ph-jars-in .25s var(--p-ease-out) both;
+  }
+
+  /* press: everything that opens or changes something gives a little under the finger (the computer's hover) */
+  html.phone :is(.ph-jcard.tap, .ph-jars-hero .jstats > button, .ph-jcard-st > button, .ph-jars-gh, .ph-jars-chips .ph-chip, .ph-jcard .jst, .ph-jcard-pri, .ph-jcard-i, .ph-jcard-cats, .ph-jars-lbl, .ph-jars-pay button, .ph-jar-h) {
+    transition: transform var(--p-t-press), background-color var(--p-t-fade), filter var(--p-t-press);
+  }
+
+  html.phone .ph-jcard.tap:active {
+    transform: scale(.985);
+  }
+
+  html.phone :is(.ph-jars-hero .jstats > button, .ph-jars-chips .ph-chip, .ph-jcard .jst, .ph-jcard-pri, .ph-jcard-i):active {
+    transform: scale(.95);
+    filter: brightness(.94);
+  }
+
+  html.phone :is(.ph-jcard-st > button, .ph-jars-gh, .ph-jcard-cats, .ph-jars-lbl, .ph-jars-pay button):active {
+    opacity: .7;
+  }
+
+  html.phone .ph-jars-chips .ph-chip {
+    transition: transform var(--p-t-press), background-color var(--p-t-fade), color var(--p-t-fade), border-color var(--p-t-fade);
+  }
+}
+
+html.phone .ph-jar-h:active {
+  background: var(--p-press);
 }
