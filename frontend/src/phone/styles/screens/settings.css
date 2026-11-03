@@ -8,17 +8,11 @@ html.phone .ph-set {
 
 /* motion: the list's groups, and a section's cards, fade up one after another, as the computer's section fades up when it
    opens (.tabfade) */
-@keyframes ph-set-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-}
 
 @media (prefers-reduced-motion: no-preference) {
   html.phone .ph-settings .ph-group,
   html.phone .ph-set > * > * {
-    animation: ph-set-in .35s var(--p-ease-out) both;
+    animation: ph-up .35s var(--p-ease-out) both;
   }
 
   html.phone .ph-settings .ph-group:nth-of-type(2),

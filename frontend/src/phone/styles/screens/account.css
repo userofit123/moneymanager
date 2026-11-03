@@ -117,6 +117,11 @@ html.phone .ph-acc-grid {
   gap: 8px;
 }
 
+/* an odd last tile takes the whole row instead of sitting alone at the start */
+html.phone .ph-acc-grid > .ph-acc-t:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
 html.phone .ph-acc-t {
   gap: 2px;
   padding: 10px 12px;

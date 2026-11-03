@@ -506,7 +506,6 @@ html.phone .ph-jcard-st > :nth-child(odd) {
   padding-inline-start: 0;
 }
 
-
 html.phone .ph-jcard-st span {
   display: flex;
   align-items: center;
@@ -545,21 +544,10 @@ html.phone .ph-jcard-warn {
 
 /* ===== motion, as on the computer: the page's blocks fade up as they come in (one after another), the bars and rings
    fill from empty, amounts change with the bar's own slide; every tap gives a small press. Off with reduced motion. ===== */
-@keyframes ph-jars-in {
-  from { opacity: 0; transform: translateY(8px); }
-}
-
-@keyframes ph-jars-bar {
-  from { width: 0; }
-}
-
-@keyframes ph-jars-ring {
-  from { stroke-dasharray: 0 214; }
-}
 
 @media (prefers-reduced-motion: no-preference) {
   html.phone :is(.ph-jars, .ph-jar) .ph-content > * {
-    animation: ph-jars-in .35s var(--p-ease-out) both;
+    animation: ph-up .35s var(--p-ease-out) both;
   }
 
   html.phone :is(.ph-jars, .ph-jar) .ph-content > :nth-child(2) { animation-delay: 50ms; }
@@ -569,7 +557,7 @@ html.phone .ph-jcard-warn {
 
   /* the jar cards come in one after another */
   html.phone .ph-jars-cards > .ph-jcard {
-    animation: ph-jars-in .35s var(--p-ease-out) both;
+    animation: ph-up .35s var(--p-ease-out) both;
   }
 
   html.phone .ph-jars-cards > .ph-jcard:nth-child(2) { animation-delay: 160ms; }
@@ -578,18 +566,18 @@ html.phone .ph-jcard-warn {
 
   /* bars fill from empty (the computer slides them when they change: .5s / .6s) */
   html.phone :is(.ph-jars, .ph-jar) :is(.jbar, .bar) > i {
-    animation: ph-jars-bar .8s var(--p-ease-out) .15s both;
+    animation: ph-fill .8s var(--p-ease-out) .15s both;
   }
 
   /* the ring fills from empty, then follows changes */
   html.phone .ph-jcard-ring circle + circle {
-    animation: ph-jars-ring .9s var(--p-ease-out) .15s both;
+    animation: ph-arc .9s var(--p-ease-out) .15s both;
     transition: stroke-dasharray .6s var(--p-ease-out);
   }
 
   /* a history kind picked: its lines fade up (the computer's tab switch) */
   html.phone .ph-jar-hist .ph-group-b > * {
-    animation: ph-jars-in .25s var(--p-ease-out) both;
+    animation: ph-up .25s var(--p-ease-out) both;
   }
 
   /* press: everything that opens or changes something gives a little under the finger (the computer's hover) */

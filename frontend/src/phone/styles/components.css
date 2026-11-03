@@ -849,55 +849,7 @@ html.phone .ph-empty .ph-btn {
   margin-block-start: 12px;
 }
 
-html.phone .ph-intro {
-  padding-block-start: 10vh;
-}
-
-html.phone .ph-intro .ph-empty-ic {
-  inline-size: 72px;
-  block-size: 72px;
-  border-radius: 24px;
-}
-
-html.phone .ph-intro .ph-empty-ic .ph-ic {
-  inline-size: 30px;
-  block-size: 30px;
-  stroke-width: 1.6;
-}
-
-html.phone .ph-intro p {
-  font-size: 17px;
-  line-height: 24px;
-  color: var(--tx);
-}
-
-/* ---- Sentence headline, number tiles, progress ---- */
-html.phone .ph-hero-s {
-  margin: 0;
-  font-size: 22px;
-  line-height: 30px;
-  font-weight: 500;
-  text-wrap: balance;
-}
-
-/* an amount and the stop or comma after it stay on one line */
-html.phone .ph-hero-g {
-  white-space: nowrap;
-}
-
-html.phone .ph-hero-a {
-  display: inline-block;
-  font-size: 34px;
-  line-height: 40px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -.5px;
-}
-
-html.phone .ph-hero-l {
-  margin-block-start: 4px;
-}
-
+/* ---- Amounts ---- */
 html.phone .ph-amt {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
@@ -916,123 +868,6 @@ html.phone .ph-amt.pos {
 
 html.phone .ph-amt.neg {
   color: var(--neg);
-}
-
-/* two number tiles side by side, the same height */
-html.phone .ph-stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--p-s3);
-}
-
-html.phone .ph-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-inline-size: 0;
-  padding: 14px var(--p-pad);
-  border: 1px solid var(--p-card-line);
-  border-radius: var(--p-r-group);
-  background: var(--p-surf);
-  color: var(--tx);
-  font: inherit;
-  text-align: start;
-}
-
-html.phone button.ph-stat:active {
-  background: var(--p-press);
-}
-
-html.phone .ph-stat-l,
-html.phone .ph-stat-n {
-  color: var(--tx2);
-  font-size: 13px;
-  line-height: 18px;
-}
-
-html.phone .ph-stat-v {
-  font-size: 20px;
-  line-height: 26px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-html.phone .ph-prog-w {
-  position: relative;
-  display: block;
-}
-
-/* a place on the bar (today's place in the month): if the colour passes it, it runs ahead */
-html.phone .ph-prog-m {
-  position: absolute;
-  inset-block: -3px;
-  inline-size: 2px;
-  margin-inline-start: -1px;
-  border-radius: 1px;
-  background: var(--tx2);
-  opacity: .55;
-}
-
-html.phone .ph-prog {
-  display: block;
-  block-size: 6px;
-  border-radius: var(--pill);
-  /* the empty part stays visible on a card in every look */
-  background: color-mix(in srgb, var(--tx) 10%, transparent);
-  overflow: hidden;
-}
-
-html.phone .ph-prog i {
-  display: block;
-  block-size: 100%;
-  border-radius: inherit;
-  background: var(--acc);
-}
-
-html.phone .ph-prog.warn i {
-  background: var(--warn);
-}
-
-html.phone .ph-prog.neg i {
-  background: var(--neg);
-}
-
-html.phone .ph-ring {
-  position: relative;
-  display: inline-grid;
-  place-items: center;
-  flex: none;
-}
-
-html.phone .ph-ring > svg {
-  position: absolute;
-  inset: 0;
-  transform: rotate(-90deg);
-  fill: none;
-  stroke-width: 4;
-}
-
-html.phone .ph-ring .trk {
-  stroke: var(--s2);
-}
-
-html.phone .ph-ring .val {
-  stroke: var(--acc);
-  stroke-linecap: round;
-}
-
-html.phone .ph-ring.warn .val {
-  stroke: var(--warn);
-}
-
-html.phone .ph-ring.neg .val {
-  stroke: var(--neg);
-}
-
-html.phone .ph-ring-in {
-  position: relative;
-  font-size: 12px;
-  font-weight: 600;
 }
 
 /* ---- Loading rows ---- */
@@ -1259,38 +1094,6 @@ html.phone .ph-seg .segi b {
 html.phone[data-mode="dark"] .ph-seg.seg:not(.sl) > button.on,
 html.phone[data-mode="dark"] .ph-seg .segi b {
   background: color-mix(in srgb, var(--tx) 16%, var(--bg));
-}
-
-html.phone .ph-info {
-  display: inline-grid;
-  place-items: center;
-  inline-size: 32px;
-  block-size: 32px;
-  margin: -6px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--tx2);
-  cursor: pointer;
-}
-
-html.phone .ph-info .ph-ic {
-  inline-size: 18px;
-  block-size: 18px;
-}
-
-html.phone .ph-tiptext {
-  font-size: 15px;
-  line-height: 22px;
-}
-
-html.phone .ph-tiptext p,
-html.phone .ph-tiptext ul {
-  margin: 0 0 10px;
-}
-
-html.phone .ph-tiptext ul {
-  padding-inline-start: 20px;
 }
 
 /* ---- Sheets ---- */
@@ -1801,5 +1604,30 @@ html.phone .ph-donut-r span {
   from {
     opacity: 0;
     transform: rotate(-90deg) scale(.85);
+  }
+}
+
+/* a small bar grows up from nothing by its height (month bars that are sized by height) */
+@keyframes ph-height {
+  from {
+    block-size: 0;
+  }
+}
+
+/* columns rise from the bottom (a chart's columns uncovered upwards) */
+@keyframes ph-rise {
+  from {
+    clip-path: inset(100% 0 0 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* a ring's coloured arc fills from empty */
+@keyframes ph-arc {
+  from {
+    stroke-dasharray: 0 999;
   }
 }

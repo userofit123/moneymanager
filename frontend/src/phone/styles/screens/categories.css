@@ -480,16 +480,10 @@ html.phone .ph-cats-p {
 
 /* ===== motion: blocks fade up one after another (the computer's view and tab fade), rows follow, taps press.
    Switching Categories / Tags plays it again, like the computer's tab fade. Off with reduced motion. ===== */
-@keyframes ph-cats-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-}
 
 @media (prefers-reduced-motion: no-preference) {
   html.phone :is(.ph-cats, .ph-cat) .ph-content > * {
-    animation: ph-cats-in .35s var(--p-ease-out) both;
+    animation: ph-up .35s var(--p-ease-out) both;
   }
 
   html.phone :is(.ph-cats, .ph-cat) .ph-content > :nth-child(2) { animation-delay: 50ms; }
@@ -497,7 +491,7 @@ html.phone .ph-cats-p {
   html.phone :is(.ph-cats, .ph-cat) .ph-content > :nth-child(n + 4) { animation-delay: 150ms; }
 
   html.phone .ph-cats-list > .ph-crow {
-    animation: ph-cats-in .35s var(--p-ease-out) both;
+    animation: ph-up .35s var(--p-ease-out) both;
     animation-delay: calc(180ms + min(var(--i, 0), 10) * 35ms);
   }
 

@@ -7,68 +7,35 @@
 
 /* ---- motion ---- */
 
-@keyframes ph-fc-up {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-}
-
 /* a chart's line and shading come in from the start (charts are always drawn left to right) */
-@keyframes ph-fc-wipe {
-  from {
-    clip-path: inset(0 100% 0 0);
-  }
-
-  to {
-    clip-path: inset(0 0 0 0);
-  }
-}
-
-@keyframes ph-fc-pop {
-  from {
-    opacity: 0;
-    transform: scale(0);
-  }
-}
-
-@keyframes ph-fc-rise {
-  from {
-    clip-path: inset(100% 0 0 0);
-  }
-
-  to {
-    clip-path: inset(0 0 0 0);
-  }
-}
 
 html.phone .ph-fc-in {
-  animation: ph-fc-up .35s var(--p-ease-out) both;
+  animation: ph-up .35s var(--p-ease-out) both;
   animation-delay: calc(var(--d, 0) * 50ms);
 }
 
 html.phone .ph-fc-wipe {
-  animation: ph-fc-wipe .9s var(--p-ease-out) .15s both;
+  animation: ph-wipe .9s var(--p-ease-out) .15s both;
 }
 
 html.phone .ph-fc-pt {
   transform-box: fill-box;
   transform-origin: center;
-  animation: ph-fc-pop .3s var(--p-ease-out) both;
+  animation: ph-pop .3s var(--p-ease-out) both;
   animation-delay: calc(.2s + var(--i, 0) * 55ms);
 }
 
 html.phone .ph-fc-sum li {
-  animation: ph-fc-up .35s var(--p-ease-out) both;
+  animation: ph-up .35s var(--p-ease-out) both;
   animation-delay: calc(.15s + var(--i, 0) * 70ms);
 }
 
 html.phone .ph-fc .fcb {
-  animation: ph-fc-rise .5s var(--p-ease-out) .25s both;
+  animation: ph-rise .5s var(--p-ease-out) .25s both;
 }
 
 html.phone .ph-fc .yac svg :is(polygon, .yac-mine, .yac-pace) {
-  animation: ph-fc-wipe .9s var(--p-ease-out) .1s both;
+  animation: ph-wipe .9s var(--p-ease-out) .1s both;
 }
 
 /* press feedback on everything that is tapped */

@@ -8,46 +8,8 @@
 
 /* ---- motion ---- */
 
-@keyframes ph-rep-up {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-}
-
-@keyframes ph-rep-fill {
-  from {
-    width: 0;
-  }
-}
-
-@keyframes ph-rep-draw {
-  from {
-    stroke-dashoffset: 1;
-  }
-}
-
-@keyframes ph-rep-grow {
-  from {
-    transform: scaleY(0);
-  }
-}
-
-@keyframes ph-rep-fade {
-  from {
-    opacity: 0;
-  }
-}
-
-@keyframes ph-rep-spin {
-  from {
-    opacity: 0;
-    transform: rotate(-90deg) scale(.85);
-  }
-}
-
 html.phone .ph-rep .ph-content > .ph-rep-in {
-  animation: ph-rep-up .35s var(--p-ease-out) both;
+  animation: ph-up .35s var(--p-ease-out) both;
 }
 
 html.phone .ph-rep .ph-content > .ph-rep-in:nth-child(2) { animation-delay: 50ms; }
@@ -56,31 +18,31 @@ html.phone .ph-rep .ph-content > .ph-rep-in:nth-child(4) { animation-delay: 150m
 html.phone .ph-rep .ph-content > .ph-rep-in:nth-child(n + 5) { animation-delay: 200ms; }
 
 html.phone .ph-rep .bar i {
-  animation: ph-rep-fill .8s var(--p-ease-out) .15s both;
+  animation: ph-fill .8s var(--p-ease-out) .15s both;
 }
 
 html.phone .ph-rep-line {
   stroke-dasharray: 1;
-  animation: ph-rep-draw .9s var(--p-ease-out) both;
+  animation: ph-draw .9s var(--p-ease-out) both;
 }
 
 html.phone :is(.ph-rep-area, .ph-rep-dotp, .ph-rep-end) {
-  animation: ph-rep-fade .4s ease .45s both;
+  animation: ph-fade .4s ease .45s both;
 }
 
 html.phone .ph-rep-col {
   transform-box: fill-box;
   transform-origin: bottom;
-  animation: ph-rep-grow .5s var(--p-ease-out) both;
+  animation: ph-grow .5s var(--p-ease-out) both;
   animation-delay: calc(min(var(--j, 0), 24) * 18ms);
 }
 
 html.phone .ph-rep-ring svg {
-  animation: ph-rep-spin .6s var(--p-ease-out) both;
+  animation: ph-ring .6s var(--p-ease-out) both;
 }
 
 html.phone .ph-rep-tip {
-  animation: ph-rep-fade .15s ease;
+  animation: ph-fade .15s ease;
 }
 
 /* press feedback on everything that is tapped */
@@ -291,6 +253,17 @@ html.phone .ph-rep-stats button {
   border-radius: 14px;
   padding: 10px 12px;
   min-inline-size: 0;
+}
+
+/* half a phone is too narrow for "Highest (November 2026)" on one line: the month goes under the name, not cut off */
+html.phone .ph-rep-stats span {
+  white-space: normal;
+}
+
+html.phone .ph-rep-stats small {
+  display: block;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 html.phone.he .ph-rep-stats span {

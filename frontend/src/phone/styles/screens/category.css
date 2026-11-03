@@ -104,16 +104,11 @@ html.phone .ph-cat-acts .ph-btn {
 }
 
 /* the bars grow from the bottom one after another; a picked bar presses */
-@keyframes ph-cat-grow {
-  from {
-    transform: scaleY(0);
-  }
-}
 
 @media (prefers-reduced-motion: no-preference) {
   html.phone .ph-cat-bw i {
     transform-origin: bottom;
-    animation: ph-cat-grow .5s var(--p-ease-out) both;
+    animation: ph-grow .5s var(--p-ease-out) both;
     animation-delay: calc(.25s + var(--j, 0) * 50ms);
   }
 

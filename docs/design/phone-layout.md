@@ -43,6 +43,26 @@ Side margin `--p-gut` (16px, 20px from 400px). Between sections `--p-gap` (32px)
 name 13px, amount 28px (hero 34px, half-width 24px), line under 13px. Row title 16px, second line 13px. Amounts use
 `.ph-amt` (tabular, left to right in Hebrew). Tap targets 44px. Every rule starts with `html.phone`; logical sides only.
 
+## Motion
+
+Every page moves the same way, with the steps in `phone/styles/components.css` (shared motion): `ph-up` (a block
+fades up; blocks and cards one after another with a small delay each), `ph-fade`, `ph-fill` (a bar fills by width),
+`ph-grow`/`ph-growx` (columns or bars scale in), `ph-height` (small month bars grow), `ph-draw` (a line draws in),
+`ph-wipe` (a chart is uncovered from the start side), `ph-rise` (columns uncovered upwards), `ph-pop` (dots, circles),
+`ph-ring` (a ring turns into place), `ph-arc` (a ring's arc fills). A page's file only says which of its parts use
+which step; it never defines its own copy (Recap's scroll-in steps are its own). Everything tapped gives a little
+under the finger (`scale(.97)`), the computer's hover. Each page turns its motion off with `prefers-reduced-motion`.
+
+## What is built (round 2)
+
+All pages and pushed screens follow the computer's page block by block: Recap, Home, Activity and a transaction,
+Jars and a jar, Bills and a bill, Forecast (tabs); Accounts and an account, Budgets, Reports, Alerts, Categories
+and a category, Settings and each section (from More). More lists the computer's side menu without the tab bar's
+pages. Windows (`components/forms/`, ask, ⋯ menus, sign-in, forgot password, recovery key) open as phone sheets or
+cards with the computer's layout. Reports reuses the computer's `styles/pages/reports.css`; it only adds to what the
+computer already loads on its own Reports page, so a window resized from phone to computer looks the same as a fresh
+computer load.
+
 ## Plan per page
 
 - **Activity**: computer toolbar (search, filters, group/sort) → `SearchField` + `ChipBar` + ⋯; the table → month bands

@@ -408,21 +408,10 @@ html.phone .ph-bcan-x {
    block; the bills of each kind follow one another; bars fill from empty (the computer slides them .6s); a row, a chip and
    a payment give a little under the finger (the computer's hover). The Bill screen (bill.css) uses the same steps.
    Off with reduced motion. ===== */
-@keyframes ph-bills-in {
-  from { opacity: 0; transform: translateY(8px); }
-}
-
-@keyframes ph-bills-bar {
-  from { width: 0; }
-}
-
-@keyframes ph-bills-col {
-  from { transform: scaleY(0); }
-}
 
 @media (prefers-reduced-motion: no-preference) {
   html.phone :is(.ph-bills, .ph-bill) .ph-content > * {
-    animation: ph-bills-in .35s var(--p-ease-out) both;
+    animation: ph-up .35s var(--p-ease-out) both;
   }
 
   html.phone :is(.ph-bills, .ph-bill) .ph-content > :nth-child(2) { animation-delay: 50ms; }
@@ -432,7 +421,7 @@ html.phone .ph-bcan-x {
 
   /* the three numbers come in one after another */
   html.phone .ph-bills-kpis > .ph-acard {
-    animation: ph-bills-in .35s var(--p-ease-out) both;
+    animation: ph-up .35s var(--p-ease-out) both;
   }
 
   html.phone .ph-bills-kpis > .ph-acard:nth-child(2) { animation-delay: 60ms; }
@@ -440,7 +429,7 @@ html.phone .ph-bcan-x {
 
   /* the first bills of a kind follow one another (the rest are below the fold) */
   html.phone .ph-bgrp > .ph-brow {
-    animation: ph-bills-in .3s var(--p-ease-out) both;
+    animation: ph-up .3s var(--p-ease-out) both;
     animation-delay: 300ms;
   }
 
@@ -451,12 +440,12 @@ html.phone .ph-bcan-x {
 
   /* bars fill from empty: an instalment's paid part, the payment history's bar per payment */
   html.phone .ph-bins-bar > i {
-    animation: ph-bills-bar .8s var(--p-ease-out) .2s both;
+    animation: ph-fill .8s var(--p-ease-out) .2s both;
   }
 
   html.phone .ph-bill-hist .phb i {
     transform-origin: bottom;
-    animation: ph-bills-col .6s var(--p-ease-out) both;
+    animation: ph-grow .6s var(--p-ease-out) both;
   }
 
   html.phone .ph-bill-hist .phb i:nth-child(n + 4) { animation-delay: 60ms; }

@@ -71,14 +71,8 @@
     "transaction": "This payment's details, category and notes."
   },
   "open": {
-    "home": "Open Activity",
     "activity": "Add a transaction",
-    "jars": "New jar",
-    "bills": "Add a bill",
-    "accounts": "Add an account",
     "budgets": "Add a budget",
-    "categories": "Add a category",
-    "alerts": "Alert settings",
-    "settings": "Open your profile"
+    "alerts": "Alert settings"
   }
 }

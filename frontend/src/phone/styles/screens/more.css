@@ -15,16 +15,10 @@ html.phone .ph-more-sync .live {
 }
 
 /* the groups fade up one after another when the screen opens, as the computer's pages do */
-@keyframes ph-more-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-}
 
 @media (prefers-reduced-motion: no-preference) {
   html.phone .ph-more .ph-group {
-    animation: ph-more-in .35s var(--p-ease-out) both;
+    animation: ph-up .35s var(--p-ease-out) both;
   }
 
   html.phone .ph-more .ph-group:nth-of-type(2) { animation-delay: 60ms; }

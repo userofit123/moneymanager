@@ -360,13 +360,7 @@ html.phone .ph-actv-spin {
   border: 2px solid var(--p-line);
   border-block-start-color: var(--acc);
   border-radius: 50%;
-  animation: ph-actv-spin .8s linear infinite;
-}
-
-@keyframes ph-actv-spin {
-  to {
-    transform: rotate(360deg);
-  }
+  animation: ph-spin .8s linear infinite;
 }
 
 /* ---- buttons in cards ---- */

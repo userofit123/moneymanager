@@ -163,6 +163,11 @@ html.phone .ph-auth .fpw-way b {
   font-size: 16px;
 }
 
+/* the typed key fits the field in both languages (the Hebrew font is wider) */
+html.phone .ph-auth .fpw-key {
+  letter-spacing: 0;
+}
+
 html.phone .ph-auth .fpw-link {
   min-block-size: 44px;
   margin-block-start: 8px;
@@ -170,7 +175,7 @@ html.phone .ph-auth .fpw-link {
 }
 
 html.phone .ph-auth .fpw-none {
-  margin-block-start: 0;
+  margin-block-start: 12px;
   border-radius: 16px;
 }
 
@@ -184,6 +189,12 @@ html.phone .ph-auth .rkey-v {
   font-size: 17px;
   letter-spacing: 0;
   padding-inline: 8px;
+  white-space: nowrap;
+}
+
+/* the Hebrew font's letters are wider: a little smaller so the key stays on one line, as in English */
+html.phone.he .ph-auth .rkey-v {
+  font-size: min(16px, 4.1vw);
 }
 
 html.phone .ph-auth .rkey-acts .btn {

@@ -6,52 +6,27 @@
 
 /* ---- motion ---- */
 
-@keyframes ph-bud-up {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-}
-
-@keyframes ph-bud-fill {
-  from {
-    width: 0;
-  }
-}
-
-@keyframes ph-bud-grow {
-  from {
-    block-size: 0;
-  }
-}
-
-@keyframes ph-bud-fade {
-  from {
-    opacity: 0;
-  }
-}
-
 html.phone .ph-bud-in {
-  animation: ph-bud-up .35s var(--p-ease-out) both;
+  animation: ph-up .35s var(--p-ease-out) both;
   animation-delay: calc(var(--d, 0) * 50ms);
 }
 
 /* the budget cards come in one after the other (a short step each, at most about half a second) */
 html.phone .ph-bud-card {
-  animation: ph-bud-up .35s var(--p-ease-out) both;
+  animation: ph-up .35s var(--p-ease-out) both;
   animation-delay: calc(120ms + min(var(--i, 0), 8) * 45ms);
 }
 
 html.phone .ph-bud .bar i {
-  animation: ph-bud-fill .8s var(--p-ease-out) .15s both;
+  animation: ph-fill .8s var(--p-ease-out) .15s both;
 }
 
 html.phone .ph-bud .bar u {
-  animation: ph-bud-fade .3s ease .5s both;
+  animation: ph-fade .3s ease .5s both;
 }
 
 html.phone .ph-bud-mini i {
-  animation: ph-bud-grow .5s var(--p-ease-out) both;
+  animation: ph-height .5s var(--p-ease-out) both;
   animation-delay: calc(.25s + var(--j, 0) * 70ms);
 }
 
@@ -540,7 +515,7 @@ html.phone .ph-bud-bin {
   border-radius: 14px;
   background: var(--bg);
   overflow: hidden;
-  animation: ph-bud-up .25s var(--p-ease-out);
+  animation: ph-up .25s var(--p-ease-out);
 }
 
 html.phone .ph-bud-bill {
