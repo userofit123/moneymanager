@@ -3,6 +3,7 @@
 // is reached and what it would take each month), each explained in its tooltip, then saving the goal, the choices and the chart. The same numbers as the
 // computer page (pagelogic/yearsAhead.js). Only saving the goal (Save this goal, Update goal, Remove goal) changes the data.
 import { ref, computed } from "vue";
+import { useI18n } from "vue-i18n";
 import MoneyInput from "../../components/MoneyInput.vue";
 import YearsChart from "../../components/charts/YearsChart.vue";
 import Segmented from "./Segmented.vue";
@@ -13,6 +14,7 @@ import { usePhoneNav } from "../navigation.js";
 const props = defineProps({ model: { type: Object, required: true } });
 const { YAI, Y, Y_, set, back, G, same, saveGoal, removeGoal, goalState, atKey, typeAt, leaveAt, answer, mTip, ptName, axisLabel, legMine, pc, GROWTH } = useYearsAhead(computed(() => props.model));
 const nav = usePhoneNav();
+const { t } = useI18n();
 const growth = computed(() => GROWTH.map((g) => ({ value: g, label: pc(g) + "%" })));
 // an amount box left empty while typing keeps the last amount
 const setNum = (k, v) => { if (v !== "" && isFinite(+v)) set(k, +v); };
@@ -40,26 +42,17 @@ useScrollToYears(top);
         <span class="ph-ya-e"><b class="ph-amt"><bdi>{{ r.value }}</bdi></b> <small v-if="r.unit">{{ r.unit }}</small></span>
       </div>
     </div>
-    <!-- saving the goal: whether it is saved, then Save this goal, or (once saved) Update goal when the choices differ, and Remove goal -->
-    <div class="ph-group-b ph-ya-save" :class="'g-' + goalState.k">
-      <div class="ph-ya-save-t">
-        <span class="ph-ya-save-k">{{ Y_("goal") }}</span>
-        <b>{{ goalState.head }}</b>
-        <span class="ph-ya-save-s">{{ goalState.sub }}</span>
-      </div>
-      <div class="ph-ya-save-b">
-        <template v-if="G">
-          <button type="button" class="ph-btn tonal" :disabled="same" @click="saveGoal">{{ Y_("update") }}</button>
-          <button type="button" class="ph-btn tonal" @click="removeGoal">{{ Y_("remove") }}</button>
-        </template>
-        <button v-else type="button" class="ph-btn tonal" @click="saveGoal">{{ Y_("save") }}</button>
+    <div class="ph-group-b ph-ya-chart">
+      <YearsChart :chart="Y.chart" :name="ptName" :axis="axisLabel" :label="Y_('chartLabel')" :pace-label="Y_('legPace')" :height="200" />
+      <p class="ph-ya-axis">{{ Y.hasAge ? Y_("axisAge") : Y_("axisYears") }}</p>
+      <div class="ph-ya-leg">
+        <span><i class="ln" />{{ legMine }}</span>
+        <span v-if="Y.changed"><i class="ya-dash pace" />{{ Y_("legPace") }}</span>
+        <span><i class="ya-dash goal" />{{ Y_("legGoal") }}</span>
       </div>
     </div>
-    <button v-if="!Y.hasAge" type="button" class="ph-ya-inv" @click="nav.push('settingsSection', 'prof')">
-      <PIcon :svg="PERSON" />
-      <span>{{ Y_("noAge") }}<b>{{ Y_("addAge") }}</b></span>
-      <PIcon name="chevron" dir class="ph-chev" />
-    </button>
+    <!-- try other amounts: the goal, how much each month, when, and growth -->
+    <h4 class="ph-ya-h">{{ t("phone.forecast.tryOther") }}</h4>
     <div class="ph-group-b ph-ya-play">
       <div class="fld">
         <label for="phYaGoal"><span :data-tip="Y_('goalTip')">{{ Y_("goal") }}</span></label>
@@ -84,14 +77,28 @@ useScrollToYears(top);
         <Segmented :model-value="Y.g" :options="growth" :label="Y_('g')" @update:model-value="set('g', $event)" />
       </div>
     </div>
-    <div class="ph-group-b ph-ya-chart">
-      <YearsChart :chart="Y.chart" :name="ptName" :axis="axisLabel" :label="Y_('chartLabel')" :pace-label="Y_('legPace')" :height="200" />
-      <p class="ph-ya-axis">{{ Y.hasAge ? Y_("axisAge") : Y_("axisYears") }}</p>
-      <div class="ph-ya-leg">
-        <span><i class="ln" />{{ legMine }}</span>
-        <span v-if="Y.changed"><i class="ya-dash pace" />{{ Y_("legPace") }}</span>
-        <span><i class="ya-dash goal" />{{ Y_("legGoal") }}</span>
+    <!-- saving the goal: whether it is saved, then Save this goal, or (once saved) Update goal when the choices differ, and Remove goal -->
+    <div class="ph-group-b ph-ya-save" :class="'g-' + goalState.k">
+      <div class="ph-ya-save-t">
+        <span class="ph-ya-save-k">{{ Y_("goal") }}</span>
+        <b>{{ goalState.head }}</b>
+        <span class="ph-ya-save-s">{{ goalState.sub }}</span>
       </div>
+      <div class="ph-ya-save-b">
+        <template v-if="G">
+          <button type="button" class="ph-btn tonal" :disabled="same" @click="saveGoal">{{ Y_("update") }}</button>
+          <button type="button" class="ph-btn tonal" @click="removeGoal">{{ Y_("remove") }}</button>
+        </template>
+        <button v-else type="button" class="ph-btn tonal" @click="saveGoal">{{ Y_("save") }}</button>
+      </div>
+    </div>
+    <!-- with no age saved, a way to add it (then everything counts by age) -->
+    <div v-if="!Y.hasAge" class="ph-group-b ph-ya-inv">
+      <button type="button" class="ph-row ph-two" @click="nav.push('settingsSection', 'prof')">
+        <span class="ph-tile"><PIcon :svg="PERSON" /></span>
+        <span class="ph-row-main"><span class="ph-row-t">{{ Y_("addAge") }}</span><span class="ph-row-s ph-fc-wrap">{{ Y_("noAge") }}</span></span>
+        <PIcon name="chevron" dir class="ph-chev" />
+      </button>
     </div>
   </section>
 </template>

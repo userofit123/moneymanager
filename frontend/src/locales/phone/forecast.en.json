@@ -17,5 +17,6 @@
   "colNote1": "Each line's likely amount next month.",
   "colNote2": "Each line's likely amount over the next 12 months, added up.",
   "nothing": "Nothing to look ahead from yet",
-  "nothingText": "The forecast learns from your past months. It appears here once there are a few months of transactions."
+  "nothingText": "The forecast learns from your past months. It appears here once there are a few months of transactions.",
+  "tryOther": "Try other amounts"
 }

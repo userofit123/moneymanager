@@ -14,6 +14,7 @@ import PhoneSheet from "../components/PhoneSheet.vue";
 import SkeletonRows from "../components/SkeletonRows.vue";
 import EmptyState from "../components/EmptyState.vue";
 import PIcon from "../components/PIcon.vue";
+import ProgressBar from "../components/ProgressBar.vue";
 import BaseDialog from "../../components/BaseDialog.vue";
 defineProps({ id: { type: String, default: null } });
 
@@ -43,6 +44,10 @@ const segOf = (it) => { const L0 = it.filter((x) => x[1] >= 1), tot = L0.reduce(
 // and a short part (a date) stays on one line
 const dots = (h) => String(h).split(" · ").map((p) => (p.length <= 12 ? '<bdi class="ph-rc-nw">' : "<bdi>") + p + "</bdi>").join(" · ");
 const mon = (d) => dshort(d).replace(/[0-9\s]/g, "");
+// each sum (how a step's amount adds up) starts folded under a "See how it adds up" line, so the steps read as a story
+const sums = ref(new Set());
+const sumOpen = (k) => sums.value.has(k);
+const sumFlip = (k) => { const n = new Set(sums.value); n.has(k) ? n.delete(k) : n.add(k); sums.value = n; };
 
 // the days: the strip under the greeting and the bars in "So far this month"; touching one opens what it held
 const day = ref(0), dayOpen = ref(false);
@@ -102,7 +107,7 @@ const pathPts = (s) => {
 
           <div class="ph-rc-body">
             <!-- where you stand: in your accounts today and at the end of the month, side by side -->
-            <div v-if="s.two" class="ph-rc-two">
+            <div v-if="s.two" class="ph-stats ph-rc-two">
               <button v-for="x in s.two" :key="x[2]" type="button" class="ph-stat" @click="recapGo(x[2])"><span class="ph-stat-l">{{ x[0] }}</span><b class="ph-stat-v" v-html="mi(x[1])" /></button>
             </div>
             <p v-if="s.rl" class="ph-rc-rl">{{ s.rl }}</p>
@@ -126,7 +131,7 @@ const pathPts = (s) => {
             </template>
 
             <!-- where you stand: the line from the start of the month to its end -->
-            <div v-if="s.path" class="ph-rc-pathc">
+            <div v-if="s.path" class="ph-card ph-rc-pathc">
               <svg :viewBox="`0 0 ${PW} ${PH}`" aria-hidden="true">
                 <line :x1="PX" :x2="PW - PX" :y1="PH - 4" :y2="PH - 4" class="ax" />
                 <polyline :points="pathPts(s).slice(0, 2).map((p) => p.x + ',' + p.y).join(' ')" class="ln" />
@@ -140,37 +145,42 @@ const pathPts = (s) => {
 
             <template v-for="(v, i) in s.vis || []" :key="'v' + i">
               <!-- a sum: what you had, each change with what it is made of, and the result -->
-              <div v-if="v.sum" class="ph-group-b ph-rc-sum">
-                <component :is="v.sum.had[2] ? 'button' : 'div'" v-if="v.sum.had" :type="v.sum.had[2] ? 'button' : null" class="ph-row ph-rc-had" @click="v.sum.had[2] && recapGo(v.sum.had[2])">
-                  <span class="ph-row-main"><span class="ph-row-t ph-rc-wrap">{{ v.sum.had[0] }}</span></span>
-                  <b class="ph-amt" v-html="mi(v.sum.had[1])" />
-                </component>
-                <div v-for="(g, j) in v.sum.groups" :key="j" class="ph-rc-g" :class="'k-' + g.k" :style="{ '--tile': KIND[g.k] }">
-                  <component :is="g.link ? 'button' : 'div'" :type="g.link ? 'button' : null" class="ph-row ph-rc-gr" @click="open($event, g.link)">
-                    <span class="ph-tile"><PIcon :svg="SUMI[g.k]" /></span>
-                    <span class="ph-row-main">
-                      <span class="ph-row-t ph-rc-wrap"><span :data-tip="g.tip || null" v-html="g.label" /></span>
-                      <span v-if="g.k == 'card'" class="ph-row-s"><span class="ph-rc-tag" :data-tip="L('laterTip')">{{ L("notSum") }}</span></span>
-                      <span v-else-if="g.note" class="ph-row-s ph-rc-wrap" v-html="g.note" />
-                    </span>
-                    <b class="ph-amt" :class="{ quiet: g.k == 'card' }" dir="ltr"><bdi>{{ SIGN[g.k] }}</bdi><bdi v-html="mi(g.amt)" /></b>
+              <template v-if="v.sum">
+                <button type="button" class="ph-rc-how" :aria-expanded="sumOpen(s.p + i)" @click="sumFlip(s.p + i)">
+                  <span>{{ P(sumOpen(s.p + i) ? "sumHide" : "sumShow") }}</span><PIcon name="chevron" class="down" :class="{ turn: sumOpen(s.p + i) }" />
+                </button>
+                <div v-if="sumOpen(s.p + i)" class="ph-group-b ph-rc-sum">
+                  <component :is="v.sum.had[2] ? 'button' : 'div'" v-if="v.sum.had" :type="v.sum.had[2] ? 'button' : null" class="ph-row ph-rc-had" @click="v.sum.had[2] && recapGo(v.sum.had[2])">
+                    <span class="ph-row-main"><span class="ph-row-t ph-rc-wrap">{{ v.sum.had[0] }}</span></span>
+                    <b class="ph-amt" v-html="mi(v.sum.had[1])" />
                   </component>
-                  <div v-if="g.subs && g.subs.length" class="ph-rc-subs">
-                    <component :is="x[2] ? 'button' : 'div'" v-for="(x, k) in g.subs" :key="k" :type="x[2] ? 'button' : null" class="ph-rc-sub" @click="open($event, x[2])">
-                      <span class="ph-rc-wrap" v-html="dots(x[0])" /><b class="ph-amt" v-html="mi(x[1])" />
+                  <div v-for="(g, j) in v.sum.groups" :key="j" class="ph-rc-g" :class="'k-' + g.k" :style="{ '--tile': KIND[g.k] }">
+                    <component :is="g.link ? 'button' : 'div'" :type="g.link ? 'button' : null" class="ph-row ph-rc-gr" @click="open($event, g.link)">
+                      <span class="ph-tile"><PIcon :svg="SUMI[g.k]" /></span>
+                      <span class="ph-row-main">
+                        <span class="ph-row-t ph-rc-wrap"><span :data-tip="g.tip || null" v-html="g.label" /></span>
+                        <span v-if="g.k == 'card'" class="ph-row-s"><span class="ph-rc-tag" :data-tip="L('laterTip')">{{ L("notSum") }}</span></span>
+                        <span v-else-if="g.note" class="ph-row-s ph-rc-wrap" v-html="g.note" />
+                      </span>
+                      <b class="ph-amt" :class="{ quiet: g.k == 'card' }" dir="ltr"><bdi>{{ SIGN[g.k] }}</bdi><bdi v-html="mi(g.amt)" /></b>
                     </component>
+                    <div v-if="g.subs && g.subs.length" class="ph-rc-subs">
+                      <component :is="x[2] ? 'button' : 'div'" v-for="(x, k) in g.subs" :key="k" :type="x[2] ? 'button' : null" class="ph-rc-sub" @click="open($event, x[2])">
+                        <span class="ph-rc-wrap" v-html="dots(x[0])" /><b class="ph-amt" v-html="mi(x[1])" />
+                      </component>
+                    </div>
+                  </div>
+                  <div v-if="v.sum.end" class="ph-row ph-rc-end" :style="{ '--tile': KIND.end }">
+                    <span class="ph-tile"><PIcon :svg="SUMI.end" /></span>
+                    <span class="ph-row-main">
+                      <span class="ph-row-t ph-rc-wrap">{{ v.sum.end[0] }}</span>
+                      <span v-if="v.sum.end[3]" class="ph-row-s ph-rc-after"><span class="ph-rc-wrap" v-html="v.sum.end[3][0]" /><b v-html="mi(v.sum.end[3][1])" /></span>
+                      <span v-if="v.sum.end[4]" class="ph-row-s ph-rc-wrap" v-html="v.sum.end[4]" />
+                    </span>
+                    <b class="ph-amt" :class="{ neg: v.sum.end[1] < -0.5 }" v-html="mi(v.sum.end[1])" />
                   </div>
                 </div>
-                <div v-if="v.sum.end" class="ph-row ph-rc-end" :style="{ '--tile': KIND.end }">
-                  <span class="ph-tile"><PIcon :svg="SUMI.end" /></span>
-                  <span class="ph-row-main">
-                    <span class="ph-row-t ph-rc-wrap">{{ v.sum.end[0] }}</span>
-                    <span v-if="v.sum.end[3]" class="ph-row-s ph-rc-after"><span class="ph-rc-wrap" v-html="v.sum.end[3][0]" /><b v-html="mi(v.sum.end[3][1])" /></span>
-                    <span v-if="v.sum.end[4]" class="ph-row-s ph-rc-wrap" v-html="v.sum.end[4]" />
-                  </span>
-                  <b class="ph-amt" :class="{ neg: v.sum.end[1] < -0.5 }" v-html="mi(v.sum.end[1])" />
-                </div>
-              </div>
+              </template>
 
               <!-- a note under the sum: this month so far -->
               <component :is="v.chip.go ? 'button' : 'div'" v-else-if="v.chip" :type="v.chip.go ? 'button' : null" class="ph-rc-note" :class="NOTE[v.chip.tone]" @click="v.chip.go && recapGo(v.chip.go)">
@@ -179,7 +189,7 @@ const pathPts = (s) => {
               </component>
 
               <!-- each day's spending: touch a bar to see that day -->
-              <div v-else-if="v.bars" class="ph-rc-bars">
+              <div v-else-if="v.bars" class="ph-card ph-rc-bars">
                 <svg :viewBox="`0 0 ${BW} ${BH}`" preserveAspectRatio="none" role="img" :aria-label="L('barsAria')" @click="pickBar">
                   <rect v-for="b in bars" :key="b.i" :x="b.x" :y="b.h != null ? BH - b.h : BH - 2" :width="b.w" :height="b.h != null ? b.h : 2" :rx="Math.min(4, b.w / 2)" :class="b.h == null ? 'f' : b.now ? 't' : 'b'" />
                 </svg>
@@ -215,7 +225,7 @@ const pathPts = (s) => {
               <div v-else-if="v.attn" class="ph-group-b ph-rc-attn">
                 <button v-for="(o, k) in v.attn" :key="k" type="button" class="ph-rc-a" :class="o.tone" @click="recapGo(o.go)">
                   <span class="ph-rc-a-h"><b v-html="o.name" /><span>{{ o.tag }}</span></span>
-                  <span v-if="o.bar" class="ph-rc-a-bar"><i :style="{ inlineSize: o.bar.u.toFixed(1) + '%' }" /><em v-if="o.bar.pace != null" :style="{ insetInlineStart: o.bar.pace.toFixed(1) + '%' }" /></span>
+                  <ProgressBar v-if="o.bar" :value="o.bar.u" :max="100" :tone="o.tone == 'o' ? 'neg' : 'warn'" :mark="o.bar.pace" />
                   <span class="ph-rc-a-p" v-html="o.why" />
                 </button>
               </div>
@@ -236,7 +246,10 @@ const pathPts = (s) => {
           <div class="ph-rc-body">
             <div class="ph-rc-big" :class="{ neg: next.big.amt < -0.5 }" v-html="mi(next.big.amt)" />
             <p class="ph-rc-line" v-html="next.line" />
-            <div class="ph-group-b ph-rc-sum">
+            <button type="button" class="ph-rc-how" :aria-expanded="sumOpen('next')" @click="sumFlip('next')">
+              <span>{{ P(sumOpen("next") ? "sumHide" : "sumShow") }}</span><PIcon name="chevron" class="down" :class="{ turn: sumOpen('next') }" />
+            </button>
+            <div v-if="sumOpen('next')" class="ph-group-b ph-rc-sum">
               <button type="button" class="ph-row ph-rc-had" @click="recapGo(next.sum.had[2])">
                 <span class="ph-row-main"><span class="ph-row-t ph-rc-wrap">{{ next.sum.had[0] }}</span></span>
                 <b class="ph-amt" v-html="mi(next.sum.had[1])" />

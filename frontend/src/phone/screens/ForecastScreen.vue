@@ -108,11 +108,11 @@ const openJar = (id) => nav.push("jar", String(id));
     <template v-else>
       <HeroSentence :class="{ short: d.shown.next.end < -0.5 }" :parts="hero" :link="P('how')" @link="toHow" />
 
-      <section class="ph-group ph-fc-ctl">
-        <div class="ph-group-h"><h3 :data-tip="t('fc.x.ctlTip')">{{ t("forecast.based") }}</h3></div>
+      <!-- the months the forecast learns from: a control for the whole page, right under the answer -->
+      <div class="ph-fc-ctl">
+        <p class="ph-fc-ctl-l"><span :data-tip="t('fc.x.ctlTip')">{{ t("forecast.based") }}</span><span>{{ monthsHead }}</span></p>
         <Segmented :model-value="fc.n" :options="months" :label="t('forecast.based')" @update:model-value="pick('n', $event)" />
-        <p class="ph-group-n">{{ monthsHead }}</p>
-      </section>
+      </div>
 
       <p v-if="zeroMonths.length" class="ph-fc-warn"><PIcon :svg="WARN" />{{ t("forecast.diag.zero", { months: zeroMonths.join(", ") }) }}</p>
 
@@ -210,7 +210,7 @@ const openJar = (id) => nav.push("jar", String(id));
           <button type="button" class="ph-row ph-two ph-fc-line tot" @click="showRow(saved)">
             <span class="ph-row-main">
               <span class="ph-row-t"><span :data-tip="saved.tip">{{ P("saved") }}</span></span>
-              <span class="ph-row-s">{{ P("savedSub") }}</span>
+              <span class="ph-row-s ph-fc-wrap">{{ P("savedSub") }}</span>
             </span>
             <span class="ph-amt" :class="rowVal(saved, saved.vals[col])">{{ amt(saved.vals[col]) }}</span>
             <PIcon name="chevron" dir class="ph-chev" />

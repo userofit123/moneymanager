@@ -2,16 +2,22 @@
 
 /* the opening sentence; short of money: the amount in red */
 html.phone .ph-fc .ph-hero {
-  padding: 4px 4px 0;
+  padding: 0;
 }
 
 html.phone .ph-fc .ph-hero.short .ph-hero-a {
   color: var(--neg);
 }
 
-/* the months it learns from */
-html.phone .ph-fc-ctl .ph-group-n {
-  margin-block-start: 6px;
+/* the months it learns from: "Based on the last" and the months, then the switch */
+html.phone .ph-fc-ctl-l {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--p-s3);
+  margin: 0 2px var(--p-s2);
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
 }
 
 /* no income found in some months */
@@ -21,9 +27,9 @@ html.phone .ph-fc-jar-w {
   align-items: flex-start;
   gap: 8px;
   margin: 0;
-  padding: 12px 14px;
+  padding: var(--p-s3) var(--p-pad);
   border-radius: var(--p-r-group);
-  background: color-mix(in srgb, var(--warn) 12%, transparent);
+  background: color-mix(in srgb, var(--warn) 13%, var(--p-surf));
   color: var(--tx);
   font-size: 14px;
   line-height: 20px;
@@ -330,7 +336,7 @@ html.phone .ph-fc-step.s-end > .ph-amt {
 
 /* ---- what drives it ---- */
 html.phone .ph-fc-colnote {
-  margin: 8px 4px 0;
+  margin: var(--p-s2) 2px 0;
   color: var(--tx2);
   font-size: 13px;
   line-height: 18px;
@@ -353,7 +359,7 @@ html.phone .ph-fc-line.tot > .ph-amt {
 html.phone .ph-fc-jars {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--p-s3);
 }
 
 html.phone .ph-fc-jars .ph-group-h {
@@ -362,6 +368,7 @@ html.phone .ph-fc-jars .ph-group-h {
 
 html.phone .ph-fc-nojar {
   padding-block: 20px;
+  border: 1px solid var(--p-card-line);
   border-radius: var(--p-r-group);
   background: var(--p-surf);
 }
@@ -370,10 +377,10 @@ html.phone .ph-fc-jar {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 10px;
+  gap: var(--p-s3);
   inline-size: 100%;
-  padding: 14px 16px 16px;
-  border: 0;
+  padding: var(--p-pad);
+  border: 1px solid var(--p-card-line);
   border-radius: var(--p-r-group);
   background: var(--p-surf);
   color: var(--tx);
@@ -644,45 +651,25 @@ html.phone .ph-ya-back {
   gap: 4px;
 }
 
-/* no age yet: a row that opens the profile */
-html.phone .ph-ya-inv {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  inline-size: 100%;
-  margin-block-start: 10px;
-  padding: 12px 14px;
-  border: 0;
-  border-radius: var(--p-r-group);
-  background: color-mix(in srgb, var(--acc) 10%, var(--p-surf));
-  color: var(--tx);
-  font: inherit;
-  font-size: 14px;
-  line-height: 20px;
-  text-align: start;
+/* the cards under Years ahead sit 12px apart; "Try other amounts" heads the choices */
+html.phone .ph-ya > .ph-group-b + .ph-group-b {
+  margin-block-start: var(--p-s3);
 }
 
-html.phone .ph-ya-inv > .ph-ic:first-child {
-  color: var(--acc);
-}
-
-html.phone .ph-ya-inv span {
-  flex: 1;
-}
-
-html.phone .ph-ya-inv b {
-  display: block;
-  margin-block-start: 2px;
+html.phone .ph-ya-h {
+  margin: var(--p-s5) 2px var(--p-head);
+  font-size: 16px;
+  line-height: 22px;
   font-weight: 600;
 }
 
-html.phone .ph-ya-play,
-html.phone .ph-ya-chart {
-  margin-block-start: 10px;
+/* no age yet: a row that opens the profile */
+html.phone .ph-ya-inv .ph-tile {
+  --tile: var(--acc);
 }
 
 html.phone .ph-ya-play {
-  padding: 14px 16px 2px;
+  padding: var(--p-pad) var(--p-pad) 0;
 }
 
 html.phone .ph-ya-play .fld {
@@ -702,22 +689,12 @@ html.phone .ph-ya-play .ya-sl {
 }
 
 html.phone .ph-ya-chart {
-  padding: 12px 8px 10px;
+  padding: var(--p-s3) var(--p-s2) 10px;
 }
 
-/* saving the goal, right after the three rows: its state and the line under it, then the buttons side by side.
-   Quieter than the rows: an outline in place of the fill, dashed while no goal is saved. */
+/* saving the goal, after the choices: its state and the line under it, then the buttons side by side */
 html.phone .ph-ya-save {
-  margin-block-start: 10px;
-  padding: 14px 16px;
-  background: none;
-  box-shadow: inset 0 0 0 1px var(--ol);
-}
-
-html.phone .ph-ya-save.g-none {
-  box-shadow: none;
-  outline: 1.5px dashed var(--ol);
-  outline-offset: -1.5px;
+  padding: var(--p-pad);
 }
 
 html.phone .ph-ya-save-t {
