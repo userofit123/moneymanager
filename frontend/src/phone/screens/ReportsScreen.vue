@@ -176,14 +176,14 @@ const lineTotals = computed(() => (lD.value ? [...lD.value.lines].sort((a, b) =>
     </EmptyState>
 
     <template v-else>
-      <!-- what the main chart shows, then its answer in one sentence -->
-      <div class="ph-chips ph-rep-what">
-        <span class="ph-chip on"><button type="button" class="ph-chip-b" :aria-label="t('rep.whatToShow')" @click="whatOpen = true">{{ whatName }}<PIcon name="chevron" class="ph-rep-down" /></button></span>
-      </div>
+      <!-- the main chart's answer in one sentence -->
       <HeroSentence :class="{ neg: trm.big < 0 }" :parts="hero" />
 
-      <!-- the main chart: the month under the finger above it, the months to show under it -->
+      <!-- the main chart: what it shows as its heading (touch to change it), the months to show, then the chart with the month
+           under the finger above it -->
       <section class="ph-group ph-rep-main" :aria-label="whatName">
+        <div class="ph-group-h"><button type="button" class="ph-rep-what" :aria-label="t('rep.whatToShow')" @click="whatOpen = true"><h3>{{ whatName }}</h3><PIcon name="chevron" class="ph-rep-down" /></button></div>
+        <Segmented :model-value="TR.r" :options="rangeSeg" :label="t('rep.monthsShown')" @update:model-value="setRange" />
         <div class="ph-group-b ph-rep-card">
           <div class="ph-rep-read">
             <span class="ph-rep-read-m"><b>{{ trm.fullL[trI] }}</b><small v-if="trm.prev">{{ P("before", { amount: money(trm.prev[trI]) }) }}</small></span>
@@ -211,21 +211,17 @@ const lineTotals = computed(() => (lD.value ? [...lD.value.lines].sort((a, b) =>
           </div>
           <button type="button" class="ph-link ph-rep-see" @click="goActivity(goSpec(trm.ms[trI]))">{{ P("see") }}<PIcon name="chevron" dir /></button>
         </div>
-        <Segmented :model-value="TR.r" :options="rangeSeg" :label="t('rep.monthsShown')" @update:model-value="setRange" />
-      </section>
-
-      <section class="ph-group" :aria-label="whatName">
-        <div class="ph-rep-tiles">
+        <p class="ph-group-n">{{ P("slide") }}</p>
+        <div class="ph-stats ph-rep-tiles">
           <StatTile v-for="s in trm.stats" :key="s[0]" :label="s[1]" :value="tileVal(s)" :note="s[3] || ''" :tone="s[0] == 'chg' && s[2] < 0 ? 'neg' : ''" />
         </div>
-        <p class="ph-group-n">{{ P("slide") }}</p>
       </section>
 
       <!-- this month against the same days of last month -->
       <section v-if="cmp" class="ph-group">
         <div class="ph-group-h"><h3>{{ t("rep.cmpTitle") }}</h3></div>
-        <div class="ph-rep-tiles">
-          <StatTile :label="P('thisMonth', { month: MNAME(MK) })" :value="fm(cmp.thisTot)" :note="P('byDay', { month: pmN }) + ': ' + fm(cmp.same)" class="cur" />
+        <div class="ph-stats ph-rep-tiles">
+          <StatTile :label="P('thisMonth', { month: MNAME(MK) })" :value="fm(cmp.thisTot)" :note="P('byDay', { month: pmN }) + ': ' + fm(cmp.same)" />
           <StatTile :label="P('lastMonth', { month: pmN })" :value="fm(cmp.lastTot)" :note="cmp.lastTot ? t('rep.shareOfMonth', { pc: Math.round((cmp.same / cmp.lastTot) * 100), tot: f0(cmp.lastTot), month: pmN }) : ''" />
         </div>
         <p class="ph-rep-line">{{ cmpLine }}</p>

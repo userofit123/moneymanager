@@ -2,16 +2,45 @@
 
 /* the opening sentence; a total below zero: the amount in red */
 html.phone .ph-rep .ph-hero {
-  padding: 0 4px;
+  padding: 0;
 }
 
 html.phone .ph-rep .ph-hero.neg .ph-hero-g:first-of-type .ph-hero-a {
   color: var(--neg);
 }
 
-/* what the main chart shows: one chip, above the sentence it changes */
+/* what the main chart shows: its section heading, with a chevron that says it can be changed */
 html.phone .ph-rep-what {
-  margin-block-end: -12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-block-size: var(--p-hit);
+  margin-block: -8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tx);
+  font: inherit;
+  text-align: start;
+}
+
+html.phone .ph-rep-what .ph-rep-down.ph-ic {
+  inline-size: 18px;
+  block-size: 18px;
+  color: var(--acc);
+}
+
+html.phone .ph-rep-what:active h3 {
+  opacity: .6;
+}
+
+/* a switch above a chart's card, the card, its note and the number tiles under it */
+html.phone .ph-rep .ph-group > .ph-segwrap + .ph-group-b {
+  margin-block-start: var(--p-s3);
+}
+
+html.phone .ph-rep-main > .ph-group-n + .ph-stats {
+  margin-block-start: var(--p-s4);
 }
 
 /* a chip or link that opens a list: a small chevron pointing down after its value */
@@ -44,7 +73,7 @@ html.phone .ph-rep-down.ph-ic.up {
 }
 
 html.phone .ph-rep-ctl {
-  margin-block: -4px 4px;
+  margin-block: 0 var(--p-s3);
 }
 
 /* a chart's card: the month under the finger on top, the chart, then what to open */
@@ -144,30 +173,10 @@ html.phone .ph-rep-see {
   padding-inline: 16px;
 }
 
-html.phone .ph-rep-main .ph-segwrap {
-  margin-block-start: 8px;
-}
-
-/* number tiles, two a row */
-html.phone .ph-rep-tiles {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
+/* number tiles, two a row (.ph-stats) */
 html.phone .ph-rep-tiles .ph-stat {
   min-inline-size: 0;
   justify-content: flex-start;
-}
-
-html.phone .ph-rep-tiles .ph-stat.cur {
-  background: var(--accc);
-  color: var(--onc);
-}
-
-html.phone .ph-rep-tiles .ph-stat-n {
-  font-size: 12px;
-  line-height: 16px;
 }
 
 html.phone .ph-rep-tiles .ph-stat.neg .ph-stat-v {
@@ -175,8 +184,8 @@ html.phone .ph-rep-tiles .ph-stat.neg .ph-stat-v {
 }
 
 html.phone .ph-rep-line {
-  margin: 12px 4px;
-  font-size: 15px;
+  margin: var(--p-s3) 2px;
+  font-size: 16px;
   line-height: 22px;
 }
 
