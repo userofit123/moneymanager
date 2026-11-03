@@ -1,5 +1,6 @@
 <script setup>
-// Activity (tab): every transaction, with search, filters, grouping and sorting, the totals of what is shown, and Needs review.
+// Activity (tab): the computer's Activity page for the phone, block by block: All / Needs review / Export, the filters and
+// search, the totals card of what is shown, and the list by month (each month's band with its totals, its rows under it).
 // All the page's logic is the computer's (pagelogic/activity.js); this file only draws it for the phone.
 // A row opens its transaction; swipe it (or press and hold) to change its category and more.
 import { ref, computed, watch, onMounted, onBeforeUnmount, onActivated, onDeactivated } from "vue";
@@ -7,6 +8,7 @@ import { data } from "../../stores/data.js";
 import { dcell, dshort, dstr } from "../../dates.js";
 import { openDocs } from "../../core/docs.js";
 import { openForm } from "../../core/forms.js";
+import { explain } from "../../core/tooltip.js";
 import { run } from "../../core/txact.js";
 import { catLabel } from "../../core/cats.js";
 import * as A from "../../lib/txactions.js";
@@ -18,7 +20,6 @@ import IconButton from "../components/IconButton.vue";
 import Segmented from "../components/Segmented.vue";
 import SearchField from "../components/SearchField.vue";
 import ChipBar from "../components/ChipBar.vue";
-import HeroSentence from "../components/HeroSentence.vue";
 import ListGroup from "../components/ListGroup.vue";
 import SwipeRow from "../components/SwipeRow.vue";
 import PickerSheet from "../components/PickerSheet.vue";
@@ -42,11 +43,8 @@ const {
   gapCall, gapNote, gapAdd,
 } = useActivity();
 
-// ---- the top: All / Needs review, search, filter chips ----
-const segs = computed(() => [{ value: "all", label: t("activity.all") }, { value: "rev", label: t("activity.review") + (reviewCount.value ? " " + reviewCount.value : "") }]);
-// Export is a sheet on the phone, not a tab: a page that asks for it (goActivity with tab "exp") opens the sheet over All
-const expOpen = ref(false);
-watch(tab, (v) => { if (v === "exp") { tab.value = "all"; expOpen.value = true; } }, { immediate: true });
+// ---- the top: the computer's three tabs, search, filter chips ----
+const segs = computed(() => [{ value: "all", label: t("activity.all") }, { value: "rev", label: t("activity.review") + (reviewCount.value ? " " + reviewCount.value : "") }, { value: "exp", label: t("txw.a.exp") }]);
 
 const labelOf = (opts, v) => opts.find((o) => o.value === v)?.label || "";
 const chipList = computed(() => [
@@ -85,27 +83,21 @@ function applyDates() {
   f.value = { ...f.value, p: "custom", from, to }; dates.value = null;
 }
 
-// ---- the ⋯ menu: group, sort, export ----
+// ---- the ⋯ menu: the computer's Group by and Sort by, with their icons ----
+const GROUP_IC = '<path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5"/>', SORT_IC = '<path d="M4 7h10M4 12h7M4 17h4M17 5v14M17 19l-3-3M17 19l3-3"/>';
 const optsOpen = ref(false);
 const optActs = computed(() => [
-  { label: t("activity.groupBy"), value: t("phone.activity.groupV." + group.value), run: () => (picker.value = "group") },
-  { label: t("activity.sortBy"), value: labelOf(sortOpts.value, sort.value), run: () => (picker.value = "sort") },
-  { label: t("txw.a.exp"), run: () => (expOpen.value = true) },
+  { label: t("activity.groupBy"), icon: GROUP_IC, value: t("phone.activity.groupV." + group.value), run: () => (picker.value = "group") },
+  { label: t("activity.sortBy"), icon: SORT_IC, value: labelOf(sortOpts.value, sort.value), run: () => (picker.value = "sort") },
 ]);
 
-// ---- the sentence: what went out and what came in, for what is shown ----
-function sentence(key, vals) {
-  // each amount is marked by its name between two \u0001 (names, not numbers: Hebrew texts isolate numbers), then set large
-  const marks = Object.fromEntries(Object.keys(vals).map((k) => [k, "\u0001" + k + "\u0001"]));
-  return t(key, marks).split("\u0001").map((s, i) => (i % 2 ? { amount: vals[s] } : { text: s })).filter((p) => p.amount != null || p.text);
-}
-const hero = computed(() => {
-  const o = T.value.out >= 1, i = T.value.inc >= 1;
-  if (o && i) return sentence("phone.activity.hero", { out: fm(T.value.out), in: fm(T.value.inc) });
-  if (i) return sentence("phone.activity.heroIn", { in: fm(T.value.inc) });
-  return sentence("phone.activity.heroOut", { out: fm(T.value.out) });
-});
-const howOpen = ref(false);
+// ---- the totals card, as on the computer: what is shown, how many, and In / Out / Net / Money back (a tap explains each) ----
+const totals = computed(() => [
+  { k: "in", l: t("activity.in"), v: fm(T.value.inc), tip: t("activity.inTip") },
+  { k: "out", l: t("activity.out"), v: fm(T.value.out), tip: t("activity.outTip") },
+  { k: "net", l: t("activity.net"), v: fm(T.value.net), tip: t("activity.netTip"), neg: T.value.net < 0 },
+  ...(T.value.back >= 1 ? [{ k: "back", l: t("activity.backT"), v: fm(T.value.back), tip: t("activity.backTip") }] : []),
+]);
 
 // ---- the list ----
 const lists = computed(() => visibleGroups.value || [{ key: "", rows: visibleRows.value }]);
@@ -155,13 +147,12 @@ onDeactivated(() => io?.disconnect()); onBeforeUnmount(() => io?.disconnect());
 // ---- Needs review ----
 // a name inside a sentence keeps its own order (an English name after a Hebrew "from" or "to")
 const bdi = (s) => "\u2068" + s + "\u2069";
-const revEmpty = computed(() => !revXf.value.length && !revDups.value.length && !revGaps.value.length);
 </script>
 
 <template>
   <PhoneScreen refresh class="ph-actv">
     <template #actions>
-      <IconButton :label="t('phone.activity.options')" icon-name="more" @tap="optsOpen = true" />
+      <IconButton v-if="tab === 'all'" :label="t('phone.activity.options')" icon-name="more" @tap="optsOpen = true" />
       <IconButton :label="t('phone.shell.open.activity')" icon-name="add" @tap="openForm('tx')" />
     </template>
     <template #head>
@@ -184,13 +175,15 @@ const revEmpty = computed(() => !revXf.value.length && !revDups.value.length && 
       <SkeletonRows v-if="loading" :rows="6" />
       <EmptyState v-else-if="!rows.length" icon-name="search" :title="filtered ? t('activity.noMatch') : t('activity.none')" :action="filtered ? t('activity.clear') : t('phone.shell.open.activity')" @action="filtered ? clear() : openForm('tx')" />
       <template v-else>
-        <div class="ph-actv-sum">
-          <HeroSentence :parts="hero" :link="t('phone.activity.howCounted')" @link="howOpen = true" />
-          <div class="ph-actv-facts">
-            <span class="ph-actv-fact"><span>{{ t("activity.count", { n: rows.length }, rows.length) }}</span></span>
-            <span class="ph-actv-fact" :data-tip="t('activity.netTip')"><span>{{ t("activity.net") }} <b :class="{ neg: T.net < 0 }" dir="ltr">{{ fm(T.net) }}</b></span></span>
-            <span v-if="T.back >= 1" class="ph-actv-fact" :data-tip="t('activity.backTip')"><span>{{ t("activity.backT") }} <b dir="ltr">{{ fm(T.back) }}</b></span></span>
-            <span v-if="loN" class="ph-actv-fact" :data-tip="sumTip"><span>{{ t("activity.notIn", { n: loN }, loN) }}</span></span>
+        <div class="ph-card ph-actv-tot">
+          <div class="ph-actv-tl">
+            <svg class="ph-actv-ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4-2v-6z" /></svg>
+            <b>{{ filtered ? t("activity.results") : t("activity.all") }}</b>
+            <span>{{ t("activity.count", { n: rows.length }, rows.length) }}</span>
+          </div>
+          <button v-if="loN" type="button" class="ph-actv-lo" @click="explain(sumTip)">{{ t("activity.notIn", { n: loN }, loN) }}<PIcon name="chevron" dir /></button>
+          <div class="ph-actv-tg" :class="{ four: totals.length === 4 }">
+            <button v-for="x in totals" :key="x.k" type="button" class="ph-actv-tt" :class="'k-' + x.k" @click="explain(x.tip)"><span>{{ x.l }}</span><b class="ph-amt" :class="{ neg: x.neg }" dir="ltr">{{ x.v }}</b></button>
           </div>
         </div>
 
@@ -225,12 +218,10 @@ const revEmpty = computed(() => !revXf.value.length && !revDups.value.length && 
     </template>
 
     <!-- Needs review -->
-    <template v-else>
-      <EmptyState v-if="revEmpty" icon-name="check" :title="t('phone.activity.allClear')" :text="t('phone.activity.allClearText')" />
-      <template v-else>
-        <HeroSentence v-if="reviewCount" :parts="[{ text: t('phone.activity.reviewHero', { n: reviewCount }, reviewCount) }]" class="ph-actv-rh" />
-        <ListGroup v-if="revXf.length" :title="t('activity.r.xfTitle')">
-          <div v-for="r in revXf" :key="r.x.o" class="ph-rv">
+    <template v-else-if="tab === 'rev'">
+      <div class="ph-actv-rev">
+        <ListGroup :title="t('activity.r.xfTitle')" bare>
+          <div v-for="r in revXf" :key="r.x.o" class="ph-card ph-rv xf">
             <div class="ph-rv-h"><b>{{ r.o.from }}</b><PIcon name="chevron" dir class="ph-rv-to" /><b>{{ r.i.to }}</b></div>
             <span class="ph-row-s">{{ dstr(r.o.d) }}</span>
             <p class="ph-rv-p"><EmText :text="t('activity.r.xfLine2', { sent: fm(-r.o.a), out: bdi(r.o.from), arrived: r.i.orig ? (SYM[r.i.orig.cur] || '') + f0(r.i.orig.amt) + ' (≈ ' + fm(r.i.a) + ')' : fm(r.i.a), in: bdi(r.i.to) })" :em="[r.o.from, r.i.to]" /></p>
@@ -238,16 +229,19 @@ const revEmpty = computed(() => !revXf.value.length && !revDups.value.length && 
             <p class="ph-rv-p mu"><EmText :text="r.cost > 0.5 ? t('activity.r.costText') : t('activity.r.noCostText')" :em="['Fees & FX costs']" /></p>
             <div class="ph-rv-b"><button type="button" class="ph-btn ph-sm" @click="run(A.xfOk, r.x.o)">{{ t("activity.r.confirm") }}</button><button type="button" class="ph-btn tonal ph-sm" @click="run(A.xfNo, r.x.o)">{{ t("activity.r.notXf") }}</button></div>
           </div>
+          <p v-if="!revXf.length" class="ph-card ph-rv-none">{{ t("activity.r.xfNone") }}</p>
         </ListGroup>
-        <ListGroup v-if="revDups.length" :title="t('activity.r.dupTitle')">
-          <div v-for="x in revDups" :key="x.id" class="ph-rv">
+        <ListGroup :title="t('activity.r.dupTitle')" bare>
+          <div v-for="x in revDups" :key="x.id" class="ph-card ph-rv xf">
             <div class="ph-rv-h"><b>{{ name(x) }}</b><b class="ph-rv-amt" dir="ltr">{{ fm(x.a) }}</b></div>
             <p class="ph-rv-p mu"><EmText :text="x.from + ' · ' + dstr(x.d) + ' · ' + t('activity.r.dupWhy')" :em="[x.from]" /></p>
             <div class="ph-rv-b"><button type="button" class="ph-btn ph-sm danger" @click="run(A.dupDel, x.id)">{{ t("activity.r.dupDel") }}</button><button type="button" class="ph-btn tonal ph-sm" @click="run(A.dupKeep, x.id)">{{ t("activity.r.dupKeep") }}</button></div>
           </div>
+          <p v-if="!revDups.length" class="ph-card ph-rv-none">{{ t("activity.r.dupNone") }}</p>
         </ListGroup>
-        <ListGroup v-if="revGaps.length" :title="t('activity.r.gapTitle')" :note="t('activity.r.gapIntro')">
-          <div v-for="r in revGaps" :key="r.id" class="ph-rv">
+        <ListGroup :title="t('activity.r.gapTitle')" bare>
+          <p class="ph-rv-intro">{{ t("activity.r.gapIntro") }}</p>
+          <div v-for="r in revGaps" :key="r.id" class="ph-card ph-rv warn">
             <div class="ph-rv-h"><b>{{ r.n }}</b><span class="ph-row-s">{{ r.cur }}</span><span class="bd" :class="r.diff < 0 ? 'up' : 'dn'">{{ t("activity.r." + (r.card ? (r.diff < 0 ? "cardMore" : "cardLess") : r.diff < 0 ? "down" : "up")) }}</span></div>
             <p class="ph-rv-big">{{ t(gapKey(r, "activity.r."), { amt: gapAmt(r) }) }}</p>
             <p v-if="gapB(r)" class="ph-rv-p sinfo"><EmText :text="t('txw.a.gapBill', { bill: gapB(r).n, amt: fm(gapB(r).pred), date: dstr(gapB(r).pd) })" :em="[gapB(r).n]" /></p>
@@ -258,9 +252,13 @@ const revEmpty = computed(() => !revXf.value.length && !revDups.value.length && 
               <button type="button" class="ph-btn tonal ph-sm" @click="gapNote = { id: r.id, note: '' }">{{ t("activity.r.gapRev") }}</button>
             </div>
           </div>
+          <p v-if="!revGaps.length" class="ph-card ph-rv-none">{{ t("activity.r.gapNone") }}</p>
         </ListGroup>
-      </template>
+      </div>
     </template>
+
+    <!-- Export: the computer's export panel -->
+    <div v-else class="ph-adopt ph-actv-exp"><ExportPanel :from="exportFrom" :filters="{ ...f, focus: focus ? [...focus.ids] : null }" /></div>
 
     <!-- sheets -->
     <PickerSheet v-model:open="pickOpen" :required="picker === 'group' || picker === 'sort' || picker === 'p'" :title="PICK[picker]?.title || ''" :options="PICK[picker]?.options || []" :model-value="pickVal" @update:model-value="picked" />
@@ -273,17 +271,6 @@ const revEmpty = computed(() => !revXf.value.length && !revDups.value.length && 
         <label class="fld">{{ t("activity.cal.end") }}<input v-model="dates.to" type="date" :min="dates.from || undefined" /></label>
       </div>
       <template #foot><button type="button" class="ph-btn" :disabled="!dates?.from" @click="applyDates">{{ t("activity.cal.apply") }}</button></template>
-    </PhoneSheet>
-    <PhoneSheet v-model:open="howOpen" :title="t('phone.activity.howCounted')">
-      <dl class="ph-actv-how">
-        <dt>{{ t("activity.in") }}</dt><dd>{{ t("activity.inTip") }}</dd>
-        <dt>{{ t("activity.out") }}</dt><dd>{{ t("activity.outTip") }}</dd>
-        <dt>{{ t("activity.net") }}</dt><dd>{{ t("activity.netTip") }}</dd>
-        <dt>{{ t("activity.backT") }}</dt><dd>{{ t("activity.backTip") }}</dd>
-      </dl>
-    </PhoneSheet>
-    <PhoneSheet v-model:open="expOpen" :title="t('txw.a.exp')" size="large" cls="ph-adopt">
-      <ExportPanel :from="exportFrom" :filters="{ ...f, focus: focus ? [...focus.ids] : null }" />
     </PhoneSheet>
     <BaseDialog :open="!!gapNote" :title="t('activity.r.gapRev')" @update:open="(v) => !v && (gapNote = null)">
       <label v-if="gapNote" class="fld">{{ t("activity.r.gapNoteQ") }}<textarea v-model="gapNote.note" rows="3" /></label>

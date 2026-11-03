@@ -1,6 +1,8 @@
 <script setup>
-// One transaction (pushed on any tab, ?tx=): the amount and who it was with, then sorting it (category, tags, name, note),
-// what the money in is, how it is counted, what can be done with it, the details the bank sent, its documents and its changes.
+// One transaction (pushed on any tab, ?tx=): the computer's entry window as a screen, in its reading order. The top
+// (who, when, the amount, then its kind, category, marks and tags), the details the bank sent; then the window's side
+// sections: what the money in is, organise (name, category, tags), the note, how it is counted, what can be done, its
+// documents and its changes; at the end the window's Copy details and Attach.
 // Everything it knows and does comes from pagelogic/transaction.js, the same code as the computer's entry window.
 import { ref, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -18,13 +20,10 @@ import { usePhoneNav } from "../navigation.js";
 import PhoneScreen from "../components/PhoneScreen.vue";
 import ListGroup from "../components/ListGroup.vue";
 import ListRow from "../components/ListRow.vue";
-import IconButton from "../components/IconButton.vue";
 import PhoneSheet from "../components/PhoneSheet.vue";
 import PickerSheet from "../components/PickerSheet.vue";
-import ActionSheet from "../components/ActionSheet.vue";
 import EmptyState from "../components/EmptyState.vue";
 import PIcon from "../components/PIcon.vue";
-import { ICONS } from "../icons.js";
 import TagEditor from "../../components/TagEditor.vue";
 import { tagName } from "../../core/polish.js";
 
@@ -38,19 +37,15 @@ const { tk, S, cur, name, nohtml, avStyle, isXf, isPos, chips, kindText, kindCls
 watch(cur, (x, was) => { if (!x && was) nav.back(); });
 
 // the small windows of this screen
-const pick = ref(""); // "cat" | "tags" | "name" | "note" | "raw" | "more"
+const pick = ref(""); // "cat" | "tags" | "name" | "note"
 const shut = () => { pick.value = ""; };
 const catOptions = () => [{ value: "", label: t("activity.uncategorized") }, ...cats.value.map((c) => ({ value: c, label: catLabel(c) }))];
 const catValue = () => (cur.value?.c && cur.value.c !== "Uncategorized" ? cur.value.c : "");
 const pickCat = (v) => setCat(cur.value, v || "");
-const fileIn = ref(null);
-const moreActions = () => [
-  { label: t("activity.d.copy"), icon: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>', run: copyDetails },
-  ...(cur.value && !cur.value.virtual ? [{ label: t("activity.w.attach"), icon: TIC.clip, run: () => fileIn.value?.click() }] : []),
-  // the category and tags are rows below the top (to change them); listing everything with the same one is here
-  ...(cur.value && !cur.value.virtual && !isXf(cur.value) && cur.value.c ? [{ label: t("phone.activity.onlyCat"), icon: ICONS.filter, value: catLabel(cur.value.c), run: () => goCat(cur.value.c) }] : []),
-  ...(cur.value?.tags || []).map((g) => ({ label: t("phone.activity.onlyTag", { tag: g }), icon: ICONS.filter, run: () => goTag(g) })),
-];
+const COPY_IC = '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>';
+// every field the bank sent, opened under the details (the computer's fold-out list)
+const rawOpen = ref(false);
+watch(() => props.id, () => { rawOpen.value = false; });
 // where the money went from and to: each name keeps its own order, and in Hebrew the arrow points the way the line reads
 const fromTo = (x) => {
   if (!(x.from && x.to)) return nohtml(x.from || x.to || "");
@@ -62,12 +57,9 @@ const tone = (r) => (r.cls === "amber" ? "warn" : "acc");
 
 <template>
   <PhoneScreen :large="false" class="ph-tx">
-    <template #actions>
-      <IconButton v-if="cur" :label="t('phone.tx.more')" icon-name="more" @tap="pick = 'more'" />
-    </template>
-
     <EmptyState v-if="!cur" icon-name="search" :title="t('phone.tx.gone')" :text="t('phone.tx.goneSub')" />
     <template v-else>
+      <!-- the window's top: who, when and the amount, then its kind, category, marks and tags (a category or tag lists all with it) -->
       <header class="ph-tx-hero">
         <span class="ph-tx-av" :style="avStyle(cur)" aria-hidden="true">{{ (name(cur) || "?")[0] }}</span>
         <b class="ph-tx-amt" :class="{ pos: isPos(cur) }" dir="ltr">{{ amtText(cur) }}</b>
@@ -76,26 +68,29 @@ const tone = (r) => (r.cls === "amber" ? "warn" : "acc");
         <p class="ph-tx-when"><span>{{ dstr(cur.d) }}</span><span v-if="fromTo(cur)">{{ fromTo(cur) }}</span></p>
         <div class="ph-tx-chips">
           <span class="tb" :class="kindCls(cur)">{{ kindText(cur) }}</span>
+          <button v-if="!cur.virtual && !isXf(cur) && cur.c" type="button" class="chip catl ph-tx-cat" @click="goCat(cur.c)"><span class="dot" :style="{ background: catColor(S, cur.c) }"></span>{{ catLabel(cur.c) }}</button>
           <span v-for="c in chips(cur)" :key="c.cls" class="bd pc" :class="c.cls" :data-tip="c.tip"><svg v-if="c.icon" class="pi" viewBox="0 0 24 24" v-html="CHIP_ICON[c.icon]"></svg>{{ c.label }}</span>
+          <button v-for="g in cur.tags || []" :key="g" type="button" class="tag catl" @click="goTag(g)">{{ tagName(g) }}</button>
         </div>
       </header>
 
-      <ListGroup v-if="!cur.virtual && !isXf(cur)" :title="t('activity.d.organise')">
-        <ListRow :title="t('activity.category')" link @tap="pick = 'cat'">
-          <template #end><span class="ph-tx-val"><i class="ph-tx-dot" :style="{ background: catColor(S, cur.c || 'Uncategorized') }" />{{ catLabel(cur.c || "Uncategorized") }}</span></template>
-        </ListRow>
-        <ListRow :title="t('activity.w.tags')" :value="(cur.tags || []).length ? cur.tags.map(tagName).join(' ') : t('phone.tx.noTags')" link @tap="pick = 'tags'" />
-        <ListRow :title="t('activity.d.displayName')" :value="S.cfg?.renames?.[cur.id] || ''" link @tap="pick = 'name'" />
-      </ListGroup>
-
-      <ListGroup v-if="!cur.virtual" :title="t('activity.d.note')">
-        <button type="button" class="ph-row ph-tx-note" :class="{ empty: !cur.note }" @click="pick = 'note'">
-          <span class="ph-row-main"><span class="ph-tx-notet">{{ cur.note || t("activity.d.notePh") }}</span></span>
-          <PIcon class="ph-chev" name="chevron" dir />
+      <!-- the details the bank sent, with every field it sent folded under them -->
+      <ListGroup v-if="facts.length || rawFields.length || det === 'load'" :title="t('activity.d.details')">
+        <div v-for="r in facts" :key="r.k" class="ph-tx-kv"><span>{{ tk("activity.d." + r.k) }}</span><b :class="{ mono: r.mono }">{{ typeof r.v === "string" ? heTx(r.v) : factText(r.v) }}</b></div>
+        <button v-if="rawFields.length" type="button" class="ph-row ph-tx-rawh" :class="{ on: rawOpen }" :aria-expanded="String(rawOpen)" @click="rawOpen = !rawOpen">
+          <span class="ph-row-main"><span class="ph-row-t">{{ t(cur.src === "wise" ? "activity.d.allWise" : "activity.d.allBank") }}</span></span>
+          <span class="ph-tx-cnt">{{ rawFields.length }}</span>
+          <PIcon name="chevron" class="ph-tx-rawc" />
         </button>
+        <template v-if="rawOpen"><div v-for="[a, b] in rawFields" :key="a" class="ph-tx-kv col"><span>{{ prettyKey(a) }}</span><b>{{ b }}</b></div></template>
+        <template #note>
+          <span v-if="det === 'load'">{{ t("activity.d.loading") }}</span>
+          <span v-else-if="!cur.virtual && (!det || (cur.src !== 'manual' && !det.details))">{{ cur.src === "manual" ? t("activity.d.manual") : t("activity.d.old") }}</span>
+        </template>
       </ListGroup>
 
       <ListGroup v-if="mi" :title="t('txw.mi.title')">
+        <template #head><span class="ph-tx-cnt">{{ t("txw.mi.k." + mi.mark) }}</span></template>
         <div class="ph-tx-mi">
           <p class="ph-tx-p">{{ t("txw.mi.tip." + mi.mark) }}</p>
           <p class="ph-tx-p"><b>{{ mi.chosen ? t("txw.mi.why.chosen") : inWhy(mi.r) }}</b></p>
@@ -106,7 +101,24 @@ const tone = (r) => (r.cls === "amber" ? "warn" : "acc");
         </div>
       </ListGroup>
 
+      <ListGroup v-if="!cur.virtual && !isXf(cur)" :title="t('activity.d.organise')">
+        <ListRow :title="t('activity.d.displayName')" :value="S.cfg?.renames?.[cur.id] || ''" link @tap="pick = 'name'" />
+        <ListRow :title="t('activity.category')" link @tap="pick = 'cat'">
+          <template #end><span class="ph-tx-val"><i class="ph-tx-dot" :style="{ background: catColor(S, cur.c || 'Uncategorized') }" />{{ catLabel(cur.c || "Uncategorized") }}</span></template>
+        </ListRow>
+        <ListRow :title="t('activity.w.tags')" :value="(cur.tags || []).length ? cur.tags.map(tagName).join(' ') : t('phone.tx.noTags')" link @tap="pick = 'tags'" />
+      </ListGroup>
+
+      <ListGroup v-if="!cur.virtual" :title="t('activity.d.note')">
+        <template v-if="cur.note && !isXf(cur)" #head><span class="ph-tx-cnt">{{ t("activity.w.added") }}</span></template>
+        <button type="button" class="ph-row ph-tx-note" :class="{ empty: !cur.note }" @click="pick = 'note'">
+          <span class="ph-row-main"><span class="ph-tx-notet">{{ cur.note || t("activity.d.notePh") }}</span></span>
+          <PIcon class="ph-chev" name="chevron" dir />
+        </button>
+      </ListGroup>
+
       <ListGroup v-if="rels.length" :title="t('activity.d.counted')">
+        <template #head><i v-if="rels.some((r) => r.cls === 'amber')" class="ph-tx-flag" :aria-label="t('activity.w.needsLook')" /><span class="ph-tx-cnt">{{ rels.length }}</span></template>
         <div v-for="r in rels" :key="r.title + r.ic" class="ph-tx-rel" :class="r.cls">
           <span class="ph-tile" :style="{ '--tile': `var(--${tone(r)})` }"><PIcon :svg="TIC[r.ic]" /></span>
           <div class="ph-tx-relb">
@@ -118,34 +130,28 @@ const tone = (r) => (r.cls === "amber" ? "warn" : "acc");
       </ListGroup>
 
       <ListGroup v-if="tiles.length" class="ph-tx-acts" :title="t('activity.d.actions')">
+        <template #head><span class="ph-tx-cnt">{{ tiles.length }}</span></template>
         <ListRow v-for="x in tiles" :key="x.title" :title="x.title" :sub="x.sub" :icon="TIC[x.ic]" :tone="x.hot ? 'pos' : 'acc'" @tap="x.run()" />
       </ListGroup>
 
-      <ListGroup v-if="facts.length || rawFields.length || det === 'load'" :title="t('activity.d.details')">
-        <div v-for="r in facts" :key="r.k" class="ph-tx-kv"><span>{{ tk("activity.d." + r.k) }}</span><b :class="{ mono: r.mono }">{{ typeof r.v === "string" ? heTx(r.v) : factText(r.v) }}</b></div>
-        <ListRow v-if="rawFields.length" :title="t(cur.src === 'wise' ? 'activity.d.allWise' : 'activity.d.allBank')" :value="String(rawFields.length)" link @tap="pick = 'raw'" />
-        <template #note>
-          <span v-if="det === 'load'">{{ t("activity.d.loading") }}</span>
-          <span v-else-if="!cur.virtual && (!det || (cur.src !== 'manual' && !det.details))">{{ cur.src === "manual" ? t("activity.d.manual") : t("activity.d.old") }}</span>
-        </template>
-      </ListGroup>
-
-      <ListGroup v-if="!cur.virtual" :title="t('phone.tx.docsTitle')">
-        <ListRow v-for="(d, i) in cur.docs || []" :key="i" :title="d" :icon="TIC.clip" link @tap="openDocs(cur.id, i)" />
-        <label class="ph-row ph-tx-attach">
-          <span class="ph-row-lead"><span class="ph-tile" style="--tile: var(--acc)"><PIcon name="add" /></span></span>
-          <span class="ph-row-main"><span class="ph-row-t">{{ t("activity.w.attach") }}</span></span>
-          <input ref="fileIn" type="file" accept="image/*,application/pdf" multiple hidden @change="attach($event)" />
-        </label>
+      <ListGroup v-if="!cur.virtual && cur.docs?.length" :title="t('activity.w.docs')">
+        <template #head><span class="ph-tx-cnt">{{ cur.docs.length }}</span></template>
+        <ListRow v-for="(d, i) in cur.docs" :key="i" :title="d" :icon="TIC.clip" link @tap="openDocs(cur.id, i)" />
       </ListGroup>
 
       <ListGroup v-if="changes.length" :title="t('activity.d.history')">
+        <template #head><span class="ph-tx-cnt">{{ changes.length }}</span></template>
         <div v-for="a in changes" :key="a.t + a.action + a.detail" class="ph-tx-hist">
           <div class="ph-tx-histh"><b>{{ heTx(a.action) }}</b><span>{{ when(a.t) }}</span></div>
           <p>{{ heTx(nohtml(a.detail || "")) }}</p>
         </div>
       </ListGroup>
 
+      <!-- the window's buttons at its bottom: copy the details, attach a receipt or photo (Done is the top bar's Back) -->
+      <div class="ph-tx-foot">
+        <button type="button" class="ph-btn tonal" @click="copyDetails"><PIcon :svg="COPY_IC" />{{ t("activity.d.copy") }}</button>
+        <label v-if="!cur.virtual" class="ph-btn tonal"><PIcon :svg="TIC.clip" />{{ t("activity.w.attach") }}<input type="file" accept="image/*,application/pdf" multiple hidden @change="attach($event)" /></label>
+      </div>
     </template>
 
     <PickerSheet v-if="cur" :open="pick === 'cat'" required :title="t('activity.category')" :options="catOptions()" :model-value="catValue()" @update:open="shut" @update:model-value="pickCat" />
@@ -166,10 +172,5 @@ const tone = (r) => (r.cls === "amber" ? "warn" : "acc");
       <template #foot><button type="button" class="ph-btn" @click="shut">{{ t("activity.d.done") }}</button></template>
     </PhoneSheet>
 
-    <PhoneSheet v-if="cur" :open="pick === 'raw'" size="large" :title="t(cur.src === 'wise' ? 'activity.d.allWise' : 'activity.d.allBank')" @update:open="shut">
-      <div class="ph-group-b"><div v-for="[a, b] in rawFields" :key="a" class="ph-tx-kv col"><span>{{ prettyKey(a) }}</span><b>{{ b }}</b></div></div>
-    </PhoneSheet>
-
-    <ActionSheet :open="pick === 'more'" :title="cur ? name(cur) : ''" :actions="moreActions()" @update:open="shut" />
   </PhoneScreen>
 </template>

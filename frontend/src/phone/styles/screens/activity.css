@@ -1,5 +1,6 @@
-/* Activity on the phone (phone/screens/ActivityScreen.vue): the switch, search and filter chips, the sentence with its totals,
-   the rows in their groups (headers stay under the top bar while their rows scroll), and the Needs review cards. */
+/* Activity on the phone (phone/screens/ActivityScreen.vue), the computer's page adapted: the three tabs, search and filter
+   chips, the totals card, the rows in their months (each band stays under the top bar while its rows scroll), the Needs
+   review cards and the Export tab. */
 
 /* ---- the top: All / Needs review, search, filters ---- */
 html.phone .ph-actv-head {
@@ -13,37 +14,101 @@ html.phone .ph-actv-head .ph-chips {
   margin-block: -4px;
 }
 
-/* ---- the sentence and the small totals under it ---- */
-html.phone .ph-actv-sum {
+/* ---- the totals card, as the computer's: what is shown and how many, then In / Out / Net / Money back as tiles ---- */
+html.phone .ph-actv-tot {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding-inline: 4px;
+  gap: 12px;
 }
 
-/* the small totals: the page's note style, one calm line (wraps when it must) */
-html.phone .ph-actv-facts {
+html.phone .ph-actv-tl {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
-  gap: var(--p-s1) var(--p-s4);
+  gap: 4px 8px;
   color: var(--tx2);
-  font-size: var(--p-f-meta);
+  font-size: 13px;
   line-height: 18px;
 }
 
-html.phone .ph-actv-fact {
+html.phone .ph-actv-tl b {
+  color: var(--tx);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+html.phone .ph-actv-ti {
+  inline-size: 16px;
+  block-size: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+
+/* "12 not counted in In and Out": a tap explains which rows and why */
+html.phone .ph-actv-lo {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-}
-
-html.phone .ph-actv-fact b {
+  align-self: flex-start;
+  gap: 2px;
+  margin-block-start: -6px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--warn) 14%, transparent);
   color: var(--tx);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 16px;
 }
 
-html.phone .ph-actv-fact b.neg,
+html.phone .ph-actv-lo .ph-ic {
+  inline-size: 14px;
+  block-size: 14px;
+}
+
+/* the totals: three tiles in a row (two by two when Money back is there too) */
+html.phone .ph-actv-tg {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+html.phone .ph-actv-tg.four {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+html.phone .ph-actv-tt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-inline-size: 0;
+  min-block-size: 56px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--p-card-line);
+  background: color-mix(in srgb, var(--tx) 3%, var(--p-surf));
+  color: var(--tx2);
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 16px;
+  text-align: start;
+}
+
+html.phone .ph-actv-tt b {
+  max-inline-size: 100%;
+  overflow: hidden;
+  color: var(--tx);
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html.phone .ph-actv-tt b.neg,
 html.phone .ph-actv-gp .neg b {
   color: var(--neg);
 }
@@ -321,26 +386,57 @@ html.phone .ph-btn.danger {
   color: #fff;
 }
 
-/* ---- Needs review ---- */
-html.phone .ph-actv-rh {
-  padding-inline: 4px;
+/* ---- Needs review: the computer's three sections, each item its own card ---- */
+html.phone .ph-actv-rev {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-gap);
+}
+
+html.phone .ph-actv-rev .ph-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+html.phone .ph-actv-rev .ph-group-h {
+  margin-block-end: 0;
 }
 
 html.phone .ph-rv {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 6px;
-  padding: 14px 16px 16px;
 }
 
-html.phone .ph-rv + .ph-rv::before {
-  content: "";
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline: 16px 0;
-  border-block-start: 1px solid var(--p-line);
+/* a transfer or a possible copy: the computer's tinted card with a dashed line; a balance change: the warning card */
+html.phone .ph-rv.xf {
+  border: 1px dashed color-mix(in srgb, var(--acc) 50%, var(--p-card-line));
+  background: color-mix(in srgb, var(--acc) 6%, var(--p-surf));
+}
+
+html.phone .ph-rv.warn {
+  border-color: color-mix(in srgb, var(--neg) 45%, var(--p-card-line));
+}
+
+html.phone .ph-rv-none {
+  margin: 0;
+  color: var(--tx2);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+html.phone .ph-rv-intro {
+  margin: -2px 2px 0;
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+/* Export: the panel in one column */
+html.phone .ph-actv-exp {
+  min-inline-size: 0;
 }
 
 html.phone .ph-rv-h {
@@ -411,22 +507,7 @@ html.phone .ph-actv-dates input {
   min-block-size: 48px;
 }
 
-html.phone .ph-actv-how {
-  margin: 0;
-  font-size: 15px;
-  line-height: 22px;
-}
-
-html.phone .ph-actv-how dt {
-  font-weight: 600;
-}
-
-html.phone .ph-actv-how dd {
-  margin: 2px 0 14px;
-  color: var(--tx2);
-}
-
-/* the Export window (the computer's ExportPanel) in a phone sheet: one column, the sheet's own title only */
+/* the Export tab (the computer's ExportPanel): one column; the tab above names it, so its own title is hidden */
 html.phone .ph-adopt .exp .exhead {
   display: none;
 }

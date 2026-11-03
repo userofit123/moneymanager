@@ -1,4 +1,5 @@
-/* transaction screen (phone/screens). Every rule starts with html.phone. */
+/* transaction screen (phone/screens/TransactionScreen.vue): the computer's entry window as a screen. Every rule starts
+   with html.phone. */
 
 /* the top: who it was with and the amount, centred, the amount set large */
 html.phone .ph-tx-hero {
@@ -74,6 +75,74 @@ html.phone .ph-tx-chips > * {
 html.phone .ph-tx-chips button {
   font-family: inherit;
   cursor: pointer;
+}
+
+/* a tag in the top row: the computer's tag look, a button that lists everything with it */
+html.phone .ph-tx-chips button.tag {
+  border: 0;
+}
+
+/* what a section holds, at its heading's end (the computer's count beside each section's name) */
+html.phone .ph-tx-cnt {
+  flex: none;
+  padding: 1px 9px;
+  border-radius: 99px;
+  background: var(--s2);
+  color: var(--tx2);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* something to look at in how it is counted: the computer's amber dot */
+html.phone .ph-tx-flag {
+  flex: none;
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  background: var(--c2);
+}
+
+/* every field the bank sent: a row that opens the list under it (chevron turns down when open) */
+html.phone .ph-tx-rawh .ph-tx-cnt {
+  background: var(--bg);
+}
+
+html.phone .ph-tx-rawc {
+  flex: none;
+  inline-size: 18px;
+  block-size: 18px;
+  color: var(--tx2);
+  transform: rotate(calc(90deg - 90deg * var(--p-dir)));
+  transition: transform var(--p-t-fade) var(--p-ease);
+}
+
+html.phone .ph-tx-rawh.on .ph-tx-rawc {
+  transform: rotate(90deg);
+}
+
+/* the window's bottom buttons, side by side (one under the other when their names do not fit) */
+html.phone .ph-tx-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+html.phone .ph-tx-foot .ph-btn {
+  flex: 1 1 auto;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-inline-size: 0;
+}
+
+html.phone .ph-tx-foot .ph-ic {
+  inline-size: 18px;
+  block-size: 18px;
+  flex: none;
 }
 
 /* what can be done: each action's line under it is read in full (two lines at most) */
@@ -238,15 +307,6 @@ html.phone .ph-tx-kv.col span {
 }
 html.phone .ph-tx-kv.col b {
   text-align: start;
-}
-
-/* attach a document: a row that opens the phone's file and camera picker */
-html.phone .ph-tx-attach {
-  cursor: pointer;
-}
-html.phone .ph-tx-attach .ph-row-t {
-  color: var(--acc);
-  font-weight: 600;
 }
 
 /* change history */

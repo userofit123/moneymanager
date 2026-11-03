@@ -1,7 +1,4 @@
 {
-  "hero": "{out} went out and {in} came in.",
-  "heroOut": "{out} went out.",
-  "heroIn": "{in} came in.",
   "options": "View options",
   "changeCat": "Change category",
   "open": "Open",
@@ -11,12 +8,8 @@
   "groupOpen": "Show these transactions",
   "groupClose": "Hide these transactions",
   "loadingMore": "Loading more",
-  "allClear": "Nothing needs a look",
-  "allClearText": "Every transfer, possible copy and balance change has been checked.",
-  "reviewHero": "{n} thing needs a look. | {n} things need a look.",
   "custom": "Choose dates",
   "noAccount": "Not from an account",
-  "howCounted": "How is this counted?",
   "groupV": {
     "none": "None",
     "day": "Day",
