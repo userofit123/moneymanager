@@ -69,10 +69,26 @@ html.phone .ph-wrap {
   white-space: normal;
 }
 
-/* ---- groups: a header that stays under the top bar, then its rows ---- */
+/* ---- groups: one full-width list, as the computer's table: each month's header band stays under the top bar,
+   its rows follow straight under it with hairlines between them, and the next month starts right after ---- */
 html.phone .ph-actv-g {
   display: flex;
   flex-direction: column;
+  margin-inline: calc(-1 * var(--p-gut));
+  background: var(--p-surf);
+}
+
+/* hairlines close the list at its top and its end; each header band has its own line under it */
+html.phone .ph-actv-g:first-of-type {
+  border-block-start: 1px solid var(--p-card-line);
+}
+
+html.phone .ph-actv-g:last-of-type {
+  border-block-end: 1px solid var(--p-card-line);
+}
+
+html.phone .ph-actv-g.closed:last-of-type .ph-actv-gh {
+  border-block-end: 0;
 }
 
 html.phone .ph-actv-gh {
@@ -83,13 +99,11 @@ html.phone .ph-actv-gh {
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 2px 8px;
-  inline-size: calc(100% + 2 * var(--p-gut));
-  margin-inline: calc(-1 * var(--p-gut));
-  padding: 8px calc(var(--p-gut) + 4px);
+  inline-size: 100%;
+  padding: 10px var(--p-gut);
   border: 0;
-  background: var(--p-glass);
-  -webkit-backdrop-filter: saturate(1.6) blur(20px);
-  backdrop-filter: saturate(1.6) blur(20px);
+  border-block-end: 1px solid var(--p-card-line);
+  background: color-mix(in srgb, var(--acc) 9%, var(--p-surf));
   color: var(--tx);
   font: inherit;
   text-align: start;
@@ -143,12 +157,20 @@ html.phone .ph-actv-gp b {
   font-variant-numeric: tabular-nums;
 }
 
+/* months follow each other with no gap */
 html.phone .ph-actv-g + .ph-actv-g {
-  margin-block-start: calc(var(--p-s5) - var(--p-gap));
+  margin-block-start: calc(-1 * var(--p-gap));
 }
 
+/* the rows run the full width: no card of their own */
 html.phone .ph-actv-g .ph-group-b {
-  margin-block-start: var(--p-s1);
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+html.phone .ph-actv-g .ph-txr {
+  padding-inline: var(--p-gut);
 }
 
 /* ---- a transaction row ---- */
@@ -256,7 +278,7 @@ html.phone .ph-txr-o {
 
 /* the swipe's separators: inset past the avatar, as in every list */
 html.phone .ph-actv-g .ph-swipe + .ph-swipe::before {
-  inset-inline-start: 68px;
+  inset-inline-start: calc(var(--p-gut) + 52px);
   z-index: 1;
 }
 
