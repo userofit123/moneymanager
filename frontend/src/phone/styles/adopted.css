@@ -28,10 +28,10 @@ html.phone :is(.ph-sheet, .ph-set) .fld label {
   font-size: 13px;
 }
 
-/* two fields side by side get their own line each on a phone (long Hebrew labels, big fingers) */
-html.phone :is(.ph-sheet, .ph-set) .two {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 0;
+/* two fields side by side stay side by side, as in the computer's window (Amount and Type, Date and Account); the
+   gap is the phone's 12px */
+html.phone .ph-adopt .two {
+  gap: 12px;
 }
 
 html.phone :is(.ph-sheet, .ph-set) .btn {
@@ -87,48 +87,37 @@ html.phone .ph-adopt .ph-sheet-b > h3:first-child {
   background: var(--p-sheet-bg);
 }
 
-/* the window's last row of buttons stays at the bottom, above the home bar: the main button (Save, Create) across the full
-   width, and the others (Cancel, Back) as quiet text buttons under it, so there is one clear thing to press */
+/* the window's last row of buttons stays at the bottom, above the home bar, in the computer's order and look: the quiet
+   one (Cancel, Back) outlined, the main one (Save, Create) filled, side by side and sharing the width, each 48px high */
 html.phone .ph-adopt .ph-sheet-b > :is(.flex, .dlg-actions):last-child {
   position: sticky;
   inset-block-end: 0;
   z-index: 2;
   display: flex;
-  flex-direction: column-reverse;
-  gap: 2px;
+  flex-wrap: nowrap;
+  gap: 10px;
   margin: 16px calc(-1 * var(--p-gut)) 0;
-  padding: 12px var(--p-gut) calc(var(--sb) + 8px);
+  padding: 12px var(--p-gut) calc(var(--sb) + 10px);
   background-color: var(--p-sheet-bg);
   border-block-start: 1px solid var(--p-line);
 }
 
 html.phone .ph-adopt .ph-sheet-b > :is(.flex, .dlg-actions):last-child > :is(.btn, button) {
-  flex: none;
-  inline-size: 100%;
+  flex: 1 1 0;
+  min-inline-size: 0;
   min-block-size: 48px;
   margin: 0;
   font-size: 16px;
 }
 
-html.phone .ph-adopt .ph-sheet-b > :is(.flex, .dlg-actions):last-child > .btn.o {
-  min-block-size: 44px;
-  border-color: transparent;
-  background: none;
-  color: var(--acc);
-  font-weight: 600;
+/* the main button takes the larger share, so it is the easy one to hit */
+html.phone .ph-adopt .ph-sheet-b > :is(.flex, .dlg-actions):last-child > .btn:not(.o) {
+  flex-grow: 1.6;
 }
 
-/* a row with only quiet buttons (Back, Cancel) keeps them as outlined buttons, so the row still reads as buttons */
-html.phone .ph-adopt .ph-sheet-b > :is(.flex, .dlg-actions):last-child:not(:has(> .btn:not(.o))) > .btn.o {
-  min-block-size: 48px;
-  border-color: var(--ol);
-}
-
-/* "Count in another month": a month is chosen by its own buttons, so the closing Cancel is the plain secondary button, not the main one */
-html.phone .ph-adopt .ph-sheet-b:has(input[type=month]) > .flex:last-child > .btn:not(.o) {
-  background: none;
-  border: 1px solid var(--ol);
-  color: var(--acc);
+/* a spacer the computer uses to push buttons apart is not needed on a phone */
+html.phone .ph-adopt .ph-sheet-b > :is(.flex, .dlg-actions):last-child > :is(span, div):empty {
+  display: none;
 }
 
 /* tick boxes (not switches): big enough for a finger, in the app's colour */
@@ -137,15 +126,6 @@ html.phone :is(.ph-sheet, .ph-set) input[type=checkbox]:not(.tg input) {
   block-size: 22px;
   min-block-size: 0;
   accent-color: var(--acc);
-}
-
-/* a window's grey hint box (how a jar's monthly amount is worked out) is a plain note under the fields, not a box in the sheet */
-html.phone .ph-adopt .jhint {
-  margin: -8px 0 16px;
-  padding: 0;
-  background: none;
-  font-size: 13px;
-  line-height: 18px;
 }
 
 /* a window with only its content (no buttons at the end) keeps room above the home bar */
@@ -166,39 +146,52 @@ html.phone .ph-scrim:has(+ .ph-sheet.ph-ask) {
   z-index: 70;
 }
 
+/* laid out as the computer's confirm box: the question in bold, the grey line under it, then Cancel (outlined) and the
+   action (filled, red when it removes something) side by side at the end */
 html.phone .ph-ask .ph-sheet-b {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 10px;
-  padding-block-start: 4px;
-  text-align: center;
+  padding-block: 4px calc(var(--sb) + 12px);
 }
 
 html.phone .ph-ask-t {
+  flex: 1 0 100%;
   margin: 0;
+  padding-inline-end: 8px;
   font-size: 18px;
   line-height: 24px;
-  font-weight: 600;
+  font-weight: 650;
 }
 
 html.phone .ph-ask-x {
-  margin: 0 0 8px;
+  flex: 1 0 100%;
+  margin: -4px 0 8px;
   color: var(--tx2);
   font-size: 15px;
   line-height: 22px;
 }
 
 html.phone .ph-ask .ph-btn {
-  inline-size: 100%;
+  flex: 1.6 1 0;
+  min-inline-size: 0;
+  order: 2;
 }
 
-html.phone .ph-ask .ph-btn:first-of-type {
-  margin-block-start: 6px;
+html.phone .ph-ask .ph-btn.tonal {
+  flex-grow: 1;
+  order: 1;
+  min-block-size: 48px;
+  border: 1px solid var(--ol);
+  background: none;
+  color: var(--acc);
 }
 
-html.phone .ph-btn.danger {
-  background: var(--neg);
-  color: var(--bg);
+/* removing something: the computer's red outlined button */
+html.phone .ph-ask .ph-btn.danger {
+  border: 1px solid color-mix(in srgb, var(--neg) 45%, transparent);
+  background: none;
+  color: var(--neg);
 }
 
 /* ---- ⋯ menus (PopMenu) as an action sheet ---- */
@@ -718,13 +711,6 @@ html.phone .ph-set .rlrows .rule > :is(select, input:not([type=checkbox])) {
 /* the small (i) next to a label opens its explanation: on a phone its touch area is 44px (the icon stays its size) */
 html.phone .tinfo::after {
   inset: -16px;
-}
-
-/* ---- Points and levels: the level at the top is a plain card like every other, not a tinted panel ---- */
-html.phone .ptw .pthd {
-  border: 1px solid var(--p-card-line);
-  border-radius: var(--p-r-group);
-  background: var(--p-surf);
 }
 
 /* Export's preview: the number of rows across the top, money in and out as two even tiles under it, so no amount is cut */

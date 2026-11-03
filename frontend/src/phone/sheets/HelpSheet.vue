@@ -50,7 +50,6 @@ watch(helpPage, () => nextTick(() => box.value?.closest(".ph-sheet-b")?.scrollTo
     <SkeletonRows v-if="!ready" :rows="5" />
     <div v-else-if="guide" ref="box" class="ph-guide" @click="jump" v-html="body" />
     <template v-else>
-      <p class="ph-help-lead">{{ t("phone.sheets.helpPick") }}</p>
       <ListGroup :title="t('phone.sheets.helpScreens')">
         <ListRow v-for="p in screens" :key="p.name" :title="pageName(p.name)" :sub="t('phone.shell.about.' + p.name)" :icon="p.icon" link @tap="helpOn('guide', p.name)" />
       </ListGroup>

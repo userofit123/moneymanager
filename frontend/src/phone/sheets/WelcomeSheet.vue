@@ -20,7 +20,7 @@ const ME = '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8
   <PhoneSheet v-model:open="open" :label="news ? t('upd.title') : t('upd.makeTitle')" :size="news ? 'large' : 'fit'" cls="ph-wn">
     <template #head>
       <div class="ph-wn-h">
-        <span class="ph-tile" style="--tile: var(--acc)"><PIcon :svg="news ? NEW : ME" /></span>
+        <span class="ph-tile"><PIcon :svg="news ? NEW : ME" /></span>
         <div class="ph-wn-ht">
           <h2>{{ news ? t("upd.title") : t("upd.makeTitle") }}</h2>
           <p v-if="news"><span>{{ t("upd.nowOn") }}</span> ⁦{{ news.cur }}⁩</p>
@@ -37,8 +37,8 @@ const ME = '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8
     <div v-else-if="ask" class="ph-wn-b ph-wn-prof"><ProfileFields v-model="form" prefix="pp" /></div>
     <template #foot>
       <div class="ph-wn-f">
-        <template v-if="news"><button type="button" class="ph-btn" @click="closeNews()">{{ t("upd.gotIt") }}</button><button type="button" class="ph-btn tonal" @click="fullLog">{{ t("upd.fullLog") }}</button></template>
-        <template v-else><button type="button" class="ph-btn" @click="save">{{ t("upd.save") }}</button><button type="button" class="ph-btn tonal" @click="skip">{{ t("upd.notNow") }}</button></template>
+        <template v-if="news"><button type="button" class="ph-btn tonal" @click="fullLog">{{ t("upd.fullLog") }}</button><button type="button" class="ph-btn" @click="closeNews()">{{ t("upd.gotIt") }}</button></template>
+        <template v-else><button type="button" class="ph-btn tonal" @click="skip">{{ t("upd.notNow") }}</button><button type="button" class="ph-btn" @click="save">{{ t("upd.save") }}</button></template>
       </div>
     </template>
   </PhoneSheet>

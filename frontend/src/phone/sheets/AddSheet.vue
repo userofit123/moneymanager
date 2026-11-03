@@ -1,6 +1,7 @@
 <script setup>
-// "Add or update" in the phone app (the + on Home): every kind of thing that can be added (core/addActions.js), as a grid
-// of two columns, each with its icon, name and a short hint. A tap closes the sheet and opens that thing's window.
+// "Add or update" in the phone app (the + on Home): the computer's + window (components/shell/QuickSheet.vue), every kind
+// of thing that can be added (core/addActions.js) as two columns of its tiles, each with its icon, name and a short hint.
+// A tap closes the sheet and opens that thing's window.
 import { useI18n } from "vue-i18n";
 import { quickOpen } from "../../core/shell.js";
 import { ADD_ITEMS, ADD_ICONS } from "../../core/addActions.js";

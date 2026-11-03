@@ -1,6 +1,7 @@
 /* The phone app's own sheets (phone/sheets/*). Every rule starts with html.phone. */
 
-/* "Add or update": two columns of tiles, each with its icon, name and a short hint */
+/* "Add or update": the computer's + window, two columns of its tiles (outlined, its square icon in the app's light colour,
+   the name in bold and a short grey hint); on a phone the icon sits above the name so the hint has the tile's width */
 html.phone .ph-add-g {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -12,11 +13,11 @@ html.phone .ph-add-i {
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
-  min-block-size: 112px;
+  min-block-size: 108px;
   padding: 14px;
-  border: 1px solid var(--p-card-line);
-  border-radius: var(--p-r-group);
-  background: var(--p-surf);
+  border: 1px solid var(--ol);
+  border-radius: 16px;
+  background: var(--s1);
   color: var(--tx);
   font: inherit;
   text-align: start;
@@ -24,56 +25,34 @@ html.phone .ph-add-i {
 }
 
 html.phone .ph-add-i:active {
-  background: var(--p-press);
+  background: var(--s2);
   transform: scale(.97);
 }
 
-html.phone .ph-add-i .ph-tile {
-  --tile: var(--acc);
+html.phone .ph-add-g .ph-add-i .ph-tile {
+  inline-size: 38px;
+  block-size: 38px;
+  border-radius: 12px;
+  background: var(--accc);
+  color: var(--onc);
 }
 
-html.phone .ph-add-t {
-  font-size: 15px;
-  line-height: 20px;
-  font-weight: 600;
-}
-
-html.phone .ph-add-h {
-  color: var(--tx2);
-  font-size: 13px;
-  line-height: 17px;
-}
-
-/* the first one (a transaction) is the one people add most: it spans the row, in the app's colour */
 html.phone .ph-add-w {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-html.phone .ph-add-i[data-k="tx"] {
-  grid-column: 1 / -1;
-  flex-direction: row;
-  align-items: center;
-  gap: 14px;
-  min-block-size: 76px;
-  background: var(--accc);
-  color: var(--onc);
+html.phone .ph-add-t {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 650;
 }
 
-html.phone .ph-add-i[data-k="tx"] .ph-tile {
-  margin: 0;
-  background: var(--acc);
-  color: var(--on);
-}
-
-html.phone .ph-add-i[data-k="tx"] .ph-add-t {
-  font-size: 17px;
-}
-
-html.phone .ph-add-i[data-k="tx"] .ph-add-h {
-  color: inherit;
-  opacity: .8;
+html.phone .ph-add-h {
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 17px;
 }
 
 /* ---- Help: the list of topics, then one guide (help/help.js) in the computer's words, at phone sizes ---- */
@@ -85,13 +64,6 @@ html.phone .ph-help .ph-sheet-b {
 
 html.phone .ph-help-back {
   margin-inline-start: -8px;
-}
-
-html.phone :is(.ph-help-lead, .ph-nums-lead, .ph-sugg-lead) {
-  margin: 0;
-  color: var(--tx2);
-  font-size: 15px;
-  line-height: 22px;
 }
 
 html.phone .ph-guide .hlead {
@@ -164,128 +136,66 @@ html.phone .ph-guide .hdemo {
   zoom: .9;
 }
 
-/* ---- Key numbers: groups that add up to their last line ---- */
+/* ---- Key numbers: the computer's panel (.hs, .knl, .knr from styles/components/help.css) at phone sizes ---- */
 html.phone .ph-nums .ph-sheet-b {
-  display: flex;
-  flex-direction: column;
-  gap: var(--p-gap);
+  padding-block-end: calc(var(--sb) + 24px);
 }
 
-html.phone .ph-num {
-  gap: 4px;
-  min-block-size: 48px;
+html.phone .ph-nums .hs {
+  margin: 0 0 22px;
+  padding: 0;
 }
 
-html.phone .ph-num-op {
-  flex: none;
-  inline-size: 16px;
-  color: var(--tx2);
-  font-weight: 600;
-  text-align: center;
-}
-
-html.phone .ph-num-t {
-  font-size: 15px;
-  line-height: 20px;
-}
-
-html.phone .ph-num .ph-amt.neg {
-  color: var(--neg);
-}
-
-/* the group before's result, repeated as this group's start */
-html.phone .ph-num.from :is(.ph-num-t, .ph-amt) {
-  color: var(--tx2);
-  font-weight: 500;
-}
-
-/* a part of the line above (not counted again): set in and quieter */
-html.phone .ph-num.part {
-  min-block-size: 44px;
-  padding-inline-start: 28px;
-}
-
-html.phone .ph-num.part :is(.ph-num-t, .ph-amt) {
-  color: var(--tx2);
-  font-size: 14px;
-  font-weight: 500;
-}
-
-/* the line the group adds up to */
-html.phone .ph-num.res {
-  border-block-start: 1px solid var(--p-line);
-}
-
-html.phone .ph-num.res .ph-num-t {
-  font-weight: 600;
-}
-
-html.phone .ph-num.res::before {
-  display: none;
-}
-
-/* the likely ones are guesses: a dashed edge, as on the computer */
-html.phone .ph-nums .guess .ph-group-b {
-  background: transparent;
-  border: 1px dashed var(--p-line);
-}
-
-/* ---- Ideas ---- */
-html.phone .ph-sugg .ph-sheet-b {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-html.phone .ph-sugg-i {
-  position: relative;
-  display: flex;
-  gap: 12px;
-  padding: 14px 16px 10px;
-}
-
-html.phone .ph-sugg-i + .ph-sugg-i::before {
-  content: "";
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline: 64px 0;
-  border-block-start: 1px solid var(--p-line);
-}
-
-html.phone .ph-sugg-i > .ph-tile {
-  flex: none;
-}
-
-html.phone .ph-sugg-w {
-  flex: 1;
-  min-inline-size: 0;
-}
-
-html.phone .ph-sugg-t {
-  display: block;
+html.phone .ph-nums .hs h4 {
+  margin: 0 0 10px;
   font-size: 16px;
-  line-height: 22px;
-  font-weight: 600;
 }
 
-html.phone .ph-sugg-x {
-  margin: 2px 0 8px;
-  color: var(--tx2);
-  font-size: 14px;
-  line-height: 20px;
-}
-
-html.phone .ph-sugg-a {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 16px;
-}
-
-html.phone .ph-sugg-a .ph-btn {
-  min-block-size: 40px;
+html.phone .ph-nums .knl {
+  border-radius: var(--p-r-group);
   padding-inline: 16px;
+}
+
+html.phone .ph-nums .knr {
+  align-items: center;
+  min-block-size: 48px;
+  padding-block: 12px;
   font-size: 15px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--p-t-press);
+}
+
+html.phone .ph-nums .knr:active {
+  margin-inline: -16px;
+  padding-inline: 16px;
+  background: var(--p-press);
+}
+
+html.phone .ph-nums .knr.part {
+  min-block-size: 0;
+  padding-block: 0 10px;
+  padding-inline-start: 1.1em;
+  font-size: 13.5px;
+}
+
+html.phone .ph-nums .knr.part:active {
+  padding-inline-start: calc(16px + 1.1em);
+}
+
+html.phone .ph-nums .knr > b {
+  unicode-bidi: isolate;
+}
+
+/* the groups come in one after another, as the cards on the phone's pages */
+html.phone .ph-nums .ph-nums-g {
+  animation: ph-up .36s var(--p-ease-out) both;
+  animation-delay: calc(var(--i, 0) * 60ms + 80ms);
+}
+
+/* ---- Ideas: the computer's window (.sgi from styles/components/app-windows.css); the action buttons wrap at full height ---- */
+html.phone .ph-adopt .sgi .btn.s {
+  min-block-size: 40px;
 }
 
 /* ---- Welcome: what is new, then "Make it yours" ---- */
@@ -297,11 +207,14 @@ html.phone .ph-wn-h {
   min-inline-size: 0;
 }
 
-html.phone .ph-wn-h > .ph-tile {
+/* the computer's icon: a rounded square in the app's colour, shading to violet, with a white drawing */
+html.phone .ph-wn .ph-wn-h > .ph-tile {
   flex: none;
-  inline-size: 44px;
-  block-size: 44px;
-  border-radius: 50%;
+  inline-size: 46px;
+  block-size: 46px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--acc), color-mix(in srgb, var(--acc) 55%, #a855f7));
+  color: var(--on);
 }
 
 html.phone .ph-wn-ht {
@@ -349,10 +262,24 @@ html.phone .ph-wn-notes li + li {
   margin-block-start: 10px;
 }
 
+/* the computer's buttons, side by side: the quiet one outlined, the main one filled and wider */
 html.phone .ph-wn-f {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+}
+
+html.phone .ph-wn-f > .ph-btn {
+  flex: 1.6 1 0;
+  min-inline-size: 0;
+  padding-inline: 12px;
+}
+
+html.phone .ph-wn-f > .ph-btn.tonal {
+  flex-grow: 1;
+  min-block-size: 48px;
+  border: 1px solid var(--ol);
+  background: none;
+  color: var(--acc);
 }
 
 /* Appearance: the computer's panel, shown as a bottom sheet (full width, rounded top, the page dimmed behind it; a tap on
@@ -490,4 +417,28 @@ html.phone .ph-act-v {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ---- Motion of every sheet (PhoneSheet) ---- */
+/* it rises from the bottom (components.css); its content fades in as the computer's window does (sheetIn) */
+html.phone .ph-rise-enter-active .ph-sheet-b {
+  animation: ph-fade .26s ease-out both;
+}
+
+/* a sheet taking over from another in the same moment is simply there (PhoneSheet swapIn), like the computer's windows */
+html.phone :is(.ph-sheet, .ph-scrim).ph-swap {
+  transition: none !important;
+  transform: none !important;
+  opacity: 1 !important;
+}
+
+html.phone .ph-sheet.ph-swap .ph-sheet-b {
+  animation: ph-fade .2s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.phone :is(.ph-rise-enter-active, .ph-sheet.ph-swap) .ph-sheet-b,
+  html.phone .ph-nums .ph-nums-g {
+    animation: none;
+  }
 }

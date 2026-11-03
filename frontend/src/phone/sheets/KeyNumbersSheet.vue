@@ -1,7 +1,7 @@
 <script setup>
-// Key numbers in the phone app: the main sums of the month in their groups (Known now, Your plans, This month so far,
-// the likely ones), each group adding up to its last line, the same list and amounts as the computer's panel
-// (keyNums in core/derived.js). A tap on a line opens how it is worked out (the computer's tooltip text).
+// Key numbers in the phone app: the computer's Key numbers panel (help/HelpPanel.vue) in a sheet, with its markup and look:
+// each group (Known now, Your plans, This month so far, the likely ones) a titled card of lines adding up to its last line,
+// the same amounts (keyNums in core/derived.js). A tap on a line, or on its (i), opens how it is worked out.
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { keyNums } from "../../core/derived.js";
@@ -10,7 +10,6 @@ import { formatMoney } from "../../format.js";
 import { explain } from "../../core/tooltip.js";
 import { helpShown } from "../help.js";
 import PhoneSheet from "../components/PhoneSheet.vue";
-import ListGroup from "../components/ListGroup.vue";
 import EmptyState from "../components/EmptyState.vue";
 import { ICONS } from "../icons.js";
 
@@ -34,14 +33,12 @@ const explainNum = (x) => explain(tipOf(x));
 <template>
   <PhoneSheet v-model:open="open" :title="t('num.title')" size="large" cls="ph-nums">
     <template v-if="keyNums">
-      <p class="ph-nums-lead">{{ t("phone.sheets.numsIntro") }}</p>
-      <ListGroup v-for="g in keyNums.groups" :key="g.id" :title="t(g.name)" :class="{ guess: g.id.startsWith('likely') }">
-        <button v-for="x in g.items" :key="x.id" type="button" class="ph-row ph-num" :class="{ from: x.from, res: x.op === '=', part: x.part }" @click="explainNum(x)">
-          <span class="ph-num-op" aria-hidden="true">{{ x.op && x.op !== "=" ? x.op : "" }}</span>
-          <span class="ph-row-main"><span class="ph-num-t">{{ rowName(x) }}</span></span>
-          <span class="ph-row-end"><b class="ph-amt num" :class="{ neg: x.a < 0 && !calm(x) }" dir="ltr">{{ formatMoney(x.a) }}</b></span>
-        </button>
-      </ListGroup>
+      <section v-for="(g, gi) in keyNums.groups" :key="g.id" class="hs ph-nums-g" :style="{ '--i': gi }">
+        <h4>{{ t(g.name) }}</h4>
+        <div class="knl" :class="{ guess: g.id.startsWith('likely') }">
+          <div v-for="x in g.items" :key="x.id" class="knr" :class="{ from: x.from, res: x.op === '=', part: x.part }" :data-tip="tipOf(x)" role="button" tabindex="0" @click="explainNum(x)" @keydown.enter="explainNum(x)"><span><i v-if="x.op && x.op !== '='" class="kno">{{ x.op }}</i>{{ rowName(x) }}</span><b class="num" :class="{ neg: x.a < 0 && !calm(x) }" dir="ltr">{{ formatMoney(x.a) }}</b></div>
+        </div>
+      </section>
     </template>
     <EmptyState v-else :icon="ICONS.numbers" :text="t('num.none')" />
   </PhoneSheet>

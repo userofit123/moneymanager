@@ -11,28 +11,53 @@ html.phone .ph-auth {
   color: var(--tx);
 }
 
+/* the computer's sign-in card: the logo and the title side by side, the grey line under them, then the fields and the
+   button, all in one outlined card in the middle of the screen; it fades up once when the screen opens */
 html.phone .ph-auth-c {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
+  column-gap: 14px;
   inline-size: 100%;
-  max-inline-size: 400px;
+  max-inline-size: 420px;
   margin: auto;
-  text-align: center;
+  padding: 22px 20px 20px;
+  border: 1px solid var(--ol);
+  border-radius: var(--r);
+  background: var(--s1);
+  text-align: start;
+  animation: ph-auth-in .32s cubic-bezier(.2, .8, .2, 1) both;
+}
+
+html.phone .ph-auth-c > :not(.ph-auth-logo, h1) {
+  grid-column: 1 / -1;
+}
+
+@keyframes ph-auth-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.phone .ph-auth-c {
+    animation: none;
+  }
 }
 
 html.phone .ph-auth-logo.logo {
-  inline-size: 72px;
-  block-size: 72px;
-  margin: 0 0 20px;
-  border-radius: 22px;
+  inline-size: 48px;
+  block-size: 48px;
+  margin: 0;
+  border-radius: 14px;
 }
 
 html.phone .ph-auth h1 {
-  margin: 0 0 8px;
-  font-size: 28px;
-  line-height: 34px;
-  font-weight: 700;
+  margin: 0;
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 650;
   letter-spacing: -.3px;
 }
 
@@ -42,7 +67,7 @@ html.phone.he .ph-auth h1 {
 }
 
 html.phone .ph-auth-s {
-  margin: 0 0 28px;
+  margin: 12px 0 22px;
   color: var(--tx2);
   font-size: 15px;
   line-height: 22px;
@@ -112,8 +137,8 @@ html.phone .ph-auth-go:disabled {
 }
 
 html.phone .ph-auth-logo.logo svg {
-  inline-size: 38px;
-  block-size: 38px;
+  inline-size: 26px;
+  block-size: 26px;
 }
 
 /* "Forgot password?" and the recovery key on a phone (components/AuthForgot.vue, RecoveryKey.vue): the fields sit straight in the column */
