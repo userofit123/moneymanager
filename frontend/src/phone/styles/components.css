@@ -1463,7 +1463,7 @@ html.phone .ph-swipe.on::-webkit-scrollbar {
 
 html.phone .ph-swipe.on > * {
   flex: 0 0 82%;
-  scroll-snap-align: start;
+  scroll-snap-align: center; /* a card swiped to sits in the middle, with the cards on both sides peeking evenly */
 }
 
 /* DonutChart: the computer's ring chart, the ring above its legend */

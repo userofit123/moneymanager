@@ -437,6 +437,8 @@ html.phone .ph-fc-r-n {
 }
 
 html.phone .ph-fc-r-v {
+  justify-self: end;
+  text-align: end;
   font-size: 15px;
 }
 

@@ -4,6 +4,7 @@
 const st = new Map(), waiting = new Set();
 let raf = 0, started = false;
 const todo = new Set();
+const picked = { k: "", t: 0 }; // the tab row last clicked or keyed in, and when
 const RM = typeof matchMedia !== "undefined" ? matchMedia("(prefers-reduced-motion: reduce)") : { matches: true };
 
 // which tab row this is, so its last place is remembered when the page draws it again
@@ -39,7 +40,10 @@ function sync(sg) {
   let s = st.get(k);
   const e = pill.firstChild;
   const rest = () => { if (s.anim) { s.anim.cancel(); s.anim = null; } put(pill, g, g.l, g.r, rd); s.cur = { l: g.l, r: g.r, rd }; s.g = g; };
-  if (!s) { s = { idx, anim: null }; st.set(k, s); put(pill, g, g.l, g.r, rd); s.cur = { l: g.l, r: g.r, rd }; s.g = g; return; }
+  if (!s) { s = { idx, anim: null, el: sg }; st.set(k, s); put(pill, g, g.l, g.r, rd); s.cur = { l: g.l, r: g.r, rd }; s.g = g; return; }
+  // a page or window opened again draws a new tab row: the pill starts on the picked tab instead of gliding from where it was last time;
+  // it only glides when the row was redrawn right after a tab in it was picked
+  if (s.el !== sg) { const own = picked.k === k && Date.now() - picked.t < 800; s.el = sg; if (!own) { s.idx = idx; rest(); return; } }
   if (s.snap) { s.snap = false; s.idx = idx; rest(); return; }
   if (s.idx === idx) { if (!s.anim) put(pill, g, g.l, g.r, rd); s.cur = s.anim ? s.cur : { l: g.l, r: g.r, rd }; return; }
   s.idx = idx;
@@ -79,6 +83,8 @@ export function startSegSlide() {
       }
     }
   }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
+  const pick = (ev) => { const sg = ev.target.closest && ev.target.closest(".seg"); if (sg) { picked.k = keyOf(sg); picked.t = Date.now(); } };
+  addEventListener("pointerdown", pick, true); addEventListener("keydown", pick, true);
   addEventListener("resize", () => { st.forEach((s) => { s.snap = true; }); all(); });
   // the language (right to left) or the look (font, density...) changed without a reload: every pill moves to its tab's new place at once
   new MutationObserver(() => { st.forEach((s) => { s.snap = true; }); all(); }).observe(document.documentElement, { attributes: true, attributeFilter: ["lang", "data-fnt", "data-den", "data-spc", "data-rad", "data-nav"] });
