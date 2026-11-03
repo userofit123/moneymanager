@@ -1,23 +1,4 @@
 {
-  "left": "{amount} is left to spend this month, about {perDay} a day.",
-  "over": "Spending this month is {amount} over the budgets.",
   "emptyTitle": "No budgets yet",
-  "emptyText": "A budget is how much you plan to spend on a category each month. This screen then shows how each one is going.",
-  "spentOf": "{spent} of {limit}",
-  "howGoing": "How it is going",
-  "idea": "An idea for this budget",
-  "seeSpending": "See the spending",
-  "lastMonths": "Last months",
-  "tapNote": "Tap a category to see what was spent on it.",
-  "month": "This month",
-  "what": "A budget is a spending limit you set for one category, like Groceries, each month.",
-  "yours": "Your budgets",
-  "ideaShort": "Idea",
-  "usually": "Usually {amount} a month",
-  "sugNote": "Worked out from what you spent in {months}, with a little extra room. Categories that are mostly bills are left out. Nothing is set until you choose it.",
-  "unSpent": "{amount} this month",
-  "sugAsk": "You usually spend about {amount} a month here. Set a monthly limit for it?",
-  "limit": "Monthly limit",
-  "limitNote": "Change the amount before you set it, if you like.",
-  "limitEdit": "Type a new amount to change this budget."
+  "emptyText": "A budget is how much you plan to spend on a category each month. This screen then shows how each one is going."
 }

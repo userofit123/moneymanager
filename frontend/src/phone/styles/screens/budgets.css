@@ -1,191 +1,174 @@
-/* Phone Budgets screen (phone/screens/BudgetsScreen.vue). Every rule starts with html.phone.
-   Category tiles use the letter tile of Categories (.ph-cats-mic in categories.css). */
+/* Phone Budgets screen (phone/screens/BudgetsScreen.vue): the computer's Budgets page for one column.
+   Every rule starts with html.phone. The bars (.bar with the today mark), the status badges (.bd), the colour dots (.dot)
+   and the dashed idea box (.sugg) are the computer's own app-wide classes; this file only sizes them for a phone.
+   Motion follows the computer: the page fades up (its "fi"), bars fill (.bar's .6s width), folds turn their chevron;
+   each block comes in a little after the one before, and every tap target gives press feedback. */
 
-/* over the budgets: the amount in the opening sentence in red */
-html.phone .ph-bud .ph-hero.over .ph-hero-a {
-  color: var(--neg);
+/* ---- motion ---- */
+
+@keyframes ph-bud-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 }
 
-/* a budget row: the tile, then the name with "spent of limit", the bar with today's mark, and how it is going */
-html.phone .ph-bud-row {
-  align-items: flex-start;
-  padding-block: 14px;
+@keyframes ph-bud-fill {
+  from {
+    width: 0;
+  }
 }
 
-html.phone .ph-bud-row .ph-row-end {
-  align-self: center;
+@keyframes ph-bud-grow {
+  from {
+    block-size: 0;
+  }
 }
 
-html.phone .ph-bud-row-m {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: var(--p-s2);
-  min-inline-size: 0;
+@keyframes ph-bud-fade {
+  from {
+    opacity: 0;
+  }
 }
 
-html.phone .ph-bud-row-h {
-  display: flex;
-  align-items: baseline;
-  gap: var(--p-s2);
-  min-inline-size: 0;
+html.phone .ph-bud-in {
+  animation: ph-bud-up .35s var(--p-ease-out) both;
+  animation-delay: calc(var(--d, 0) * 50ms);
 }
 
-html.phone .ph-bud-row-h .ph-row-t {
-  flex: 1;
-  min-inline-size: 0;
+/* the budget cards come in one after the other (a short step each, at most about half a second) */
+html.phone .ph-bud-card {
+  animation: ph-bud-up .35s var(--p-ease-out) both;
+  animation-delay: calc(120ms + min(var(--i, 0), 8) * 45ms);
 }
 
-/* "₪403 of ₪2,600": a sentence, so it follows the language's direction; the figures stay even */
-html.phone .ph-bud-v {
-  flex: none;
-  color: var(--tx2);
-  font-size: var(--p-f-meta);
-  line-height: 18px;
-  font-variant-numeric: tabular-nums;
+html.phone .ph-bud .bar i {
+  animation: ph-bud-fill .8s var(--p-ease-out) .15s both;
 }
 
-html.phone .ph-bud-row-s {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--p-s1) var(--p-s3);
-  font-size: var(--p-f-meta);
-  line-height: 18px;
+html.phone .ph-bud .bar u {
+  animation: ph-bud-fade .3s ease .5s both;
 }
 
-html.phone .ph-bud-st {
-  font-size: var(--p-f-meta);
-  line-height: 18px;
-  font-weight: 600;
-  color: var(--pos);
+html.phone .ph-bud-mini i {
+  animation: ph-bud-grow .5s var(--p-ease-out) both;
+  animation-delay: calc(.25s + var(--j, 0) * 70ms);
 }
 
-html.phone .ph-bud-st.warn {
-  color: var(--warn);
+/* press feedback on everything that is tapped */
+html.phone :is(.ph-bud-barb, .ph-bud-trend, .ph-bud-bd, .ph-bud-name, .ph-bud-cat, .ph-bud-hbtn, .ph-bud-xt, .ph-bud-stats button) {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--p-t-press), opacity var(--p-t-press), background-color var(--p-t-press);
 }
 
-html.phone .ph-bud-st.neg {
-  color: var(--neg);
+html.phone :is(.ph-bud-barb, .ph-bud-trend, .ph-bud-bd, .ph-bud-name, .ph-bud-cat, .ph-bud-hbtn, .ph-bud-xt, .ph-bud-stats button):active {
+  transform: scale(.97);
+  opacity: .75;
 }
 
-/* the trend of the last complete months: going up (red) or going down (green) */
-html.phone .ph-bud-tr {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  color: var(--tx2);
+html.phone :is(.ph-bud-bill, .ph-bud-unn) {
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--p-t-press);
 }
 
-html.phone .ph-bud-tr.tr-up {
-  color: var(--neg);
+html.phone :is(.ph-bud-bill, .ph-bud-unn):active {
+  background: var(--p-press);
 }
 
-html.phone .ph-bud-tr.tr-down {
-  color: var(--pos);
+@media (prefers-reduced-motion: reduce) {
+  html.phone :is(.ph-bud-in, .ph-bud-card, .ph-bud .bar i, .ph-bud .bar u, .ph-bud-mini i, .ph-bud-bin) {
+    animation: none;
+  }
 }
 
-html.phone .ph-bud-tr svg {
-  inline-size: 14px;
-  block-size: 14px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+/* ---- shared bits ---- */
+
+html.phone .ph-bud :where(button:not(.ph-btn, .ph-ib)) {
+  font: inherit;
+  color: inherit;
 }
 
-/* a budget with an idea to change it: a bulb and "Idea" at the end of the line */
-html.phone .ph-bud-idea {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  margin-inline-start: auto;
-  color: var(--acc);
-  font-weight: 600;
-}
-
-html.phone .ph-bud-idea .ph-ic {
-  inline-size: 15px;
-  block-size: 15px;
-}
-
-/* a suggested budget's amount at the end of its row */
-html.phone .ph-bud-prop {
-  font-size: 16px;
-}
-
-html.phone .ph-bud-again {
-  align-self: flex-start;
-  margin-block-start: calc(var(--p-gap) * -.5);
-}
-
-/* spending with no budget: the category row and its "Set budget" button */
-html.phone .ph-bud-un {
-  position: relative;
-  display: flex;
-  align-items: center;
-  padding-inline-end: var(--p-s3);
-}
-
-html.phone .ph-bud-un + .ph-bud-un::before {
-  content: "";
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline: 68px 0;
-  border-block-start: 1px solid var(--p-line);
-}
-
-html.phone .ph-bud-un .ph-row {
-  flex: 1;
-  min-inline-size: 0;
-}
-
-html.phone .ph-bud-set {
-  flex: none;
-  min-block-size: 36px;
-  padding-inline: 14px;
-  font-size: 14px;
-}
-
-html.phone .ph-bud-none {
+html.phone .ph-bud-meta {
   margin: 0;
   color: var(--tx2);
-  font-size: 15px;
-  line-height: 22px;
+  font-size: var(--p-f-meta);
+  line-height: 18px;
 }
 
-html.phone .ph-bud-none.pad {
-  padding: var(--p-pad);
+html.phone .ph-bud-of {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--tx2);
 }
 
-html.phone .ph-bud-none b {
-  color: var(--tx);
+/* a bar that explains today's mark on a tap: the whole strip is the tap target */
+html.phone .ph-bud-barb {
+  display: block;
+  inline-size: 100%;
+  padding: 10px 0;
+  margin: 2px 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
 }
 
-/* an amount box with ₪ in front, as high as the search box, 16px so the phone does not zoom */
-html.phone .ph-bud-in {
+html.phone .ph-bud-bar.bar {
+  display: block;
+  margin: 0;
+}
+
+/* a small button in a section heading (the computer's outlined small button) */
+html.phone .ph-bud-hbtn {
+  flex: none;
+  min-block-size: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--p-card-line);
+  border-radius: var(--pill);
+  background: var(--p-surf);
+  color: var(--acc);
+  font-size: 13.5px;
+  font-weight: 600;
+  position: relative;
+}
+
+/* the 44px tap area around the smaller button */
+html.phone .ph-bud-hbtn::after {
+  content: "";
+  position: absolute;
+  inset: -6px -4px;
+}
+
+/* the smaller buttons inside cards (Accept, Not this one, Use, Not now, Set budget) */
+html.phone .ph-btn.ph-bud-sbtn {
+  min-block-size: 40px;
+  padding-inline: 16px;
+  font-size: 14.5px;
+}
+
+/* the amount box (suggestions and the change sheet) */
+html.phone .ph-bud-amt {
   display: flex;
   align-items: center;
   gap: var(--p-s1);
-  min-block-size: var(--p-hit);
-  padding-inline: var(--p-pad);
+  min-block-size: 40px;
+  padding-inline: 12px;
   border: 1px solid var(--p-card-line);
-  border-radius: var(--p-r-group);
-  background: var(--p-surf);
+  border-radius: 12px;
+  background: var(--bg);
   color: var(--tx2);
   font-size: 16px;
 }
 
-html.phone .ph-bud-in:focus-within {
+html.phone .ph-bud-amt:focus-within {
   outline: 2px solid var(--acc);
   outline-offset: -2px;
 }
 
-html.phone .ph-bud-in input {
+html.phone .ph-bud-amt input {
   flex: 1;
   min-inline-size: 0;
-  block-size: var(--p-hit);
+  block-size: 38px;
   padding: 0;
   border: 0;
   outline: 0;
@@ -197,128 +180,447 @@ html.phone .ph-bud-in input {
   font-variant-numeric: tabular-nums;
 }
 
-/* the sheets: sections a sheet's step apart */
-html.phone .ph-bud-sheet .ph-group {
-  margin-block-start: var(--p-gap);
+html.phone .ph-bud-amt.big {
+  min-block-size: var(--p-hit);
+  background: var(--p-surf);
+  border-radius: var(--p-r-group);
 }
 
-html.phone .ph-bud-lead {
-  margin: 0;
-  color: var(--tx2);
-  font-size: 15px;
-  line-height: 22px;
+/* ---- the summary card ---- */
+
+html.phone .ph-bud-top {
+  padding: 0;
 }
 
-html.phone .ph-bud-see {
-  margin-block-start: var(--p-s3);
+html.phone .ph-bud-top > div {
+  padding: 18px 16px 16px;
 }
 
-/* one budget: spent of the limit set large, its status, the bar */
-html.phone .ph-bud-big {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--p-s1) var(--p-s3);
+html.phone .ph-bud-top .ph-bud-r {
+  border-block-start: 1px solid color-mix(in srgb, var(--onc) 14%, transparent);
 }
 
-html.phone .ph-bud-big p {
-  margin: 0;
-  color: var(--tx2);
-  font-size: 15px;
-}
-
-html.phone .ph-bud-big b {
-  color: var(--tx);
-  font-size: 34px;
+html.phone .ph-bud-top .ph-acard-v.big {
+  font-size: var(--p-f-amount);
   line-height: 40px;
-  font-weight: 700;
-  letter-spacing: -.5px;
 }
 
-html.phone .ph-bud-big b.neg {
+html.phone .ph-bud-top .ph-acard-v.neg {
   color: var(--neg);
 }
 
-html.phone .ph-bud-bar.big {
-  margin-block-start: var(--p-s2);
+html.phone .ph-bud-top .ph-bud-of {
+  color: color-mix(in srgb, var(--onc) 70%, transparent);
 }
 
-html.phone .ph-bud-bar.big .ph-prog {
-  block-size: 10px;
+html.phone .ph-bud-top .bar {
+  background: color-mix(in srgb, var(--onc) 14%, transparent);
 }
 
-html.phone .ph-bud-line {
-  margin: 10px 0 0;
-  color: var(--tx2);
-  font-size: var(--p-f-meta);
-  line-height: 18px;
-}
-
-/* an idea to change the budget: the sentence, then Use (main) and Not now (quiet) */
-html.phone .ph-bud-rv-t {
-  margin: 0;
-  font-size: 15px;
-  line-height: 22px;
-}
-
-html.phone .ph-bud-rv-a {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--p-s2);
-  margin-block-start: var(--p-s3);
-}
-
-html.phone .ph-bud-rv-a .ph-btn {
-  min-block-size: var(--p-hit);
-  padding-inline: 18px;
-  font-size: 15px;
-}
-
-/* the last months, side by side; a month over the budget in red */
-html.phone .ph-bud-months {
+html.phone .ph-bud-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
-  gap: var(--p-s1);
-  padding: 14px var(--p-pad);
+  grid-template-columns: 1fr 1fr;
+  margin-block-start: 14px;
+  padding-block-start: 12px;
+  border-block-start: 1px solid color-mix(in srgb, var(--onc) 14%, transparent);
 }
 
-html.phone .ph-bud-months span {
+html.phone .ph-bud-stats > * {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: start;
 }
 
-html.phone .ph-bud-months small {
+html.phone .ph-bud-stats > * + * {
+  padding-inline-start: 14px;
+  border-inline-start: 1px solid color-mix(in srgb, var(--onc) 14%, transparent);
+}
+
+html.phone .ph-bud-stats span {
+  color: color-mix(in srgb, var(--onc) 70%, transparent);
+  font-size: 11.5px;
+  font-weight: 650;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+}
+
+html.phone.he .ph-bud-stats span {
+  font-size: 12.5px;
+  letter-spacing: 0;
+}
+
+html.phone .ph-bud-stats b {
+  font-size: 16px;
+}
+
+/* ---- suggested budgets ---- */
+
+html.phone .ph-bud-sugn {
+  margin: 0 0 4px;
   color: var(--tx2);
   font-size: var(--p-f-meta);
+  line-height: 1.5;
 }
 
-html.phone .ph-bud-months b.neg {
-  color: var(--neg);
-}
-
-/* Remove: a quiet button in red */
-html.phone .ph-btn.plain.ph-bud-del {
-  color: var(--neg);
-}
-
-/* loading */
-html.phone .ph-bud-skel {
+html.phone .ph-bud-sr {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 8px 4px;
+  padding-block: 14px;
+  border-block-start: 1px solid var(--p-card-line);
+}
+
+html.phone .ph-bud-sr:last-of-type {
+  padding-block-end: 0;
+}
+
+html.phone .ph-bud-srh {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+html.phone .ph-bud-srt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+html.phone .ph-bud-cat {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 16px;
+  font-weight: 650;
+  text-align: start;
+}
+
+html.phone .ph-bud-sra {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-inline-start: 20px;
+}
+
+html.phone .ph-bud-sra .ph-bud-amt {
+  flex: 1;
+  min-inline-size: 80px;
+}
+
+html.phone .ph-bud-sugmore {
+  padding-block-start: 12px;
+  border-block-start: 1px solid var(--p-card-line);
+}
+
+html.phone .ph-bud-again {
+  align-self: flex-start;
+}
+
+/* ---- one budget ---- */
+
+html.phone .ph-bud-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+html.phone .ph-bud-card.warn {
+  border-color: color-mix(in srgb, var(--neg) 45%, var(--p-card-line));
+}
+
+html.phone .ph-bud-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-block: -6px -2px;
+}
+
+html.phone .ph-bud-name {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-inline-size: 0;
+  min-block-size: var(--p-hit);
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 17px;
+  font-weight: 650;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+html.phone .ph-bud-bd.bd {
+  flex: none;
+  block-size: 28px;
+  padding: 0 11px;
+  border: 0;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+html.phone .ph-bud-more.ph-ib {
+  flex: none;
+  margin-inline-end: -6px;
+}
+
+/* the computer's round outlined ⋯ button, drawn smaller inside the 44px tap area */
+html.phone .ph-bud-more.ph-ib::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid var(--p-card-line);
+  border-radius: 50%;
+  background: var(--p-surf);
+  z-index: -1;
+}
+
+html.phone .ph-bud-more.ph-ib {
+  isolation: isolate;
+}
+
+html.phone .ph-bud-mid {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-block-start: 6px;
+}
+
+html.phone .ph-bud-val {
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 700;
+  letter-spacing: -.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+html.phone .ph-bud-val small {
+  font-size: .55em;
+  font-weight: 500;
+  opacity: .6;
+}
+
+/* the trend: three small bars, oldest first (right to left in Hebrew), and the tag */
+html.phone .ph-bud-trend {
+  flex: none;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  min-block-size: var(--p-hit);
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+}
+
+html.phone .ph-bud-mini {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  block-size: 24px;
+  inline-size: 34px;
+  border-block-end: 1px solid color-mix(in srgb, var(--tx2) 35%, transparent);
+}
+
+html.phone .ph-bud-mini i {
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+  background: color-mix(in srgb, var(--acc) 40%, var(--s2));
+}
+
+html.phone .ph-bud-mini i:last-of-type {
+  background: color-mix(in srgb, var(--acc) 85%, var(--s1));
+}
+
+html.phone .ph-bud-mini i.over {
+  background: color-mix(in srgb, var(--neg) 75%, var(--s1));
+}
+
+html.phone .ph-bud-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--tx2);
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+html.phone .ph-bud-tag svg {
+  inline-size: 13px;
+  block-size: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html.phone .ph-bud-trend.tr-up .ph-bud-tag {
+  color: var(--neg);
+}
+
+html.phone .ph-bud-trend.tr-down .ph-bud-tag {
+  color: var(--pos);
+}
+
+html.phone .ph-bud-card .ph-bud-meta {
+  line-height: 1.45;
+}
+
+html.phone .ph-bud-sugg {
+  margin-block-start: 12px;
+}
+
+html.phone .ph-bud-sugg p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+html.phone .ph-bud-sugga {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-start: 10px;
+}
+
+/* bills and the jar: quiet lines at the bottom of the card */
+html.phone .ph-bud-extra {
+  margin-block-start: 12px;
+  padding-block-start: 4px;
+  border-block-start: 1px solid var(--p-card-line);
+}
+
+html.phone .ph-bud-xt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  inline-size: 100%;
+  min-block-size: var(--p-hit);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tx2);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: start;
+}
+
+html.phone .ph-bud-xt svg {
+  inline-size: 15px;
+  block-size: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform .2s;
+}
+
+html.phone .ph-bud-xt[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+html.phone .ph-bud-bin {
+  display: flex;
+  flex-direction: column;
+  margin-block-end: 6px;
+  padding: 2px 0;
+  border: 1px solid var(--p-card-line);
+  border-radius: 14px;
+  background: var(--bg);
+  overflow: hidden;
+  animation: ph-bud-up .25s var(--p-ease-out);
+}
+
+html.phone .ph-bud-bill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-block-size: var(--p-hit);
+  padding: 6px 12px;
+  border: 0;
+  background: none;
+  font-size: 14px;
+  text-align: start;
+}
+
+html.phone .ph-bud-bill + .ph-bud-bill {
+  border-block-start: 1px solid var(--p-card-line);
+}
+
+html.phone .ph-bud-bill small {
+  color: var(--tx2);
+  font-size: 12.5px;
+}
+
+html.phone .ph-bud-jar {
+  padding-block: 10px 4px;
+}
+
+html.phone .ph-bud-jar b {
+  color: var(--tx);
+}
+
+/* ---- spending with no budget ---- */
+
+html.phone .ph-bud-un {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-inline-end: 12px;
+}
+
+html.phone .ph-bud-un + .ph-bud-un {
+  border-block-start: 1px solid var(--p-card-line);
+}
+
+html.phone .ph-bud-unn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-inline-size: 0;
+  min-block-size: var(--p-row);
+  padding: 0 4px 0 16px;
+  border: 0;
+  background: none;
+  text-align: start;
+}
+
+html.phone .ph-bud-unt {
+  flex: 1;
+  min-inline-size: 0;
+  font-size: var(--p-f-body);
+  overflow-wrap: anywhere;
+}
+
+/* ---- the change sheet ---- */
+
+html.phone .ph-bud-sheet .ph-group {
+  margin: 0;
+}
+
+/* ---- while loading ---- */
+
+html.phone .ph-bud-skel {
+  padding: 8px 0 16px;
 }
 
 html.phone .ph-bud-skel i {
   display: block;
-  block-size: 28px;
-  inline-size: 85%;
-  border-radius: 8px;
+  block-size: 190px;
+  border-radius: var(--p-r-group);
   background: var(--s2);
-}
-
-html.phone .ph-bud-skel i + i {
-  inline-size: 55%;
 }
