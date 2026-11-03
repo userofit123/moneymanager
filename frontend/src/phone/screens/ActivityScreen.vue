@@ -22,6 +22,7 @@ import SearchField from "../components/SearchField.vue";
 import ChipBar from "../components/ChipBar.vue";
 import ListGroup from "../components/ListGroup.vue";
 import SwipeRow from "../components/SwipeRow.vue";
+import SlideOpen from "../../components/SlideOpen.vue";
 import PickerSheet from "../components/PickerSheet.vue";
 import ActionSheet from "../components/ActionSheet.vue";
 import PhoneSheet from "../components/PhoneSheet.vue";
@@ -193,7 +194,7 @@ const bdi = (s) => "\u2068" + s + "\u2069";
             <PIcon name="chevron" class="ph-actv-gc" />
             <span class="ph-actv-gp"><span v-for="(p, i) in grpParts(g)" :key="i" :class="{ neg: p.neg }" :data-tip="p.tip || undefined">{{ p.l }} <b dir="ltr">{{ p.v }}</b></span></span>
           </button>
-          <div v-if="!g.label || !closed.has(gkey(g))" class="ph-group-b">
+          <SlideOpen :open="!g.label || !closed.has(gkey(g))"><div class="ph-group-b">
             <SwipeRow v-for="x in g.rows" :key="x.id" :end="swipeActs(x)" @hold="held = x">
               <button type="button" class="ph-row ph-two ph-txr" :class="{ fut: K.isFut(x) }" @click="openRow(x)">
                 <span class="ph-row-lead"><span class="ph-av" :style="avStyle(x)" aria-hidden="true">{{ (name(x) || "?")[0] }}</span></span>
@@ -211,7 +212,7 @@ const bdi = (s) => "\u2068" + s + "\u2069";
                 </span>
               </button>
             </SwipeRow>
-          </div>
+          </div></SlideOpen>
         </section>
         <div ref="endEl" class="ph-actv-end" aria-hidden="true"><i v-if="more > 0" class="ph-actv-spin" /></div>
       </template>

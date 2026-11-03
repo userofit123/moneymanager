@@ -474,3 +474,43 @@ html.phone .ph-docv-list button.on {
   background: #fff;
   color: #000;
 }
+
+/* ===== motion, as on the computer (its window comes in, the bank's fields fold open, the kind chips switch): the top
+   comes in first (the letter tile pops, the amount and the name fade up), then each section a little after the one
+   before; the bank's fields fade in as they open; the chips press. Off with reduced motion. Keyframes:
+   phone/styles/components.css. ===== */
+@media (prefers-reduced-motion: no-preference) {
+  html.phone .ph-tx-av {
+    animation: ph-pop .35s var(--p-ease-out) both;
+  }
+
+  html.phone .ph-tx-hero > :not(.ph-tx-av) {
+    animation: ph-up .35s var(--p-ease-out) both;
+    animation-delay: 60ms;
+  }
+
+  html.phone .ph-tx-hero > .ph-tx-chips {
+    animation-delay: 120ms;
+  }
+
+  html.phone .ph-tx .ph-content > :not(.ph-tx-hero) {
+    animation: ph-up .35s var(--p-ease-out) both;
+    animation-delay: 200ms;
+  }
+
+  html.phone .ph-tx .ph-content > :nth-child(2) { animation-delay: 150ms; }
+  html.phone .ph-tx .ph-content > :nth-child(3) { animation-delay: 180ms; }
+
+  html.phone .ph-tx-kv.col {
+    animation: ph-fade .25s ease both;
+  }
+
+  html.phone .ph-tx :is(.ph-tx-chips .catl, .ph-tx-kinds .ph-chip) {
+    -webkit-tap-highlight-color: transparent;
+    transition: transform var(--p-t-press), background-color var(--p-t-fade), color var(--p-t-fade);
+  }
+
+  html.phone .ph-tx :is(.ph-tx-chips .catl, .ph-tx-kinds .ph-chip):active {
+    transform: scale(.95);
+  }
+}

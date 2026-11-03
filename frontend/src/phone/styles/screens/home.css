@@ -589,3 +589,94 @@ html.phone .ph-home-fxf {
   font-size: 12px;
   line-height: 17px;
 }
+
+/* ===== motion, as on the computer: the blocks come in one after another (the computer's intro), bars fill and slide
+   (.bar's .6s), the ring dims the others and lifts the picked part (here a press); in addition the trend lines and the
+   rate chart draw in from the start, the ring turns into place, and every tap gives a small press. Off with reduced
+   motion. Keyframes: phone/styles/components.css. ===== */
+@media (prefers-reduced-motion: no-preference) {
+  html.phone .ph-home .ph-content > * {
+    animation: ph-up .35s var(--p-ease-out) both;
+  }
+
+  html.phone .ph-home .ph-content > :nth-child(2) { animation-delay: 50ms; }
+  html.phone .ph-home .ph-content > :nth-child(3) { animation-delay: 100ms; }
+  html.phone .ph-home .ph-content > :nth-child(4) { animation-delay: 150ms; }
+  html.phone .ph-home .ph-content > :nth-child(n + 5) { animation-delay: 200ms; }
+
+  /* the four totals and the account cards come in one after another */
+  html.phone :is(.ph-home-kpis, .ph-home .ph-swipe) > .ph-acard {
+    animation: ph-up .35s var(--p-ease-out) both;
+  }
+
+  html.phone :is(.ph-home-kpis, .ph-home .ph-swipe) > .ph-acard:nth-child(2) { animation-delay: 60ms; }
+  html.phone :is(.ph-home-kpis, .ph-home .ph-swipe) > .ph-acard:nth-child(3) { animation-delay: 120ms; }
+  html.phone :is(.ph-home-kpis, .ph-home .ph-swipe) > .ph-acard:nth-child(n + 4) { animation-delay: 180ms; }
+
+  /* a total's trend line draws in after its card */
+  html.phone .ph-home .ph-acard-spark {
+    animation: ph-wipe .9s var(--p-ease-out) .25s both;
+  }
+
+  /* bars fill from empty, then slide when they change (the computer's .6s) */
+  html.phone .ph-home :is(.bar > i, .ph-home-wb > i) {
+    animation: ph-fill .8s var(--p-ease-out) .15s both;
+  }
+
+  html.phone .ph-home-wb > i {
+    transition: inset-inline-start .6s var(--p-ease-out), width .6s var(--p-ease-out);
+  }
+
+  /* Current / Planned: the steps fade up as they change (the computer's tab switch) */
+  html.phone .ph-home-steps > .ph-home-st {
+    animation: ph-up .3s var(--p-ease-out) both;
+  }
+
+  html.phone .ph-home-steps > .ph-home-st:nth-child(2) { animation-delay: 40ms; }
+  html.phone .ph-home-steps > .ph-home-st:nth-child(3) { animation-delay: 80ms; }
+  html.phone .ph-home-steps > .ph-home-st:nth-child(4) { animation-delay: 120ms; }
+  html.phone .ph-home-steps > .ph-home-st:nth-child(n + 5) { animation-delay: 160ms; }
+
+  /* the ring turns into place; a pressed part lifts and the others dim (the computer's hover) */
+  html.phone .ph-home .ph-donut-c {
+    animation: ph-ring .6s var(--p-ease-out) .1s both;
+  }
+
+  html.phone .ph-home .ph-donut-c path {
+    transform-origin: 100px 100px;
+    transition: opacity var(--p-t-fade), transform var(--p-t-fade);
+  }
+
+  html.phone .ph-home .ph-donut-c:has(path:active) path:not(:active) {
+    opacity: .3;
+  }
+
+  html.phone .ph-home .ph-donut-c path:active {
+    transform: scale(1.045);
+  }
+
+  /* the rate chart draws in from the start, its last day's dot pops in */
+  html.phone .ph-home-fxc :is(polygon, polyline) {
+    animation: ph-wipe .9s var(--p-ease-out) .15s both;
+  }
+
+  html.phone .ph-home-fxc > circle:last-of-type {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: ph-pop .3s var(--p-ease-out) .9s both;
+  }
+
+  /* press: everything that opens something gives a little under the finger (the computer's hover) */
+  html.phone :is(.ph-home-alr, .ph-home-st, .ph-home-wr, .ph-home-line, .ph-home-lasts, .ph-home .ph-donut-r) {
+    -webkit-tap-highlight-color: transparent;
+    transition: transform var(--p-t-press), opacity var(--p-t-press), background-color var(--p-t-fade);
+  }
+
+  html.phone :is(.ph-home-st, .ph-home-lasts):active {
+    transform: scale(.96);
+  }
+
+  html.phone :is(.ph-home-alr, .ph-home-wr, .ph-home-line, .ph-home .ph-donut-r):active {
+    opacity: .7;
+  }
+}

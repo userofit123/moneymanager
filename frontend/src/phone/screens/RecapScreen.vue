@@ -6,7 +6,7 @@
 // to a look at next month. Each part has its label (a link), its big amount, its sentence and the same pictures as the
 // computer: sums as a stack of small cards, notes, name pills, the day bars, the split bar, payments by date and budget
 // cards. What the computer shows on hover opens with a tap. What each part holds comes from pagelogic/recap.js.
-import { ref, computed } from "vue";
+import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
 import { f0, fm } from "../../format.js";
 import { pages } from "../../routes.js";
 import { dayBarHeights } from "../../lib/recap.js";
@@ -68,6 +68,22 @@ const bars = computed(() => {
 const pickBar = (e) => { const r = e.currentTarget.getBoundingClientRect(), n = M.value.dim; showDay(Math.max(1, Math.min(n, Math.floor(((e.clientX - r.left) / r.width) * n) + 1))); };
 const seeDay = () => { dayOpen.value = false; recapGo(dayDate.value); };
 
+// ---- each part comes in as it scrolls into view, as on the computer: its circle pops, the line runs down to the next
+// circle, the part fades up, its big amount counts up from 0 and its pictures move into place (recap.css). With reduced
+// motion (or no IntersectionObserver) everything simply shows.
+const REDUCE = () => { try { return matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; } };
+const scr = ref(null), anim = ref(!REDUCE() && typeof IntersectionObserver !== "undefined");
+// the digits are Vue's own text, so only its value changes (the amount is read each frame, in case it changes meanwhile)
+function countUp(el) {
+  const tn = el.firstChild, t0 = performance.now(), Dd = 1100; if (!tn || !+el.dataset.v) return; tn.nodeValue = "0";
+  const step = (nw) => { if (!el.isConnected) return; const to = +el.dataset.v || 0, k = Math.min(1, (nw - t0) / Dd), e = 1 - Math.pow(1 - k, 3); tn.nodeValue = f0(k < 1 ? Math.round(to * e) : to); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+const showIn = (x) => { if (x.classList.contains("in")) return; x.classList.add("in"); x.querySelectorAll(".ph-rc-cnt").forEach(countUp); };
+const io = anim.value ? new IntersectionObserver((es) => es.forEach((e) => { if (!e.isIntersecting) return; showIn(e.target); io.unobserve(e.target); }), { threshold: 0, rootMargin: "0px 0px -12% 0px" }) : null;
+watch([M, all], () => nextTick(() => { const el = scr.value?.$el; if (io && el) el.querySelectorAll(".ph-rc-rv:not(.in)").forEach((x) => io.observe(x)); }), { immediate: true, flush: "post" });
+onBeforeUnmount(() => io?.disconnect());
+
 // "Where you stand": the start of the month, today and the end of the month on one line, "Today" in a chip under its dot
 const PW = 600, PH = 120, PX = 18, PT = 14, PB = 14;
 const pathG = computed(() => {
@@ -81,7 +97,7 @@ const pathG = computed(() => {
 </script>
 
 <template>
-  <PhoneScreen class="ph-rc" :large="false">
+  <PhoneScreen ref="scr" class="ph-rc" :class="{ 'ph-rc-anim': anim }" :large="false">
     <template v-if="!S">
       <div class="ph-rc-skel" aria-hidden="true"><i /><i /><i /></div>
       <SkeletonRows :rows="4" />
@@ -94,7 +110,7 @@ const pathG = computed(() => {
         <h1 class="ph-rc-greet" v-html="hero.greet" />
         <p class="ph-rc-lead" v-html="hero.lead" />
         <div class="ph-rc-days" role="group" :aria-label="P('daysAria')" @click="pickStrip">
-          <button v-for="i in days" :key="i" type="button" :data-d="i" :class="{ p: i < M.day, n: i == M.day }" :aria-label="dfull(M.MK + '-' + p2(i))" />
+          <button v-for="i in days" :key="i" type="button" :data-d="i" :class="{ p: i < M.day, n: i == M.day }" :style="{ '--i': i }" :aria-label="dfull(M.MK + '-' + p2(i))" />
         </div>
         <div class="ph-rc-dayl">
           <span>{{ L("dayOf", { d: M.day, n: M.dim }) }}</span>
@@ -104,7 +120,7 @@ const pathG = computed(() => {
 
       <!-- the route: one circle per part, joined by a line, the part beside it -->
       <ol class="ph-rc-route">
-        <li v-for="(s, i) in route" :key="s.p" class="ph-rc-z" :style="{ '--pb': pc(i), '--pn': pc(i + 1) }">
+        <li v-for="(s, i) in route" :key="s.p" class="ph-rc-z ph-rc-rv" :style="{ '--pb': pc(i), '--pn': pc(i + 1) }">
           <span class="ph-rc-cir" aria-hidden="true"><PIcon :svg="ICON[s.ic]" /></span>
           <div class="ph-rc-zb">
             <component :is="s.go ? 'button' : 'span'" :type="s.go ? 'button' : null" class="ph-rc-lab" @click="s.go && recapGo(s.go)">
@@ -112,7 +128,7 @@ const pathG = computed(() => {
             </component>
             <div class="ph-rc-big" :class="{ word: s.big.word != null }">
               <template v-if="s.big.word != null">{{ s.big.word }}</template>
-              <bdi v-else dir="ltr">{{ neg(s.big.amt) }}<small>₪</small>{{ f0(s.big.amt) }}</bdi>
+              <bdi v-else dir="ltr">{{ neg(s.big.amt) }}<small>₪</small><span class="ph-rc-cnt" :data-v="Math.round(Math.abs(s.big.amt))">{{ f0(s.big.amt) }}</span></bdi>
             </div>
 
             <!-- the sentence, the names that paid, a note, the take-back button -->
@@ -175,13 +191,13 @@ const pathG = computed(() => {
 
               <!-- each day's spending: a tap on a bar shows that day -->
               <svg v-else-if="v.bars" class="ph-rc-bars" :viewBox="`0 0 ${BW} ${BH}`" preserveAspectRatio="none" role="img" :aria-label="L('barsAria')" @click="pickBar">
-                <rect v-for="b in bars" :key="b.i" :x="b.x" :y="b.h != null ? BH - b.h : BH - 2" :width="b.w" :height="b.h != null ? b.h : 2" :rx="Math.min(4, b.w / 2)" :class="b.h == null ? 'f' : b.now ? 't' : 'b'" />
+                <rect v-for="b in bars" :key="b.i" :x="b.x" :y="b.h != null ? BH - b.h : BH - 2" :width="b.w" :height="b.h != null ? b.h : 2" :rx="Math.min(4, b.w / 2)" :class="b.h == null ? 'f' : b.now ? 't' : 'b'" :style="{ '--i': b.i }" />
               </svg>
               <p v-else-if="v.cap" class="ph-rc-cap">{{ P("barsLead") }}</p>
 
               <!-- how the money is split: one bar of pills, then each part with its dot and amount -->
               <div v-else-if="v.seg" class="ph-rc-seg">
-                <div class="ph-rc-segbar" aria-hidden="true"><i v-for="(x, k) in segOf(v.seg)" :key="k" :class="x.x[2]" :style="{ flex: x.f }" /></div>
+                <div class="ph-rc-segbar" aria-hidden="true"><i v-for="(x, k) in segOf(v.seg)" :key="k" :class="x.x[2]" :style="{ flex: x.f, '--i': k }" /></div>
                 <div class="ph-rc-leg">
                   <component :is="x.x[3] ? 'button' : 'span'" v-for="(x, k) in segOf(v.seg)" :key="k" :type="x.x[3] ? 'button' : null" @click="x.x[3] && recapGo(x.x[3])">
                     <i :class="x.x[2]" /><span>{{ x.x[0] }}</span><b v-html="mi(x.x[1])" />
@@ -211,26 +227,26 @@ const pathG = computed(() => {
           </div>
         </li>
         <!-- the end of the route: where you stand -->
-        <li v-if="end" class="ph-rc-z ph-rc-zend" :style="{ '--pb': 'var(--acc)' }">
+        <li v-if="end" class="ph-rc-z ph-rc-zend ph-rc-rv" :style="{ '--pb': 'var(--acc)' }">
           <span class="ph-rc-cir" aria-hidden="true"><PIcon :svg="ICON.path" /></span>
         </li>
       </ol>
 
       <!-- where you stand: in your accounts and at the end of the month, the money after known payments, the month's line -->
-      <section v-if="end" class="ph-rc-end">
+      <section v-if="end" class="ph-rc-end ph-rc-rv">
         <button type="button" class="ph-rc-lab" @click="recapGo(end.go)"><span>{{ end.label }}</span><PIcon name="chevron" dir class="ph-chev" /></button>
         <div class="ph-rc-st">
           <button v-for="x in end.two" :key="x[2]" type="button" @click="recapGo(x[2])"><span>{{ x[0] }}</span><b v-html="mi(x[1])" /></button>
         </div>
         <div class="ph-rc-rl">{{ end.rl }}</div>
-        <div class="ph-rc-big xl"><bdi dir="ltr">{{ neg(end.big.amt) }}<small>₪</small>{{ f0(end.big.amt) }}</bdi></div>
+        <div class="ph-rc-big xl"><bdi dir="ltr">{{ neg(end.big.amt) }}<small>₪</small><span class="ph-rc-cnt" :data-v="Math.round(Math.abs(end.big.amt))">{{ f0(end.big.amt) }}</span></bdi></div>
         <p class="ph-rc-p" v-html="end.line" />
         <div v-if="pathG" class="ph-rc-pw" :style="{ '--x': pathG.x, '--f': pathG.f, '--y': pathG.y }">
           <svg :viewBox="`0 0 ${PW} ${PH}`" aria-hidden="true">
             <defs><linearGradient id="phrcg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--acc)" stop-opacity=".28" /><stop offset="1" stop-color="var(--acc)" stop-opacity="0" /></linearGradient></defs>
             <line :x1="PX" :x2="PW - PX" :y1="PH - PB + 8" :y2="PH - PB + 8" class="ax" />
             <polygon :points="pathG.area" fill="url(#phrcg)" />
-            <polyline :points="pathG.a" class="ln" />
+            <polyline :points="pathG.a" class="ln" pathLength="1" />
             <polyline :points="pathG.b" class="ln d" />
             <circle :cx="pathG.pts[0].x" :cy="pathG.pts[0].y" r="7" class="dt" />
             <circle :cx="pathG.pts[1].x" :cy="pathG.pts[1].y" r="10" class="dn" />
@@ -247,9 +263,9 @@ const pathG = computed(() => {
       <!-- a look at next month -->
       <template v-if="next">
         <button type="button" class="ph-rc-cue" @click="toNext"><span>{{ L("nextCue") }}</span><PIcon name="chevron" class="down" /></button>
-        <section ref="nextEl" class="ph-rc-end ph-rc-next">
+        <section ref="nextEl" class="ph-rc-end ph-rc-next ph-rc-rv">
           <button type="button" class="ph-rc-lab" @click="recapGo(next.go)"><span>{{ next.label }}</span><PIcon name="chevron" dir class="ph-chev" /></button>
-          <div class="ph-rc-big"><bdi dir="ltr">{{ neg(next.big.amt) }}<small>₪</small>{{ f0(next.big.amt) }}</bdi></div>
+          <div class="ph-rc-big"><bdi dir="ltr">{{ neg(next.big.amt) }}<small>₪</small><span class="ph-rc-cnt" :data-v="Math.round(Math.abs(next.big.amt))">{{ f0(next.big.amt) }}</span></bdi></div>
           <p class="ph-rc-p" v-html="next.line" />
           <div class="ph-rc-eq">
             <button type="button" class="qh" @click="recapGo(next.sum.had[2])"><span>{{ next.sum.had[0] }}</span><b v-html="mi(next.sum.had[1])" /></button>

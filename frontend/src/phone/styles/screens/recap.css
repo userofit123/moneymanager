@@ -1047,3 +1047,137 @@ html.phone .ph-rc-tip .m {
   color: var(--tx2);
   font-size: 14px;
 }
+
+/* ===== motion, as on the computer's Recap: the greeting fades up and the day pills rise one after another; then each
+   part comes in as it scrolls into view (RecapScreen adds .in): its circle pops with a small bounce, the line runs down
+   to the next circle, the part's text fades up from below, its big amount counts up from 0, the day bars grow one after
+   another, the split bar's parts grow from the start, the budget bars fill (their pace mark after), and the month's line
+   draws itself with its points popping in. .ph-rc-anim is only set when the parts can be watched; reduced motion shows
+   everything at once. Keyframes: phone/styles/components.css and below. ===== */
+@keyframes ph-rc-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scaleY(.4);
+  }
+}
+
+@keyframes ph-rc-hit {
+  0% {
+    opacity: 0;
+    transform: scale(.4);
+  }
+
+  60% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.phone .ph-rc-hero > :is(.ph-rc-greet, .ph-rc-lead, .ph-rc-dayl) {
+    animation: ph-up .5s var(--p-ease-out) both;
+  }
+
+  html.phone .ph-rc-hero > .ph-rc-lead { animation-delay: 80ms; }
+  html.phone .ph-rc-hero > .ph-rc-dayl { animation-delay: 300ms; }
+
+  html.phone .ph-rc-days button {
+    animation: ph-rc-rise .55s cubic-bezier(.2, .8, .2, 1) both;
+    animation-delay: calc(var(--i) * 22ms + .1s);
+  }
+
+  /* before a part comes in: the circle, its line and its text wait */
+  html.phone .ph-rc-anim .ph-rc-z .ph-rc-cir {
+    opacity: 0;
+  }
+
+  html.phone .ph-rc-anim .ph-rc-z:not(:last-child)::before {
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 1s cubic-bezier(.4, .1, .2, 1) .25s;
+  }
+
+  html.phone .ph-rc-anim :is(.ph-rc-zb, .ph-rc-end.ph-rc-rv > *) {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity .9s cubic-bezier(.2, .7, .2, 1), transform .9s cubic-bezier(.2, .7, .2, 1);
+  }
+
+  /* it comes in */
+  html.phone .ph-rc-anim .ph-rc-z.in .ph-rc-cir {
+    opacity: 1;
+    animation: ph-rc-hit .6s cubic-bezier(.3, 1.6, .5, 1) both;
+  }
+
+  html.phone .ph-rc-anim .ph-rc-z.in:not(:last-child)::before {
+    transform: none;
+  }
+
+  html.phone .ph-rc-anim :is(.ph-rc-z.in .ph-rc-zb, .ph-rc-end.in > *) {
+    opacity: 1;
+    transform: none;
+  }
+
+  html.phone .ph-rc-anim .ph-rc-z.in .ph-rc-zb {
+    transition-delay: .1s;
+  }
+
+  /* its pictures move into place */
+  html.phone .ph-rc-anim .in .ph-rc-bars rect {
+    transform-box: fill-box;
+    transform-origin: bottom;
+    animation: ph-grow .9s cubic-bezier(.2, .8, .2, 1) both;
+    animation-delay: calc(var(--i) * 26ms + .2s);
+  }
+
+  html.phone .ph-rc-anim .in .ph-rc-segbar i {
+    transform-origin: 0 50%;
+    animation: ph-growx 1s cubic-bezier(.2, .8, .2, 1) both;
+    animation-delay: calc(var(--i) * 160ms + .2s);
+  }
+
+  html.phone.he .ph-rc-anim .in .ph-rc-segbar i {
+    transform-origin: 100% 50%;
+  }
+
+  html.phone .ph-rc-anim .in .ph-rc-br .bar i {
+    animation: ph-fill 1s cubic-bezier(.2, .8, .2, 1) both;
+    animation-delay: .2s;
+  }
+
+  html.phone .ph-rc-anim .in .ph-rc-br:nth-child(2) .bar i { animation-delay: .4s; }
+  html.phone .ph-rc-anim .in .ph-rc-br:nth-child(3) .bar i { animation-delay: .6s; }
+  html.phone .ph-rc-anim .in .ph-rc-br:nth-child(n + 4) .bar i { animation-delay: .8s; }
+
+  html.phone .ph-rc-anim .in .ph-rc-br .bar em {
+    animation: ph-fade .6s both;
+    animation-delay: 1.1s;
+  }
+
+  /* the month's line: the part so far draws itself, the rest of the month and the shading fade in, the points pop */
+  html.phone .ph-rc-anim .in .ph-rc-pw .ln:not(.d) {
+    stroke-dasharray: 1;
+    animation: ph-draw 1.3s cubic-bezier(.4, .1, .2, 1) .3s both;
+  }
+
+  html.phone .ph-rc-anim .in .ph-rc-pw polygon {
+    animation: ph-fade 1s both .8s;
+  }
+
+  html.phone .ph-rc-anim .in .ph-rc-pw .ln.d {
+    animation: ph-fade .8s both 1.5s;
+  }
+
+  html.phone .ph-rc-anim .in .ph-rc-pw :is(.dt, .dn) {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: ph-pop .5s both .3s;
+  }
+
+  html.phone .ph-rc-anim .in .ph-rc-pw .dn { animation-delay: 1.3s; }
+  html.phone .ph-rc-anim .in .ph-rc-pw .dt:last-of-type { animation-delay: 1.8s; }
+
+  html.phone .ph-rc-anim .in .ph-rc-pw :is(.ph-rc-pt, .ph-rc-pa) {
+    animation: ph-fade .5s both 1.3s;
+  }
+}

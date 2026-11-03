@@ -84,3 +84,26 @@ html.phone .ph-alerts-more {
   justify-content: center;
   margin-block-start: calc(var(--p-s4) - var(--p-gap));
 }
+
+/* ===== motion, as on the computer: a tab's list fades up when it is shown (its "tabfade"); here each alert comes in a
+   little after the one before and its dot pops in. Off with reduced motion. Keyframes: phone/styles/components.css. ===== */
+@media (prefers-reduced-motion: no-preference) {
+  html.phone .ph-alerts .ph-group-b > * {
+    animation: ph-up .35s var(--p-ease-out) both;
+  }
+
+  html.phone .ph-alerts .ph-group-b > :nth-child(2) { animation-delay: 50ms; }
+  html.phone .ph-alerts .ph-group-b > :nth-child(3) { animation-delay: 100ms; }
+  html.phone .ph-alerts .ph-group-b > :nth-child(4) { animation-delay: 150ms; }
+  html.phone .ph-alerts .ph-group-b > :nth-child(5) { animation-delay: 200ms; }
+  html.phone .ph-alerts .ph-group-b > :nth-child(n + 6) { animation-delay: 250ms; }
+
+  html.phone .ph-al .sev {
+    animation: ph-pop .3s var(--p-ease-out) .2s both;
+  }
+
+  /* an empty tab's message fades in the same way */
+  html.phone .ph-alerts .ph-group-top > :not(.ph-segwrap) {
+    animation: ph-up .35s var(--p-ease-out) both;
+  }
+}

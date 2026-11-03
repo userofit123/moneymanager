@@ -544,3 +544,67 @@ html.phone .ph-adopt .exp .exgh .exh span {
 html.phone .ph-adopt .exp .exd > summary {
   font-size: 15px;
 }
+
+/* ===== motion, as on the computer: a tab's contents fade up when it is shown (its "tabfade"), a month folds open and
+   shut by sliding (the computer's 260ms, SlideOpen) with its chevron turning; in addition the totals and the first rows
+   come in one after another, and the totals and month headings press. Off with reduced motion. Keyframes:
+   phone/styles/components.css. ===== */
+@media (prefers-reduced-motion: no-preference) {
+  html.phone .ph-actv .ph-content > :is(.ph-actv-focus, .ph-actv-tot, .ph-actv-rev, .ph-empty) {
+    animation: ph-up .35s var(--p-ease-out) both;
+  }
+
+  html.phone .ph-actv-tg > .ph-actv-tt {
+    animation: ph-up .35s var(--p-ease-out) both;
+  }
+
+  html.phone .ph-actv-tg > .ph-actv-tt:nth-child(2) { animation-delay: 50ms; }
+  html.phone .ph-actv-tg > .ph-actv-tt:nth-child(3) { animation-delay: 100ms; }
+  html.phone .ph-actv-tg > .ph-actv-tt:nth-child(4) { animation-delay: 150ms; }
+
+  /* the first month and its first rows come in one after another; rows loaded later while scrolling just fade in */
+  html.phone .ph-actv .ph-content > .ph-actv-g {
+    animation: ph-fade .3s ease both;
+  }
+
+  html.phone .ph-actv .ph-content > .ph-actv-g:nth-of-type(-n + 3) {
+    animation: ph-up .35s var(--p-ease-out) both;
+    animation-delay: 100ms;
+  }
+
+  html.phone .ph-actv .ph-content > .ph-actv-g:nth-of-type(-n + 3) .ph-group-b > :nth-child(-n + 10) {
+    animation: ph-up .35s var(--p-ease-out) both;
+    animation-delay: calc(120ms + var(--ph-r, 0) * 35ms);
+  }
+
+  html.phone .ph-actv-g .ph-group-b > :nth-child(2) { --ph-r: 1; }
+  html.phone .ph-actv-g .ph-group-b > :nth-child(3) { --ph-r: 2; }
+  html.phone .ph-actv-g .ph-group-b > :nth-child(4) { --ph-r: 3; }
+  html.phone .ph-actv-g .ph-group-b > :nth-child(5) { --ph-r: 4; }
+  html.phone .ph-actv-g .ph-group-b > :nth-child(6) { --ph-r: 5; }
+  html.phone .ph-actv-g .ph-group-b > :nth-child(7) { --ph-r: 6; }
+  html.phone .ph-actv-g .ph-group-b > :nth-child(8) { --ph-r: 7; }
+  html.phone .ph-actv-g .ph-group-b > :nth-child(9) { --ph-r: 8; }
+  html.phone .ph-actv-g .ph-group-b > :nth-child(10) { --ph-r: 9; }
+
+  /* Needs review: its cards come in one after another */
+  html.phone .ph-actv-rev .ph-group-b > *,
+  html.phone .ph-actv-rev .ph-rv {
+    animation: ph-up .35s var(--p-ease-out) both;
+    animation-delay: 80ms;
+  }
+
+  /* press: the totals open their explanation, a month heading folds */
+  html.phone :is(.ph-actv-tt, .ph-actv-lo, .ph-actv-gh) {
+    -webkit-tap-highlight-color: transparent;
+    transition: transform var(--p-t-press), opacity var(--p-t-press), background-color var(--p-t-fade);
+  }
+
+  html.phone .ph-actv-tt:active {
+    transform: scale(.96);
+  }
+
+  html.phone :is(.ph-actv-lo, .ph-actv-gh):active {
+    opacity: .7;
+  }
+}

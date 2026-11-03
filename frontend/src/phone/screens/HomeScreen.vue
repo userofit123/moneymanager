@@ -154,7 +154,7 @@ const fxBadge = computed(() => { const ch = fxView.value?.ch || 0; return Math.a
         <!-- the money flow: the steps (In your accounts − … = Free to use), then the same steps as bars -->
         <ListGroup v-if="M.has.flow" :title="t('home.flowTitle')" :more="P('fullBreakdown')" pad @more="avail = true">
           <template #top><Segmented v-model="flowMode" :options="flowOpts" :label="t('home.flowMode')" /></template>
-          <div class="ph-home-steps">
+          <div :key="flowMode" class="ph-home-steps">
             <button v-for="(s, i) in steps" :key="s.k" type="button" class="ph-home-st" @click="explain(s.tip)"><span><i v-if="i" class="ph-home-op">−</i>{{ s.label }}</span><b class="ph-amt">{{ s.v }}</b></button>
             <button type="button" class="ph-home-st key" :class="{ neg: isShort }" @click="explain(endTip)"><span><i class="ph-home-op">=</i>{{ endLabel }}</span><b class="ph-amt">{{ endVal }}</b><small v-if="pay">{{ pay.after }}</small></button>
           </div>

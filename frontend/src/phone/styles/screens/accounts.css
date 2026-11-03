@@ -59,3 +59,30 @@ html.phone .ph-acc-logo .bi svg {
   inline-size: 20px;
   block-size: 20px;
 }
+
+/* ===== motion, as on the computer: the sections and their cards come in one after another (the computer's intro); a
+   card gives a little under the finger (the computer's hover lift, AmountCard's own press). Off with reduced motion.
+   Keyframes: phone/styles/components.css. ===== */
+@media (prefers-reduced-motion: no-preference) {
+  html.phone .ph-accs .ph-content > * {
+    animation: ph-up .35s var(--p-ease-out) both;
+  }
+
+  html.phone .ph-accs .ph-content > :nth-child(2) { animation-delay: 50ms; }
+  html.phone .ph-accs .ph-content > :nth-child(3) { animation-delay: 100ms; }
+  html.phone .ph-accs .ph-content > :nth-child(n + 4) { animation-delay: 150ms; }
+
+  html.phone .ph-accs-list > .ph-acard {
+    animation: ph-up .35s var(--p-ease-out) both;
+  }
+
+  html.phone .ph-accs-list > .ph-acard:nth-child(2) { animation-delay: 60ms; }
+  html.phone .ph-accs-list > .ph-acard:nth-child(3) { animation-delay: 120ms; }
+  html.phone .ph-accs-list > .ph-acard:nth-child(4) { animation-delay: 180ms; }
+  html.phone .ph-accs-list > .ph-acard:nth-child(n + 5) { animation-delay: 240ms; }
+
+  /* the status badge fades in after its card */
+  html.phone .ph-accs-foot .bd {
+    animation: ph-fade .4s ease .3s both;
+  }
+}

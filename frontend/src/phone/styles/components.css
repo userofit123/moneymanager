@@ -1714,3 +1714,79 @@ html.phone .ph-donut-r span {
   flex: 1;
   min-inline-size: 0;
 }
+
+/* ---- shared motion: the steps every phone page uses, so all pages move the same way (each page's file says which of
+   its parts use them, and turns them off with reduced motion) ---- */
+
+/* a block comes in: a short fade up (the computer's page and card entrance, "fi" / "vin") */
+@keyframes ph-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes ph-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* a bar fills from empty (the computer's .bar slides its width) */
+@keyframes ph-fill {
+  from {
+    width: 0;
+  }
+}
+
+/* a column or a day's bar grows up from its foot */
+@keyframes ph-grow {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+/* a part of a split bar grows from its start */
+@keyframes ph-growx {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* a line with pathLength="1" draws itself */
+@keyframes ph-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* a chart's line and shading come in from the start (charts always run left to right) */
+@keyframes ph-wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* a point or a circle pops into place */
+@keyframes ph-pop {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+/* a ring turns into place */
+@keyframes ph-ring {
+  from {
+    opacity: 0;
+    transform: rotate(-90deg) scale(.85);
+  }
+}
