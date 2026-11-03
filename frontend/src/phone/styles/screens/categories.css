@@ -1,35 +1,45 @@
-/* Phone Categories and tags screen (phone/screens/CategoriesScreen.vue). Every rule starts with html.phone.
-   The letter tile (also on Budgets and the Category screen) and the change line (.ph-cats-mic, .ph-cats-chg) are also used by the Category screen. */
+/* Phone Categories and tags screen (phone/screens/CategoriesScreen.vue) and the category row (CatRow.vue, also at the
+   top of the Category screen). Built from the computer's page (styles/pages/categories.css). Every rule starts with html.phone. */
 
-/* Categories / Tags under the title */
+/* ===== Categories / Tags under the title, with the computer's icons ===== */
 html.phone .ph-cats-head {
   padding: 0 var(--p-gut) 16px;
 }
 
-/* the list's top: what a category (a tag) is, then the search and the order on one line */
-html.phone .ph-cats-what {
-  margin-block-end: var(--p-s3);
-}
-
-html.phone .ph-cats-tools {
-  display: flex;
-  align-items: center;
-  gap: var(--p-s2);
-  margin-block-end: var(--p-s3);
-}
-
-html.phone .ph-cats-tools .ph-search {
-  flex: 1;
-  min-inline-size: 0;
-}
-
-/* the order: a button as high as the search box, tinted when it is not the usual order */
-html.phone .ph-cats-sort {
+html.phone .ph-cats-tabs > button {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 7px;
+  transition: background-color var(--p-t-fade), color var(--p-t-fade), box-shadow var(--p-t-fade);
+}
+
+html.phone .ph-cats-tabs svg {
+  inline-size: 16px;
+  block-size: 16px;
   flex: none;
-  max-inline-size: 45%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ===== the search, then the box to add one with its button ===== */
+html.phone .ph-cats-tools {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-s2);
+}
+
+html.phone .ph-cats-add {
+  display: flex;
+  gap: var(--p-s2);
+}
+
+html.phone .ph-cats-new {
+  flex: 1;
+  min-inline-size: 0;
   block-size: var(--p-hit);
   padding-inline: 14px;
   border: 1px solid var(--p-card-line);
@@ -37,101 +47,405 @@ html.phone .ph-cats-sort {
   background: var(--p-surf);
   color: var(--tx);
   font: inherit;
+  font-size: 16px;
+}
+
+html.phone .ph-cats-new:focus {
+  outline: 2px solid var(--acc);
+  outline-offset: -1px;
+}
+
+html.phone .ph-cats-addb {
+  flex: none;
+  white-space: nowrap;
+}
+
+/* ===== the card's title line: the round icon, the title with its count and its line ===== */
+html.phone .ph-cats-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+html.phone .ph-cats-ch {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+html.phone .ph-cats-ci {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 38px;
+  block-size: 38px;
+  border-radius: 12px;
+  background: var(--accc);
+  color: var(--acc);
+}
+
+html.phone .ph-cats-ci svg {
+  inline-size: 20px;
+  block-size: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html.phone .ph-cats-ct b {
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 22px;
+}
+
+/* the count is a dot and a plain number, as on the computer */
+html.phone .ph-cats-cnt {
+  color: var(--tx2);
   font-size: 14px;
   font-weight: 600;
 }
 
-html.phone .ph-cats-sort span {
+html.phone .ph-cats-cnt::before {
+  content: "·";
+  margin-inline: 8px;
+}
+
+html.phone .ph-cats-ct p {
+  margin: 2px 0 0;
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+/* the money out, in and the difference: three tiles, as on the computer */
+html.phone .ph-cats-tot {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); /* three across; two and one on a narrow phone */
+  gap: 8px;
+}
+
+html.phone .ph-cats-tot > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+  padding: 8px;
+  border-radius: var(--r-sm);
+  background: var(--s2);
+}
+
+html.phone .ph-cats-tot span {
   overflow: hidden;
+  color: var(--tx2);
+  font-size: 12px;
+  line-height: 16px;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
-html.phone .ph-cats-sort .ph-ic {
+html.phone .ph-cats-tot b {
+  font-size: 14.5px;
+  font-weight: 650;
+  line-height: 22px;
+  white-space: nowrap;
+}
+
+@media (min-width: 390px) {
+  html.phone .ph-cats-tot b {
+    font-size: 15px;
+  }
+}
+
+html.phone .ph-cats-tot b.pos,
+html.phone .ph-crow .pos {
+  color: var(--pos);
+}
+
+html.phone .ph-cats-tot b.neg,
+html.phone .ph-crow .neg {
+  color: var(--neg);
+}
+
+html.phone .ph-cats-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+html.phone .ph-cats-empty p,
+html.phone .ph-cats-rules p {
+  margin: 0;
+  color: var(--tx2);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* ===== sort: the column titles as small buttons (the computer's narrow list), then the columns button ===== */
+html.phone .ph-cats-sorts {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* the titles slide sideways in one line; the columns button stays at the end */
+html.phone .ph-cats-sl {
+  display: flex;
+  flex: 1;
+  gap: 6px;
+  min-inline-size: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-block: -2px;
+  padding-block: 2px;
+}
+
+html.phone .ph-cats-sl::-webkit-scrollbar {
+  display: none;
+}
+
+html.phone .ph-cats-sb {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-block-size: 34px;
+  padding: 4px 10px 4px 12px;
+  border: 1px solid var(--ol);
+  border-radius: 999px;
+  background: none;
+  color: var(--tx2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
   flex: none;
-  inline-size: 18px;
-  block-size: 18px;
+  transition: transform var(--p-t-press), background-color var(--p-t-press), border-color var(--p-t-fade), color var(--p-t-fade);
+}
+
+html.phone .ph-cats-sb.asc,
+html.phone .ph-cats-sb.desc {
+  border-color: var(--acc);
   color: var(--acc);
+  font-weight: 750;
 }
 
-html.phone .ph-cats-sort.on {
-  border-color: transparent;
-  background: var(--accc);
-  color: var(--onc);
+html.phone .ph-cats-sb svg {
+  inline-size: 14px;
+  block-size: 14px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .35;
 }
 
-html.phone .ph-cats-sort.on .ph-ic {
-  color: inherit;
+html.phone .ph-cats-sb:is(.asc, .desc) svg {
+  opacity: 1;
+  stroke-width: 3;
 }
 
-html.phone .ph-cats-sort:active {
-  background: var(--p-press);
+html.phone .ph-cats-sb.asc .sd,
+html.phone .ph-cats-sb.desc .su {
+  display: none;
 }
 
-/* the first letter of the name, on the category's own colour */
-html.phone .ph-cats-mic {
+/* the one chevron left moves to the middle, level with the title */
+html.phone .ph-cats-sb.asc .su {
+  transform: translateY(4.5px);
+}
+
+html.phone .ph-cats-sb.desc .sd {
+  transform: translateY(-4.5px);
+}
+
+html.phone .ph-cats-cols {
   display: grid;
   place-items: center;
   flex: none;
-  inline-size: 40px;
-  block-size: 40px;
-  border-radius: var(--p-r-tile);
-  background: color-mix(in srgb, var(--mc) 16%, transparent);
+  inline-size: 36px;
+  block-size: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--tx2);
+  transition: transform var(--p-t-press), background-color var(--p-t-press);
+}
+
+html.phone .ph-cats-cols svg {
+  inline-size: 20px;
+  block-size: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linejoin: round;
+}
+
+/* ===== one row: the computer's row card in its narrow form ===== */
+html.phone .ph-cats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+html.phone .ph-crow {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--ol);
+  border-radius: 14px;
+  background: var(--s1);
+  color: var(--tx);
+  -webkit-tap-highlight-color: transparent;
+}
+
+html.phone .ph-crow.tap {
+  cursor: pointer;
+  transition: transform var(--p-t-press), background-color var(--p-t-press), border-color var(--p-t-fade);
+}
+
+html.phone .ph-crow:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: -2px;
+}
+
+html.phone .ph-crow-h {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-block-size: 36px;
+}
+
+/* the first letter, on the category's own colour (the computer's .mic) */
+html.phone .ph-crow-mic {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--mc) 20%, transparent);
   color: var(--mc);
   font-size: 15px;
   font-weight: 700;
 }
 
-html.phone .ph-cats-mic.big {
-  inline-size: 56px;
-  block-size: 56px;
-  border-radius: 16px;
-  font-size: 22px;
+html.phone .ph-crow-n {
+  flex: 1;
+  min-inline-size: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 21px;
+  overflow-wrap: anywhere;
 }
 
-/* the end of a row: the amount, and under it the change against the months before */
-html.phone .ph-cats-end {
+html.phone .ph-crow-more {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 40px;
+  block-size: 40px;
+  margin-inline-end: -6px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--tx2);
+  transition: transform var(--p-t-press), background-color var(--p-t-press);
+}
+
+html.phone .ph-crow-more svg {
+  inline-size: 20px;
+  block-size: 20px;
+  fill: currentColor;
+}
+
+/* the numbers of the columns shown, three by three, each with its title (start of the name) */
+html.phone .ph-crow-nums {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+
+html.phone .ph-crow-c {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
+  gap: 1px;
+  min-inline-size: 0;
 }
 
-html.phone .ph-cats-end .ph-cats-chg {
+html.phone .ph-crow-l {
+  max-inline-size: 100%;
+  overflow: hidden;
   color: var(--tx2);
-  font-size: var(--p-f-meta);
-  line-height: 18px;
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-/* a category with nothing in the months looked at is quieter */
-html.phone .ph-cats-row.zero .ph-row-t,
-html.phone .ph-cats-row.zero .ph-amt {
+html.phone .ph-crow-c b {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+html.phone .ph-crow-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--acc);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  text-align: start;
+}
+
+html.phone .ph-crow-bu {
   color: var(--tx2);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+html.phone .ph-crow .ph-cats-chg {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--tx2);
+}
+
+/* a row with nothing in the months looked at stays quieter */
+html.phone .ph-crow.zero .ph-crow-nums {
+  opacity: .55;
 }
 
 /* the change against the months before: more spending (or less income) in red, the other way in green */
 html.phone .ph-cats-chg {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   font-variant-numeric: tabular-nums;
 }
 
-html.phone .ph-cats-chg.good,
-html.phone .ph-cats-end .ph-cats-chg.good {
+html.phone .ph-crow .ph-cats-chg.good {
   color: var(--pos);
 }
 
-html.phone .ph-cats-chg.bad,
-html.phone .ph-cats-end .ph-cats-chg.bad {
+html.phone .ph-crow .ph-cats-chg.bad {
   color: var(--neg);
 }
 
 html.phone .ph-cats-chg svg {
   inline-size: 14px;
   block-size: 14px;
+  flex: none;
   fill: none;
   stroke: currentColor;
-  stroke-width: 2.2;
+  stroke-width: 2.4;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -140,9 +454,19 @@ html.phone .ph-cats-chg svg.dn {
   transform: rotate(180deg);
 }
 
+/* the line that leads to the rules in Settings */
+html.phone .ph-cats-rules {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding-block-start: 12px;
+  border-block-start: 1px solid var(--ol);
+}
+
 html.phone .ph-cats-none {
   margin: 0;
-  padding: 14px 16px;
+  padding: 4px 2px;
   color: var(--tx2);
   font-size: 15px;
 }
@@ -152,4 +476,38 @@ html.phone .ph-cats-p {
   color: var(--tx2);
   font-size: 15px;
   line-height: 22px;
+}
+
+/* ===== motion: blocks fade up one after another (the computer's view and tab fade), rows follow, taps press.
+   Switching Categories / Tags plays it again, like the computer's tab fade. Off with reduced motion. ===== */
+@keyframes ph-cats-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.phone :is(.ph-cats, .ph-cat) .ph-content > * {
+    animation: ph-cats-in .35s var(--p-ease-out) both;
+  }
+
+  html.phone :is(.ph-cats, .ph-cat) .ph-content > :nth-child(2) { animation-delay: 50ms; }
+  html.phone :is(.ph-cats, .ph-cat) .ph-content > :nth-child(3) { animation-delay: 100ms; }
+  html.phone :is(.ph-cats, .ph-cat) .ph-content > :nth-child(n + 4) { animation-delay: 150ms; }
+
+  html.phone .ph-cats-list > .ph-crow {
+    animation: ph-cats-in .35s var(--p-ease-out) both;
+    animation-delay: calc(180ms + min(var(--i, 0), 10) * 35ms);
+  }
+
+  html.phone .ph-crow.tap:active {
+    transform: scale(.985);
+    background: var(--p-press);
+  }
+
+  html.phone :is(.ph-cats-sb, .ph-cats-cols, .ph-crow-more):active {
+    transform: scale(.95);
+    background: var(--p-press);
+  }
 }

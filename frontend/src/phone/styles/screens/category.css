@@ -1,79 +1,11 @@
 /* Phone Category screen (phone/screens/CategoryScreen.vue). Every rule starts with html.phone.
-   The letter tile and the change line (.ph-cats-mic, .ph-cats-chg) are in categories.css. */
-
-/* the top: the letter, the name, the money of the months looked at set large, what it is, and the change */
-html.phone .ph-cat-hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 8px 0 0;
-  margin-block-end: -8px;
-  text-align: center;
-}
-
-html.phone .ph-cat-hero .ph-cats-mic {
-  margin-block-end: 10px;
-}
-
-html.phone .ph-cat-name {
-  margin: 0;
-  max-inline-size: 100%;
-  font-size: 19px;
-  line-height: 24px;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-html.phone .ph-cat-amt {
-  margin-block-start: 10px;
-  font-size: 40px;
-  line-height: 46px;
-  font-weight: 700;
-  letter-spacing: -.5px;
-  font-variant-numeric: tabular-nums;
-}
-
-html.phone .ph-cat-amt.pos {
-  color: var(--pos);
-}
-
-html.phone .ph-cat-amt.neg {
-  color: var(--neg);
-}
-
-html.phone .ph-cat-sub {
-  margin: 0;
-  color: var(--tx2);
-  font-size: 14px;
-  line-height: 20px;
-}
-
-html.phone .ph-cat-chg {
-  margin: 6px 0 0;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: var(--p-press);
-  color: var(--tx2);
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 20px;
-}
-
-html.phone .ph-cat-chg.good {
-  background: color-mix(in srgb, var(--pos) 13%, transparent);
-}
-
-html.phone .ph-cat-chg.bad {
-  background: color-mix(in srgb, var(--neg) 12%, transparent);
-}
+   The computer's open row on its own screen. The row at the top (CatRow) and the motion of the blocks are in categories.css. */
 
 /* month by month: the month picked above the bars, then the way to its transactions */
 html.phone .ph-cat-card {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 16px;
 }
 
 html.phone .ph-cat-read {
@@ -158,4 +90,43 @@ html.phone .ph-cat-bar:focus-visible {
 
 html.phone .ph-cat-go {
   align-self: stretch;
+}
+
+/* the ways on, as under the computer's open row */
+html.phone .ph-cat-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+html.phone .ph-cat-acts .ph-btn {
+  flex: 1 1 140px;
+}
+
+/* the bars grow from the bottom one after another; a picked bar presses */
+@keyframes ph-cat-grow {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.phone .ph-cat-bw i {
+    transform-origin: bottom;
+    animation: ph-cat-grow .5s var(--p-ease-out) both;
+    animation-delay: calc(.25s + var(--j, 0) * 50ms);
+  }
+
+  html.phone .ph-cat-bar {
+    transition: transform var(--p-t-press);
+  }
+
+  html.phone .ph-cat-bar:active {
+    transform: scale(.94);
+  }
+}
+
+/* the row on top keeps a little room under the top bar */
+html.phone .ph-cat-top {
+  margin-block-start: 8px;
 }
