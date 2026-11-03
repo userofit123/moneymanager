@@ -953,7 +953,8 @@ html.phone .ph-prog {
   display: block;
   block-size: 6px;
   border-radius: var(--pill);
-  background: var(--s2);
+  /* the empty part stays visible on a card in every look */
+  background: color-mix(in srgb, var(--tx) 10%, transparent);
   overflow: hidden;
 }
 

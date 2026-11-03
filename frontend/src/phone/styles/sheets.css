@@ -149,6 +149,14 @@ html.phone .ph-guide :is(.hex, .htip) > b {
   text-transform: none;
 }
 
+/* only the first bold word is the label; a bold word inside the sentence stays in the sentence */
+html.phone .ph-guide :is(.hex, .htip) > b:not(:first-child) {
+  display: inline;
+  margin: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
 /* the little pictures: shrunk to the sheet's width, never wider */
 html.phone .ph-guide .hdemo {
   border-radius: var(--p-r-tile);
@@ -470,13 +478,15 @@ html.phone .ph-guide .hs + .hs {
 /* an action with its current value at the end ("Show only this category   Food"): the name keeps one line, the value gives
    way and ends in "…" */
 html.phone .ph-act-l {
-  flex: 1 0 auto;
+  flex: 0 0 auto;
   max-inline-size: 72%;
 }
 
 html.phone .ph-act-v {
   flex: 0 1 auto;
   min-inline-size: 0;
+  margin-inline-start: auto;
+  padding-inline-start: var(--p-s3);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

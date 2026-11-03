@@ -560,11 +560,13 @@ html.phone .ph-set .ss:not(.ccard) > .sfoot {
 
 /* the first section of a screen often has the screen's own name as its title: the large title already says it, so only its
    explanation stays, as the screen's opening line */
-html.phone .ph-set:is([data-sec=prof], [data-sec=cur], [data-sec=conn], [data-sec=sync], [data-sec=crules], [data-sec=trules], [data-sec=nrules], [data-sec=cprules], [data-sec=srules], [data-sec=log], [data-sec=rel]) > * > .ss:first-child > .ssh b {
+html.phone .ph-set:is([data-sec=prof], [data-sec=cur], [data-sec=conn], [data-sec=sync], [data-sec=crules], [data-sec=trules], [data-sec=nrules], [data-sec=cprules], [data-sec=srules], [data-sec=log], [data-sec=rel], [data-sec=app]) > * > .ss:first-child > .ssh b,
+html.phone .ph-set[data-sec=sync] > * > :first-child > .ss:first-child > .ssh b {
   display: none;
 }
 
-html.phone .ph-set:is([data-sec=prof], [data-sec=cur], [data-sec=conn], [data-sec=sync], [data-sec=crules], [data-sec=trules], [data-sec=nrules], [data-sec=cprules], [data-sec=srules], [data-sec=log], [data-sec=rel]) > * > .ss:first-child > .ssh .sm {
+html.phone .ph-set:is([data-sec=prof], [data-sec=cur], [data-sec=conn], [data-sec=sync], [data-sec=crules], [data-sec=trules], [data-sec=nrules], [data-sec=cprules], [data-sec=srules], [data-sec=log], [data-sec=rel], [data-sec=app]) > * > .ss:first-child > .ssh .sm,
+html.phone .ph-set[data-sec=sync] > * > :first-child > .ss:first-child > .ssh .sm {
   margin: 0;
   font-size: 15px;
   line-height: 22px;
@@ -792,4 +794,13 @@ html.phone .ptw .pthd {
   border: 1px solid var(--p-card-line);
   border-radius: var(--p-r-group);
   background: var(--p-surf);
+}
+
+/* Export's preview: the number of rows across the top, money in and out as two even tiles under it, so no amount is cut */
+html.phone .exst {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+html.phone .exst > div:first-child:not(:only-child) {
+  grid-column: 1 / -1;
 }

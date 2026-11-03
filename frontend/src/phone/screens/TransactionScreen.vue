@@ -24,6 +24,7 @@ import PickerSheet from "../components/PickerSheet.vue";
 import ActionSheet from "../components/ActionSheet.vue";
 import EmptyState from "../components/EmptyState.vue";
 import PIcon from "../components/PIcon.vue";
+import { ICONS } from "../icons.js";
 import TagEditor from "../../components/TagEditor.vue";
 import { tagName } from "../../core/polish.js";
 
@@ -47,8 +48,8 @@ const moreActions = () => [
   { label: t("activity.d.copy"), icon: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>', run: copyDetails },
   ...(cur.value && !cur.value.virtual ? [{ label: t("activity.w.attach"), icon: TIC.clip, run: () => fileIn.value?.click() }] : []),
   // the category and tags are rows below the top (to change them); listing everything with the same one is here
-  ...(cur.value && !cur.value.virtual && !isXf(cur.value) && cur.value.c ? [{ label: t("phone.activity.onlyCat"), value: catLabel(cur.value.c), run: () => goCat(cur.value.c) }] : []),
-  ...(cur.value?.tags || []).map((g) => ({ label: t("phone.activity.onlyTag", { tag: g }), run: () => goTag(g) })),
+  ...(cur.value && !cur.value.virtual && !isXf(cur.value) && cur.value.c ? [{ label: t("phone.activity.onlyCat"), icon: ICONS.filter, value: catLabel(cur.value.c), run: () => goCat(cur.value.c) }] : []),
+  ...(cur.value?.tags || []).map((g) => ({ label: t("phone.activity.onlyTag", { tag: g }), icon: ICONS.filter, run: () => goTag(g) })),
 ];
 // where the money went from and to: each name keeps its own order, and in Hebrew the arrow points the way the line reads
 const fromTo = (x) => {

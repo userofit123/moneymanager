@@ -166,7 +166,7 @@ html.phone .ph-acc-av {
   place-items: center;
   inline-size: 40px;
   block-size: 40px;
-  border-radius: 50%;
+  border-radius: var(--p-r-tile); /* the same tile as the rows on Activity */
   font-weight: 700;
   font-size: 15px;
 }
