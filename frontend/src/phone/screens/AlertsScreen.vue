@@ -1,22 +1,20 @@
 <script setup>
-// Alerts (in More and the Home bell): what needs a look now, and every alert from before. It opens with one sentence (how
-// many alerts wait), then the alerts: a tap goes to the alert's place, the × (or a swipe, or the menu on a press and hold) hides it. History lists
-// each alert with when it came and when it went. Everything comes from pagelogic/alerts.js, the same as the computer's page.
+// Alerts (in More and the Home bell): the computer's Alerts page for a phone. Alert settings at the top, the two tabs
+// (Alerts now, History), then one card of alerts: each with its coloured dot, title, text, when it appeared, and the
+// computer's Open and Dismiss buttons (a swipe also dismisses; press and hold opens the same two in a menu).
+// History lists each alert with when it came and went and its badge (Active, Dismissed, Resolved).
+// Everything comes from pagelogic/alerts.js, the same as the computer's page.
 import { ref, computed } from "vue";
 import { pages } from "../../routes.js";
 import { useAlerts } from "../../pagelogic/alerts.js";
 import { usePhoneNav } from "../navigation.js";
 import PhoneScreen from "../components/PhoneScreen.vue";
-import HeroSentence from "../components/HeroSentence.vue";
 import Segmented from "../components/Segmented.vue";
 import ListGroup from "../components/ListGroup.vue";
-import ListRow from "../components/ListRow.vue";
 import SwipeRow from "../components/SwipeRow.vue";
 import EmptyState from "../components/EmptyState.vue";
 import SkeletonRows from "../components/SkeletonRows.vue";
-import PIcon from "../components/PIcon.vue";
 import LoadError from "../components/LoadError.vue";
-import IconButton from "../components/IconButton.vue";
 import ActionSheet from "../components/ActionSheet.vue";
 defineProps({ id: { type: String, default: null } });
 
@@ -32,23 +30,17 @@ const ended = (r) => withWhen(P("gone", { when: "\u0000", dur: dur(r.first_seen,
 // taken out first so the words are found and shown in Hebrew
 const histList = computed(() => hist.value.rows.map((r) => ({ ...r, title2: said(r.title), detail2: said(r.detail), ap: appeared(r.first_seen), end: r.resolved_at ? ended(r) : null })));
 const BELL = pages.find((p) => p.name === "alerts").icon;
-const SETTINGS = pages.find((p) => p.name === "settings").icon;
 
-// the sentence at the top: how many alerts wait, the number set large
-const hero = computed(() => {
-  const n = rows.value.length, [a, b = ""] = P("hero", { n: "\u0000" }, n).split("\u0000");
-  return [{ text: a }, { amount: String(n) }, { text: b }];
-});
 const tabOpts = computed(() => [{ value: "now", label: t("alerts.tabNow") + (rows.value.length ? " " + rows.value.length : "") }, { value: "hist", label: t("alerts.tabHist") }]);
 const tabModel = computed({ get: () => tab.value, set: pick });
-const tone = (sev) => (sev === "high" ? "neg" : sev === "med" ? "warn" : "acc");
 const swipe = (x) => [{ label: t("alerts.dismiss"), tone: "neg", run: () => dismiss(x) }];
-const status = (r) => (!r.resolved_at ? ["act", t("alerts.active")] : r.dismissed ? ["dis", t("alerts.dismissed")] : ["res", t("alerts.resolved")]);
+// the computer's badge for each alert in History
+const status = (r) => (!r.resolved_at ? ["am2", t("alerts.active")] : r.dismissed ? ["fl", t("alerts.dismissed")] : ["dn", t("alerts.resolved")]);
 const settings = () => nav.push("settingsSection", "alr");
-// press and hold an alert (or right click): its menu, with Go to it and Dismiss
+// press and hold an alert (or right click): its menu, with Open and Dismiss
 const held = ref(null);
 const heldOpen = computed({ get: () => !!held.value, set: (v) => { if (!v) held.value = null; } });
-const heldActs = computed(() => (held.value ? [{ label: P("goTo"), run: ((x) => () => open(x))(held.value) }, { label: t("alerts.dismiss"), danger: true, run: ((x) => () => dismiss(x))(held.value) }] : []));
+const heldActs = computed(() => (held.value ? [{ label: t("alerts.open"), run: ((x) => () => open(x))(held.value) }, { label: t("alerts.dismiss"), danger: true, run: ((x) => () => dismiss(x))(held.value) }] : []));
 </script>
 
 <template>
@@ -57,10 +49,8 @@ const heldActs = computed(() => (held.value ? [{ label: P("goTo"), run: ((x) => 
     <SkeletonRows v-else-if="!S" :rows="4" />
 
     <template v-else>
-      <HeroSentence v-if="rows.length" :parts="hero" />
-
-      <!-- now: each alert opens its place; the ×, a swipe or the hold menu hides it. History: when each alert came and went -->
-      <ListGroup :note="tab === 'now' ? (rows.length ? P('openHint') : '') : hist.loaded && histList.length ? P('histNote') : ''">
+      <!-- the computer's top row: the two tabs, and Alert settings at its end -->
+      <ListGroup :more="t('phone.shell.open.alerts')" @more="settings">
         <template #top>
           <Segmented v-model="tabModel" :options="tabOpts" :label="P('tabs')" />
           <template v-if="tab === 'now'"><EmptyState v-if="!rows.length" :icon="BELL" :title="P('clearTitle')" :text="P('clearText')" /></template>
@@ -70,37 +60,33 @@ const heldActs = computed(() => (held.value ? [{ label: P("goTo"), run: ((x) => 
         <template v-if="tab === 'now' ? rows.length : hist.loaded && histList.length" #default>
           <template v-if="tab === 'now'">
             <SwipeRow v-for="x in rows" :key="x.id" :end="swipe(x)" @hold="held = x">
-              <div class="ph-al" :class="x.sev">
-                <button type="button" class="ph-row ph-two ph-al-open" @click="open(x)">
-                  <span class="ph-row-lead"><span class="ph-tile" :style="{ '--tile': `var(--${tone(x.sev)})` }"><PIcon :svg="BELL" /></span></span>
-                  <span class="ph-row-main">
-                    <span class="ph-row-t">{{ x.title }}</span>
-                    <span class="ph-row-s ph-al-text">{{ x.text }}</span>
-                    <span v-if="since[x.id]" class="ph-row-s ph-al-when"><span>{{ appeared(since[x.id]).a }}<bdi>{{ appeared(since[x.id]).at }}</bdi>{{ appeared(since[x.id]).b }}</span></span>
+              <div class="ph-al">
+                <span class="sev" :class="x.sev" aria-hidden="true" />
+                <div class="ph-al-m">
+                  <b class="ph-al-t">{{ x.title }}</b>
+                  <span class="ph-al-x">{{ x.text }}</span>
+                  <span v-if="since[x.id]" class="ph-al-w">{{ appeared(since[x.id]).a }}<bdi>{{ appeared(since[x.id]).at }}</bdi>{{ appeared(since[x.id]).b }}</span>
+                  <span class="ph-al-b">
+                    <button type="button" class="ph-btn tonal" @click="open(x)">{{ t("alerts.open") }}</button>
+                    <button type="button" class="ph-btn tonal" @click="dismiss(x)">{{ t("alerts.dismiss") }}</button>
                   </span>
-                </button>
-                <IconButton class="ph-al-dis" :label="t('alerts.dismiss')" icon-name="close" @tap="dismiss(x)" />
+                </div>
               </div>
             </SwipeRow>
           </template>
           <template v-else>
-            <div v-for="r in histList" :key="r.id ?? r.key + r.first_seen" class="ph-row ph-two ph-alh">
-              <span class="ph-row-lead"><span class="ph-alh-dot" :class="r.sev" aria-hidden="true" /></span>
-              <span class="ph-row-main">
-                <span class="ph-row-t">{{ r.title2 }}</span>
-                <span class="ph-row-s ph-al-text">{{ r.detail2 }}</span>
-                <span class="ph-row-s ph-al-when"><span>{{ r.ap.a }}<bdi>{{ r.ap.at }}</bdi>{{ r.ap.b }}</span><span v-if="r.end">{{ r.end.a }}<bdi>{{ r.end.at }}</bdi>{{ r.end.b }}</span><span v-else>{{ P("still") }}</span></span>
-              </span>
-              <span class="ph-row-end"><span class="ph-alh-st" :class="status(r)[0]">{{ status(r)[1] }}</span></span>
+            <div v-for="r in histList" :key="r.id ?? r.key + r.first_seen" class="ph-al">
+              <span class="sev" :class="r.sev" aria-hidden="true" />
+              <div class="ph-al-m">
+                <span class="ph-al-th"><b class="ph-al-t">{{ r.title2 }}</b><span class="bd" :class="status(r)[0]">{{ status(r)[1] }}</span></span>
+                <span class="ph-al-x">{{ r.detail2 }}</span>
+                <span class="ph-al-w"><span>{{ r.ap.a }}<bdi>{{ r.ap.at }}</bdi>{{ r.ap.b }}</span> · <span v-if="r.end">{{ r.end.a }}<bdi>{{ r.end.at }}</bdi>{{ r.end.b }}</span><span v-else>{{ P("still") }}</span></span>
+              </div>
             </div>
           </template>
         </template>
       </ListGroup>
       <div v-if="tab !== 'now' && hist.loaded && histList.length && hist.more" class="ph-alerts-more"><button type="button" class="ph-btn tonal" :disabled="hist.busy" @click="loadHist(true)">{{ t("alerts.more") }}</button></div>
-
-      <ListGroup>
-        <ListRow :title="t('phone.shell.open.alerts')" :sub="P('settingsSub')" :icon="SETTINGS" tone="var(--c6)" link @tap="settings" />
-      </ListGroup>
     </template>
 
     <ActionSheet v-model:open="heldOpen" :title="held ? held.title : ''" :actions="heldActs" />

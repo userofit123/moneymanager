@@ -1,15 +1,12 @@
 {
-  "hero": "You have {amount} in your accounts.",
   "add": "Add an account",
   "more": "More actions",
   "addTx": "Add a transaction",
   "connSettings": "Connection settings",
   "showAct": "Show in Activity",
-  "summary": "Summary",
   "chartHint": "Tap or slide along the chart to see each month.",
   "chartHintUpd": "Tap or slide along the chart to see each update.",
   "gone": "This account is not here any more",
   "goneSub": "It was removed or hidden.",
-  "loadError": "The accounts could not be loaded. Check that the app is running, then try again.",
-  "cardsNote": "Each card's amount is what it was charged so far this month."
+  "loadError": "The accounts could not be loaded. Check that the app is running, then try again."
 }

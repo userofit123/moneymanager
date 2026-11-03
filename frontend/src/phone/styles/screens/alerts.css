@@ -1,121 +1,86 @@
-/* alerts screen (phone/screens/AlertsScreen.vue). Every rule starts with html.phone. */
+/* Alerts screen (phone/screens/AlertsScreen.vue). Every rule starts with html.phone. */
 
-/* an alert: the row that opens it, and a round × at its end that dismisses it */
+/* an alert, as on the computer: its coloured dot, the title, the text, when it appeared, then Open and Dismiss */
 html.phone .ph-al {
   display: flex;
   align-items: flex-start;
+  gap: 12px;
+  padding: 14px var(--p-pad);
 }
 
-html.phone .ph-al-open {
+html.phone .ph-al .sev {
+  flex: none;
+  margin-block-start: 6px;
+}
+
+html.phone .ph-al-m {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  gap: 2px;
   min-inline-size: 0;
-  align-items: flex-start;
-  padding-inline-end: 0;
 }
 
-/* the tile lines up with the title */
-html.phone .ph-al-open .ph-row-lead {
-  padding-block-start: 2px;
-}
-
-/* the whole sentence shows: it holds the numbers */
-html.phone .ph-al-text {
-  white-space: normal;
+/* the title wraps instead of being cut: a cut in Hebrew can hide the start of an English name in it */
+html.phone .ph-al-t {
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 
-html.phone .ph-al-when {
-  margin-block-start: var(--p-s1);
-  white-space: normal;
-}
-
-html.phone .ph-al-when > * {
-  display: inline-block;
-}
-
-html.phone .ph-al-when > * + * {
-  margin-inline-start: 10px;
-}
-
-html.phone .ph-al-dis {
-  flex: none;
-  margin-block-start: 4px;
-  margin-inline-end: 4px;
+/* the whole sentence shows: it holds the numbers */
+html.phone .ph-al-x {
   color: var(--tx2);
+  font-size: 14px;
+  line-height: 20px;
+  overflow-wrap: anywhere;
 }
 
-html.phone .ph-al-dis .ph-ic {
-  inline-size: 18px;
-  block-size: 18px;
+html.phone .ph-al-w {
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+  opacity: .8;
 }
 
-/* separators between alerts start where the text starts */
+html.phone .ph-al-b {
+  display: flex;
+  gap: 8px;
+  margin-block-start: 10px;
+}
+
+html.phone .ph-al-b .ph-btn {
+  min-block-size: 36px;
+  padding-inline: 16px;
+  font-size: 14px;
+}
+
+/* History: the title with its badge at the end */
+html.phone .ph-al-th {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+html.phone .ph-al-th .bd {
+  flex: none;
+  margin-block-start: 2px;
+}
+
+/* lines between alerts start where the text starts */
 html.phone .ph-alerts .ph-swipe + .ph-swipe::before {
-  inset-inline-start: 68px;
+  inset-inline-start: calc(var(--p-pad) + 20px);
   z-index: 1;
 }
 
-/* how urgent: a dot in the lead, the colours of the alert icons */
-html.phone .ph-alh {
-  align-items: flex-start;
-}
-
-html.phone .ph-alh .ph-row-lead {
-  inline-size: 36px;
-  justify-content: center;
-  padding-block-start: 7px;
-}
-
-html.phone .ph-alh-dot {
-  inline-size: 10px;
-  block-size: 10px;
-  border-radius: 50%;
-  background: var(--acc);
-}
-
-html.phone .ph-alh-dot.high {
-  background: var(--neg);
-}
-
-html.phone .ph-alh-dot.med {
-  background: var(--warn);
-}
-
-html.phone .ph-alh .ph-row-end {
-  align-self: flex-start;
-  padding-block-start: 2px;
-}
-
-/* still showing, dismissed or gone by itself */
-html.phone .ph-alh-st {
-  padding: 2px 8px;
-  border-radius: var(--pill);
-  background: var(--p-press);
-  color: var(--tx2);
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-html.phone .ph-alh-st.act {
-  background: color-mix(in srgb, var(--warn) 18%, transparent);
-  color: color-mix(in srgb, var(--warn) 70%, var(--tx));
-}
-
-html.phone .ph-alh-st.res {
-  background: color-mix(in srgb, var(--pos) 15%, transparent);
-  color: var(--pos);
+html.phone .ph-alerts .ph-al + .ph-al {
+  border-block-start: 1px solid var(--p-line);
 }
 
 html.phone .ph-alerts-more {
   display: flex;
   justify-content: center;
   margin-block-start: calc(var(--p-s4) - var(--p-gap));
-}
-
-/* an alert's title wraps instead of being cut: a cut in Hebrew can hide the start of an English name in it */
-html.phone .ph-alerts :is(.ph-al-open, .ph-alh) .ph-row-t {
-  white-space: normal;
-  overflow-wrap: anywhere;
 }

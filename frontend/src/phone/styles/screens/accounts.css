@@ -1,18 +1,49 @@
 /* Accounts screen (phone/screens/AccountsScreen.vue) and the parts the Account screen shares with it. Every rule starts with html.phone. */
 
-html.phone .ph-accs-note {
-  margin-block-start: var(--p-s2);
-}
-
-html.phone .ph-accs-note + .ph-accs-note {
-  margin-block-start: 2px;
+/* the computer's short explanation under the title */
+html.phone .ph-accs-intro {
+  margin: 0 0 var(--p-s2);
+  color: var(--tx2);
+  font-size: 14px;
+  line-height: 20px;
 }
 
 html.phone .ph-accs .ph-empty .ph-btn + .ph-btn {
   margin-block-start: 8px;
 }
 
-/* a bank's or card's logo, the size of a row's icon tile */
+/* the account cards of one kind, one under the other */
+html.phone .ph-accs-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-s3);
+}
+
+/* the last digits of a card, kept left to right */
+html.phone .ph-accs-tail {
+  margin-inline-start: 6px;
+  font-weight: 500;
+  opacity: .8;
+  unicode-bidi: isolate;
+}
+
+/* how the account is read (the computer's badge) and how many transactions it has */
+html.phone .ph-accs-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-block-start: 12px;
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+html.phone .ph-accs-foot .bd {
+  flex: none;
+}
+
+/* a bank's or card's logo, the size of a row's icon tile (the Account screen's header) */
 html.phone .ph-acc-logo {
   display: flex;
 }
@@ -27,61 +58,4 @@ html.phone .ph-acc-logo .bi {
 html.phone .ph-acc-logo .bi svg {
   inline-size: 20px;
   block-size: 20px;
-}
-
-/* the last digits of a card, kept left to right */
-html.phone .ph-accs-tail {
-  margin-inline-start: 6px;
-  color: var(--tx2);
-  font-weight: 500;
-  unicode-bidi: isolate;
-}
-
-/* how the account is read: a coloured dot before the words */
-html.phone .ph-acc-st {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-html.phone .ph-acc-st::before {
-  content: "";
-  inline-size: 7px;
-  block-size: 7px;
-  flex: none;
-  border-radius: 50%;
-  background: var(--tx3, var(--tx2));
-  opacity: .7;
-}
-
-html.phone .ph-acc-st.pos::before {
-  background: var(--pos);
-  opacity: 1;
-}
-
-html.phone .ph-acc-st.warn::before {
-  background: var(--warn);
-  opacity: 1;
-}
-
-html.phone .ph-acc-st.neg::before {
-  background: var(--neg);
-  opacity: 1;
-}
-
-/* the amount at the end, with a short line under it */
-html.phone .ph-accs-end {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  max-inline-size: 48vw;
-}
-
-html.phone .ph-accs-end small {
-  max-inline-size: 100%;
-  color: var(--tx2);
-  font-size: var(--p-f-meta);
-  line-height: 18px;
-  text-align: end;
-  white-space: normal;
 }

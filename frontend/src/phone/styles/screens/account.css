@@ -1,84 +1,50 @@
 /* Account screen (phone/screens/AccountScreen.vue). Every rule starts with html.phone.
-   The logo and the status dot (.ph-acc-logo, .ph-acc-st) are in accounts.css. */
+   The logo (.ph-acc-logo) is in accounts.css. */
 
-/* the top: logo, name, what it is, the amount large, what the amount is, how it is read, and the two actions */
+/* the top: the logo beside the name and the account's own description, then the two actions */
 html.phone .ph-acc-hero {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 8px 0 0;
-  margin-block-end: -8px;
-  text-align: center;
-}
-
-html.phone .ph-acc-logo.big {
-  margin-block-end: 10px;
+  gap: 14px;
+  padding-block-start: 8px;
 }
 
 html.phone .ph-acc-logo.big .bi {
-  inline-size: 56px;
-  block-size: 56px;
-  border-radius: 16px;
-  font-size: 20px;
+  inline-size: 52px;
+  block-size: 52px;
+  border-radius: 15px;
+  font-size: 19px;
 }
 
 html.phone .ph-acc-logo.big .bi svg {
-  inline-size: 30px;
-  block-size: 30px;
+  inline-size: 28px;
+  block-size: 28px;
+}
+
+html.phone .ph-acc-hn {
+  min-inline-size: 0;
 }
 
 html.phone .ph-acc-name {
   margin: 0;
-  max-inline-size: 100%;
-  font-size: 19px;
-  line-height: 24px;
-  font-weight: 600;
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: 700;
+  letter-spacing: -.3px;
   overflow-wrap: anywhere;
 }
 
-html.phone .ph-acc-type,
-html.phone .ph-acc-under {
-  margin: 0;
+html.phone .ph-acc-type {
+  margin: 2px 0 0;
   color: var(--tx2);
   font-size: 14px;
   line-height: 20px;
 }
 
-html.phone .ph-acc-amt {
-  margin-block-start: 10px;
-  font-size: 40px;
-  line-height: 46px;
-  font-weight: 700;
-  letter-spacing: -.5px;
-  font-variant-numeric: tabular-nums;
-}
-
-html.phone .ph-acc-amt.neg {
-  color: var(--neg);
-}
-
-html.phone .ph-acc-under.small {
-  font-size: 13px;
-  line-height: 18px;
-}
-
-html.phone .ph-acc-st.pill {
-  margin-block-start: 10px;
-  padding: 4px 12px;
-  border-radius: var(--pill);
-  background: var(--p-surf);
-  color: var(--tx2);
-  font-size: 13px;
-  line-height: 18px;
-  font-weight: 600;
-}
-
 html.phone .ph-acc-btns {
   display: flex;
   gap: 8px;
-  align-self: stretch;
-  margin-block-start: 18px;
+  margin-block-start: 16px;
 }
 
 html.phone .ph-acc-btns .ph-btn {
@@ -86,6 +52,96 @@ html.phone .ph-acc-btns .ph-btn {
   min-block-size: 44px;
   padding-inline: 12px;
   font-size: 15px;
+}
+
+/* the computer's top card: what the account is and its badge, the first number large, the others as tiles two to a row */
+html.phone .ph-acc-sum {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+html.phone .ph-acc-sh {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+}
+
+html.phone .ph-acc-sh .bd {
+  flex: none;
+}
+
+html.phone .ph-acc-lead,
+html.phone .ph-acc-t {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+html.phone .ph-acc-lead > span,
+html.phone .ph-acc-t > span {
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+/* an amount sits at the start of its line in both directions (it is written left to right) */
+html.phone .ph-acc-sum b {
+  align-self: flex-start;
+  max-inline-size: 100%;
+}
+
+html.phone .ph-acc-lead b {
+  font-size: 34px;
+  line-height: 42px;
+  font-weight: 600;
+  letter-spacing: -.8px;
+}
+
+html.phone .ph-acc-lead i,
+html.phone .ph-acc-t i {
+  color: var(--tx2);
+  font-size: 12.5px;
+  line-height: 17px;
+  font-style: normal;
+}
+
+html.phone .ph-acc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+html.phone .ph-acc-t {
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: var(--p-r-tile);
+  background: var(--s2);
+}
+
+html.phone .ph-acc-t b {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+html.phone .ph-acc-sum b.pos {
+  color: var(--pos);
+}
+
+html.phone .ph-acc-sum b.neg {
+  color: var(--neg);
+}
+
+/* a balance update: the computer's small dot before it */
+html.phone .ph-acc-dot {
+  margin-inline: 4px;
 }
 
 /* a section's second title part (the chart's span of time) */
@@ -116,19 +172,6 @@ html.phone .ph-acc-cb svg {
 
 html.phone .ph-acc-cb .trtip {
   pointer-events: none;
-}
-
-/* the summary numbers, two to a row (.ph-stats), each pair the same height */
-html.phone .ph-acc-tiles .ph-stat-v {
-  overflow-wrap: anywhere;
-}
-
-html.phone .ph-acc-tiles .pos .ph-stat-v {
-  color: var(--pos);
-}
-
-html.phone .ph-acc-tiles .neg .ph-stat-v {
-  color: var(--neg);
 }
 
 /* details: the value at the end may take two lines; a row with an explanation has a small "i" after its name */

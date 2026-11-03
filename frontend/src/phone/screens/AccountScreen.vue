@@ -1,7 +1,8 @@
 <script setup>
-// One account (pushed on Accounts, /accounts?id=<id>): its balance large (a card: what it was charged this month), how it is
-// read and when, Add a transaction and Update balance, the chart (tap or slide along it to see each month), the summary
-// numbers, the account's details, the balance updates typed by hand, and its own activity with a search.
+// One account (pushed on Accounts, /accounts?id=<id>): the computer's account page for a phone, in its order. The logo
+// and name, Add a transaction and Update balance, one card with what the account is, how it is read (a coloured badge),
+// the balance large (a card: what it was charged this month) and the other numbers as tiles, the chart (tap or slide
+// along it to see each month), the account's details, the balance updates typed by hand, and its own activity with a search.
 // ⋯ holds Update balance, Edit, Connection settings, Show in Activity and Remove (each only where the computer offers it).
 // Everything comes from pagelogic/accounts.js, the same as the computer's account page.
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
@@ -19,7 +20,7 @@ import { dcell } from "../../dates.js";
 import { f0, fm } from "../../format.js";
 import { kinds, displayName } from "../../lib/activity.js";
 import { amtText, SYM } from "../../lib/txrows.js";
-import { accByName } from "../../lib/accounts.js";
+import { accByName, TONEC } from "../../lib/accounts.js";
 import { useAccounts } from "../../pagelogic/accounts.js";
 import { usePhoneNav } from "../navigation.js";
 import LineChart from "../../components/charts/LineChart.vue";
@@ -27,7 +28,6 @@ import PhoneScreen from "../components/PhoneScreen.vue";
 import IconButton from "../components/IconButton.vue";
 import ListGroup from "../components/ListGroup.vue";
 import ListRow from "../components/ListRow.vue";
-import StatTile from "../components/StatTile.vue";
 import SearchField from "../components/SearchField.vue";
 import EmptyState from "../components/EmptyState.vue";
 import SkeletonRows from "../components/SkeletonRows.vue";
@@ -48,16 +48,12 @@ watch(sel, () => { shown.value = 50; q.value = ""; });
 // removed while open: back to the list
 watch(sel, (n, was) => { if (!n && was) nav.back(); });
 
-const TONE = { green: "pos", yellow: "warn", red: "neg", gray: "" };
-// the large amount: the first summary number (the balance, or a card's charges this month); the rest go in the tiles
+// the large amount: the first summary number (the balance, or a card's charges this month); the rest are the tiles under it,
+// in the computer's order and colours (green money in, red money out)
 const lead = computed(() => D.value.tiles[0]);
-// the tiles come in pairs: "Latest transaction" (a date, not an amount) goes to the top of the details instead
-const tiles = computed(() => D.value.tiles.slice(1).filter((x) => x[0] != "tLatest"));
-const details = computed(() => [...D.value.tiles.filter((x) => x[0] == "tLatest").map((x) => [x[0], x[1]]), ...D.value.rows]);
+const tiles = computed(() => D.value.tiles.slice(1));
 // the account's own short description (like "Current account"), when it says more than its type
 const desc = computed(() => { const d = an(D.value.a.s || ""); return d && d.toLowerCase() != String(D.value.lbl).toLowerCase() ? d : ""; });
-// money in is green; money out is plain (spending is normal), red only for a total below zero; nothing (₪0) is plain
-const tileTone = (x) => (/^[−-]?₪0$/.test(x[1]) ? "" : x[3] == "pos" ? "pos" : x[3] == "neg" && !/Out/.test(x[0]) ? "neg" : "");
 const name = computed(() => an(D.value.a.n.replace(/\s*··\s*\S+$/, "")));
 
 // what each action does, as on the computer: custom accounts are updated, edited and removed by hand, a pension's balance
@@ -110,23 +106,39 @@ const iso = (s) => "⁦" + s + "⁩"; // a date keeps its order inside a Hebrew 
     <EmptyState v-else-if="!D" icon-name="search" :title="P('gone')" :text="P('goneSub')" />
 
     <template v-else>
-      <header class="ph-acc-hero">
-        <span class="ph-acc-logo big" v-html="brandIcon(D.name, D.a.src, D.a.kind, D.a.ck)" />
-        <h1 class="ph-acc-name">{{ name }}</h1>
-        <p class="ph-acc-type">{{ D.lbl }}</p>
-        <p v-if="desc" class="ph-acc-type">{{ desc }}</p>
-        <b class="ph-acc-amt" :class="lead[3] == 'neg' ? 'neg' : ''" dir="ltr">{{ lead[1] }}</b>
-        <p class="ph-acc-under">{{ D.card ? t("acc.chargedMonth") : tk("acc." + lead[0]) }}</p>
-        <p v-if="lead[2]" class="ph-acc-under small">{{ lead[2] }}</p>
-        <span class="ph-acc-st pill" :class="TONE[D.st.tone]">{{ stLabel(D.st) }}</span>
+      <!-- the computer's top: the name, the actions, then one card with what the account is, how it is read and its numbers -->
+      <div class="ph-acc-top">
+        <div class="ph-acc-hero">
+          <span class="ph-acc-logo big" v-html="brandIcon(D.name, D.a.src, D.a.kind, D.a.ck)" />
+          <div class="ph-acc-hn">
+            <h1 class="ph-acc-name">{{ name }}</h1>
+            <p v-if="desc" class="ph-acc-type">{{ desc }}</p>
+          </div>
+        </div>
         <div class="ph-acc-btns">
           <button type="button" class="ph-btn" @click="addTx">{{ P("addTx") }}</button>
           <button v-if="updBal" type="button" class="ph-btn tonal" @click="updBal()">{{ t("acc.updBal") }}</button>
         </div>
-      </header>
+      </div>
+
+      <section class="ph-card ph-acc-sum">
+        <div class="ph-acc-sh"><span>{{ D.lbl }}</span><span class="bd" :class="TONEC[D.st.tone]">{{ stLabel(D.st) }}</span></div>
+        <div class="ph-acc-lead">
+          <span>{{ tk("acc." + lead[0]) }}</span>
+          <b class="ph-amt" :class="lead[3] || ''" dir="ltr">{{ lead[1] }}</b>
+          <i v-if="lead[2]">{{ lead[2] }}</i>
+        </div>
+        <div class="ph-acc-grid">
+          <div v-for="x in tiles" :key="x[0]" class="ph-acc-t">
+            <span>{{ tk("acc." + x[0]) }}</span>
+            <b class="ph-amt" :class="x[3] || ''" dir="ltr">{{ x[1] }}</b>
+            <i v-if="x[2]">{{ x[2] }}</i>
+          </div>
+        </div>
+      </section>
 
       <section v-if="D.chart" class="ph-group ph-acc-chart">
-        <div class="ph-group-h"><h3>{{ tk("acc." + D.chart.t) }}</h3><span class="ph-acc-gsub">{{ tk("acc." + D.chart.sub, { n: D.chart.n }) }}</span></div>
+        <div class="ph-group-h"><h3>{{ tk("acc." + D.chart.t) }} · <span class="ph-acc-gsub">{{ tk("acc." + D.chart.sub, { n: D.chart.n }) }}</span></h3></div>
         <div ref="chartBox" class="ph-group-b ph-acc-cb">
           <p v-if="D.chart.note" class="ph-acc-cnote">{{ tk("acc." + D.chart.note) }}</p>
           <LineChart v-if="cw" :key="D.name + D.chart.t" :vals="D.chart.vals" :labels="D.chart.labels" :full="D.chart.full" :color="D.chart.color" :box="cw - 24 + 48" gid="phaccg" scrub />
@@ -134,22 +146,17 @@ const iso = (s) => "⁦" + s + "⁩"; // a date keeps its order inside a Hebrew 
         <p class="ph-group-n">{{ D.chart.full ? P("chartHint") : P("chartHintUpd") }}</p>
       </section>
 
-      <section class="ph-group">
-        <div class="ph-group-h"><h3>{{ P("summary") }}</h3></div>
-        <div class="ph-stats ph-acc-tiles">
-          <StatTile v-for="x in tiles" :key="x[0]" :label="tk('acc.' + x[0])" :value="x[1]" :note="x[2]" :tone="tileTone(x)" />
-        </div>
-      </section>
-
       <ListGroup :title="t('acc.details')" :note="t('acc.detailsX')">
-        <ListRow v-for="r in details" :key="r[0] + r[1]" :class="{ 'ph-acc-tipr': r[2] }" @tap="r[2] && explain(r[2])">
+        <ListRow v-for="r in D.rows" :key="r[0] + r[1]" :class="{ 'ph-acc-tipr': r[2] }" @tap="r[2] && explain(r[2])">
           <template #title>{{ tk("acc." + r[0]) }}<PIcon v-if="r[2]" class="ph-acc-i" name="info" /></template>
           <template #end><span class="ph-row-v ph-acc-v">{{ r[1] }}</span></template>
         </ListRow>
       </ListGroup>
 
       <ListGroup v-if="D.upd.length" :title="t('acc.balHist')" :note="t('acc.histX')">
-        <ListRow v-for="u in D.upd" :key="u.id" :title="u.old == null ? t('acc.setTo', { amount: fm(u.nu) }) : t('acc.changed', { a: fm(u.old), b: fm(u.nu) })" :sub="[u.note, whenT(u.at)].filter(Boolean).join(', ')" />
+        <ListRow v-for="u in D.upd" :key="u.id" :title="u.old == null ? t('acc.setTo', { amount: fm(u.nu) }) : t('acc.changed', { a: fm(u.old), b: fm(u.nu) })" :sub="[u.note, whenT(u.at)].filter(Boolean).join(', ')">
+          <template #lead><span class="sev low ph-acc-dot" /></template>
+        </ListRow>
       </ListGroup>
 
       <section class="ph-group ph-acc-act">
