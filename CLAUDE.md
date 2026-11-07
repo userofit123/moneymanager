@@ -2,6 +2,11 @@
 
 A finance app for people who are **not** financial and don't know financial terms. Read these rules before every change.
 
+## Task queue
+The chat message "Work the queue" means: read and follow `workflow/RUNNER.md` (tasks from the Focus list
+"Money Manager", account "New Team"). Otherwise tasks come from the chat as usual. `workflow/` is
+git-ignored and never committed.
+
 ## Goals
 - **One private place for all your money:** Israeli banks and cards, Wise, cash and pension, gathered automatically, self-hosted (Docker) or as a Windows app.
 - **It only reads.** It never moves money or changes anything at a bank. Bank logins are stored encrypted and never shown again.

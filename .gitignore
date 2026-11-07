@@ -32,3 +32,6 @@ android/app/build/
 android/local.properties
 *.keystore
 *.jks
+
+# Queue runner (Focus tasks, logins): local only
+/workflow/
