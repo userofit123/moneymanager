@@ -30,7 +30,7 @@ const SUPPORTED = {
   max: ["max", ["username", "password"], "https://www.max.co.il/login"],
   isracard: ["isracard", ["id", "card6Digits", "password"], "https://digital.isracard.co.il/personalarea/login/"],
   visaCal: ["visaCal", ["username", "password"], "https://www.cal-online.co.il/"],
-  amex: ["amex", ["username", "card6Digits", "password"], "https://he.americanexpress.co.il/personalarea/login"],
+  amex: ["amex", ["id", "card6Digits", "password"], "https://he.americanexpress.co.il/personalarea/login"],
 };
 const COMPANIES = Object.fromEntries(Object.entries(SUPPORTED).map(([k, [id]]) => [k, CompanyTypes[id]]));
 const NEED = Object.fromEntries(Object.entries(SUPPORTED).map(([k, v]) => [k, v[1]]));
@@ -301,7 +301,11 @@ http.createServer(async (req, res) => {
       if (!NEED[j.company].every((k) => typeof credentials?.[k] === "string" && credentials[k])) return send(400, { error: "missing credentials" });
       busy = true;
       send(200, await scrape(j.company, credentials, j.startDate, j.profile));
-    } catch (e) { send(500, { success: false, error: scrub(e.message, credentials) }); }
+    } catch (e) {
+      const msg = scrub(e.message, credentials);
+      console.error(`${j.company} login or reading failed: ${msg}`); // the step it stopped at and the bank's own requests, so the container log shows why (credentials are already removed)
+      send(500, { success: false, error: msg });
+    }
     finally { busy = false; }
   } catch (e) { send(e.code === 413 ? 413 : 500, { error: String(e.message).slice(0, 200) }); }
 }).listen(+process.env.PORT || 8080, process.env.HOST || undefined, () => console.log("scraper ready"));

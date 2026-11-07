@@ -24,7 +24,7 @@ export const PROVIDERS = {
   max: { label: "Max", kind: "card", fields: [F.username, F.password] },
   isracard: { label: "Isracard", kind: "card", fields: [F.id, F.card6, F.password] },
   visaCal: { label: "Visa Cal", kind: "card", fields: [F.username, F.password] },
-  amex: { label: "American Express", kind: "card", fields: [F.username, F.card6, F.password] },
+  amex: { label: "American Express", kind: "card", fields: [F.id, F.card6, F.password] },
 };
 export const FIELDS = Object.fromEntries(Object.entries(PROVIDERS).map(([k, p]) => [k, p.fields]));
 export const LABELS = Object.fromEntries(Object.entries(PROVIDERS).map(([k, p]) => [k, p.label]));
@@ -41,7 +41,12 @@ export const connName = async (id) => connLabel(id, await nicknameOf(id));
 
 export async function getCreds(source) {
   const r = await q("SELECT data FROM credentials WHERE source=$1", [source]);
-  if (r.rowCount) return JSON.parse(decrypt(r.rows[0].data));
+  if (r.rowCount) {
+    const data = JSON.parse(decrypt(r.rows[0].data));
+    // American Express used to be saved with a "username" field, but the bank signs in with the ID number: an older saved login is read as the ID number
+    if (baseOf(source) === "amex" && !data.id && data.username) { const { username, ...rest } = data; return { ...rest, id: username }; }
+    return data;
+  }
   if (source === "wise" && process.env.WISE_TOKEN) return { token: process.env.WISE_TOKEN };
   return null;
 }

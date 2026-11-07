@@ -86,3 +86,26 @@ test("a card purchase listed with a charged amount of 0 shows what was spent, so
   assert.equal(shownAmount({ chargedAmount: -12, originalAmount: -12 }), -12);
   assert.equal(shownAmount({ originalAmount: -7 }), -7);
 });
+
+test("each bank asks for the same login fields the scraper passes on (American Express signs in with the ID number)", async () => {
+  const { FIELDS } = await import("../src/connections.js");
+  const fs = await import("node:fs");
+  const src = fs.readFileSync(new URL("../../scraper/server.js", import.meta.url), "utf8");
+  for (const [k, fields] of Object.entries(FIELDS)) {
+    if (k === "wise") continue;
+    const m = new RegExp(`\\b${k}: \\["${k}", \\[([^\\]]*)\\]`).exec(src);
+    assert.ok(m, `scraper lists ${k}`);
+    assert.deepEqual(fields.map((f) => f.k), JSON.parse(`[${m[1]}]`), k);
+  }
+  assert.deepEqual(FIELDS.amex.map((f) => f.k), ["id", "card6Digits", "password"]); // what israeli-bank-scrapers' American Express login reads
+});
+
+test("an American Express login saved with the old username field is read as the ID number", async () => {
+  await reset();
+  const { getCreds } = await import("../src/connections.js");
+  const { encrypt } = await import("../src/secrets.js");
+  await q("INSERT INTO credentials (source,data) VALUES ('amex',$1)", [encrypt(JSON.stringify({ username: "000000018", card6Digits: "123456", password: "made-up-pw" }))]);
+  assert.deepEqual(await getCreds("amex"), { card6Digits: "123456", password: "made-up-pw", id: "000000018" });
+  await saveCreds("amex", { id: "000000026", card6Digits: "654321", password: "made-up-pw2" });
+  assert.deepEqual(await getCreds("amex"), { id: "000000026", card6Digits: "654321", password: "made-up-pw2" });
+});
