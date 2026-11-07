@@ -61,6 +61,13 @@ html.phone .ph-tabs {
   view-transition-name: ph-tabs;
 }
 
+/* while screens move the live page is hidden, so the moment between the old screen leaving and the new one arriving
+   (and the side a sliding screen uncovers) would show the browser's bare canvas, black on many phones: the layer
+   that holds the moving pictures sits on the page colour instead */
+html.phone::view-transition {
+  background: var(--bg);
+}
+
 html.phone::view-transition-group(root) {
   animation-duration: var(--p-t-push);
 }
