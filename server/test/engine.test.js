@@ -30,15 +30,19 @@ test("gap maths: drop, rise, none", () => {
   assert.equal(computeGap(100, 150, 50), 0);
 });
 
+// Dates are counted back from today: payments older than a month before the starting point (OLD_DAYS) are ignored by design, so fixed dates would age out.
+const daysAgo = (n) => new Date(Date.now() - n * 864e5);
+const dayStr = (n) => daysAgo(n).toISOString().slice(0, 10);
+
 test("balance drop with no transaction creates a money-out gap in the right currency; a matching transaction clears it", async () => {
   const wise = (await q("SELECT * FROM accounts WHERE name='Wise'")).rows[0];
-  await tx((c) => recordSnapshot(c, wise, 318.47, new Date("2026-10-05T10:00:00Z")));
-  await tx((c) => recordSnapshot(c, wise, 268.47, new Date("2026-10-07T10:00:00Z")));
+  await tx((c) => recordSnapshot(c, wise, 318.47, daysAgo(4)));
+  await tx((c) => recordSnapshot(c, wise, 268.47, daysAgo(2)));
   const g = (await q("SELECT * FROM balance_gaps WHERE status='open'")).rows;
   assert.equal(g.length, 1);
   assert.equal(g[0].amount, -50);
   // add the Figma subscription by hand ($50)
-  const r = await ingest({ name: "Wise", currency: "USD", source: "manual" }, [{ date: "2026-10-06", description: "Figma", amount: -50, currency: "USD", externalId: "hand-1" }]);
+  const r = await ingest({ name: "Wise", currency: "USD", source: "manual" }, [{ date: dayStr(3), description: "Figma", amount: -50, currency: "USD", externalId: "hand-1" }]);
   assert.equal(r.added, 1);
   const after_ = (await q("SELECT * FROM balance_gaps")).rows[0];
   assert.equal(after_.status, "cleared");
@@ -47,13 +51,13 @@ test("balance drop with no transaction creates a money-out gap in the right curr
 
 test("a smaller transaction leaves the remainder; a balance rise is a money-in gap", async () => {
   const wise = (await q("SELECT * FROM accounts WHERE name='Wise'")).rows[0];
-  await tx((c) => recordSnapshot(c, wise, 203.47, new Date("2026-10-08T10:00:00Z"))); // another -65
+  await tx((c) => recordSnapshot(c, wise, 203.47, daysAgo(1))); // another -65
   let g = (await q("SELECT * FROM balance_gaps WHERE status='open'")).rows;
   assert.equal(g[0].amount, -65);
-  await ingest({ name: "Wise", currency: "USD", source: "manual" }, [{ date: "2026-10-08", description: "Part", amount: -20, currency: "USD", externalId: "hand-2" }]);
+  await ingest({ name: "Wise", currency: "USD", source: "manual" }, [{ date: dayStr(1), description: "Part", amount: -20, currency: "USD", externalId: "hand-2" }]);
   g = (await q("SELECT * FROM balance_gaps WHERE status='open'")).rows;
   assert.equal(g[0].remaining, -45);
-  await tx((c) => recordSnapshot(c, wise, 400, new Date("2026-10-09T10:00:00Z")));
+  await tx((c) => recordSnapshot(c, wise, 400, daysAgo(0)));
   g = (await q("SELECT * FROM balance_gaps WHERE status='open' AND amount>0")).rows;
   assert.equal(g.length, 1);
   assert.ok(g[0].amount > 0);
@@ -128,11 +132,11 @@ test("state round trip: edits are saved, stale writes are refused", async () => 
 
 test("a new hand-entered transaction from the UI explains an open gap", async () => {
   const wise = (await q("SELECT * FROM accounts WHERE name='Wise'")).rows[0];
-  await tx((c) => recordSnapshot(c, wise, 100, new Date("2026-10-10T10:00:00Z")));
+  await tx((c) => recordSnapshot(c, wise, 100, daysAgo(0)));
   const before_ = (await q("SELECT sum(remaining)::float s FROM balance_gaps WHERE status='open' AND amount<0")).rows[0].s;
   const S = await getState();
   const id = Math.max(...S.tx.map((t) => t.id)) + 1;
-  S.tx.unshift({ id, d: "2026-10-10", desc: "Hand", from: "Wise", to: "Shop", a: -61.1, orig: { cur: "USD", amt: 20 }, c: "", tags: [], docs: [], note: "" });
+  S.tx.unshift({ id, d: dayStr(0), desc: "Hand", from: "Wise", to: "Shop", a: -61.1, orig: { cur: "USD", amt: 20 }, c: "", tags: [], docs: [], note: "" });
   await putState(S);
   const after_ = (await q("SELECT sum(remaining)::float s FROM balance_gaps WHERE status='open' AND amount<0")).rows[0].s;
   assert.equal(+(after_ - before_).toFixed(2), 20);
