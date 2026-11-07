@@ -60,6 +60,12 @@ html.phone .ph-tabs {
   view-transition-name: ph-tabs;
 }
 
+/* pushed screens and Back still use View Transitions: the strip a sliding screen uncovers shows the page colour,
+   not the browser's bare canvas (black on many phones) */
+html.phone::view-transition {
+  background: var(--bg);
+}
+
 html.phone::view-transition-group(root) {
   animation-duration: var(--p-t-push);
 }

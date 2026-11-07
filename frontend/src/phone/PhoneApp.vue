@@ -12,7 +12,7 @@ import { app } from "../core/boot.js";
 import { edgeBack, tabSwipe } from "./gestures.js";
 import { sign, isRtl } from "./dir.js";
 import { TABS } from "./screens.js";
-import { swipeTarget, tabStep } from "../lib/tabSwipe.js";
+import { swipeTarget, tabStep, tabTap } from "../lib/tabSwipe.js";
 import ScreenHost from "./ScreenHost.vue";
 import TabBar from "./components/TabBar.vue";
 import OfflinePill from "./components/OfflinePill.vue";
@@ -64,9 +64,19 @@ watch(url, async (u) => {
 // -1 an earlier one; mirrored in Hebrew). Under reduced motion, nothing slides: a short fade.
 const still = () => matchMedia("(prefers-reduced-motion:reduce)").matches;
 let moving = false;
-function moved(how, change, step = 0) {
+// the motion times and curves from tokens.css (read once; the values there today as fallback)
+let T = null;
+function times() {
+  if (T) return T;
+  const s = getComputedStyle(document.documentElement);
+  const ms = (k, d) => parseFloat(s.getPropertyValue(k)) || d, ease = (k, d) => s.getPropertyValue(k).trim() || d;
+  return (T = {
+    out: ms("--p-t-tab-out", 120), in: ms("--p-t-tab-in", 240), fade: ms("--p-t-tab-fade", 180),
+    easeIn: ease("--p-ease-in", "cubic-bezier(.4,0,1,1)"), ease: ease("--p-ease", "cubic-bezier(.2,.8,.2,1)"),
+  });
+}
+function moved(how, change) {
   const H = document.documentElement;
-  if (how === "tab") return swapTab(change, step);
   if (!document.startViewTransition || still() || how === "none") return change();
   H.dataset.phnav = how; moving = true;
   const vt = document.startViewTransition(change);
@@ -76,23 +86,33 @@ function moved(how, change, step = 0) {
 // Another tab, like the calculator app: the screen itself slides 30px away and fades, then the new one comes in. Both
 // move inside the page, so the page's own background shows between them. (Done as a View Transition, the moment between
 // the two pictures showed whatever the phone draws under the page, a black screen on some phones.)
-async function swapTab(change, step) {
+// Quick taps: the tab being opened (pending) counts as the open one, and only the newest swap opens its tab, ends the
+// motion and slides its screen in; an older one still sliding out is dropped.
+let pending = null, swaps = 0, outs = [];
+async function swapTab(to, step) {
+  const change = async () => { if (to !== nav.tab) { go(top(nav, to).url); follow(); await drawn(); } };
   const el = stage.value;
-  if (!el?.animate || still() || !step) return change();
-  moving = true;
+  if (!el?.animate || still() || !step) { if (pending) settle(); return change(); }
+  const id = ++swaps;
+  pending = to; moving = true;
   const he = document.documentElement.classList.contains("he") ? -1 : 1;
-  const out = el.animate([{ opacity: 0, transform: `translateX(${-30 * step * he}px)` }], { duration: 120, easing: "cubic-bezier(.4,0,1,1)", fill: "forwards" });
-  try { await out.finished.catch(() => {}); await change(); } finally { moving = false; slideIn("tab", step); out.cancel(); }
+  const out = el.animate([{ opacity: 0, transform: `translateX(${-30 * step * he}px)` }], { duration: times().out, easing: times().easeIn, fill: "forwards" });
+  outs.push(out);
+  await out.finished.catch(() => {});
+  if (id !== swaps) return;
+  try { await change(); } finally { if (id === swaps) { settle(); slideIn("tab", step); } }
 }
+// ends the tab motion: drops any older swap and puts the screen back where it belongs
+function settle() { ++swaps; pending = null; moving = false; outs.forEach((a) => a.cancel()); outs = []; }
 const stage = ref(null);
 function slideIn(how, step = 0) {
   const el = stage.value; if (!el || !el.animate) return;
-  if (still()) { el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 120 }); return; }
+  if (still()) { el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: times().out }); return; }
   const he = document.documentElement.classList.contains("he") ? -1 : 1;
   if (step) {
     // 40px in from the side, settling (also the second half of swapTab)
-    el.animate([{ transform: `translateX(${40 * step * he}px)` }, { transform: "none" }], { duration: 240, easing: "cubic-bezier(.2,.8,.2,1)" });
-    el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 180, easing: "cubic-bezier(.2,.8,.2,1)" });
+    el.animate([{ transform: `translateX(${40 * step * he}px)` }, { transform: "none" }], { duration: times().in, easing: times().ease });
+    el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: times().fade, easing: times().ease });
     return;
   }
   const from = how === "push" ? `translateX(${30 * he}%)` : how === "pop" ? `translateX(${-30 * he}%)` : "none";
@@ -106,8 +126,8 @@ const drawn = () => new Promise((res) => {
   nextTick(check);
 });
 
-function open(to, how, step = 0) {
-  return moved(how, async () => { go(to); follow(); await drawn(); }, step);
+function open(to, how) {
+  return moved(how, async () => { go(to); follow(); await drawn(); });
 }
 const api = {
   // push a screen on the open tab: push("account", 4), push("accounts")
@@ -120,7 +140,9 @@ const api = {
   },
   // a tab: its stack as it was; the open tab again: to its top, then to its first screen
   tab(name) {
-    if (name !== nav.tab) return open(top(nav, name).url, "tab", tabStep(TABS, nav.tab, name));
+    const tap = tabTap({ tabs: TABS, at: nav.tab, pending, name });
+    if (tap.open) return swapTab(name, tap.step);
+    if (tap.busy) return;
     if (scrollY > 4) return scrollTo({ top: 0, behavior: still() ? "auto" : "smooth" });
     if (stack.value.length > 1) open(rootUrl(name), "pop");
   },
@@ -138,7 +160,7 @@ const syncing = computed(() => !!job.value);
 const standalone = typeof navigator !== "undefined" && (navigator.standalone === true || matchMedia("(display-mode: standalone)").matches) && /iPhone|iPad|iPod/.test(navigator.userAgent);
 let stopEdge = null, stopSwipe = null;
 // on a tab's first screen, a sideways swipe goes to the next or previous tab in the tab bar's order (mirrored in Hebrew)
-const swiped = (m) => { const to = swipeTarget({ ...m, tabs: TABS, at: nav.tab, rtl: isRtl() }); if (to) api.tab(to); };
+const swiped = (m) => { const to = swipeTarget({ ...m, tabs: TABS, at: pending ?? nav.tab, rtl: isRtl() }); if (to) api.tab(to); };
 onMounted(() => {
   document.documentElement.classList.add("ph-ready");
   if (standalone && stage.value) stopEdge = edgeBack(stage.value, { can: () => stack.value.length > 1, onBack: () => api.back(), sign });

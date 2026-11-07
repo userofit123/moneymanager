@@ -1,7 +1,7 @@
 // Swiping sideways between the phone's tabs (lib/tabSwipe.js): which tab a swipe opens, mirrored in Hebrew.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { swipeTarget, awayFromEdges, tabStep } from "../src/lib/tabSwipe.js";
+import { swipeTarget, awayFromEdges, tabStep, tabTap } from "../src/lib/tabSwipe.js";
 
 const tabs = ["recap", "home", "activity", "more"];
 const go = (dx, at = "home", o = {}) => swipeTarget({ dx, dy: 0, ms: 200, tabs, at, ...o });
@@ -52,4 +52,12 @@ test("a swipe and the slide it plays agree, in both directions and languages", (
     const towardsStart = rtl ? dx > 0 : dx < 0;
     assert.equal(tabStep(tabs, "home", to), towardsStart ? 1 : -1);
   }
+});
+
+test("a tap while moving to another tab counts from the tab being opened", () => {
+  assert.deepEqual(tabTap({ tabs, at: "home", name: "activity" }), { open: true, step: 1 });
+  assert.deepEqual(tabTap({ tabs, at: "home", name: "home" }), { open: false, busy: false }, "the open tab: to its top");
+  assert.deepEqual(tabTap({ tabs, at: "recap", pending: "activity", name: "recap" }), { open: true, step: -1 }, "back to where it was");
+  assert.deepEqual(tabTap({ tabs, at: "recap", pending: "home", name: "more" }), { open: true, step: 1 }, "step from the tab being opened");
+  assert.deepEqual(tabTap({ tabs, at: "recap", pending: "home", name: "home" }), { open: false, busy: true }, "already on its way");
 });

@@ -23,3 +23,11 @@ export function tabStep(tabs, from, to) {
   const a = tabs.indexOf(from), b = tabs.indexOf(to);
   return a < 0 || b < 0 || a === b ? 0 : b > a ? 1 : -1;
 }
+
+// A tap on a tab (or a swipe) while the screen may still be moving to another tab: the tab being opened (pending) counts
+// as the open one. Returns { open: true, step } to move to the tapped tab, or { open: false, busy } for the tab already
+// open (busy: it is still on its way, so the tap does nothing; otherwise the tap scrolls it to its top or first screen).
+export function tabTap({ tabs, at, pending = null, name }) {
+  const from = pending ?? at;
+  return name !== from ? { open: true, step: tabStep(tabs, from, name) } : { open: false, busy: pending != null };
+}
