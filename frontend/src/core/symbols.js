@@ -14,7 +14,6 @@ const MARK = {
 };
 // The coin with one mark. Its purple tile is left out inside the app (layout.css), where the coin sits on the look's colours.
 const coin = (mark) => "<svg class='coin' viewBox='0 0 512 512'><defs><linearGradient id='cg' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#6f7cff'/><stop offset='1' stop-color='#c28bff'/></linearGradient></defs><rect width='512' height='512' rx='112' fill='url(#cg)'/><circle cx='256' cy='268' r='168' fill='#000' opacity='.16'/><circle cx='256' cy='256' r='168' fill='#fff'/><circle cx='256' cy='256' r='134' fill='none' stroke='#7b83ff' stroke-width='12' opacity='.55'/>" + mark + "</svg>";
-export const COIN_SVG = coin(MARK.coin); // the app's own icon, the same on every look
 
 // [value, text key] of the app icon tiles, in the order they show
 export const ICONS = [["coin", "coin"], ["₪", "shekel"], ["$", "dollar"], ["€", "euro"], ["£", "pound"], ["¥", "yen"]];

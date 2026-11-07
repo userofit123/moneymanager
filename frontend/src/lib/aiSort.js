@@ -7,9 +7,9 @@ import { CAT_HE } from "../catnames.js";
 import { ruleExists, genCheck, addInRule } from "./categories.js";
 import { inRules } from "./moneyIn.js";
 
-export const LIMITS = { cats: 200, rules: 5000, tagRules: 5000, names: 2000, cards: 50, salary: 50, name: 40, text: 60, mine: 300 };
+const LIMITS = { cats: 200, rules: 5000, tagRules: 5000, names: 2000, cards: 50, salary: 50, name: 40, text: 60, mine: 300 };
 // The kinds of rows in a plan, in the order the preview shows them.
-export const KINDS = ["cats", "rules", "tagRules", "names", "cards", "salary"];
+const KINDS = ["cats", "rules", "tagRules", "names", "cards", "salary"];
 const clean = (v) => String(v ?? "").replace(/\s+/g, " ").trim();
 const low = (v) => clean(v).toLowerCase();
 

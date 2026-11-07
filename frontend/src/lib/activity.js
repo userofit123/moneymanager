@@ -11,13 +11,13 @@ export const isIgnored = (S, t) => !!(S?.txIgnore && S.txIgnore[t.id]);
 // The user's own account a row belongs to: money out leaves from it (from), money in arrives in it (to).
 export const acctOf = (t) => (t.a > 0 ? t.to : t.from);
 // Accounts set not to count in reports (inR false): their rows are not counted as income or spending anywhere.
-export const offIds = (S) => new Set((S?.accounts || []).filter((a) => a.inR === false).map((a) => a.n));
-export const isFuture = (t, today) => t.upBill != null || t.upInst || (!t.virtual && String(t.d) > today);
+const offIds = (S) => new Set((S?.accounts || []).filter((a) => a.inR === false).map((a) => a.n));
+const isFuture = (t, today) => t.upBill != null || t.upInst || (!t.virtual && String(t.d) > today);
 // Paying the credit card bill from the bank: the purchases are already counted on the card.
 // It counts as one when it comes from a bank account and its text names a card company,
 // one of the user's cards, or one of their card rules. ccOverride: 1 = counted as spending anyway, 2 = marked as a card payment by hand.
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-export function cardRe(name) {
+function cardRe(name) {
   const n = String(name).toLowerCase();
   if (n === "max") return /(\bmax\b|max it|מקס|leumi ?card|לאומי ?קארד)/i;
   if (n === "isracard") return /(isracard|ישראכרט)/i;
@@ -76,7 +76,7 @@ export function kinds(S, today) {
 // A row In, Out and Net count (the same rows as countedTx in lib/bills.js): not a transfer, card payment, upcoming item,
 // balance note, row left out by you, or row of an account not counted in reports.
 // What a money coming in is, for the Type filter and grouping: salary, income (other money in) or back (money back).
-export const inType = (k, t) => { const r = k.inOf && k.inOf(t); return r?.kind == "back" ? "back" : r?.sub == "salary" ? "salary" : "income"; };
+const inType = (k, t) => { const r = k.inOf && k.inOf(t); return r?.kind == "back" ? "back" : r?.sub == "salary" ? "salary" : "income"; };
 // How it counts (lib/moneyIn.js partOf): "in" or "back".
 const inPart = (k, t) => (k.inOf ? partOf(k.inOf(t)) : "in");
 export const counts = (t, k) => !(t.balUpd || k.isXf(t) || k.isIgn(t) || k.isFut(t) || k.isCp(t) || k.isOff(t));
@@ -166,7 +166,7 @@ export function filterRows(S, rows, f, k) {
 }
 
 const tie = (a, b) => String(b.id).localeCompare(String(a.id));
-export const SORTS = {
+const SORTS = {
   new: (a, b) => b.d.localeCompare(a.d) || tie(a, b),
   old: (a, b) => a.d.localeCompare(b.d) || tie(b, a),
   big: (a, b) => Math.abs(b.a) - Math.abs(a.a) || b.d.localeCompare(a.d) || tie(a, b),
@@ -179,7 +179,7 @@ export const GROUPS = ["none", "day", "week", "month", "cat", "type", "acct", "m
 const weekStart = (d, ws = "sun") => { const x = new Date(d + "T12:00:00Z"); x.setUTCDate(x.getUTCDate() - ((x.getUTCDay() - (ws == "mon" ? 1 : 0) + 7) % 7)); return x.toISOString().slice(0, 10); };
 
 // [key, label parts, is it by date]. The screen turns the parts into words in the chosen language.
-export function groupOf(t, mode, k, ws) {
+function groupOf(t, mode, k, ws) {
   switch (mode) {
     case "day": return [t.d, { day: t.d }, true];
     case "week": { const w = weekStart(t.d, ws); return [w, { week: w }, true]; }

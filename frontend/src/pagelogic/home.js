@@ -16,6 +16,8 @@ import { flowSteps } from "../lib/home.js";
 import { numText } from "../lib/keyNumbers.js";
 import { spentEachMonth, moneyLasts } from "../lib/moneyLasts.js";
 import { alertsModel } from "../lib/alerts.js";
+import { alertTexts } from "../lib/alerttext.js";
+import { makeFriendly } from "../core/alertReport.js";
 import { openTx, openPop } from "../core/txwin.js";
 import { TP } from "../core/tooltip.js";
 import { dstr, titleCase } from "../dates.js";
@@ -47,35 +49,10 @@ export function useHome() {
   const accLbl = (n) => { const m = /^(.*?)\s*··\s*(\S+)$/.exec(n), tl = m ? m[2] : accTail(n), sp = (x) => ` <span class="sm" dir="ltr" style="font-weight:500;opacity:.8;unicode-bidi:isolate">·· ${esc(x)}</span>`; return m ? esc(titleCase(an(m[1]))) + sp(tl) : esc(titleCase(an(n))) + (tl ? sp(tl) : ""); };
 
   // Alerts: the first three. Their sentences come from the language files.
-  const friendly = (e) => {
-    e = e || "";
-    if (/fetchPostWithinPage|fetchGetWithinPage|Unexpected end of JSON/i.test(e)) { const st = (e.match(/reqName=([A-Za-z_0-9]+)/) || [])[1] || ""; return /^(ValidateIdData|performLogonI)$/.test(st) ? t("al.feLogon") : t("al.feNoData") + (st ? t("al.feStep", { st }) : ""); }
-    return /^OTP_REQUIRED/.test(e) ? t("al.feOtp") : e;
-  };
+  const friendly = makeFriendly(t);
   const alertList = computed(() => (S.value && M.value ? alertsModel(S.value, M.value, now.value, fcSaved.value, friendly) : []));
   const monthYear = (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, { month: "short", year: "numeric" });
-  function alertText(x) {
-    const p = { ...x.p }; if (p.k) p.k = catName(p.k); if (p.n && x.key === "card") p.n = an(p.n); if (p.date && /^\d{4}-/.test(String(p.date)) || p.date instanceof Date) p.date = dstr(p.date);
-    const T = (k, q, c) => tk("al." + k + "T", q ?? p, c), X = (k, q) => tk("al." + k + "X", q ?? p);
-    switch (x.key) {
-      case "overdue": return [T("overdue"), X("overdue")];
-      case "due": return [p.d == 0 ? t("al.dueToday", p) : p.d == 1 ? t("al.dueT1", p) : t("al.dueT", p), X("due")];
-      case "price": return [tk(p.up ? "al.priceUp" : "al.priceDown", p), `${p.was} → ${p.amt} (${p.pct})`];
-      case "jarAsk": return [t("al.jarAskT"), X("jarAsk")];
-      case "large": return [tk("al.large" + (p.k || (p.inc ? "In" : "Out")), p), X("large")];
-      case "xfer": return [tk("al.xferT" + (p.n == 1 ? "1" : ""), p), X("xfer")];
-      case "dup": return [tk("al.dupT" + (p.n == 1 ? "1" : ""), p), X("dup")];
-      case "gapBill": return [T("gapBill"), X("gapBill")];
-      case "gap": return [tk((p.card ? "al.card" : "al.gap") + (p.down ? "Down" : "Up"), p), t(p.card && !p.down ? "al.cardUpX" : "al.gapX")];
-      case "pending": return [tk("al.pendingT" + (p.c == 1 ? "1" : ""), p), t("al.pendingX")];
-      case "syncFail": return [t("al.syncFailT", p), p.msg === "Check the login" ? t("al.syncCheck") : p.msg];
-      case "syncOld": return [t("al.syncOldT", p), t("al.syncLast", { when: (p.msg.match(/^Last synced (.*) \(over/) || [])[1] || "" })];
-      case "uncat": return [tk("al.uncatT" + (p.n == 1 ? "1" : ""), p), t("al.uncatX")];
-      case "forecast": return [t("al.fcT", { when: monthYear(p.when) }), t("al.fcX", p)];
-      case "docs": return [t("al.docsT", p), X("docs")];
-      default: return [T(x.key), X(x.key)];
-    }
-  }
+  const alertText = (x) => alertTexts(x, { t, catName, an, dstr, monthYear });
   const alerts3 = computed(() => alertList.value.slice(0, 3).map((x) => ({ ...x, title: alertText(x)[0], text: alertText(x)[1] })));
   const openTxId = (id) => openTx(id);
   const openAlert = (x) => openAlertFrom(x, x.title);

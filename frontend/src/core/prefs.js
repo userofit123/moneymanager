@@ -5,7 +5,7 @@
 import { ref, watch } from "vue";
 import { request, sendJson } from "./http.js";
 
-export const PREF_KEYS = ["moneySugg", "moneyTheme", "moneyThemes", "moneyThemeAs", "moneyLang", "moneyBoot", "moneyFc", "moneyFlow", "moneyGroup", "moneyDf", "moneyWs", "moneyHelp", "moneyRanges", "moneyTrend", "moneyCatMonths", "moneyCatCols", "moneyYears", "moneyPoints"];
+const PREF_KEYS = ["moneySugg", "moneyTheme", "moneyThemes", "moneyThemeAs", "moneyLang", "moneyBoot", "moneyFc", "moneyFlow", "moneyGroup", "moneyDf", "moneyWs", "moneyHelp", "moneyRanges", "moneyTrend", "moneyCatMonths", "moneyCatCols", "moneyYears", "moneyPoints"];
 const AT = "moneyPrefsAt";
 let pushOn = false; // only after the server copy was looked at, so an old copy here never overwrites a newer one there
 
@@ -26,7 +26,7 @@ export const writeJson = (k, v) => writePref(k, JSON.stringify(v));
 
 const all = () => { const o = {}; [...PREF_KEYS, AT].forEach((k) => { const v = readPref(k); if (v != null) o[k] = v; }); return o; };
 let pushT = null;
-export function pushPrefs() {
+function pushPrefs() {
   clearTimeout(pushT);
   pushT = setTimeout(() => request("/api/prefs", { ...sendJson("PUT", all()), keepalive: true }).catch(() => {}), 50);
 }

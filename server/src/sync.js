@@ -11,7 +11,7 @@ import { scrape } from "./sources/scraper.js";
 import { recordSnapshot, detectTransfers, GAP_WAIT_HOURS } from "./engine.js";
 import { getCreds, isLocked, recordResult, markTested, LABELS, KINDS, baseOf, validId, connName } from "./connections.js";
 import { scrub } from "./secrets.js";
-import { sendNtfy, notifyOnce, clearNotified, remindOldGaps } from "./notify.js";
+import { notifyOnce, clearNotified, remindOldGaps } from "./notify.js";
 import { failNotice, personLang } from "./syncFailNotice.js";
 import { fillJars } from "./jars.js";
 
@@ -23,17 +23,17 @@ const putSet = (k, v) => q("INSERT INTO settings (key,value) VALUES ($1,$2::json
 // last saved from. A tick every few minutes runs the latest slot that has passed and has not run yet, so a restart or a missed
 // tick never skips one.
 const validTz = (z) => { try { new Intl.DateTimeFormat("en-GB", { timeZone: z }); return true; } catch { return false; } };
-export const localMinutes = (tz, d = new Date()) => {
+const localMinutes = (tz, d = new Date()) => {
   const p = Object.fromEntries(new Intl.DateTimeFormat("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" }).formatToParts(d).map((x) => [x.type, +x.value]));
   return p.hour * 60 + p.minute + p.second / 60;
 };
-export const slotMinutes = (at, hours) => {
+const slotMinutes = (at, hours) => {
   const [h, m] = String(at).split(":").map(Number), start = h * 60 + m, out = [];
   for (let k = 0; k * hours * 60 < 1440; k++) out.push((start + k * hours * 60) % 1440);
   return out.sort((a, b) => a - b);
 };
 // timestamps of the latest slot that has passed and of the next one
-export function slotsAround(at, hours, tz, now = new Date()) {
+function slotsAround(at, hours, tz, now = new Date()) {
   const slots = slotMinutes(at, hours), n = localMinutes(tz, now), at0 = now.getTime();
   const past = slots.filter((s) => s <= n), prev = past.length ? past[past.length - 1] - n : slots[slots.length - 1] - 1440 - n;
   const fut = slots.filter((s) => s > n), nxt = fut.length ? fut[0] - n : slots[0] + 1440 - n;
@@ -75,7 +75,7 @@ async function setBalance(a, value) {
 const firstTime = async (source) => (await q("SELECT 1 FROM transactions WHERE source=$1 LIMIT 1", [source])).rowCount === 0;
 
 // "payment 3 of 10": the bank reports it for card purchases in instalments; some banks only put it in the description
-export const instFromText = (s = "") => {
+const instFromText = (s = "") => {
   const m = String(s).match(/תשלום\s*(\d{1,2})\s*(?:\/|מתוך)\s*(\d{1,2})/) || String(s).match(/payment\s*(\d{1,2})\s*(?:\/|of)\s*(\d{1,2})/i) || String(s).match(/(\d{1,2})\s*מתוך\s*(\d{1,2})/);
   return m && +m[2] >= 2 && +m[2] <= 60 && +m[1] >= 1 && +m[1] <= +m[2] ? { n: +m[1], total: +m[2] } : null;
 };
@@ -104,7 +104,7 @@ export const toRows = (acc) => (acc.txns || []).map((t) => ({
 
 // What a sync really read, not just what was asked for. Banks only keep about a year of history online: when the oldest row they returned
 // is much newer than the start date requested, say so, instead of implying the whole range was read.
-export function readNote(days, seen, oldest, added, today = new Date()) {
+function readNote(days, seen, oldest, added, today = new Date()) {
   if (!seen || !oldest) return `asked for the last ${days} days, the bank returned no transactions`;
   const asked = new Date(today.getTime() - days * 864e5), gotFrom = new Date(oldest);
   const short = (gotFrom - asked) / 864e5 > 45;
@@ -307,7 +307,6 @@ export function startScheduler() {
   cron.schedule("0 9 * * *", () => remindOldGaps().catch((e) => console.error("remind:", e.message)));
   console.log("scheduler on");
 }
-export { sendNtfy };
 
 // Newest first, for the Sync log in Settings.
 export async function syncLog(limit = 200) {

@@ -6,7 +6,7 @@ import { inRow } from "./moneyIn.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
 const sum = (a) => a.reduce((t, x) => t + x, 0);
-export const med = (a) => { const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+const med = (a) => { const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 export { f0, fm } from "../format.js";
 import { fm } from "../format.js";
 const byDate = (a, b) => a.d.localeCompare(b.d);
@@ -114,7 +114,7 @@ export function billState(S, now = new Date()) {
 
 // "Payment 8 of 10" series: purchases being paid in instalments that still have payments left.
 const baseName = (t) => String(t.to || t.desc).replace(/\s*(תשלום|payment)?\s*\d+\s*(\/|מתוך|of)\s*\d+/gi, "").trim();
-export function instSeries(S, NOW) {
+function instSeries(S, NOW) {
   const g = {};
   const k = kinds(S, NOW.getFullYear() + "-" + p2(NOW.getMonth() + 1) + "-" + p2(NOW.getDate()));
   (S.tx || []).filter((t) => !t.virtual && t.a < 0 && !k.isIgn(t)).forEach((t) => {

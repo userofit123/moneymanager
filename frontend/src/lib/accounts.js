@@ -68,9 +68,6 @@ export function cardMonthly(S, name, today) {
   return { keys, vals: keys.map((m) => Math.round(cardBuys(A, on, m))) };
 }
 
-// The balance updates typed by hand, as rows of the account's activity (balRows, shared with Activity).
-export { balRows };
-
 // The account's own activity: every transaction from or to it (and the fees of moving money) plus its balance updates,
 // newest first, filtered by the search box (description, from, to, note, tags).
 export function accRows(S, name, q) {

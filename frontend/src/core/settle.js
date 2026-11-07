@@ -10,7 +10,7 @@ import { countedTx, detectNew, fm } from "../lib/bills.js";
 import { billLists, isAll, catJarsOf } from "../lib/jars.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
-export const dayOf = (d) => d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate());
+const dayOf = (d) => d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate());
 const cad = { 1: "monthly", 2: "every 2 months", 12: "yearly" };
 
 export function settle(S, now = new Date(), fx = {}) {

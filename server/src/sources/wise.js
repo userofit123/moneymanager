@@ -37,7 +37,7 @@ export function activityToRow(a) {
   return { date, description: title, amount: m.amount, currency: m.currency, externalId: `act:${a.id}`, counterparty: title, pending: a.status && a.status !== "COMPLETED", details: { ...a, via: "activity list" } };
 }
 
-export async function fetchActivities(token, profileId, days = 30) {
+async function fetchActivities(token, profileId, days = 30) {
   const since = new Date(Date.now() - days * 864e5).toISOString();
   const rows = []; let skipped = 0, cursor = null;
   for (let page = 0; page < 30; page++) {

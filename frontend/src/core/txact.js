@@ -7,7 +7,7 @@ import { addSuggestion, setSuggestionRunner } from "./suggest.js";
 import { openPop } from "./txwin.js";
 import * as A from "../lib/txactions.js";
 import { ruleText } from "../lib/ruleFields.js";
-import { guessKw, tagSimilar, ruleTags, cardInfo, transferIds, displayName, normD } from "../lib/activity.js";
+import { guessKw, tagSimilar, ruleTags, cardInfo, transferIds, normD } from "../lib/activity.js";
 import { tagName } from "./polish.js";
 
 const t = (...a) => i18n.global.t(...a);
@@ -67,4 +67,3 @@ setSuggestionRunner((a) => {
   else if (a.kind == "tagRule") openPop("tagRule", a.arg);
   else if (a.kind == "cpRule") { const r = run(A.cpRuleAdd, a.arg.id); if (!r.err) toast(r.n ? t("txw.cpDone", { n: r.n }, r.n) : t("txw.cpDone0")); }
 });
-export const nameOf = (x) => displayName(S(), x);

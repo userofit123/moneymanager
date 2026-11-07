@@ -12,7 +12,7 @@ import { POINTS, award, earnFromChange, pointsUpkeep, pointsSummary } from "../l
 
 // Points on or off (on unless turned off). pointsPref is the setting as a ref, for the Settings switch: "on" or "off".
 export const pointsPref = usePref("moneyPoints", "on");
-export const pointsOn = () => readPref("moneyPoints", "on") !== "off";
+const pointsOn = () => readPref("moneyPoints", "on") !== "off";
 
 // Everything the screens show (lib/points.js pointsSummary), or null with no data or with points off.
 const S = () => data.state.value;
@@ -25,7 +25,7 @@ data.hooks.earn = (before, after, lines) => { if (pointsOn()) earnFromChange(bef
 export function pointsAfterUpkeep(S2) { if (pointsOn()) pointsUpkeep(S2, now.value); }
 
 // Saves points that are not a change by the person (no history line, no "Saved", no Undo).
-export function earnQuietly(key, kind, pts, d) {
+function earnQuietly(key, kind, pts, d) {
   if (!pointsOn() || !S() || S().points?.[key]) return;
   data.change((S2) => { award(S2, key, kind, pts, now.value, d); return []; }, { quiet: true });
 }

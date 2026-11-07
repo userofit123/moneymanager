@@ -11,7 +11,7 @@ import { ensureDefaults } from "./state.js";
 import { activeJob } from "./sync.js";
 
 // parents first (restore inserts in this order and deletes in the reverse order)
-export const TABLES = [
+const TABLES = [
   "categories", "tags", "accounts", "jars", "transactions", "transaction_tags", "documents", "transfer_links",
   "rules", "tag_rules", "jar_movements", "jar_categories", "bills", "ignored_bills", "budgets", "settings", "dismissed_alerts",
   "reconciliation_adjustments", "balance_snapshots", "balance_gaps", "exchange_rates", "net_worth_snapshots", "planned_items",
@@ -69,7 +69,7 @@ function seal(obj, password) {
   const ct = Buffer.concat([c.update(gz), c.final()]);
   return Buffer.concat([MAGIC, Buffer.from([1, 1]), salt, iv, c.getAuthTag(), ct]);
 }
-export function isEncrypted(buf) { return buf.length > 6 && buf.subarray(0, 4).equals(MAGIC) && buf[5] === 1; }
+function isEncrypted(buf) { return buf.length > 6 && buf.subarray(0, 4).equals(MAGIC) && buf[5] === 1; }
 function open(buf, password) {
   if (buf.length < 8 || !buf.subarray(0, 4).equals(MAGIC)) throw new Error("This is not a Money Manager backup file.");
   if (buf[4] !== 1) throw new Error("This backup was made by a newer version of the app. Update the app first.");
@@ -255,7 +255,7 @@ function parts(d, tz) {
 const dayOf = (d, tz) => { const p = parts(d, tz); return `${p.year}-${p.month}-${p.day}`; };
 
 // Runs once a minute: if today's backup has not been made and the time has come (or passed, say the computer was off), make it.
-export async function dailyTick() {
+async function dailyTick() {
   try {
     const cfg = await getCfg();
     if (!cfg.on || running) return;

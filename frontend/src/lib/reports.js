@@ -9,13 +9,13 @@ const sum = (a) => a.reduce((x, y) => x + y, 0);
 const iso = (d) => d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate());
 
 // Time frames: { p: "month" | "custom" | ..., from, to }.
-export const periodRange = (r, now, ws = "sun") => rangeOfA(r.p || "all", now, ws, r.from || "", r.to || "");
-export const inRange = (d, r, now, ws) => { const [a, b] = periodRange(r, now, ws); return d >= a && d <= b; };
-export const shiftDays = (d, k) => { const x = new Date(d + "T12:00:00"); x.setDate(x.getDate() + k); return iso(x); };
-export const dayDiff = (a, b) => Math.round((new Date(b + "T12:00:00") - new Date(a + "T12:00:00")) / 864e5) + 1;
+const periodRange = (r, now, ws = "sun") => rangeOfA(r.p || "all", now, ws, r.from || "", r.to || "");
+const inRange = (d, r, now, ws) => { const [a, b] = periodRange(r, now, ws); return d >= a && d <= b; };
+const shiftDays = (d, k) => { const x = new Date(d + "T12:00:00"); x.setDate(x.getDate() + k); return iso(x); };
+const dayDiff = (a, b) => Math.round((new Date(b + "T12:00:00") - new Date(a + "T12:00:00")) / 864e5) + 1;
 const rangeObj = (m) => ({ p: "custom", from: m + "-01", to: m + "-31" });
 // The period to compare with: the one just before it (calendar-aware for months and years), or the same dates a year earlier.
-export function cmpRange(r, mode, now, ws) {
+function cmpRange(r, mode, now, ws) {
   const [a, b] = periodRange(r, now, ws); if (a == "0000-01-01" || b == "9999-12-31") return null;
   const MK = now.getFullYear() + "-" + p2(now.getMonth() + 1), Y = now.getFullYear();
   if (mode == "yoy") { const sh = (d) => (+d.slice(0, 4) - 1) + d.slice(4); return { p: "custom", from: sh(a), to: sh(b) }; }
@@ -28,7 +28,7 @@ export function cmpRange(r, mode, now, ws) {
 export const cmpEnd = (c) => (c.to.endsWith("-31") ? shiftDays(addM(c.to.slice(0, 7), 1) + "-01", -1) : c.to);
 
 // The name of an income source (who it came from).
-export const incKey = (t) => { const f = String(t.from || "").trim(); if (f && !/^(bank transfer|other)$/i.test(f)) return f; const d = String(t.desc || "").replace(/[0-9/\\.,:;*#()\-_]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 40); return d || "Other income"; };
+const incKey = (t) => { const f = String(t.from || "").trim(); if (f && !/^(bank transfer|other)$/i.test(f)) return f; const d = String(t.desc || "").replace(/[0-9/\\.,:;*#()\-_]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 40); return d || "Other income"; };
 // the rows Home counts: pending ones count, the same way the Activity page counts them
 const counted = (M) => M.rows;
 

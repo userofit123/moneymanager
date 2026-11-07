@@ -34,9 +34,9 @@ export const baseOf = (id) => String(id).split("~")[0];
 export const validId = (id) => /^[a-z][A-Za-z0-9]*(~\d{1,3})?$/.test(String(id)) && !!PROVIDERS[baseOf(id)] && (!String(id).includes("~") || +String(id).split("~")[1] >= 2);
 const LIMIT = (s) => (baseOf(s) === "wise" ? 3 : 2);
 const cleanNick = (n) => String(n || "").replace(/[\u0000-\u001f]/g, " ").trim().slice(0, 30);
-export async function nicknameOf(id) { return (await q("SELECT nickname FROM source_state WHERE source=$1", [id])).rows[0]?.nickname || ""; }
+async function nicknameOf(id) { return (await q("SELECT nickname FROM source_state WHERE source=$1", [id])).rows[0]?.nickname || ""; }
 /** What the app calls this connection's account: "Wise" or "Wise · Business" */
-export const connLabel = (id, nick) => PROVIDERS[baseOf(id)].label + (nick ? ` · ${nick}` : "");
+const connLabel = (id, nick) => PROVIDERS[baseOf(id)].label + (nick ? ` · ${nick}` : "");
 export const connName = async (id) => connLabel(id, await nicknameOf(id));
 
 export async function getCreds(source) {

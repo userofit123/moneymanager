@@ -16,9 +16,9 @@ import { ask } from "../../core/ask.js";
 const ck = (k, a) => i18n.global.t("settings.conn." + k, a || {});
 const cte = (k) => i18n.global.te("settings.conn." + k);
 
-export const CONN = shallowRef([]); // GET /api/connections
+const CONN = shallowRef([]); // GET /api/connections
 export const SYNC_SET = shallowRef(null); // GET /api/sync/settings
-export const loaded = ref(false);
+const loaded = ref(false);
 export const formOpen = ref(false); // the "+ Add connection" part is open
 export const adding = ref([]); // sources picked to add, not saved yet (CONN_ADD); "x~2" is another login of x
 export const openCards = reactive(new Set()); // connected cards whose settings are shown (CONN_OPEN)
@@ -43,7 +43,7 @@ export async function loadConn() {
 
 // The texts the server sends (bank names, field names, state words) in the page's language.
 // A card's name is the company's name, then " · nickname" when it has one.
-export const provName = (c) => { const p = c.providerLabel || "", k = c.provider || c.source, l = String(c.label || ""); return p && cte("prov." + k) && l.startsWith(p) ? ck("prov." + k) + l.slice(p.length) : tx(l); };
+const provName = (c) => { const p = c.providerLabel || "", k = c.provider || c.source, l = String(c.label || ""); return p && cte("prov." + k) && l.startsWith(p) ? ck("prov." + k) + l.slice(p.length) : tx(l); };
 export const companyOf = (c) => { const k = c.provider || c.source; return cte("prov." + k) ? ck("prov." + k) : tx(c.providerLabel || c.label); };
 export const nameOf = (c) => (c.pendingOf ? ck("newLogin", { label: provName(c.pendingOf) }) : provName(c));
 export const fieldName = (f) => (cte("field." + f.k) ? ck("field." + f.k) : tx(f.label));
@@ -52,7 +52,7 @@ export const TONE = { green: "dn", yellow: "am2", red: "up", gray: "fl" };
 export const BAD = ["failed", "locked", "otp"];
 
 // A login being added that the server has not seen yet (CONN_PEND).
-export const pending = computed(() => adding.value.filter((x) => x.includes("~") && !CONN.value.some((c) => c.source == x)).map((x) => {
+const pending = computed(() => adding.value.filter((x) => x.includes("~") && !CONN.value.some((c) => c.source == x)).map((x) => {
   const b = CONN.value.find((c) => c.source == x.split("~")[0]) || { fields: [], kind: "bank" };
   return { ...b, source: x, provider: b.source, extra: true, nickname: "", configured: false, locked: false, assistedAt: null, lastError: "", label: (b.providerLabel || b.label) + " · new login", pendingOf: b, status: { key: "none", label: "No credentials", tone: "gray" } };
 }));
@@ -67,7 +67,7 @@ export const labelOf = (src) => { const c = find(src); return c ? nameOf(c) : sr
 // Starts adding a source: the first login of a company is its own card; a second one gets a new id from the server.
 // The new card comes into view with its first box ready to type in.
 export const connStartHere = (v) => connStart(v, (id) => nextTick(() => setTimeout(() => { const c = document.getElementById("conn-" + id); if (c) { c.scrollIntoView({ behavior: "smooth", block: "center" }); c.querySelector("input")?.focus({ preventScroll: true }); } }, 60)));
-export async function connStart(v, after) {
+async function connStart(v, after) {
   const go = (id) => { adding.value = [...adding.value, id]; after?.(id); };
   const base = CONN.value.find((c) => c.source == v);
   if (base && (base.configured || adding.value.includes(v))) {
@@ -77,7 +77,7 @@ export async function connStart(v, after) {
 export const connCancel = (src) => { adding.value = adding.value.filter((x) => x != src); delete typed[src]; };
 
 // One call about a connection; then everything is read again. Returns the answer, or null when the server said no.
-export async function connCall(src, path, method, body, msg) {
+async function connCall(src, path, method, body, msg) {
   try {
     const r = await data.api(`/api/connections/${src}${path}`, body ? sendJson(method, body) : { method });
     await loadConn();
@@ -147,7 +147,7 @@ export function assistOpen(src) {
   assistTick();
   timer = setInterval(assistTick, 800);
 }
-export async function assistTick() {
+async function assistTick() {
   if (!AS.value || busy) return;
   busy = true;
   try {
@@ -163,7 +163,7 @@ export async function assistTick() {
 export async function assistPost(path, body) {
   try { await data.api("/api/assist/" + path, sendJson("POST", body || {})); if (AS.value) { busy = false; setTimeout(assistTick, 250); } } catch (e) { toast(tx(e.message), { kind: "err" }); }
 }
-export function assistClose() {
+function assistClose() {
   if (AS.value) { clearInterval(timer); AS.value = null; sheetClosed(closeByBack); }
   busy = false;
   if (shot.value) { URL.revokeObjectURL(shot.value); shot.value = ""; }

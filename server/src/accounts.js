@@ -1,7 +1,7 @@
 // Accounts you make yourself, balance history for hand-entered accounts, and the alert history.
 import { q, tx, audit, bumpRev } from "./db.js";
 
-export const CUSTOM_KINDS = { cash: "Cash", savings: "Savings", investment: "Investment", loan: "Loan or debt", other: "Other" };
+const CUSTOM_KINDS = { cash: "Cash", savings: "Savings", investment: "Investment", loan: "Loan or debt", other: "Other" };
 
 const clean = (s, n = 60) => String(s || "").replace(/[\u0000-\u001f]/g, " ").trim().slice(0, n);
 

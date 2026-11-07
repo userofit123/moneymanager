@@ -106,7 +106,7 @@ export function shownLines(rows, nv, h, so = [], up = []) {
 // usually still comes this month);
 // next: next month step by step (Recap's "A look at …" and the strip): really yours at the end of this month, each income
 // and spending line as the table's "Expected" column, their totals and the end of next month (the chart's first month).
-export function shownOf(d, IR = {}, ER = {}, UP = {}, last = 12, h = 12) {
+function shownOf(d, IR = {}, ER = {}, UP = {}, last = 12, h = 12) {
   const at = (o, k) => (o[k] || [])[last] || 0;
   const inc = shownLines(d.inc, d.W.length, h, d.inc.map((r) => at(IR, r.k)));
   const out = shownLines(d.ex, d.W.length, h, d.ex.map((r) => at(ER, r.k)), d.ex.map((r) => UP[r.k] || 0));

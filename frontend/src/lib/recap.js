@@ -18,9 +18,6 @@ const BANKW = new Set(["זיכוי", "זיכויים", "זכות", "העברה",
 // a payee's name without the numbers banks often add to it (dates, reference numbers), so the same payee matches every month
 export const plainOf = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, " ").replace(/[0-9/\\.,:;*#()\-_'"\u05f3\u05f4]+/g, " ").replace(/\s+/g, " ").trim();
 const bankWords = (s) => plainOf(s).toLowerCase().split(" ").filter(Boolean).every((w) => BANKW.has(w) || BANKW.has(w.replace(/^[מבלו]/, "")));
-// A name's own words, lower case, without the numbers and the bank words around it ("זיכוי SHOP 123" → "shop"), so the same
-// shop or payer matches however the bank wrote it (lib/moneyIn.js).
-export const nameKey = (s) => plainOf(s).toLowerCase().split(" ").filter((w) => w && !BANKW.has(w) && !BANKW.has(w.replace(/^[מבלו]/, ""))).join(" ");
 // The name an income is grouped under, the same name the app shows for it: the name you gave it (a rename or a naming rule),
 // or else who sent it, its description or its memo, never a bare bank word; with none of these, its category.
 export const incKey = (S, t) => {
@@ -179,7 +176,7 @@ export function recapModel(M, now) {
 // The day a card purchase leaves the bank: the charge date the card company gave (t.ch), or else the card's usual charge day,
 // learned from its earlier purchases (the day of the month, and how many months after the purchase) or from the card bills
 // paid from the bank. With nothing to learn from, the 10th of the next month.
-export function chargeDays(S, A, k, CC) {
+function chargeDays(S, A, k, CC) {
   const count = (o, key, v) => { const x = (o[key] = o[key] || {}); x[v] = (x[v] || 0) + 1; };
   const most = (o) => { const e = Object.entries(o || {}).sort((a, b) => b[1] - a[1])[0]; return e ? +e[0] : NaN; };
   const day = {}, lag = {}, paid = {}, ci = cardInfo(S);
@@ -208,7 +205,7 @@ const dayDiff = (a, b) => (Date.parse(a) - Date.parse(b)) / 864e5;
 // one that names no card goes to the bill closest in amount. due(D): the bill still has to leave the bank on day D:
 // before its charge day, or after it while no payment row came yet (up to LATE days, for a card whose bills the bank's
 // rows have paid before; a card paid from an account that is not connected never shows one, so its date counts).
-export function cardGroups({ S, A, k, CC, TODAY }) {
+function cardGroups({ S, A, k, CC, TODAY }) {
   const cd = chargeDays(S, A, k, CC), ci = cardInfo(S), grp = {};
   A.forEach((t) => {
     // the card's purchases and the refunds that came into it (money in sits in "to"): a refund lowers its bill
@@ -242,11 +239,6 @@ export function cardsDue({ S, A, k, CC, TODAY, MK, extra = [] }) {
   // now: each card's bill still to come this month, by its day; next: each card's purchases charged after this month,
   // with the first day they leave the bank
   return { thisMonth, later, now: Object.values(now).filter((x) => x.a >= 0.5).sort((a, b) => (a.d < b.d ? -1 : 1)), next: Object.values(by).sort((a, b) => b.a - a.a) };
-}
-// What part of the spending usually goes on credit cards (the given months)
-export function cardShare(A, CC, months) {
-  let all = 0, card = 0; A.forEach((t) => { if (!isOut(t) || !months.some((m) => rdOf(t).startsWith(m))) return; all -= t.a; if (CC.has(acctOf(t))) card -= t.a; });
-  return all > 0 ? card / all : 0;
 }
 
 // The month as it happened, in date order: the days money came in, the days a credit card bill was taken from the bank,

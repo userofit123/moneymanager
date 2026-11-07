@@ -1,7 +1,7 @@
 // The "Language and region" and "App icon" choices of Settings. They are kept in this browser (and on the server, see core/prefs.js).
 import { dateFormat, weekStart } from "../../core/prefs.js";
 import { theme } from "../../core/theme.js";
-export { COIN_SVG, ICONS, iconSvg } from "../../core/symbols.js";
+export { ICONS, iconSvg } from "../../core/symbols.js";
 
 export const DATE_FORMATS = [["dmy", "dd/mm/yyyy"], ["mdy", "mm/dd/yyyy"]];
 

@@ -9,7 +9,7 @@ import { getUser, hashPassword, checkPassword, setPassword, passwordProblem, tot
 import { hasPrivateChannel, sendPrivate, sendNtfy } from "./notify.js";
 import { personLang } from "./syncFailNotice.js";
 
-export const CODE_MINUTES = 10, CODE_TRIES = 5;
+const CODE_MINUTES = 10, CODE_TRIES = 5;
 const LOCK_MINUTES = 15;
 
 // ---------- the recovery key ----------
@@ -54,7 +54,7 @@ const texts = async () => T[await personLang()];
 
 // ---------- errors the sign-in screen shows (generic: they never say whether a key exists) ----------
 export class ResetError extends Error { constructor(m, status = 400, extra = {}) { super(m); this.status = status; Object.assign(this, extra); } }
-export const MSG = {
+const MSG = {
   locked: "Too many tries. Try again in 15 minutes.",
   key: "That recovery key does not work.",
   code: "That code does not work. It may be wrong or too old: ask for a new one.",
@@ -72,7 +72,7 @@ const note = async (ip, kind, ok) => {
   console.log(`password reset: ${kind} ${ok ? "ok" : "failed"} (from ${ip || "?"})`);
 };
 // Locked after 5 failed tries from one address, or 20 from anywhere, in the last 15 minutes.
-export async function resetLocked(ip) {
+async function resetLocked(ip) {
   await q("DELETE FROM reset_attempts WHERE at < now() - interval '30 days'");
   const r = (await q(`SELECT count(*) FILTER (WHERE ip=$1)::int AS mine, count(*)::int AS total FROM reset_attempts
     WHERE NOT ok AND kind <> 'send' AND at > now() - interval '${LOCK_MINUTES} minutes'`, [String(ip || "").slice(0, 60)])).rows[0];

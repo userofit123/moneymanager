@@ -15,7 +15,7 @@ export async function saveDoc(txId, filename, mime, buf) {
   return r.rows[0];
 }
 
-export async function readDoc(id) {
+async function readDoc(id) {
   const r = await q("SELECT filename,mime,path FROM documents WHERE id=$1", [id]);
   if (!r.rowCount || !r.rows[0].path) return null;
   const file = path.join(DOCS_DIR, r.rows[0].path);

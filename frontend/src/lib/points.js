@@ -48,7 +48,7 @@ const RECOUNT = "recount:1";
 
 // ---- levels ----
 // Level 1 at 0 points; level 2 needs 100, level 3 250, level 4 450, level 5 700: each step needs 50 more than the last.
-export const stepFor = (level) => 100 + 50 * (level - 1); // points from `level` to the next one
+const stepFor = (level) => 100 + 50 * (level - 1); // points from `level` to the next one
 export function levelFor(total) {
   total = Math.max(0, Math.round(+total || 0));
   let level = 1, start = 0;
@@ -60,10 +60,10 @@ export function levelFor(total) {
 
 // ---- earning ----
 const p2 = (n) => String(n).padStart(2, "0");
-export const dayKey = (d) => (typeof d === "string" ? d.slice(0, 10) : d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate()));
+const dayKey = (d) => (typeof d === "string" ? d.slice(0, 10) : d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate()));
 const entries = (S) => Object.entries(S?.points || {}).filter(([k, e]) => k !== "_old" && e && typeof e === "object");
 // points of one kind earned on one day
-export const earnedOn = (S, kind, day) => entries(S).reduce((s, [, e]) => s + (e.kind === kind && e.day === day ? +e.pts || 0 : 0), 0);
+const earnedOn = (S, kind, day) => entries(S).reduce((s, [, e]) => s + (e.kind === kind && e.day === day ? +e.pts || 0 : 0), 0);
 const CAPS = { cat: "catDay", tag: "tagDay" };
 
 // Gives points once for `key` (never twice), within the day's cap of its kind. Changes S. Returns the points given (0 when none).
@@ -130,10 +130,10 @@ export function setupDone(S) {
 }
 
 // The counted rows (no transfers between your own accounts, card bill payments, upcoming or left-out rows): the same rows as Home.
-export const countedRows = (S, today) => countedTx(withTransfers(S), dayKey(today)).A;
+const countedRows = (S, today) => countedTx(withTransfers(S), dayKey(today)).A;
 
 // Money in and money out of one month, and what was spent in each category. upTo: only days 1 to upTo of the month.
-export function monthMoney(rows, m, upTo = 31) {
+function monthMoney(rows, m, upTo = 31) {
   let inc = 0, out = 0, n = 0, uncat = 0;
   const cat = {};
   rows.forEach((t) => {
@@ -146,7 +146,7 @@ export function monthMoney(rows, m, upTo = 31) {
   return { inc, out, cat, n, uncat };
 }
 // The share of the month's income kept, in whole percent (rounded once; null with no income).
-export const keptPct = (mm) => (mm.inc > 0 ? Math.round(((mm.inc - mm.out) / mm.inc) * 100) : null);
+const keptPct = (mm) => (mm.inc > 0 ? Math.round(((mm.inc - mm.out) / mm.inc) * 100) : null);
 
 // A month's results: [{ key, kind, pts, d }]. rows: countedRows; budgets: S.budgets.
 // upTo: the day of the month it has reached while it still runs, so last month is compared up to the same day

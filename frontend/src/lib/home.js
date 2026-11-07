@@ -2,19 +2,18 @@
 // the totals, bills, budgets, jars and money flow.
 // Nothing here changes the data; bills the app finds by itself are only worked out, not saved.
 import { cardsDue, stillToPay, reallyYours, roundParts } from "./recap.js";
-import { acctOf } from "./activity.js";
+import { acctOf, rdOf } from "./activity.js";
 import { fieldText, textMatch } from "./ruleFields.js";
 import { isIn, isOut, splitIn } from "./moneyIn.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
 export const addM = (m, k) => { const d = new Date(+m.slice(0, 4), +m.slice(5, 7) - 1 + k, 1); return d.getFullYear() + "-" + p2(d.getMonth() + 1); };
 const sum = (a) => a.reduce((t, x) => t + x, 0);
-const rmOf = (t) => (t.rm && t.rm !== String(t.d).slice(0, 7) ? t.rm : "");
-// The date reports use: a payment moved to another month counts in that month.
-export const rdOf = (t) => { const m = rmOf(t); if (!m) return t.d; const last = new Date(+m.slice(0, 4), +m.slice(5, 7), 0).getDate(); return m + "-" + p2(Math.min(+String(t.d).slice(8, 10) || 1, last)); };
+// The date reports use: a payment moved to another month counts in that month (the shared one in lib/activity.js).
+export { rdOf };
 // "payment 8 of 10" (instOf): the shared one in activity.js.
 export { instOf } from "./activity.js";
-export const heldOf = (j) => Math.max(0, (+j.bal || 0) - (+j.out || 0));
+const heldOf = (j) => Math.max(0, (+j.bal || 0) - (+j.out || 0));
 const RSKIP = (S, k) => ["Income", "Uncategorized", "Fees & FX costs"].includes(k) || S.cats?.[k] === 99;
 
 // How often does this store charge you (cadenceOf): the shared one in lib/bills.js.
@@ -196,8 +195,6 @@ export function homeModel(S, now = new Date(), fx = {}) {
   };
 }
 
-// One bill's state (billsInfo0): the shared one in lib/bills.js.
-export { billInfo } from "./bills.js";
 import { billInfo, futTx, billFut, countedTx } from "./bills.js";
 
 // The money flow (waterfall): from what is in your accounts, step by step down to what is free. Every step is a real amount:

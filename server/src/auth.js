@@ -30,7 +30,7 @@ export function passwordProblem(pw) {
 // ---------- TOTP (RFC 6238, SHA-1, 6 digits, 30 s) ----------
 const B32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 export const b32encode = (buf) => { let bits = "", out = ""; for (const b of buf) bits += b.toString(2).padStart(8, "0"); for (let i = 0; i < bits.length; i += 5) out += B32[parseInt(bits.slice(i, i + 5).padEnd(5, "0"), 2)]; return out; };
-export const b32decode = (s) => { let bits = ""; for (const ch of s.replace(/=+$/, "").toUpperCase()) bits += B32.indexOf(ch).toString(2).padStart(5, "0"); const out = []; for (let i = 0; i + 8 <= bits.length; i += 8) out.push(parseInt(bits.slice(i, i + 8), 2)); return Buffer.from(out); };
+const b32decode = (s) => { let bits = ""; for (const ch of s.replace(/=+$/, "").toUpperCase()) bits += B32.indexOf(ch).toString(2).padStart(5, "0"); const out = []; for (let i = 0; i + 8 <= bits.length; i += 8) out.push(parseInt(bits.slice(i, i + 8), 2)); return Buffer.from(out); };
 export function totp(secretB32, t = Date.now(), step = 30, digits = 6) {
   const counter = Buffer.alloc(8); counter.writeBigUInt64BE(BigInt(Math.floor(t / 1000 / step)));
   const h = crypto.createHmac("sha1", b32decode(secretB32)).update(counter).digest();

@@ -2,7 +2,7 @@
 // A swipe counts when it is long enough, mostly sideways (a thumb drifts a little) and quick; a slow drag or a scroll does not.
 // Swiping towards the start side shows the next tab, as if the tab bar slid along. In Hebrew the tab bar is mirrored,
 // so the direction is too. There is no wrapping: at the first or last tab nothing happens.
-export const SWIPE = { min: 60, slant: 1.3, ms: 900, edge: 24 };
+const SWIPE = { min: 60, slant: 1.3, ms: 900, edge: 24 };
 
 // dx, dy: how far the finger moved (screen pixels, right and down are positive); ms: how long it took;
 // tabs: the tab names in order; at: the open tab; rtl: Hebrew. Returns the tab to open, or null.

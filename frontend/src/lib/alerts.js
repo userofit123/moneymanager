@@ -7,7 +7,7 @@ import { priceMoved } from "./bills.js";
 import { isIn } from "./moneyIn.js";
 
 const f = (n) => Math.abs(n).toLocaleString("en-IL", { maximumFractionDigits: 0 });
-export const fm = (n) => (n < 0 ? "−" : "") + "₪" + f(n);
+const fm = (n) => (n < 0 ? "−" : "") + "₪" + f(n);
 const SYM = { ILS: "₪", USD: "$", EUR: "€", GBP: "£", JPY: "¥" };
 const sym = (c) => SYM[c] || c + " ";
 const iso = (d) => d.toISOString().slice(0, 10);
@@ -35,7 +35,7 @@ function jarSuggest(S, X, XS, catJars, jarsS, t) {
   return bs >= 2 ? jarsS.find((j) => j.id === best) || null : null;
 }
 // How long a new balance gap waits before it is an alert (hours), and how long a charge may stay pending before it is one (days).
-export const GAP_WAIT_H = 24, PENDING_DAYS = 5;
+const GAP_WAIT_H = 24, PENDING_DAYS = 5;
 const fmtWhen = (t) => new Date(t).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 // The connections list on Home's sync alerts.
 // Only the connections you set up: with none, the list is empty.

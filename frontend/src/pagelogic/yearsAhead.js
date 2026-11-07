@@ -16,9 +16,9 @@ import { fm } from "../format.js";
 import { profAge } from "../views/settings/profile.js";
 import { yearsAheadModel, keptEachMonth, goalOf, goalPick, goalLine, sameGoal, goalStatus, MAX_YEARS, MAX_AGE } from "../lib/yearsAhead.js";
 
-export const GROWTH = [0, 0.03, 0.05];
+const GROWTH = [0, 0.03, 0.05];
 // the tiles' icons: money growing, the goal's flag, each month
-export const YAI = { total: '<path d="M4 17l6-6 4 4 6-7"/><path d="M15 8h5v5"/>', reach: '<path d="M6 21V4M6 4h11l-2 4 2 4H6"/>',
+const YAI = { total: '<path d="M4 17l6-6 4 4 6-7"/><path d="M15 8h5v5"/>', reach: '<path d="M6 21V4M6 4h11l-2 4 2 4H6"/>',
   need: '<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>' };
 
 // M: the Forecast model (pagelogic/forecast.js): its months (FH) and the months chosen at the top (fc.n).

@@ -2,7 +2,7 @@
 // questions asked before marking a jar as done or deleting it (the computer's confirm windows). J is useJars().
 import { ask } from "../../core/ask.js";
 
-export const ICON = {
+const ICON = {
   edit: '<path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/>',
   up: '<path d="M6 15l6-6 6 6"/>', down: '<path d="M6 9l6 6 6-6"/>',
   done: '<path d="M5 12l5 5L20 7"/>', del: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
@@ -16,7 +16,7 @@ export function askDoneOf(J, id) {
   ask(t("jars.done.title", { name: tx(j.n) }), t("jars.done.text") + (j.bal > 0 ? " " + t("jars.done.back", { amount: fm(j.bal) }) : ""), J.doDone, { yes: t("jars.markDone") });
 }
 
-export function askDelOf(J, id) {
+function askDelOf(J, id) {
   const { t, tx } = J;
   J.askDel(id);
   const j = J.delAsk.value; if (!j) return;

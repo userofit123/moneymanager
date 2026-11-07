@@ -11,7 +11,7 @@ export const thisMonth = (d = new Date()) => `${d.getFullYear()}-${String(d.getM
 
 // A jar with no target (0) has no goal: it simply puts its monthly amount aside. A jar with a deadline and "auto" on works out
 // its own monthly amount: what is still missing (before this month's fill) spread over the months left, this one included.
-export const monthsLeft = (due, now = new Date()) => Math.max(1, Math.ceil((new Date(due) - now) / (864e5 * 30.44)));
+const monthsLeft = (due, now = new Date()) => Math.max(1, Math.ceil((new Date(due) - now) / (864e5 * 30.44)));
 export const capOf = (j, received = 0, now = new Date()) => {
   if (j.cap == null) return null;
   if (j.auto_cap && j.due && j.target > 0) return Math.max(0, Math.ceil((j.target - (j.balance - received)) / monthsLeft(j.due, now)));

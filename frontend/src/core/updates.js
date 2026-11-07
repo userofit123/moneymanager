@@ -29,7 +29,7 @@ export function startUpdates() {
 
 // ---- the change log ----
 export const vNewer = (a, b) => { const x = String(a).split(".").map(Number), y = String(b).split(".").map(Number); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); return false; };
-export function relParse(t) {
+function relParse(t) {
   const out = [];
   String(t).split(/^(?=## \[)/m).forEach((b) => { const m = b.match(/^## \[?v?(\d+\.\d+\.\d+)\]?(?:\s*-\s*([^\n]*))?/); if (!m) return; out.push({ v: m[1], date: (m[2] || "").trim(), body: b.slice(b.indexOf("\n") + 1) }); });
   return out;

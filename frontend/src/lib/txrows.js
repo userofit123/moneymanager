@@ -43,7 +43,7 @@ export function allRows(S, BC = [], now = new Date(), today = ymd(now)) {
 
 // ---- texts about a bill or an upcoming payment ----
 // Who reported an upcoming payment: the connection's name, "You (added by hand)", or "The bank".
-export const srcLabel = (S, src) => S?.connStatus?.[src]?.label || SRC_NAMES[src] || (src == "manual" ? t("txw.chip.byHand") : src == "demo" ? t("txw.chip.sample") : t("txw.chip.theBank"));
+const srcLabel = (S, src) => S?.connStatus?.[src]?.label || SRC_NAMES[src] || (src == "manual" ? t("txw.chip.byHand") : src == "demo" ? t("txw.chip.sample") : t("txw.chip.theBank"));
 const cadT = (n) => (n == 1 || n == 2 || n == 12 ? t("bills.cad." + n) : t("txw.why.everyN", { n }));
 // Why a payment counts as a bill (whyBill).
 export function whyBill(b) {
@@ -88,7 +88,7 @@ export function txChips(S, x, c) {
 export const inWhy = (r) => t("txw.mi.why." + (r?.why || "income"), { k: r?.rule || "" });
 // The label for a salary or money back row ({ cls, label, tip }); null for other money in (no label) and for rows that
 // are not money in (transfers have their own).
-export function inChip(x, K) {
+function inChip(x, K) {
   if (!(x.a > 0) || x.virtual || x.balUpd || K.isXf(x) || !K.inOf) return null;
   const m = markOf(K.inOf(x)); if (m == "income") return null;
   return { cls: m, label: t("txw.mi.chip." + m), tip: TP(t("txw.mi.k." + m), [], t("txw.mi.tip." + m) + "\n" + inWhy(K.inOf(x))) };

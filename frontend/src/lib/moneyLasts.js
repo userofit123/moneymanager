@@ -16,7 +16,7 @@ export function spentEachMonth(FH, n = 3) {
 // How long `cash` lasts at `perMonth` a month, rounded for a short line: { less: true } under one month, { months } up to
 // 24 months (rounded to whole months), then { years } (rounded to whole years). null when there is nothing to say:
 // no money in the accounts, or no spending to divide by.
-export const MAX_MONTHS = 24;
+const MAX_MONTHS = 24;
 export function moneyLasts(cash, perMonth) {
   cash = Math.round(+cash || 0); perMonth = Math.round(+perMonth || 0);
   if (cash <= 0 || perMonth <= 0) return null;

@@ -56,13 +56,13 @@ export function est(v, cap = true) {
 }
 // Rule 1: the months a forecast learns from, as indexes into forecastHistory's months: this month and the n - 1 before it,
 // never a month before the history starts.
-export const learnIdx = (FH, n) => { const o = []; for (let j = Math.max(FH.first || 0, FH.last - n + 1); j <= FH.last; j++) o.push(j); return o; };
+const learnIdx = (FH, n) => { const o = []; for (let j = Math.max(FH.first || 0, FH.last - n + 1); j <= FH.last; j++) o.push(j); return o; };
 // One income source or spending category over the months W (a: its months, this month made whole).
 // came / of: in how many of the months it had money. Spending: the part that usually goes on credit cards (share, from the
 // same months; cardA: the card part of each month).
 // Rule 4: income is its plain average every month (no softening, no direction); its direction is still worked out, for
 // the Trend column only. Rule 7: a row with money in only one of the months is its average every month.
-export function proj(W, a, inc, cardA = null, share0 = 0) {
+function proj(W, a, inc, cardA = null, share0 = 0) {
   const v = W.map((j) => a[j] || 0), came = v.filter((x) => x > 0).length, of = v.length, e = est(v.length ? v : [0], !inc);
   if (inc || came <= 1) e.at = () => e.mean;
   if (inc) return { v, W, nn: of, came, of, avg: came ? v.filter((x) => x > 0).reduce((s, x) => s + x, 0) / came : 0, ...e };
@@ -147,7 +147,7 @@ export function forecastLine(S, H, now, fcOpt = {}) {
 }
 // The money the forecast line adds or takes away in month k from now (month 1 from today's bank money, so it includes the
 // rest of this month and this month's card purchases): today's bank money plus these adds up to the line.
-export function forecastSurplus(S, H, now, fcOpt = {}, line = null) {
+function forecastSurplus(S, H, now, fcOpt = {}, line = null) {
   const L = line || forecastLine(S, H, now, fcOpt);
   return (k) => { const j = Math.min(k, 12); return L.bal[j] - (j == 1 ? L.cash : L.bal[j - 1]); };
 }
@@ -235,7 +235,7 @@ export function jarsModel(S, now = new Date(), fx = {}, fcOpt = {}) {
 }
 
 // What a jar is doing this month (the pill in its header), and when it will be full.
-export function jarState(j, k, MK, monthsTo) {
+function jarState(j, k, MK, monthsTo) {
   const full = !j.open && j.bal >= j.need, bill = j.cap == null, share = bill ? Math.max(0, j.need - j.bal + j.got) : j.capE, got = j.got || 0;
   let st;
   if (!bill && !(j.capE > 0)) st = { cls: "fl", key: "noAuto" };

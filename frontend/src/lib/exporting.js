@@ -6,7 +6,7 @@ import { costRows } from "./txrows.js";
 const nohtml = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&").trim();
 export const EXWHAT = ["tx", "cat", "bills", "budgets", "jars", "accounts", "audit", "all"];
 // [key, file column name, value]
-export const exCols = (K) => [["date", "Date", (t) => t.d], ["desc", "Description", (t) => nohtml(t.desc)], ["from", "From", (t) => nohtml(t.from)], ["to", "To", (t) => nohtml(t.to)], ["amount", "Amount (₪)", (t) => t.a], ["ocur", "Original currency", (t) => (t.orig ? t.orig.cur : "")], ["oamt", "Original amount", (t) => (t.orig ? t.orig.amt : "")], ["cat", "Category", (t) => t.c || (K.isXf(t) ? "Transfer" : "Uncategorized")], ["tags", "Tags", (t) => (t.tags || []).join(" ")], ["note", "Note", (t) => t.note || ""], ["docs", "Attachments", (t) => (t.docs || []).join("; ")], ["src", "Source", (t) => t.src || ""], ["id", "ID", (t) => t.id]];
+const exCols = (K) => [["date", "Date", (t) => t.d], ["desc", "Description", (t) => nohtml(t.desc)], ["from", "From", (t) => nohtml(t.from)], ["to", "To", (t) => nohtml(t.to)], ["amount", "Amount (₪)", (t) => t.a], ["ocur", "Original currency", (t) => (t.orig ? t.orig.cur : "")], ["oamt", "Original amount", (t) => (t.orig ? t.orig.amt : "")], ["cat", "Category", (t) => t.c || (K.isXf(t) ? "Transfer" : "Uncategorized")], ["tags", "Tags", (t) => (t.tags || []).join(" ")], ["note", "Note", (t) => t.note || ""], ["docs", "Attachments", (t) => (t.docs || []).join("; ")], ["src", "Source", (t) => t.src || ""], ["id", "ID", (t) => t.id]];
 export const COLKEYS = exCols({ isXf: () => false }).map((c) => c[0]);
 export const exDef = () => ({ what: "tx", p: "all", from: "", to: "", cats: null, accts: null, ty: "all", q: "", tag: "", xf: false, cp: false, fut: false, fmt: "csv", cols: ["date", "desc", "from", "to", "amount", "cat", "tags", "note"], name: "" });
 // Starting from Activity's filters (buildExport with from="activity").
@@ -21,7 +21,7 @@ export function exFromActivity(f) {
   return E;
 }
 const exCat = (t) => t.c || "Uncategorized";
-export function exTx(S, E, today, now) {
+function exTx(S, E, today, now) {
   const K = kinds(S, today), [a, b] = rangeOf(E.p, now, "sun", E.from, E.to), q = E.q.toLowerCase(), tg = E.tag.toLowerCase().replace(/^#/, "");
   return (S.tx || []).concat(costRows(S)).filter((t) => rdOf(t) >= a && rdOf(t) <= b && (E.xf || (!K.isXf(t) && !K.isIgn(t))) && (E.cp || !K.isCp(t)) && (E.fut || !K.isFut(t)) && (E.ty == "all" || (E.ty == "income") == (t.a > 0)) && (!E.cats || E.cats.has(exCat(t))) && (!E.accts || E.accts.has(t.from) || E.accts.has(t.to)) && (!q || (t.desc + " " + t.from + " " + t.to + " " + (t.note || "")).toLowerCase().includes(q)) && (!tg || (t.tags || []).some((x) => x.toLowerCase() == tg)))
     .sort((x, y) => y.d.localeCompare(x.d) || String(y.id).localeCompare(String(x.id)));
@@ -44,7 +44,7 @@ export function exData(S, E, today, now) {
   return { head: [], rows: [], n: 1, all: true };
 }
 // CSV with a byte-order mark so Excel reads Hebrew; a leading ' stops spreadsheets from running text as a formula.
-export const exCsv = (head, rows) => { const cell = (v) => { let s = v == null ? "" : String(v); if (typeof v == "string" && /^[=+\-@\t\r]/.test(s)) s = "'" + s; return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }; return "﻿" + [head, ...rows].map((r) => r.map(cell).join(",")).join("\r\n"); };
+const exCsv = (head, rows) => { const cell = (v) => { let s = v == null ? "" : String(v); if (typeof v == "string" && /^[=+\-@\t\r]/.test(s)) s = "'" + s; return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }; return "﻿" + [head, ...rows].map((r) => r.map(cell).join(",")).join("\r\n"); };
 export const exExt = (E) => (E.what == "all" || E.fmt == "json" ? ".json" : ".csv");
 export const exFile = (E, today) => `money-${E.what}-${today}`;
 // The file's name and contents. S: the whole data (for "everything").

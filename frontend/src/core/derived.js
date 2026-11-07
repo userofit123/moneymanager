@@ -11,7 +11,7 @@ import { fcChoices, forecastModel } from "../lib/forecast.js";
 import { keyNumbers } from "../lib/keyNumbers.js";
 import { reviewTransfers, duplicateIds, reviewGaps } from "../lib/activity.js";
 
-export const S = computed(() => data.state.value);
+const S = computed(() => data.state.value);
 export const home = computed(() => (S.value ? homeModel(S.value, now.value, data.fx.value.fx) : null));
 // the Forecast page's choices (saved in this browser as "moneyFc"): the Jars and the forecast alert use the same months
 export const fcSaved = computed(() => (prefTick.value, fcChoices(readJson("moneyFc", null))));

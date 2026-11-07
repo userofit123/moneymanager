@@ -10,7 +10,7 @@ let sent = 0, wired = false;
 // the last 15 clicks on the app's own buttons (their data-a names), with the time
 const pushAct = (a) => { ACTS.push(new Date().toTimeString().slice(0, 8) + " " + a); if (ACTS.length > 15) ACTS.shift(); };
 
-export function reportErr(message, stack, action) {
+function reportErr(message, stack, action) {
   try {
     if (!data.state.value || sent >= 25) return;
     const msg = String(message || "").slice(0, 1000);
@@ -21,12 +21,12 @@ export function reportErr(message, stack, action) {
 }
 
 // For app.config.errorHandler: an error inside a Vue component. It still shows in the console.
-export function vueError(err, _vm, info) {
+function vueError(err, _vm, info) {
   console.error(err);
   reportErr(err && err.message ? err.message : String(err), err && err.stack, "Error in the page" + (info ? " (" + info + ")" : ""));
 }
 
-export function startErrors() {
+function startErrors() {
   if (wired || typeof window === "undefined") return;
   wired = true;
   document.addEventListener("click", (e) => { const el = e.target.closest && e.target.closest("[data-a]"); if (!el) return; const d = el.dataset; pushAct(d.a + (d.t ? ":" + d.t : "") + (d.v && d.a == "nav" ? ":" + d.v : "") + (d.m ? ":" + d.m : "")); }, true);

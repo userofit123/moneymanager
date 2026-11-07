@@ -2,7 +2,7 @@
 // and the browser's "install" offer, kept for the Install buttons (beforeinstallprompt).
 import { ref, shallowRef } from "vue";
 export const installPrompt = shallowRef(null);
-export const swOk = ref(false); // the service worker is running (needed for phone notifications)
+const swOk = ref(false); // the service worker is running (needed for phone notifications)
 export function startPwa() {
   if (typeof window === "undefined") return;
   addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installPrompt.value = e; });

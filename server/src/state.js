@@ -15,7 +15,7 @@ const how = (m) => (isHow(m) && m !== "in" ? m : "");
 // The where and how a card or money coming in rule keeps (only when not the usual).
 const ruleOpts = (r) => ({ ...(where(r.f) ? { f: where(r.f) } : {}), ...(how(r.m) ? { m: how(r.m) } : {}) });
 
-export const DEFAULT_CFG = {
+const DEFAULT_CFG = {
   jars: 1, bills: 1, price: 1, budget: 1, card: 1, large: 1, xfer: 1, recon: 1, pending: 1, sync: 1, uncat: 1, forecast: 1, docs: 1,
   cardPct: 10, largeAmt: 5000, billDays: 3, budgetPct: 80, gapDays: 3,
 };
@@ -49,7 +49,7 @@ export async function ensureDefaults({ demoAccounts = true } = {}) {
 
 // What a money coming in rule can give (frontend/src/lib/moneyIn.js RULE_KINDS), and what the person can choose for one
 // entry (MARKS). An older app's "earned" rule is a Salary rule.
-export const IN_KINDS = ["salary", "back"], IN_MARKS = ["income", "salary", "back"];
+const IN_KINDS = ["salary", "back"], IN_MARKS = ["income", "salary", "back"];
 const inKind = (k) => (k === "earned" ? "salary" : k);
 // Settings → Money coming in rules (money_in_rules: [{ k: text, kind }]) took the place of the salary texts (salary_rules).
 // Once (also after restoring an older backup): every salary text becomes a rule "text → Salary". salary_rules stays as it
@@ -200,7 +200,7 @@ const sig = (o) => JSON.stringify(o);
 
 // Points earned, kept small and safe: key → { pts, kind, day, d? }, and "_old": { [month]: { [kind]: pts } } (points of old
 // entries folded into one total per month and kind).
-export function cleanPoints(P) {
+function cleanPoints(P) {
   const out = {}, num = (v) => (Number.isFinite(+v) ? Math.round(+v) : 0), str = (v, n) => String(v ?? "").slice(0, n);
   for (const [k, v] of Object.entries(P).slice(0, 5000)) {
     if (!v || typeof v !== "object") continue;

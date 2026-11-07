@@ -30,8 +30,6 @@ export const ST0 = { mode: "auto", atm: "Indigo", cc: "#4355b9", cu: { L: {}, D:
 export const BGS = ["glow", "mesh", "diagonal", "spot", "aurora", "horizon", "duo", "corners", "sweep", "flat"];
 export const AKEYS = ["acc", "accc", "onc", "bg", "acc2", "on"];
 const XDEF = { L: { tx: "#1b1b22", pos: "#1b7f4b", neg: "#c0392b" }, D: { tx: "#e6e4ea", pos: "#6fd69b", neg: "#ff9c8f" } };
-// the colours that can be changed one by one in a custom colour set, with their English names (the Appearance panel translates them)
-export const CUST = [["acc", "Accent"], ["acc2", "Gradient colour"], ["bg", "Background"], ["tx", "Text"], ["accc", "Accent tint"], ["onc", "Text on tint"], ["on", "Text on accent"], ["pos", "Positive"], ["neg", "Negative"]];
 // what a saved look keeps
 export const PKEYS = ["atm", "cc", "cu", "cp", "gi", "surf", "gbl", "gsat", "gop", "bg", "tex", "tsc", "toa", "rad", "den", "spc", "nsp", "fnt", "nav"];
 
@@ -53,7 +51,7 @@ mq?.addEventListener?.("change", (e) => { if (theme.mode == "auto") themeSwap(()
 export const isDark = () => theme.mode == "dark" || (theme.mode == "auto" && deviceDark.value);
 
 // a colour set made from one colour: the same six values every built-in set has
-export function customAtm(hex) {
+function customAtm(hex) {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex || ""), n = parseInt(m ? m[1] : "4355b9", 16), r = ((n >> 16) & 255) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b);
   let h = 0, sat = 0; const l = (mx + mn) / 2;
   if (mx != mn) { const d = mx - mn; sat = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn); h = mx == r ? (g - b) / d + (g < b ? 6 : 0) : mx == g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; }
@@ -67,7 +65,7 @@ function hslHex(h, s, l) {
   const k = (n) => (n + h / 30) % 12, a = s * Math.min(l, 1 - l), f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
   return "#" + [f(0), f(8), f(4)].map((x) => Math.round(x * 255).toString(16).padStart(2, "0")).join("");
 }
-export const cuOf = (k) => (theme.atm == "Custom" && theme.cu && theme.cu[k]) || {};
+const cuOf = (k) => (theme.atm == "Custom" && theme.cu && theme.cu[k]) || {};
 export const atmOf = (n) => {
   if (n != "Custom") return ATM[n] || ATM.Indigo;
   const b = customAtm(theme.cc);
@@ -79,7 +77,7 @@ export const custVal = (n, k) => { const o = cuOf(k); if (o[n]) return o[n]; con
 // the two colours shown on a colour set's swatch, and a saved look's colours
 export const lookPal = (v, k) => { const b = v.atm == "Custom" ? customAtm(v.cc)[k] : (ATM[v.atm] || ATM.Indigo)[k], o = (v.atm == "Custom" && v.cu && v.cu[k]) || {}; return b.map((c, i) => o[AKEYS[i]] || c); };
 
-export function applyTheme() {
+function applyTheme() {
   if (typeof document === "undefined") return;
   const d = isDark(), k = d ? "D" : "L";
   // a look chosen for light or dark mode takes over when the mode changes
@@ -116,7 +114,7 @@ export function themeSwap(fn) {
   const go = () => { const h = document.documentElement; h.classList.add("nt"); fn(); requestAnimationFrame(() => requestAnimationFrame(() => h.classList.remove("nt"))); };
   if (still()) go(); else document.startViewTransition(go);
 }
-export function themeSwapFrom(el, fn) {
+function themeSwapFrom(el, fn) {
   if (still() || !el) { fn(); return; }
   const h = document.documentElement, b = el.getBoundingClientRect(), x = b.left + b.width / 2, y = b.top + b.height / 2, R = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y)), F = Math.round(Math.min(260, Math.max(140, R * 0.22)));
   h.style.setProperty("--vt-x", x + "px"); h.style.setProperty("--vt-y", y + "px"); h.style.setProperty("--vt-f", F + "px"); h.style.setProperty("--vt-r", "0px"); h.classList.add("vt-r");

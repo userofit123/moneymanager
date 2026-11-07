@@ -3,7 +3,7 @@
 // or false when nothing changes. Numbers the page shows afterwards (how many moved) go into `out`.
 import { ruleHit, ruleTags, normD, transferIds } from "./activity.js";
 import { RULE_KINDS, MARK_EN, inRules } from "./moneyIn.js";
-import { FIELDS, USUAL, WHERE_EN, HOW_EN, isWhere, isHow, fieldText, ruleText, ruleWhere, ruleHow, textMatch } from "./ruleFields.js";
+import { USUAL, WHERE_EN, HOW_EN, isWhere, isHow, fieldText, ruleText, ruleWhere, ruleHow, textMatch } from "./ruleFields.js";
 
 export { ruleTags };
 const CNC = new Intl.Collator(undefined, { sensitivity: "base" });
@@ -192,7 +192,6 @@ export function applyTagRulePast(S, i, out = {}) {
 }
 
 // ---- name rules ----
-export const NFIELDS = FIELDS;
 export function addNameRule(S, { k, n, f, m }) {
   k = String(k || "").trim(); n = String(n || "").trim();
   if (!k || !n) return false;

@@ -14,7 +14,7 @@ import { ICONS } from "../phone/icons.js";
 export const HELP_PAGE = { recap: "recap", home: "dash", activity: "tx", accounts: "acc", jars: "jars", bills: "bills", budgets: "budg", reports: "rep", forecast: "fc", alerts: "alerts", categories: "cats" };
 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-export const hMd = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+const hMd = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
 
 // The loaded parts of the guide: en (always, also used when a Hebrew page has no guide), he, and demo (the little pictures).
 const G = shallowReactive({ en: null, he: null, demo: null });
@@ -114,7 +114,7 @@ export function guideHtml(P, he, tr) { // tr: tx() from core/heText.js, for the 
 
 // ---- the ? next to each section's name: it opens the panel at that section ----
 const HQ = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2.9-1.2 1.8M12 17v.01"/></svg>';
-export function helpDots(page, he, label, doc = document) {
+function helpDots(page, he, label, doc = document) {
   const key = HELP_PAGE[page] || page, norm = (t) => String(t).replace(/\s+/g, " ").trim().toLowerCase();
   DOTS.forEach(([k, root, sel, txt, block, how, txtHe]) => {
     if (k !== key) return;
@@ -137,7 +137,7 @@ export function helpDots(page, he, label, doc = document) {
   });
 }
 // Open the panel (if it is closed) and bring the section the ? belongs to into view.
-export function helpAt(k, block) {
+function helpAt(k, block) {
   const go = () => {
     const EN = G.en || {}, i = EN[k] ? (EN[k].blocks || []).findIndex((x) => x.h === block) : -1; if (i < 0) return;
     const e = document.getElementById("hs" + i); if (!e) return;

@@ -1,5 +1,5 @@
 // CSV import: the Wise statement export, and a generic file (date, description, amount, currency).
-export function parseCsv(text) {
+function parseCsv(text) {
   const rows = []; let row = [], cell = "", q = false;
   text = text.replace(/^﻿/, "");
   for (let i = 0; i < text.length; i++) {
