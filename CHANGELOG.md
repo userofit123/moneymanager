@@ -4,6 +4,9 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [Unreleased]
+- **Phone: swipe between tabs.** On a tab's first screen, a quick swipe to the side opens the next or previous tab in the tab bar (in Hebrew the direction is mirrored, like the tab bar). It does nothing while a window is open, near the screen's sides (the phone's own Back gesture), on a field, slider or chart, or on anything that slides sideways, like rows of cards or chips.
+
 ## [0.14.0] - 2026-11-04
 - **Phone Activity rows:** the line between rows now runs across the whole row instead of starting after the letter icon, and future payments have the computer's look: a light tint, a coloured line on the start side and the name and amount in italics (they are no longer faded).
 - **Hebrew page guides address everyone the same way:** every Hebrew guide now speaks to the reader in the plural form that suits everyone (as the newer guides already did), instead of mixing words for a man with plural ones.

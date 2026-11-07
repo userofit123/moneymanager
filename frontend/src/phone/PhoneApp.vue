@@ -9,8 +9,10 @@ import { txOpenId } from "../core/txwin.js";
 import { settingsTab, settingsAsked } from "../views/settings/tab.js";
 import { job } from "../core/jobs.js";
 import { app } from "../core/boot.js";
-import { edgeBack } from "./gestures.js";
-import { sign } from "./dir.js";
+import { edgeBack, tabSwipe } from "./gestures.js";
+import { sign, isRtl } from "./dir.js";
+import { TABS } from "./screens.js";
+import { swipeTarget } from "../lib/tabSwipe.js";
 import ScreenHost from "./ScreenHost.vue";
 import TabBar from "./components/TabBar.vue";
 import OfflinePill from "./components/OfflinePill.vue";
@@ -113,12 +115,15 @@ watch(settingsAsked, () => { const id = settingsTab.value; if (id) open(pushUrl(
 const syncing = computed(() => !!job.value);
 // the installed iPhone app has no Back gesture of its own: a drag from the start edge goes back (elsewhere the system's is used)
 const standalone = typeof navigator !== "undefined" && (navigator.standalone === true || matchMedia("(display-mode: standalone)").matches) && /iPhone|iPad|iPod/.test(navigator.userAgent);
-let stopEdge = null;
+let stopEdge = null, stopSwipe = null;
+// on a tab's first screen, a sideways swipe goes to the next or previous tab in the tab bar's order (mirrored in Hebrew)
+const swiped = (m) => { const to = swipeTarget({ ...m, tabs: TABS, at: nav.tab, rtl: isRtl() }); if (to) api.tab(to); };
 onMounted(() => {
   document.documentElement.classList.add("ph-ready");
   if (standalone && stage.value) stopEdge = edgeBack(stage.value, { can: () => stack.value.length > 1, onBack: () => api.back(), sign });
+  if (stage.value) stopSwipe = tabSwipe(stage.value, { can: () => stack.value.length === 1, onSwipe: swiped });
 });
-onBeforeUnmount(() => { stopEdge?.(); document.documentElement.classList.remove("ph-ready"); });
+onBeforeUnmount(() => { stopEdge?.(); stopSwipe?.(); document.documentElement.classList.remove("ph-ready"); });
 </script>
 
 <template>

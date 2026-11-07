@@ -1,4 +1,5 @@
 // Touch gestures of the phone app, with pointer and touch events (passive where the page may still scroll).
+import { awayFromEdges } from "../lib/tabSwipe.js";
 // pullToRefresh: pull the page down from its top; past `need` px a release runs onRun. onMove(dist, ready) moves the page.
 // The page follows the finger with a rubber band: 1:1 at first, slower the further it goes, never past `max`.
 // Crossing the line gives a short buzz (where the phone has one).
@@ -79,4 +80,36 @@ export function edgeBack(el, { can, onBack, sign }) {
   el.addEventListener("touchend", end);
   el.addEventListener("touchcancel", end);
   return () => { el.removeEventListener("touchstart", start); el.removeEventListener("touchmove", move); el.removeEventListener("touchend", end); el.removeEventListener("touchcancel", end); };
+}
+
+// tabSwipe: a quick sideways swipe on a tab's first screen goes to the next or previous tab (lib/tabSwipe.js decides which).
+// It never starts while a window is open (html.sl), with two fingers, near the screen's sides (the phone's own Back gesture),
+// on a field, slider, chart or swipeable row, or inside anything that scrolls sideways (sliding cards, chips, tables).
+const NO_SWIPE = "input, textarea, select, [contenteditable], [role=slider], svg[role=img], .ph-home-fxc, .ph-swipe, .ph-tabs, [data-noswipe]";
+function scrollsSideways(el, stop) {
+  for (; el && el !== stop && el.nodeType === 1; el = el.parentElement) {
+    if (el.scrollWidth > el.clientWidth + 1 && /auto|scroll/.test(getComputedStyle(el).overflowX)) return true;
+  }
+  return false;
+}
+export function tabSwipe(el, { can, onSwipe }) {
+  let x0 = null, y0 = 0, t0 = 0;
+  const start = (e) => {
+    x0 = null;
+    const t = e.touches[0];
+    if (e.touches.length > 1 || !can() || document.documentElement.classList.contains("sl") || !awayFromEdges(t.clientX, innerWidth)) return;
+    if (e.target.closest?.(NO_SWIPE) || scrollsSideways(e.target, el)) return;
+    x0 = t.clientX; y0 = t.clientY; t0 = performance.now();
+  };
+  const end = (e) => {
+    if (x0 == null) return;
+    const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+    x0 = null;
+    onSwipe({ dx, dy, ms: performance.now() - t0 });
+  };
+  const cancel = () => { x0 = null; };
+  el.addEventListener("touchstart", start, { passive: true });
+  el.addEventListener("touchend", end, { passive: true });
+  el.addEventListener("touchcancel", cancel);
+  return () => { el.removeEventListener("touchstart", start); el.removeEventListener("touchend", end); el.removeEventListener("touchcancel", cancel); };
 }
