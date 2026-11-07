@@ -15,7 +15,7 @@ html.phone .ph-bar {
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 8px;
-  min-block-size: var(--p-bar);
+  min-block-size: calc(var(--p-bar) + var(--st)); /* the bar's own row plus the phone's status area, so rows that stick under it meet it with no gap */
   padding: var(--st) calc(var(--p-gut) - 10px) 0;
   margin-inline: calc(50% - 50vw);
   padding-inline: max(calc(var(--p-gut) - 10px), calc(50vw - 50% + var(--p-gut) - 10px));
