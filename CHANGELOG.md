@@ -4,7 +4,7 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
-## [Unreleased]
+## [0.15.0] - 2026-11-07
 - **Tidier code.** Removed unused code and two copies of helpers the app already shares; nothing changes in the app.
 - **Home: the credit cards heading is back.** The heading above your cards ("Cards · this month vs last month") disappeared and only its ? button was left. Now the heading and the ? button show together, and any other heading with a " · " in it keeps its text too.
 - **Hebrew reads more naturally.** Many Hebrew texts on Recap, Home, Activity, Budgets, Jars and Alerts were reworded so they sound like everyday Hebrew instead of a word-for-word translation: "bills still due" no longer uses the same word as "accounts", greetings fit the time of day (no "good night" as a hello), word order and gender agree, a few broken labels in a transaction's details are fixed, and stiff words were swapped for plain ones. The English is unchanged.
