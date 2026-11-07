@@ -64,7 +64,8 @@ html.phone :is(.ph-rep-sel, .ph-rep-i, .ph-rep-stats button, .ph-rep-crow, .ph-r
 
 /* ---- shared bits ---- */
 
-html.phone .ph-rep :where(button:not(.ph-btn, .ph-ib, .ph-link)) {
+/* tab rows (.seg) keep their own centred look */
+html.phone .ph-rep :where(button:not(.ph-btn, .ph-ib, .ph-link, .seg > button)) {
   font: inherit;
   color: inherit;
   text-align: start;
