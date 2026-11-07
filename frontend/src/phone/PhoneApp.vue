@@ -66,12 +66,23 @@ const still = () => matchMedia("(prefers-reduced-motion:reduce)").matches;
 let moving = false;
 function moved(how, change, step = 0) {
   const H = document.documentElement;
+  if (how === "tab") return swapTab(change, step);
   if (!document.startViewTransition || still() || how === "none") return change();
   H.dataset.phnav = how; moving = true;
-  if (step) H.dataset.phstep = step > 0 ? "next" : "prev";
   const vt = document.startViewTransition(change);
-  vt.finished.finally(() => { moving = false; delete H.dataset.phnav; delete H.dataset.phstep; });
+  vt.finished.finally(() => { moving = false; delete H.dataset.phnav; });
   return vt.updateCallbackDone;
+}
+// Another tab, like the calculator app: the screen itself slides 30px away and fades, then the new one comes in. Both
+// move inside the page, so the page's own background shows between them. (Done as a View Transition, the moment between
+// the two pictures showed whatever the phone draws under the page, a black screen on some phones.)
+async function swapTab(change, step) {
+  const el = stage.value;
+  if (!el?.animate || still() || !step) return change();
+  moving = true;
+  const he = document.documentElement.classList.contains("he") ? -1 : 1;
+  const out = el.animate([{ opacity: 0, transform: `translateX(${-30 * step * he}px)` }], { duration: 120, easing: "cubic-bezier(.4,0,1,1)", fill: "forwards" });
+  try { await out.finished.catch(() => {}); await change(); } finally { moving = false; slideIn("tab", step); out.cancel(); }
 }
 const stage = ref(null);
 function slideIn(how, step = 0) {
@@ -79,7 +90,7 @@ function slideIn(how, step = 0) {
   if (still()) { el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 120 }); return; }
   const he = document.documentElement.classList.contains("he") ? -1 : 1;
   if (step) {
-    // the same entrance as the View Transition's (phone/styles/base.css): 40px in from the side, settling
+    // 40px in from the side, settling (also the second half of swapTab)
     el.animate([{ transform: `translateX(${40 * step * he}px)` }, { transform: "none" }], { duration: 240, easing: "cubic-bezier(.2,.8,.2,1)" });
     el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 180, easing: "cubic-bezier(.2,.8,.2,1)" });
     return;
