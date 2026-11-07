@@ -33,7 +33,7 @@ function open(sel) {
   let left = r.width < mw ? r.left + r.width / 2 - mw / 2 : document.documentElement.classList.contains("he") ? r.right - mw : r.left;
   left = Math.max(8, Math.min(left, vw - mw - 8)); m.style.left = left + "px";
   m.style[up ? "bottom" : "top"] = (up ? vh - r.top + 6 : r.bottom + 6) + "px";
-  if (up) m.classList.add("up");
+  if (up) m.classList.add("ddm-above"); // its own name: the app-wide .up (a red "went up" badge) would paint the list see-through red
   requestAnimationFrame(() => m.classList.add("in"));
   const s = m.querySelector(".sel"); if (s) s.scrollIntoView({ block: "center" });
   idx = items().indexOf(s); if (idx >= 0) s.classList.add("hi");

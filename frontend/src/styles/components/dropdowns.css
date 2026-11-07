@@ -21,7 +21,7 @@ select.ddo {
   transition: opacity .16s ease, transform .18s cubic-bezier(.2, .8, .2, 1);
 }
 
-.ddm.up {
+.ddm.ddm-above {
   transform: translateY(8px) scale(.98);
   transform-origin: bottom;
 }

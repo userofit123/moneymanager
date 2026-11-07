@@ -5,6 +5,7 @@ What changed in each version. The web app (Docker) and the Windows app share one
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
 ## [Unreleased]
+- **Drop-down lists that open upwards look right again.** When a list has no room under its box and opens above it instead, it now has the same solid background, text colour and frame as when it opens below, instead of showing see-through and in red.
 - **Phone Activity: no gap above the month headings.** On phones with a status area at the top (the clock and battery), a month heading that stays at the top while you scroll now sits right under the top bar, so the list no longer shows through a thin gap between them.
 - **Phone: swipe between tabs.** On a tab's first screen, a quick swipe to the side opens the next or previous tab in the tab bar (in Hebrew the direction is mirrored, like the tab bar). It does nothing while a window is open, near the screen's sides (the phone's own Back gesture), on a field, slider or chart, or on anything that slides sideways, like rows of cards or chips.
 - **Phone Reports: tab names in the middle.** The choices above the chart (Area, Line, Bars and the number of months) now show their names centred in each tab, with the same spacing and widths as the tabs on the other phone pages.
