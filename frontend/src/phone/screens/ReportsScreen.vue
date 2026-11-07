@@ -4,12 +4,13 @@
 // against last month, income against expenses, top merchants, spending by category and by tag, and the category trend.
 // The computer's hover texts open with a tap (a tap on a chart shows that month's numbers in the computer's tip, with a
 // way into Activity). Every number comes from pagelogic/reports.js, as on the computer.
-import { ref, computed, onMounted, h } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, h } from "vue";
 import { data } from "../../stores/data.js";
 import { useReports } from "../../pagelogic/reports.js";
 import { openForm } from "../../core/forms.js";
 import { explain } from "../../core/tooltip.js";
 import { usePhoneNav } from "../navigation.js";
+import { tapAway } from "../gestures.js";
 import PhoneScreen from "../components/PhoneScreen.vue";
 import ListGroup from "../components/ListGroup.vue";
 import Segmented from "../components/Segmented.vue";
@@ -126,6 +127,10 @@ const lineType = computed({ get: () => (RN.lt == "inc" ? "inc" : "exp"), set: (v
 const typeOpts = computed(() => [{ value: "exp", label: t("rep.expenses") }, { value: "inc", label: t("rep.income") }]);
 // a legend chip: the first tap brings its line forward (the computer's hover), the second opens it in Activity
 const tapLeg = (k) => { if (lineHot.value === k) goActivity({ cat: k }); else lineHot.value = k; };
+
+// a month's tip (main chart, income against expenses, category trend) closes on a tap anywhere outside its chart
+const offs = [[() => nwA.el.value, () => (trHov.value = null)], [() => bSize.el.value, () => (bSel.value = null)], [() => lSize.el.value, () => (lSel.value = null)]].map(([el, close]) => tapAway(el, close));
+onBeforeUnmount(() => offs.forEach((off) => off()));
 </script>
 
 <template>

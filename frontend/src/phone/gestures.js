@@ -113,3 +113,11 @@ export function tabSwipe(el, { can, onSwipe }) {
   el.addEventListener("touchcancel", cancel);
   return () => { el.removeEventListener("touchstart", start); el.removeEventListener("touchend", end); el.removeEventListener("touchcancel", cancel); };
 }
+
+// tapAway: a touch anywhere outside `getEl()` (a chart and its open tip) runs onAway, so the tip closes on a tap elsewhere.
+// It only listens (passive), so the page still scrolls and the touch still reaches what it lands on.
+export function tapAway(getEl, onAway) {
+  const down = (e) => { const el = getEl(); if (el && !el.contains(e.target)) onAway(); };
+  document.addEventListener("pointerdown", down, { capture: true, passive: true });
+  return () => document.removeEventListener("pointerdown", down, { capture: true });
+}
