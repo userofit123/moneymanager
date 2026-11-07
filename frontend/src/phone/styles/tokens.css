@@ -46,6 +46,11 @@ html.phone {
   --p-t-sheet: 300ms;
   --p-t-fade: 160ms;
   --p-t-press: 120ms;
+  /* moving between tabs: the open screen leaves quickly, then the new one slides in and settles */
+  --p-ease-in: cubic-bezier(.4, 0, 1, 1);
+  --p-t-tab-out: 120ms;
+  --p-t-tab-fade: 180ms;
+  --p-t-tab-in: 240ms;
   --p-dir: 1;
 }
 

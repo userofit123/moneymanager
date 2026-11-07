@@ -12,7 +12,7 @@ import { app } from "../core/boot.js";
 import { edgeBack, tabSwipe } from "./gestures.js";
 import { sign, isRtl } from "./dir.js";
 import { TABS } from "./screens.js";
-import { swipeTarget } from "../lib/tabSwipe.js";
+import { swipeTarget, tabStep } from "../lib/tabSwipe.js";
 import ScreenHost from "./ScreenHost.vue";
 import TabBar from "./components/TabBar.vue";
 import OfflinePill from "./components/OfflinePill.vue";
@@ -50,30 +50,40 @@ const keepScroll = () => { if (!moving) screen.value.y = scrollY; };
 addEventListener("scroll", keepScroll, { passive: true });
 onBeforeUnmount(() => removeEventListener("scroll", keepScroll));
 watch(url, async (u) => {
+  const was = nav.tab;
   const how = showUrl(nav, u);
   if (how === "none") return;
   await nextTick();
   scrollTo(0, screen.value.y || 0);
-  if (!moving) slideIn(how);
+  if (!moving) slideIn(how, how === "tab" ? tabStep(TABS, was, nav.tab) : 0);
 });
 
-// Motion: a pushed screen slides in from the end side, Back slides it out, tabs cross-fade (View Transitions where the
-// browser has them; otherwise only the new screen moves in). Under reduced motion, a short fade.
+// Motion: a pushed screen slides in from the end side, Back slides it out (View Transitions where the browser has them;
+// otherwise only the new screen moves in). Another tab: the open screen slides a little towards the side the tab bar
+// moves away from and fades, then the new one slides in from the other side and settles (step: 1 a tab further along,
+// -1 an earlier one; mirrored in Hebrew). Under reduced motion, nothing slides: a short fade.
 const still = () => matchMedia("(prefers-reduced-motion:reduce)").matches;
 let moving = false;
-function moved(how, change) {
+function moved(how, change, step = 0) {
   const H = document.documentElement;
   if (!document.startViewTransition || still() || how === "none") return change();
   H.dataset.phnav = how; moving = true;
+  if (step) H.dataset.phstep = step > 0 ? "next" : "prev";
   const vt = document.startViewTransition(change);
-  vt.finished.finally(() => { moving = false; delete H.dataset.phnav; });
+  vt.finished.finally(() => { moving = false; delete H.dataset.phnav; delete H.dataset.phstep; });
   return vt.updateCallbackDone;
 }
 const stage = ref(null);
-function slideIn(how) {
+function slideIn(how, step = 0) {
   const el = stage.value; if (!el || !el.animate) return;
   if (still()) { el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 120 }); return; }
   const he = document.documentElement.classList.contains("he") ? -1 : 1;
+  if (step) {
+    // the same entrance as the View Transition's (phone/styles/base.css): 40px in from the side, settling
+    el.animate([{ transform: `translateX(${40 * step * he}px)` }, { transform: "none" }], { duration: 240, easing: "cubic-bezier(.2,.8,.2,1)" });
+    el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 180, easing: "cubic-bezier(.2,.8,.2,1)" });
+    return;
+  }
   const from = how === "push" ? `translateX(${30 * he}%)` : how === "pop" ? `translateX(${-30 * he}%)` : "none";
   el.animate([{ transform: from, opacity: how === "tab" ? 0 : 0.6 }, { transform: "none", opacity: 1 }], { duration: how === "tab" ? 160 : 280, easing: "cubic-bezier(.16,1,.3,1)" });
 }
@@ -85,8 +95,8 @@ const drawn = () => new Promise((res) => {
   nextTick(check);
 });
 
-function open(to, how) {
-  return moved(how, async () => { go(to); follow(); await drawn(); });
+function open(to, how, step = 0) {
+  return moved(how, async () => { go(to); follow(); await drawn(); }, step);
 }
 const api = {
   // push a screen on the open tab: push("account", 4), push("accounts")
@@ -99,7 +109,7 @@ const api = {
   },
   // a tab: its stack as it was; the open tab again: to its top, then to its first screen
   tab(name) {
-    if (name !== nav.tab) return open(top(nav, name).url, "tab");
+    if (name !== nav.tab) return open(top(nav, name).url, "tab", tabStep(TABS, nav.tab, name));
     if (scrollY > 4) return scrollTo({ top: 0, behavior: still() ? "auto" : "smooth" });
     if (stack.value.length > 1) open(rootUrl(name), "pop");
   },

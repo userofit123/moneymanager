@@ -53,7 +53,10 @@ html.phone.he .ph-ic.dir {
 }
 
 /* Moving between screens (View Transitions): a pushed screen comes in from the end side and the one under it moves a
-   little the other way and dims; Back plays it in reverse; tabs cross-fade. The tab bar stays still. */
+   little the other way and dims; Back plays it in reverse. Another tab (swiped to or tapped): the open screen slides
+   30px away and fades, then the new one comes in 40px from the other side and settles; a tab further along the tab
+   bar comes in from the end side, an earlier one from the start side (mirrored in Hebrew through --p-dir).
+   The tab bar stays still. */
 html.phone .ph-tabs {
   view-transition-name: ph-tabs;
 }
@@ -82,6 +85,45 @@ html.phone[data-phnav="pop"]::view-transition-new(root) {
 html.phone[data-phnav="tab"]::view-transition-old(root),
 html.phone[data-phnav="tab"]::view-transition-new(root) {
   animation-duration: var(--p-t-fade);
+}
+
+html.phone[data-phnav="tab"][data-phstep]::view-transition-old(root) {
+  animation: ph-tab-out-next var(--p-t-tab-out) var(--p-ease-in) both;
+}
+
+html.phone[data-phnav="tab"][data-phstep="prev"]::view-transition-old(root) {
+  animation-name: ph-tab-out-prev;
+}
+
+/* the new screen waits for the old one to leave, then moves and fades in (the fade a little quicker) */
+html.phone[data-phnav="tab"][data-phstep]::view-transition-new(root) {
+  animation:
+    ph-tab-in-next var(--p-t-tab-in) var(--p-ease) var(--p-t-tab-out) both,
+    ph-tab-fade-in var(--p-t-tab-fade) var(--p-ease) var(--p-t-tab-out) both;
+}
+
+html.phone[data-phnav="tab"][data-phstep="prev"]::view-transition-new(root) {
+  animation-name: ph-tab-in-prev, ph-tab-fade-in;
+}
+
+@keyframes ph-tab-out-next {
+  to { opacity: 0; transform: translateX(calc(-30px * var(--p-dir))); }
+}
+
+@keyframes ph-tab-out-prev {
+  to { opacity: 0; transform: translateX(calc(30px * var(--p-dir))); }
+}
+
+@keyframes ph-tab-in-next {
+  from { transform: translateX(calc(40px * var(--p-dir))); }
+}
+
+@keyframes ph-tab-in-prev {
+  from { transform: translateX(calc(-40px * var(--p-dir))); }
+}
+
+@keyframes ph-tab-fade-in {
+  from { opacity: 0; }
 }
 
 @keyframes ph-from-end {

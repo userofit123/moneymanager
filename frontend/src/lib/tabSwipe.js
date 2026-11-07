@@ -16,3 +16,10 @@ export function swipeTarget({ dx, dy, ms, tabs, at, rtl = false }) {
 
 // A swipe may start only away from the screen's sides: those belong to the phone's own Back gesture.
 export const awayFromEdges = (x, width) => x > SWIPE.edge && x < width - SWIPE.edge;
+
+// Which way the screen slides when moving from one tab to another (by a swipe or a tap on the tab bar):
+// 1 when the new tab is further along the tab bar (it comes in from the end side), -1 when it is earlier, 0 otherwise.
+export function tabStep(tabs, from, to) {
+  const a = tabs.indexOf(from), b = tabs.indexOf(to);
+  return a < 0 || b < 0 || a === b ? 0 : b > a ? 1 : -1;
+}
