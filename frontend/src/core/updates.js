@@ -4,6 +4,7 @@ import { reactive } from "vue";
 import { getJson } from "./http.js";
 import { readPref, writePref } from "./prefs.js";
 import { i18n } from "../i18n.js";
+import { downloads } from "../lib/downloads.js";
 
 // status: idle | checking | uptodate | available | downloading | ready | installing | error. The desktop app reports its own.
 export const UP = reactive({ cur: "", latest: "", status: "idle", percent: 0, notes: "", url: "", err: "", none: false, auto: true, manual: false });
@@ -13,16 +14,51 @@ export async function upWeb(force) {
   try {
     const j = await getJson("/api/update-check" + (force ? "?force=1" : ""));
     Object.assign(UP, { cur: j.current, latest: j.latest, status: j.available ? "available" : j.reachable ? "uptodate" : force ? "error" : "idle", err: j.reachable ? "" : j.error ? "(" + j.error + ")" : i18n.global.t("upd.noGithub"), none: !!(j.reachable && !j.latest), notes: j.notes || "", url: j.url || "" });
+    // the phone app: a ready download older than the newest version gives way to it, so Install never installs an older one
+    if (APP.staged && UP.latest && vNewer(UP.latest, APP.staged)) appForget();
   } catch { if (force) { UP.status = "error"; UP.err = i18n.global.t("upd.noGithub"); } }
 }
 function fromDesk(s) {
   if (UP.status == "installing") return;
   Object.assign(UP, { cur: s.current, status: s.status, latest: s.version, percent: s.percent || 0, notes: s.notes || "", auto: s.auto !== false, manual: !!s.manual, err: s.error || "" });
 }
+// ---- the phone app updating itself (window.mmApp.update, android Updater.kt) ----
+// The newest version comes from the same check as the server's (UP.latest). Download fetches the APK with a progress bar,
+// then Install hands it to Android's installer (which asks to confirm). A file downloaded before the app was closed is offered as Install.
+// status: idle | checking | downloading | ready | error. err is a text key (updAllow, updDamaged, updFailed).
+export const APP = reactive({ status: "idle", percent: -1, mb: 0, staged: "", err: "" });
+const appUpd = () => (typeof window !== "undefined" && window.mmApp && window.mmApp.update) || null;
+export async function appCheck() {
+  if (APP.status === "downloading") return;
+  APP.status = "checking";
+  await upWeb(true);
+  APP.status = APP.staged ? "ready" : "idle";
+}
+export async function appDownload() {
+  const u = appUpd(); if (!u || APP.status === "downloading" || !UP.latest) return;
+  const v = UP.latest, file = downloads("android", v)[0];
+  Object.assign(APP, { status: "downloading", percent: -1, mb: 0, err: "" });
+  try {
+    // the size can be unknown (-1): the megabytes so far show instead of a share
+    const got = await u.download(file.href, v, (done, total) => { APP.percent = total > 0 ? Math.round((done * 100) / total) : -1; APP.mb = Math.round(done / 1e5) / 10; });
+    Object.assign(APP, { status: "ready", staged: got || v });
+  } catch (e) { Object.assign(APP, { status: "error", err: /^upd\w+$/.test(e && e.message) ? e.message : "updFailed" }); }
+}
+export async function appInstall() {
+  const u = appUpd(); if (!u) return;
+  APP.err = "";
+  try { await u.install(); } catch (e) { APP.err = /^upd\w+$/.test(e && e.message) ? e.message : "updFailed"; }
+}
+function appForget() {
+  Object.assign(APP, { status: "idle", staged: "" });
+  appUpd()?.forget().catch(() => {});
+}
+
 let started = false;
 export function startUpdates() {
   if (started) return; started = true;
   getJson("/api/version").then((j) => { if (!UP.cur && j && j.version) UP.cur = j.version; }).catch(() => {});
+  if (appUpd()) appUpd().staged().then((v) => { if (v && APP.status === "idle") { Object.assign(APP, { status: "ready", staged: v }); if (UP.latest && vNewer(UP.latest, v)) appForget(); } }).catch(() => {});
   if (window.desktop) { window.desktop.onUpdate((s) => fromDesk(s)); window.desktop.getUpdate().then(fromDesk).catch(() => {}); }
   else { upWeb(); setInterval(upWeb, 6 * 36e5); }
 }

@@ -2,7 +2,7 @@
 // Settings → Version and updates: the installed version, new versions, and (in a browser) installing the app or getting the desktop app.
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { UP, upWeb } from "../../core/updates.js";
+import { UP, upWeb, APP, vNewer, appCheck, appDownload, appInstall } from "../../core/updates.js";
 import { installPrompt, install } from "../../core/pwa.js";
 import SetSection from "./SetSection.vue";
 import SetRow from "./SetRow.vue";
@@ -17,8 +17,8 @@ const D = typeof window !== "undefined" ? window.desktop : null, desk = !!D;
 const standalone = typeof matchMedia !== "undefined" && matchMedia("(display-mode: standalone)").matches;
 const MM = typeof window !== "undefined" ? window.mmApp : null; // the phone app: its own version, and where to get a newer one
 const showGet = device.inBrowser; // a browser tab or the installed web app: it can offer the other apps
-const newer = (a, b) => { const x = String(a).split(".").map(Number), y = String(b).split(".").map(Number); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); return false; };
-const appNewer = computed(() => !!(MM && UP.latest && newer(UP.latest, String(MM.version).split("-")[0])));
+// the phone app: a newer version than this app exists (core/updates.js). An older app without in-app updates gets the downloads page instead.
+const behind = computed(() => !!(MM && UP.latest && vNewer(UP.latest, String(MM.version).split("-")[0])));
 // Install: the options for this device first (core/device.js), then the other devices the app works on,
 // each with its way to install from the browser and its files on GitHub (lib/downloads.js; iPhone and iPad have none).
 const OSES = ["win", "mac", "linux", "android", "ios"];
@@ -42,7 +42,22 @@ function setAuto(on) { if (!D) return; UP.auto = on; D.setAuto(on); }
   <div id="setApp">
     <SetSection v-if="MM" id="appCard" icon="phone" :title="tk('appT')" :desc="tk('appD')">
       <SetRow :title="tk('installed')" :desc="'⁦v' + MM.version + '⁩'"><button type="button" class="btn o s" data-a="updNotes" @click="changelog">{{ tk("whatsNew") }}</button></SetRow>
-      <SetRow :title="appNewer ? tk('appNew', { v: v() }) : tk('appGet')" :desc="tk('appGetD')"><button type="button" class="btn s" :class="{ o: !appNewer }" data-a="appGet" @click="MM.open(RELEASES + '/latest')">{{ tk("appGetBtn") }}</button></SetRow>
+      <SetRow v-if="MM.update" :title="tk('updT')" :cls="APP.status == 'error' || APP.err ? 'updfail' : ''">
+        <template #desc>
+          <template v-if="APP.status == 'checking'">{{ tk("checking") }}</template>
+          <template v-else-if="APP.status == 'downloading'">{{ APP.percent >= 0 ? tk("downloading", { v: v(), p: APP.percent }) : tk("appDownloadingMb", { v: v(), mb: APP.mb }) }}<span class="bar updbar"><i :style="{ width: Math.max(APP.percent, 0) + '%' }" /></span></template>
+          <template v-else-if="APP.status == 'ready'">{{ tk("appReady", { v: '⁦' + APP.staged + '⁩' }) }}</template>
+          <template v-else-if="APP.status == 'error'">{{ tk("appErr." + APP.err) }}</template>
+          <template v-else-if="behind">{{ tk("appNew", { v: v() }) }}. {{ tk("appNewD") }}</template>
+          <template v-else-if="UP.latest">{{ tk("latest") }}</template>
+          <template v-else-if="UP.status == 'error'">{{ tk("error") }}</template>
+          <template v-if="APP.err && APP.status != 'error'"> {{ tk("appErr." + APP.err) }}</template>
+        </template>
+        <button v-if="APP.status == 'ready'" type="button" class="btn s" data-a="appInstall" @click="appInstall">{{ tk("appInstall") }}</button>
+        <button v-else-if="behind && ['idle', 'error'].includes(APP.status)" type="button" class="btn s" data-a="appDownload" @click="appDownload">{{ tk("appDownload") }}</button>
+        <button v-if="!['checking', 'downloading'].includes(APP.status)" type="button" class="btn o s" data-a="appCheck" @click="appCheck">{{ tk("checkBtn") }}</button>
+      </SetRow>
+      <SetRow v-else :title="behind ? tk('appNew', { v: v() }) : tk('appGet')" :desc="tk('appGetD')"><button type="button" class="btn s" :class="{ o: !behind }" data-a="appGet" @click="MM.open(RELEASES + '/latest')">{{ tk("appGetBtn") }}</button></SetRow>
     </SetSection>
     <SetSection id="updCard" icon="install" :title="MM ? tk('srvVerT') : tk('title')" :desc="desk ? tk('descDesk') : tk('descServer')">
       <SetRow :title="tk('installed')" :desc="UP.cur ? '⁦v' + UP.cur + '⁩' : ''"><button type="button" class="btn o s" data-a="updNotes" @click="changelog">{{ tk("whatsNew") }}</button></SetRow>

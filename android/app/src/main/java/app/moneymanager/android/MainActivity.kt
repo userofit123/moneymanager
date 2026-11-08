@@ -305,6 +305,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         shell?.stop()
+        if (isFinishing) Updater.stop(applicationContext)
         super.onDestroy()
     }
 }

@@ -4,6 +4,9 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [Unreleased]
+- **The Android app updates itself.** Settings → Version and updates now shows, for the app on the phone, whether a newer version exists, with a **Download update** button. The download shows how far it got (on the page and in a notification, so you can leave the app meanwhile), then an **Install** button opens Android's own installer, which asks you to confirm. A download that finished before the app was closed is still offered as Install, and an older download gives way to a newer version. Before, the app could only open the downloads page on GitHub. The first time, Android asks you to allow Money Manager to install updates. Your server and your data are not touched.
+
 ## [0.15.0] - 2026-11-07
 - **Tidier code.** Removed unused code and two copies of helpers the app already shares; nothing changes in the app.
 - **Home: the credit cards heading is back.** The heading above your cards ("Cards · this month vs last month") disappeared and only its ? button was left. Now the heading and the ? button show together, and any other heading with a " · " in it keeps its text too.

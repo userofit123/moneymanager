@@ -86,5 +86,16 @@
     "ios": "There is no app to download for iPhone or iPad."
   },
   "otherT": "Other devices",
-  "otherD": "The app works on these too. Open this same address on the device, then follow the steps."
+  "otherD": "The app works on these too. Open this same address on the device, then follow the steps.",
+  "appNewD": "Download it here, then install it. Your server and your data are not touched.",
+  "appDownload": "Download update",
+  "appDownloadingMb": "Downloading version {v}… {mb} MB",
+  "appReady": "Version {v} is downloaded and ready to install. Android asks you to confirm.",
+  "appInstall": "Install",
+  "appErr": {
+    "updFailed": "The download did not finish. Check the internet connection and try again.",
+    "updDamaged": "The downloaded file was not right, so it was deleted. Try again.",
+    "updAllow": "Allow Money Manager to install updates in the window that opened, then tap Install again.",
+    "updBusy": "A download is already running."
+  }
 }

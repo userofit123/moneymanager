@@ -81,6 +81,16 @@ class Bridge(private val act: MainActivity) {
             Alerts.checkNow(act)
             "null"
         }
+        "updStaged" -> JSONObject.quote(Updater.staged(act))
+        "updDownload" -> {
+            val v = a.getString(1)
+            Updater.download(act.applicationContext, a.getString(0), v) { done, total ->
+                act.runOnUiThread { if (act.isOwnPage()) act.web.evaluateJavascript("window.__mmUpd&&window.__mmUpd($done,$total)", null) }
+            }
+            JSONObject.quote(v)
+        }
+        "updInstall" -> { Updater.install(act); "null" }
+        "updForget" -> { Updater.forget(act); "null" }
         else -> throw IllegalArgumentException("unknown")
     }
 
@@ -144,7 +154,14 @@ class Bridge(private val act: MainActivity) {
     setNotif: function (on) { return call("setNotif", !!on); },
     testNotif: function () { return call("testNotif"); },
     setBars: function (bg, dark, acc, on, tx) { n.setBars(String(bg), !!dark, String(acc || ""), String(on || ""), String(tx || "")); },
-    open: function (url) { n.open(String(url)); }
+    open: function (url) { n.open(String(url)); },
+    // updating the app itself (Updater.kt): download with progress, then Android's installer
+    update: {
+      staged: function () { return call("updStaged"); },
+      download: function (url, version, onProgress) { window.__mmUpd = onProgress || null; return call("updDownload", String(url), String(version)); },
+      install: function () { return call("updInstall"); },
+      forget: function () { return call("updForget"); }
+    }
   };
 })();
 """
