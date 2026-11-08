@@ -26,23 +26,57 @@ function fromDesk(s) {
 // The newest version comes from the same check as the server's (UP.latest). Download fetches the APK with a progress bar,
 // then Install hands it to Android's installer (which asks to confirm). A file downloaded before the app was closed is offered as Install.
 // status: idle | checking | downloading | ready | error. err is a text key (updAllow, updDamaged, updFailed).
-export const APP = reactive({ status: "idle", percent: -1, mb: 0, staged: "", err: "" });
+// auto, wifiOnly: the person's choices "Download updates automatically" and "Only on Wi-Fi" (kept by the app, Updater.kt);
+// known is false until the app has told them (an older app has no such choices).
+export const APP = reactive({ status: "idle", percent: -1, mb: 0, staged: "", err: "", version: "", auto: false, wifiOnly: true, known: false });
 const appUpd = () => (typeof window !== "undefined" && window.mmApp && window.mmApp.update) || null;
+// a newer version than the app on this phone exists
+export const appBehind = () => !!(typeof window !== "undefined" && window.mmApp && UP.latest && vNewer(UP.latest, String(window.mmApp.version).split("-")[0]));
 export async function appCheck() {
   if (APP.status === "downloading") return;
   APP.status = "checking";
   await upWeb(true);
   APP.status = APP.staged ? "ready" : "idle";
+  appAuto();
+}
+const errKey = (e) => (/^upd\w+$/.test(e && e.message) ? e.message : "updFailed");
+// the size can be unknown (-1): the megabytes so far show instead of a share
+const onProgress = (done, total) => { APP.percent = total > 0 ? Math.round((done * 100) / total) : -1; APP.mb = Math.round(done / 1e5) / 10; };
+let lastFail = 0;
+// shows a download until it ends: the ready version, or the error
+async function follow(v, run) {
+  Object.assign(APP, { status: "downloading", version: v, err: "" });
+  try { const got = await run(); Object.assign(APP, { status: "ready", staged: got || v }); lastFail = 0; }
+  catch (e) { Object.assign(APP, { status: "error", err: errKey(e) }); lastFail = Date.now(); }
 }
 export async function appDownload() {
   const u = appUpd(); if (!u || APP.status === "downloading" || !UP.latest) return;
   const v = UP.latest, file = downloads("android", v)[0];
-  Object.assign(APP, { status: "downloading", percent: -1, mb: 0, err: "" });
-  try {
-    // the size can be unknown (-1): the megabytes so far show instead of a share
-    const got = await u.download(file.href, v, (done, total) => { APP.percent = total > 0 ? Math.round((done * 100) / total) : -1; APP.mb = Math.round(done / 1e5) / 10; });
-    Object.assign(APP, { status: "ready", staged: got || v });
-  } catch (e) { Object.assign(APP, { status: "error", err: /^upd\w+$/.test(e && e.message) ? e.message : "updFailed" }); }
+  Object.assign(APP, { percent: -1, mb: 0 });
+  await follow(v, () => u.download(file.href, v, onProgress));
+}
+// The page opened again (or reloaded) while the app was still downloading: the progress bar comes back.
+function resume(s) {
+  const u = appUpd();
+  onProgress(s.done || 0, s.total == null ? -1 : s.total);
+  follow(s.running, () => u.watch(onProgress));
+}
+// "Download updates automatically": a newer version found by a check downloads by itself, then waits for the person to tap Install.
+// "Only on Wi-Fi": on mobile data it waits (looked at again every 15 minutes). A failed download is tried again after 15 minutes.
+const RETRY = 15 * 6e4;
+let appKnown = Promise.resolve(); // what the app said at the start (a running or ready download), so a second download never starts
+async function appAuto() {
+  await appKnown;
+  const u = appUpd(); if (!u || !u.choices || !APP.auto || !appBehind()) return;
+  if (!(APP.status === "idle" || (APP.status === "error" && Date.now() - lastFail >= RETRY))) return;
+  if (APP.wifiOnly) { const c = await u.choices().catch(() => null); if (!c || c.metered) return; }
+  if (APP.status === "idle" || APP.status === "error") appDownload();
+}
+export async function appSetChoices(auto, wifiOnly) {
+  const u = appUpd(); if (!u || !u.setChoices) return;
+  Object.assign(APP, { auto, wifiOnly });
+  try { const c = await u.setChoices(auto, wifiOnly); Object.assign(APP, { auto: !!c.auto, wifiOnly: !!c.wifiOnly }); } catch { /* the switch shows what was asked */ }
+  appAuto();
 }
 export async function appInstall() {
   const u = appUpd(); if (!u) return;
@@ -58,9 +92,19 @@ let started = false;
 export function startUpdates() {
   if (started) return; started = true;
   getJson("/api/version").then((j) => { if (!UP.cur && j && j.version) UP.cur = j.version; }).catch(() => {});
-  if (appUpd()) appUpd().staged().then((v) => { if (v && APP.status === "idle") { Object.assign(APP, { status: "ready", staged: v }); if (UP.latest && vNewer(UP.latest, v)) appForget(); } }).catch(() => {});
+  const u = appUpd();
+  if (u) {
+    // a download still running (the page was reloaded mid-way) shows its progress again; a finished one is offered as Install
+    appKnown = (u.state ? u.state() : u.staged().then((v) => ({ staged: v }))).then((s) => {
+      if (s.running && APP.status === "idle") resume(s);
+      else if (s.staged && APP.status === "idle") { Object.assign(APP, { status: "ready", staged: s.staged }); if (UP.latest && vNewer(UP.latest, s.staged)) appForget(); }
+    }).catch(() => {});
+    if (u.choices) u.choices().then((c) => { Object.assign(APP, { auto: !!c.auto, wifiOnly: !!c.wifiOnly, known: true }); appAuto(); }).catch(() => {});
+    setInterval(appAuto, RETRY);
+    window.addEventListener("online", appAuto);
+  }
   if (window.desktop) { window.desktop.onUpdate((s) => fromDesk(s)); window.desktop.getUpdate().then(fromDesk).catch(() => {}); }
-  else { upWeb(); setInterval(upWeb, 6 * 36e5); }
+  else { upWeb().then(appAuto); setInterval(() => upWeb().then(appAuto), 6 * 36e5); }
 }
 
 // ---- the change log ----

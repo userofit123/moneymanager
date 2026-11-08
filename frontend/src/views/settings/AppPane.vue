@@ -2,7 +2,7 @@
 // Settings → Version and updates: the installed version, new versions, and (in a browser) installing the app or getting the desktop app.
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { UP, upWeb, APP, vNewer, appCheck, appDownload, appInstall } from "../../core/updates.js";
+import { UP, upWeb, APP, vNewer, appCheck, appDownload, appInstall, appSetChoices } from "../../core/updates.js";
 import { installPrompt, install } from "../../core/pwa.js";
 import SetSection from "./SetSection.vue";
 import SetRow from "./SetRow.vue";
@@ -30,6 +30,8 @@ const hereFiles = computed(() => { const l = files(here); return l.length && UP.
 // the update states that have a line of text under "New versions"
 const STATES = ["uptodate", "checking", "available", "downloading", "installing", "ready", "error", "dev"];
 const v = () => (UP.latest ? "⁦" + UP.latest + "⁩" : "");
+// the version the phone app is downloading (known even before the check answers, after the page reloaded mid-way)
+const appV = () => (APP.version ? "⁦" + APP.version + "⁩" : v());
 const changelog = () => openSettingsTab("rel");
 // The desktop app reports how far it got through onUpdate (core/updates.js), so these only start it.
 function check() { if (D) { UP.status = "checking"; D.check(); } else upWeb(true); }
@@ -45,7 +47,7 @@ function setAuto(on) { if (!D) return; UP.auto = on; D.setAuto(on); }
       <SetRow v-if="MM.update" :title="tk('updT')" :cls="APP.status == 'error' || APP.err ? 'updfail' : ''">
         <template #desc>
           <template v-if="APP.status == 'checking'">{{ tk("checking") }}</template>
-          <template v-else-if="APP.status == 'downloading'">{{ APP.percent >= 0 ? tk("downloading", { v: v(), p: APP.percent }) : tk("appDownloadingMb", { v: v(), mb: APP.mb }) }}<span class="bar updbar"><i :style="{ width: Math.max(APP.percent, 0) + '%' }" /></span></template>
+          <template v-else-if="APP.status == 'downloading'">{{ APP.percent >= 0 ? tk("downloading", { v: appV(), p: APP.percent }) : tk("appDownloadingMb", { v: appV(), mb: APP.mb }) }}<span class="bar updbar"><i :style="{ width: Math.max(APP.percent, 0) + '%' }" /></span></template>
           <template v-else-if="APP.status == 'ready'">{{ tk("appReady", { v: '⁦' + APP.staged + '⁩' }) }}</template>
           <template v-else-if="APP.status == 'error'">{{ tk("appErr." + APP.err) }}</template>
           <template v-else-if="behind">{{ tk("appNew", { v: v() }) }}. {{ tk("appNewD") }}</template>
@@ -57,7 +59,10 @@ function setAuto(on) { if (!D) return; UP.auto = on; D.setAuto(on); }
         <button v-else-if="behind && ['idle', 'error'].includes(APP.status)" type="button" class="btn s" data-a="appDownload" @click="appDownload">{{ tk("appDownload") }}</button>
         <button v-if="!['checking', 'downloading'].includes(APP.status)" type="button" class="btn o s" data-a="appCheck" @click="appCheck">{{ tk("checkBtn") }}</button>
       </SetRow>
-      <SetRow v-else :title="behind ? tk('appNew', { v: v() }) : tk('appGet')" :desc="tk('appGetD')"><button type="button" class="btn s" :class="{ o: !behind }" data-a="appGet" @click="MM.open(RELEASES + '/latest')">{{ tk("appGetBtn") }}</button></SetRow>
+      <!-- the phone app's own choices (Updater.kt); Only on Wi-Fi matters only while automatic downloads are on -->
+      <SetRow v-if="MM.update && APP.known" toggle data-upd="appAuto" :title="tk('appAuto')" :desc="tk('appAutoD')" :model-value="APP.auto" @update:model-value="(on) => appSetChoices(on, APP.wifiOnly)" />
+      <SetRow v-if="MM.update && APP.known && APP.auto" toggle data-upd="appWifi" :title="tk('appWifi')" :desc="tk('appWifiD')" :model-value="APP.wifiOnly" @update:model-value="(on) => appSetChoices(APP.auto, on)" />
+      <SetRow v-if="!MM.update" :title="behind ? tk('appNew', { v: v() }) : tk('appGet')" :desc="tk('appGetD')"><button type="button" class="btn s" :class="{ o: !behind }" data-a="appGet" @click="MM.open(RELEASES + '/latest')">{{ tk("appGetBtn") }}</button></SetRow>
     </SetSection>
     <SetSection id="updCard" icon="install" :title="MM ? tk('srvVerT') : tk('title')" :desc="desk ? tk('descDesk') : tk('descServer')">
       <SetRow :title="tk('installed')" :desc="UP.cur ? '⁦v' + UP.cur + '⁩' : ''"><button type="button" class="btn o s" data-a="updNotes" @click="changelog">{{ tk("whatsNew") }}</button></SetRow>

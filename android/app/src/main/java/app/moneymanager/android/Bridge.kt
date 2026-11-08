@@ -89,6 +89,10 @@ class Bridge(private val act: MainActivity) {
             }
             JSONObject.quote(v)
         }
+        "updState" -> Updater.state(act).toString()
+        "updAwait" -> JSONObject.quote(Updater.await(act))
+        "updChoices" -> Updater.choices(act).put("metered", Updater.metered(act)).toString()
+        "setUpdChoices" -> Updater.setChoices(act, a.getBoolean(0), a.getBoolean(1)).put("metered", Updater.metered(act)).toString()
         "updInstall" -> { Updater.install(act); "null" }
         "updForget" -> { Updater.forget(act); "null" }
         else -> throw IllegalArgumentException("unknown")
@@ -158,6 +162,13 @@ class Bridge(private val act: MainActivity) {
     // updating the app itself (Updater.kt): download with progress, then Android's installer
     update: {
       staged: function () { return call("updStaged"); },
+      // { staged, running, done, total }: running is the version a download is fetching right now (a page reloaded mid-way)
+      state: function () { return call("updState"); },
+      // keeps showing a running download: its progress, then the ready version (or the error)
+      watch: function (onProgress) { window.__mmUpd = onProgress || null; return call("updAwait"); },
+      // { auto, wifiOnly, metered }: download updates automatically, only on Wi-Fi, and whether the connection now is mobile data
+      choices: function () { return call("updChoices"); },
+      setChoices: function (auto, wifiOnly) { return call("setUpdChoices", !!auto, !!wifiOnly); },
       download: function (url, version, onProgress) { window.__mmUpd = onProgress || null; return call("updDownload", String(url), String(version)); },
       install: function () { return call("updInstall"); },
       forget: function () { return call("updForget"); }

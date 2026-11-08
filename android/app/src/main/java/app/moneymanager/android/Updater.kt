@@ -6,12 +6,14 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInfo
+import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
@@ -30,11 +32,20 @@ object Updater {
     private const val ID = 7005
     private const val PREFS = "updater"
     private const val PREFIX = "money-manager-update"
-    private const val RELEASES = "https://github.com/userofit123/moneymanager/releases/download/"
+    // the start of every download address: github.com/<owner>/<project>/releases/download (frontend/src/lib/downloads.js)
+    private val RELEASES = listOf("userofit123", "moneymanager", "releases", "download")
+    // the person's choices (Settings → Version and updates), kept apart from the ready file's record, which is cleared often
+    private const val CHOICES = "updater-choices"
 
     // a download is running; each download has its own number, so a stopped or replaced one never touches a newer one's file
     private val downloading = AtomicBoolean(false)
     private val gen = AtomicLong(0)
+    // the running download, so a page opened again (or reloaded) mid-way can show its progress and wait for its end
+    @Volatile private var runVersion = ""
+    @Volatile private var runDone = 0L
+    @Volatile private var runTotal = -1L
+    @Volatile private var lastError = ""
+    private val ended = Object()
 
     private fun prefs(ctx: Context) = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
@@ -61,6 +72,49 @@ object Updater {
         return ""
     }
 
+    /** The ready version (see [staged]) and, while a download runs, its version and how far it got. */
+    fun state(ctx: Context): org.json.JSONObject {
+        val o = org.json.JSONObject().put("staged", staged(ctx))
+        if (downloading.get()) o.put("running", runVersion).put("done", runDone).put("total", runTotal)
+        return o
+    }
+
+    /** Waits for the running download to end: the ready version, or throws with its short code (as [download] does). */
+    fun await(ctx: Context): String {
+        synchronized(ended) { while (downloading.get()) ended.wait(1000) }
+        val v = staged(ctx)
+        if (v.isEmpty()) throw IllegalStateException(lastError.ifEmpty { "updFailed" })
+        return v
+    }
+
+    private fun end(error: String) {
+        lastError = error
+        synchronized(ended) { ended.notifyAll() }
+    }
+
+    /** Download updates automatically, and only on Wi-Fi: on unless the person turned them off. */
+    fun choices(ctx: Context): org.json.JSONObject {
+        val sp = ctx.getSharedPreferences(CHOICES, Context.MODE_PRIVATE)
+        return org.json.JSONObject().put("auto", sp.getBoolean("auto", true)).put("wifiOnly", sp.getBoolean("wifiOnly", true))
+    }
+
+    fun setChoices(ctx: Context, auto: Boolean, wifiOnly: Boolean): org.json.JSONObject {
+        ctx.getSharedPreferences(CHOICES, Context.MODE_PRIVATE).edit().putBoolean("auto", auto).putBoolean("wifiOnly", wifiOnly).apply()
+        return choices(ctx)
+    }
+
+    /** The connection now is metered (mobile data, or a Wi-Fi Android counts as metered, like a phone's hotspot). */
+    fun metered(ctx: Context): Boolean {
+        val cm = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return true
+        return cm.isActiveNetworkMetered
+    }
+
+    /** [url] is a file of this project's own GitHub releases, read the way OkHttp reads it (so "../" cannot lead elsewhere). */
+    private fun ownRelease(url: String): Boolean {
+        val u = url.toHttpUrlOrNull() ?: return false
+        return u.isHttps && u.host == "github.com" && u.pathSegments.size > RELEASES.size && u.pathSegments.take(RELEASES.size) == RELEASES
+    }
+
     /** The ready file is out of date (a newer version exists): deleted and forgotten. Never while a download writes. */
     fun forget(ctx: Context) {
         if (downloading.get()) return
@@ -73,6 +127,7 @@ object Updater {
         if (downloading.getAndSet(false)) {
             gen.incrementAndGet()
             NotificationManagerCompat.from(ctx).cancel(ID)
+            end("updFailed")
         }
     }
 
@@ -104,10 +159,11 @@ object Updater {
      * unknown), at most four times a second. Throws with a short code the page turns into words: updBusy, updDamaged, updFailed.
      */
     fun download(ctx: Context, url: String, version: String, progress: (Long, Long) -> Unit) {
-        // only this project's own releases (frontend/src/lib/downloads.js)
-        if (!url.startsWith(RELEASES)) throw IllegalArgumentException("updFailed")
+        // only this project's own releases (frontend/src/lib/downloads.js); GitHub then sends the file from its download servers
+        if (!ownRelease(url)) throw IllegalArgumentException("updFailed")
         if (!downloading.compareAndSet(false, true)) throw IllegalStateException("updBusy")
         val my = gen.incrementAndGet()
+        runVersion = version; runDone = 0L; runTotal = -1L; lastError = ""
         val t = Texts(ctx)
         val title = t.fill("updNotifDownloading", "v" to version)
         prefs(ctx).edit().clear().apply()
@@ -132,6 +188,7 @@ object Updater {
                             if (gen.get() != my) throw InterruptedException("closed")
                             fo.write(buf, 0, n)
                             done += n
+                            runDone = done; runTotal = total
                             val now = System.currentTimeMillis()
                             if (now - last >= 250) { last = now; progress(done, total) }
                             // Android drops notification updates that come faster than once a second
@@ -148,7 +205,7 @@ object Updater {
             if (gen.get() != my) throw InterruptedException("closed")
             if (!fits(ctx, out.absolutePath, version)) throw SecurityException("updDamaged")
             prefs(ctx).edit().putString("path", out.absolutePath).putString("version", version).apply()
-            if (gen.compareAndSet(my, my + 1)) downloading.set(false)
+            if (gen.compareAndSet(my, my + 1)) { downloading.set(false); end("") }
             notice(ctx, t["updNotifReady"], t["updNotifReadyD"], 0, false)
         } catch (e: InterruptedException) {
             out.delete()
@@ -156,8 +213,9 @@ object Updater {
         } catch (e: Exception) {
             out.delete()
             // false: the app was closed (or a newer download took over) and the notification is already gone
-            if (gen.compareAndSet(my, my + 1)) { downloading.set(false); notice(ctx, t["updNotifFailed"], t["updNotifFailedD"], 0, false) }
-            throw IllegalStateException(if (e is SecurityException) "updDamaged" else "updFailed")
+            val code = if (e is SecurityException) "updDamaged" else "updFailed"
+            if (gen.compareAndSet(my, my + 1)) { downloading.set(false); end(code); notice(ctx, t["updNotifFailed"], t["updNotifFailedD"], 0, false) }
+            throw IllegalStateException(code)
         }
     }
 

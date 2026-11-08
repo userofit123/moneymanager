@@ -92,6 +92,10 @@
   "appDownloadingMb": "Downloading version {v}… {mb} MB",
   "appReady": "Version {v} is downloaded and ready to install. Android asks you to confirm.",
   "appInstall": "Install",
+  "appAuto": "Download updates automatically",
+  "appAutoD": "A new version downloads by itself when one comes out. Installing still waits for you to tap Install, and Android asks you to confirm.",
+  "appWifi": "Only on Wi-Fi",
+  "appWifiD": "On mobile data the download waits until the phone is on Wi-Fi.",
   "appErr": {
     "updFailed": "The download did not finish. Check the internet connection and try again.",
     "updDamaged": "The downloaded file was not right, so it was deleted. Try again.",
