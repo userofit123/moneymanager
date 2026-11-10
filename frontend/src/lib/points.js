@@ -317,13 +317,6 @@ export function pointsByMonth(S) {
   return out;
 }
 
-// ---- what the screens show ----
-// { total, level: levelFor(total), byKind: { kind: pts }, recent: [{ key, kind, pts, day, d }] (newest first, up to 10),
-//   monthPreview: { month, total, parts: [{ kind, pts, detail }] } (this month so far: "on the way", not counted yet),
-//   waiting: the same for last month while it is not counted yet (before day COUNT_FROM_DAY), or null,
-//   month: the points given this calendar month (each saved entry keeps the day it was given),
-//   months: pointsByMonth(S) }
-// rows: countedRows, when the caller has them already.
 // The points by kind and in all: { byKind, total }.
 function pointsByKind(S) {
   const byKind = {};
@@ -342,6 +335,13 @@ export function levelReached(before, after, lines) {
   return now > was ? now : 0;
 }
 
+// ---- what the screens show ----
+// { total, level: levelFor(total), byKind: { kind: pts }, recent: [{ key, kind, pts, day, d }] (newest first, up to 10),
+//   monthPreview: { month, total, parts: [{ kind, pts, detail }] } (this month so far: "on the way", not counted yet),
+//   waiting: the same for last month while it is not counted yet (before day COUNT_FROM_DAY), or null,
+//   month: the points given this calendar month (each saved entry keeps the day it was given),
+//   months: pointsByMonth(S) }
+// rows: countedRows, when the caller has them already.
 export function pointsSummary(S, today, rows) {
   const day = dayKey(today), E = entries(S), { byKind, total } = pointsByKind(S);
   const recent = E.filter(([, e]) => e.pts > 0).map(([key, e]) => ({ key, kind: e.kind, pts: e.pts, day: e.day, d: e.d ?? null })).reverse()
