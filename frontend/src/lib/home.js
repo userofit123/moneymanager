@@ -149,6 +149,10 @@ export function homeModel(S, now = new Date(), fx = {}) {
   const flow0 = { cash: cashNow, cards: cardsOwed, cardsLater: Math.min(cardsOwed, Math.max(0, owed.later)), up, cardUp, really, inJars, buffer, R, jarsHeld, spend };
   const W0 = flowSteps(flow0, "left"), aside = Math.round(W0.jarsA + buffer), toCome = Math.round(W0.leftTot), raw = really - aside - toCome;
   const free = Math.max(0, raw), over = -raw >= 1 ? Math.round(-raw) : 0;
+  // the part of that shortfall the jars cause: what the jars hold (less what they pay of the payments to come) beyond the money
+  // really yours. A shortfall from the safety cushion or from bills and budgets is not the jars' (Recap and the Jars page offer
+  // to lower the jars by this, through takeBackAmt)
+  const jarsOver = over >= 1 ? Math.max(0, Math.min(over, W0.jarsA - Math.max(0, really))) : 0;
   const monthsTo = (d) => Math.max(1, Math.ceil((new Date(d) - NOW) / (864e5 * 30.44)));
   const capOf = (j, got) => (j.cap == null ? null : j.auto && j.due && j.need > 0 ? Math.max(0, Math.ceil((j.need - (j.bal - (got || 0))) / Math.max(1, monthsTo(j.due)))) : j.cap);
   const jars = (() => { let rem = free; return jarsS.map((j) => { const got = Math.min(+j.got || 0, Math.max(0, +j.bal || 0) + (+j.paid || 0)), open = !(j.need > 0), capE = capOf(j, got), need = open ? 0 : Math.max(0, j.need - j.bal), want = capE == null ? need : Math.max(0, Math.min(capE - got, open ? 1e12 : need)); rem -= Math.max(0, Math.min(rem, want)); return { id: j.id, n: j.n, p: j.p, bal: +j.bal || 0, need: +j.need || 0, got, want, open, pc: open ? 0 : Math.round(((+j.bal || 0) / j.need) * 100) }; }); })();
@@ -183,7 +187,7 @@ export function homeModel(S, now = new Date(), fx = {}) {
     MK, pm, DAYN, DIM, today: TODAY, k,
     kpi: { cash, pen, withPension: cash + pen, inc, ex, back: split.back, sal: split.salary, net: Math.round(inc) - Math.round(ex), incLast: hist.inc[4], exLast: hist.exp[4], missing, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a), lbl: accCur(a) })), notCounted: accts.filter((a) => (a.kind == "bank" || a.kind == "wallet") && !a.inNW).map((a) => a.n), noRate, nwSpark: nwSpark.filter((v) => v > 0).length > 1 ? nwSpark : null, incSpark: hist.inc.some((v) => v > 0) ? hist.inc : null, exSpark: hist.exp.some((v) => v > 0) ? hist.exp : null },
     groups, cards, recent, upcoming, budgets: budgetsSorted, jars, spend, rate,
-    flow: { ...flow0, saved: inJars + buffer, aside, toCome, free, over, freeRaw: raw, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a), lbl: accCur(a) })) },
+    flow: { ...flow0, saved: inJars + buffer, aside, toCome, free, over, jarsOver, freeRaw: raw, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a), lbl: accCur(a) })) },
     has, any,
     // For the Jars page: bill names by their match text, and six months of income and spending (this one last).
     billNames: Object.fromEntries(BC.map((b) => [b.match, b.n])), hist,

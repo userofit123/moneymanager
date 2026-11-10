@@ -78,7 +78,7 @@ export function useJars() {
   const doDone = () => { const id = doneAsk.value.id; doneAsk.value = null; save((next) => markDone(next, id, M.value.today, ctx())); };
   const askDel = (id) => { menu.value = null; delAsk.value = S.value.jars.find((x) => x.id == id) || null; };
   const doDel = () => { const id = delAsk.value.id; delAsk.value = null; save((next) => deleteJar(next, id)); };
-  const relAmt = computed(() => takeBackAmt(M.value.F.over, M.value.F.inJars));
+  const relAmt = computed(() => takeBackAmt(M.value.F.jarsOver, M.value.F.inJars));
   const doRelease = () => { relAsk.value = false; const amt = relAmt.value; if (!(amt > 0)) return; save((next) => { const l = releaseJars(next, amt, ctx()); return l.length ? l : false; }); toast(t("jars.rel.done")); };
   const why = ref(false);
 

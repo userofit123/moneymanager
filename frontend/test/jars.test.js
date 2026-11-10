@@ -87,3 +87,19 @@ test("take back from the jars: never offers ₪0, and is rounded once", () => {
   assert.equal(takeBackAmt(100, 250.6), 100);
   assert.equal(takeBackAmt(400, 250.6), 251);
 });
+
+// MM-19: the take-back line shows only when the jars themselves are more than the money, never for a shortfall the cushion causes
+test("take back from the jars: only the part of the shortfall the jars cause", () => {
+  const S = base(); S.jarsBuffer = 20000; S.jars = [{ id: 1, n: "Trip", p: 1, bal: 3, need: 5000, cap: 0, got: 0 }];
+  let F = jarsModel(S, NOW).F;
+  assert.ok(F.over >= 1 && F.inJars == 3); // short because of the cushion; the jar holds ₪3
+  assert.equal(F.jarsOver, 0);
+  assert.equal(takeBackAmt(F.jarsOver, F.inJars), 0); // no "Your jars hold ₪3 more than you have"
+  // the jars hold ₪15,000.60 with ₪10,000 in the bank: ₪5,001 too much in the jars, also with a cushion on top
+  S.jarsBuffer = 0; S.jars = [{ id: 1, n: "Trip", p: 1, bal: 15000.6, need: 20000, cap: 0, got: 0 }];
+  F = jarsModel(S, NOW).F;
+  assert.equal(takeBackAmt(F.jarsOver, F.inJars), 5001);
+  S.jarsBuffer = 3000; F = jarsModel(S, NOW).F;
+  assert.equal(F.over, 8001);
+  assert.equal(takeBackAmt(F.jarsOver, F.inJars), 5001);
+});

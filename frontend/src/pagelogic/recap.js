@@ -86,8 +86,8 @@ export function useRecap() {
   // A sum: { had, groups, end }: had and end are [label, amount, link]; a group is { k: "out" | "in" | "card", label, amt, link, subs, note }.
   // A "card" group (spent by credit card) is shown but not counted. end[3]: [label, amount], a smaller line under the result.
   const chipOf = (txt, tone, goK, lab) => ({ txt, tone, go: goK, lab });
-  // the jars chip's follow-up: the same kind of chip, but it acts (opens the take-back window); only when the jars hold ₪1 or more to give back
-  const relOf = (m) => { const a = takeBackAmt(m.over0, m.inJars); return a > 0 ? { lab: L("jarsH"), txt: L("relBtn", { a: mi(a) }), tip: L("relX") } : null; };
+  // the jars chip's follow-up: the same kind of chip, but it acts (opens the take-back window); only when the jars themselves cause ₪1 or more of the shortfall (not the cushion, bills or budgets)
+  const relOf = (m) => { const a = takeBackAmt(m.jarsOver, m.inJars); return a > 0 ? { lab: L("jarsH"), txt: L("relBtn", { a: mi(a) }), tip: L("relX") } : null; };
   const nowBar = (m) => { const P = m.freeParts; return [[N("cardsUnpaid"), P.cards, "c4", "now"], [N("upcomingS"), P.up, "c5", "ahead"], [N("leftBudgets"), P.toCome, "c2", "budg"], [N("putAside"), P.aside, "c3", "jars"], [N("free"), Math.max(0, P.free), "c1", "now"]]; };
   const aheadBar = (m) => [[N("cardBillsS"), m.freeParts.cardBills, "c1", "now"], [N("upcomingS"), m.freeParts.up, "c2", "bills"]];
   // the payments still due this month: each card's bill and each bill or listed payment, with its day (yyyy-mm-dd)
@@ -245,7 +245,7 @@ export function useRecap() {
     attn: (m) => {
       const it = attnList(m);
       if (!it.length) return { ic: "check", tone: "tp", label: L("attn"), go: "budg", big: { word: L("allGood") }, line: [{ html: L("allGoodX") }], vis: [] };
-      const rel = m.heldEnd - m.endMonth >= 1 ? relOf(m) : null, w = attnWords(it);
+      const rel = relOf(m), w = attnWords(it);
       return { ic: "warn", tone: it.length && m.over.length ? "tn" : "tw", label: w.head, go: w.link, big: { word: w.big }, line: [{ html: w.line }, ...(rel ? [{ rel }] : [])], vis: [{ attn: it }] };
     },
     // the summary of the page: what is in your accounts today and what is expected at the end of the month, small, side by side;
@@ -311,7 +311,7 @@ export function useRecap() {
   }
   // "Take back from the jars" (jarRelease, the same as the Jars page)
   const rel = ref(false);
-  const relAmt = computed(() => (M.value ? takeBackAmt(M.value.over0, M.value.inJars) : 0));
+  const relAmt = computed(() => (M.value ? takeBackAmt(M.value.jarsOver, M.value.inJars) : 0));
   function doRelease() {
     rel.value = false; const amt = relAmt.value; if (!(amt > 0)) return;
     data.change((n) => { const l = releaseJars(n, amt, jarCtx(jarsM.value, fm)); return l.length ? l : false; });

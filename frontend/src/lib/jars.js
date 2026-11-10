@@ -230,7 +230,7 @@ export function jarsModel(S, now = new Date(), fx = {}, fcOpt = {}) {
   const R = F.R, bl = billLists(H), rb = R.rows.filter((r) => r.kind == "bill"), ro = R.rows.filter((r) => r.kind != "bill");
   const avail = { bills: sum(rb.map((r) => r.amt)), limits: sum(ro.map((r) => r.amt)), billRows: rb, otherRows: ro.map((r) => ({ ...r, bl: sum((r.bills || []).map((x) => x.amt)) })),
     covered: active.filter((j) => j.bill).map((j) => ({ jar: j.n, bills: isAll(j.bill) ? bl.all(j.bill) : bl.rec.filter((b) => b.match == j.bill) })).filter((x) => x.bills.length) };
-  return { F: { cash: F.cash, cards: F.cards || 0, inJars: F.inJars, buffer: F.buffer, reserve: F.R.total, free: F.free, over: F.over, really: F.really, up: F.really != null ? Math.round(F.cash) - Math.round(Math.max(0, F.cards || 0)) - F.really : 0, aside: F.aside, toCome: F.toCome }, month, jars, goals, done, has: { any: active.length > 0 },
+  return { F: { cash: F.cash, cards: F.cards || 0, inJars: F.inJars, buffer: F.buffer, reserve: F.R.total, free: F.free, over: F.over, jarsOver: F.jarsOver || 0, really: F.really, up: F.really != null ? Math.round(F.cash) - Math.round(Math.max(0, F.cards || 0)) - F.really : 0, aside: F.aside, toCome: F.toCome }, month, jars, goals, done, has: { any: active.length > 0 },
     avail, bills: bl, MK, today: H.today, monthsTo, spend: Object.fromEntries(H.spend) };
 }
 
@@ -283,7 +283,7 @@ function jset(j, fld, v, ctx) {
   return ["Changed jar " + FLD[fld], j.n + ": " + show(old) + " → " + show(v), { type: "jar", id: j.id, f: fld, old }];
 }
 
-// How much "Take back from the jars" offers: the amount short (over), but no more than the jars hold, rounded once so the
+// How much "Take back from the jars" offers: the amount short because of the jars (homeModel's jarsOver), but no more than the jars hold, rounded once so the
 // words, the window and what is taken back all show the same number. 0 means nothing to offer (no jars money, or under ₪1).
 export const takeBackAmt = (over, inJars) => Math.max(0, Math.round(Math.min(+over || 0, +inJars || 0)));
 
