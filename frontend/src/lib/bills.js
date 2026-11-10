@@ -209,7 +209,7 @@ export function joinBills(S, i, j, now = new Date()) {
 }
 // "Not the same": the hint to join bill i with the bill named by match is not shown again.
 export const joinNo = (S, i, match, oldName) => { const b = S.bills[i]; if (!b) return false; b.joinNo = [...(b.joinNo || []), match]; return [["Kept bills apart", oldName + " · " + b.n]]; };
-export const deleteBill = (S, i) => { const b = S.bills[i]; if (!b) return false; S.bills.splice(i, 1); S.ignoredBills = [...(S.ignoredBills || []), b.match]; return [["Removed bill", b.n + " · it will not be detected again"]]; };
+export const deleteBill = (S, i) => { const b = S.bills[i]; if (!b) return false; S.bills.splice(i, 1); S.ignoredBills = [...new Set([...(S.ignoredBills || []), ...billNames(b)])]; return [["Removed bill", b.n + " · it will not be detected again"]]; };
 // "Change type": monthly, every 2 months, yearly or irregular.
 export function setBillType(S, i, v, tx, now = new Date()) {
   const b = S.bills[i]; if (!b) return false;

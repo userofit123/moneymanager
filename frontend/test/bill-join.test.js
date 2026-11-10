@@ -2,7 +2,7 @@
 // with one history, counted once, and the old name is not found as a bill again (lib/bills.js joinBills, joinHints).
 import test from "node:test";
 import assert from "node:assert/strict";
-import { billState, billsModel, withDetected, joinBills, joinNo, isBillPayment } from "../src/lib/bills.js";
+import { billState, billsModel, withDetected, joinBills, joinNo, isBillPayment, deleteBill } from "../src/lib/bills.js";
 
 const NOW = new Date(2026, 9, 17, 12); // 17 Oct 2026
 const OLD = "STREAMLY* VIDEO SUB STREAMLY.TV", NEW = "Streamly Video Subscription"; // made-up names
@@ -47,4 +47,12 @@ test("joining needs two different bills that are not one-off; 'Not the same' hid
   assert.equal(joinBills(S, n, n, NOW), false); assert.equal(joinBills(S, n, 9, NOW), false);
   assert.deepEqual(joinNo(S, n, S.bills[o].match, OLD), [["Kept bills apart", OLD + " · " + NEW]]);
   assert.equal(billsModel(S, NOW).all.find((b) => b.n === NEW).join, undefined);
+});
+
+test("removing a joined bill keeps every one of its names from being found as a bill again", () => {
+  const S = state(), o = S.bills.findIndex((b) => b.n === OLD), n = S.bills.findIndex((b) => b.n === NEW);
+  joinBills(S, o, n, NOW);
+  deleteBill(S, 0);
+  assert.equal(S.bills.length, 0);
+  assert.ok(S.ignoredBills.includes(OLD.toLowerCase()) && S.ignoredBills.includes(NEW.toLowerCase()));
 });
