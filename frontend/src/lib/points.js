@@ -326,17 +326,13 @@ function pointsByKind(S) {
   return { byKind, total: Object.values(byKind).reduce((s, v) => s + v, 0) };
 }
 
-// The level a change by the person reached, to celebrate it: the new level when the change moved the person up a level,
-// else 0 (lines: the change's history lines). Not for an Undo or a change of only the app's own lines; a change with no
-// history line at all (dismissing an alert) is the person's. Loads, syncs and quiet saves never get here (stores/data.js).
-export function levelReached(before, after, lines) {
-  // a change with no history line is still the person's (dismissing an alert saves none); only Undo and the app's own lines are not
-  const L = (lines || []).filter(Boolean);
-  if (L.some(([action]) => action === "Undid a change") || (L.length && L.every(([, , , who]) => who === "System"))) return 0;
-  if (!before || !after) return 0;
-  const was = levelFor(pointsByKind(before).total).level, now = levelFor(pointsByKind(after).total).level;
-  return now > was ? now : 0;
-}
+// The person's level from the saved points.
+export const levelOf = (S) => levelFor(pointsByKind(S).total).level;
+
+// The level to celebrate, or 0: the level now when it is higher than the last level this device saw (seen), whatever moved
+// it up (the person, the app's own upkeep, a sync, another device, points earned while the app was closed). With no level
+// seen yet (null), nothing: someone who already has a level is not greeted with a party the first time.
+export const newLevel = (seen, level) => (seen != null && level > seen ? level : 0);
 
 // ---- what the screens show ----
 // { total, level: levelFor(total), byKind: { kind: pts }, recent: [{ key, kind, pts, day, d }] (newest first, up to 10),

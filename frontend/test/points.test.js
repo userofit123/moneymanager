@@ -1,7 +1,7 @@
 // Points and levels (lib/points.js): levels, no daily caps, once-only, points for any update, by hand vs automatic, month results, and Undo.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { POINTS, levelFor, levelReached, award, earnFromChange, pointsUpkeep, pointsSummary, pointsByMonth, monthParts, setupDone, takeBack } from "../src/lib/points.js";
+import { POINTS, levelFor, levelOf, newLevel, award, earnFromChange, pointsUpkeep, pointsSummary, pointsByMonth, monthParts, setupDone, takeBack } from "../src/lib/points.js";
 import { setField, addTags, roSave, xfOk, dupKeep } from "../src/lib/txactions.js";
 import { createDataStore } from "../src/stores/data.js";
 import { setNow } from "../src/core/clock.js";
@@ -340,44 +340,32 @@ test("folding drops the once-only keys of payments that no longer exist", () => 
   assert.deepEqual(S.points._once, ["cat:1", "tag:a:b:x:y"]);
 });
 
-test("a new level is celebrated only when a change by the person moves the level up", () => {
+test("a new level is celebrated whenever the level is higher than the last one this device saw", () => {
   const S0 = base();
   award(S0, "visit:a", "visit", 95, DAY); // 5 points short of level 2
   const S1 = structuredClone(S0);
-  award(S1, "cat:1", "cat", 10, DAY);
-  const mine = [["Edited category", "Coffee"]];
-  assert.equal(levelReached(S0, S1, mine), 2);
-  assert.equal(levelReached(S1, S1, mine), 0); // no points: same level
-  assert.equal(levelReached(S1, S0, mine), 0); // a level lower is not celebrated
-  assert.equal(levelReached(S0, S1, [["Undid a change", "x"]]), 0); // Undo
-  assert.equal(levelReached(S0, S1, [["Sorted payments", "x", null, "System"]]), 0); // the app's own upkeep
-  assert.equal(levelReached(S0, S1, []), 2); // a change with no history line, like dismissing an alert
-  assert.equal(levelReached(null, S1, mine), 0); // the first load
+  award(S1, "visit:b", "visit", 10, DAY); // the daily visit, or any other points, the app's own too
+  assert.equal(levelOf(S0), 1);
+  assert.equal(levelOf(S1), 2);
+  assert.equal(newLevel(1, levelOf(S1)), 2);
+  assert.equal(newLevel(2, 2), 0); // same level: nothing
+  assert.equal(newLevel(2, 1), 0); // a level lower (after an Undo) is not celebrated
+  assert.equal(newLevel(1, 3), 3); // more than one level at once (points that came while the app was closed): the level now
+  assert.equal(newLevel(null, 2), 0); // nothing seen yet on this device: no party for a level the person already had
 });
 
-test("the data store tells about a change by the person, not about quiet saves or loads", async () => {
-  const seen = [];
-  const D = createDataStore({ fetchJson: async () => ({ rev: 1, audit: [], ...base() }), connect: () => () => {}, send: async () => ({ ok: true, status: 200, json: { rev: 2, auditIds: [] } }), delay: 5,
-    changed: (a, b, L) => seen.push(levelReached(a, b, L)) });
+test("the data store's level follows every change, quiet ones and Undo too", async () => {
+  const S0 = base(); award(S0, "visit:a", "visit", 95, DAY);
+  const D = createDataStore({ fetchJson: async () => ({ rev: 1, audit: [], ...S0 }), connect: () => () => {}, send: async () => ({ ok: true, status: 200, json: { rev: 2, auditIds: [] } }), delay: 5 });
   await D.load();
-  assert.deepEqual(seen, []);
-  D.change((S) => { award(S, "visit:" + DAY, "visit", 99, DAY); return []; }, { quiet: true });
-  assert.deepEqual(seen, []);
-  const [e] = D.change((S) => { award(S, "cat:1", "cat", 1, DAY); return [["Edited category", "Coffee"]]; });
-  assert.deepEqual(seen, [2]);
+  let seen = levelOf(D.state.value);
+  const step = () => { const lv = levelOf(D.state.value), up = newLevel(seen, lv); seen = lv; return up; };
+  D.change((S) => { award(S, "visit:" + DAY, "visit", 10, DAY); return []; }, { quiet: true }); // the daily visit
+  assert.equal(step(), 2);
+  const [e] = D.change((S) => { award(S, "cat:1", "cat", 150, DAY); return [["Edited category", "Coffee"]]; });
+  assert.equal(step(), 3);
   D.undo(e);
-  assert.deepEqual(seen, [2, 0]);
-  // points for something the person did on the server, saved quietly, still tell; the daily visit does not
-  D.change((S) => { award(S, "review:gap:1", "review", 1, DAY); return []; }, { quiet: true, mine: true });
-  assert.deepEqual(seen, [2, 0, 2]);
-});
-
-test("dismissing an alert that brings a new level celebrates it (no history line, points from the change itself)", async () => {
-  const seen = [];
-  const S0 = base(); award(S0, "visit:" + DAY, "visit", 100 - POINTS.alert, DAY);
-  const D = createDataStore({ fetchJson: async () => ({ rev: 1, audit: [], ...S0 }), connect: () => () => {}, send: async () => ({ ok: true, status: 200, json: { rev: 2, auditIds: [] } }), delay: 5,
-    earn: (a, b, L) => earnFromChange(a, b, L, DAY), changed: (a, b, L) => seen.push(levelReached(a, b, L)) });
-  await D.load();
-  D.change((n) => { n.dismissed = { ...(n.dismissed || {}), "bill:1": 1 }; }); // as the Alerts page dismisses
-  assert.deepEqual(seen, [2]);
+  assert.equal(step(), 0); // back to level 2, remembered
+  D.change((S) => { award(S, "cat:2", "cat", 150, DAY); return [["Edited category", "Tea"]]; });
+  assert.equal(step(), 3); // level 3 again: celebrated again
 });
