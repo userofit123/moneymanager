@@ -19,7 +19,7 @@ import "../styles/pages/bills.css"; // this page's own styles
 
 const {
   t, tk, S, monYr, cc, avStyle, srcOf, M, cad, freq, kpis, ICON, groups, dueText, priceChange, lastLine, evTip,
-  menu, toggleMenu, MI, menuItems, pick, openBill, openAdd, typeFor, saveType, makeRegular, keepIrregular, restore, remove,
+  menu, toggleMenu, MI, menuItems, pick, openBill, openAdd, typeFor, saveType, joinFor, saveJoin, joinYes, joinKeep, makeRegular, keepIrregular, restore, remove,
 } = useBills();
 onMounted(() => { data.start(); });
 </script>
@@ -54,6 +54,7 @@ onMounted(() => { data.start(); });
                   <div class="sm"><span v-if="b.status == 'overdue'" class="neg">{{ t("bills.overdue", { date: dstr(b.pd) }) }}</span><span v-else-if="b.status == 'pending'" class="am">{{ t("bills.dueNow") }}</span><b v-else-if="b.days <= 7">{{ dueText(b) }}</b><template v-else>{{ dueText(b) }}</template></div>
                   <div class="sm bfaint">{{ b.vari ? t("bills.avg3") : t("bills.sameLast") }}</div></div>
                 <button class="ib jmore bmore" data-a="billMenu" :data-i="b.idx" :aria-label="t('bills.options')" aria-haspopup="menu" @click.stop="toggleMenu(b, $event)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" /></svg></button>
+                <div v-if="b.join" class="bsug"><span>{{ t("bills.join.sug", { name: tx(b.join.n), date: dstr(b.join.lp) }) }}</span><button class="btn s" data-a="billJoinYes" :data-i="b.idx" @click.stop="joinYes(b)">{{ t("bills.join.yes") }}</button><button class="btn o s" data-a="billJoinNo" :data-i="b.idx" @click.stop="joinKeep(b)">{{ t("bills.join.no") }}</button></div>
               </div>
             </template>
             <!-- irregular -->
@@ -65,6 +66,7 @@ onMounted(() => { data.start(); });
                   <div class="bsub bs2"><template v-if="b.n_tx">{{ t("bills.irrSo", { n: b.n_tx, c: b.cnt12 }, b.n_tx) }} <span class="dsep">·</span> {{ t("bills.lastPay", { amount: fm(b.amt), date: dstr(b.lp) }) }}</template><template v-else>{{ t("bills.noPay") }}</template><template v-if="b.hi > b.lo">{{ " " }}<span class="dsep">·</span>{{ " " + t("bills.ranges", { lo: fm(b.lo), hi: fm(b.hi) }) }}</template></div></div>
                 <div class="ba"><b class="num">≈ {{ fm(b.pred) }}</b><div class="sm">{{ t("bills.typical") }}</div><div v-if="b.n_tx" class="sm" style="font-weight:600">{{ t("bills.lastPayment", { amount: fm(b.amt) }) }}</div><div class="sm bfaint">{{ t("bills.perMonthAvg", { amount: fm(b.mo) }) }}</div></div>
                 <button class="ib jmore bmore" data-a="billMenu" :data-i="b.idx" :aria-label="t('bills.options')" aria-haspopup="menu" @click.stop="toggleMenu(b, $event)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" /></svg></button>
+                <div v-if="b.join" class="bsug"><span>{{ t("bills.join.sug", { name: tx(b.join.n), date: dstr(b.join.lp) }) }}</span><button class="btn s" data-a="billJoinYes" :data-i="b.idx" @click.stop="joinYes(b)">{{ t("bills.join.yes") }}</button><button class="btn o s" data-a="billJoinNo" :data-i="b.idx" @click.stop="joinKeep(b)">{{ t("bills.join.no") }}</button></div>
                 <div v-if="b.sug" class="bsug"><span>{{ t("bills.sug", { freq: freq(b.sug) }) }}</span><button class="btn s" data-a="billSugYes" :data-i="b.idx" @click.stop="makeRegular(b)">{{ t("bills.makeReg") }}</button><button class="btn o s" data-a="billSugNo" :data-i="b.idx" @click.stop="keepIrregular(b)">{{ t("bills.keepIrr") }}</button></div>
               </div>
             </template>
@@ -117,6 +119,14 @@ onMounted(() => { data.start(); });
       <div class="inf"><div class="it"><b>{{ t("bills.type.irrT") }}</b>{{ t("bills.type.irr") }}</div></div>
       <div class="fld"><label>{{ t("bills.type.label") }}</label><select v-model="typeFor.v"><option value="1">{{ t("bills.type.o1") }}</option><option value="2">{{ t("bills.type.o2") }}</option><option value="12">{{ t("bills.type.o12") }}</option><option value="irregular">{{ t("bills.type.oirr") }}</option></select></div>
       <div class="flex" style="justify-content:flex-end;gap:10px"><button class="btn o" data-a="close" @click="typeFor = null">{{ t("bills.cancel") }}</button><button class="btn" data-a="billTypeSave" @click="saveType">{{ t("bills.save") }}</button></div>
+    </BaseSheet>
+
+    <BaseSheet :open="!!joinFor" @close="joinFor = null">
+      <h3>{{ t("bills.join.title") }}</h3>
+      <div class="sm" style="margin-bottom:12px">{{ tx(joinFor.name) }}</div>
+      <div class="inf"><div class="it">{{ t("bills.join.intro") }} {{ t("bills.join.keep") }}</div></div>
+      <div class="fld"><label for="bJoin">{{ t("bills.join.label") }}</label><select id="bJoin" v-model="joinFor.v"><option v-for="o in joinFor.opts" :key="o.key" :value="o.key">{{ o.l }}</option></select></div>
+      <div class="flex" style="justify-content:flex-end;gap:10px"><button class="btn o" data-a="close" @click="joinFor = null">{{ t("bills.cancel") }}</button><button class="btn" data-a="billJoinSave" @click="saveJoin">{{ t("bills.join.save") }}</button></div>
     </BaseSheet>
 
   </template>

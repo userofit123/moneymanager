@@ -46,7 +46,7 @@ export function detectNew(S, A) {
   const g = {}, bills = [...(S.bills || [])], out = [];
   A.filter((t) => t.a < 0 && !t.virtual).forEach((t) => { const k = String(t.to || t.desc).toLowerCase().trim(); (g[k] = g[k] || []).push(t); });
   Object.entries(g).forEach(([k, L]) => {
-    if (L.length < 2 || (S.ignoredBills || []).includes(k) || bills.some((b) => b.mode != "once" && b.match == k)) return;
+    if (L.length < 2 || (S.ignoredBills || []).includes(k) || bills.some((b) => b.mode != "once" && billNames(b).includes(k))) return;
     L.sort((a, b) => a.d.localeCompare(b.d));
     const c = cadenceOf(L); if (!c) return;
     const last = L[L.length - 1];
@@ -56,7 +56,11 @@ export function detectNew(S, A) {
   return out;
 }
 
-export const billTx0 = (b, A, tx) => (b.mode == "once" ? (tx || []).filter((t) => (b.ids || []).includes(t.id)).sort(byDate) : A.filter((t) => t.a < 0 && (t.desc + " " + t.to).toLowerCase().includes(b.match)).sort(byDate));
+// The names a bill's payments go by: its own, plus the names of the bills joined into it ("Same bill as…", joinBills).
+export const billNames = (b) => [b.match, ...(b.also || [])].filter(Boolean);
+// Is t a payment of bill b? A one-off bill lists its payments; the others are found by the names they go by.
+export const isBillPayment = (b, t) => { if (b.mode == "once") return (b.ids || []).includes(t.id); const s = (t.desc + " " + t.to).toLowerCase(); return billNames(b).some((m) => s.includes(m)); };
+export const billTx0 = (b, A, tx) => (b.mode == "once" ? (tx || []).filter((t) => (b.ids || []).includes(t.id)).sort(byDate) : A.filter((t) => t.a < 0 && isBillPayment(b, t)).sort(byDate));
 // The charges the bank already lists for a later day (scheduled or pending), the ones that can be a bill's coming payment. k: kinds().
 export const futTx = (S, k) => (S.tx || []).filter((t) => !t.virtual && t.a < 0 && k.isFut(t) && !k.isXf(t) && !k.isIgn(t) && !k.isCp(t));
 // A bill's charges among them (none for a one-off bill), by date.
@@ -134,9 +138,24 @@ export function billsModel(S, now = new Date()) {
   const mo = sum(bs.map((b) => b.mo)), soon = rec.filter((b) => b.days <= 14), soonT = sum(soon.map((b) => b.pred)), ch = rec.filter((b) => b.fresh && !b.vari && priceMoved(b));
   const chT = ch.reduce((s, b) => s + ((b.amt - b.was) * 12) / b.every, 0);
   rec.sort((a, b) => (a.status == "overdue" ? -1e4 : 0) + a.days - ((b.status == "overdue" ? -1e4 : 0) + b.days));
+  joinHints(st);
   const inst = instSeries(S, st.NOW), canceled = st.info(true).filter((b) => b.flag == "canceled");
   return { ...st, rec, irr, one, mo, soon, soonT, ch, chT, inst, canceled,
     tot: { rec: sum(rec.map((b) => b.mo || 0)), irr: sum(irr.map((b) => b.mo || 0)), ins: sum(inst.map((x) => x.remain)), one: sum(one.map((b) => b.amt || 0)) } };
+}
+
+// A bill that stopped and one that started right after it, at about the same price and with a word of the name in common:
+// most likely one bill whose business changed the name on its charges. The new bill gets b.join (the old one: idx, n, lp),
+// unless the person said they are not the same (b.joinNo). Only a hint: nothing changes until "Same bill" is pressed.
+const words = (n) => new Set(String(n || "").toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w) => w.length >= 4));
+export function joinHints(st) {
+  const rule = st.all.filter((b) => !b.once && b.flag != "canceled" && b.n_tx);
+  rule.filter((b) => !b.ended).forEach((nb) => {
+    const L = st.billTx(st.bills[nb.idx]), first = L[0] && L[0].d, w = words(nb.n), gap = nb.every == 12 ? 400 : 75;
+    const old = first && rule.find((o) => o.idx != nb.idx && (o.ended || o.irregular) && o.lp && o.lp <= first && (new Date(first) - new Date(o.lp)) / 864e5 <= gap
+      && Math.abs(o.amt - nb.amt) <= Math.max(1, o.amt * 0.2) && !(nb.joinNo || []).includes(o.match) && [...words(o.n)].some((x) => w.has(x)));
+    if (old) nb.join = { idx: old.idx, n: old.n, lp: old.lp };
+  });
 }
 
 // Details of one payment history window: the list newest first, the average, lowest and highest, and each change from the one before.
@@ -173,6 +192,23 @@ export const billIndex = (S, key) => (S.bills || []).findIndex((b) => billKey(b)
 export const flagBill = (S, i) => { const b = S.bills[i]; if (!b) return false; b.flag = b.flag ? "" : "cancel"; return [[b.flag ? "Marked to cancel" : "Kept bill", b.n]]; };
 export const cancelBill = (S, i, today) => { const b = S.bills[i]; if (!b) return false; b.flag = "canceled"; b.canceledAt = today; return [["Marked bill as canceled", b.n]]; };
 export const restoreBill = (S, i) => { const b = S.bills[i]; if (!b) return false; b.flag = ""; delete b.canceledAt; return [["Restored bill", b.n]]; };
+// "Same bill as…": bills i and j are really one bill (the business changed the name on its charges). The one paid most
+// recently keeps its name and settings; the other one's names join it, so all the payments, old and new, are one bill
+// with one history, are counted once, and the old name is not found as a separate bill again. A jar that paid for the
+// other bill now pays for this one.
+export function joinBills(S, i, j, now = new Date()) {
+  const A = S.bills || [];
+  if (i == j || !A[i] || !A[j] || A[i].mode == "once" || A[j].mode == "once") return false;
+  const all = billState(S, now).all, lp = (x) => String((all.find((b) => b.idx == x) || {}).lp || "");
+  const [k, g] = lp(j) > lp(i) ? [j, i] : [i, j], keep = A[k], gone = A[g], names = billNames(gone);
+  keep.also = [...new Set([...(keep.also || []), ...names])].filter((m) => m != keep.match);
+  if (keep.joinNo) keep.joinNo = keep.joinNo.filter((m) => !names.includes(m));
+  (S.jars || []).forEach((x) => { if (x.bill && names.includes(x.bill)) x.bill = keep.match; });
+  A.splice(g, 1);
+  return [["Joined bills", gone.n + " → " + keep.n]];
+}
+// "Not the same": the hint to join bill i with the bill named by match is not shown again.
+export const joinNo = (S, i, match, oldName) => { const b = S.bills[i]; if (!b) return false; b.joinNo = [...(b.joinNo || []), match]; return [["Kept bills apart", oldName + " · " + b.n]]; };
 export const deleteBill = (S, i) => { const b = S.bills[i]; if (!b) return false; S.bills.splice(i, 1); S.ignoredBills = [...(S.ignoredBills || []), b.match]; return [["Removed bill", b.n + " · it will not be detected again"]]; };
 // "Change type": monthly, every 2 months, yearly or irregular.
 export function setBillType(S, i, v, tx, now = new Date()) {

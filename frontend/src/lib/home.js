@@ -18,7 +18,6 @@ const RSKIP = (S, k) => ["Income", "Uncategorized", "Fees & FX costs"].includes(
 
 // How often does this store charge you (cadenceOf): the shared one in lib/bills.js.
 export { cadenceOf } from "./bills.js";
-import { cadenceOf } from "./bills.js";
 
 // Transfers between your own accounts are looked for every time the data loads, and the totals leave them out.
 // This is done in memory only: a possible transfer waits for review ("auto") and is not counted as spending or income.
@@ -99,9 +98,8 @@ export function homeModel(S, now = new Date(), fx = {}) {
 
   // Bills: the saved ones plus the ones the app finds in the payments (not saved here).
   const bills = [...(S.bills || [])];
-  { const g = {}; A.filter((t) => t.a < 0 && !t.virtual).forEach((t) => { const kk = String(t.to || t.desc).toLowerCase().trim(); (g[kk] = g[kk] || []).push(t); });
-    Object.entries(g).forEach(([kk, L]) => { if (L.length < 2 || (S.ignoredBills || []).includes(kk) || bills.some((b) => b.mode != "once" && b.match == kk)) return; L.sort((a, b) => a.d.localeCompare(b.d)); const c = cadenceOf(L); if (!c) return; const last = L[L.length - 1]; bills.push({ n: last.to, every: c.every, anchor: c.anchor, dom: c.dom, src: last.from, match: kk, cat: last.c || "Subscriptions", manual: false, mode: "rule", rec: "recurring" }); }); }
-  const billTx = (b) => (b.mode == "once" ? tx.filter((t) => (b.ids || []).includes(t.id)) : A.filter((t) => t.a < 0 && (t.desc + " " + t.to).toLowerCase().includes(b.match))).sort((a, b) => a.d.localeCompare(b.d));
+  detectNew(S, A).forEach((x) => bills.push(x.b));
+  const billTx = (b) => (b.mode == "once" ? tx.filter((t) => (b.ids || []).includes(t.id)) : A.filter((t) => t.a < 0 && isBillPayment(b, t))).sort((a, b) => a.d.localeCompare(b.d));
   // acct: the account its last payment came from (a credit card: the money leaves the bank later, with the card bill)
   const F = futTx(S, k), BC = bills.map((b, idx) => billInfo(b, idx, billTx(b), NOW, billFut(b, F))).map((b) => { const L0 = billTx(bills[b.idx]), L = L0.filter((t) => t.c && t.c != "Uncategorized"), lc = L.length ? L[L.length - 1].c : null; return { ...b, cat: lc || (b.manual ? b.cat : "") || "", acct: L0.length ? acctOf(L0[L0.length - 1]) : bills[b.idx].src || "" }; });
   const activeBills = BC.filter((b) => b.flag != "canceled" && !b.ended);
@@ -195,7 +193,7 @@ export function homeModel(S, now = new Date(), fx = {}) {
   };
 }
 
-import { billInfo, futTx, billFut, countedTx } from "./bills.js";
+import { billInfo, futTx, billFut, countedTx, detectNew, isBillPayment } from "./bills.js";
 
 // The money flow (waterfall): from what is in your accounts, step by step down to what is free. Every step is a real amount:
 // card purchases not paid yet (the card bill will take that money), the payments still to leave this month (F.up, Recap's

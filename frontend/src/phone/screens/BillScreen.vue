@@ -26,7 +26,7 @@ import EmptyState from "../components/EmptyState.vue";
 import PIcon from "../components/PIcon.vue";
 
 const props = defineProps({ id: { type: String, default: null } });
-const { t, tk, S, M, loc, cad, freq, avStyle, srcOf, dueText, priceChange, evTip, menu, menuItems, MI, pick, showInActivity, typeFor, openType, saveType, makeRegular, keepIrregular, restore, remove } = useBills();
+const { t, tk, S, M, loc, cad, freq, avStyle, srcOf, dueText, priceChange, evTip, menu, menuItems, MI, pick, showInActivity, typeFor, openType, saveType, joinFor, saveJoin, joinYes, joinKeep, makeRegular, keepIrregular, restore, remove } = useBills();
 const nav = usePhoneNav();
 onMounted(() => data.start());
 const P = (k, o, n) => t("phone.bills." + k, o || {}, n);
@@ -63,6 +63,8 @@ const TYPES = ["1", "2", "12", "irregular"];
 const TYPE_TEXT = { 1: "bills.type.o1", 2: "bills.type.o2", 12: "bills.type.o12", irregular: "bills.type.oirr" };
 const typeName = (v) => tk(TYPE_TEXT[v]);
 const typeOpen = computed({ get: () => !!typeFor.value, set: (v) => { if (!v) typeFor.value = null; } });
+// "Same bill as…": the computer's choice of the other bill, as a list to tap
+const joinOpen = computed({ get: () => !!joinFor.value, set: (v) => { if (!v) joinFor.value = null; } });
 const canType = computed(() => b.value && !b.value.once && !canceled.value);
 
 // the payment history as the computer's window lists it: a year heading when the year changes, a date tile per payment
@@ -101,6 +103,14 @@ const histName = (y) => displayName(S.value, y) || b.value.n;
         <div class="ph-bill-box">
           <p><b v-if="b.canceledAt">{{ t("bills.canceledOn", { date: dstr(b.canceledAt) }) }}.</b> {{ t("bills.notCounted") }}</p>
           <div class="ph-bill-btns"><button type="button" class="ph-btn" @click="restore(b)">{{ t("bills.restore") }}</button><button type="button" class="ph-btn plain ph-bill-del" @click="remove(b)">{{ t("bills.remove") }}</button></div>
+        </div>
+      </ListGroup>
+
+      <!-- a bill that started right after another one stopped: maybe the same bill under a new name -->
+      <ListGroup v-if="b.join">
+        <div class="ph-bill-box">
+          <p>{{ t("bills.join.sug", { name: tx(b.join.n), date: dstr(b.join.lp) }) }}</p>
+          <div class="ph-bill-btns"><button type="button" class="ph-btn" @click="joinYes(b)">{{ t("bills.join.yes") }}</button><button type="button" class="ph-btn plain" @click="joinKeep(b)">{{ t("bills.join.no") }}</button></div>
         </div>
       </ListGroup>
 
@@ -171,6 +181,21 @@ const histName = (y) => displayName(S.value, y) || b.value.n;
         </div>
       </template>
       <template #foot><button type="button" class="ph-btn ph-bill-save" @click="saveType">{{ t("bills.save") }}</button></template>
+    </PhoneSheet>
+
+    <PhoneSheet v-model:open="joinOpen" :title="t('bills.join.title')">
+      <template v-if="joinFor">
+        <p class="ph-bill-tname">{{ tx(joinFor.name) }}</p>
+        <div class="ph-bill-kinds"><div><p>{{ t("bills.join.intro") }} {{ t("bills.join.keep") }}</p></div></div>
+        <h3 class="ph-bill-th">{{ t("bills.join.label") }}</h3>
+        <div class="ph-group-b" role="radiogroup" :aria-label="t('bills.join.label')">
+          <button v-for="o in joinFor.opts" :key="o.key" type="button" class="ph-row" role="radio" :aria-checked="String(joinFor.v === o.key)" @click="joinFor.v = o.key">
+            <span class="ph-row-main"><span class="ph-row-t">{{ o.l }}</span></span>
+            <PIcon v-if="joinFor.v === o.key" class="ph-bill-ck" name="check" />
+          </button>
+        </div>
+      </template>
+      <template #foot><button type="button" class="ph-btn ph-bill-save" @click="saveJoin">{{ t("bills.join.save") }}</button></template>
     </PhoneSheet>
   </PhoneScreen>
 </template>

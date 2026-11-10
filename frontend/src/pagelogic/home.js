@@ -13,6 +13,7 @@ import { readPref, writePref } from "../core/prefs.js";
 import { go } from "../router.js";
 import { formatMoney, currencySymbol } from "../format.js";
 import { flowSteps } from "../lib/home.js";
+import { isBillPayment } from "../lib/bills.js";
 import { numText } from "../lib/keyNumbers.js";
 import { spentEachMonth, moneyLasts } from "../lib/moneyLasts.js";
 import { alertsModel } from "../lib/alerts.js";
@@ -165,7 +166,7 @@ export function useHome() {
   });
   const fxOpts = computed(() => fxKeys.value.map((k) => ({ value: k, label: pair(k) })));
   // "+₪1,250", "≈ −₪80" for an expected bill, "balance +₪500" for a balance update
-  const openBill = (b) => { const bl = M.value.billsAll[b.idx]; const last = bl && M.value.rows.filter((x) => x.a < 0 && (bl.mode == "once" ? (bl.ids || []).includes(x.id) : (x.desc + " " + x.to).toLowerCase().includes(bl.match))).sort((p, q) => p.d.localeCompare(q.d)).pop(); if (last) openTxId(last.id); else if (bl) openPop("hist", { title: bl.n, rows: [], sub: t("txw.chip.bill"), q: bl.match }); };
+  const openBill = (b) => { const bl = M.value.billsAll[b.idx]; const last = bl && M.value.rows.filter((x) => x.a < 0 && isBillPayment(bl, x)).sort((p, q) => p.d.localeCompare(q.d)).pop(); if (last) openTxId(last.id); else if (bl) openPop("hist", { title: bl.n, rows: [], sub: t("txw.chip.bill"), q: bl.match }); };
 
   return {
     t, locale, tk, fm, n0, an, subOf, cur, pair, lblOf, fx, S, M, loc, monthName, catName, catColor, nm, esc, accTail, accLbl, friendly, alertList, monthYear, alerts3, alertText, openTxId, openAlert, accGo, goConn, kpis, money2, accSub, cardRows, FLOWKEY, flowMode, flowOpts, W, pay, calm, colName, cols, six, startTip, cardsTip, upTip, endTip, colTip, asideTip, tileTip, leftOf, donut, fxCur, fxKeys, fxView, fxOpts, openBill,

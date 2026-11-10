@@ -20,6 +20,7 @@ import { gapReviewed } from "../core/points.js";
 import { catNames, catColor, catLabel } from "../core/cats.js";
 import { go } from "../router.js";
 import * as A from "../lib/txactions.js";
+import { isBillPayment } from "../lib/bills.js";
 import { fitChips } from "../lib/fitChips.js";
 import { allRows, txChips, SYM } from "../lib/txrows.js";
 import { fm, f0 } from "../format.js";
@@ -123,7 +124,7 @@ export function useActivity() {
   function openRow(x) {
     if (x.upBill != null) {
       const b = (S.value.bills || [])[x.upBill]; if (!b) return;
-      const L = (home.value?.rows || []).filter((y) => y.a < 0 && !y.virtual && (y.desc + " " + y.to).toLowerCase().includes(b.match)).sort((p, q) => p.d.localeCompare(q.d));
+      const L = (home.value?.rows || []).filter((y) => y.a < 0 && !y.virtual && isBillPayment(b, y)).sort((p, q) => p.d.localeCompare(q.d));
       if (L.length) openTx(L[L.length - 1].id); else openPop("hist", { title: b.n, rows: [], sub: t("txw.chip.bill"), q: b.match });
       return;
     }
@@ -134,7 +135,7 @@ export function useActivity() {
   const setCat = (x, c) => setCategory(x.upInst ?? x.id, c); // an expected instalment changes the payment it follows
   // The category of an expected bill: the bill and its latest payment get it (upcat).
   function setBillCat(x, v) {
-    data.change((S2) => { const b = S2.bills[x.upBill]; if (!b) return false; b.cat = v || ""; const L = S2.tx.filter((y) => y.a < 0 && !y.virtual && (y.desc + " " + y.to).toLowerCase().includes(b.match)).sort((p, q) => p.d.localeCompare(q.d)), lt = L[L.length - 1]; if (lt && lt.c !== v) lt.c = v; return [["Changed bill category", b.n + " → " + (v || "Uncategorized")]]; });
+    data.change((S2) => { const b = S2.bills[x.upBill]; if (!b) return false; b.cat = v || ""; const L = S2.tx.filter((y) => y.a < 0 && !y.virtual && isBillPayment(b, y)).sort((p, q) => p.d.localeCompare(q.d)), lt = L[L.length - 1]; if (lt && lt.c !== v) lt.c = v; return [["Changed bill category", b.n + " → " + (v || "Uncategorized")]]; });
   }
   const goTag = (g) => reset({ tag: g });
   const goCat = (c) => reset({ cat: c || "Uncategorized" });

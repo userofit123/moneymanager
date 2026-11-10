@@ -1,5 +1,6 @@
 // The Reports page's numbers, kept apart from the screen so they can be tested:
 // the periods, comparisons, monthly series, merchants and tags. Nothing here changes the data.
+import { billNames, isBillPayment } from "./bills.js";
 import { rangeOf as rangeOfA, rdOf } from "./activity.js";
 import { addM } from "./home.js";
 import { isIn, isOut } from "./moneyIn.js";
@@ -46,7 +47,7 @@ export function merchants(M, B, S) {
   const hidden = (S.hiddenMerchants || []), hid = (n) => hidden.includes(String(n).toLowerCase()), f1 = (L) => L.filter((t) => !hid(t.to));
   const cur = sumBy(f1(B.cur), (t) => [t.to]), prev = B.prev ? sumBy(f1(B.prev), (t) => [t.to]) : null, e = byAmount(cur).slice(0, 7), mx = e[0] ? e[0][1] : 1, MI = {};
   f1(B.cur).forEach((t) => { const o = (MI[t.to] = MI[t.to] || { n: 0, cats: {} }); o.n++; if (t.c) o.cats[t.c] = (o.cats[t.c] || 0) + 1; });
-  const bills = M.billsAll || [], mbill = (n) => { const l = String(n).toLowerCase(); return bills.find((b) => !b.once && b.flag != "canceled" && b.match && l.includes(b.match)); };
+  const bills = M.billsAll || [], mbill = (n) => { const l = String(n).toLowerCase(); return bills.find((b) => !b.once && b.flag != "canceled" && b.match && billNames(b).some((m) => l.includes(m))); };
   return { prev, mx, hidden, rows: e.map(([n, v]) => { const o = MI[n] || { n: 0, cats: {} }, top = Object.entries(o.cats).sort((a, b) => b[1] - a[1])[0], bl = mbill(n); return { n, v, before: prev ? prev[n] || 0 : null, count: o.n, cat: top ? top[0] : "", bill: bl ? (bl.irregular ? "irregular" : "bill") : "" }; }) };
 }
 
@@ -77,7 +78,7 @@ export function trSeries(M, S, spec, ms) {
   if (k == "cat") return by((t) => isOut(t) && (t.c || "Uncategorized") == arg); if (k == "src") return by((t) => isIn(t) && incKey(t) == arg); if (k == "tag") return by((t) => isOut(t) && (t.tags || []).includes(arg));
   if (k == "bills") {
     const ids = new Set();
-    (M.billsAll || []).filter((b) => b.flag != "canceled").forEach((b) => (b.mode == "once" ? (S.tx || []).filter((t) => (b.ids || []).includes(t.id)) : M.rows.filter((t) => t.a < 0 && (t.desc + " " + t.to).toLowerCase().includes(b.match))).forEach((t) => ids.add(t.id)));
+    (M.billsAll || []).filter((b) => b.flag != "canceled").forEach((b) => (b.mode == "once" ? (S.tx || []).filter((t) => (b.ids || []).includes(t.id)) : M.rows.filter((t) => t.a < 0 && isBillPayment(b, t))).forEach((t) => ids.add(t.id)));
     return by((t) => t.a < 0 && ids.has(t.id));
   }
   return null;

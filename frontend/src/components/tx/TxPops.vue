@@ -73,7 +73,8 @@ const hist = computed(() => {
 watch(P, (p) => { if (p?.kind === "hist" && !p.rows.length) { toast(t("activity.w.hNone"), { kind: "err" }); closePop(); } });
 const monShort = (d) => new Date(d + "T12:00:00").toLocaleDateString(loc(), { month: "short" });
 // "Show in Activity" searches for the name, keeping the time frame
-const histShow = () => { const q = P.value.q; closePop(); goActivity({ q, keepRange: true }); };
+// a bill with joined names has no one name that finds all its payments: Activity shows them by their ids
+const histShow = () => { const { q, ids, title } = P.value; closePop(); goActivity(ids ? { focus: ids, label: title } : { q, keepRange: true }); };
 
 // ---- mark as a bill ----
 function billSave() {

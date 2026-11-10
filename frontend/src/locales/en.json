@@ -1000,7 +1000,8 @@
       "cancelNow": "Mark as canceled",
       "keep": "Keep this bill",
       "cancel": "Mark to cancel",
-      "remove": "Remove from bills"
+      "remove": "Remove from bills",
+      "join": "Same bill as…"
     },
     "add": {
       "title": "Add a bill",
@@ -1031,6 +1032,18 @@
       "o2": "Regular · every 2 months",
       "o12": "Regular · every year",
       "oirr": "Irregular"
+    },
+    "join": {
+      "title": "Same bill as another one",
+      "intro": "A business sometimes changes the name on its charges, so one bill shows up as two. Pick the other one and they become one bill: one payment history, counted once, and later payments under either name join it.",
+      "keep": "The bill paid most recently keeps its name.",
+      "label": "The other bill",
+      "opt": "{name} · last paid {date}",
+      "optNone": "{name} · no payments yet",
+      "save": "Make one bill",
+      "sug": "This looks like the same bill as {name}, which stopped after {date}.",
+      "yes": "Same bill",
+      "no": "Not the same"
     },
     "h": {
       "bill": "Bill",

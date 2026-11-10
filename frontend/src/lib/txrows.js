@@ -8,7 +8,7 @@ import { TP } from "../core/tooltip.js";
 import { rmOf, instOf, cardOf } from "./activity.js";
 import { billOf, refundTwin } from "./txactions.js";
 import { markOf } from "./moneyIn.js";
-import { upInstRows } from "./bills.js";
+import { upInstRows, isBillPayment, billNames } from "./bills.js";
 import { SRC_NAMES } from "../catnames.js";
 
 const t = (...a) => i18n.global.t(...a);
@@ -30,14 +30,14 @@ export const balRows = (S) => (S?.balUpdates || []).map((u) => ({ id: "bu" + u.i
 export function upBillRows(S, BC, now, today) {
   const lim = new Date(now.getFullYear(), now.getMonth() + 2, 1), fut = (S.tx || []).filter((x) => String(x.d) > today && x.a < 0), ok = (b) => !b.once && !b.irregular && b.flag != "canceled";
   const row = (b, d, late) => ({ id: "ub" + b.idx + (late ? "l" : ""), upBill: b.idx, virtual: true, late: !!late, d, desc: b.n, from: b.src || "", to: b.n, a: -b.pred, c: b.cat || "", tags: [], docs: [], note: "" });
-  return BC.filter((b) => ok(b) && b.nx && b.nx > now && b.nx < lim && !fut.some((x) => (x.desc + " " + x.to).toLowerCase().includes(b.match) && Math.abs((new Date(x.d) - b.nx) / 864e5) <= 6)).map((b) => row(b, ymd(b.nx)))
+  return BC.filter((b) => ok(b) && b.nx && b.nx > now && b.nx < lim && !fut.some((x) => isBillPayment(b, x) && Math.abs((new Date(x.d) - b.nx) / 864e5) <= 6)).map((b) => row(b, ymd(b.nx)))
     .concat(BC.filter((b) => ok(b) && b.status == "pending" && b.pd && !b.sched).map((b) => row(b, ymd(b.pd), true)));
 }
 export function allRows(S, BC = [], now = new Date(), today = ymd(now)) {
   if (!S) return [];
   const ui = upInstRows(S, now, today), near = (r, u) => Math.abs((new Date(r.d) - new Date(u.d)) / 864e5) <= 6;
   // an expected bill for the same purchase and month is replaced by the instalment row, which knows the payment number
-  const ub = upBillRows(S, BC, now, today).filter((u) => { const m = BC.find((b) => b.idx == u.upBill)?.match; return !(m && ui.some((r) => String(r.desc).toLowerCase().includes(m) && near(r, u))); });
+  const ub = upBillRows(S, BC, now, today).filter((u) => { const b = BC.find((x) => x.idx == u.upBill); return !(b && b.match && ui.some((r) => billNames(b).some((m) => String(r.desc).toLowerCase().includes(m)) && near(r, u))); });
   return (S.tx || []).concat(costRows(S), ub, ui, balRows(S));
 }
 

@@ -9,8 +9,9 @@ import { openTx, openPop } from "../core/txwin.js";
 import { now } from "../core/clock.js";
 import { openForm } from "../core/forms.js";
 import { dstr } from "../dates.js";
-import { billsModel, billState, flagBill, cancelBill, restoreBill, deleteBill, setBillType, sugYes, sugNo, typeOf, billKey, billIndex, cadText, freqText, evTipText, priceMoved, fm } from "../lib/bills.js";
+import { billsModel, billState, flagBill, cancelBill, restoreBill, deleteBill, setBillType, sugYes, sugNo, joinBills, joinNo, typeOf, billKey, billIndex, cadText, freqText, evTipText, priceMoved, fm } from "../lib/bills.js";
 import { goActivity } from "../core/shell.js";
+import { tx } from "../core/heText.js";
 
 export function useBills() {
   const { t, locale } = useI18n();
@@ -70,11 +71,12 @@ export function useBills() {
   // ---- the ⋯ menu ----
   const menu = ref(null); // { i, key, btn }
   const toggleMenu = (b, ev) => { menu.value = menu.value && menu.value.i == b.idx ? null : { i: b.idx, key: billKey(b), btn: ev.currentTarget }; };
-  const MI = { a: '<path d="M4 6h16M4 12h16M4 18h10"/>', h: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', t: '<path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/>', f: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>', c: '<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>', k: '<path d="M5 12l5 5L20 7"/>', x: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>' };
+  const MI = { a: '<path d="M4 6h16M4 12h16M4 18h10"/>', h: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', t: '<path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/>', f: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>', c: '<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>', k: '<path d="M5 12l5 5L20 7"/>', x: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>', j: '<path d="M6 4v4a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4M12 14v6"/>' };
   const menuItems = computed(() => {
     if (!menu.value || !M.value) return [];
     const bi = M.value.all.find((x) => x.idx == menu.value.i) || {}, rec = !bi.once && !bi.irregular, it = [["billHist", "h", "menu.hist"], ["billAct", "a", "menu.inAct"]];
     if (rec || bi.irregular) it.push(["billType", "t", "menu.type"]);
+    if (!bi.once && joinOpts(bi.idx).length) it.push(["billJoin", "j", "menu.join"]);
     if (rec) { if (bi.flag) it.push(["billCanceled", "c", "menu.cancelNow"], ["billFlag", "k", "menu.keep"]); else it.push(["billFlag", "f", "menu.cancel"]); }
     it.push(["billDel", "x", "menu.remove", 1]);
     return it;
@@ -84,6 +86,7 @@ export function useBills() {
     if (a == "billHist") openHist(i);
     else if (a == "billAct") showInActivity(i);
     else if (a == "billType") openType(i);
+    else if (a == "billJoin") openJoin(i);
     else if (a == "billFlag") change(key, flagBill);
     else if (a == "billCanceled") change(key, (n, j) => cancelBill(n, j, billState(n, now.value).TODAY));
     else if (a == "billDel") change(key, deleteBill);
@@ -98,7 +101,8 @@ export function useBills() {
   // ---- opening a bill: its last payment's entry window, or its payment history (billOpen, billHist) ----
   function openHist(i) {
     const st = billState(S.value, now.value), b = st.bills[i]; if (!b) return;
-    openPop("hist", { title: b.n, rows: st.billTx(b), sub: b.mode == "once" ? t("bills.h.once") : t("bills.h.bill"), q: b.mode == "once" ? b.n : b.match });
+    const L = st.billTx(b); // a bill with joined names is shown in Activity by its payments, since no one name finds them all
+    openPop("hist", { title: b.n, rows: L, sub: b.mode == "once" ? t("bills.h.once") : t("bills.h.bill"), q: b.mode == "once" ? b.n : b.match, ...(b.also?.length ? { ids: L.map((x) => x.id) } : {}) });
   }
   function openBill(bi) {
     const st = billState(S.value, now.value), b = st.bills[bi.idx]; if (!b) return;
@@ -118,10 +122,26 @@ export function useBills() {
   }
   function saveType() { const { key, v } = typeFor.value; typeFor.value = null; change(key, (n, i) => setBillType(n, i, v, txOf(n, i))); }
 
+  // ---- "Same bill as…": two bills that are really one (the business changed the name on its charges) ----
+  // The other bills it can be joined with: not one-off bills, the most recently paid first, with the last payment's date.
+  const joinOpts = (i) => (M.value ? M.value.all.filter((x) => x.idx != i && !x.once).sort((x, y) => String(y.lp || "").localeCompare(String(x.lp || ""))) : [])
+    .map((x) => ({ key: billKey(x), n: x.n, l: x.lp ? t("bills.join.opt", { name: tx(x.n), date: dstr(x.lp) }) : t("bills.join.optNone", { name: tx(x.n) }) }));
+  const joinFor = ref(null); // { key, name, v, opts }
+  function openJoin(i) {
+    const b = M.value && M.value.all.find((x) => x.idx == i); if (!b) return;
+    const opts = joinOpts(i); joinFor.value = { key: billKey(b), name: b.n, v: opts[0]?.key || "", opts };
+  }
+  const joinWith = (key, other) => change(key, (n, i) => { const j = billIndex(n, other); return j < 0 ? false : joinBills(n, i, j, now.value); });
+  function saveJoin() { const { key, v } = joinFor.value; joinFor.value = null; if (v) joinWith(key, v); }
+  // the hint under a bill that started right after another one stopped (b.join, lib/bills.js joinHints)
+  const joinOld = (b) => (M.value && b.join ? M.value.bills[b.join.idx] : null);
+  const joinYes = (b) => { const o = joinOld(b); if (o) joinWith(billKey(b), billKey(o)); };
+  const joinKeep = (b) => { const o = joinOld(b); if (o) change(billKey(b), (n, i) => joinNo(n, i, o.match, o.n)); };
+
   const makeRegular = (b) => change(billKey(b), (n, i) => sugYes(n, i, b.sug, txOf(n, i)));
   const keepIrregular = (b) => change(billKey(b), (n, i) => sugNo(n, i, txOf(n, i)));
   const restore = (b) => change(billKey(b), restoreBill);
   const remove = (b) => change(billKey(b), deleteBill);
 
-  return { t, locale, tk, S, loc, monYr, cc, avStyle, srcOf, M, cad, freq, kpis, ICON, groups, dueText, priceChange, lastLine, evTip, change, txOf, menu, toggleMenu, MI, menuItems, pick, showInActivity, openHist, openBill, openAdd, typeFor, openType, saveType, makeRegular, keepIrregular, restore, remove };
+  return { t, locale, tk, S, loc, monYr, cc, avStyle, srcOf, M, cad, freq, kpis, ICON, groups, dueText, priceChange, lastLine, evTip, change, txOf, menu, toggleMenu, MI, menuItems, pick, showInActivity, openHist, openBill, openAdd, typeFor, openType, saveType, joinFor, openJoin, saveJoin, joinYes, joinKeep, makeRegular, keepIrregular, restore, remove };
 }

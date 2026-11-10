@@ -17,6 +17,7 @@ import { run, setCategory, addTags as addTagsAct, cpMark as cpMarkAct, ignOn as 
 import * as A from "../lib/txactions.js";
 import { allRows, costRows, txChips, whyBill, futureTip } from "../lib/txrows.js";
 import { MARK_EN, markOf, chosenMark, setMark } from "../lib/moneyIn.js";
+import { isBillPayment } from "../lib/bills.js";
 import { kinds, displayName, duplicateIds, rmOf, instOf, cardOf, detailRows, flat, prettyKey } from "../lib/activity.js";
 import { catJarsOf } from "../lib/jars.js";
 import { fm, f0 } from "../format.js";
@@ -107,8 +108,8 @@ export function useTransaction(id, { close: onClose = () => {} } = {}) {
   const openJars = computed(() => (S.value?.jars || []).filter((j) => !j.done).sort((a, b) => a.p - b.p));
   // a change that is asked about first (the "Are you sure?" box)
   const confirmDo = (q, text, fn, o) => ask(q, text, fn, o);
-  const histOf = (x) => { const b = A.billOf(x, BC.value); if (b) openPop("hist", { title: b.n, rows: billRows(b), sub: t("txw.w.regBill"), q: b.n }); else openPop("hist", { title: name(x), rows: sameStore(x), sub: t("txw.w.allPay"), q: name(x) }); };
-  const billRows = (b) => (home.value?.rows || []).filter((y) => y.a < 0 && !y.virtual && (b.mode == "once" ? (b.ids || []).includes(y.id) : (y.desc + " " + y.to).toLowerCase().includes(b.match)));
+  const histOf = (x) => { const b = A.billOf(x, BC.value); if (b) { const L = billRows(b); openPop("hist", { title: b.n, rows: L, sub: t("txw.w.regBill"), q: b.n, ...(b.also?.length ? { ids: L.map((y) => y.id) } : {}) }); } else openPop("hist", { title: name(x), rows: sameStore(x), sub: t("txw.w.allPay"), q: name(x) }); };
+  const billRows = (b) => (home.value?.rows || []).filter((y) => y.a < 0 && !y.virtual && isBillPayment(b, y));
   // the "Payment history" button shows when there are other payments to the same bill or store
   const hasHist = computed(() => { const x = cur.value; if (!x) return false; const b = A.billOf(x, BC.value); return (b ? billRows(b) : sameStore(x)).some((y) => y.id != x.id); });
   const rels = computed(() => {

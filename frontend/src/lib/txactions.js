@@ -5,6 +5,7 @@ import { fm } from "../format.js";
 import { dstr } from "../dates.js";
 import { ruleText } from "./ruleFields.js";
 import { jarPay, jarUnpay } from "../core/settle.js";
+import { isBillPayment, billNames } from "./bills.js";
 import { normD, isCardPay, cardInfo, rn, ruleHit, ruleTags, tagSimilar, nameHit, transferIds, isIgnored } from "./activity.js";
 
 const byId = (S, id) => (S.tx || []).find((x) => x.id == id);
@@ -141,7 +142,7 @@ export function billMark(S, id, scope, every) {
     return ok([["Marked as a bill (one-off)", store + " · " + fm(t.a)]]);
   }
   const key = String(store).toLowerCase().trim(), v = String(every);
-  if (S.bills.some((b) => b.mode != "once" && b.match == key)) return { err: "alreadyStore" };
+  if (S.bills.some((b) => b.mode != "once" && billNames(b).includes(key))) return { err: "alreadyStore" };
   S.ignoredBills = (S.ignoredBills || []).filter((x) => x != key);
   S.bills.push({ n: store, mode: "rule", match: key, src: t.from, cat: t.c || "", amt: Math.abs(t.a), manual: true, rec: v == "auto" ? "auto" : v == "0" ? "irregular" : "recurring", ...(+v > 0 ? { every: +v, anchor: +t.d.slice(5, 7), dom: Math.min(28, +t.d.slice(8, 10)) } : {}) });
   return ok([["Marked every payment as a bill", store]]);
@@ -152,7 +153,7 @@ export function billUnmark(S, id) {
   return ok([["Removed from bills", b.n]]);
 }
 // The bill a payment belongs to (billOf). BC: every bill, worked out (home.billsAll).
-export const billOf = (t, BC = []) => (t.a < 0 && !t.virtual ? BC.find((b) => (b.mode == "once" ? (b.ids || []).includes(t.id) : (t.desc + " " + t.to).toLowerCase().includes(b.match))) || null : null);
+export const billOf = (t, BC = []) => (t.a < 0 && !t.virtual ? BC.find((b) => isBillPayment(b, t)) || null : null);
 
 // ---- jars ----
 // Attach a payment to a jar (jarAttachSave): the jar pays up to what it holds. empty: the jar has nothing left after it.
