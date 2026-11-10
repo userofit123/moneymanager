@@ -618,6 +618,7 @@ html.he #exCats > * {
   align-items: center;
   gap: 2px;
   margin-inline-start: auto;
+  align-self: flex-end; /* the 32px menus sit on the row's bottom edge, so the gap to the table matches the 42px search box */
 }
 
 .vsel {
