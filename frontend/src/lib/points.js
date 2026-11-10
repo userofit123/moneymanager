@@ -42,6 +42,8 @@ export const POINTS = {
 // "edit" only guards its own day (the day is in the key); "cat" and "tag" keep their key in "_once" so they never earn twice.
 const DAILY = ["visit", "cat", "tag", "edit"], KEEP_DAYS = 90, KEEP_SHORT_DAYS = 7;
 const SHORT = new Set(["cat", "tag", "edit"]), ONCE = new Set(["cat", "tag"]);
+// "_back": the keys of folded entries already taken off their month's total by Undo (the newest MAX_BACK), so it happens once.
+const MAX_BACK = 5000;
 // Month results are counted from this day of the next month, so late bank and card rows are in first.
 export const COUNT_FROM_DAY = 3;
 // How many finished months back are counted when they were not counted yet (the first time points run).
@@ -160,18 +162,32 @@ export function earnedOf(before, after) {
   Object.entries(after?.points || {}).forEach(([k, e]) => { if (k[0] !== "_" && !was[k] && e && typeof e === "object") out[k] = [e.kind, +e.pts || 0, e.day]; });
   return out;
 }
-// Undo of a change: takes back the points it gave. An entry already folded into "_old" is taken off that month's total
-// (and out of "_once"), so Undo stays right for as long as the change can be undone. pts: earnedOf(...), or a list of keys (older saves).
-export function takeBack(S, pts) {
+// Undo of a change: takes back the points it gave. pts: earnedOf(...), or a list of keys (older saves).
+// An entry still saved is simply removed. One already folded into "_old" is taken off that month's total, but only once
+// and only when it really was folded: a category or tag only while its key is in "_once" (then taken out of it); any other
+// kind only when its day is old enough to have been folded by `today` and its key is not in "_back" yet (then added), so
+// the same Undo run again (after a reload) or an entry the server never kept takes nothing from the total.
+export function takeBack(S, pts, today) {
   if (!S?.points || !pts) return;
   const P = S.points;
   if (Array.isArray(pts)) { pts.forEach((k) => delete P[k]); return; }
+  const back = new Set(Array.isArray(P._back) ? P._back : []), addBack = [];
   Object.entries(pts).forEach(([k, [kind, n, day] = []]) => {
     if (P[k]) { delete P[k]; return; }
-    if (Array.isArray(P._once) && P._once.includes(k)) P._once = P._once.filter((x) => x !== k);
-    const m = P._old?.[String(day || "").slice(0, 7)];
+    if (!DAILY.includes(kind) || !day) return;
+    if (ONCE.has(kind)) {
+      if (!Array.isArray(P._once) || !P._once.includes(k)) return;
+      P._once = P._once.filter((x) => x !== k);
+    } else {
+      if (back.has(k) || !today) return;
+      const cut = dayKey(new Date(new Date(dayKey(today) + "T12:00:00").getTime() - (SHORT.has(kind) ? KEEP_SHORT_DAYS : KEEP_DAYS) * 864e5));
+      if (day >= cut) return; // too new to have been folded: the entry is just gone, nothing was added to the total
+      back.add(k); addBack.push(k);
+    }
+    const m = P._old?.[String(day).slice(0, 7)];
     if (m && m[kind]) m[kind] = Math.max(0, m[kind] - (+n || 0));
   });
+  if (addBack.length) P._back = [...(Array.isArray(P._back) ? P._back : []), ...addBack].slice(-MAX_BACK);
 }
 
 // ---- setup and month results (the app's upkeep, not something the person did) ----
@@ -266,7 +282,18 @@ export function pointsUpkeep(S, today, rows) {
     if (ONCE.has(e.kind)) once.push(k);
     delete S.points[k];
   });
-  if (once.length) S.points._once = [...(Array.isArray(S.points._once) ? S.points._once : []), ...once]; // a new list, so its Set is made again
+  if (once.length) {
+    // a new list, so its Set is made again; the keys of payments that no longer exist are dropped, so the list does not grow forever
+    const ids = Array.isArray(S.tx) && S.tx.length ? new Set(S.tx.map((t) => String(t.id))) : null;
+    const gone = (k) => {
+      if (!ids) return false;
+      if (k.startsWith("cat:")) return !ids.has(k.slice(4));
+      if (!k.startsWith("tag:")) return false;
+      for (let i = k.indexOf(":", 4); i > 0; i = k.indexOf(":", i + 1)) if (ids.has(k.slice(4, i))) return false; // the id may itself hold a ":"
+      return true;
+    };
+    S.points._once = [...(Array.isArray(S.points._once) ? S.points._once : []), ...once].filter((k) => !gone(k));
+  }
   return got;
 }
 

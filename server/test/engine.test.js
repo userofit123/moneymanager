@@ -744,14 +744,16 @@ test("points earned are saved and loaded back, kept small; an app that sends non
   assert.equal(Object.keys((await getState()).points).length, 3);
 });
 
-test("points: the folded totals and once-only keys are never dropped, however many entries there are", () => {
+test("points: the folded totals, once-only keys and taken-back keys are never dropped, however many entries there are", () => {
   const P = {};
   for (let i = 0; i < 200005; i++) P["edit:tx:" + i + ":2026-11-02"] = { pts: 1, kind: "edit", day: "2026-11-02" };
   P._old = { "2026-06": { cat: 40 } };
   P._once = ["cat:7", "tag:7:trip", 5];
+  P._back = ["edit:tx:7:2026-06-01", null];
   const out = cleanPoints(P);
   assert.deepEqual(out._old, { "2026-06": { cat: 40 } });
   assert.deepEqual(out._once, ["cat:7", "tag:7:trip"]);
+  assert.deepEqual(out._back, ["edit:tx:7:2026-06-01"]);
 });
 
 test("on the day a card bill is paid, the card's pending charges do not hide the payment, and a pending charge listed again is not counted twice", async () => {

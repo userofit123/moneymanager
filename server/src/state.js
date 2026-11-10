@@ -199,8 +199,9 @@ export async function getState() {
 const sig = (o) => JSON.stringify(o);
 
 // Points earned, kept small and safe: key → { pts, kind, day, d? }; "_old": { [month]: { [kind]: pts } } (points of old
-// entries folded into one total per month and kind); "_once": [key, ...] (folded once-only entries, so they never earn twice).
-// "_old" and "_once" are always kept, whatever the number of entries: they hold totals and guards that cannot be rebuilt.
+// entries folded into one total per month and kind); "_once": [key, ...] (folded once-only entries, so they never earn twice);
+// "_back": [key, ...] (folded entries already taken back by Undo). "_old", "_once" and "_back" are always kept, whatever
+// the number of entries: they hold totals and guards that cannot be rebuilt.
 export function cleanPoints(P) {
   const out = {}, num = (v) => (Number.isFinite(+v) ? Math.round(+v) : 0), str = (v, n) => String(v ?? "").slice(0, n);
   const old = P._old;
@@ -209,6 +210,8 @@ export function cleanPoints(P) {
     out._old = Object.fromEntries(Object.entries(old).filter(([, o]) => o && typeof o === "object").map(([m, o]) => [str(m, 7), kinds(o)]));
   }
   if (Array.isArray(P._once)) out._once = P._once.filter((k) => typeof k === "string").map((k) => k.slice(0, 160));
+  // "_back": folded entries Undo already took off their month's total, so the same Undo never takes them twice
+  if (Array.isArray(P._back)) out._back = P._back.filter((k) => typeof k === "string").slice(-5000).map((k) => k.slice(0, 160));
   // no cap on points a day; old daily entries fold into "_old" after a week, so this leaves room for many thousands
   for (const [k, v] of Object.entries(P).filter(([k]) => k[0] !== "_").slice(0, 200000)) {
     if (!v || typeof v !== "object") continue;

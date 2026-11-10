@@ -1,9 +1,10 @@
 // Points and levels (lib/points.js): levels, no daily caps, once-only, points for any update, by hand vs automatic, month results, and Undo.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { POINTS, levelFor, award, earnFromChange, pointsUpkeep, pointsSummary, pointsByMonth, monthParts, setupDone } from "../src/lib/points.js";
+import { POINTS, levelFor, award, earnFromChange, pointsUpkeep, pointsSummary, pointsByMonth, monthParts, setupDone, takeBack } from "../src/lib/points.js";
 import { setField, addTags, roSave, xfOk, dupKeep } from "../src/lib/txactions.js";
 import { createDataStore } from "../src/stores/data.js";
+import { setNow } from "../src/core/clock.js";
 
 const DAY = "2026-11-02";
 const total = (S) => pointsSummary(S, DAY, []).total;
@@ -274,6 +275,7 @@ test("Undo still takes points back after they were folded into the month total",
   const [e1] = D.change((S) => setField(S, 1, "c", "Food").lines);
   const [e2] = D.change((S) => { S.bills[0].flag = "cancel"; return [["Marked to cancel", "Gym"]]; });
   pointsUpkeep(D.state.value, "2026-11-20", []); // two weeks later: both entries are folded into November's total
+  setNow("2026-11-20T12:00:00");
   assert.equal(D.state.value.points["cat:1"], undefined);
   assert.equal(total(D.state.value), POINTS.cat + POINTS.edit);
   D.undo(e1);
@@ -283,4 +285,43 @@ test("Undo still takes points back after they were folded into the month total",
   // the category given again after Undo earns again
   D.change((S) => setField(S, 1, "c", "Food").lines);
   assert.equal(total(D.state.value), POINTS.cat);
+});
+
+test("a bulk change keeps its Undo: the points it earns stay out of the undo record", async () => {
+  const many = Array.from({ length: 1200 }, (_, i) => ({ id: i + 1, desc: "Shop", c: "", a: -5, d: "2026-11-01", tags: [] }));
+  const D = createDataStore({ fetchJson: async () => ({ rev: 1, audit: [], ...base(), tx: many }), connect: () => () => {}, send: async () => ({ ok: true, status: 200, json: { rev: 2, auditIds: [] } }), delay: 5, earn: (a, b, L) => earnFromChange(a, b, L, DAY) });
+  await D.load();
+  const [e] = D.change((S) => { S.tx.forEach((t) => { t.tags = ["trip"]; }); return [["Tagged payments", "trip"]]; });
+  assert.equal(total(D.state.value), 1200 * POINTS.tag);
+  assert.equal(e.undo?.type, "patch");
+  assert.ok(e.undo.ops.every((op) => op.c !== "points"));
+  D.undo(e);
+  assert.ok(D.state.value.tx.every((t) => !t.tags.length));
+  assert.equal(total(D.state.value), 0);
+});
+
+test("the same Undo run again takes no points twice, also after the entries were folded", () => {
+  const S = { points: {} };
+  award(S, "cat:1", "cat", POINTS.cat, DAY, "Food");
+  award(S, "cat:2", "cat", POINTS.cat, DAY, "Food");
+  award(S, "edit:bills:Gym:" + DAY, "edit", POINTS.edit, DAY);
+  award(S, "edit:bills:Spa:" + DAY, "edit", POINTS.edit, DAY);
+  pointsUpkeep(S, "2026-11-20", []); // all four folded into November's total
+  assert.equal(total(S), 2 * POINTS.cat + 2 * POINTS.edit);
+  const pts = { "cat:1": ["cat", POINTS.cat, DAY], ["edit:bills:Gym:" + DAY]: ["edit", POINTS.edit, DAY] };
+  takeBack(S, pts, "2026-11-20");
+  assert.equal(total(S), POINTS.cat + POINTS.edit);
+  takeBack(S, structuredClone(pts), "2026-11-20"); // the Undo again, as after a reload
+  assert.equal(total(S), POINTS.cat + POINTS.edit);
+  // an entry gone while still too new to fold (never kept by the server) takes nothing from the total
+  takeBack(S, { ["edit:jars:1:2026-11-19"]: ["edit", 50, "2026-11-19"], "cat:9": ["cat", 50, DAY] }, "2026-11-20");
+  assert.equal(total(S), POINTS.cat + POINTS.edit);
+});
+
+test("folding drops the once-only keys of payments that no longer exist", () => {
+  const S = { tx: [{ id: 1 }, { id: "a:b" }], points: { _once: ["cat:5", "tag:5:trip"] } };
+  award(S, "cat:1", "cat", 1, DAY);
+  award(S, "tag:a:b:x:y", "tag", 1, DAY);
+  pointsUpkeep(S, "2026-11-20", []);
+  assert.deepEqual(S.points._once, ["cat:1", "tag:a:b:x:y"]);
 });
