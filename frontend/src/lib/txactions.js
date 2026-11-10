@@ -6,7 +6,7 @@ import { dstr } from "../dates.js";
 import { ruleText } from "./ruleFields.js";
 import { jarPay, jarUnpay } from "../core/settle.js";
 import { isBillPayment, billNames } from "./bills.js";
-import { normD, isCardPay, cardInfo, rn, ruleHit, ruleTags, tagSimilar, nameHit, transferIds, isIgnored, instName, instPlanKey } from "./activity.js";
+import { normD, isCardPay, cardInfo, rn, ruleHit, ruleTags, tagSimilar, nameHit, transferIds, isIgnored, instName, instOf, instPlanKey } from "./activity.js";
 
 const byId = (S, id) => (S.tx || []).find((x) => x.id == id);
 const MNAME = (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString("en-GB", { month: "long" });
@@ -22,9 +22,19 @@ export function setField(S, id, f, v) {
 }
 // The other payments of the same purchase paid in instalments as entry id (5 of 10 → 1 to 10), that are not in category cat yet.
 export function instMates(S, id, cat) {
-  const t = byId(S, id), k = t && instPlanKey(t);
-  return k ? (S.tx || []).filter((x) => x.id != id && (x.c || "") != (cat || "") && instPlanKey(x) == k) : [];
+  const t = byId(S, id); if (!t || !instPlanKey(t)) return [];
+  const ti = instOf(t), nm = instName(t).toLowerCase(), st = instStart(t, ti);
+  return (S.tx || []).filter((x) => {
+    if (x.id == id || (x.c || "") == (cat || "") || !instPlanKey(x)) return false;
+    const xi = instOf(x);
+    if (xi.total != ti.total || instName(x).toLowerCase() != nm || Math.abs(instStart(x, xi) - st) > 1) return false;
+    // The first payment often carries the rounding remainder, so it may differ more.
+    const tol = ti.n == 1 || xi.n == 1 ? 0.25 : 0.06, a = Math.abs(t.a), b = Math.abs(x.a);
+    return Math.abs(a - b) <= tol * Math.max(a, b);
+  });
 }
+// The month a plan started: the month of this payment minus the payments before it, counted as a number of months.
+const instStart = (t, i) => +String(t.d).slice(0, 4) * 12 + +String(t.d).slice(5, 7) - (i.n - 1);
 // Puts those other payments in category cat too, as one change. A one-time change: no rule is made.
 export function instCatAll(S, id, cat) {
   const L = instMates(S, id, cat); if (!L.length) return { err: "none" };

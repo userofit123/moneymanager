@@ -39,3 +39,20 @@ test("accepting changes them all in one history line; nothing left gives an erro
   assert.equal(A.instCatAll(S, 3, "Home").err, "none");
   assert.equal(S.rules, undefined, "no rule is made");
 });
+
+test("two plans at once at one shop, same payments and amount, started in different months, are kept apart", () => {
+  const S = { tx: [
+    T(1, "2026-07-02", "Bike shop", -500, { inst: [1, 10] }), T(2, "2026-08-02", "Bike shop", -500, { inst: [2, 10] }), T(3, "2026-09-02", "Bike shop", -500, { inst: [3, 10] }),
+    T(11, "2026-09-10", "Bike shop", -500, { inst: [1, 10] }), T(12, "2026-10-10", "Bike shop", -500, { inst: [2, 10] }),
+  ] };
+  assert.deepEqual(A.instMates(S, 2, "Home").map((x) => x.id), [1, 3]);
+  assert.deepEqual(A.instMates(S, 11, "Home").map((x) => x.id), [12]);
+});
+
+test("a first payment with a slightly different amount is still part of the plan", () => {
+  const S = { tx: [
+    T(1, "2026-07-02", "Lamp shop", -503, { inst: [1, 10] }), T(2, "2026-08-02", "Lamp shop", -500, { inst: [2, 10] }), T(3, "2026-09-02", "Lamp shop", -500, { inst: [3, 10] }),
+  ] };
+  assert.deepEqual(A.instMates(S, 3, "Home").map((x) => x.id), [1, 2]);
+  assert.deepEqual(A.instMates(S, 1, "Home").map((x) => x.id), [2, 3]);
+});
