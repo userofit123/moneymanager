@@ -173,7 +173,12 @@ export function takeBack(S, pts, today) {
   if (Array.isArray(pts)) { pts.forEach((k) => delete P[k]); return; }
   const back = new Set(Array.isArray(P._back) ? P._back : []), addBack = [];
   Object.entries(pts).forEach(([k, [kind, n, day] = []]) => {
-    if (P[k]) { delete P[k]; return; }
+    if (P[k]) {
+      delete P[k];
+      // Not a category or tag: remember the key, so this Undo run again later can't take it off the month total
+      if (!ONCE.has(kind) && !back.has(k)) { back.add(k); addBack.push(k); }
+      return;
+    }
     if (!DAILY.includes(kind) || !day) return;
     if (ONCE.has(kind)) {
       if (!Array.isArray(P._once) || !P._once.includes(k)) return;

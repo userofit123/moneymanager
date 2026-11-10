@@ -318,6 +318,20 @@ test("the same Undo run again takes no points twice, also after the entries were
   assert.equal(total(S), POINTS.cat + POINTS.edit);
 });
 
+test("Undo within the week, then again after more than 7 days, takes nothing off the month total", () => {
+  const S = { points: {} };
+  const key = "edit:bills:Gym:" + DAY;
+  award(S, key, "edit", POINTS.edit, DAY);
+  award(S, "edit:bills:Spa:" + DAY, "edit", POINTS.edit, DAY);
+  const pts = { [key]: ["edit", POINTS.edit, DAY] };
+  takeBack(S, pts, "2026-11-04"); // the entry is still saved: just removed
+  pointsUpkeep(S, "2026-11-20", []); // the other one is folded into the month
+  const after = total(S);
+  assert.equal(after, POINTS.edit);
+  takeBack(S, structuredClone(pts), "2026-11-20"); // the same Undo again after a reload
+  assert.equal(total(S), after);
+});
+
 test("folding drops the once-only keys of payments that no longer exist", () => {
   const S = { tx: [{ id: 1 }, { id: "a:b" }], points: { _once: ["cat:5", "tag:5:trip"] } };
   award(S, "cat:1", "cat", 1, DAY);
