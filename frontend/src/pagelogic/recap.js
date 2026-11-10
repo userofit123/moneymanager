@@ -86,7 +86,8 @@ export function useRecap() {
   // A sum: { had, groups, end }: had and end are [label, amount, link]; a group is { k: "out" | "in" | "card", label, amt, link, subs, note }.
   // A "card" group (spent by credit card) is shown but not counted. end[3]: [label, amount], a smaller line under the result.
   const chipOf = (txt, tone, goK, lab) => ({ txt, tone, go: goK, lab });
-  // the jars chip's follow-up: the same kind of chip, but it acts (opens the take-back window); only when the jars themselves cause ₪1 or more of the shortfall (not the cushion, bills or budgets)
+  // the take-back chip under "Free to use" (the split of today's money, where the jars are): a chip that acts (opens the take-back
+  // window), shown whenever the jars themselves cause ₪1 or more of the shortfall (not the cushion, bills or budgets), like the Jars page
   const relOf = (m) => { const a = takeBackAmt(m.jarsOver, m.inJars); return a > 0 ? { lab: L("jarsH"), txt: L("relBtn", { a: mi(a) }), tip: L("relX") } : null; };
   const nowBar = (m) => { const P = m.freeParts; return [[N("cardsUnpaid"), P.cards, "c4", "now"], [N("upcomingS"), P.up, "c5", "ahead"], [N("leftBudgets"), P.toCome, "c2", "budg"], [N("putAside"), P.aside, "c3", "jars"], [N("free"), Math.max(0, P.free), "c1", "now"]]; };
   const aheadBar = (m) => [[N("cardBillsS"), m.freeParts.cardBills, "c1", "now"], [N("upcomingS"), m.freeParts.up, "c2", "bills"]];
@@ -218,7 +219,8 @@ export function useRecap() {
       // still to come this month covers it, a calm note instead of the warning
       const pw = paydayWords(t, m.payday, locale.value === "he"), calm = !!pw?.covered;
       const line = pw ? (calm ? esc(pw.note) : L("splitShort") + " " + esc(pw.note)) : L(free < 0 ? "splitShort" : "splitX");
-      return { ic: "pie", tone: free < 0 && !calm ? "tn" : "", label: N("free"), go: "jars", big: { amt: free }, line: [{ html: line }], vis: [{ seg: nowBar(m) }, { sum: { had: [N("inAccounts"), R0(m.cash), "now"], groups, end: [N("free"), free, null, ...(pw ? [[t("num.afterPay"), m.payday.after]] : [])] } }] };
+      const rel = relOf(m);
+      return { ic: "pie", tone: free < 0 && !calm ? "tn" : "", label: N("free"), go: "jars", big: { amt: free }, line: [{ html: line }, ...(rel ? [{ rel }] : [])], vis: [{ seg: nowBar(m) }, { sum: { had: [N("inAccounts"), R0(m.cash), "now"], groups, end: [N("free"), free, null, ...(pw ? [[t("num.afterPay"), m.payday.after]] : [])] } }] };
     },
     ahead: (m) => {
       // only what leaves the accounts this month: card charges due this month and the bills still due
@@ -245,8 +247,8 @@ export function useRecap() {
     attn: (m) => {
       const it = attnList(m);
       if (!it.length) return { ic: "check", tone: "tp", label: L("attn"), go: "budg", big: { word: L("allGood") }, line: [{ html: L("allGoodX") }], vis: [] };
-      const rel = relOf(m), w = attnWords(it);
-      return { ic: "warn", tone: it.length && m.over.length ? "tn" : "tw", label: w.head, go: w.link, big: { word: w.big }, line: [{ html: w.line }, ...(rel ? [{ rel }] : [])], vis: [{ attn: it }] };
+      const w = attnWords(it);
+      return { ic: "warn", tone: it.length && m.over.length ? "tn" : "tw", label: w.head, go: w.link, big: { word: w.big }, line: [{ html: w.line }], vis: [{ attn: it }] };
     },
     // the summary of the page: what is in your accounts today and what is expected at the end of the month, small, side by side;
     // then the money you really have, big: today's balance less the card purchases already made and the payments already due

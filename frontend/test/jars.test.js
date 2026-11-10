@@ -1,7 +1,7 @@
 // The Jars page's numbers: what is free, the monthly fill, each jar's state, goals and completed jars.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { jarsModel, takeBackAmt } from "../src/lib/jars.js";
+import { jarsModel, takeBackAmt, releaseJars, jarCtx } from "../src/lib/jars.js";
 
 const NOW = new Date(2026, 9, 17, 12); // 17 Oct 2026
 const base = () => ({
@@ -102,4 +102,19 @@ test("take back from the jars: only the part of the shortfall the jars cause", (
   S.jarsBuffer = 3000; F = jarsModel(S, NOW).F;
   assert.equal(F.over, 8001);
   assert.equal(takeBackAmt(F.jarsOver, F.inJars), 5001);
+});
+
+// MM-19: one take-back always clears the line, also when the lowest-priority jar pays a payment still to come (its part stays)
+test("take back from the jars: one take-back is enough when a jar pays a payment to come", () => {
+  const S = base(); S.jarsBuffer = 0; S.accounts[0].v = 3000;
+  S.jars = [{ id: 1, n: "Big", p: 1, bal: 4000, need: 0, cap: 0, got: 0 }, { id: 2, n: "Home jar", p: 2, bal: 2000, need: 0, cap: 0, got: 0, cats: [{ c: "Home" }] }];
+  S.tx = [{ id: 9, d: "2026-10-25", desc: "Rent", from: "Bank", to: "Landlord", a: -2000, c: "Home" }];
+  const M = jarsModel(S, NOW), amt = takeBackAmt(M.F.jarsOver, M.F.inJars);
+  assert.equal(amt, 3000);
+  const S2 = structuredClone(S), logs = releaseJars(S2, amt, jarCtx(M, (v) => "₪" + v));
+  assert.ok(logs.length);
+  assert.deepEqual(S2.jars.map((j) => j.bal), [1000, 2000]); // the home jar keeps the rent it pays
+  const F2 = jarsModel(S2, NOW).F;
+  assert.ok(F2.jarsOver < 1);
+  assert.equal(takeBackAmt(F2.jarsOver, F2.inJars), 0);
 });

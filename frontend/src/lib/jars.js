@@ -230,7 +230,7 @@ export function jarsModel(S, now = new Date(), fx = {}, fcOpt = {}) {
   const R = F.R, bl = billLists(H), rb = R.rows.filter((r) => r.kind == "bill"), ro = R.rows.filter((r) => r.kind != "bill");
   const avail = { bills: sum(rb.map((r) => r.amt)), limits: sum(ro.map((r) => r.amt)), billRows: rb, otherRows: ro.map((r) => ({ ...r, bl: sum((r.bills || []).map((x) => x.amt)) })),
     covered: active.filter((j) => j.bill).map((j) => ({ jar: j.n, bills: isAll(j.bill) ? bl.all(j.bill) : bl.rec.filter((b) => b.match == j.bill) })).filter((x) => x.bills.length) };
-  return { F: { cash: F.cash, cards: F.cards || 0, inJars: F.inJars, buffer: F.buffer, reserve: F.R.total, free: F.free, over: F.over, jarsOver: F.jarsOver || 0, really: F.really, up: F.really != null ? Math.round(F.cash) - Math.round(Math.max(0, F.cards || 0)) - F.really : 0, aside: F.aside, toCome: F.toCome }, month, jars, goals, done, has: { any: active.length > 0 },
+  return { F: { cash: F.cash, cards: F.cards || 0, inJars: F.inJars, buffer: F.buffer, reserve: F.R.total, free: F.free, over: F.over, jarsOver: F.jarsOver || 0, keep: F.jarKeep || {}, really: F.really, up: F.really != null ? Math.round(F.cash) - Math.round(Math.max(0, F.cards || 0)) - F.really : 0, aside: F.aside, toCome: F.toCome }, month, jars, goals, done, has: { any: active.length > 0 },
     avail, bills: bl, MK, today: H.today, monthsTo, spend: Object.fromEntries(H.spend) };
 }
 
@@ -287,10 +287,14 @@ function jset(j, fld, v, ctx) {
 // words, the window and what is taken back all show the same number. 0 means nothing to offer (no jars money, or under ₪1).
 export const takeBackAmt = (over, inJars) => Math.max(0, Math.round(Math.min(+over || 0, +inJars || 0)));
 
-// "Take back from the jars": the extra comes out of the lowest-priority jars first.
+// "Take back from the jars": the extra comes out of the lowest-priority jars first. Each jar first keeps the part that pays
+// payments still to come this month (ctx.keep, by jar name: homeModel's jarKeep): taking that part would not make more money
+// free, since those payments would then count again, so one take-back would not be enough. Only if more is needed is it taken too.
 export function releaseJars(S, over, ctx) {
-  const logs = []; let need = over;
-  [...jarsOpen(S)].reverse().forEach((j) => { if (need <= 0 || !(heldOf(j) > 0)) return; const t = Math.min(heldOf(j), Math.ceil(need)); j.balNote = "Released back to free money"; const l = jset(j, "bal", r2(j.bal - t), ctx); if (l) logs.push(l); need -= t; });
+  const L = [...jarsOpen(S)].reverse(), keep = (ctx && ctx.keep) || {}, take = {}; let need = over;
+  [true, false].forEach((first) => L.forEach((j) => { if (need <= 0) return; const can = heldOf(j) - (take[j.id] || 0) - (first ? keep[j.n] || 0 : 0), t = Math.min(Math.max(0, can), Math.ceil(need)); if (t > 0) { take[j.id] = (take[j.id] || 0) + t; need -= t; } }));
+  const logs = [];
+  L.forEach((j) => { const t = take[j.id]; if (!(t > 0)) return; j.balNote = "Released back to free money"; const l = jset(j, "bal", r2(j.bal - t), ctx); if (l) logs.push(l); });
   return logs;
 }
 // "Raise to ₪X a month" on a goal that is behind: a fixed monthly amount of what is needed, rounded up to tens (goalFix).
@@ -344,7 +348,7 @@ export function catJarsOf(S) { const o = {}; jarsOpen(S).forEach((j) => (j.cats 
 // The form for a new jar or for editing one. f: what was typed. Gives back an error key, or the history lines.
 // kind: "goal" (savings), "bill" or "payoff".
 // What the jar actions need from the jars model to write their history lines (dates as chosen in Settings).
-export const jarCtx = (M, fm) => ({ fm, dstr, BC: M.bills.BC, bills: M.bills, today: M.today, MK: M.MK, monthsTo: M.monthsTo });
+export const jarCtx = (M, fm) => ({ fm, dstr, BC: M.bills.BC, bills: M.bills, today: M.today, MK: M.MK, monthsTo: M.monthsTo, keep: (M.F && M.F.keep) || {} });
 export function saveJar(S, id, f, ctx) {
   const { today, MK, bills } = ctx, n = String(f.n || "").trim();
   if (!n) return { err: "name", field: "n" };

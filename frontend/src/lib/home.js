@@ -117,7 +117,7 @@ export function homeModel(S, now = new Date(), fx = {}) {
     const linked = new Set(jarsS.map((j) => j.bill).filter(Boolean)), allB = linked.has("*") || linked.has("*a"), useAvg = cfg.reserveAvg !== false, bl0 = {}, cov = {};
     // due: every bill not paid yet this month, also the ones a jar pays (real money still leaves the bank for them)
     const due = [];
-    activeBills.forEach((b) => { if (b.once || b.irregular || !b.nx) return; const unpaid = (b.status == "overdue" || b.status == "pending") && (NOW - b.pd) / 864e5 <= 45, comes = b.nx.toISOString().slice(0, 7) == MK && !b.ahead; if (!unpaid && !comes) return; const kk = b.cat || "Other bills", x = { n: b.n, amt: b.schedAmt ?? b.pred, overdue: b.status == "overdue" }; const byJar = allB || linked.has(b.match); due.push({ ...x, cat: kk, byJar }); if (byJar) { cov[kk] = (cov[kk] || 0) + x.amt; return; } (bl0[kk] = bl0[kk] || []).push(x); });
+    activeBills.forEach((b) => { if (b.once || b.irregular || !b.nx) return; const unpaid = (b.status == "overdue" || b.status == "pending") && (NOW - b.pd) / 864e5 <= 45, comes = b.nx.toISOString().slice(0, 7) == MK && !b.ahead; if (!unpaid && !comes) return; const kk = b.cat || "Other bills", x = { n: b.n, amt: b.schedAmt ?? b.pred, overdue: b.status == "overdue" }; const byJar = allB || linked.has(b.match), bj = byJar ? jarsS.find((j) => j.bill == b.match) || jarsS.find((j) => j.bill == "*" || j.bill == "*a") : null; due.push({ ...x, cat: kk, byJar, ...(bj ? { jar: bj.n } : {}) }); if (byJar) { cov[kk] = (cov[kk] || 0) + x.amt; return; } (bl0[kk] = bl0[kk] || []).push(x); });
     const keys = new Set([...Object.keys(budgets), ...Object.keys(bl0)]); if (useAvg && budMonths.length >= 2) Object.keys(monthlyByCat).forEach((kk) => { if (!RSKIP(S, kk)) keys.add(kk); });
     const cand = [], done = [];
     keys.forEach((kk) => { const bl = sum((bl0[kk] || []).map((x) => x.amt)), spent = spendM[kk] || 0; let base = 0, kind = "";
@@ -187,7 +187,7 @@ export function homeModel(S, now = new Date(), fx = {}) {
     MK, pm, DAYN, DIM, today: TODAY, k,
     kpi: { cash, pen, withPension: cash + pen, inc, ex, back: split.back, sal: split.salary, net: Math.round(inc) - Math.round(ex), incLast: hist.inc[4], exLast: hist.exp[4], missing, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a), lbl: accCur(a) })), notCounted: accts.filter((a) => (a.kind == "bank" || a.kind == "wallet") && !a.inNW).map((a) => a.n), noRate, nwSpark: nwSpark.filter((v) => v > 0).length > 1 ? nwSpark : null, incSpark: hist.inc.some((v) => v > 0) ? hist.inc : null, exSpark: hist.exp.some((v) => v > 0) ? hist.exp : null },
     groups, cards, recent, upcoming, budgets: budgetsSorted, jars, spend, rate,
-    flow: { ...flow0, saved: inJars + buffer, aside, toCome, free, over, jarsOver, freeRaw: raw, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a), lbl: accCur(a) })) },
+    flow: { ...flow0, saved: inJars + buffer, aside, toCome, free, over, jarsOver, jarKeep: W0.upJarBy, freeRaw: raw, cashAccts: cashAccts.map((a) => ({ n: a.n, cur: a.cur, ils: accILS(a), lbl: accCur(a) })) },
     has, any,
     // For the Jars page: bill names by their match text, and six months of income and spending (this one last).
     billNames: Object.fromEntries(BC.map((b) => [b.match, b.n])), hist,
@@ -212,11 +212,12 @@ export function flowSteps(F, mode = "left") {
   // (one listed for a later day) is part of what is left in that row too. What no row holds is paid by a jar when one pays
   // for its category (cov). Jar money that pays upcoming payments is not taken off again in the jars step (upJar).
   // A bill a jar pays (byJar) already came off its row (bcov), so the row keeps its amount and the jar pays the whole bill.
-  let upJar = 0;
-  const byJar = new Map((F.R.due || []).filter((b) => b.byJar).map((b) => [b.n, b.amt]));
-  const src = F.R.rows.map((r) => { const bl = sum((r.bills || []).map((b) => b.amt)), upIn = Math.min(r.amt, bl); upJar += bl - upIn; return { ...r, upIn }; });
+  // upJarBy: the same jar money by jar name, so "Take back from the jars" leaves each jar the part that pays these payments (releaseJars)
+  let upJar = 0; const upJarBy = {}, res = (n, v) => { upJar += v; if (n && v > 0) upJarBy[n] = (upJarBy[n] || 0) + v; };
+  const byJar = new Map((F.R.due || []).filter((b) => b.byJar).map((b) => [b.n, b]));
+  const src = F.R.rows.map((r) => { const bl = sum((r.bills || []).map((b) => b.amt)), upIn = Math.min(r.amt, bl); res(r.jar, bl - upIn); return { ...r, upIn }; });
   // a bill paid by card is in the cards step, so its budget row keeps only the rest too
-  [...up, ...(F.cardUp || [])].filter((b) => !b.inR).forEach((b) => { if (byJar.has(b.n)) { upJar += byJar.get(b.n); return; } const r = src.find((x) => x.k == b.cat), x = r ? Math.min(r.amt - r.upIn, b.amt) : 0; if (r) r.upIn += x; upJar += Math.min(b.cov || 0, b.amt - x); });
+  [...up, ...(F.cardUp || [])].filter((b) => !b.inR).forEach((b) => { if (byJar.has(b.n)) { const d = byJar.get(b.n); res(d.jar, d.amt); return; } const r = src.find((x) => x.k == b.cat), x = r ? Math.min(r.amt - r.upIn, b.amt) : 0; if (r) r.upIn += x; res(b.jar, Math.min(b.cov || 0, b.amt - x)); });
   src.forEach((r) => { r.left = Math.max(0, r.amt - r.upIn); });
   const jarsA = Math.max(0, F.inJars - upJar);
   const spentAll = sum(F.spend.map((e) => e[1])), leftTot = sum(src.map((r) => r.left)), start = F.cash, scale = Math.max(start, 1);
@@ -249,7 +250,7 @@ export function flowSteps(F, mode = "left") {
   [...known, ...items, ...aside].forEach((x) => { const hi = lvl, lo = Math.max(0, lvl - x.a); lvl -= x.a; cols.push({ ...x, rk: x.kind, kind: x.set ? "set" : "item", hi, lo, b: pc(lo), h: pc(hi - lo), s: pc(lo) }); });
   cols.push({ kind: "end", tone: eOver > 0 ? "neg" : eFree > 0 ? "pos" : "none", a: 0, lo: Math.max(0, lvl), b: pc(Math.max(0, lvl)), h: 0, s: pc(Math.max(0, lvl)) });
   // remain: the column after which "Your money after known payments" is left (the last of cards and upcoming payments)
-  return { cols, src, spentAll, leftTot, start, eOver, eFree, ACT, upTot, upJar, jarsA, remain: upTot >= 1 ? "up" : "cards" };
+  return { cols, src, spentAll, leftTot, start, eOver, eFree, ACT, upTot, upJar, upJarBy, jarsA, remain: upTot >= 1 ? "up" : "cards" };
 }
 
 // A small trend line (the totals on Home): the points of a line and of the shaded area under it, in a w×h box,
