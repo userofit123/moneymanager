@@ -252,7 +252,7 @@ tr.grp td {
 }
 
 .bud-past-h {
-  font-size: 12px;
+  font-size: var(--fs-sm);
   color: var(--tx2);
   font-weight: 600;
   margin-bottom: 2px;
@@ -262,7 +262,7 @@ tr.grp td {
   padding: 6px 0;
 }
 
-.bud-past .kvr:first-of-type {
+.bud-past-h + .kvr {
   border-top: 0;
 }
 
