@@ -4,7 +4,7 @@ A finance app for people who are **not** financial and don't know financial term
 
 ## Task queue
 The chat message "Work the queue" means: read and follow `workflow/RUNNER.md` (tasks from the Focus list
-"Money Manager", account "New Team"). Otherwise tasks come from the chat as usual. `workflow/` is
+"Money Manager", account "Server"). Otherwise tasks come from the chat as usual. `workflow/` is
 git-ignored and never committed.
 
 ## Goals
