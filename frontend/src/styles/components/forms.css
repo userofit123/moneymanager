@@ -246,6 +246,42 @@ tr.grp td {
   min-width: 0;
 }
 
+/* Add a budget: what the chosen category cost in the last complete months, and their average */
+.bud-past {
+  margin-bottom: 12px;
+}
+
+.bud-past-h {
+  font-size: 12px;
+  color: var(--tx2);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.bud-past .kvr {
+  padding: 6px 0;
+}
+
+.bud-past .kvr:first-of-type {
+  border-top: 0;
+}
+
+.bud-past .kvr .v {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.bud-past .bud-past-avg .k,
+.bud-past .bud-past-avg .v {
+  font-weight: 700;
+  color: var(--tx);
+}
+
+.bud-past-none {
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
 .tg {
   display: flex;
   justify-content: space-between;

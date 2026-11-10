@@ -62,10 +62,16 @@ export function spendTrend(vals, { pct = 0.1, min = 50 } = {}) {
   const last = vals[vals.length - 1], before = vals.slice(0, -1), base = sum(before) / before.length, diff = last - base;
   return { vals, avg: sum(vals) / vals.length, base, last, diff, change: Math.abs(diff) < Math.max(min, base * pct) ? "steady" : diff > 0 ? "up" : "down" };
 }
-// The suggested limit shown when adding a budget: the average of the last three months, to the nearest 50 (only for the biggest categories).
 // A monthly amount rounded the way suggested budgets are: to the nearest 50.
 export const roundBudget = (v) => Math.round(v / 50) * 50;
-export const formSuggestion = (m, k) => (m.hist.cat[k] ? roundBudget(m.hist.cat[k].slice(2, 5).reduce((a, b) => a + b, 0) / 3) : "");
+// What the add-a-budget sheet shows for a category: its spending in each of the last complete months (the same months
+// suggestions use, oldest first), their average, and the suggested limit (that average to the nearest 50, at least 50).
+// Nothing spent in those months: null, so no amount is suggested.
+export function formPast(m, k) {
+  const months = (m.budMonths || []).map((mk) => ({ m: mk, v: (m.M[k] || {})[mk] || 0 }));
+  const avg = months.length ? sum(months.map((x) => x.v)) / months.length : 0;
+  return k && avg > 0 ? { months, avg, sug: Math.max(50, roundBudget(avg)) } : null;
+}
 // The categories that can still get a budget, with the chosen one always present.
 export const formCategories = (m, k) => m.catNames.filter((c) => (!["Income", "Uncategorized"].includes(c) && !(c in m.budgets)) || c == k);
 

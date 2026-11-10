@@ -1130,7 +1130,10 @@
       "title": "Add a budget",
       "cat": "Category",
       "limit": "Monthly limit (₪)",
-      "sug": "Suggested from your average of the last 3 months."
+      "past": "Spent in the last full months",
+      "avg": "Average a month",
+      "none": "Nothing was spent in this category in the last full months, so there is no suggested amount. Type the limit you want.",
+      "sug": "Suggested: the monthly average, rounded to the nearest ₪50. You can type your own amount."
     },
     "cancel": "Cancel",
     "save": "Save",

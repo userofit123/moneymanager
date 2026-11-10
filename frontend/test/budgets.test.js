@@ -7,7 +7,7 @@ import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { matchesSaved } from "./golden.js";
 import { buildDemo } from "../../server/src/seed.js";
-import { budgetsModel, acceptBudget, acceptAll, dismissSuggestion, laterReview, resetDismissed, applyBudget, setBudget, removeBudget, changeBudget, formSuggestion, formCategories, spendTrend } from "../src/lib/budgets.js";
+import { budgetsModel, acceptBudget, acceptAll, dismissSuggestion, laterReview, resetDismissed, applyBudget, setBudget, removeBudget, changeBudget, formPast, formCategories, spendTrend } from "../src/lib/budgets.js";
 
 process.on("unhandledRejection", () => {});
 // The page is drawn on the server with the real Vue file (Vite), so no browser is needed.
@@ -177,8 +177,18 @@ test("the add-a-budget sheet offers the categories with no budget and a starting
   const M = budgetsModel(fixture(), NOW), cats = formCategories(M, "");
   assert.ok(cats.includes("Clothes") && !cats.includes("Groceries") && !cats.includes("Income") && !cats.includes("Uncategorized"));
   assert.ok(formCategories(M, "Groceries").includes("Groceries"));
-  assert.equal(formSuggestion(M, "Groceries"), 1500);
-  assert.equal(formSuggestion(M, "Nothing here"), "");
+  const p = formPast(M, "Groceries");
+  assert.deepEqual(p.months.map((x) => x.m), M.budMonths);
+  assert.equal(p.avg, p.months.reduce((a, x) => a + x.v, 0) / p.months.length);
+  assert.equal(p.sug, Math.max(50, Math.round(p.avg / 50) * 50));
+  assert.equal(formPast(M, "Nothing here"), null);
+  assert.equal(formPast(M, ""), null);
+});
+test("the add-a-budget sheet: the last three complete months by name, their average and a suggestion to the nearest 50", () => {
+  const m = { budMonths: ["2026-07", "2026-08", "2026-09"], M: { Pets: { "2026-07": 300, "2026-09": 420, "2026-10": 999 }, Tiny: { "2026-08": 30 } } };
+  assert.deepEqual(formPast(m, "Pets"), { months: [{ m: "2026-07", v: 300 }, { m: "2026-08", v: 0 }, { m: "2026-09", v: 420 }], avg: 240, sug: 250 });
+  assert.equal(formPast(m, "Tiny").sug, 50); // never suggests 0
+  assert.equal(formPast({ budMonths: [], M: {} }, "Pets"), null); // no complete month yet
 });
 
 test("pending payments count in the six months, the same as this month's spending", () => {
