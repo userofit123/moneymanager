@@ -7,6 +7,7 @@
 // day: the day it was earned (YYYY-MM-DD); d: a short detail (a category, an alert id, a month).
 // "_old": { [month]: { [kind]: pts } } holds the points of old daily entries folded into one total per month and kind,
 // so the saved data stays small and the points by month still add up.
+// "_once": [key, ...] the keys of folded once-only entries (a category or tag by hand), so they still never earn twice.
 import { withTransfers, addM, rdOf } from "./home.js";
 import { countedTx } from "./bills.js";
 import { isIn, isOut } from "./moneyIn.js";
@@ -37,8 +38,10 @@ export const POINTS = {
 };
 
 // Kinds that are earned many times a day; their entries older than this many days fold into "_old".
-// "edit" entries only guard their own day (the day is in the key), so they fold after a week to keep the saved data small.
-const DAILY = ["visit", "cat", "tag", "edit"], KEEP_DAYS = 90, KEEP_EDIT_DAYS = 7;
+// "cat", "tag" and "edit" can be earned thousands of times a day, so they fold after a week to keep the saved data small:
+// "edit" only guards its own day (the day is in the key); "cat" and "tag" keep their key in "_once" so they never earn twice.
+const DAILY = ["visit", "cat", "tag", "edit"], KEEP_DAYS = 90, KEEP_SHORT_DAYS = 7;
+const SHORT = new Set(["cat", "tag", "edit"]), ONCE = new Set(["cat", "tag"]);
 // Month results are counted from this day of the next month, so late bank and card rows are in first.
 export const COUNT_FROM_DAY = 3;
 // How many finished months back are counted when they were not counted yet (the first time points run).
@@ -61,12 +64,22 @@ export function levelFor(total) {
 // ---- earning ----
 const p2 = (n) => String(n).padStart(2, "0");
 const dayKey = (d) => (typeof d === "string" ? d.slice(0, 10) : d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate()));
-const entries = (S) => Object.entries(S?.points || {}).filter(([k, e]) => k !== "_old" && e && typeof e === "object");
+// the saved entries, without "_old" and "_once"
+const entries = (S) => Object.entries(S?.points || {}).filter(([k, e]) => k[0] !== "_" && e && typeof e === "object");
+// The folded once-only keys as a Set, made once per list.
+const onceSets = new WeakMap();
+const onceDone = (S, key) => {
+  const a = S.points?._once;
+  if (!Array.isArray(a)) return false;
+  let s = onceSets.get(a);
+  if (!s) onceSets.set(a, (s = new Set(a)));
+  return s.has(key);
+};
 // Gives points once for `key` (never twice); there is no cap on how many points a day. Changes S. Returns the points given (0 when none).
 export function award(S, key, kind, pts, today, d) {
   if (!S || !key) return 0;
   S.points = S.points || {};
-  if (S.points[key]) return 0;
+  if (S.points[key] || onceDone(S, key)) return 0;
   const day = dayKey(today);
   pts = Math.round(+pts || 0);
   S.points[key] = { pts, kind, day, ...(d != null && d !== "" ? { d: String(d).slice(0, 120) } : {}) };
@@ -91,40 +104,74 @@ export function earnFromChange(before, after, lines, today) {
   const acts = new Set((lines || []).map((l) => l && l[0]));
   if (acts.has("Undid a change")) return 0;
   let got = 0;
-  const give = (key, kind, pts, d) => { got += award(after, key, kind, pts, today, d); };
+  // done: the items ("tx:<id>", "rules:<keyword>" ...) that earned a point of their own in this change, so they get no update point too
+  const done = new Set();
+  const give = (key, kind, pts, d, item) => { const n = award(after, key, kind, pts, today, d); got += n; if (n && item) done.add(item); };
   const old = new Map((before.tx || []).map((t) => [t.id, t]));
   // a category given by hand: once per payment
   if ([...acts].some((a) => BY_HAND_CAT.has(a)))
-    (after.tx || []).forEach((t) => { const o = old.get(t.id); if (o && !NO_CAT(t.c) && o.c !== t.c) give("cat:" + t.id, "cat", POINTS.cat, t.c); });
+    (after.tx || []).forEach((t) => { const o = old.get(t.id); if (o && !NO_CAT(t.c) && o.c !== t.c) give("cat:" + t.id, "cat", POINTS.cat, t.c, "tx:" + t.id); });
   // a tag added by hand: once per payment and tag
   if ([...acts].some((a) => BY_HAND_TAG.has(a)))
-    (after.tx || []).forEach((t) => { const o = old.get(t.id); if (o) (t.tags || []).filter((g) => !(o.tags || []).includes(g)).forEach((g) => give("tag:" + t.id + ":" + g, "tag", POINTS.tag, g)); });
+    (after.tx || []).forEach((t) => { const o = old.get(t.id); if (o) (t.tags || []).filter((g) => !(o.tags || []).includes(g)).forEach((g) => give("tag:" + t.id + ":" + g, "tag", POINTS.tag, g, "tx:" + t.id)); });
   // a new category rule: once per rule text
   if ([...acts].some((a) => NEW_RULE.has(a))) {
     const had = new Set((before.rules || []).map((r) => String(r.k).toLowerCase()));
-    (after.rules || []).forEach((r) => { const k = String(r.k).toLowerCase(); if (!had.has(k)) give("rule:" + k, "rule", POINTS.rule, r.k); });
+    (after.rules || []).forEach((r, i) => { const k = String(r.k).toLowerCase(); if (!had.has(k)) give("rule:" + k, "rule", POINTS.rule, r.k, "rules:" + itemId(r, i)); });
   }
   // an alert cleared: only the first time for that alert
-  Object.keys(after.dismissed || {}).forEach((id) => { if (!(before.dismissed || {})[id]) give("alert:" + id, "alert", POINTS.alert, id); });
+  Object.keys(after.dismissed || {}).forEach((id) => { if (!(before.dismissed || {})[id]) give("alert:" + id, "alert", POINTS.alert, id, "dismissed:" + id); });
   // Needs review: a transfer confirmed or turned down, possible duplicates kept or deleted
   const xf0 = new Map((before.xf || []).map((x) => [x.o, x]));
-  (after.xf || []).forEach((x) => { const o = xf0.get(x.o); if (o && o.st !== x.st && (x.st === "ok" || x.st === "rej") && o.st !== "ok" && o.st !== "rej") give("review:xf:" + x.o, "review", POINTS.review); });
-  Object.keys(after.dupOk || {}).forEach((id) => { if (!(before.dupOk || {})[id]) give("review:dup:" + id, "review", POINTS.review); });
-  if (acts.has("Deleted duplicate")) { const now = new Set((after.tx || []).map((t) => t.id)); old.forEach((t, id) => { if (!now.has(id)) give("review:dup:" + id, "review", POINTS.review); }); }
-  // Any other update to the person's items (marking a bill, a note, a budget, a jar, cleaning up ...) earns POINTS.edit:
-  // each payment it changed, or else each history line when it changed other items. Once a day per item, so switching
-  // something back and forth does not pile up points; no cap on how many items a day.
-  if (got) return got;
+  (after.xf || []).forEach((x, i) => { const o = xf0.get(x.o); if (o && o.st !== x.st && (x.st === "ok" || x.st === "rej") && o.st !== "ok" && o.st !== "rej") give("review:xf:" + x.o, "review", POINTS.review, undefined, "xf:" + itemId(x, i)); });
+  Object.keys(after.dupOk || {}).forEach((id) => { if (!(before.dupOk || {})[id]) give("review:dup:" + id, "review", POINTS.review, undefined, "dupOk:" + id); });
+  if (acts.has("Deleted duplicate")) { const now = new Set((after.tx || []).map((t) => t.id)); old.forEach((t, id) => { if (!now.has(id)) give("review:dup:" + id, "review", POINTS.review, undefined, "tx:" + id); }); }
+  // Any other update to the person's items (a payment, marking a bill, a budget, a jar, cleaning up ...) earns POINTS.edit
+  // for each item it changed, unless that item just earned a point of its own above. Once a day per item (the key is the
+  // item, never the wording of the history line, which holds the values), so changing the same thing again that day adds
+  // nothing more; no cap on how many items a day.
   const mine = (lines || []).filter((l) => l && l[0] && (l[3] || "You") !== "System" && !NOT_BY_HAND.has(l[0]));
   if (!mine.length) return got;
   const day = dayKey(today), what = mine[0][0];
-  const now = new Map((after.tx || []).map((t) => [t.id, t]));
-  new Set([...old.keys(), ...now.keys()]).forEach((id) => { if (!sameJson(old.get(id), now.get(id))) give("edit:tx:" + id + ":" + day, "edit", POINTS.edit, what); });
-  if (got) return got;
-  const keys = new Set([...Object.keys(before), ...Object.keys(after)].filter((k) => k !== "tx" && !NOT_ITEMS.has(k)));
-  if (![...keys].some((k) => !sameJson(before[k], after[k]))) return got; // nothing of the person's items changed
-  mine.forEach(([a, d]) => give("edit:" + a + ":" + String(d ?? "").slice(0, 80) + ":" + day, "edit", POINTS.edit, a));
+  const fields = new Set([...Object.keys(before), ...Object.keys(after)].filter((k) => !NOT_ITEMS.has(k)));
+  fields.forEach((f) => changedItems(before[f], after[f]).forEach((id) => {
+    const item = f + ":" + id;
+    if (!done.has(item)) give("edit:" + item.slice(0, 120) + ":" + day, "edit", POINTS.edit, what);
+  }));
   return got;
+}
+
+// Which item of a list it is: its id (or the field that names it), else its place in the list.
+const itemId = (x, i) => (x && typeof x === "object" ? String(x.id ?? x.o ?? x.match ?? x.n ?? x.k ?? "#" + i) : typeof x === "string" || typeof x === "number" ? String(x) : "#" + i);
+const isMap = (v) => v && typeof v === "object" && !Array.isArray(v);
+// The items that differ between two values of one saved field: a list by each item, a map by each key, anything else as one ("").
+function changedItems(a, b) {
+  if (sameJson(a, b)) return [];
+  const asMap = (v) => (Array.isArray(v) ? new Map(v.map((x, i) => [itemId(x, i), x])) : isMap(v) ? new Map(Object.entries(v)) : null);
+  const A = asMap(a), B = asMap(b);
+  if (!A && !B) return [""];
+  const x = A || new Map(), y = B || new Map();
+  return [...new Set([...x.keys(), ...y.keys()])].filter((k) => !sameJson(x.get(k), y.get(k)));
+}
+
+// What Undo needs to take back the points a change gave: { key: [kind, pts, day] } (taken from S.points after the change).
+export function earnedOf(before, after) {
+  const was = before?.points || {}, out = {};
+  Object.entries(after?.points || {}).forEach(([k, e]) => { if (k[0] !== "_" && !was[k] && e && typeof e === "object") out[k] = [e.kind, +e.pts || 0, e.day]; });
+  return out;
+}
+// Undo of a change: takes back the points it gave. An entry already folded into "_old" is taken off that month's total
+// (and out of "_once"), so Undo stays right for as long as the change can be undone. pts: earnedOf(...), or a list of keys (older saves).
+export function takeBack(S, pts) {
+  if (!S?.points || !pts) return;
+  const P = S.points;
+  if (Array.isArray(pts)) { pts.forEach((k) => delete P[k]); return; }
+  Object.entries(pts).forEach(([k, [kind, n, day] = []]) => {
+    if (P[k]) { delete P[k]; return; }
+    if (Array.isArray(P._once) && P._once.includes(k)) P._once = P._once.filter((x) => x !== k);
+    const m = P._old?.[String(day || "").slice(0, 7)];
+    if (m && m[kind]) m[kind] = Math.max(0, m[kind] - (+n || 0));
+  });
 }
 
 // ---- setup and month results (the app's upkeep, not something the person did) ----
@@ -211,13 +258,15 @@ export function pointsUpkeep(S, today, rows) {
     });
   }
   const ago = (n) => dayKey(new Date(new Date(day + "T12:00:00").getTime() - n * 864e5));
-  const old = ago(KEEP_DAYS), oldEdit = ago(KEEP_EDIT_DAYS);
+  const old = ago(KEEP_DAYS), oldShort = ago(KEEP_SHORT_DAYS), once = [];
   entries(S).forEach(([k, e]) => {
-    if (!DAILY.includes(e.kind) || e.day >= (e.kind === "edit" ? oldEdit : old)) return;
+    if (!DAILY.includes(e.kind) || e.day >= (SHORT.has(e.kind) ? oldShort : old)) return;
     const o = (S.points._old = S.points._old || {}), m = (o[e.day.slice(0, 7)] = o[e.day.slice(0, 7)] || {});
     m[e.kind] = (m[e.kind] || 0) + (+e.pts || 0);
+    if (ONCE.has(e.kind)) once.push(k);
     delete S.points[k];
   });
+  if (once.length) S.points._once = [...(Array.isArray(S.points._once) ? S.points._once : []), ...once]; // a new list, so its Set is made again
   return got;
 }
 
@@ -254,6 +303,7 @@ export function pointsSummary(S, today, rows) {
   const R = S && Array.isArray(S.tx) ? rows || countedRows(S, day) : [];
   const preview = (m, upTo) => { const parts = monthParts(R, S?.budgets, m, upTo).map((x) => ({ kind: x.kind, pts: x.pts, detail: x.d })); return { month: m, total: parts.reduce((s, x) => s + x.pts, 0), parts }; };
   const cm = day.slice(0, 7), pm = addM(cm, -1);
-  const month = E.reduce((s, [, e]) => s + (e.day?.startsWith(cm) ? +e.pts || 0 : 0), 0);
+  const oldNow = Object.values(S?.points?._old?.[cm] || {}).reduce((s, v) => s + (+v || 0), 0); // this month's points already folded
+  const month = oldNow + E.reduce((s, [, e]) => s + (e.day?.startsWith(cm) ? +e.pts || 0 : 0), 0);
   return { total, level: levelFor(total), byKind, recent, monthPreview: preview(cm, +day.slice(8, 10)), waiting: S?.points?.["month:" + pm] ? null : preview(pm), month, months: pointsByMonth(S) };
 }

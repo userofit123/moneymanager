@@ -198,17 +198,20 @@ export async function getState() {
 
 const sig = (o) => JSON.stringify(o);
 
-// Points earned, kept small and safe: key → { pts, kind, day, d? }, and "_old": { [month]: { [kind]: pts } } (points of old
-// entries folded into one total per month and kind).
-function cleanPoints(P) {
+// Points earned, kept small and safe: key → { pts, kind, day, d? }; "_old": { [month]: { [kind]: pts } } (points of old
+// entries folded into one total per month and kind); "_once": [key, ...] (folded once-only entries, so they never earn twice).
+// "_old" and "_once" are always kept, whatever the number of entries: they hold totals and guards that cannot be rebuilt.
+export function cleanPoints(P) {
   const out = {}, num = (v) => (Number.isFinite(+v) ? Math.round(+v) : 0), str = (v, n) => String(v ?? "").slice(0, n);
-  for (const [k, v] of Object.entries(P).slice(0, 100000)) { // no cap on points a day: room for many thousands of entries
+  const old = P._old;
+  if (old && typeof old === "object" && !Array.isArray(old)) {
+    const kinds = (o) => Object.fromEntries(Object.entries(o).slice(0, 50).map(([kk, n]) => [str(kk, 30), num(n)]));
+    out._old = Object.fromEntries(Object.entries(old).filter(([, o]) => o && typeof o === "object").map(([m, o]) => [str(m, 7), kinds(o)]));
+  }
+  if (Array.isArray(P._once)) out._once = P._once.filter((k) => typeof k === "string").map((k) => k.slice(0, 160));
+  // no cap on points a day; old daily entries fold into "_old" after a week, so this leaves room for many thousands
+  for (const [k, v] of Object.entries(P).filter(([k]) => k[0] !== "_").slice(0, 200000)) {
     if (!v || typeof v !== "object") continue;
-    if (k === "_old") {
-      const kinds = (o) => Object.fromEntries(Object.entries(o).slice(0, 50).map(([kk, n]) => [str(kk, 30), num(n)]));
-      out._old = Object.fromEntries(Object.entries(v).slice(0, 600).filter(([, o]) => o && typeof o === "object").map(([m, o]) => [str(m, 7), kinds(o)]));
-      continue;
-    }
     const e = { pts: num(v.pts), kind: str(v.kind, 30), day: str(v.day, 10) };
     if (v.d != null && v.d !== "") e.d = str(v.d, 120);
     out[str(k, 160)] = e;

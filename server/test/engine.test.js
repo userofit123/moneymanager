@@ -4,7 +4,7 @@ import { reset, pool, q } from "./helpers.js";
 import { pairTransfers, computeGap, recordSnapshot, suggestConversion, healGaps, healCardPayments, settleGaps } from "../src/engine.js";
 import { ingest } from "../src/sources/ingest.js";
 import { parseWiseCsv } from "../src/sources/csv.js";
-import { getState, putState, StaleError } from "../src/state.js";
+import { getState, putState, StaleError, cleanPoints } from "../src/state.js";
 import { tx } from "../src/db.js";
 
 before(reset);
@@ -742,6 +742,16 @@ test("points earned are saved and loaded back, kept small; an app that sends non
   delete S.points;
   await putState(S);
   assert.equal(Object.keys((await getState()).points).length, 3);
+});
+
+test("points: the folded totals and once-only keys are never dropped, however many entries there are", () => {
+  const P = {};
+  for (let i = 0; i < 200005; i++) P["edit:tx:" + i + ":2026-11-02"] = { pts: 1, kind: "edit", day: "2026-11-02" };
+  P._old = { "2026-06": { cat: 40 } };
+  P._once = ["cat:7", "tag:7:trip", 5];
+  const out = cleanPoints(P);
+  assert.deepEqual(out._old, { "2026-06": { cat: 40 } });
+  assert.deepEqual(out._once, ["cat:7", "tag:7:trip"]);
 });
 
 test("on the day a card bill is paid, the card's pending charges do not hide the payment, and a pending charge listed again is not counted twice", async () => {

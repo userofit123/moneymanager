@@ -76,8 +76,8 @@ test("any update to items earns, each item once a day, with no daily cap", () =>
   assert.equal(total(S), 2 * POINTS.edit);
   S = act(S, (n) => { n.bills[0].flag = ""; return [["Kept bill", "Gym"]]; });
   S = act(S, (n) => { n.bills[0].flag = "cancel"; return [["Marked to cancel", "Gym"]]; });
-  assert.equal(total(S), 3 * POINTS.edit);
-  assert.equal(S.points["edit:Marked to cancel:Gym:" + DAY].d, "Marked to cancel");
+  assert.equal(total(S), 2 * POINTS.edit);
+  assert.equal(S.points["edit:bills:Gym:" + DAY].d, "Marked to cancel");
   // a change to many payments at once: a point for each payment
   const many = { tx: Array.from({ length: 1000 }, (_, i) => ({ id: i, desc: "Shop", c: "Food", a: -5, d: "2026-11-01" })), points: {} };
   const M = act(many, (n) => { n.tx.forEach((t) => { t.note = "checked"; }); return [["Edited note", "1000 payments"]]; });
@@ -85,7 +85,53 @@ test("any update to items earns, each item once a day, with no daily cap", () =>
   // a history line that changed nothing (an export) and a change made by the app earn nothing
   S = act(S, () => [["Exported data", "all data"]]);
   S = act(S, (n) => { n.budgets.Food = 100; return [["Set budget", "Food", null, "System"]]; });
-  assert.equal(total(S), 3 * POINTS.edit);
+  assert.equal(total(S), 2 * POINTS.edit);
+});
+
+test("an update earns by the item it changed, not by the wording of its history line", () => {
+  // a budget changed 100 → 101 → 102: the history lines differ each time, but it is one budget: one point that day
+  let S = { ...base(), budgets: { Food: 100 } };
+  S = act(S, (n) => { n.budgets.Food = 101; return [["Changed budget", "Food: 100 → 101"]]; });
+  S = act(S, (n) => { n.budgets.Food = 102; return [["Changed budget", "Food: 101 → 102"]]; });
+  assert.equal(total(S), POINTS.edit);
+  S = act(S, (n) => { n.budgets.Fun = 50; return [["Changed budget", "Fun: — → 50"]]; }); // another budget: another point
+  assert.equal(total(S), 2 * POINTS.edit);
+  // a rule's category changed again and again: one point that day
+  S.rules = [{ k: "cafe", c: "Food", t: "" }];
+  S = act(S, (n) => roSave(n, 2, "cafe", "Fun"));
+  S = act(S, (n) => roSave(n, 2, "cafe", "Food"));
+  assert.ok(S.points["edit:rules:cafe:" + DAY]);
+  assert.equal(Object.keys(S.points).filter((k) => k.startsWith("edit:rules:")).length, 1);
+  // the next day the same budget earns again
+  const next = structuredClone(S);
+  earnFromChange(S, (next.budgets.Food = 103, next), [["Changed budget", "Food: 102 → 103"]], "2026-11-03");
+  assert.ok(next.points["edit:budgets:Food:2026-11-03"]);
+});
+
+test("no double counting is per item: the other items in the same change still earn", () => {
+  // 10 payments categorized at once; 9 already had their category point: 1 new category point and 9 update points
+  const ten = { tx: Array.from({ length: 10 }, (_, i) => ({ id: i, desc: "Shop", c: i < 9 ? "Fun" : "", a: -5, d: "2026-11-01" })), points: {} };
+  for (let i = 0; i < 9; i++) award(ten, "cat:" + i, "cat", POINTS.cat, "2026-10-01");
+  const T = act(ten, (n) => { n.tx.forEach((t) => { t.c = "Food"; }); return [["Edited category", "10 payments"]]; });
+  assert.equal(total(T) - total(ten), POINTS.cat + 9 * POINTS.edit);
+  assert.ok(T.points["cat:9"] && !T.points["edit:tx:9:" + DAY]);
+  // a bill and a payment changed together: both count
+  let S = { ...base(), bills: [{ n: "Gym", flag: "" }] };
+  S = act(S, (n) => { n.bills[0].flag = "cancel"; n.tx[0].c = "Sport"; return [["Edited category", "Shop: — → Sport"], ["Marked to cancel", "Gym"]]; });
+  assert.equal(total(S), POINTS.cat + POINTS.edit);
+});
+
+test("category and tag points fold after a week and still never earn twice; this month's total keeps them", () => {
+  let S = act(base(), (n) => setField(n, 1, "c", "Food"));
+  S = act(S, (n) => addTags(n, 1, ["trip"]));
+  pointsUpkeep(S, "2026-11-12", []);
+  assert.equal(S.points["cat:1"], undefined);
+  assert.deepEqual(S.points._once, ["cat:1", "tag:1:trip"]);
+  assert.equal(S.points._old["2026-11"].cat, POINTS.cat);
+  assert.equal(pointsSummary(S, "2026-11-12", []).total, POINTS.cat + POINTS.tag);
+  assert.equal(pointsSummary(S, "2026-11-12", []).month, POINTS.cat + POINTS.tag);
+  assert.equal(award(S, "cat:1", "cat", POINTS.cat, "2026-11-12"), 0);
+  assert.equal(award(S, "tag:1:trip", "tag", POINTS.tag, "2026-11-12"), 0);
 });
 
 test("setup steps are recorded once and stay when the thing is deleted", () => {
@@ -220,4 +266,21 @@ test("Undo of a change takes its points back; later points stay", async () => {
   D.change((S) => { award(S, "visit:" + DAY, "visit", 5, DAY); return []; }, { quiet: true }); // saved quietly: no history line
   assert.equal(D.state.value.audit.length, 3); // Edited category, Added tag, Undid a change
   assert.equal(total(D.state.value), 1 + POINTS.visit);
+});
+
+test("Undo still takes points back after they were folded into the month total", async () => {
+  const D = createDataStore({ fetchJson: async () => ({ rev: 1, audit: [], ...base(), bills: [{ n: "Gym", flag: "" }] }), connect: () => () => {}, send: async () => ({ ok: true, status: 200, json: { rev: 2, auditIds: [] } }), delay: 5, earn: (a, b, L) => earnFromChange(a, b, L, DAY) });
+  await D.load();
+  const [e1] = D.change((S) => setField(S, 1, "c", "Food").lines);
+  const [e2] = D.change((S) => { S.bills[0].flag = "cancel"; return [["Marked to cancel", "Gym"]]; });
+  pointsUpkeep(D.state.value, "2026-11-20", []); // two weeks later: both entries are folded into November's total
+  assert.equal(D.state.value.points["cat:1"], undefined);
+  assert.equal(total(D.state.value), POINTS.cat + POINTS.edit);
+  D.undo(e1);
+  D.undo(e2);
+  assert.equal(total(D.state.value), 0);
+  assert.deepEqual(D.state.value.points._once, []);
+  // the category given again after Undo earns again
+  D.change((S) => setField(S, 1, "c", "Food").lines);
+  assert.equal(total(D.state.value), POINTS.cat);
 });
