@@ -128,7 +128,7 @@
         "transfer": "Transfer",
         "cardpay": "Card payment"
       },
-      "counted": "How it’s counted",
+      "whatIs": "What this is",
       "cpText": "Payment of your {card} bill from the bank. Not counted as spending, because each purchase is already counted on the card.",
       "cpTextAny": "Payment of a card bill from the bank. Not counted as spending, because each purchase is already counted on the card.",
       "cpCount": "Count it as spending anyway",
@@ -342,9 +342,6 @@
         "to": "To",
         "note": "Note"
       },
-      "before": "Paid before",
-      "beforeText": "You have {n} payments to this store.",
-      "beforeBtn": "See all {n} payments",
       "hPayments": "Payments",
       "hTotal": "Total",
       "hAvg": "Average",

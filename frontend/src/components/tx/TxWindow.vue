@@ -15,7 +15,7 @@ import { useTransaction } from "../../pagelogic/transaction.js";
 import BaseSheet from "../BaseSheet.vue";
 import TagEditor from "../TagEditor.vue";
 
-const { t, tk, S, cur, name, nohtml, avStyle, isXf, isPos, chips, kindText, kindCls, cats, close, goCat, goTag, det, facts, rawFields, factText, sec, toggleSec, setName, setCat, setNote, addTags, removeTag, mi, autoMark, markIn, TIC, rels, tiles, attach, changes, when, copyDetails } = useTransaction(txOpenId, { close: closeTx });
+const { t, tk, S, cur, name, nohtml, avStyle, isXf, isPos, chips, kindText, kindCls, cats, close, goCat, goTag, det, facts, rawFields, factText, sec, toggleSec, setName, setCat, setNote, addTags, removeTag, mi, autoMark, markIn, TIC, rels, hasHist, histOf, tiles, attach, changes, when, copyDetails } = useTransaction(txOpenId, { close: closeTx });
 </script>
 
 <template>
@@ -50,7 +50,7 @@ const { t, tk, S, cur, name, nohtml, avStyle, isXf, isPos, chips, kindText, kind
               <div class="fld"><label>{{ t("activity.w.tags") }}</label><TagEditor :tags="cur.tags || []" @add="(L) => addTags(cur, L)" @remove="(i) => removeTag(cur, cur.tags[i])" @go="goTag" /></div></div>
           </div></details>
           <details v-if="!cur.virtual" class="txs2" data-s="note" :open="!!sec.note" @toggle="toggleSec('note', $event)"><summary><span class="sct">{{ t("activity.d.note") }}</span><em v-if="cur.note && !isXf(cur)">{{ t("activity.w.added") }}</em></summary><div class="sbd"><div class="fld"><label>{{ t("activity.d.note") }}</label><textarea rows="2" :placeholder="t('activity.d.notePh')" :value="cur.note || ''" @change="setNote(cur, $event.target.value)" /></div></div></details>
-          <details v-if="rels.length" class="txs2" data-s="rel" :open="!!sec.rel" @toggle="toggleSec('rel', $event)"><summary><span class="sct">{{ t("activity.d.counted") }}</span><i v-if="rels.some((r) => r.cls === 'amber')" class="tfl" :data-tip="t('activity.w.needsLook')"></i><em>{{ rels.length }}</em></summary><div class="sbd"><div class="rels">
+          <details v-if="rels.length" class="txs2" data-s="rel" :open="!!sec.rel" @toggle="toggleSec('rel', $event)"><summary><span class="sct">{{ t("activity.d.whatIs") }}</span><i v-if="rels.some((r) => r.cls === 'amber')" class="tfl" :data-tip="t('activity.w.needsLook')"></i><em>{{ rels.length }}</em></summary><div class="sbd"><div class="rels">
             <div v-for="r in rels" :key="r.title + r.ic" class="rel" :class="r.cls"><span class="ri"><svg viewBox="0 0 24 24" v-html="TIC[r.ic]"></svg></span><div class="rb"><b>{{ r.title }}</b><div v-if="r.text" class="sm">{{ r.text }}</div><div v-if="r.btns" class="ra"><button v-for="b in r.btns" :key="b.label" type="button" class="btn s" :class="b.cls === 'f' ? '' : b.cls || 'o'" @click="b.run()">{{ b.label }}</button></div></div></div>
           </div></div></details>
           <details v-if="tiles.length" class="txs2" data-s="act" :open="!!sec.act" @toggle="toggleSec('act', $event)"><summary><span class="sct">{{ t("activity.d.actions") }}</span><em>{{ tiles.length }}</em></summary><div class="sbd"><div class="tiles">
@@ -60,7 +60,8 @@ const { t, tk, S, cur, name, nohtml, avStyle, isXf, isPos, chips, kindText, kind
           <details v-if="changes.length" class="txs2" data-s="hist" :open="!!sec.hist" @toggle="toggleSec('hist', $event)"><summary><span class="sct">{{ t("activity.d.history") }}</span><em>{{ changes.length }}</em></summary><div class="sbd"><div class="hlist"><div v-for="a in changes" :key="a.t + a.action + a.detail" class="hrow"><div class="hh"><b>{{ heTx(a.action) }}</b><span class="hw">{{ when(a.t) }}</span></div><div class="hdt">{{ heTx(nohtml(a.detail || "")) }}</div></div></div></div></details>
         </aside>
       </div>
-      <div class="txfoot"><button type="button" class="btn o" @click="copyDetails">{{ t("activity.d.copy") }}</button>
+      <div class="txfoot"><button v-if="hasHist" type="button" class="btn o" @click="histOf(cur)"><svg viewBox="0 0 24 24" v-html="TIC.hist"></svg> {{ t("txw.w.payHist") }}</button>
+        <button type="button" class="btn o" @click="copyDetails">{{ t("activity.d.copy") }}</button>
         <label v-if="!cur.virtual" class="btn o upl" style="margin-inline-end:auto"><svg viewBox="0 0 24 24" v-html="TIC.clip"></svg> {{ t("activity.w.attach") }}<input type="file" accept="image/*,application/pdf" multiple hidden @change="attach($event)" /></label><span v-else style="margin-inline-end:auto"></span>
         <button type="button" class="btn" @click="close">{{ t("activity.d.done") }}</button></div>
     </div>

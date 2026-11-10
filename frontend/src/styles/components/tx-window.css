@@ -893,16 +893,6 @@ details.closing.txs2 > summary::after {
   align-items: center;
 }
 
-.txfoot .upl svg {
-  width: 15px;
-  height: 15px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  margin-inline-end: 6px;
-  vertical-align: -2px;
-}
-
 .txs2[data-s=hist] > .sbd {
   padding: 0;
 }
@@ -984,14 +974,22 @@ details.closing.txs2 > summary::after {
   text-align: center;
 }
 
-.txfoot .upl {
+/* the window's bottom buttons all have the same width (a longer name may make one wider) */
+.txfoot .btn {
+  flex: 1 1 0;
+  max-inline-size: 200px;
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
 }
 
-.txfoot .upl svg {
-  margin: 0;
-  vertical-align: baseline;
+.txfoot .btn svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
 }

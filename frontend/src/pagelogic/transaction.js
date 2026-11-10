@@ -100,7 +100,7 @@ export function useTransaction(id, { close: onClose = () => {} } = {}) {
     data.change((S2) => { const t2 = S2.tx.find((y) => y.id == x.id); if (!t2) return false; if (t2.mk) delete t2.mk; if (!setMark(S2, t2, v)) return false; return [["Marked money in", x.desc + " → " + (v ? MARK_EN[v] : "Automatic")]]; });
   }
 
-  // ---- "How it's counted" and "Actions" (relH and tiles in openTx) ----
+  // ---- "What this is" and "Actions" (relH and tiles in openTx) ----
   const TIC = { hist: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', bill: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/>', rep: '<path d="M20 11a8 8 0 0 0-14-4L4 9M4 4v5h5M4 13a8 8 0 0 0 14 4l2-2M20 20v-5h-5"/>', jar: '<path d="M8 3h8M9 3v3M15 3v3M6 6h12v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/>', card: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 15h3"/>', off: '<path d="M3 3l18 18M10.6 6.2A9.5 9.5 0 0 1 12 6c6 0 10 6 10 6a17 17 0 0 1-3.2 3.7M6.3 6.3C3.8 8 2 12 2 12s4 6 10 6a9 9 0 0 0 3.5-.7"/>', swap: '<path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/>', warn: '<path d="M12 3l10 18H2zM12 10v5M12 18v.01"/>', cal: '<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>', clip: '<path d="M20 11l-8.5 8.5a5 5 0 0 1-7-7L13 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L14 7"/>', inst: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h4M7 14h2"/>', twin: '<path d="M4 7h16M4 12h10M4 17h7"/><path d="M17 14l3 3-3 3"/>' };
   const sameStore = (x) => { const key = String(x.desc || "").trim().toLowerCase(); return key ? (S.value?.tx || []).filter((y) => !y.virtual && (y.a < 0) === (x.a < 0) && String(y.desc || "").trim().toLowerCase() === key) : []; };
   const pairOf = (x) => (S.value?.xf || []).find((p) => p.st !== "rej" && (p.o === x.id || p.i === x.id));
@@ -109,6 +109,8 @@ export function useTransaction(id, { close: onClose = () => {} } = {}) {
   const confirmDo = (q, text, fn, o) => ask(q, text, fn, o);
   const histOf = (x) => { const b = A.billOf(x, BC.value); if (b) openPop("hist", { title: b.n, rows: billRows(b), sub: t("txw.w.regBill"), q: b.n }); else openPop("hist", { title: name(x), rows: sameStore(x), sub: t("txw.w.allPay"), q: name(x) }); };
   const billRows = (b) => (home.value?.rows || []).filter((y) => y.a < 0 && !y.virtual && (b.mode == "once" ? (b.ids || []).includes(y.id) : (y.desc + " " + y.to).toLowerCase().includes(b.match)));
+  // the "Payment history" button shows when there are other payments to the same bill or store
+  const hasHist = computed(() => { const x = cur.value; if (!x) return false; const b = A.billOf(x, BC.value); return (b ? billRows(b) : sameStore(x)).some((y) => y.id != x.id); });
   const rels = computed(() => {
     const x = cur.value; if (!x) return [];
     const k = K.value, out = [], real = !x.virtual, xf = isXf(x), pair = xf ? pairOf(x) : null, b = A.billOf(x, BC.value), cp = k.isCp(x), ov = S.value.ccOverride?.[x.id], ign = k.isIgn(x), tw = !ign && real && !xf && A.refundTwin(S.value, x);
@@ -118,8 +120,7 @@ export function useTransaction(id, { close: onClose = () => {} } = {}) {
     { const aj = x.jar && S.value.jars.find((j) => j.id == x.jar.id), done = aj?.done ? t("txw.w.done") : "";
       if (aj) add("jar", x.jar.auto ? t("txw.w.jarAutoT") : t("txw.w.jarT"), x.jar.auto ? t("txw.w.jarAuto", { amt: fm(x.jar.amt), jar: aj.n, done, cat: catLabel(x.c) }) : t("txw.w.jarText", { amt: fm(x.jar.amt), jar: aj.n, done }), [{ label: t("txw.w.change"), run: () => openPop("jar", { id: x.id }) }, { label: t("txw.w.detach"), run: () => confirmDo(t("txw.w.detachQ"), t("txw.w.detachText"), () => run(A.jarDetach, x.id)) }]);
       else { const c = !x.jar && x.c && x.jarNo === x.c && catJarsOf(S.value)[x.c]; if (c) add("jar", t("txw.w.notJarT"), t("txw.w.notJar", { cat: catLabel(x.c), jar: c.j.n }), [{ label: t("txw.w.takeJar"), run: () => openPop("jar", { id: x.id, jar: c.j.id }) }]); } }
-    if (b) add("rep", t("txw.w.billT"), whyBill(b), [{ label: t("txw.w.viewBills"), run: () => { close(); go("/bills"); } }, { label: t("txw.w.payHist"), run: () => histOf(x) }, ...(b.once ? [{ label: t("txw.w.unbill"), run: () => confirmDo(t("txw.w.unbillQ"), t("txw.w.unbillText"), () => { close(); run(A.billUnmark, x.id); }) }] : [])]);
-    if (!b && real && !xf && sameStore(x).length > 1) add("hist", t("activity.w.before"), t("activity.w.beforeText", { n: sameStore(x).length }), [{ label: t("activity.w.beforeBtn", { n: sameStore(x).length }), run: () => histOf(x) }]);
+    if (b) add("rep", t("txw.w.billT"), whyBill(b), [{ label: t("txw.w.viewBills"), run: () => { close(); go("/bills"); } }, ...(b.once ? [{ label: t("txw.w.unbill"), run: () => confirmDo(t("txw.w.unbillQ"), t("txw.w.unbillText"), () => { close(); run(A.billUnmark, x.id); }) }] : [])]);
     if (k.isFut(x)) add("cal", t("activity.upcoming"), futureTip(S.value, x));
     if (rmOf(x) && real) add("cal", t("activity.w.movedTitle"), t("activity.w.movedText", { d: dstr(x.d), m: mk(rmOf(x)) }), [{ label: t("activity.w.mChange"), run: () => openPop("month", { id: x.id }) }, { label: t("activity.w.mResetBtn"), run: () => confirmDo(t("activity.w.mResetQ"), t("activity.w.mResetText"), () => { close(); if (!run(A.moReset, x.id).err) toast(t("activity.w.mBack")); }) }], "amber");
     if (ign) add("off", t("activity.d.ignTitle"), t("activity.d.ignText"), [{ label: t("activity.d.ignOff"), run: () => confirmDo(t("activity.d.ignOffQ"), t("activity.d.ignOffText"), () => { close(); run(A.ignOff, x.id); }) }]);
@@ -170,5 +171,5 @@ export function useTransaction(id, { close: onClose = () => {} } = {}) {
     if (navigator.clipboard?.writeText) navigator.clipboard.writeText(txt).then(done, fallback); else fallback();
   }
 
-  return { t, locale, tk, S, today, K, BC, dup, rows, cur, name, loc, mname, mk, monYr, nohtml, avStyle, isXf, isPos, chips, kindOf, kindText, kindCls, cats, close, goCat, goTag, details, det, facts, rawFields, dateFmt, factText, sec, toggleSec, setName, setCat, setNote, addTags, removeTag, mi, autoMark, markIn, TIC, sameStore, pairOf, openJars, confirmDo, histOf, billRows, rels, tiles, attach, changes, when, copyDetails };
+  return { t, locale, tk, S, today, K, BC, dup, rows, cur, name, loc, mname, mk, monYr, nohtml, avStyle, isXf, isPos, chips, kindOf, kindText, kindCls, cats, close, goCat, goTag, details, det, facts, rawFields, dateFmt, factText, sec, toggleSec, setName, setCat, setNote, addTags, removeTag, mi, autoMark, markIn, TIC, sameStore, pairOf, openJars, confirmDo, histOf, hasHist, billRows, rels, tiles, attach, changes, when, copyDetails };
 }

@@ -1,8 +1,8 @@
 <script setup>
 // One transaction (pushed on any tab, ?tx=): the computer's entry window as a screen, in its reading order. The top
 // (who, when, the amount, then its kind, category, marks and tags), the details the bank sent; then the window's side
-// sections: what the money in is, organise (name, category, tags), the note, how it is counted, what can be done, its
-// documents and its changes; at the end the window's Copy details and Attach.
+// sections: what the money in is, organise (name, category, tags), the note, what this is, what can be done, its
+// documents and its changes; at the end the window's Payment history, Copy details and Attach.
 // Everything it knows and does comes from pagelogic/transaction.js, the same code as the computer's entry window.
 import { ref, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -31,7 +31,7 @@ const props = defineProps({ id: { type: String, default: null } });
 const { t } = useI18n();
 const nav = usePhoneNav();
 // the computer's window closes itself after some actions; this screen stays and shows the result
-const { tk, S, cur, name, nohtml, avStyle, isXf, isPos, chips, kindText, kindCls, cats, goCat, goTag, det, facts, rawFields, factText, setName, setCat, setNote, addTags, removeTag, mi, autoMark, markIn, TIC, rels, tiles, attach, changes, when, copyDetails } = useTransaction(toRef(props, "id"));
+const { tk, S, cur, name, nohtml, avStyle, isXf, isPos, chips, kindText, kindCls, cats, goCat, goTag, det, facts, rawFields, factText, setName, setCat, setNote, addTags, removeTag, mi, autoMark, markIn, TIC, rels, hasHist, histOf, tiles, attach, changes, when, copyDetails } = useTransaction(toRef(props, "id"));
 
 // the transaction went away while open (a copy deleted, undo of an add): back to where it was opened from
 watch(cur, (x, was) => { if (!x && was) nav.back(); });
@@ -117,7 +117,7 @@ const tone = (r) => (r.cls === "amber" ? "warn" : "acc");
         </button>
       </ListGroup>
 
-      <ListGroup v-if="rels.length" :title="t('activity.d.counted')">
+      <ListGroup v-if="rels.length" :title="t('activity.d.whatIs')">
         <template #head><i v-if="rels.some((r) => r.cls === 'amber')" class="ph-tx-flag" :aria-label="t('activity.w.needsLook')" /><span class="ph-tx-cnt">{{ rels.length }}</span></template>
         <div v-for="r in rels" :key="r.title + r.ic" class="ph-tx-rel" :class="r.cls">
           <span class="ph-tile" :style="{ '--tile': `var(--${tone(r)})` }"><PIcon :svg="TIC[r.ic]" /></span>
@@ -147,8 +147,9 @@ const tone = (r) => (r.cls === "amber" ? "warn" : "acc");
         </div>
       </ListGroup>
 
-      <!-- the window's buttons at its bottom: copy the details, attach a receipt or photo (Done is the top bar's Back) -->
+      <!-- the window's buttons at its bottom: the payment history, copy the details, attach a receipt or photo (Done is the top bar's Back) -->
       <div class="ph-tx-foot">
+        <button v-if="hasHist" type="button" class="ph-btn tonal" @click="histOf(cur)"><PIcon :svg="TIC.hist" />{{ t("txw.w.payHist") }}</button>
         <button type="button" class="ph-btn tonal" @click="copyDetails"><PIcon :svg="COPY_IC" />{{ t("activity.d.copy") }}</button>
         <label v-if="!cur.virtual" class="ph-btn tonal"><PIcon :svg="TIC.clip" />{{ t("activity.w.attach") }}<input type="file" accept="image/*,application/pdf" multiple hidden @change="attach($event)" /></label>
       </div>

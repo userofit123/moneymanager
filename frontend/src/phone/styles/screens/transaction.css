@@ -122,7 +122,7 @@ html.phone .ph-tx-rawh.on .ph-tx-rawc {
   transform: rotate(90deg);
 }
 
-/* the window's bottom buttons, side by side (one under the other when their names do not fit) */
+/* the window's bottom buttons, one under the other and the same width, so long names in any language always fit */
 html.phone .ph-tx-foot {
   display: flex;
   flex-wrap: wrap;
@@ -130,7 +130,7 @@ html.phone .ph-tx-foot {
 }
 
 html.phone .ph-tx-foot .ph-btn {
-  flex: 1 1 auto;
+  flex: 1 1 100%;
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
