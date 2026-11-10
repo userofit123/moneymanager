@@ -121,7 +121,8 @@
   "Password reset with a phone code": "הסיסמה אופסה בעזרת קוד שנשלח לטלפון",
   "Saved a goal": "נשמר יעד",
   "Updated goal": "היעד עודכן",
-  "Removed goal": "היעד הוסר"
+  "Removed goal": "היעד הוסר",
+  "Same category for all payments of a purchase": "אותה קטגוריה לכל התשלומים של רכישה"
  },
  "history lines in saved results": {
   "#food → #Trip · 3 transactions": "#food ← #Trip · 3 תנועות",
@@ -296,7 +297,9 @@
   "Acme pay → Income": "Acme pay ← הכנסה",
   "₪1,000,000 by age 50": "₪1,000,000 עד גיל 50",
   "₪1,000,000 in 15 years": "₪1,000,000 בעוד 15 שנים",
-  "₪250,000 in 1 year": "₪250,000 בעוד שנה"
+  "₪250,000 in 1 year": "₪250,000 בעוד שנה",
+  "Sofa shop: 2 payments → Home": "Sofa shop: 2 תשלומים ← בית",
+  "Sofa shop: 1 payment → Eating out": "Sofa shop: תשלום אחד ← אוכל בחוץ"
  },
  "server messages": {
   "\nAutomatic attempts are paused. Check the login, then unlock it in Settings.": "\nהניסיונות האוטומטיים מושהים. בדקו את פרטי ההתחברות ואז בטלו את הנעילה בהגדרות.",

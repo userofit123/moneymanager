@@ -1,5 +1,5 @@
 // Runs the changes of lib/txactions.js on the shared data, with what shows after them:
-// toasts, and the suggestions it makes ("Set up a rule for this category?", "Tag more like this?", "Always count these as card payments?").
+// toasts, and the suggestions it makes ("Set up a rule for this category?", "Same category for the other payments of this purchase?", "Tag more like this?", "Always count these as card payments?").
 import { i18n } from "../i18n.js";
 import { data } from "../stores/data.js";
 import { toast } from "./toast.js";
@@ -7,7 +7,8 @@ import { addSuggestion, setSuggestionRunner } from "./suggest.js";
 import { openPop } from "./txwin.js";
 import * as A from "../lib/txactions.js";
 import { ruleText } from "../lib/ruleFields.js";
-import { guessKw, tagSimilar, ruleTags, cardInfo, transferIds, normD } from "../lib/activity.js";
+import { guessKw, tagSimilar, ruleTags, cardInfo, transferIds, normD, instOf, instName } from "../lib/activity.js";
+import { catLabel } from "./cats.js";
 import { tagName } from "./polish.js";
 
 const t = (...a) => i18n.global.t(...a);
@@ -26,7 +27,16 @@ export function setCategory(id, c) {
   const r = run(A.setField, id, "c", c);
   const x = byId(id);
   if (!r.err && c && c != "Uncategorized" && x && !transferIds(S()).has(x.id)) ruleOffer(x, c);
+  if (!r.err) instOffer(id, c);
   return r;
+}
+// ---- category of a purchase paid in instalments: "Same category for its other payments?" (instCatAll, no rule) ----
+export function instOffer(id, cat) {
+  const x = byId(id), i = x && instOf(x);
+  if (!i || !cat || cat == "Uncategorized") return;
+  const n = A.instMates(S(), id, cat).length; if (!n) return;
+  const name = instName(x), catN = catLabel(cat);
+  addSuggestion({ key: "inst|" + id, title: t("txw.instOfferT"), text: t("txw.instOfferN", { n, name, total: i.total, cat: catN }, n), actions: [{ label: t("txw.instYes", n), kind: "instCat", arg: { id, cat } }] });
 }
 function ruleOffer(x, cat) {
   const kw = guessKw(x, cardInfo(S()));
@@ -65,5 +75,6 @@ export function ignOn(id) { const r = run(A.ignOn, id); if (!r.err) toast(t("txw
 setSuggestionRunner((a) => {
   if (a.kind == "ruleOffer") openPop("ruleOffer", a.arg);
   else if (a.kind == "tagRule") openPop("tagRule", a.arg);
+  else if (a.kind == "instCat") run(A.instCatAll, a.arg.id, a.arg.cat);
   else if (a.kind == "cpRule") { const r = run(A.cpRuleAdd, a.arg.id); if (!r.err) toast(r.n ? t("txw.cpDone", { n: r.n }, r.n) : t("txw.cpDone0")); }
 });

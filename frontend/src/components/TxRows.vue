@@ -16,6 +16,7 @@ import { kinds, displayName, duplicateIds } from "../lib/activity.js";
 import { fitChips } from "../lib/fitChips.js";
 import { txChips, amtText, SYM, CHIP_ICON } from "../lib/txrows.js";
 import { setField } from "../lib/txactions.js";
+import { instOffer } from "../core/txact.js";
 
 defineProps({ rows: { type: Array, required: true }, empty: { type: String, default: "" } });
 const emit = defineEmits(["open"]);
@@ -29,8 +30,9 @@ const name = (x) => (x.virtual ? tx(displayName(S.value, x)) : displayName(S.val
 const av = (x) => { const c = catColor(S.value, x.c || "Uncategorized"); return { background: `color-mix(in srgb,${c} 22%,transparent)`, color: c }; };
 const pos = (x) => x.a > 0 && !K.value.isXf(x);
 const canCat = (x) => !x.virtual && !K.value.isXf(x) && x.upBill == null && !x.upInst;
-// change the category through setField: it writes the history line, with its undo
-const setCat = (x, v) => data.change((n) => setField(n, x.id, "c", v).lines || false);
+// change the category through setField: it writes the history line, with its undo. A payment of a purchase paid in
+// instalments then offers the same category for the purchase's other payments.
+const setCat = (x, v) => { if (data.change((n) => setField(n, x.id, "c", v).lines || false).length) instOffer(x.id, v); };
 </script>
 
 <template>

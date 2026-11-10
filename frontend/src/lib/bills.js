@@ -1,7 +1,7 @@
 // Bills: found and predicted from the payments. Shared bill logic for the Bills page, Home, Budgets and alerts.
 // Nothing here touches the screen. Bills the app finds by itself are only worked out; they are saved
 // the first time a change is made (withDetected), so a change always has a saved bill to work on.
-import { kinds, instOf, counts } from "./activity.js";
+import { kinds, instOf, instName, instPlanKey, counts } from "./activity.js";
 import { inRow } from "./moneyIn.js";
 
 const p2 = (n) => String(n).padStart(2, "0");
@@ -117,16 +117,14 @@ export function billState(S, now = new Date()) {
 }
 
 // "Payment 8 of 10" series: purchases being paid in instalments that still have payments left.
-const baseName = (t) => String(t.to || t.desc).replace(/\s*(תשלום|payment)?\s*\d+\s*(\/|מתוך|of)\s*\d+/gi, "").trim();
 function instSeries(S, NOW) {
   const g = {};
   const k = kinds(S, NOW.getFullYear() + "-" + p2(NOW.getMonth() + 1) + "-" + p2(NOW.getDate()));
   (S.tx || []).filter((t) => !t.virtual && t.a < 0 && !k.isIgn(t)).forEach((t) => {
-    const i = instOf(t); if (!i) return;
-    const key = baseName(t).toLowerCase() + "|" + i.total + "|" + Math.round(Math.log(Math.max(1, Math.abs(t.a))) / Math.log(1.06));
-    (g[key] = g[key] || []).push({ t, i });
+    const key = instPlanKey(t); if (!key) return;
+    (g[key] = g[key] || []).push({ t, i: instOf(t) });
   });
-  return Object.values(g).map((L) => { L.sort((a, b) => a.t.d.localeCompare(b.t.d) || a.i.n - b.i.n); const last = L[L.length - 1], left = last.i.total - last.i.n, amt = Math.abs(last.t.a); return { name: baseName(last.t), paid: last.i.n, total: last.i.total, left, amt, remain: left * amt, last: last.t }; })
+  return Object.values(g).map((L) => { L.sort((a, b) => a.t.d.localeCompare(b.t.d) || a.i.n - b.i.n); const last = L[L.length - 1], left = last.i.total - last.i.n, amt = Math.abs(last.t.a); return { name: instName(last.t), paid: last.i.n, total: last.i.total, left, amt, remain: left * amt, last: last.t }; })
     .filter((x) => x.left > 0 && (NOW - new Date(x.last.d)) / 864e5 <= 50)
     .sort((a, b) => b.last.d.localeCompare(a.last.d) || a.left - b.left); // a plan that is still running has a payment in the last 50 days; the newest payment first
 }

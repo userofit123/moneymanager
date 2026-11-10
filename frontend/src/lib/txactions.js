@@ -6,7 +6,7 @@ import { dstr } from "../dates.js";
 import { ruleText } from "./ruleFields.js";
 import { jarPay, jarUnpay } from "../core/settle.js";
 import { isBillPayment, billNames } from "./bills.js";
-import { normD, isCardPay, cardInfo, rn, ruleHit, ruleTags, tagSimilar, nameHit, transferIds, isIgnored } from "./activity.js";
+import { normD, isCardPay, cardInfo, rn, ruleHit, ruleTags, tagSimilar, nameHit, transferIds, isIgnored, instName, instPlanKey } from "./activity.js";
 
 const byId = (S, id) => (S.tx || []).find((x) => x.id == id);
 const MNAME = (m) => new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString("en-GB", { month: "long" });
@@ -19,6 +19,17 @@ export function setField(S, id, f, v) {
   const old = t[f]; if (old === v) return { err: "same" };
   t[f] = v;
   return ok([["Edited " + ({ c: "category", note: "note" }[f] || f), t.desc + ": " + String(old || "—").slice(0, 40) + " → " + String(v || "—").slice(0, 40), { type: "tx", id: t.id, f, old }]]);
+}
+// The other payments of the same purchase paid in instalments as entry id (5 of 10 → 1 to 10), that are not in category cat yet.
+export function instMates(S, id, cat) {
+  const t = byId(S, id), k = t && instPlanKey(t);
+  return k ? (S.tx || []).filter((x) => x.id != id && (x.c || "") != (cat || "") && instPlanKey(x) == k) : [];
+}
+// Puts those other payments in category cat too, as one change. A one-time change: no rule is made.
+export function instCatAll(S, id, cat) {
+  const L = instMates(S, id, cat); if (!L.length) return { err: "none" };
+  L.forEach((x) => { x.c = cat; });
+  return ok([["Same category for all payments of a purchase", instName(byId(S, id)) + ": " + L.length + (L.length == 1 ? " payment" : " payments") + " → " + cat]], { n: L.length });
 }
 // The name shown for one entry (the bank's own text stays).
 export function setName(S, id, v) {

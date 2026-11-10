@@ -336,6 +336,15 @@ export function instOf(t) {
   const d = String(t.desc || ""), m = d.match(/תשלום\s*(\d{1,2})\s*(?:\/|מתוך)\s*(\d{1,2})/) || d.match(/payment\s*(\d{1,2})\s*(?:\/|of)\s*(\d{1,2})/i) || d.match(/(\d{1,2})\s*מתוך\s*(\d{1,2})/);
   return m && +m[2] >= 2 && +m[2] <= 60 && +m[1] >= 1 && +m[1] <= +m[2] ? { n: +m[1], total: +m[2] } : null;
 }
+// The name of the purchase an instalment is for: the bank's text without "payment n of N".
+export const instName = (t) => String(t.to || t.desc).replace(/\s*(תשלום|payment)?\s*\d+\s*(\/|מתוך|of)\s*\d+/gi, "").trim();
+// Which instalment plan a payment belongs to: the same purchase name, number of payments and about the same amount
+// (null when it is not a real instalment payment). Payments with the same key are the payments of one purchase.
+export function instPlanKey(t) {
+  const i = instOf(t);
+  if (!i || t.virtual || !(t.a < 0)) return null;
+  return instName(t).toLowerCase() + "|" + i.total + "|" + Math.round(Math.log(Math.max(1, Math.abs(t.a))) / Math.log(1.06));
+}
 // The rows of the details box, in the order they show. The screen turns { key } and { date } into words.
 export function detailRows(S, t, x, xf) {
   const det = x?.details || {}, nested = det.details || {}, rows = [], R = (k, v, o = {}) => { if (v == null || v === "") return; rows.push({ k, v: o.raw ? v : nohtml(v), ...o }); };
