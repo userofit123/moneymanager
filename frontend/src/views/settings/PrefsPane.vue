@@ -1,5 +1,5 @@
 <script setup>
-// Settings → Preferences: the "Language and region", "App icon" and "Points and levels" cards. The choices are kept in this browser.
+// Settings → Preferences: the "Language and region", "App icon" and "Points and levels" cards (with the new-level party). The choices are kept in this browser.
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { setLang } from "../../i18n.js";
@@ -7,6 +7,7 @@ import SetSection from "./SetSection.vue";
 import SetRow from "./SetRow.vue";
 import { dateFormat, weekStart } from "../../core/prefs.js";
 import { pointsPref } from "../../core/points.js";
+import { celebratePref } from "../../core/celebrate.js";
 import { DATE_FORMATS, ICONS, iconSvg, readIcon, saveDateFormat, saveWeekStart, saveIcon } from "./prefs.js";
 
 const { t, locale } = useI18n();
@@ -15,6 +16,8 @@ const tk = (k) => t("settings.pref." + k);
 const df = dateFormat, ws = weekStart, icon = ref(readIcon());
 // points on or off: off hides the badge and gives no points
 const setPoints = (on) => (pointsPref.value = on ? "on" : "off");
+// confetti when a new level is reached (only while points are on)
+const setCelebrate = (on) => (celebratePref.value = on ? "on" : "off");
 </script>
 
 <template>
@@ -35,6 +38,7 @@ const setPoints = (on) => (pointsPref.value = on ? "on" : "off");
     </SetSection>
     <SetSection icon="sparkle" :title="tk('pointsTitle')" :desc="tk('pointsDesc')">
       <SetRow toggle data-k="points" :title="tk('pointsOn')" :desc="tk('pointsOnDesc')" :model-value="pointsPref !== 'off'" @update:model-value="setPoints" />
+      <SetRow v-if="pointsPref !== 'off'" toggle data-k="celebrate" :title="tk('celebrateOn')" :desc="tk('celebrateOnDesc')" :model-value="celebratePref !== 'off'" @update:model-value="setCelebrate" />
     </SetSection>
   </div>
 </template>

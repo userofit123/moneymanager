@@ -16,6 +16,7 @@ import "./core/alertReport.js"; // the open alerts go to the server's alert hist
 import HelpPanel from "./help/HelpPanel.vue";
 import { helpOpen, helpMode, panelToggle } from "./help/help.js";
 import ToastHost from "./components/ToastHost.vue";
+import LevelParty from "./components/LevelParty.vue";
 import { UP } from "./core/updates.js";
 import AuthScreen from "./components/AuthScreen.vue";
 import AppNav from "./components/shell/AppNav.vue";
@@ -93,4 +94,5 @@ addEventListener("offline", () => (online.value = false));
   </template>
   <AskPop />
   <ToastHost />
+  <LevelParty />
 </template>

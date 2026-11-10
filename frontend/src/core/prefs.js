@@ -5,7 +5,7 @@
 import { ref, watch } from "vue";
 import { request, sendJson } from "./http.js";
 
-const PREF_KEYS = ["moneySugg", "moneyTheme", "moneyThemes", "moneyThemeAs", "moneyLang", "moneyBoot", "moneyFc", "moneyFlow", "moneyGroup", "moneyDf", "moneyWs", "moneyHelp", "moneyRanges", "moneyTrend", "moneyCatMonths", "moneyCatCols", "moneyYears", "moneyPoints"];
+const PREF_KEYS = ["moneySugg", "moneyTheme", "moneyThemes", "moneyThemeAs", "moneyLang", "moneyBoot", "moneyFc", "moneyFlow", "moneyGroup", "moneyDf", "moneyWs", "moneyHelp", "moneyRanges", "moneyTrend", "moneyCatMonths", "moneyCatCols", "moneyYears", "moneyPoints", "moneyCelebrate"];
 const AT = "moneyPrefsAt";
 let pushOn = false; // only after the server copy was looked at, so an old copy here never overwrites a newer one there
 

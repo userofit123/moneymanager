@@ -5,6 +5,8 @@
   "badgeLabel": "רמה {level}, {total} נקודות. פתיחת חלון הנקודות והרמות",
   "title": "נקודות ורמות",
   "toNext": "עוד {need} נקודות עד רמה {next}",
+  "levelUpTitle": "רמה חדשה!",
+  "levelUp": "הגעתם לרמה {level}.",
   "totalAll": "{n} נקודות בסך הכול",
   "monthTitle": "החודש",
   "monthSoFar": "נצברו החודש עד עכשיו",

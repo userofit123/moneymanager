@@ -649,3 +649,13 @@ html.he .ptw .ptgo {
     transform: none;
   }
 }
+
+/* the party for a new level (components/LevelParty.vue): over everything, never in the way of a click */
+.lvparty {
+  position: fixed;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  pointer-events: none;
+  z-index: 600;
+}

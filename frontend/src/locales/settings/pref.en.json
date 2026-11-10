@@ -20,5 +20,7 @@
   "pointsTitle": "Points and levels",
   "pointsDesc": "Points for using the app well and for good months. They add up to levels.",
   "pointsOn": "Show points and levels",
-  "pointsOnDesc": "When off, your level is not shown and no points are given."
+  "pointsOnDesc": "When off, your level is not shown and no points are given.",
+  "celebrateOn": "Celebrate a new level",
+  "celebrateOnDesc": "Confetti falls across the screen when you reach a new level."
 }

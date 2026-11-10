@@ -324,12 +324,26 @@ export function pointsByMonth(S) {
 //   month: the points given this calendar month (each saved entry keeps the day it was given),
 //   months: pointsByMonth(S) }
 // rows: countedRows, when the caller has them already.
-export function pointsSummary(S, today, rows) {
-  const day = dayKey(today), E = entries(S), byKind = {};
+// The points by kind and in all: { byKind, total }.
+function pointsByKind(S) {
+  const byKind = {};
   Object.values(S?.points?._old || {}).forEach((kinds) => { if (kinds && typeof kinds === "object") Object.entries(kinds).forEach(([k, v]) => { byKind[k] = (byKind[k] || 0) + (+v || 0); }); });
-  E.forEach(([, e]) => { byKind[e.kind] = (byKind[e.kind] || 0) + (+e.pts || 0); });
+  entries(S).forEach(([, e]) => { byKind[e.kind] = (byKind[e.kind] || 0) + (+e.pts || 0); });
   delete byKind.monthDone;
-  const total = Object.values(byKind).reduce((s, v) => s + v, 0);
+  return { byKind, total: Object.values(byKind).reduce((s, v) => s + v, 0) };
+}
+
+// The level a change by the person reached, to celebrate it: the new level when the change moved the person up a level,
+// else 0. Only a change the person made counts: a line of theirs that is not an Undo (lines: the change's history lines).
+export function levelReached(before, after, lines) {
+  const mine = (lines || []).some(([action, , , who]) => (who || "You") !== "System" && action !== "Undid a change");
+  if (!mine || !before || !after) return 0;
+  const was = levelFor(pointsByKind(before).total).level, now = levelFor(pointsByKind(after).total).level;
+  return now > was ? now : 0;
+}
+
+export function pointsSummary(S, today, rows) {
+  const day = dayKey(today), E = entries(S), { byKind, total } = pointsByKind(S);
   const recent = E.filter(([, e]) => e.pts > 0).map(([key, e]) => ({ key, kind: e.kind, pts: e.pts, day: e.day, d: e.d ?? null })).reverse()
     .sort((a, b) => b.day.localeCompare(a.day)).slice(0, 10);
   const R = S && Array.isArray(S.tx) ? rows || countedRows(S, day) : [];

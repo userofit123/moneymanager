@@ -1,7 +1,7 @@
 // Points and levels (lib/points.js): levels, no daily caps, once-only, points for any update, by hand vs automatic, month results, and Undo.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { POINTS, levelFor, award, earnFromChange, pointsUpkeep, pointsSummary, pointsByMonth, monthParts, setupDone, takeBack } from "../src/lib/points.js";
+import { POINTS, levelFor, levelReached, award, earnFromChange, pointsUpkeep, pointsSummary, pointsByMonth, monthParts, setupDone, takeBack } from "../src/lib/points.js";
 import { setField, addTags, roSave, xfOk, dupKeep } from "../src/lib/txactions.js";
 import { createDataStore } from "../src/stores/data.js";
 import { setNow } from "../src/core/clock.js";
@@ -338,4 +338,33 @@ test("folding drops the once-only keys of payments that no longer exist", () => 
   award(S, "tag:a:b:x:y", "tag", 1, DAY);
   pointsUpkeep(S, "2026-11-20", []);
   assert.deepEqual(S.points._once, ["cat:1", "tag:a:b:x:y"]);
+});
+
+test("a new level is celebrated only when a change by the person moves the level up", () => {
+  const S0 = base();
+  award(S0, "visit:a", "visit", 95, DAY); // 5 points short of level 2
+  const S1 = structuredClone(S0);
+  award(S1, "cat:1", "cat", 10, DAY);
+  const mine = [["Edited category", "Coffee"]];
+  assert.equal(levelReached(S0, S1, mine), 2);
+  assert.equal(levelReached(S1, S1, mine), 0); // no points: same level
+  assert.equal(levelReached(S1, S0, mine), 0); // a level lower is not celebrated
+  assert.equal(levelReached(S0, S1, [["Undid a change", "x"]]), 0); // Undo
+  assert.equal(levelReached(S0, S1, [["Sorted payments", "x", null, "System"]]), 0); // the app's own upkeep
+  assert.equal(levelReached(S0, S1, []), 0); // points saved quietly
+  assert.equal(levelReached(null, S1, mine), 0); // the first load
+});
+
+test("the data store tells about a change by the person, not about quiet saves or loads", async () => {
+  const seen = [];
+  const D = createDataStore({ fetchJson: async () => ({ rev: 1, audit: [], ...base() }), connect: () => () => {}, send: async () => ({ ok: true, status: 200, json: { rev: 2, auditIds: [] } }), delay: 5,
+    changed: (a, b, L) => seen.push(levelReached(a, b, L)) });
+  await D.load();
+  assert.deepEqual(seen, []);
+  D.change((S) => { award(S, "visit:" + DAY, "visit", 99, DAY); return []; }, { quiet: true });
+  assert.deepEqual(seen, []);
+  const [e] = D.change((S) => { award(S, "cat:1", "cat", 1, DAY); return [["Edited category", "Coffee"]]; });
+  assert.deepEqual(seen, [2]);
+  D.undo(e);
+  assert.deepEqual(seen, [2, 0]);
 });

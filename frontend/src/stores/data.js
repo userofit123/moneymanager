@@ -29,7 +29,7 @@ async function getState(url) {
   return j;
 }
 
-export function createDataStore({ fetchJson = getState, connect = connectLive, send = putState, delay = 400, settle = null, notify = () => {}, earn = null } = {}) {
+export function createDataStore({ fetchJson = getState, connect = connectLive, send = putState, delay = 400, settle = null, notify = () => {}, earn = null, changed = null } = {}) {
   const state = shallowRef(null); // what GET /api/state returns (accounts, tx, jars, budgets...)
   const loading = ref(false);
   const error = ref(null);
@@ -41,7 +41,7 @@ export function createDataStore({ fetchJson = getState, connect = connectLive, s
   const last = readJson("moneyFxLast", null);
   const fx = shallowRef({ fx: (last && last.fx) || {}, series: {}, asOf: (last && last.asOf) || null, stale: !!last, live: false });
   let stop = null, listening = false, busy = null, dirty = false, timer = null, failed = false;
-  const hooks = { settle, notify, earn };
+  const hooks = { settle, notify, earn, changed };
 
   // Loads the data. Asking again while a load is running joins that load instead of starting another.
   function load() {
@@ -130,6 +130,8 @@ export function createDataStore({ fetchJson = getState, connect = connectLive, s
     if (JSON.stringify(next) !== JSON.stringify(cur)) { dirty = true; schedule(delay); }
     const mine = entries.filter((e) => e.who !== "System");
     if (mine.length && !quiet) hooks.notify("saved", { entries: mine });
+    // after a change by the person, with the data before and after it (core/celebrate.js: a new level)
+    if (hooks.changed && !quiet) hooks.changed(cur, next, lines || []);
     return entries;
   }
   function schedule(ms) { clearTimeout(timer); timer = setTimeout(flush, ms); }

@@ -5,6 +5,8 @@
   "badgeLabel": "Level {level}, {total} points. Open points and levels",
   "title": "Points and levels",
   "toNext": "{need} more points to level {next}",
+  "levelUpTitle": "New level!",
+  "levelUp": "You reached level {level}.",
   "totalAll": "{n} points in all",
   "monthTitle": "This month",
   "monthSoFar": "Earned so far",
