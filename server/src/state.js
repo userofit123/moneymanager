@@ -202,7 +202,7 @@ const sig = (o) => JSON.stringify(o);
 // entries folded into one total per month and kind).
 function cleanPoints(P) {
   const out = {}, num = (v) => (Number.isFinite(+v) ? Math.round(+v) : 0), str = (v, n) => String(v ?? "").slice(0, n);
-  for (const [k, v] of Object.entries(P).slice(0, 5000)) {
+  for (const [k, v] of Object.entries(P).slice(0, 100000)) { // no cap on points a day: room for many thousands of entries
     if (!v || typeof v !== "object") continue;
     if (k === "_old") {
       const kinds = (o) => Object.fromEntries(Object.entries(o).slice(0, 50).map(([kk, n]) => [str(kk, 30), num(n)]));

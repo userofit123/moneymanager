@@ -17,9 +17,8 @@ export const POINTS = {
   alert: 10, // clearing an alert (the first time for that alert)
   review: 5, // an item in Needs review looked at (once per item)
   cat: 1, // giving a payment a category by hand
-  catDay: 50, // ... at most this many points a day
   tag: 1, // adding a tag by hand
-  tagDay: 20, // ... at most this many points a day
+  edit: 1, // any other change to your items (a payment, a bill, a budget, a jar ...): each item, at most once a day
   rule: 10, // creating a category rule (once per rule)
   setupBank: 100, // first bank, card or wallet linked
   setupBudget: 50, // first budget
@@ -38,7 +37,8 @@ export const POINTS = {
 };
 
 // Kinds that are earned many times a day; their entries older than this many days fold into "_old".
-const DAILY = ["visit", "cat", "tag"], KEEP_DAYS = 90;
+// "edit" entries only guard their own day (the day is in the key), so they fold after a week to keep the saved data small.
+const DAILY = ["visit", "cat", "tag", "edit"], KEEP_DAYS = 90, KEEP_EDIT_DAYS = 7;
 // Month results are counted from this day of the next month, so late bank and card rows are in first.
 export const COUNT_FROM_DAY = 3;
 // How many finished months back are counted when they were not counted yet (the first time points run).
@@ -62,20 +62,13 @@ export function levelFor(total) {
 const p2 = (n) => String(n).padStart(2, "0");
 const dayKey = (d) => (typeof d === "string" ? d.slice(0, 10) : d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate()));
 const entries = (S) => Object.entries(S?.points || {}).filter(([k, e]) => k !== "_old" && e && typeof e === "object");
-// points of one kind earned on one day
-const earnedOn = (S, kind, day) => entries(S).reduce((s, [, e]) => s + (e.kind === kind && e.day === day ? +e.pts || 0 : 0), 0);
-const CAPS = { cat: "catDay", tag: "tagDay" };
-
-// Gives points once for `key` (never twice), within the day's cap of its kind. Changes S. Returns the points given (0 when none).
+// Gives points once for `key` (never twice); there is no cap on how many points a day. Changes S. Returns the points given (0 when none).
 export function award(S, key, kind, pts, today, d) {
   if (!S || !key) return 0;
   S.points = S.points || {};
   if (S.points[key]) return 0;
   const day = dayKey(today);
   pts = Math.round(+pts || 0);
-  const cap = CAPS[kind] && POINTS[CAPS[kind]];
-  if (cap != null) pts = Math.min(pts, Math.max(0, cap - earnedOn(S, kind, day)));
-  if (pts <= 0 && cap != null) return 0; // over the day's cap: not kept, so it can still earn on another day
   S.points[key] = { pts, kind, day, ...(d != null && d !== "" ? { d: String(d).slice(0, 120) } : {}) };
   return pts;
 }
@@ -85,6 +78,11 @@ const BY_HAND_CAT = new Set(["Edited category", "Changed bill category"]);
 const BY_HAND_TAG = new Set(["Added tag"]);
 const NEW_RULE = new Set(["Added rule"]);
 const NO_CAT = (c) => !c || c === "Uncategorized";
+// Changes that earn no points for updating items: sorting done by a file, not by hand.
+const NOT_BY_HAND = new Set(["Added categories from an AI file"]);
+// Saved data that is not the person's items (history, points, settings), left out when looking for what a change updated.
+const NOT_ITEMS = new Set(["audit", "points", "cfg", "ntfy"]);
+const sameJson = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 // The points a change made by the person earns, worked out from what it changed (before → after) and its history lines.
 // Gives them on `after`, so they are saved with the change and Undo of that change takes them back. Returns the points given.
@@ -113,6 +111,19 @@ export function earnFromChange(before, after, lines, today) {
   (after.xf || []).forEach((x) => { const o = xf0.get(x.o); if (o && o.st !== x.st && (x.st === "ok" || x.st === "rej") && o.st !== "ok" && o.st !== "rej") give("review:xf:" + x.o, "review", POINTS.review); });
   Object.keys(after.dupOk || {}).forEach((id) => { if (!(before.dupOk || {})[id]) give("review:dup:" + id, "review", POINTS.review); });
   if (acts.has("Deleted duplicate")) { const now = new Set((after.tx || []).map((t) => t.id)); old.forEach((t, id) => { if (!now.has(id)) give("review:dup:" + id, "review", POINTS.review); }); }
+  // Any other update to the person's items (marking a bill, a note, a budget, a jar, cleaning up ...) earns POINTS.edit:
+  // each payment it changed, or else each history line when it changed other items. Once a day per item, so switching
+  // something back and forth does not pile up points; no cap on how many items a day.
+  if (got) return got;
+  const mine = (lines || []).filter((l) => l && l[0] && (l[3] || "You") !== "System" && !NOT_BY_HAND.has(l[0]));
+  if (!mine.length) return got;
+  const day = dayKey(today), what = mine[0][0];
+  const now = new Map((after.tx || []).map((t) => [t.id, t]));
+  new Set([...old.keys(), ...now.keys()]).forEach((id) => { if (!sameJson(old.get(id), now.get(id))) give("edit:tx:" + id + ":" + day, "edit", POINTS.edit, what); });
+  if (got) return got;
+  const keys = new Set([...Object.keys(before), ...Object.keys(after)].filter((k) => k !== "tx" && !NOT_ITEMS.has(k)));
+  if (![...keys].some((k) => !sameJson(before[k], after[k]))) return got; // nothing of the person's items changed
+  mine.forEach(([a, d]) => give("edit:" + a + ":" + String(d ?? "").slice(0, 80) + ":" + day, "edit", POINTS.edit, a));
   return got;
 }
 
@@ -199,9 +210,10 @@ export function pointsUpkeep(S, today, rows) {
       S.points["month:" + m] = { pts: 0, kind: "monthDone", day: at, d: m }; // counted once, even when it earned nothing
     });
   }
-  const old = dayKey(new Date(new Date(day + "T12:00:00").getTime() - KEEP_DAYS * 864e5));
+  const ago = (n) => dayKey(new Date(new Date(day + "T12:00:00").getTime() - n * 864e5));
+  const old = ago(KEEP_DAYS), oldEdit = ago(KEEP_EDIT_DAYS);
   entries(S).forEach(([k, e]) => {
-    if (!DAILY.includes(e.kind) || e.day >= old) return;
+    if (!DAILY.includes(e.kind) || e.day >= (e.kind === "edit" ? oldEdit : old)) return;
     const o = (S.points._old = S.points._old || {}), m = (o[e.day.slice(0, 7)] = o[e.day.slice(0, 7)] || {});
     m[e.kind] = (m[e.kind] || 0) + (+e.pts || 0);
     delete S.points[k];

@@ -9,8 +9,9 @@ People earn points for using the app well and for good money results. Points add
 - Opening the app and really using a page: 5, once a day (a tab left open does not count)
 - Clearing an alert: 10, only the first time for that alert (bringing it back and clearing it again gives nothing)
 - Reviewing an item that needs review: 5, once per item
-- Giving a payment a category by hand: 1, up to 50 a day
-- Adding a tag by hand: 1, up to 20 a day (no loss for payments without a tag)
+- Giving a payment a category by hand: 1, no daily cap
+- Adding a tag by hand: 1, no daily cap (no loss for payments without a tag)
+- Any other update to your items (marking a bill, editing a payment, a budget, a jar, cleaning up): 1 for each item changed, once a day per item, no daily cap
 - Making a sorting rule: 10, once per rule
 - Automatic categories and tags give nothing; the rule that made them already did
 - Every payment this month has a category: 50, once a month
@@ -27,7 +28,7 @@ Based on the share of income, not the plain amount, so earning more does not mea
 
 ## How much
 - Typical month about 600 points; bad month about 250; excellent about 1,000
-- Caps are per kind of point, not on the month total
+- No daily or weekly caps on points for actions: each action earns its points
 - Values live in one table so they are easy to tune
 
 ## Levels

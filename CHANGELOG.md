@@ -4,6 +4,9 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [Unreleased]
+- **Points for every update you make.** Looking after your money now always earns points: marking a bill, changing a payment, setting a budget, filling a jar, cleaning up the list and any other change to your items each give 1 point for every payment or thing changed (once a day for the same thing, so switching something back and forth does not add up). There is also no longer a daily limit: categorizing 1,000 payments in one day gives a point for each one, and the same for tags. Undo still takes the points of that change back.
+
 ## [0.16.0] - 2026-11-08
 - **The Android app updates itself.** Settings → Version and updates now shows, for the app on the phone, whether a newer version exists, with a **Download update** button. The download shows how far it got (on the page and in a notification, so you can leave the app meanwhile), then an **Install** button opens Android's own installer, which asks you to confirm. A download that finished before the app was closed is still offered as Install, and an older download gives way to a newer version. Before, the app could only open the downloads page on GitHub. The first time, Android asks you to allow Money Manager to install updates. Your server and your data are not touched. Two switches there, **Download updates automatically** and **Only on Wi-Fi**, let a new version download by itself (on mobile data it waits for Wi-Fi); installing still waits for you to tap Install. If the page reloads during a download, its progress bar comes back.
 

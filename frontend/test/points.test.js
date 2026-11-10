@@ -1,4 +1,4 @@
-// Points and levels (lib/points.js): levels, daily caps, once-only, by hand vs automatic, month results, and Undo.
+// Points and levels (lib/points.js): levels, no daily caps, once-only, points for any update, by hand vs automatic, month results, and Undo.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { POINTS, levelFor, award, earnFromChange, pointsUpkeep, pointsSummary, pointsByMonth, monthParts, setupDone } from "../src/lib/points.js";
@@ -20,16 +20,14 @@ test("levels: 100, 250, 450, 700 points, each step 50 more than the last", () =>
   assert.deepEqual(levelFor(720), { level: 5, start: 700, next: 1000, into: 20, need: 280 });
 });
 
-test("award gives once per key and stops at the day's cap", () => {
+test("award gives once per key, with no cap on how many a day", () => {
   const S = {};
   assert.equal(award(S, "visit:" + DAY, "visit", 5, DAY), 5);
   assert.equal(award(S, "visit:" + DAY, "visit", 5, DAY), 0);
-  for (let i = 0; i < 60; i++) award(S, "cat:" + i, "cat", 1, DAY);
-  assert.equal(pointsSummary(S, DAY, []).byKind.cat, POINTS.catDay);
-  assert.equal(S.points["cat:55"], undefined); // over the cap: not kept, so it can earn another day
-  assert.equal(award(S, "cat:55", "cat", 1, "2026-11-03"), 1);
-  for (let i = 0; i < 30; i++) award(S, "tag:" + i, "tag", 1, DAY);
-  assert.equal(pointsSummary(S, DAY, []).byKind.tag, POINTS.tagDay);
+  for (let i = 0; i < 1000; i++) award(S, "cat:" + i, "cat", 1, DAY);
+  assert.equal(pointsSummary(S, DAY, []).byKind.cat, 1000 * POINTS.cat);
+  for (let i = 0; i < 300; i++) award(S, "tag:" + i, "tag", 1, DAY);
+  assert.equal(pointsSummary(S, DAY, []).byKind.tag, 300 * POINTS.tag);
 });
 
 const base = () => ({ tx: [{ id: 1, desc: "Shop", c: "", a: -50, d: "2026-11-01", tags: [] }, { id: 2, desc: "Cafe", c: "", a: -20, d: "2026-11-01", tags: [] }], rules: [], budgets: {}, xf: [{ o: 1, i: 2, st: "auto" }], dismissed: {}, points: {} });
@@ -37,12 +35,14 @@ const base = () => ({ tx: [{ id: 1, desc: "Shop", c: "", a: -50, d: "2026-11-01"
 test("a category by hand earns, once per payment; automatic sorting earns nothing", () => {
   let S = act(base(), (n) => setField(n, 1, "c", "Food"));
   assert.equal(total(S), 1);
-  S = act(S, (n) => setField(n, 1, "c", "Home")); // the same payment again
-  assert.equal(total(S), 1);
+  S = act(S, (n) => setField(n, 1, "c", "Home")); // the same payment again: an update, once a day
+  assert.equal(total(S), 1 + POINTS.edit);
+  S = act(S, (n) => setField(n, 1, "c", "Food"));
+  assert.equal(total(S), 1 + POINTS.edit);
   S = act(S, (n) => { n.tx[1].c = "Food"; return [["Added categories from an AI file", "x"]]; });
-  assert.equal(total(S), 1);
+  assert.equal(total(S), 1 + POINTS.edit);
   S = act(S, () => []); // settle's rules fill a category outside any change by hand
-  assert.equal(total(S), 1);
+  assert.equal(total(S), 1 + POINTS.edit);
 });
 
 test("a tag by hand earns; a rule earns once; an alert only the first time it is cleared", () => {
@@ -62,8 +62,30 @@ test("Needs review: a transfer looked at and a kept duplicate earn once each", (
   let S = act(base(), (n) => xfOk(n, 1));
   S = act(S, (n) => dupKeep(n, 2));
   assert.equal(total(S), 2 * POINTS.review);
-  S = act(S, (n) => { n.xf[0].st = "rej"; return [["Not a transfer", "x"]]; }); // changed its mind: nothing more
-  assert.equal(total(S), 2 * POINTS.review);
+  S = act(S, (n) => { n.xf[0].st = "rej"; return [["Not a transfer", "x"]]; }); // changed its mind: only an update
+  assert.equal(total(S), 2 * POINTS.review + POINTS.edit);
+  S = act(S, (n) => { n.xf[0].st = "rej"; return [["Not a transfer", "x"]]; }); // nothing changed: nothing more
+  assert.equal(total(S), 2 * POINTS.review + POINTS.edit);
+});
+
+test("any update to items earns, each item once a day, with no daily cap", () => {
+  // marking bills: each bill once a day; switching back and forth on the same day adds nothing more
+  let S = { ...base(), bills: [{ n: "Gym", flag: "" }, { n: "Phone", flag: "" }] };
+  S = act(S, (n) => { n.bills[0].flag = "cancel"; return [["Marked to cancel", "Gym"]]; });
+  S = act(S, (n) => { n.bills[1].flag = "cancel"; return [["Marked to cancel", "Phone"]]; });
+  assert.equal(total(S), 2 * POINTS.edit);
+  S = act(S, (n) => { n.bills[0].flag = ""; return [["Kept bill", "Gym"]]; });
+  S = act(S, (n) => { n.bills[0].flag = "cancel"; return [["Marked to cancel", "Gym"]]; });
+  assert.equal(total(S), 3 * POINTS.edit);
+  assert.equal(S.points["edit:Marked to cancel:Gym:" + DAY].d, "Marked to cancel");
+  // a change to many payments at once: a point for each payment
+  const many = { tx: Array.from({ length: 1000 }, (_, i) => ({ id: i, desc: "Shop", c: "Food", a: -5, d: "2026-11-01" })), points: {} };
+  const M = act(many, (n) => { n.tx.forEach((t) => { t.note = "checked"; }); return [["Edited note", "1000 payments"]]; });
+  assert.equal(total(M), 1000 * POINTS.edit);
+  // a history line that changed nothing (an export) and a change made by the app earn nothing
+  S = act(S, () => [["Exported data", "all data"]]);
+  S = act(S, (n) => { n.budgets.Food = 100; return [["Set budget", "Food", null, "System"]]; });
+  assert.equal(total(S), 3 * POINTS.edit);
 });
 
 test("setup steps are recorded once and stay when the thing is deleted", () => {

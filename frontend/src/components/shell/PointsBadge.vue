@@ -12,6 +12,7 @@ import { POINTS, COUNT_FROM_DAY } from "../../lib/points.js";
 import { f0, fm, clampPercent } from "../../format.js";
 import { dshort } from "../../dates.js";
 import { categoryName } from "../../catnames.js";
+import { tx } from "../../core/heText.js";
 import { goActivity } from "../../core/shell.js";
 import BaseDialog from "../BaseDialog.vue";
 import SlideOpen from "../SlideOpen.vue";
@@ -79,7 +80,7 @@ function label(x) {
   const d = x.d ?? x.detail;
   if (x.kind === "setup") return te("points.kind.setup." + d) ? tk("kind.setup." + d) : tk("kind.other");
   if (!te("points.kind." + x.kind)) return tk("kind.other");
-  return tk("kind." + x.kind, { d: ["cat", "catLess", "budget"].includes(x.kind) ? categoryName(d, locale.value) : d });
+  return tk("kind." + x.kind, { d: ["cat", "catLess", "budget"].includes(x.kind) ? categoryName(d, locale.value) : x.kind === "edit" ? tx(d) : d });
 }
 
 // month points (this month on the way, or last month waiting to be added), with the categories that spent less and the
@@ -103,6 +104,7 @@ const ICON = {
   review: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6M12 17h.01"/>',
   cat: '<path d="M3 12V4h8l10 10-8 8z"/><path d="M7.5 8h.01"/>',
   tag: '<path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/>',
+  edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
   rule: '<path d="M13 3 5 14h6l-1 7 8-11h-6z"/>',
   setupBank: '<path d="M3 10l9-6 9 6M5 10v8M10 10v8M14 10v8M19 10v8M3 20h18"/>',
   setupMore: '<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
@@ -123,8 +125,9 @@ const howNow = computed(() => [
   how("visit", POINTS.visit, tk("per.day")),
   how("alert", POINTS.alert, tk("per.eachAlert")),
   how("review", POINTS.review, tk("per.eachQuestion"), tk("how.reviewWhat")),
-  how("cat", POINTS.cat, tk("per.eachMax", { max: POINTS.catDay })),
-  how("tag", POINTS.tag, tk("per.eachMax", { max: POINTS.tagDay })),
+  how("cat", POINTS.cat, tk("per.each")),
+  how("tag", POINTS.tag, tk("per.each")),
+  how("edit", POINTS.edit, tk("per.eachItem"), tk("how.editWhat")),
   how("rule", POINTS.rule, tk("per.eachRule")),
   how("setupBank", POINTS.setupBank, tk("per.once")),
   how("setupMore", POINTS.setupBudget, tk("per.onceEach")),
