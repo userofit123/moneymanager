@@ -42,7 +42,7 @@ onMounted(() => { data.start(); });
           <div id="availSub" class="sm">
             <div class="sm">{{ t("jars.safeSub") }}</div>
             <div v-if="pay?.covered" class="jpay"><b v-tip="pay.tip">{{ pay.after }}</b> {{ pay.note }}</div>
-            <div v-else-if="M.F.over > 0" class="jover"><b>{{ t("jars.tooMuch", { amount: fm(M.F.over) }) }}</b> {{ t("jars.tooMuchText") }}<template v-if="pay"> {{ pay.note }}</template><div v-if="M.F.inJars > 0" class="flex" style="gap:8px;margin-top:8px"><button type="button" class="btn s" data-a="jarRelease" @click="relAsk = true">{{ t("jars.takeBack", { amount: fm(relAmt) }) }}</button></div></div>
+            <div v-else-if="M.F.over > 0" class="jover"><b>{{ t("jars.tooMuch", { amount: fm(M.F.over) }) }}</b> {{ t("jars.tooMuchText") }}<template v-if="pay"> {{ pay.note }}</template><div v-if="relAmt > 0" class="flex" style="gap:8px;margin-top:8px"><button type="button" class="btn s" data-a="jarRelease" @click="relAsk = true">{{ t("jars.takeBack", { amount: fm(relAmt) }) }}</button></div></div>
             <button type="button" class="btn o s" style="margin-top:10px" data-a="availWhy" @click="why = true">{{ t("jars.howWorked") }}</button>
           </div>
         </div>

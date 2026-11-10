@@ -1,7 +1,7 @@
 // The Jars page's numbers: what is free, the monthly fill, each jar's state, goals and completed jars.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { jarsModel } from "../src/lib/jars.js";
+import { jarsModel, takeBackAmt } from "../src/lib/jars.js";
 
 const NOW = new Date(2026, 9, 17, 12); // 17 Oct 2026
 const base = () => ({
@@ -74,4 +74,16 @@ test("a jar that gets nothing says whether the jars before it took the money", a
   const [alone] = jarProject({ jars: [S.jars[1]] }, { flow: { free: 0, over: 0, R: { total: 0 } } }, NOW, {}, 24, { cash: 0, bal: Array(13).fill(0) }).J;
   assert.equal(alone.series[12], 0);
   assert.equal(alone.ahead12, 0);
+});
+
+// MM-19: short of money while the jars hold less than ₪1 (or nothing): no "Your jars hold ₪0 more than you have. Lower them by ₪0."
+test("take back from the jars: never offers ₪0, and is rounded once", () => {
+  const S = base(); S.jarsBuffer = 20000; S.jars = [{ id: 1, n: "Trip", p: 1, bal: 0.3, need: 5000, cap: 0, got: 0 }];
+  const F = jarsModel(S, NOW).F;
+  assert.ok(F.over >= 1 && F.inJars > 0 && F.inJars < 0.5); // short, with a fraction of a shekel in the jar
+  assert.equal(takeBackAmt(F.over, F.inJars), 0);
+  assert.equal(takeBackAmt(5, 0), 0);
+  assert.equal(takeBackAmt(0, 300), 0);
+  assert.equal(takeBackAmt(100, 250.6), 100);
+  assert.equal(takeBackAmt(400, 250.6), 251);
 });

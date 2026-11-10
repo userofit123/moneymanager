@@ -62,7 +62,7 @@ const priOptions = computed(() => (M.value?.jars || []).map((x, k) => ({ value: 
           <div class="sm">{{ t("jars.safeSub") }}</div>
           <div v-if="pay?.covered" class="ph-jars-pay"><button type="button" @click="explain(pay.tip)"><b>{{ pay.after }}</b></button> {{ pay.note }}</div>
           <div v-else-if="M.F.over > 0" class="ph-jars-over"><b>{{ t("jars.tooMuch", { amount: fm(M.F.over) }) }}</b> {{ t("jars.tooMuchText") }}<template v-if="pay"> {{ pay.note }}</template>
-            <button v-if="M.F.inJars > 0" type="button" class="ph-btn ph-jars-sbtn" @click="askRelease">{{ t("jars.takeBack", { amount: fm(relAmt) }) }}</button>
+            <button v-if="relAmt > 0" type="button" class="ph-btn ph-jars-sbtn" @click="askRelease">{{ t("jars.takeBack", { amount: fm(relAmt) }) }}</button>
           </div>
           <button type="button" class="ph-btn plain ph-jars-sbtn" @click="why = true">{{ t("jars.howWorked") }}</button>
         </div>

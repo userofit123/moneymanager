@@ -16,7 +16,7 @@ import { TP } from "../core/tooltip.js";
 import { fm, f0 } from "../format.js";
 import { dstr } from "../dates.js";
 import { isolateNumbers } from "../core/polish.js";
-import { jarCtx, releaseJars, markDone, deleteJar, jarHistory, jarFormOf, goalFix, moveJar, moveJarTo, reopenJar } from "../lib/jars.js";
+import { jarCtx, releaseJars, takeBackAmt, markDone, deleteJar, jarHistory, jarFormOf, goalFix, moveJar, moveJarTo, reopenJar } from "../lib/jars.js";
 import { displayName } from "../lib/activity.js";
 
 export function useJars() {
@@ -78,8 +78,8 @@ export function useJars() {
   const doDone = () => { const id = doneAsk.value.id; doneAsk.value = null; save((next) => markDone(next, id, M.value.today, ctx())); };
   const askDel = (id) => { menu.value = null; delAsk.value = S.value.jars.find((x) => x.id == id) || null; };
   const doDel = () => { const id = delAsk.value.id; delAsk.value = null; save((next) => deleteJar(next, id)); };
-  const relAmt = computed(() => Math.min(M.value.F.over, M.value.F.inJars));
-  const doRelease = () => { relAsk.value = false; const over = M.value.F.over; if (!(over > 0)) return; save((next) => { const l = releaseJars(next, over, ctx()); return l.length ? l : false; }); toast(t("jars.rel.done")); };
+  const relAmt = computed(() => takeBackAmt(M.value.F.over, M.value.F.inJars));
+  const doRelease = () => { relAsk.value = false; const amt = relAmt.value; if (!(amt > 0)) return; save((next) => { const l = releaseJars(next, amt, ctx()); return l.length ? l : false; }); toast(t("jars.rel.done")); };
   const why = ref(false);
 
   // One jar's texts.

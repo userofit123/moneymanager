@@ -283,6 +283,10 @@ function jset(j, fld, v, ctx) {
   return ["Changed jar " + FLD[fld], j.n + ": " + show(old) + " → " + show(v), { type: "jar", id: j.id, f: fld, old }];
 }
 
+// How much "Take back from the jars" offers: the amount short (over), but no more than the jars hold, rounded once so the
+// words, the window and what is taken back all show the same number. 0 means nothing to offer (no jars money, or under ₪1).
+export const takeBackAmt = (over, inJars) => Math.max(0, Math.round(Math.min(+over || 0, +inJars || 0)));
+
 // "Take back from the jars": the extra comes out of the lowest-priority jars first.
 export function releaseJars(S, over, ctx) {
   const logs = []; let need = over;
