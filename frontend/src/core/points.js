@@ -25,12 +25,13 @@ data.hooks.earn = (before, after, lines) => { if (pointsOn()) earnFromChange(bef
 export function pointsAfterUpkeep(S2) { if (pointsOn()) pointsUpkeep(S2, now.value); }
 
 // Saves points that are not a change by the person (no history line, no "Saved", no Undo).
-function earnQuietly(key, kind, pts, d) {
+// mine: points for something the person did (a new level they reach is celebrated), not for opening the app.
+function earnQuietly(key, kind, pts, d, mine = false) {
   if (!pointsOn() || !S() || S().points?.[key]) return;
-  data.change((S2) => { award(S2, key, kind, pts, now.value, d); return []; }, { quiet: true });
+  data.change((S2) => { award(S2, key, kind, pts, now.value, d); return []; }, { quiet: true, mine });
 }
 // a balance gap marked as looked at in Needs review (that is saved on the server, so its points come here)
-export const gapReviewed = (id) => earnQuietly("review:gap:" + id, "review", POINTS.review);
+export const gapReviewed = (id) => earnQuietly("review:gap:" + id, "review", POINTS.review, undefined, true);
 
 // The daily visit: only when the person really uses the app (a tap, click or key while the page shows), not a tab left open.
 function visit() {

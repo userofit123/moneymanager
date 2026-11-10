@@ -327,10 +327,13 @@ function pointsByKind(S) {
 }
 
 // The level a change by the person reached, to celebrate it: the new level when the change moved the person up a level,
-// else 0. Only a change the person made counts: a line of theirs that is not an Undo (lines: the change's history lines).
+// else 0 (lines: the change's history lines). Not for an Undo or a change of only the app's own lines; a change with no
+// history line at all (dismissing an alert) is the person's. Loads, syncs and quiet saves never get here (stores/data.js).
 export function levelReached(before, after, lines) {
-  const mine = (lines || []).some(([action, , , who]) => (who || "You") !== "System" && action !== "Undid a change");
-  if (!mine || !before || !after) return 0;
+  // a change with no history line is still the person's (dismissing an alert saves none); only Undo and the app's own lines are not
+  const L = (lines || []).filter(Boolean);
+  if (L.some(([action]) => action === "Undid a change") || (L.length && L.every(([, , , who]) => who === "System"))) return 0;
+  if (!before || !after) return 0;
   const was = levelFor(pointsByKind(before).total).level, now = levelFor(pointsByKind(after).total).level;
   return now > was ? now : 0;
 }

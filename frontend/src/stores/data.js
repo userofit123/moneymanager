@@ -105,7 +105,9 @@ export function createDataStore({ fetchJson = getState, connect = connectLive, s
 
   // change(edit): edit(copy) changes a copy of the data and returns the change-history lines [[action, detail, undo?, who?], ...]
   // (or false to cancel). The copy is shown at once and saved shortly after. Returns the new history entries.
-  function change(edit, { quiet = false } = {}) {
+  // quiet: no points, no "Saved", no celebration. mine: a quiet change the person still made (points saved for an action that
+  // went to the server), so a new level it reaches is still celebrated.
+  function change(edit, { quiet = false, mine: own0 = false } = {}) {
     const cur = state.value;
     if (!cur) return [];
     const next = structuredClone(cur);
@@ -131,7 +133,7 @@ export function createDataStore({ fetchJson = getState, connect = connectLive, s
     const mine = entries.filter((e) => e.who !== "System");
     if (mine.length && !quiet) hooks.notify("saved", { entries: mine });
     // after a change by the person, with the data before and after it (core/celebrate.js: a new level)
-    if (hooks.changed && !quiet) hooks.changed(cur, next, lines || []);
+    if (hooks.changed && (!quiet || own0)) hooks.changed(cur, next, lines || []);
     return entries;
   }
   function schedule(ms) { clearTimeout(timer); timer = setTimeout(flush, ms); }

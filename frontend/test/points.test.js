@@ -351,7 +351,7 @@ test("a new level is celebrated only when a change by the person moves the level
   assert.equal(levelReached(S1, S0, mine), 0); // a level lower is not celebrated
   assert.equal(levelReached(S0, S1, [["Undid a change", "x"]]), 0); // Undo
   assert.equal(levelReached(S0, S1, [["Sorted payments", "x", null, "System"]]), 0); // the app's own upkeep
-  assert.equal(levelReached(S0, S1, []), 0); // points saved quietly
+  assert.equal(levelReached(S0, S1, []), 2); // a change with no history line, like dismissing an alert
   assert.equal(levelReached(null, S1, mine), 0); // the first load
 });
 
@@ -367,4 +367,17 @@ test("the data store tells about a change by the person, not about quiet saves o
   assert.deepEqual(seen, [2]);
   D.undo(e);
   assert.deepEqual(seen, [2, 0]);
+  // points for something the person did on the server, saved quietly, still tell; the daily visit does not
+  D.change((S) => { award(S, "review:gap:1", "review", 1, DAY); return []; }, { quiet: true, mine: true });
+  assert.deepEqual(seen, [2, 0, 2]);
+});
+
+test("dismissing an alert that brings a new level celebrates it (no history line, points from the change itself)", async () => {
+  const seen = [];
+  const S0 = base(); award(S0, "visit:" + DAY, "visit", 100 - POINTS.alert, DAY);
+  const D = createDataStore({ fetchJson: async () => ({ rev: 1, audit: [], ...S0 }), connect: () => () => {}, send: async () => ({ ok: true, status: 200, json: { rev: 2, auditIds: [] } }), delay: 5,
+    earn: (a, b, L) => earnFromChange(a, b, L, DAY), changed: (a, b, L) => seen.push(levelReached(a, b, L)) });
+  await D.load();
+  D.change((n) => { n.dismissed = { ...(n.dismissed || {}), "bill:1": 1 }; }); // as the Alerts page dismisses
+  assert.deepEqual(seen, [2]);
 });

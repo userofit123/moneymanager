@@ -1,6 +1,6 @@
 // A small party when the person reaches a new level: confetti from the top of the screen and a burst from the level badge
-// (components/LevelParty.vue draws it), with a short message. Only after a change the person made (not on load, a sync, Undo
-// or points saved quietly); never with points off or with the setting off (Settings → Preferences, "moneyCelebrate": "off").
+// (components/LevelParty.vue draws it), with a short message. Only after something the person did (also one with no history
+// line, like dismissing an alert; not on load, a sync, Undo or the daily visit); never with points off or with the setting off (Settings → Preferences, "moneyCelebrate": "off").
 import { ref } from "vue";
 import { i18n } from "../i18n.js";
 import { data } from "../stores/data.js";
