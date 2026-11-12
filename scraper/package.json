@@ -6,7 +6,7 @@
   "type": "module",
   "dependencies": {
     "israeli-bank-scrapers": "6.12.2",
-    "puppeteer": "24.43.1"
+    "puppeteer": "25.16.0"
   },
   "scripts": {
     "test": "node --test"
