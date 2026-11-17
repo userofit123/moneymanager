@@ -21,6 +21,7 @@
     "partlyT": "Partly funded",
     "stillDue": "Still due",
     "partlyN": "It takes the rest as soon as there is free money.",
+    "partlyNLeft": "Last month's leftover was not enough. It gets more on the 1st.",
     "needsT": "Needs money",
     "putInMonth": "Put in this month",
     "priorityN": "Jars fill in this order, so jar 1 gets free money first. Click to pick a place, or use the arrows.",

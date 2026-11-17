@@ -37,6 +37,15 @@ export function useJars() {
   const bufShown = computed(() => (bufText.value != null ? bufText.value : M.value.F.buffer || ""));
   const BUF_PRESETS = [0, 1000, 2000, 5000, 10000];
 
+  // Fill jars: "leftover" (on the 1st, from what was left free at the end of last month) or "asap" (whenever there is free money)
+  const FILL_MODES = [["leftover", "From last month's leftover"], ["asap", "As soon as money comes in"]];
+  const fillMode = computed(() => (S.value.cfg?.jarFill === "asap" ? "asap" : "leftover"));
+  const setFillMode = (v) => save((s) => {
+    if (fillMode.value === v) return false;
+    s.cfg = { ...(s.cfg || {}), jarFill: v };
+    return [["Changed how jars fill", FILL_MODES.find((m) => m[0] === v)[1]]];
+  });
+
   const filling = ref(false);
   async function fill() {
     filling.value = true;
@@ -100,7 +109,7 @@ export function useJars() {
     return s.key === "noAuto" ? TP(T("noAutoT"), [], T("noAutoN"))
       : s.key === "full" || s.key === "paidOff" ? TP(T("fullT"), [[T("nowIn"), fm(j.bal)], ...(j.need > 0 ? [[t("jars.goal"), fm(j.need)]] : [])], T(s.bill ? "fullBillN" : "fullN"))
       : s.key === "funded" ? TP(T("fundedT"), [[T("putIn"), fm(s.got)], ...(s.bill ? [] : [[T("monthly"), fm(s.share)]])], T("fundedN"))
-      : s.key === "partly" ? TP(T("partlyT"), [[T("putIn"), fm(s.got)], [T("monthly"), fm(s.share)], [T("stillDue"), fm(s.want)]], T("partlyN"))
+      : s.key === "partly" ? TP(T("partlyT"), [[T("putIn"), fm(s.got)], [T("monthly"), fm(s.share)], [T("stillDue"), fm(s.want)]], T(fillMode.value === "leftover" ? "partlyNLeft" : "partlyN"))
       : TP(T("needsT"), [...(s.share > 0 ? [[T("monthly"), fm(s.share)]] : []), [T("putInMonth"), fm(0)], [T("stillDue"), fm(s.want)]], t(s.soon ? "jars.stTip.needsSoon" : "jars.stTip.needsNo"));
   }
   const stTip = (j) => stBody(j) + "\n" + t("jars.history");
@@ -124,7 +133,13 @@ export function useJars() {
   // Free to use below zero right before payday (lib/payday.js): what it will likely be after payday, and whether the income
   // still to come this month covers it (then the jars simply wait for it: no "too much" warning)
   const pay = computed(() => (M.value && M.value.F.over > 0 ? paydayWords(t, keyNums.value?.payday, locale.value === "he") : null));
-  const monthLine = computed(() => { const m = M.value.month; return m.done ? t("jars.allDone") : m.waiting && pay.value?.covered ? t("jars.waitPay", { amount: fm(m.still) }) : m.waiting ? (M.value.F.buffer > 0 ? t("jars.waitingKept", { amount: fm(m.still), kept: fm(M.value.F.buffer) }) : t("jars.waiting", { amount: fm(m.still) })) : t("jars.filling"); });
+  // in "leftover" mode the jars fill only on the 1st, so the line says that instead of waiting for free money
+  const monthLine = computed(() => {
+    const m = M.value.month;
+    if (m.done) return t("jars.allDone");
+    if (fillMode.value === "leftover") return m.still > 0 ? t("jars.waitingLeft", { amount: fm(m.still) }) : t("jars.fillingLeft");
+    return m.waiting && pay.value?.covered ? t("jars.waitPay", { amount: fm(m.still) }) : m.waiting ? (M.value.F.buffer > 0 ? t("jars.waitingKept", { amount: fm(m.still), kept: fm(M.value.F.buffer) }) : t("jars.waiting", { amount: fm(m.still) })) : t("jars.filling");
+  });
 
   // One goal's line.
   function goalLine(g) {
@@ -138,7 +153,7 @@ export function useJars() {
 
   return {
     t, tk, locale, data, S, M, home, mlab, save, ctx, fm, f0, tx, dstr, catLabel,
-    bufText, setBuffer, bufShown, BUF_PRESETS, filling, fill,
+    bufText, setBuffer, bufShown, BUF_PRESETS, fillMode, setFillMode, filling, fill,
     menu, toggleMenu, histOf, hist, histName, noteText, amtText, amtCls, histOpen, HIST_N, allOf, allKind, openAll, allName, ofKind, allHist, allKinds,
     openNew, openEdit, doneAsk, askDone, doDone, delAsk, askDel, doDel, relAmt, relAsk, doRelease, why, resetAsk, resetShow, askReset, doReset,
     payoff, kindOf, stLabel, stBody, stTip, priTip, catTip, etaWhen, etaShow, etaTip, statTips, lateText, ringText, RC, KI, col, monthLine, pay,

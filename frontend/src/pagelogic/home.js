@@ -86,7 +86,7 @@ export function useHome() {
   });
 
   // Accounts: one card per bank or wallet, listing each currency when there is more than one.
-  const money2 = (x) => currencySymbol(x.cur) + Number(x.v).toLocaleString("en-US", { minimumFractionDigits: 2 });
+  const money2 = (x) => (x.v < 0 ? "−" : "") + currencySymbol(x.cur) + Math.abs(x.v).toLocaleString("en-US", { minimumFractionDigits: 2 });
   const accSub = (g) => {
     if (!g.multi) return { lines: null, text: subOf(g.L[0].s || ""), chips: g.manual ? t("home.manual") : "" };
     const L = [...g.L]; if (g.wallet && !L.some((x) => x.cur == "ILS")) L.push({ cur: "ILS", v: 0, none: 1 });

@@ -18,6 +18,7 @@ const ruleOpts = (r) => ({ ...(where(r.f) ? { f: where(r.f) } : {}), ...(how(r.m
 const DEFAULT_CFG = {
   jars: 1, bills: 1, price: 1, budget: 1, card: 1, large: 1, xfer: 1, recon: 1, pending: 1, sync: 1, uncat: 1, forecast: 1, docs: 1,
   cardPct: 10, largeAmt: 5000, billDays: 3, budgetPct: 80, gapDays: 3,
+  jarFill: "leftover", // Fill jars: "leftover" (on the 1st, from what was left free last month) or "asap" (whenever there is free money)
 };
 
 const setting = async (key, dflt) => {

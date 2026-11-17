@@ -19,7 +19,7 @@ import { useJars } from "../pagelogic/jars.js";
 import "../styles/pages/jars.css"; // this page's own styles
 
 const {
-  t, tk, data, M, home, save, ctx, fm, f0, tx, dstr, catLabel, bufText, setBuffer, bufShown, filling, fill,
+  t, tk, data, M, home, save, ctx, fm, f0, tx, dstr, catLabel, bufText, setBuffer, bufShown, fillMode, setFillMode, filling, fill,
   menu, toggleMenu, hist, histName, noteText, amtText, histOpen, HIST_N, allOf, allKind, openAll, allName, allHist, allKinds,
   openNew, openEdit, doneAsk, askDone, doDone, delAsk, askDel, doDel, relAmt, relAsk, doRelease, why, resetAsk, resetShow, askReset, doReset,
   payoff, kindOf, stLabel, stTip, priTip, catTip, etaShow, etaTip, statTips, lateText, ringText, RC, KI, col, monthLine, pay,
@@ -68,6 +68,13 @@ onMounted(() => { data.start(); });
         <div class="kctl">
           <div class="kchips"><button v-for="v in [0, 1000, 2000, 5000, 10000]" :key="v" type="button" :class="{ on: M.F.buffer == v }" data-a="bufSet" @click="setBuffer(v)">{{ v ? fm(v) : t("jars.none") }}</button></div>
           <div class="kin"><span class="kc">₪</span><MoneyInput id="jbuf" :model-value="bufShown" :placeholder="t('jars.other')" :aria-label="t('jars.keepLabel')" @update:model-value="bufText = $event" @change="setBuffer(bufText ?? M.F.buffer)" @keydown.enter="$event.target.blur()" /></div>
+        </div>
+      </div>
+
+      <div class="card jbufc">
+        <div class="kt"><div class="kh"><div><b v-tip="t('jars.fillModeTip')">{{ t("jars.fillMode") }}</b><div class="sm">{{ t("jars.fillModeSub") }}</div></div></div></div>
+        <div class="kctl">
+          <div class="kchips" role="radiogroup" :aria-label="t('jars.fillMode')"><button v-for="m in ['leftover', 'asap']" :key="m" type="button" role="radio" :aria-checked="fillMode == m" :class="{ on: fillMode == m }" data-a="jarFillMode" @click="setFillMode(m)">{{ m == "leftover" ? t("jars.fillLeftover") : t("jars.fillAsap") }}</button></div>
         </div>
       </div>
 

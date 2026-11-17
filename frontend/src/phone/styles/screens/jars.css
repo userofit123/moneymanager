@@ -160,6 +160,16 @@ html.phone .ph-jars-keep > b {
   font-size: 16px;
 }
 
+/* "Fill jars": its name is a tap that explains both choices */
+html.phone .ph-jars-fillt {
+  margin: 0;
+  color: var(--tx);
+}
+
+html.phone .ph-jars-fillt b {
+  font-size: 16px;
+}
+
 html.phone .ph-jars-keep > p {
   margin: 2px 0 10px;
   color: var(--tx2);

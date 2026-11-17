@@ -66,7 +66,7 @@ const note = computed(() => {
       <div class="cdg">
         <div class="cdt"><span>{{ tk("lLast") }}</span><b>{{ c.status.since ? when(c.status.since) : tk("never") }}</b></div>
         <div v-if="c.provider != 'wise'" class="cdt"><span>{{ tk("lVerified") }}</span><b><template v-if="codeAt">{{ tk("codeOn") }}<span class="dt">·</span>{{ fmtDay(codeAt) }}</template><template v-else>{{ tk("codeNot") }}</template></b></div>
-        <div class="cdt"><span>{{ tk("lFound") }}</span><b><span v-if="accs.length" class="accs cacc"><span v-for="a in accs" :key="a.n"><bdi>{{ a.n }}<span v-if="showTail(a)" class="ctail">·· {{ a.tail }}</span></bdi><span class="dt">·</span><bdi class="sm num">{{ fmCur(Math.abs(a.v), a.cur) }}</bdi></span></span><template v-else>{{ tk("noneYet") }}</template></b></div>
+        <div class="cdt"><span>{{ tk("lFound") }}</span><b><span v-if="accs.length" class="accs cacc"><span v-for="a in accs" :key="a.n"><bdi>{{ a.n }}<span v-if="showTail(a)" class="ctail">·· {{ a.tail }}</span></bdi><span class="dt">·</span><bdi class="sm num">{{ fmCur(a.kind == "card" ? Math.abs(a.v) : a.v, a.cur) }}</bdi></span></span><template v-else>{{ tk("noneYet") }}</template></b></div>
       </div>
     </div>
     <SlideOpen :open="open">
