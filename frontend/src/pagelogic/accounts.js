@@ -32,7 +32,8 @@ export function useAccounts(sel, { openAcc = () => {} } = {}) {
   const mon = (k, o) => new Date(+k.slice(0, 4), +k.slice(5, 7) - 1, 1).toLocaleDateString(loc.value, o);
   const MSHORT = (k) => mon(k, { month: "short" }), MNAME = (k) => mon(k, { month: "long" });
   const money = (v) => (v < 0 ? "−" : "") + "₪" + f0(v);
-  const curList = (L) => L.map((x) => fmCur(x.v, x.cur)).join(" · ");
+  // each amount kept left to right, so in Hebrew the minus stays before "EUR 150", not after it
+  const curList = (L) => L.map((x) => "\u2066" + fmCur(x.v, x.cur) + "\u2069").join(" · ");
   // A currency with no exchange rate yet is not counted in shekels (the same as Home): its amounts, then "not counted yet".
   const noRate = (L) => L.some((x) => !hasRate(x, fx.value));
   const curSub = (L) => curList(L) + (noRate(L) ? " · " + t("tip.noRate") : "");
