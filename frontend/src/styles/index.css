@@ -32,6 +32,7 @@
 @import "./theme.css";
 @import "./components/tx-window.css";
 @import "./components/jar-form.css";
+@import "./components/jars-reset.css";
 @import "./early/settings.css";
 @import "./components/app-windows.css";
 @import "./components/points.css";

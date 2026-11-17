@@ -1,4 +1,4 @@
-// What the phone's Jars and Jar screens share: the jar's ⋯ actions (the computer's ⋯ menu and its up/down arrows) and the
+// What the phone's Jars and Jar screens share: the Jars screen's own ⋯ actions, the jar's ⋯ actions (the computer's ⋯ menu and its up/down arrows) and the
 // questions asked before marking a jar as done or deleting it (the computer's confirm windows). J is useJars().
 import { ask } from "../../core/ask.js";
 
@@ -33,4 +33,9 @@ export function jarActions(J, j) {
     { label: t("jars.markDone"), icon: ICON.done, run: () => askDoneOf(J, j.id) },
     { label: t("jars.menu.del"), icon: ICON.del, danger: true, run: () => askDelOf(J, j.id) },
   ];
+}
+
+// the Jars screen's own ⋯ (the computer's page menu): Reset jars
+export function pageActions(J) {
+  return [{ label: J.t("jars.reset.item"), icon: ICON.reopen, run: J.askReset }];
 }

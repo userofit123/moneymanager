@@ -645,6 +645,17 @@
       "title": "Delete the jar “{name}”?",
       "text": "The jar is removed. Payments that came out of it stay in your activity, but are no longer linked to a jar."
     },
+    "reset": {
+      "menu": "Options for all jars",
+      "item": "Reset jars",
+      "title": "Reset all jars?",
+      "text": "All {amount} in your jars comes out and goes back in, in priority order: first jars with a goal, up to their goal; what is left is shared between jars with no goal, by their monthly amounts.",
+      "same": "Completed jars, and money in a jar that is not in your accounts, stay as they are. One Undo puts every jar back.",
+      "now": "Now",
+      "after": "After",
+      "free": "Stays free: {amount}",
+      "yes": "Reset jars"
+    },
     "rel": {
       "text": "Take {amount} back from the jars, starting with the lowest priority? Their saved amounts go down; nothing else changes.",
       "yes": "Take it back",

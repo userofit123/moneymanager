@@ -3,6 +3,7 @@
 // what is safe to put in jars, what went in this month, the amount kept untouched, each jar, goals and completed jars.
 // What the page knows and does lives in pagelogic/jars.js (shared with the phone's Jars screens); "How is this worked out?"
 // is the shared AvailWhy window, the ⋯ and history menus the shared PopMenu, a payment in a jar's history opens its entry window.
+// The page's own ⋯ (in the header) holds Reset jars, which asks first in the shared JarsReset window.
 import { onMounted } from "vue";
 import { vTip } from "../core/tooltip.js";
 import BaseCard from "../components/BaseCard.vue";
@@ -13,13 +14,14 @@ import MoneyInput from "../components/MoneyInput.vue";
 import PageHeader from "../components/PageHeader.vue";
 import PopMenu from "../components/PopMenu.vue";
 import AvailWhy from "./AvailWhy.vue";
+import JarsReset from "../components/JarsReset.vue";
 import { useJars } from "../pagelogic/jars.js";
 import "../styles/pages/jars.css"; // this page's own styles
 
 const {
   t, tk, data, M, home, save, ctx, fm, f0, tx, dstr, catLabel, bufText, setBuffer, bufShown, filling, fill,
   menu, toggleMenu, hist, histName, noteText, amtText, histOpen, HIST_N, allOf, allKind, openAll, allName, allHist, allKinds,
-  openNew, openEdit, doneAsk, askDone, doDone, delAsk, askDel, doDel, relAmt, relAsk, doRelease, why,
+  openNew, openEdit, doneAsk, askDone, doDone, delAsk, askDel, doDel, relAmt, relAsk, doRelease, why, resetAsk, resetShow, askReset, doReset,
   payoff, kindOf, stLabel, stTip, priTip, catTip, etaShow, etaTip, statTips, lateText, ringText, RC, KI, col, monthLine, pay,
   goalLine, GCLS, doneLine, goalFix, moveJar, moveJarTo, reopenJar,
 } = useJars();
@@ -27,7 +29,9 @@ onMounted(() => { data.start(); });
 </script>
 
 <template>
-  <PageHeader :title="t('nav.jars')" />
+  <PageHeader :title="t('nav.jars')">
+    <button v-if="M && M.jars.length" type="button" class="ib" data-a="jarsMenu" :aria-label="t('jars.reset.menu')" aria-haspopup="menu" @click="toggleMenu('page', 'page', $event)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" /></svg></button>
+  </PageHeader>
   <section class="view on" id="jars">
     <template v-if="!M">
       <p v-if="data.error.value" class="sm">{{ t("jars.loadError") }}</p>
@@ -137,7 +141,10 @@ onMounted(() => { data.start(); });
 
   <template v-if="M">
     <PopMenu :at="menu?.btn" :cls="menu?.kind == 'hist' ? 'hist' : ''" @close="menu = null">
-      <template v-if="menu?.kind == 'more'">
+      <template v-if="menu?.kind == 'page'">
+        <button role="menuitem" data-a="jarsReset" @click="askReset"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 3-6.2M4 4v4h4" /></svg>{{ t("jars.reset.item") }}</button>
+      </template>
+      <template v-else-if="menu?.kind == 'more'">
         <button role="menuitem" data-a="jarEdit" @click="openEdit(menu.id)"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" /></svg>{{ t("jars.menu.edit") }}</button>
         <button role="menuitem" data-a="jarDone" @click="askDone(menu.id)"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7" /></svg>{{ t("jars.markDone") }}</button>
         <button role="menuitem" class="dz" data-a="jarDel" @click="askDel(menu.id)"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg>{{ t("jars.menu.del") }}</button>
@@ -170,6 +177,8 @@ onMounted(() => { data.start(); });
       <div class="sm" style="margin-bottom:14px;line-height:1.5">{{ t("jars.del.text") }}</div>
       <div class="flex" style="justify-content:flex-end;gap:10px"><button type="button" class="btn o" data-a="close" @click="delAsk = null">{{ t("jars.cancel") }}</button><button type="button" class="btn r" data-a="jarDelYes" @click="doDel">{{ t("jars.menu.del") }}</button></div>
     </BaseSheet>
+
+    <JarsReset :open="resetAsk" :plan="resetShow" @close="resetAsk = false" @yes="doReset" />
 
     <BaseSheet :open="relAsk" @close="relAsk = false">
       <h3>{{ t("jars.takeBack", { amount: fm(relAmt) }) }}</h3>

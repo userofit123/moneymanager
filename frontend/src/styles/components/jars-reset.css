@@ -1,0 +1,52 @@
+/* "Reset all jars?" (components/JarsReset.vue): each open jar now and after, in a column each. */
+
+.jrs-text {
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.jrs {
+  margin-bottom: 12px;
+}
+
+.jrs-r {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  border-top: 1px solid var(--ol);
+  white-space: nowrap;
+}
+
+.jrs-r > :not(.jrs-n) {
+  flex: none;
+  min-width: 80px;
+  text-align: end;
+}
+
+.jrs-r > span:not(.jrs-n) {
+  color: var(--tx2);
+}
+
+.jrs-n {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jrs-h {
+  border-top: 0;
+  font-size: 12px;
+  color: var(--tx2);
+}
+
+.jrs-free .jrs-n {
+  color: var(--tx2);
+}
+
+.jrs-btns {
+  justify-content: flex-end;
+  gap: 10px;
+}

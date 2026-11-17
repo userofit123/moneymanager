@@ -4,7 +4,7 @@
 // and three numbers), the amount kept untouched, the jars as the computer's jar cards in a sliding row (Fill now and
 // New jar at the heading), the goals with their bars and buttons, and the completed jars. Every number comes from
 // pagelogic/jars.js, the same as the computer. What the computer shows on hover opens in a sheet on a tap.
-// A jar card opens the jar's own screen; its ⋯ holds Edit, move up or down, Mark as done and Delete.
+// The ⋯ at the top holds Reset jars (asks first, components/JarsReset.vue). A jar card opens the jar's own screen; its ⋯ holds Edit, move up or down, Mark as done and Delete.
 import { ref, computed, onMounted } from "vue";
 import { ask } from "../../core/ask.js";
 import { explain } from "../../core/tooltip.js";
@@ -21,13 +21,15 @@ import ActionSheet from "../components/ActionSheet.vue";
 import PIcon from "../components/PIcon.vue";
 import LoadError from "../components/LoadError.vue";
 import JarCard from "./JarCard.vue";
-import { jarActions, askDoneOf } from "./jarParts.js";
+import { jarActions, askDoneOf, pageActions } from "./jarParts.js";
+import IconButton from "../components/IconButton.vue";
+import JarsReset from "../../components/JarsReset.vue";
 defineProps({ id: { type: String, default: null } });
 
 const J = useJars();
 const {
   t, tk, data, M, home, save, ctx, fm, f0, tx, bufText, setBuffer, bufShown, BUF_PRESETS, filling, fill,
-  openNew, relAmt, doRelease, why, statTips, col, monthLine, pay, goalLine, GCLS, doneLine, goalFix, moveJarTo, reopenJar,
+  openNew, relAmt, doRelease, why, statTips, col, monthLine, pay, goalLine, GCLS, doneLine, goalFix, moveJarTo, reopenJar, resetAsk, resetShow, doReset,
 } = J;
 const nav = usePhoneNav();
 onMounted(() => data.start());
@@ -45,11 +47,15 @@ const setPri = (v) => { const j = priJar.value; if (j) save((s) => moveJarTo(s, 
 const moreJar = computed(() => M.value?.jars.find((x) => x.id === moreOf.value) || null);
 const priJar = computed(() => M.value?.jars.find((x) => x.id === priOf.value) || null);
 const actions = computed(() => (moreJar.value ? jarActions(J, moreJar.value) : []));
+const pageOpen = ref(false), pageActs = computed(() => pageActions(J));
 const priOptions = computed(() => (M.value?.jars || []).map((x, k) => ({ value: k + 1, label: k + 1 + " · " + tx(x.n) })));
 </script>
 
 <template>
   <PhoneScreen class="ph-jars">
+    <template #actions>
+      <IconButton v-if="M && M.jars.length" :label="t('jars.reset.menu')" icon-name="more" @tap="pageOpen = true" />
+    </template>
     <LoadError v-if="data.error.value && !M" :text="t('jars.loadError')" />
     <SkeletonRows v-else-if="!M" :rows="5" />
 
@@ -135,6 +141,8 @@ const priOptions = computed(() => (M.value?.jars || []).map((x, k) => ({ value: 
       </ListGroup>
     </template>
 
+    <ActionSheet v-model:open="pageOpen" :title="t('nav.jars')" :actions="pageActs" />
+    <JarsReset :open="resetAsk" :plan="resetShow" @close="resetAsk = false" @yes="doReset" />
     <ActionSheet v-model:open="moreOpen" :title="moreJar ? tx(moreJar.n) : ''" :actions="actions" />
     <PickerSheet v-if="M" v-model:open="priOpen" required :title="t('jars.pick')" :options="priOptions" :model-value="priJar ? priJar.ix + 1 : null" @update:model-value="setPri" />
     <AvailWhy v-if="home" v-model:open="why" :M="home" />

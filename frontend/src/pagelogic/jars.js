@@ -16,7 +16,7 @@ import { TP } from "../core/tooltip.js";
 import { fm, f0 } from "../format.js";
 import { dstr } from "../dates.js";
 import { isolateNumbers } from "../core/polish.js";
-import { jarCtx, releaseJars, takeBackAmt, markDone, deleteJar, jarHistory, jarFormOf, goalFix, moveJar, moveJarTo, reopenJar } from "../lib/jars.js";
+import { jarCtx, releaseJars, takeBackAmt, markDone, deleteJar, jarHistory, jarFormOf, goalFix, moveJar, moveJarTo, reopenJar, resetPlan, resetJars } from "../lib/jars.js";
 import { displayName } from "../lib/activity.js";
 
 export function useJars() {
@@ -81,6 +81,11 @@ export function useJars() {
   const relAmt = computed(() => takeBackAmt(M.value.F.jarsOver, M.value.F.inJars));
   const doRelease = () => { relAsk.value = false; const amt = relAmt.value; if (!(amt > 0)) return; save((next) => { const l = releaseJars(next, amt, ctx()); return l.length ? l : false; }); toast(t("jars.rel.done")); };
   const why = ref(false);
+  // Reset jars (the page's own ⋯ menu): asks first, showing each open jar now and after (lib/jars.js resetPlan).
+  const resetAsk = ref(false);
+  const resetShow = computed(() => (resetAsk.value ? resetPlan(S.value) : null));
+  const askReset = () => { menu.value = null; resetAsk.value = true; };
+  const doReset = () => { resetAsk.value = false; save((next) => { const l = resetJars(next, ctx()); return l.length ? l : false; }); };
 
   // One jar's texts.
   const ALLB = { "*": "all", "*i": "allIrregular", "*a": "allAny" };
@@ -135,7 +140,7 @@ export function useJars() {
     t, tk, locale, data, S, M, home, mlab, save, ctx, fm, f0, tx, dstr, catLabel,
     bufText, setBuffer, bufShown, BUF_PRESETS, filling, fill,
     menu, toggleMenu, histOf, hist, histName, noteText, amtText, amtCls, histOpen, HIST_N, allOf, allKind, openAll, allName, ofKind, allHist, allKinds,
-    openNew, openEdit, doneAsk, askDone, doDone, delAsk, askDel, doDel, relAmt, relAsk, doRelease, why,
+    openNew, openEdit, doneAsk, askDone, doDone, delAsk, askDel, doDel, relAmt, relAsk, doRelease, why, resetAsk, resetShow, askReset, doReset,
     payoff, kindOf, stLabel, stBody, stTip, priTip, catTip, etaWhen, etaShow, etaTip, statTips, lateText, ringText, RC, KI, col, monthLine, pay,
     goalLine, GCLS, doneLine, goalFix, moveJar, moveJarTo, reopenJar, markDone, deleteJar,
   };
