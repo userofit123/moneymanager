@@ -19,6 +19,7 @@ import ToastHost from "./components/ToastHost.vue";
 import LevelParty from "./components/LevelParty.vue";
 import { UP } from "./core/updates.js";
 import AuthScreen from "./components/AuthScreen.vue";
+import UpdateNotice from "./components/shell/UpdateNotice.vue";
 import AppNav from "./components/shell/AppNav.vue";
 import JobBar from "./components/shell/JobBar.vue";
 import QuickSheet from "./components/shell/QuickSheet.vue";
@@ -91,6 +92,7 @@ addEventListener("offline", () => (online.value = false));
     <AssistWindow />
     <Suggestions />
     <WelcomePops v-if="app.phase === 'ready'" />
+    <UpdateNotice />
   </template>
   <AskPop />
   <ToastHost />

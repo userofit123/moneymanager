@@ -16,6 +16,7 @@ import { swipeTarget, tabStep, tabTap } from "../lib/tabSwipe.js";
 import ScreenHost from "./ScreenHost.vue";
 import TabBar from "./components/TabBar.vue";
 import OfflinePill from "./components/OfflinePill.vue";
+import UpdateNotice from "../components/shell/UpdateNotice.vue";
 import FormHost from "../components/FormHost.vue";
 import "./styles/index.css";
 
@@ -179,6 +180,7 @@ onBeforeUnmount(() => { stopEdge?.(); stopSwipe?.(); document.documentElement.cl
       </KeepAlive>
     </div>
     <TabBar />
+    <UpdateNotice />
     <AppearancePanel />
     <AddSheet />
     <ExplainSheet />

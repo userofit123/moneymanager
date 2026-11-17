@@ -10,7 +10,7 @@ import { syncState } from "../../core/sources.js";
 import { suggestions, suggestOpen } from "../../core/suggest.js";
 import { appearanceOpen, syncOpen } from "../../core/shell.js";
 import { installPrompt, install } from "../../core/pwa.js";
-import { UP } from "../../core/updates.js";
+import { ownUpdate, updateLine } from "../../core/updates.js";
 import { helpOn } from "../help.js";
 import { usePhoneNav } from "../navigation.js";
 import { ICONS } from "../icons.js";
@@ -28,10 +28,11 @@ const nav = usePhoneNav();
 const menu = pages.filter((p) => p.nav && !TABS.includes(p.name) && p.name !== "settings");
 const setPage = pages.find((p) => p.name === "settings");
 const badge = (p) => (p.name === "alerts" ? alertList.value.length : 0);
-const update = computed(() => ["available", "downloading", "ready", "installing"].includes(UP.status));
+// this app's own update: in the Android app its own download, not the server's (core/updates.js ownUpdate)
+const update = computed(() => ["available", "downloading", "ready", "installing"].includes(ownUpdate.value.status));
 const openUpdate = () => nav.push("settingsSection", "app");
 // the update row says where the update is, as the computer's update button: ready to get, coming down, waiting, being put in
-const updateText = computed(() => (UP.status === "installing" ? t("upd.installing") : UP.status === "ready" ? t("upd.restart") : UP.status === "downloading" ? t("upd.updating", { p: UP.percent }) : ""));
+const updateText = computed(() => (ownUpdate.value.status === "installing" ? t("upd.installing") : updateLine(t)));
 </script>
 
 <template>

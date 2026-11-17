@@ -1,13 +1,15 @@
 // New versions: the "Update available" button in the menu, the update card in Settings → Version and updates,
 // and the "has been updated" window after an update.
-import { reactive } from "vue";
+import { reactive, computed } from "vue";
 import { getJson } from "./http.js";
 import { readPref, writePref } from "./prefs.js";
 import { i18n } from "../i18n.js";
 import { downloads } from "../lib/downloads.js";
 import { deskState, saveDeskChoices } from "../lib/deskUpdates.js";
+import { ownUpdateView } from "../lib/ownUpdate.js";
 import { go } from "../router.js";
 import { openSettingsTab } from "../views/settings/tab.js";
+import { isPhone } from "../mobile.js";
 
 // status: idle | checking | uptodate | available | downloading | ready | installing | error. The desktop app reports its own.
 // percent is -1 while the size is unknown (mb then shows the megabytes so far). choices: the desktop app's three switches (null for an older app);
@@ -35,6 +37,10 @@ export function deskSetChoices(c) {
   UP.auto = !!(UP.choices ? UP.choices.autoDownload : c.autoDownload);
   saveDeskChoices(D(), UP.choices || c).then((s) => s && fromDesk(s)).catch(() => {});
 }
+// The desktop app does the work and reports how far it got through onUpdate, so these only start it.
+export function deskCheck() { const d = D(); if (d) { UP.status = "checking"; d.check(); } else upWeb(true); }
+export const deskDownload = () => D()?.download();
+export function deskInstall() { const d = D(); if (!d) return; UP.status = "installing"; setTimeout(() => d.install(), 150); }
 // asked again at each visit to the page until it is known: "unknown" can be only because the network was down at that moment
 export function deskMetered() {
   const d = D(); if (!d || !d.metered || UP.canTellMetered) return;
@@ -44,9 +50,10 @@ export function deskMetered() {
 // The newest version comes from the same check as the server's (UP.latest). Download fetches the APK with a progress bar,
 // then Install hands it to Android's installer (which asks to confirm). A file downloaded before the app was closed is offered as Install.
 // status: idle | checking | downloading | ready | error. err is a text key (updAllow, updDamaged, updFailed).
-// auto, wifiOnly: the person's choices "Download updates automatically" and "Only on Wi-Fi" (kept by the app, Updater.kt);
-// known is false until the app has told them (an older app has no such choices).
-export const APP = reactive({ status: "idle", percent: -1, mb: 0, staged: "", err: "", version: "", auto: false, wifiOnly: true, known: false });
+// auto, wifiOnly, autoCheck: the person's choices "Download updates automatically", "Only on Wi-Fi" and "Check for updates automatically"
+// (kept by the app, Updater.kt); known is false until the app has told them (an older app has no such choices),
+// hasAutoCheck is false for an app older than "Check for updates automatically".
+export const APP = reactive({ status: "idle", percent: -1, mb: 0, staged: "", err: "", version: "", auto: false, wifiOnly: true, autoCheck: true, hasAutoCheck: false, known: false });
 const appUpd = () => (typeof window !== "undefined" && window.mmApp && window.mmApp.update) || null;
 // a newer version than the app on this phone exists
 export const appBehind = () => !!(typeof window !== "undefined" && window.mmApp && UP.latest && vNewer(UP.latest, String(window.mmApp.version).split("-")[0]));
@@ -82,6 +89,7 @@ function resume(s) {
 // "Download updates automatically": a newer version found by a check downloads by itself, then waits for the person to tap Install.
 // "Only on Wi-Fi": on mobile data it waits (looked at again every 15 minutes). A failed download is tried again after 15 minutes.
 const RETRY = 15 * 6e4;
+let appChoices = Promise.resolve(); // the app's choices, read once at the start
 let appKnown = Promise.resolve(); // what the app said at the start (a running or ready download), so a second download never starts
 async function appAuto() {
   await appKnown;
@@ -90,11 +98,16 @@ async function appAuto() {
   if (APP.wifiOnly) { const c = await u.choices().catch(() => null); if (!c || c.metered) return; }
   if (APP.status === "idle" || APP.status === "error") appDownload();
 }
-export async function appSetChoices(auto, wifiOnly) {
+export async function appSetChoices(auto, wifiOnly, autoCheck = APP.autoCheck) {
   const u = appUpd(); if (!u || !u.setChoices) return;
-  Object.assign(APP, { auto, wifiOnly });
-  try { const c = await u.setChoices(auto, wifiOnly); Object.assign(APP, { auto: !!c.auto, wifiOnly: !!c.wifiOnly }); } catch { /* the switch shows what was asked */ }
+  Object.assign(APP, { auto, wifiOnly, autoCheck });
+  try { appTook(await (APP.hasAutoCheck ? u.setChoices(auto, wifiOnly, autoCheck) : u.setChoices(auto, wifiOnly))); } catch { /* the switch shows what was asked */ }
   appAuto();
+}
+// what the app says its choices are (an older app has no autoCheck: its checks stay automatic)
+function appTook(c) {
+  const has = typeof c.autoCheck === "boolean";
+  Object.assign(APP, { auto: !!c.auto, wifiOnly: !!c.wifiOnly, autoCheck: has ? c.autoCheck : true, hasAutoCheck: has, known: true });
 }
 export async function appInstall() {
   const u = appUpd(); if (!u) return;
@@ -105,6 +118,23 @@ function appForget() {
   Object.assign(APP, { status: "idle", staged: "" });
   appUpd()?.forget().catch(() => {});
 }
+
+// This app's own update, the same values on every screen (lib/ownUpdate.js), and what its buttons do.
+const appVersion = () => (typeof window !== "undefined" && window.mmApp ? String(window.mmApp.version).split("-")[0] : "");
+export const ownUpdate = computed(() => ownUpdateView({ desk: !!D(), phone: !!appUpd(), up: UP, app: APP, behind: appBehind(), phoneVersion: appVersion() }));
+export function ownDownload() { if (D()) deskDownload(); else if (appUpd()) appDownload(); }
+export function ownInstall() { if (D()) deskInstall(); else if (appUpd()) appInstall(); }
+// the short line the menu's button and the phone's More row show: coming down (share or megabytes), or waiting to be put in
+export function updateLine(t) {
+  const u = ownUpdate.value;
+  if (u.status === "downloading") return u.percent >= 0 ? t("upd.updating", { p: u.percent }) : t("upd.updatingMb", { mb: u.mb });
+  if (u.status === "ready") return u.where === "phone" ? t("upd.readyInstall") : t("upd.restart");
+  return "";
+}
+export function ownCheck() { if (appUpd()) appCheck(); else deskCheck(); }
+
+// Settings → Version and updates (the phone app shows it from the tab it is asked on, phone/PhoneApp.vue)
+export function openUpdates() { openSettingsTab("app"); if (!isPhone.value) go("/settings"); }
 
 let started = false;
 export function startUpdates() {
@@ -117,7 +147,9 @@ export function startUpdates() {
       if (s.running && APP.status === "idle") resume(s);
       else if (s.staged && APP.status === "idle") { Object.assign(APP, { status: "ready", staged: s.staged }); if (UP.latest && vNewer(UP.latest, s.staged)) appForget(); }
     }).catch(() => {});
-    if (u.choices) u.choices().then((c) => { Object.assign(APP, { auto: !!c.auto, wifiOnly: !!c.wifiOnly, known: true }); appAuto(); }).catch(() => {});
+    if (u.choices) appChoices = u.choices().then((c) => { appTook(c); appAuto(); }).catch(() => {});
+    // a tap on the update notification (an older app has no onShow)
+    if (u.onShow) u.onShow(openUpdates);
     setInterval(appAuto, RETRY);
     window.addEventListener("online", appAuto);
   }
@@ -125,9 +157,13 @@ export function startUpdates() {
     window.desktop.onUpdate((s) => fromDesk(s)); window.desktop.getUpdate().then(fromDesk).catch(() => {});
     deskMetered();
     // a click on the desktop app's "ready to install" or "did not download" notification
-    if (window.desktop.onShowUpdates) window.desktop.onShowUpdates(() => { openSettingsTab("app"); go("/settings"); });
+    if (window.desktop.onShowUpdates) window.desktop.onShowUpdates(openUpdates);
   }
-  else { upWeb().then(appAuto); setInterval(() => upWeb().then(appAuto), 6 * 36e5); }
+  else {
+    // the phone app with "Check for updates automatically" off checks only when the person taps Check for updates
+    const autoCheck = () => { if (!u || APP.autoCheck) upWeb().then(appAuto); };
+    appChoices.then(autoCheck); setInterval(autoCheck, 6 * 36e5);
+  }
 }
 
 // ---- the change log ----

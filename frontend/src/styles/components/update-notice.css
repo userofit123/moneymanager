@@ -1,0 +1,28 @@
+/* The update notice (components/shell/UpdateNotice.vue): a toast at the bottom middle of the window, clear of the + button. */
+
+.upn {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 22px;
+  z-index: 150;
+  display: flex;
+  justify-content: center;
+  padding-inline: 96px;
+  pointer-events: none;
+}
+
+.upn .toast {
+  inline-size: min(440px, 100%);
+}
+
+.upn .bar {
+  display: block;
+  margin: 8px 0 2px;
+}
+
+.upn .upn-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-start: 10px;
+}

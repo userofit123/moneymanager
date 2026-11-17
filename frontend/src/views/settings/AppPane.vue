@@ -2,7 +2,7 @@
 // Settings → Version and updates: the installed version, new versions, and (in a browser) installing the app or getting the desktop app.
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { UP, upWeb, APP, vNewer, appCheck, appDownload, appInstall, appSetChoices, deskSetChoices, deskMetered } from "../../core/updates.js";
+import { UP, APP, vNewer, appCheck, appDownload, appInstall, appSetChoices, deskSetChoices, deskMetered, deskCheck as check, deskDownload as download, deskInstall as installNow } from "../../core/updates.js";
 import { installPrompt, install } from "../../core/pwa.js";
 import SetSection from "./SetSection.vue";
 import SetRow from "./SetRow.vue";
@@ -33,10 +33,6 @@ const v = () => (UP.latest ? "⁦" + UP.latest + "⁩" : "");
 // the version the phone app is downloading (known even before the check answers, after the page reloaded mid-way)
 const appV = () => (APP.version ? "⁦" + APP.version + "⁩" : v());
 const changelog = () => openSettingsTab("rel");
-// The desktop app reports how far it got through onUpdate (core/updates.js), so these only start it.
-function check() { if (D) { UP.status = "checking"; D.check(); } else upWeb(true); }
-const download = () => D && D.download();
-function installNow() { if (!D) return; UP.status = "installing"; setTimeout(() => D.install(), 150); }
 // an older desktop app has only its one switch "Update automatically"
 const setAuto = (on) => deskSetChoices({ autoDownload: on });
 deskMetered();
@@ -62,6 +58,7 @@ deskMetered();
         <button v-if="!['checking', 'downloading'].includes(APP.status)" type="button" class="btn o s" data-a="appCheck" @click="appCheck">{{ tk("checkBtn") }}</button>
       </SetRow>
       <!-- the phone app's own choices (Updater.kt); Only on Wi-Fi matters only while automatic downloads are on -->
+      <SetRow v-if="MM.update && APP.known && APP.hasAutoCheck" toggle data-upd="appCheck" :title="tk('deskCheck')" :desc="tk('appCheckD')" :model-value="APP.autoCheck" @update:model-value="(on) => appSetChoices(APP.auto, APP.wifiOnly, on)" />
       <SetRow v-if="MM.update && APP.known" toggle data-upd="appAuto" :title="tk('appAuto')" :desc="tk('appAutoD')" :model-value="APP.auto" @update:model-value="(on) => appSetChoices(on, APP.wifiOnly)" />
       <SetRow v-if="MM.update && APP.known && APP.auto" toggle data-upd="appWifi" :title="tk('appWifi')" :desc="tk('appWifiD')" :model-value="APP.wifiOnly" @update:model-value="(on) => appSetChoices(APP.auto, on)" />
       <SetRow v-if="!MM.update" :title="behind ? tk('appNew', { v: v() }) : tk('appGet')" :desc="tk('appGetD')"><button type="button" class="btn s" :class="{ o: !behind }" data-a="appGet" @click="MM.open(RELEASES + '/latest')">{{ tk("appGetBtn") }}</button></SetRow>

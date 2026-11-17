@@ -323,6 +323,23 @@ html.phone .ph-offline .ph-ic {
   block-size: 18px;
 }
 
+/* ---- Update notice (components/shell/UpdateNotice.vue): above the tab bar, the width of a screen ---- */
+html.phone .upn {
+  inset-block-end: calc(var(--p-tab) + var(--sb) + 10px);
+  z-index: 26;
+  padding-inline: var(--p-gut);
+}
+
+html.phone .upn .toast {
+  inline-size: min(var(--p-max), 100%);
+}
+
+html.phone .upn .btn.s {
+  min-block-size: 36px;
+  padding-inline: 16px;
+  font-size: 13px;
+}
+
 /* ---- Tab bar ---- */
 html.phone .ph-tabs {
   position: fixed;

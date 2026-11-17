@@ -102,6 +102,7 @@
   "appAutoD": "A new version downloads by itself when one comes out. Installing still waits for you to tap Install, and Android asks you to confirm.",
   "appWifi": "Only on Wi-Fi",
   "appWifiD": "On mobile data the download waits until the phone is on Wi-Fi.",
+  "appCheckD": "Looks for a new version when the app opens and every 6 hours. Off: only when you tap Check for updates.",
   "appErr": {
     "updFailed": "The download did not finish. Check the internet connection and try again.",
     "updDamaged": "The downloaded file was not right, so it was deleted. Try again.",

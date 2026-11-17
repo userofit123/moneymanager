@@ -7,6 +7,12 @@ Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2
 ## [Unreleased]
 ### Windows app
 - **Updates work like in the phone app.** In Settings → Version and updates, three switches decide what happens by itself: **Check for updates automatically** (when the app starts, every 6 hours, and when you come back to it after an hour), **Download updates automatically** (in the background) and **Only on Wi-Fi** (on mobile data, such as a phone's hotspot, the download waits; shown only where the computer can tell). A new version now installs only when you press **Install**, never when you close the app; the app then opens again by itself. The download shows on the taskbar icon too, and in megabytes while its size is not known yet. When it is ready, or did not finish, while you are in another window, a notification tells you; click it to open Version and updates. A failed check or download is tried again after 15 minutes. If you had turned off **Update automatically**, **Download updates automatically** starts off. Also on Linux.
+- **A notice when a new version is out.** At the bottom of the window it shows the new version, **Download update**, then how far the download got, then **Install**. **View** opens Settings → Version and updates, and **×** hides it until the next version. Also on Linux and in the Android app.
+
+### Android app
+- **Check for updates automatically** is a new switch in Settings → Version and updates, next to **Download updates automatically** and **Only on Wi-Fi**. Off: the app looks for a new version only when you tap **Check for updates**.
+- **The update notice sits above the tabs**, and **Update available** in the **More** tab follows the app's own download and **Install**, not the server's.
+- **Tapping the update notification** (downloading, ready, or did not finish) opens Settings → Version and updates.
 
 ## [0.18.0] - 2026-11-18
 - **Amounts below zero show their minus sign.** An account, a total on Home, a currency line, the balance after a payment and the balance shown when you test a bank connection or under "Accounts found" in Settings › Connections used to show −₪500 as ₪500 (or €-150.00 with a short dash). The money flow on Home now also shows when your accounts add up to less than zero, and "What's left" under each step can go below ₪0 instead of stopping there. On the Accounts page in Hebrew, a foreign-currency amount below zero showed its minus at the wrong end ("EUR 150−"); it now reads "−EUR 150". On the phone too.
