@@ -35,11 +35,10 @@ export function jarActions(J, j) {
   ];
 }
 
-// the Jars screen's own ⋯ (the computer's page menu): the Fill jars switch and Reset jars
-export function pageActions(J) {
-  const on = J.fillMode.value === "leftover";
+// the Jars screen's own ⋯ (the computer's page menu): what money fills the jars (opens a choice) and Reset jars
+export function pageActions(J, pickFill) {
   return [
-    { label: J.t("jars.fillSwitch"), on, run: () => J.setFillMode(on ? "asap" : "leftover") },
+    { label: J.t("jars.fillFrom"), value: J.t(J.fillMode.value === "asap" ? "jars.fillAsapS" : "jars.fillLeftoverS"), run: pickFill },
     { label: J.t("jars.reset.item"), icon: ICON.reopen, run: J.askReset },
   ];
 }

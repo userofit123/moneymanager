@@ -58,17 +58,21 @@
   overflow-x: hidden;
 }
 
-/* a switch inside a menu (Fill jars on the Jars page): the whole row flips it, the menu stays open */
-.cmenu .mtg {
-  justify-content: space-between;
-  gap: 16px;
+/* a choice inside a menu (how the jars fill, on the Jars page): its name, a drop-down, and a line under it */
+.cmenu .mfill {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px 12px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--ol);
 }
 
-.cmenu .mtg .tg {
-  border: 0;
-  padding: 0;
+.cmenu .mfill label {
+  font-size: 13px;
+  color: var(--tx2);
 }
 
-.cmenu .mtg .tg input {
-  pointer-events: none;
+.cmenu .mfill select {
+  width: 100%;
 }

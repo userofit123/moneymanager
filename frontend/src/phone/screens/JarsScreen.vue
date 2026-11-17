@@ -47,7 +47,8 @@ const setPri = (v) => { const j = priJar.value; if (j) save((s) => moveJarTo(s, 
 const moreJar = computed(() => M.value?.jars.find((x) => x.id === moreOf.value) || null);
 const priJar = computed(() => M.value?.jars.find((x) => x.id === priOf.value) || null);
 const actions = computed(() => (moreJar.value ? jarActions(J, moreJar.value) : []));
-const pageOpen = ref(false), pageActs = computed(() => pageActions(J));
+const fillOpen = ref(false), fillOpts = computed(() => [{ value: "leftover", label: t("jars.fillLeftover") }, { value: "asap", label: t("jars.fillAsap") }]);
+const pageOpen = ref(false), pageActs = computed(() => pageActions(J, () => (fillOpen.value = true)));
 const priOptions = computed(() => (M.value?.jars || []).map((x, k) => ({ value: k + 1, label: k + 1 + " · " + tx(x.n) })));
 </script>
 
@@ -142,6 +143,7 @@ const priOptions = computed(() => (M.value?.jars || []).map((x, k) => ({ value: 
     </template>
 
     <ActionSheet v-model:open="pageOpen" :title="t('nav.jars')" :actions="pageActs" />
+    <PickerSheet v-model:open="fillOpen" required :title="t('jars.fillFrom')" :options="fillOpts" :model-value="J.fillMode.value" @update:model-value="J.setFillMode($event)" />
     <JarsReset :open="resetAsk" :plan="resetShow" @close="resetAsk = false" @yes="doReset" />
     <ActionSheet v-model:open="moreOpen" :title="moreJar ? tx(moreJar.n) : ''" :actions="actions" />
     <PickerSheet v-if="M" v-model:open="priOpen" required :title="t('jars.pick')" :options="priOptions" :model-value="priJar ? priJar.ix + 1 : null" @update:model-value="setPri" />

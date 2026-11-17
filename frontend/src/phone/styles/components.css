@@ -1270,13 +1270,6 @@ html.phone .ph-act-v {
   font-size: 15px;
 }
 
-/* a switch at the end of an action (ActionSheet "on") */
-html.phone .ph-act .tg {
-  border: 0;
-  padding: 0;
-  margin-inline-start: auto;
-}
-
 html.phone .ph-act + .ph-act,
 html.phone .ph-pick-o + .ph-pick-o {
   border-block-start: 1px solid var(--p-line);

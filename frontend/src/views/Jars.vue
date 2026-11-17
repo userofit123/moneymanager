@@ -142,7 +142,10 @@ onMounted(() => { data.start(); });
   <template v-if="M">
     <PopMenu :at="menu?.btn" :cls="menu?.kind == 'hist' ? 'hist' : ''" @close="menu = null">
       <template v-if="menu?.kind == 'page'">
-        <button role="menuitemcheckbox" class="mtg" :aria-checked="fillMode == 'leftover'" v-tip="t('jars.fillSwitchTip')" @click="setFillMode(fillMode == 'leftover' ? 'asap' : 'leftover')"><span>{{ t("jars.fillSwitch") }}</span><span class="tg" aria-hidden="true"><input type="checkbox" tabindex="-1" :checked="fillMode == 'leftover'"></span></button>
+        <div class="mfill">
+          <label for="jfill" v-tip="t('jars.fillFromTip')">{{ t("jars.fillFrom") }}</label>
+          <select id="jfill" :value="fillMode" @change="setFillMode($event.target.value)"><option value="leftover">{{ t("jars.fillLeftover") }}</option><option value="asap">{{ t("jars.fillAsap") }}</option></select>
+        </div>
         <button role="menuitem" data-a="jarsReset" @click="askReset"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 3-6.2M4 4v4h4" /></svg>{{ t("jars.reset.item") }}</button>
       </template>
       <template v-else-if="menu?.kind == 'more'">

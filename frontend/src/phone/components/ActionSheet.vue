@@ -1,7 +1,6 @@
 <script setup>
 // A short list of actions in a sheet, with Cancel apart at the bottom. Actions that remove something are red.
-// actions: [{ label, icon?, value?, on?, danger?, run }]; value: what it is set to now, at the end ("Group by   Month");
-// on: a switch at the end (true/false); tapping it flips it and closes the sheet, so the Saved message with Undo is not hidden.
+// actions: [{ label, icon?, value?, danger?, run }]; value: what it is set to now, at the end ("Group by   Month").
 // Used for "more" menus and long press.
 import { useI18n } from "vue-i18n";
 import PhoneSheet from "./PhoneSheet.vue";
@@ -16,7 +15,7 @@ const pick = (a) => { emit("update:open", false); a.run?.(); };
   <PhoneSheet :open="open" :label="title" @update:open="$emit('update:open', $event)">
     <p v-if="title" class="ph-act-t">{{ title }}</p>
     <div class="ph-acts">
-      <button v-for="a in actions" :key="a.label" type="button" class="ph-act" :class="{ danger: a.danger }" :role="a.on !== undefined ? 'switch' : undefined" :aria-checked="a.on !== undefined ? a.on : undefined" @click="pick(a)"><PIcon v-if="a.icon" :svg="a.icon" /><span class="ph-act-l">{{ a.label }}</span><span v-if="a.value" class="ph-act-v">{{ a.value }}</span><span v-if="a.on !== undefined" class="tg" aria-hidden="true"><input type="checkbox" tabindex="-1" :checked="a.on" style="pointer-events:none"></span></button>
+      <button v-for="a in actions" :key="a.label" type="button" class="ph-act" :class="{ danger: a.danger }" @click="pick(a)"><PIcon v-if="a.icon" :svg="a.icon" /><span class="ph-act-l">{{ a.label }}</span><span v-if="a.value" class="ph-act-v">{{ a.value }}</span></button>
     </div>
     <button type="button" class="ph-act ph-act-x" @click="$emit('update:open', false)">{{ t("phone.shell.cancel") }}</button>
   </PhoneSheet>
