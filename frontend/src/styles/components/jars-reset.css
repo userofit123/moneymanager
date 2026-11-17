@@ -25,6 +25,11 @@
   text-align: end;
 }
 
+/* an amount runs left to right inside Hebrew, so "end" would put it on the wrong side: keep it at the column's far side */
+html.he .jrs-r > .num {
+  text-align: left; /* fixed side */
+}
+
 .jrs-r > span:not(.jrs-n) {
   color: var(--tx2);
 }
