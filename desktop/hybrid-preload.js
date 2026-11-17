@@ -6,8 +6,14 @@ contextBridge.exposeInMainWorld("desktop", {
   check: () => ipcRenderer.invoke("update:check"),
   download: () => ipcRenderer.invoke("update:download"),
   install: () => ipcRenderer.invoke("update:install"),
-  setAuto: (on) => ipcRenderer.invoke("update:auto", !!on),
+  // the three choices: { autoCheck, autoDownload, wifiOnly }
+  setChoices: (c) => ipcRenderer.invoke("update:choices", { autoCheck: c && c.autoCheck, autoDownload: c && c.autoDownload, wifiOnly: c && c.wifiOnly }),
+  setAuto: (on) => ipcRenderer.invoke("update:auto", !!on), // what a page older than this app calls
+  // { metered, known }: whether the connection is mobile data or metered, and whether this computer can tell
+  metered: () => ipcRenderer.invoke("update:metered"),
   onUpdate: (fn) => ipcRenderer.on("update:state", (_e, s) => fn(s)),
+  // a click on the "ready to install" or "did not download" notification: open Settings → Version and updates
+  onShowUpdates: (fn) => ipcRenderer.on("update:show", () => fn()),
 });
 contextBridge.exposeInMainWorld("desktopServers", {
   state: () => ipcRenderer.invoke("servers:state"),

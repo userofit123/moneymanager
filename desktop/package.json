@@ -40,6 +40,7 @@
       "servers.html",
       "servers-preload.js",
       "compat.js",
+      "updates.js",
       "texts.js",
       "package.json"
     ],

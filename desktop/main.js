@@ -1,6 +1,6 @@
 // Money Manager for Windows. The same app as the Docker version: this window opens it, and the database, bank scraper and server
 // run inside the installed program. Data is kept in the user's own folder (%APPDATA%\Money Manager on Windows, ~/.config/Money Manager on Linux) and nothing is sent anywhere.
-const { app, BrowserWindow, Menu, Tray, shell, dialog, session, safeStorage, nativeTheme, ipcMain, net } = require("electron");
+const { app, BrowserWindow, Menu, Tray, shell, dialog, session, safeStorage, nativeTheme, ipcMain, net, Notification } = require("electron");
 const fs = require("node:fs");
 const os = require("node:os");
 const crypto = require("node:crypto");
@@ -269,8 +269,8 @@ function switchItems() {
 function updateItems() {
   const v = upd.version || "";
   if (upd.status === "available" && MAC) return [{ label: fill(T.updDownload, { v }), click: () => shell.openExternal(RELEASE_PAGE) }];
-  if (upd.status === "available" && autoUpdater) return [{ label: fill(T.updDownload, { v }), click: () => { upd.status = "downloading"; upd.percent = 0; pushUpdate(); autoUpdater.downloadUpdate().catch((e) => fail(e)); } }];
-  if (upd.status === "downloading") return [{ label: fill(T.updDownloading, { v, p: upd.percent || 0 }), enabled: false }];
+  if (upd.status === "available" && autoUpdater) return [{ label: fill(T.updDownload, { v }), click: () => { lastFail = 0; startDownload(); } }];
+  if (upd.status === "downloading") return [{ label: fill(T.updDownloading, { v, p: Math.max(0, upd.percent || 0) }), enabled: false }];
   if (upd.status === "ready" && autoUpdater) return [{ label: fill(T.updRestart, { v }), click: () => { installNow(); } }];
   if (upd.status === "checking") return [{ label: T.updChecking, enabled: false }];
   return [{ label: T.checkUpdates, click: checkNow }];
@@ -288,18 +288,58 @@ function buildMenus() {
   ]));
 }
 
-// Updates. The app checks this project's GitHub releases at start and every few hours. With "Update automatically" on (the default) a newer
-// version downloads by itself and installs when the app is next closed (or when you press Restart). With it off, the sidebar only tells you
-// a newer version exists and you decide. Installing replaces this program (same app, same data); it never adds a second copy.
+// Updates. The app checks this project's GitHub releases at start and every 6 hours, and again when its window comes back to the front after
+// an hour. The person's choices (Settings → Version and updates, kept in desktop-settings.json, rules in updates.js): "Check automatically",
+// "Download automatically" (a newer version downloads in the background) and "Only on Wi-Fi" (that download waits on mobile data or a
+// metered connection). A download only ever ends in "ready to install": only the person's Install installs it (the app restarts), never a quit.
+// Installing replaces this program (same app, same data); it never adds a second copy.
 let autoUpdater = null;
+const U = require("./updates");
 const MAC = process.platform === "darwin"; // an unsigned Mac app cannot replace itself: it only tells you a newer one is out, and opens the download page
 const RELEASE_PAGE = "https://github.com/userofit123/moneymanager/releases/latest";
-const upd = { current: app.getVersion(), status: "idle", version: null, notes: "", percent: 0, error: "", auto: !MAC, manual: MAC, checkedAt: null };
+// auto is the old name of autoDownload, kept for a page older than this app
+const upd = { current: app.getVersion(), status: "idle", version: null, notes: "", percent: 0, done: 0, total: 0, error: "", auto: !MAC, manual: MAC, checkedAt: null, autoCheck: true, autoDownload: !MAC, wifiOnly: true };
+let lastCheck = 0, lastFail = 0;
 const settingsFile = () => path.join(app.getPath("userData"), "desktop-settings.json");
-function loadSettings() { try { upd.auto = !MAC && JSON.parse(fs.readFileSync(settingsFile(), "utf8")).autoUpdate !== false; } catch { upd.auto = !MAC; } }
-function saveSettings() { try { fs.writeFileSync(settingsFile(), JSON.stringify({ autoUpdate: upd.auto })); } catch {} }
+function loadSettings() { let saved = {}; try { saved = JSON.parse(fs.readFileSync(settingsFile(), "utf8")); } catch { /* first start: the defaults */ } setChoices(U.readChoices(saved)); }
+function saveSettings() { try { fs.writeFileSync(settingsFile(), JSON.stringify({ autoCheck: upd.autoCheck, autoDownload: upd.autoDownload, wifiOnly: upd.wifiOnly })); } catch {} }
+function setChoices(c) { Object.assign(upd, c); if (MAC) upd.autoDownload = false; upd.auto = upd.autoDownload; }
 const pushUpdate = () => { if (win && !win.isDestroyed()) win.webContents.send("update:state", { ...upd }); if (appMenu) buildMenus(); }; // the menus show where the update has got to
 const notesText = (n) => Array.isArray(n) ? n.map((x) => x.note).join("\n") : String(n || "").replace(/<[^>]+>/g, "");
+// whether the connection is metered (mobile data, or set as metered), for "Only on Wi-Fi"; known is false where the system can't be asked
+function metered() {
+  const q = U.meteredQuery(process.platform);
+  if (!q) return Promise.resolve({ metered: false, known: false });
+  return new Promise((done) => require("node:child_process").execFile(q.cmd, q.args, { timeout: 8000, windowsHide: true }, (err, out) => done(U.meteredAnswer(q, err, out))));
+}
+const showWin = () => { if (!win || win.isDestroyed()) return false; if (win.isMinimized()) win.restore(); win.show(); win.focus(); return true; };
+// held here: a notification that is garbage-collected loses its click
+let notice = null;
+// When a download is done or failed: a system notification if the window isn't in front (in front, the page already says so). A click brings
+// the window back on Settings → Version and updates, where Install is.
+function updateDone(title, body) {
+  if (win && !win.isDestroyed()) win.setProgressBar(-1);
+  if (!Notification.isSupported() || (win && !win.isDestroyed() && win.isFocused())) return;
+  notice = new Notification({ title, body, icon: path.join(root, "web", "icon-512.png") });
+  notice.on("click", () => { if (showWin()) win.webContents.send("update:show"); });
+  notice.show();
+}
+function startDownload() {
+  if (!autoUpdater || upd.status !== "available") return;
+  Object.assign(upd, { status: "downloading", percent: 0, done: 0, total: 0, error: "" }); pushUpdate();
+  autoUpdater.downloadUpdate().catch((e) => fail(e));
+}
+// a found version downloads by itself when the choices allow it
+async function autoDownload() {
+  const m = upd.wifiOnly ? await metered() : { metered: false };
+  if (U.downloadDue({ now: Date.now(), choices: upd, status: upd.status, metered: m.metered, lastFail })) startDownload();
+}
+// the timer, and the window back in front: a check when one is due, or a download that waited (for Wi-Fi, or after a failure)
+function autoStep(every) {
+  if (!autoUpdater) return;
+  if (upd.status === "available") { autoDownload(); return; }
+  if (U.checkDue({ now: Date.now(), choices: upd, status: upd.status, lastCheck, lastFail, every })) check();
+}
 
 function setupUpdates() {
   const { ipcMain } = require("electron");
@@ -310,23 +350,35 @@ function setupUpdates() {
   });
   ipcMain.handle("backup:open", (_e, dir) => { if (typeof dir === "string" && path.isAbsolute(dir)) { fs.mkdirSync(dir, { recursive: true }); return shell.openPath(dir); } });
   ipcMain.handle("update:get", () => ({ ...upd }));
-  ipcMain.handle("update:auto", (_e, on) => { upd.auto = !!on; saveSettings(); if (autoUpdater) autoUpdater.autoDownload = upd.auto; if (upd.auto && upd.status === "available") autoUpdater && autoUpdater.downloadUpdate().catch(() => {}); pushUpdate(); return { ...upd }; });
+  const choose = (c) => { setChoices(U.mergeChoices(upd, c)); saveSettings(); pushUpdate(); autoStep(); return { ...upd }; };
+  ipcMain.handle("update:choices", (_e, c) => choose(c));
+  ipcMain.handle("update:auto", (_e, on) => choose({ autoDownload: !!on })); // a page older than this app has only this one switch
+  ipcMain.handle("update:metered", () => metered());
   ipcMain.handle("update:check", async () => { await check(); return { ...upd }; });
-  ipcMain.handle("update:download", () => { if (MAC && upd.status === "available") shell.openExternal(RELEASE_PAGE); if (autoUpdater && upd.status === "available") { upd.status = "downloading"; upd.percent = 0; pushUpdate(); autoUpdater.downloadUpdate().catch((e) => fail(e)); } return { ...upd }; });
+  ipcMain.handle("update:download", () => { if (MAC && upd.status === "available") shell.openExternal(RELEASE_PAGE); else { lastFail = 0; startDownload(); } return { ...upd }; });
   ipcMain.handle("update:install", () => { if (autoUpdater && upd.status === "ready") { installNow(); } });
   loadSettings();
   if (!app.isPackaged) { upd.status = "dev"; return; } // updates only apply to the installed app
-  if (MAC) { setTimeout(check, 4000); setInterval(check, 6 * 60 * 60 * 1000); return; }
+  if (MAC) { setTimeout(check, 4000); setInterval(check, U.CHECK_EVERY); return; }
   try { ({ autoUpdater } = require("electron-updater")); } catch { upd.status = "dev"; return; }
-  autoUpdater.autoDownload = upd.auto;
-  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.autoDownload = false; // the app decides when to download (autoDownload above)
+  autoUpdater.autoInstallOnAppQuit = false;
   autoUpdater.on("checking-for-update", () => { upd.status = "checking"; pushUpdate(); });
-  autoUpdater.on("update-not-available", () => { upd.status = "uptodate"; upd.checkedAt = Date.now(); pushUpdate(); });
-  autoUpdater.on("update-available", (i) => { upd.status = upd.auto ? "downloading" : "available"; upd.version = i.version; upd.notes = notesText(i.releaseNotes); upd.percent = 0; upd.checkedAt = Date.now(); pushUpdate(); });
-  autoUpdater.on("download-progress", (p) => { upd.status = "downloading"; upd.percent = Math.round(p.percent || 0); pushUpdate(); });
-  autoUpdater.on("update-downloaded", (i) => { upd.status = "ready"; upd.version = i.version; upd.percent = 100; pushUpdate(); });
+  autoUpdater.on("update-not-available", () => { upd.status = "uptodate"; upd.checkedAt = lastCheck = Date.now(); lastFail = 0; pushUpdate(); });
+  autoUpdater.on("update-available", (i) => {
+    if (upd.status === "downloading") return; // the check that a download starts with
+    Object.assign(upd, { status: "available", version: i.version, notes: notesText(i.releaseNotes), percent: 0, checkedAt: Date.now() }); lastCheck = Date.now();
+    pushUpdate(); autoDownload();
+  });
+  autoUpdater.on("download-progress", (p) => {
+    Object.assign(upd, { status: "downloading", percent: p.total > 0 ? Math.round(p.percent || 0) : -1, done: p.transferred || 0, total: p.total || 0 });
+    if (win && !win.isDestroyed()) win.setProgressBar(U.taskbarValue(p, process.platform));
+    pushUpdate();
+  });
+  autoUpdater.on("update-downloaded", (i) => { Object.assign(upd, { status: "ready", version: i.version, percent: 100 }); lastFail = 0; pushUpdate(); updateDone(T.deskNotifReady, T.deskNotifReadyD); });
   autoUpdater.on("error", (e) => fail(e));
-  setTimeout(check, 4000); setInterval(check, 6 * 60 * 60 * 1000);
+  app.on("browser-window-focus", (_e, w) => { if (w === win) autoStep(U.ON_FRONT_EVERY); });
+  setTimeout(() => autoStep(), 4000); setInterval(() => autoStep(), U.TICK);
 }
 // "Check for updates…" in the menu: the app's own version, which the page cannot show when it is another server's page
 async function checkNow() {
@@ -336,7 +388,13 @@ async function checkNow() {
   dialog.showMessageBox(w, { type: upd.status === "error" ? "warning" : "info", title: "Money Manager", message: msg, buttons: ["OK"], noLink: true });
 }
 // a release that is still being built (its files are added a few minutes after the release shows up) is not a failure: there is just nothing to install yet
-function fail(e) { if (/Cannot find latest.*\.yml|latest.*\.yml.*404/is.test(String((e && e.message) || e))) { upd.status = "uptodate"; upd.checkedAt = Date.now(); pushUpdate(); return; } upd.status = "error"; upd.error = String(e && e.message || e).slice(0, 200); pushUpdate(); }
+function fail(e) {
+  if (upd.status === "error") return; // the same failure, told twice (the promise and the error event)
+  if (/Cannot find latest.*\.yml|latest.*\.yml.*404/is.test(String((e && e.message) || e))) { upd.status = "uptodate"; upd.checkedAt = lastCheck = Date.now(); pushUpdate(); return; }
+  const wasDownload = upd.status === "downloading";
+  upd.status = "error"; upd.error = String(e && e.message || e).slice(0, 200); lastFail = Date.now(); pushUpdate();
+  if (wasDownload) updateDone(T.deskNotifFailed, T.deskNotifFailedD);
+}
 const newerThan = (a, b) => { const x = String(a).split(".").map(Number), y = String(b).split(".").map(Number); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); return false; };
 async function checkMac() {
   upd.status = "checking"; pushUpdate();
@@ -349,7 +407,7 @@ async function checkMac() {
   } catch (e) { upd.status = "error"; upd.error = String((e && e.message) || e).slice(0, 200); }
   pushUpdate();
 }
-async function check() { if (MAC) { if (upd.status !== "checking") await checkMac(); return; } if (!autoUpdater || ["downloading", "ready"].includes(upd.status)) return; try { await autoUpdater.checkForUpdates(); } catch (e) { fail(e); } }
+async function check() { if (MAC) { if (upd.status !== "checking") await checkMac(); return; } if (!autoUpdater || ["checking", "downloading", "ready"].includes(upd.status)) return; try { await autoUpdater.checkForUpdates(); } catch (e) { fail(e); } }
 
 app.whenReady().then(async () => {
   T = dict(app.getLocale());
