@@ -4,7 +4,7 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
-## [Unreleased]
+## [0.19.0] - 2026-11-18
 ### Windows app
 - **Updates work like in the phone app.** In Settings → Version and updates, three switches decide what happens by itself: **Check for updates automatically** (when the app starts, every 6 hours, and when you come back to it after an hour), **Download updates automatically** (in the background) and **Only on Wi-Fi** (on mobile data, such as a phone's hotspot, the download waits; shown only where the computer can tell). A new version now installs only when you press **Install**, never when you close the app; the app then opens again by itself. The download shows on the taskbar icon too, and in megabytes while its size is not known yet. When it is ready, or did not finish, while you are in another window, a notification tells you; click it to open Version and updates. A failed check or download is tried again after 15 minutes. If you had turned off **Update automatically**, **Download updates automatically** starts off. Also on Linux.
 - **A notice when a new version is out.** At the bottom of the window it shows the new version, **Download update**, then how far the download got, then **Install**. **View** opens Settings → Version and updates, and **×** hides it until the next version. Also on Linux and in the Android app.
