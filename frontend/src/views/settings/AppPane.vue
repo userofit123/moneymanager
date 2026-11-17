@@ -2,7 +2,7 @@
 // Settings → Version and updates: the installed version, new versions, and (in a browser) installing the app or getting the desktop app.
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { UP, upWeb, APP, vNewer, appCheck, appDownload, appInstall, appSetChoices } from "../../core/updates.js";
+import { UP, upWeb, APP, vNewer, appCheck, appDownload, appInstall, appSetChoices, deskSetChoices, deskMetered } from "../../core/updates.js";
 import { installPrompt, install } from "../../core/pwa.js";
 import SetSection from "./SetSection.vue";
 import SetRow from "./SetRow.vue";
@@ -37,7 +37,9 @@ const changelog = () => openSettingsTab("rel");
 function check() { if (D) { UP.status = "checking"; D.check(); } else upWeb(true); }
 const download = () => D && D.download();
 function installNow() { if (!D) return; UP.status = "installing"; setTimeout(() => D.install(), 150); }
-function setAuto(on) { if (!D) return; UP.auto = on; D.setAuto(on); }
+// an older desktop app has only its one switch "Update automatically"
+const setAuto = (on) => deskSetChoices({ autoDownload: on });
+deskMetered();
 </script>
 
 <template>
@@ -71,15 +73,15 @@ function setAuto(on) { if (!D) return; UP.auto = on; D.setAuto(on); }
           <template v-if="UP.status == 'uptodate'">{{ UP.none ? tk("latestNone") : tk("latest") }}</template>
           <template v-else-if="UP.status == 'checking'">{{ tk("checking") }}</template>
           <template v-else-if="UP.status == 'available'">{{ desk ? tk("availDesk", { v: v() }) : tk("availServer", { v: v() }) }}</template>
-          <template v-else-if="UP.status == 'downloading'">{{ tk("downloading", { v: v(), p: UP.percent }) }}<span class="bar updbar"><i :style="{ width: UP.percent + '%' }" /></span></template>
+          <template v-else-if="UP.status == 'downloading'">{{ UP.percent >= 0 ? tk("downloading", { v: v(), p: UP.percent }) : tk("appDownloadingMb", { v: v(), mb: UP.mb }) }}<span class="bar updbar"><i :style="{ width: Math.max(UP.percent, 0) + '%' }" /></span></template>
           <template v-else-if="UP.status == 'installing'"><i class="spinner" /> {{ tk("installing", { v: v() }) }}</template>
-          <template v-else-if="UP.status == 'ready'">{{ tk("ready", { v: v() }) }}</template>
+          <template v-else-if="UP.status == 'ready'">{{ UP.choices ? tk("readyDesk", { v: v() }) : tk("ready", { v: v() }) }}</template>
           <template v-else-if="UP.status == 'error'">{{ tk("error") }} {{ UP.err || "" }} {{ tk("errorNeed") }}</template>
           <template v-else>{{ tk("dev") }}</template>
         </template>
         <template v-if="desk">
-          <button v-if="UP.status == 'available'" type="button" class="btn s" data-a="updDownload" @click="download">{{ tk("downloadUpdate") }}</button>
-          <button v-if="UP.status == 'ready'" type="button" class="btn s" data-a="updInstall" @click="installNow">{{ tk("restartUpdate") }}</button>
+          <button v-if="UP.status == 'available'" type="button" class="btn s" data-a="updDownload" @click="download">{{ UP.choices ? tk("appDownload") : tk("downloadUpdate") }}</button>
+          <button v-if="UP.status == 'ready'" type="button" class="btn s" data-a="updInstall" :data-tip="UP.choices ? tk('installTip') : null" @click="installNow">{{ UP.choices ? tk("appInstall") : tk("restartUpdate") }}</button>
           <button v-if="UP.status == 'installing'" type="button" class="btn s" disabled><i class="spinner" /> {{ tk("closingToUpdate") }}</button>
           <button v-if="!['downloading', 'checking', 'ready', 'dev', 'installing'].includes(UP.status)" type="button" class="btn o s" data-a="updCheck" @click="check">{{ tk("checkBtn") }}</button>
           <button v-if="['available', 'ready'].includes(UP.status)" type="button" class="btn o s" data-a="goChangelog" @click="changelog">{{ tk("seeChanged") }}</button>
@@ -89,7 +91,13 @@ function setAuto(on) { if (!D) return; UP.auto = on; D.setAuto(on); }
           <button v-if="UP.status != 'checking'" type="button" class="btn o s" data-a="updCheck" @click="check">{{ tk("checkBtn") }}</button>
         </template>
       </SetRow>
-      <SetRow v-if="desk && UP.status != 'dev' && !UP.manual" toggle data-upd="auto" :title="tk('auto')" :desc="tk('autoD')" :model-value="UP.auto" @update:model-value="setAuto" />
+      <SetRow v-if="desk && UP.status != 'dev' && !UP.manual && !UP.choices" toggle data-upd="auto" :title="tk('auto')" :desc="tk('autoD')" :model-value="UP.auto" @update:model-value="setAuto" />
+      <!-- the desktop app's own choices (desktop/updates.js), as the phone app's above; Only on Wi-Fi only where the computer can tell mobile data apart -->
+      <template v-if="desk && UP.status != 'dev' && !UP.manual && UP.choices">
+        <SetRow toggle data-upd="deskCheck" :title="tk('deskCheck')" :desc="tk('deskCheckD')" :model-value="UP.choices.autoCheck" @update:model-value="(on) => deskSetChoices({ autoCheck: on })" />
+        <SetRow toggle data-upd="deskAuto" :title="tk('appAuto')" :desc="tk('deskAutoD')" :model-value="UP.choices.autoDownload" @update:model-value="(on) => deskSetChoices({ autoDownload: on })" />
+        <SetRow v-if="UP.choices.autoDownload && UP.canTellMetered" toggle data-upd="deskWifi" :title="tk('appWifi')" :desc="tk('deskWifiD')" :model-value="UP.choices.wifiOnly" @update:model-value="(on) => deskSetChoices({ wifiOnly: on })" />
+      </template>
       <template v-if="!desk && UP.status == 'available'" #foot>{{ tk("serverHow1") }} <b>Update</b> {{ tk("or") }} <b>Pull and redeploy</b> {{ tk("serverHow2") }} <code dir="ltr">docker compose pull</code> <code dir="ltr">docker compose up -d</code>. {{ tk("serverHow3") }}</template>
     </SetSection>
     <template v-if="showGet">

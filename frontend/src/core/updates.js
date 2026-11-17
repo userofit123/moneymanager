@@ -5,9 +5,14 @@ import { getJson } from "./http.js";
 import { readPref, writePref } from "./prefs.js";
 import { i18n } from "../i18n.js";
 import { downloads } from "../lib/downloads.js";
+import { deskState, saveDeskChoices } from "../lib/deskUpdates.js";
+import { go } from "../router.js";
+import { openSettingsTab } from "../views/settings/tab.js";
 
 // status: idle | checking | uptodate | available | downloading | ready | installing | error. The desktop app reports its own.
-export const UP = reactive({ cur: "", latest: "", status: "idle", percent: 0, notes: "", url: "", err: "", none: false, auto: true, manual: false });
+// percent is -1 while the size is unknown (mb then shows the megabytes so far). choices: the desktop app's three switches (null for an older app);
+// canTellMetered: whether this computer can tell mobile data apart, so "Only on Wi-Fi" shows only where it can do something.
+export const UP = reactive({ cur: "", latest: "", status: "idle", percent: 0, mb: 0, notes: "", url: "", err: "", none: false, auto: true, manual: false, choices: null, canTellMetered: false });
 
 export async function upWeb(force) {
   if (force) UP.status = "checking";
@@ -19,8 +24,21 @@ export async function upWeb(force) {
   } catch { if (force) { UP.status = "error"; UP.err = i18n.global.t("upd.noGithub"); } }
 }
 function fromDesk(s) {
-  if (UP.status == "installing") return;
-  Object.assign(UP, { cur: s.current, status: s.status, latest: s.version, percent: s.percent || 0, notes: s.notes || "", auto: s.auto !== false, manual: !!s.manual, err: s.error || "" });
+  if (UP.status == "installing" || !s) return;
+  Object.assign(UP, deskState(s));
+}
+const D = () => (typeof window !== "undefined" && window.desktop) || null;
+// The desktop app's choices "Check for updates automatically", "Download updates automatically" and "Only on Wi-Fi".
+export function deskSetChoices(c) {
+  if (!D()) return;
+  if (UP.choices) UP.choices = { ...UP.choices, ...c };
+  UP.auto = !!(UP.choices ? UP.choices.autoDownload : c.autoDownload);
+  saveDeskChoices(D(), UP.choices || c).then((s) => s && fromDesk(s)).catch(() => {});
+}
+// asked again at each visit to the page until it is known: "unknown" can be only because the network was down at that moment
+export function deskMetered() {
+  const d = D(); if (!d || !d.metered || UP.canTellMetered) return;
+  d.metered().then((m) => (UP.canTellMetered = !!(m && m.known))).catch(() => {});
 }
 // ---- the phone app updating itself (window.mmApp.update, android Updater.kt) ----
 // The newest version comes from the same check as the server's (UP.latest). Download fetches the APK with a progress bar,
@@ -103,7 +121,12 @@ export function startUpdates() {
     setInterval(appAuto, RETRY);
     window.addEventListener("online", appAuto);
   }
-  if (window.desktop) { window.desktop.onUpdate((s) => fromDesk(s)); window.desktop.getUpdate().then(fromDesk).catch(() => {}); }
+  if (window.desktop) {
+    window.desktop.onUpdate((s) => fromDesk(s)); window.desktop.getUpdate().then(fromDesk).catch(() => {});
+    deskMetered();
+    // a click on the desktop app's "ready to install" or "did not download" notification
+    if (window.desktop.onShowUpdates) window.desktop.onShowUpdates(() => { openSettingsTab("app"); go("/settings"); });
+  }
   else { upWeb().then(appAuto); setInterval(() => upWeb().then(appAuto), 6 * 36e5); }
 }
 
