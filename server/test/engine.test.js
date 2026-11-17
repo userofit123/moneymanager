@@ -538,18 +538,18 @@ test("older history imported now does not open a balance gap", async () => {
 
 test("a card's debt that went down is explained by the card payment from the bank, and one payment explains one gap", async () => {
   const { card, bank } = await cardAndBank();
-  await tx((c) => recordSnapshot(c, card, -31.5, new Date("2026-10-17T08:00:00Z")));
-  await tx((c) => recordSnapshot(c, card, 0, new Date("2026-10-18T08:00:00Z"))); // paid off: the card lists no payment
+  await tx((c) => recordSnapshot(c, card, -31.5, at(10, "08:00")));
+  await tx((c) => recordSnapshot(c, card, 0, at(11, "08:00"))); // paid off: the card lists no payment
   assert.deepEqual(await openGaps(), [31.5]);
-  await tx((c) => recordSnapshot(c, bank, 500, new Date("2026-10-17T08:00:00Z")));
-  await ingest({ name: "Bank", currency: "ILS", source: "hapoalim" }, [{ date: "2026-10-18", description: "Card company", amount: -31.5, currency: "ILS", externalId: "b:pay" }]);
+  await tx((c) => recordSnapshot(c, bank, 500, at(10, "08:00")));
+  await ingest({ name: "Bank", currency: "ILS", source: "hapoalim" }, [{ date: ref(11), description: "Card company", amount: -31.5, currency: "ILS", externalId: "b:pay" }]);
   await q("UPDATE transactions SET category='Loans & credit payments' WHERE description='Card company'");
   await tx((c) => healCardPayments(c));
   assert.deepEqual(await openGaps(), []);
   // a second rise of the same amount does not reuse that payment
-  await tx((c) => recordSnapshot(c, card, -31.5, new Date("2026-10-19T08:00:00Z")));
-  await ingest({ name: "Card", currency: "ILS", source: "max" }, [{ date: "2026-10-19", description: "Music", amount: -31.5, currency: "ILS", externalId: "c:m" }]);
-  await tx((c) => recordSnapshot(c, card, 0, new Date("2026-10-20T08:00:00Z")));
+  await tx((c) => recordSnapshot(c, card, -31.5, at(12, "08:00")));
+  await ingest({ name: "Card", currency: "ILS", source: "max" }, [{ date: ref(12), description: "Music", amount: -31.5, currency: "ILS", externalId: "c:m" }]);
+  await tx((c) => recordSnapshot(c, card, 0, at(13, "08:00")));
   assert.deepEqual(await openGaps(), [31.5]);
 });
 
@@ -598,24 +598,24 @@ test("the same payments and balances give the same gaps whether the copy synced 
 test("a charge already in the card's total but listed only later does not open a balance gap", async () => {
   const { card } = await cardAndBank();
   const acc = { name: "Card", currency: "ILS", source: "max" };
-  await tx((c) => recordSnapshot(c, card, -5210.4, new Date("2026-10-29T04:05:00Z"))); // the total already counts a 250 charge the card has not listed
+  await tx((c) => recordSnapshot(c, card, -5210.4, at(10, "04:05"))); // the total already counts a 250 charge the card has not listed
   await ingest(acc, [
-    { date: "2026-10-29", description: "Shop A", amount: -250, currency: "ILS", externalId: "c:t1" },
-    { date: "2026-10-30", description: "Shop B", amount: -312.75, currency: "ILS", pending: true, externalId: "c:t2" },
-    { date: "2026-10-30", description: "Shop C", amount: -187.55, currency: "ILS", pending: true, externalId: "c:t3" },
+    { date: ref(10), description: "Shop A", amount: -250, currency: "ILS", externalId: "c:t1" },
+    { date: ref(11), description: "Shop B", amount: -312.75, currency: "ILS", pending: true, externalId: "c:t2" },
+    { date: ref(11), description: "Shop C", amount: -187.55, currency: "ILS", pending: true, externalId: "c:t3" },
   ]);
-  await tx((c) => recordSnapshot(c, card, -5960.7, new Date("2026-10-30T11:10:00Z")));
+  await tx((c) => recordSnapshot(c, card, -5960.7, at(11, "11:10")));
   assert.deepEqual(await openGaps(), []);
 });
 
 test("a charge listed before the card's total counts it opens no gap, and the books add up once the total catches up", async () => {
   const { card } = await cardAndBank();
   const acc = { name: "Card", currency: "ILS", source: "max" };
-  await tx((c) => recordSnapshot(c, card, -500, new Date("2026-10-20T08:00:00Z")));
-  await ingest(acc, [{ date: "2026-10-20", description: "Shop A", amount: -88.4, currency: "ILS", externalId: "c:u1" }]);
-  await tx((c) => recordSnapshot(c, card, -500, new Date("2026-10-20T20:00:00Z"))); // listed, not in the total yet
+  await tx((c) => recordSnapshot(c, card, -500, at(10, "08:00")));
+  await ingest(acc, [{ date: ref(10), description: "Shop A", amount: -88.4, currency: "ILS", externalId: "c:u1" }]);
+  await tx((c) => recordSnapshot(c, card, -500, at(10, "20:00"))); // listed, not in the total yet
   assert.deepEqual(await openGaps(), []);
-  await tx((c) => recordSnapshot(c, card, -588.4, new Date("2026-10-21T08:00:00Z"))); // the total catches up
+  await tx((c) => recordSnapshot(c, card, -588.4, at(11, "08:00"))); // the total catches up
   assert.deepEqual(await openGaps(), []);
   const base = (await q("SELECT value FROM settings WHERE key=$1", ["gapbase:" + card.id])).rows[0].value;
   assert.equal(base.balance, -588.4); // the books add up: counting starts again from here
@@ -624,12 +624,12 @@ test("a charge listed before the card's total counts it opens no gap, and the bo
 test("a change that no new charge or group of charges explains still opens a balance gap", async () => {
   const { card } = await cardAndBank();
   const acc = { name: "Card", currency: "ILS", source: "max" };
-  await tx((c) => recordSnapshot(c, card, -1000, new Date("2026-10-20T08:00:00Z")));
+  await tx((c) => recordSnapshot(c, card, -1000, at(10, "08:00")));
   await ingest(acc, [
-    { date: "2026-10-20", description: "Shop A", amount: -120, currency: "ILS", externalId: "c:v1" },
-    { date: "2026-10-21", description: "Shop B", amount: -45.5, currency: "ILS", externalId: "c:v2" },
+    { date: ref(10), description: "Shop A", amount: -120, currency: "ILS", externalId: "c:v1" },
+    { date: ref(11), description: "Shop B", amount: -45.5, currency: "ILS", externalId: "c:v2" },
   ]);
-  await tx((c) => recordSnapshot(c, card, -1065.5, new Date("2026-10-21T08:00:00Z"))); // 100 less than the charges say
+  await tx((c) => recordSnapshot(c, card, -1065.5, at(11, "08:00"))); // 100 less than the charges say
   assert.deepEqual(await openGaps(), [100]);
 });
 
