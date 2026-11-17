@@ -92,14 +92,17 @@ object Updater {
         synchronized(ended) { ended.notifyAll() }
     }
 
-    /** Download updates automatically, and only on Wi-Fi: on unless the person turned them off. */
+    /** Check for updates automatically, download them automatically, and only on Wi-Fi: on unless the person turned them off. */
     fun choices(ctx: Context): org.json.JSONObject {
         val sp = ctx.getSharedPreferences(CHOICES, Context.MODE_PRIVATE)
-        return org.json.JSONObject().put("auto", sp.getBoolean("auto", true)).put("wifiOnly", sp.getBoolean("wifiOnly", true))
+        return org.json.JSONObject().put("auto", sp.getBoolean("auto", true)).put("wifiOnly", sp.getBoolean("wifiOnly", true)).put("autoCheck", sp.getBoolean("autoCheck", true))
     }
 
-    fun setChoices(ctx: Context, auto: Boolean, wifiOnly: Boolean): org.json.JSONObject {
-        ctx.getSharedPreferences(CHOICES, Context.MODE_PRIVATE).edit().putBoolean("auto", auto).putBoolean("wifiOnly", wifiOnly).apply()
+    /** [autoCheck] is null from a page that does not know that choice: it stays as it was. */
+    fun setChoices(ctx: Context, auto: Boolean, wifiOnly: Boolean, autoCheck: Boolean? = null): org.json.JSONObject {
+        val e = ctx.getSharedPreferences(CHOICES, Context.MODE_PRIVATE).edit().putBoolean("auto", auto).putBoolean("wifiOnly", wifiOnly)
+        if (autoCheck != null) e.putBoolean("autoCheck", autoCheck)
+        e.apply()
         return choices(ctx)
     }
 
@@ -137,7 +140,8 @@ object Updater {
             // low importance: a bar that moves every second must not sound or pop up
             nm.createNotificationChannel(NotificationChannel(CHANNEL, Texts(ctx)["updChannel"], NotificationManager.IMPORTANCE_LOW).apply { setShowBadge(false) })
         }
-        val open = PendingIntent.getActivity(ctx, 3, Intent(ctx, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        // a tap opens the app on Settings → Version and updates
+        val open = PendingIntent.getActivity(ctx, 3, Intent(ctx, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP).putExtra(MainActivity.SHOW_UPDATES, true), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val b = NotificationCompat.Builder(ctx, CHANNEL)
             .setSmallIcon(if (busy) android.R.drawable.stat_sys_download else R.drawable.ic_notify)
             .setContentTitle(title)

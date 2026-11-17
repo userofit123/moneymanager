@@ -92,7 +92,9 @@ class Bridge(private val act: MainActivity) {
         "updState" -> Updater.state(act).toString()
         "updAwait" -> JSONObject.quote(Updater.await(act))
         "updChoices" -> Updater.choices(act).put("metered", Updater.metered(act)).toString()
-        "setUpdChoices" -> Updater.setChoices(act, a.getBoolean(0), a.getBoolean(1)).put("metered", Updater.metered(act)).toString()
+        "setUpdChoices" -> Updater.setChoices(act, a.getBoolean(0), a.getBoolean(1), if (a.length() > 2 && !a.isNull(2)) a.getBoolean(2) else null).put("metered", Updater.metered(act)).toString()
+        // a tap on the update notification is waiting to open Settings → Version and updates (true once)
+        "updTakeShow" -> act.takeShowUpdates().toString()
         "updInstall" -> { Updater.install(act); "null" }
         "updForget" -> { Updater.forget(act); "null" }
         else -> throw IllegalArgumentException("unknown")
@@ -166,9 +168,11 @@ class Bridge(private val act: MainActivity) {
       state: function () { return call("updState"); },
       // keeps showing a running download: its progress, then the ready version (or the error)
       watch: function (onProgress) { window.__mmUpd = onProgress || null; return call("updAwait"); },
-      // { auto, wifiOnly, metered }: download updates automatically, only on Wi-Fi, and whether the connection now is mobile data
+      // { auto, wifiOnly, autoCheck, metered }: download updates automatically, only on Wi-Fi, check automatically, and whether the connection now is mobile data
       choices: function () { return call("updChoices"); },
-      setChoices: function (auto, wifiOnly) { return call("setUpdChoices", !!auto, !!wifiOnly); },
+      setChoices: function (auto, wifiOnly, autoCheck) { return call("setUpdChoices", !!auto, !!wifiOnly, autoCheck == null ? null : !!autoCheck); },
+      // cb runs when the update notification is tapped (also when the tap opened the app)
+      onShow: function (cb) { window.__mmShowUpd = function () { call("updTakeShow").then(function (p) { if (p) cb(); }).catch(function () {}); }; window.__mmShowUpd(); },
       download: function (url, version, onProgress) { window.__mmUpd = onProgress || null; return call("updDownload", String(url), String(version)); },
       install: function () { return call("updInstall"); },
       forget: function () { return call("updForget"); }

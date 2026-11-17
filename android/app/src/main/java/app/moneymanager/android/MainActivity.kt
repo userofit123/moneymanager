@@ -91,9 +91,22 @@ class MainActivity : AppCompatActivity() {
         return Alerts.allowed(this)
     }
 
+    // a tap on the update notification: the page opens Settings → Version and updates when it asks (Bridge "updTakeShow")
+    @Volatile private var showUpdates = false
+    fun takeShowUpdates(): Boolean { val p = showUpdates; showUpdates = false; return p }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.getBooleanExtra(SHOW_UPDATES, false)) {
+            showUpdates = true
+            web.evaluateJavascript("window.__mmShowUpd&&window.__mmShowUpd()", null)
+        }
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        showUpdates = savedInstanceState == null && intent?.getBooleanExtra(SHOW_UPDATES, false) == true
         texts = Texts(this)
         store = ServerStore(this)
         net = Net(this)
@@ -301,6 +314,10 @@ class MainActivity : AppCompatActivity() {
         applySecure()
         // coming back after the chosen time away asks again
         if (lockEnabled && pausedAt != 0L && System.currentTimeMillis() - pausedAt >= lockDelay * 1000L) showLock()
+    }
+
+    companion object {
+        const val SHOW_UPDATES = "showUpdates"
     }
 
     override fun onDestroy() {
