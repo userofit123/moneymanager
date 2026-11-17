@@ -40,6 +40,9 @@ export async function cashNow(c) {
   return (await c.query("SELECT currency,balance FROM accounts WHERE in_net_worth AND kind IN ('bank','wallet')")).rows.reduce((s, a) => s + a.balance * (rates[a.currency] ?? 1), 0);
 }
 
+// a jar's month in sums: s = money in (less money taken out by hand), p = paid out of it, r = taken out by "Reset jars"
+const MONTH_SUMS = "GREATEST(COALESCE(sum(amount) FILTER (WHERE NOT paid AND NOT (reset AND amount < 0)),0),0)::float AS s, GREATEST(-COALESCE(sum(amount) FILTER (WHERE paid),0),0)::float AS p, GREATEST(-COALESCE(sum(amount) FILTER (WHERE reset AND amount < 0 AND NOT paid),0),0)::float AS r";
+
 export async function fillJarsTx(c, month = thisMonth()) {
   const buffer = +((await c.query("SELECT value FROM settings WHERE key='jars_buffer'")).rows[0]?.value ?? 0);
   // what the app has set aside for bills still to pay, the unspent part of budgets and card purchases not paid yet
@@ -49,8 +52,9 @@ export async function fillJarsTx(c, month = thisMonth()) {
   if (!jars.length) return { applied: 0, total: 0 };
   // what a jar received this month can never be more than what it holds now: money taken out again does not count as received
   const held = Object.fromEntries(jars.map((j) => [j.id, j.balance]));
-  // payments out of a jar (paid) are spending, not money handed back: they never reopen the month's allowance
-  const received = Object.fromEntries((await c.query("SELECT jar_id, GREATEST(COALESCE(sum(amount) FILTER (WHERE NOT paid),0),0)::float AS s, GREATEST(-COALESCE(sum(amount) FILTER (WHERE paid),0),0)::float AS p FROM jar_movements WHERE month=$1 GROUP BY jar_id", [month])).rows.map((r) => [r.jar_id, Math.min(r.s, Math.max(0, held[r.jar_id] ?? 0) + r.p)]));
+  // payments out of a jar (paid) are spending, not money handed back: they never reopen the month's allowance;
+  // money taken out by "Reset jars" (reset) neither: a reset is the final result, the next fill does not top the jar up again
+  const received = Object.fromEntries((await c.query(`SELECT jar_id, ${MONTH_SUMS} FROM jar_movements WHERE month=$1 GROUP BY jar_id`, [month])).rows.map((r) => [r.jar_id, Math.min(r.s, Math.max(0, held[r.jar_id] ?? 0) + r.p + r.r)]));
   const free = (await cashNow(c)) - jars.reduce((t, j) => t + Math.max(0, j.balance - (j.outside || 0)), 0) - buffer - reserve; // only the part that sits in your accounts is set aside
   let applied = 0, total = 0;
   for (const p of allocate(free, jars, received)) {
@@ -75,7 +79,7 @@ export async function readJars(c) {
   const month = thisMonth();
   const jars = (await c.query("SELECT id,name,priority,target,cap,balance,outside,kind,due,bill_match,auto_cap,description,bill_months,done_at FROM jars ORDER BY priority,id")).rows;
   const mv = (await c.query("SELECT jar_id,amount,note,month,created_at FROM jar_movements ORDER BY id DESC LIMIT 600")).rows;
-  const monthRows = (await c.query("SELECT jar_id, COALESCE(sum(amount) FILTER (WHERE NOT paid),0)::float AS s, GREATEST(-COALESCE(sum(amount) FILTER (WHERE paid),0),0)::float AS p FROM jar_movements WHERE month=$1 GROUP BY jar_id", [month])).rows;
+  const monthRows = (await c.query(`SELECT jar_id, ${MONTH_SUMS} FROM jar_movements WHERE month=$1 GROUP BY jar_id`, [month])).rows;
   const monthBy = Object.fromEntries(monthRows.map((r) => [r.jar_id, r]));
   const cats = {};
   (await c.query("SELECT category,jar_id,since FROM jar_categories ORDER BY category")).rows.forEach((r) => (cats[r.jar_id] ||= []).push({ c: r.category, since: String(r.since).slice(0, 10) }));
@@ -84,7 +88,7 @@ export async function readJars(c) {
     const mine = mv.filter((m) => m.jar_id === j.id);
     return {
       id: j.id, n: j.name, p: j.priority, need: j.target, cap: j.cap, bal: j.balance, out: j.outside || 0, kind: j.kind || "", due: j.due || "", bill: j.bill_match || "", auto: !!j.auto_cap, desc: j.description || "", months: j.bill_months || 0, done: j.done_at ? String(j.done_at).slice(0, 10) : "",
-      got: Math.min(Math.max(0, j.balance) + (monthBy[j.id]?.p || 0), Math.max(0, +(monthBy[j.id]?.s || 0).toFixed(2))), paid: +(monthBy[j.id]?.p || 0).toFixed(2), cats: cats[j.id] || [],
+      got: Math.min(Math.max(0, j.balance) + (monthBy[j.id]?.p || 0) + (monthBy[j.id]?.r || 0), Math.max(0, +(monthBy[j.id]?.s || 0).toFixed(2))), paid: +(monthBy[j.id]?.p || 0).toFixed(2), cats: cats[j.id] || [],
       ledger: +(ledger[j.id] || 0).toFixed(2), moves: mine.slice(0, 40).map((m) => ({ amt: m.amount, note: m.note, at: m.created_at.toISOString() })),
     };
   });

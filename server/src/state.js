@@ -257,8 +257,9 @@ export async function putState(S) {
           await c.query("UPDATE jars SET balance=$2 WHERE id=$1", [j.id, j.bal]);
           // balPaid: the change is a payment out of the jar (or taking one back), which is spending, not a return of money
           // balIn: money shared out again by "Reset jars" counts as received this month, so the monthly fill does not add it twice
-          if (delta > 0.005 && (j.balUndo || j.balIn)) await c.query("INSERT INTO jar_movements (jar_id,amount,note,month,paid) VALUES ($1,$2,$3,$4,$5)", [j.id, delta, String(j.balNote || "Undone").slice(0, 120), thisMonth(), !!j.balPaid]);
-          if (delta < -0.005) await c.query("INSERT INTO jar_movements (jar_id,amount,note,month,paid) VALUES ($1,$2,$3,$4,$5)", [j.id, delta, String(j.balNote || "Taken out").slice(0, 120), thisMonth(), !!j.balPaid]);
+          // balReset: the change is part of "Reset jars"; money a reset takes out does not reopen the jar's monthly amount
+          if (delta > 0.005 && (j.balUndo || j.balIn)) await c.query("INSERT INTO jar_movements (jar_id,amount,note,month,paid,reset) VALUES ($1,$2,$3,$4,$5,$6)", [j.id, delta, String(j.balNote || "Undone").slice(0, 120), thisMonth(), !!j.balPaid, !!j.balReset]);
+          if (delta < -0.005) await c.query("INSERT INTO jar_movements (jar_id,amount,note,month,paid,reset) VALUES ($1,$2,$3,$4,$5,$6)", [j.id, delta, String(j.balNote || "Taken out").slice(0, 120), thisMonth(), !!j.balPaid, !!j.balReset]);
         }
       } else await c.query("INSERT INTO jars (id,name,priority,target,cap,balance,due,bill_match,auto_cap,description,bill_months,done_at,kind,outside) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)", [j.id, j.n, j.p, j.need, j.cap ?? null, j.bal, j.due || null, j.bill || null, !!j.auto, String(j.desc || "").slice(0, 400), j.months || null, j.done || null, j.kind === "payoff" ? "payoff" : "", Math.max(0, +j.out || 0)]);
     }

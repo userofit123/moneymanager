@@ -87,7 +87,7 @@ test("one history line; what goes in counts as received this month; one Undo put
   const [a, b, c] = next.jars;
   assert.deepEqual([a.bal, b.bal, c.bal], [300, 100, 100]);
   assert.equal(a.balIn, true); assert.equal(a.got, 300); assert.equal(a.moves[0].note, "Reset jars");
-  assert.equal(b.balIn, undefined); assert.equal(b.got, 0, "money taken out lowers what it received"); assert.equal(b.moves[0].amt, -400);
+  assert.equal(b.balIn, undefined); assert.equal(b.got, 100, "money a reset takes out does not lower what it received"); assert.equal(b.balReset, true); assert.equal(b.moves[0].amt, -400);
   assert.equal(b.balEdit, true);
   const u = makePatch(before, next);
   applyPatch(next, u);

@@ -6,7 +6,7 @@
 const BY_ID = ["tx", "jars", "accounts"]; // lists of things with an id: changed fields, added and removed items
 const BY_KEY = ["budgets", "cats", "dismissed", "dupOk", "txIgnore", "ccOverride", "inMark", "cfg", "points"]; // objects: changed keys
 const SKIP = new Set(["audit", "rev", "jarsReserve", "fxCurrencies", "connected", "locked", "connStatus", "companies", "sources", "nwSnaps", "balUpdates", "gaps"]);
-const FLAGS = new Set(["balEdit", "balUndo", "balPaid", "balNote", "balIn"]); // a jar's notes to the server about its last save, not data
+const FLAGS = new Set(["balEdit", "balUndo", "balPaid", "balNote", "balIn", "balReset"]); // a jar's notes to the server about its last save, not data
 const MAX = 64000; // longer than this (a change to thousands of transactions) is not kept
 const same = (a, b) => a === b || JSON.stringify(a) === JSON.stringify(b);
 const copy = (v) => (v === undefined ? undefined : structuredClone(v));

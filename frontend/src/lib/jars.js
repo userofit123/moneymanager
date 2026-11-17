@@ -324,8 +324,10 @@ export function resetJars(S, ctx) {
   P.rows.forEach((r) => {
     const j = S.jars.find((x) => x.id == r.id), d = r2(r.after - r.before);
     if (!j || Math.abs(d) < 0.005) return;
-    n++; j.balEdit = true; j.balNote = "Reset jars";
-    if (d < 0) jarOut(j, -d, "Reset jars");
+    n++; j.balEdit = true; j.balNote = "Reset jars"; j.balReset = true;
+    // money a reset takes out does not lower what the jar received this month: a reset is the final result, the next fill
+    // does not top the jar up again
+    if (d < 0) { const got = j.got; jarOut(j, -d, "Reset jars"); j.got = got; }
     else { j.balIn = true; j.got = r2((+j.got || 0) + d); j.moves = [{ amt: d, note: "Reset jars", at: now }, ...(j.moves || [])]; if (j.ledger != null) j.ledger = r2(j.ledger + d); }
     j.bal = r.after; jarClamp(j);
   });
