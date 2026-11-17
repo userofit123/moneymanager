@@ -35,7 +35,11 @@ export function jarActions(J, j) {
   ];
 }
 
-// the Jars screen's own ⋯ (the computer's page menu): Reset jars
+// the Jars screen's own ⋯ (the computer's page menu): the Fill jars switch and Reset jars
 export function pageActions(J) {
-  return [{ label: J.t("jars.reset.item"), icon: ICON.reopen, run: J.askReset }];
+  const on = J.fillMode.value === "leftover";
+  return [
+    { label: J.t("jars.fillSwitch"), on, run: () => J.setFillMode(on ? "asap" : "leftover") },
+    { label: J.t("jars.reset.item"), icon: ICON.reopen, run: J.askReset },
+  ];
 }

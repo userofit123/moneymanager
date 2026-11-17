@@ -71,13 +71,6 @@ onMounted(() => { data.start(); });
         </div>
       </div>
 
-      <div class="card jbufc">
-        <div class="kt"><div class="kh"><div><b v-tip="t('jars.fillModeTip')">{{ t("jars.fillMode") }}</b><div class="sm">{{ t("jars.fillModeSub") }}</div></div></div></div>
-        <div class="kctl">
-          <div class="kchips" role="radiogroup" :aria-label="t('jars.fillMode')"><button v-for="m in ['leftover', 'asap']" :key="m" type="button" role="radio" :aria-checked="fillMode == m" :class="{ on: fillMode == m }" data-a="jarFillMode" @click="setFillMode(m)">{{ m == "leftover" ? t("jars.fillLeftover") : t("jars.fillAsap") }}</button></div>
-        </div>
-      </div>
-
       <h2>{{ t("jars.jars") }}<span class="flex" style="gap:8px"><button v-if="M.has.any" type="button" class="btn o s" data-a="jarFill" :disabled="filling" @click="fill">{{ t("jars.fill") }}</button><button type="button" class="btn o s" data-a="jarNew" @click="openNew">{{ t("jars.newJar") }}</button></span></h2>
       <CardColumns id="jarg" :items="M.jars">
         <template #default="{ item: j }">
@@ -149,6 +142,7 @@ onMounted(() => { data.start(); });
   <template v-if="M">
     <PopMenu :at="menu?.btn" :cls="menu?.kind == 'hist' ? 'hist' : ''" @close="menu = null">
       <template v-if="menu?.kind == 'page'">
+        <button role="menuitemcheckbox" class="mtg" :aria-checked="fillMode == 'leftover'" v-tip="t('jars.fillSwitchTip')" @click="setFillMode(fillMode == 'leftover' ? 'asap' : 'leftover')"><span>{{ t("jars.fillSwitch") }}</span><span class="tg" aria-hidden="true"><input type="checkbox" tabindex="-1" :checked="fillMode == 'leftover'"></span></button>
         <button role="menuitem" data-a="jarsReset" @click="askReset"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 3-6.2M4 4v4h4" /></svg>{{ t("jars.reset.item") }}</button>
       </template>
       <template v-else-if="menu?.kind == 'more'">

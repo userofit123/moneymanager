@@ -28,7 +28,7 @@ defineProps({ id: { type: String, default: null } });
 
 const J = useJars();
 const {
-  t, tk, data, M, home, save, ctx, fm, f0, tx, bufText, setBuffer, bufShown, BUF_PRESETS, fillMode, setFillMode, filling, fill,
+  t, tk, data, M, home, save, ctx, fm, f0, tx, bufText, setBuffer, bufShown, BUF_PRESETS, filling, fill,
   openNew, relAmt, doRelease, why, statTips, col, monthLine, pay, goalLine, GCLS, doneLine, goalFix, moveJarTo, reopenJar, resetAsk, resetShow, doReset,
 } = J;
 const nav = usePhoneNav();
@@ -93,15 +93,6 @@ const priOptions = computed(() => (M.value?.jars || []).map((x, k) => ({ value: 
           <button v-for="v in BUF_PRESETS" :key="v" type="button" class="ph-chip" :class="{ on: M.F.buffer == v }" role="radio" :aria-checked="M.F.buffer == v" @click="setBuffer(v)">{{ v ? fm(v) : t("jars.none") }}</button>
         </div>
         <div class="ph-jars-kin"><span>₪</span><MoneyInput id="ph-jbuf" :model-value="bufShown" :placeholder="t('jars.other')" :aria-label="t('jars.keepLabel')" @update:model-value="bufText = $event" @change="setBuffer(bufText ?? M.F.buffer)" @keydown.enter="$event.target.blur()" /></div>
-      </section>
-
-      <!-- when the jars get their money: the computer's "Fill jars" card -->
-      <section class="ph-card ph-jars-keep">
-        <button type="button" class="ph-jars-lbl ph-jars-fillt" @click="explain(t('jars.fillModeTip'))"><b>{{ t("jars.fillMode") }}</b><PIcon name="info" /></button>
-        <p>{{ t("jars.fillModeSub") }}</p>
-        <div class="ph-jars-chips" role="radiogroup" :aria-label="t('jars.fillMode')">
-          <button v-for="m in ['leftover', 'asap']" :key="m" type="button" class="ph-chip" :class="{ on: fillMode == m }" role="radio" :aria-checked="fillMode == m" @click="setFillMode(m)">{{ m == "leftover" ? t("jars.fillLeftover") : t("jars.fillAsap") }}</button>
-        </div>
       </section>
 
       <!-- the jars: the computer's jar cards, sliding sideways -->
