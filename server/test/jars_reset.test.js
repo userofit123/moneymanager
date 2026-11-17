@@ -1,10 +1,10 @@
 // "Reset jars": money the app shares out again is recorded as received this month, so the monthly fill does not add it twice.
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
-import { reset, pool, q } from "./helpers.js";
+import { reset, pool, q, jarsAsap } from "./helpers.js";
 import { getState, putState } from "../src/state.js";
 
-before(reset);
+before(async () => { await reset(); await jarsAsap(); });
 after(() => pool.end());
 
 test("money put into a jar by Reset jars is recorded and counts as received this month", async () => {

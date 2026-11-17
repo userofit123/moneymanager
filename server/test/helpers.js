@@ -15,4 +15,6 @@ export async function reset() {
   await ensureDefaults();
   await q("INSERT INTO exchange_rates (date,base,quote,rate) VALUES ('2026-10-01','USD','ILS',3.055),('2026-10-01','EUR','ILS',3.4291)");
 }
+// "Fill jars: as soon as money comes in": the tests of the fill itself use it, so every run shares what is free now
+export const jarsAsap = () => q(`INSERT INTO settings (key,value) VALUES ('cfg','{"jarFill":"asap"}') ON CONFLICT (key) DO UPDATE SET value=settings.value || '{"jarFill":"asap"}'::jsonb`);
 export { pool, q };

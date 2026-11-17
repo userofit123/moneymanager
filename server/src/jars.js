@@ -3,8 +3,12 @@
 // minus what is still to be paid this month (unpaid bills, the unspent part of budgets and card purchases not paid yet).
 //   fixed jar:  up to its monthly amount in total this month, never beyond its target (a jar with no target just keeps going)
 //   bill jar:   topped up to its target
-// A fill that could not happen yet (not enough money) is retried on the next run, so a jar that did not get its money
-// this month takes it as soon as money is available, in priority order. Every fill is recorded.
+// How much the jars share follows the "Fill jars" setting (cfg.jarFill):
+//   leftover (the usual): what was left free at the end of last month, shared on the first run of the month; money that
+//                         comes in during the month waits for next month
+//   asap:                 whatever is free now; a fill that could not happen yet (not enough money) is retried on the next
+//                         run, so a jar that did not get its money this month takes it as soon as money is available
+// Always in priority order. Every fill is recorded.
 import { tx, audit, bumpRev } from "./db.js";
 
 export const thisMonth = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -49,21 +53,44 @@ export async function fillJarsTx(c, month = thisMonth()) {
   // (worked out by the app, refreshed whenever it is open)
   const reserve = Math.max(0, +((await c.query("SELECT value FROM settings WHERE key='jars_reserve'")).rows[0]?.value ?? 0));
   const jars = (await c.query("SELECT id,priority,target,cap,balance,outside,due,auto_cap FROM jars WHERE done_at IS NULL")).rows;
-  if (!jars.length) return { applied: 0, total: 0 };
+  const cfg = (await c.query("SELECT value FROM settings WHERE key='cfg'")).rows[0]?.value || {};
+  const free = (await cashNow(c)) - jars.reduce((t, j) => t + Math.max(0, j.balance - (j.outside || 0)), 0) - buffer - reserve; // only the part that sits in your accounts is set aside
+  const left = await leftoverOf(c, month);
+  if (!jars.length) { await saveLeftover(c, left, free); return { applied: 0, total: 0 }; }
   // what a jar received this month can never be more than what it holds now: money taken out again does not count as received
   const held = Object.fromEntries(jars.map((j) => [j.id, j.balance]));
   // payments out of a jar (paid) are spending, not money handed back: they never reopen the month's allowance;
   // money taken out by "Reset jars" (reset) neither: a reset is the final result, the next fill does not top the jar up again
   const received = Object.fromEntries((await c.query(`SELECT jar_id, ${MONTH_SUMS} FROM jar_movements WHERE month=$1 GROUP BY jar_id`, [month])).rows.map((r) => [r.jar_id, Math.min(r.s, Math.max(0, held[r.jar_id] ?? 0) + r.p + r.r)]));
-  const free = (await cashNow(c)) - jars.reduce((t, j) => t + Math.max(0, j.balance - (j.outside || 0)), 0) - buffer - reserve; // only the part that sits in your accounts is set aside
+  // "leftover" (the usual): this month the jars only share what was left free at the end of last month, less what they
+  // already got this month, and never more than is free now. "asap": whatever is free now.
+  const pool = cfg.jarFill === "asap" ? free : Math.max(0, Math.min(left.last - left.filled, free));
   let applied = 0, total = 0;
-  for (const p of allocate(free, jars, received)) {
+  for (const p of allocate(pool, jars, received)) {
     if (p.give <= 0) continue;
     await c.query("UPDATE jars SET balance=$2, last_filled=$3 WHERE id=$1", [p.id, p.balance, month]);
     await c.query("INSERT INTO jar_movements (jar_id,amount,note,month) VALUES ($1,$2,$3,$4)", [p.id, p.give, `Auto-fill ${month}`, month]);
     applied++; total += p.give;
   }
+  left.filled += total;
+  await saveLeftover(c, left, free - total);
   return { applied, total };
+}
+
+// Last month's leftover: the free money after the last fill run of each month is kept (setting jars_leftover:
+// { month, free, last, filled }). When a new month starts, the free money of the latest month recorded becomes "last",
+// what this month's fills may share, and "filled" (what the jars got this month) starts again at 0. The first run ever
+// (a new install, or the first run after this was added) has no leftover yet: this month counts as already filled.
+async function leftoverOf(c, month) {
+  const st = (await c.query("SELECT value FROM settings WHERE key='jars_leftover'")).rows[0]?.value;
+  if (!st || !st.month) return { month, free: 0, last: 0, filled: 0 };
+  if (st.month > month) return { month, free: 0, last: 0, filled: 0 }; // the clock went back: nothing to share
+  if (st.month === month) return { month, free: +st.free || 0, last: +st.last || 0, filled: +st.filled || 0 };
+  return { month, free: 0, last: Math.max(0, +st.free || 0), filled: 0 };
+}
+async function saveLeftover(c, left, free) {
+  const v = { month: left.month, free: +(+free).toFixed(2), last: +left.last.toFixed(2), filled: +left.filled.toFixed(2) };
+  await c.query("INSERT INTO settings (key,value) VALUES ('jars_leftover',$1) ON CONFLICT (key) DO UPDATE SET value=$1", [JSON.stringify(v)]);
 }
 
 export async function fillJars(month = thisMonth()) {

@@ -1,13 +1,13 @@
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
-import { reset, pool, q } from "./helpers.js";
+import { reset, pool, q, jarsAsap } from "./helpers.js";
 import { pairTransfers, computeGap, recordSnapshot, suggestConversion, healGaps, healCardPayments, settleGaps } from "../src/engine.js";
 import { ingest } from "../src/sources/ingest.js";
 import { parseWiseCsv } from "../src/sources/csv.js";
 import { getState, putState, StaleError, cleanPoints } from "../src/state.js";
 import { tx } from "../src/db.js";
 
-before(reset);
+before(async () => { await reset(); await jarsAsap(); });
 after(() => pool.end());
 
 const OWN = ["Bank Hapoalim", "Wise"];
