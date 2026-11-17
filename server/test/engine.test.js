@@ -33,6 +33,10 @@ test("gap maths: drop, rise, none", () => {
 // Dates are counted back from today: payments older than a month before the starting point (OLD_DAYS) are ignored by design, so fixed dates would age out.
 const daysAgo = (n) => new Date(Date.now() - n * 864e5);
 const dayStr = (n) => daysAgo(n).toISOString().slice(0, 10);
+// Day numbers counted from today: day 10 is 20 days ago (day 21 is 9 days ago); ref(12) is day 12 as "YYYY-MM-DD", at(12, "08:00") that day at 08:00 UTC.
+const REF_DAY10 = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate()) - 20 * 864e5;
+const ref = (d) => new Date(REF_DAY10 + (d - 10) * 864e5).toISOString().slice(0, 10);
+const at = (d, hm) => new Date(`${ref(d)}T${hm}:00Z`);
 
 test("balance drop with no transaction creates a money-out gap in the right currency; a matching transaction clears it", async () => {
   const wise = (await q("SELECT * FROM accounts WHERE name='Wise'")).rows[0];
@@ -367,17 +371,17 @@ test("a balance gap closes by itself when a charge first listed at 0 gets its re
   await reset();
   const acc = { name: "Bank Hapoalim", currency: "ILS", source: "hapoalim" };
   const a = (await q("SELECT * FROM accounts WHERE name='Bank Hapoalim'")).rows[0];
-  const row = (amt) => ({ date: "2026-10-12", description: "Wolt", amount: amt, currency: "ILS", externalId: `9:ref1:2026-10-12:${amt}`, stableKey: "9:ref1:2026-10-12" });
+  const row = (amt) => ({ date: ref(12), description: "Wolt", amount: amt, currency: "ILS", externalId: `9:ref1:${ref(12)}:${amt}`, stableKey: `9:ref1:${ref(12)}` });
   await ingest(acc, [row(0)]);
-  await tx((c) => recordSnapshot(c, a, 1000, new Date("2026-10-11T10:00:00Z")));
-  await tx((c) => recordSnapshot(c, a, 588, new Date("2026-10-13T10:00:00Z")));
+  await tx((c) => recordSnapshot(c, a, 1000, at(11, "10:00")));
+  await tx((c) => recordSnapshot(c, a, 588, at(13, "10:00")));
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 1);
   await ingest(acc, [row(-412)]);
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 0);
   // and an already-updated charge closes the gap on the next sync
-  await tx((c) => recordSnapshot(c, a, 422, new Date("2026-10-14T10:00:00Z")));
+  await tx((c) => recordSnapshot(c, a, 422, at(14, "10:00")));
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 1);
-  await q("INSERT INTO transactions (date,description,from_name,to_name,amount,source) VALUES ('2026-10-13','Late fill','Bank Hapoalim','Shop',-166,'manual')");
+  await q(`INSERT INTO transactions (date,description,from_name,to_name,amount,source) VALUES ('${ref(13)}','Late fill','Bank Hapoalim','Shop',-166,'manual')`);
   await ingest(acc, []);
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 0);
 });
@@ -422,10 +426,10 @@ test("a charge the bank still lists as pending explains the balance gap it cause
   const acc = { name: "Max", currency: "ILS", source: "max" };
   await q("INSERT INTO accounts (name,currency,kind,source,subtitle,sort) VALUES ('Max','ILS','card','max','',60) ON CONFLICT DO NOTHING");
   const a = (await q("SELECT * FROM accounts WHERE name='Max'")).rows[0];
-  await tx((c) => recordSnapshot(c, a, 0, new Date("2026-10-12T08:00:00Z")));
-  await tx((c) => recordSnapshot(c, a, -412, new Date("2026-10-13T08:00:00Z")));
+  await tx((c) => recordSnapshot(c, a, 0, at(12, "08:00")));
+  await tx((c) => recordSnapshot(c, a, -412, at(13, "08:00")));
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 1);
-  await ingest(acc, [{ date: "2026-10-12", description: "Home store", amount: -412, currency: "ILS", pending: true, externalId: "9001:p1:2026-10-12:0" }]);
+  await ingest(acc, [{ date: ref(12), description: "Home store", amount: -412, currency: "ILS", pending: true, externalId: `9001:p1:${ref(12)}:0` }]);
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 0);
 });
 
@@ -454,17 +458,17 @@ test("two charges the bank still lists as pending together explain the balance g
   const acc = { name: "Max", currency: "ILS", source: "max" };
   await q("INSERT INTO accounts (name,currency,kind,source,subtitle,sort) VALUES ('Max','ILS','card','max','',60) ON CONFLICT DO NOTHING");
   const a = (await q("SELECT * FROM accounts WHERE name='Max'")).rows[0];
-  await tx((c) => recordSnapshot(c, a, 0, new Date("2026-10-15T08:00:00Z")));
-  await tx((c) => recordSnapshot(c, a, -236, new Date("2026-10-16T08:00:00Z"))); // the card balance already includes both purchases
+  await tx((c) => recordSnapshot(c, a, 0, at(15, "08:00")));
+  await tx((c) => recordSnapshot(c, a, -236, at(16, "08:00"))); // the card balance already includes both purchases
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 1);
   await ingest(acc, [
-    { date: "2026-10-15", description: "Shop A", amount: -100, currency: "ILS", pending: true, externalId: "9001:pa:2026-10-15:0" },
-    { date: "2026-10-15", description: "Shop B", amount: -136, currency: "ILS", pending: true, externalId: "9001:pb:2026-10-15:0" },
+    { date: ref(15), description: "Shop A", amount: -100, currency: "ILS", pending: true, externalId: `9001:pa:${ref(15)}:0` },
+    { date: ref(15), description: "Shop B", amount: -136, currency: "ILS", pending: true, externalId: `9001:pb:${ref(15)}:0` },
   ]);
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 0);
   // charges that do not add up to the gap leave it open
-  await tx((c) => recordSnapshot(c, a, -500, new Date("2026-10-17T08:00:00Z")));
-  await ingest(acc, [{ date: "2026-10-16", description: "Shop C", amount: -30, currency: "ILS", pending: true, externalId: "9001:pc:2026-10-16:0" }]);
+  await tx((c) => recordSnapshot(c, a, -500, at(17, "08:00")));
+  await ingest(acc, [{ date: ref(16), description: "Shop C", amount: -30, currency: "ILS", pending: true, externalId: `9001:pc:${ref(16)}:0` }]);
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 1);
 });
 
@@ -473,11 +477,11 @@ test("a balance gap made of many pending charges (more than five) closes by itse
   const acc = { name: "Max", currency: "ILS", source: "max" };
   await q("INSERT INTO accounts (name,currency,kind,source,subtitle,sort) VALUES ('Max','ILS','card','max','',60) ON CONFLICT DO NOTHING");
   const a = (await q("SELECT * FROM accounts WHERE name='Max'")).rows[0];
-  await tx((c) => recordSnapshot(c, a, 0, new Date("2026-10-15T08:00:00Z")));
+  await tx((c) => recordSnapshot(c, a, 0, at(15, "08:00")));
   const amts = [-12.5, -48, -7, -230.9, -15, -64.3, -9.9, -120, -33.3]; // nine purchases in a day
-  await tx((c) => recordSnapshot(c, a, +amts.reduce((x, y) => x + y, 0).toFixed(2), new Date("2026-10-16T08:00:00Z")));
+  await tx((c) => recordSnapshot(c, a, +amts.reduce((x, y) => x + y, 0).toFixed(2), at(16, "08:00")));
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 1);
-  await ingest(acc, amts.map((m, i) => ({ date: "2026-10-15", description: "Shop " + i, amount: m, currency: "ILS", pending: true, externalId: `9001:p${i}:2026-10-15:0` })));
+  await ingest(acc, amts.map((m, i) => ({ date: ref(15), description: "Shop " + i, amount: m, currency: "ILS", pending: true, externalId: `9001:p${i}:${ref(15)}:0` })));
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 0);
 });
 
@@ -486,12 +490,12 @@ test("pending charges that were imported before the balance reading explain the 
   const acc = { name: "Max", currency: "ILS", source: "max" };
   await q("INSERT INTO accounts (name,currency,kind,source,subtitle,sort) VALUES ('Max','ILS','card','max','',60) ON CONFLICT DO NOTHING");
   const a = (await q("SELECT * FROM accounts WHERE name='Max'")).rows[0];
-  await tx((c) => recordSnapshot(c, a, 0, new Date("2026-10-15T08:00:00Z")));
+  await tx((c) => recordSnapshot(c, a, 0, at(15, "08:00")));
   await ingest(acc, [
-    { date: "2026-10-15", description: "Shop A", amount: -100, currency: "ILS", pending: true, externalId: "9001:qa:2026-10-15:0" },
-    { date: "2026-10-15", description: "Shop B", amount: -136, currency: "ILS", pending: true, externalId: "9001:qb:2026-10-15:0" },
+    { date: ref(15), description: "Shop A", amount: -100, currency: "ILS", pending: true, externalId: `9001:qa:${ref(15)}:0` },
+    { date: ref(15), description: "Shop B", amount: -136, currency: "ILS", pending: true, externalId: `9001:qb:${ref(15)}:0` },
   ]);
-  await tx((c) => recordSnapshot(c, a, -236, new Date("2026-10-16T08:00:00Z"))); // the balance is read after the transactions
+  await tx((c) => recordSnapshot(c, a, -236, at(16, "08:00"))); // the balance is read after the transactions
   assert.equal((await q("SELECT * FROM balance_gaps WHERE status='open'")).rowCount, 0);
 });
 
@@ -506,21 +510,21 @@ const openGaps = async () => (await q("SELECT remaining::float AS r FROM balance
 test("charges arriving together each explain the whole gap they caused, so the next gap is not left with a piece of one", async () => {
   const { card } = await cardAndBank();
   const acc = { name: "Card", currency: "ILS", source: "max" };
-  await tx((c) => recordSnapshot(c, card, 0, new Date("2026-10-17T08:00:00Z")));
-  await tx((c) => recordSnapshot(c, card, -152, new Date("2026-10-18T08:00:00Z")));
-  await tx((c) => recordSnapshot(c, card, -450.9, new Date("2026-10-18T20:00:00Z"))); // 201.30 + 97.60
-  await tx((c) => recordSnapshot(c, card, -584.11, new Date("2026-10-19T08:00:00Z")));
+  await tx((c) => recordSnapshot(c, card, 0, at(17, "08:00")));
+  await tx((c) => recordSnapshot(c, card, -152, at(18, "08:00")));
+  await tx((c) => recordSnapshot(c, card, -450.9, at(18, "20:00"))); // 201.30 + 97.60
+  await tx((c) => recordSnapshot(c, card, -584.11, at(19, "08:00")));
   assert.deepEqual(await openGaps(), [-584.11]); // one gap for the account, however often it synced
   await ingest(acc, [ // the bank lists them days later, in its own order
-    { date: "2026-10-18", description: "Shop A", amount: -201.3, currency: "ILS", externalId: "c:a" },
-    { date: "2026-10-18", description: "Gym", amount: -152, currency: "ILS", externalId: "c:b" },
-    { date: "2026-10-18", description: "Pharmacy", amount: -97.6, currency: "ILS", externalId: "c:c" },
-    { date: "2026-10-19", description: "Online shop", amount: -133.21, currency: "ILS", externalId: "c:d" },
+    { date: ref(18), description: "Shop A", amount: -201.3, currency: "ILS", externalId: "c:a" },
+    { date: ref(18), description: "Gym", amount: -152, currency: "ILS", externalId: "c:b" },
+    { date: ref(18), description: "Pharmacy", amount: -97.6, currency: "ILS", externalId: "c:c" },
+    { date: ref(19), description: "Online shop", amount: -133.21, currency: "ILS", externalId: "c:d" },
   ]);
   assert.deepEqual(await openGaps(), []);
-  await tx((c) => recordSnapshot(c, card, -838.49, new Date("2026-10-21T08:00:00Z"))); // a new purchase of 254.38, not listed yet
+  await tx((c) => recordSnapshot(c, card, -838.49, at(21, "08:00"))); // a new purchase of 254.38, not listed yet
   assert.deepEqual(await openGaps(), [-254.38]);
-  await ingest(acc, [{ date: "2026-10-21", description: "Supermarket", amount: -254.38, currency: "ILS", pending: true, externalId: "c:e" }]);
+  await ingest(acc, [{ date: ref(21), description: "Supermarket", amount: -254.38, currency: "ILS", pending: true, externalId: "c:e" }]);
   assert.deepEqual(await openGaps(), []);
 });
 
@@ -570,13 +574,13 @@ test("gaps that do not add up over the whole period stay open", async () => {
 
 test("the same payments and balances give the same gaps whether the copy synced every day or once at the end", async () => {
   const mk = async (name) => { const a = (await q("INSERT INTO accounts (name,kind,currency,source) VALUES ($1,'bank','ILS','hapoalim') RETURNING *", [name])).rows[0]; return { a, acc: { name, currency: "ILS", source: "hapoalim" } }; };
-  const day = (n) => new Date(Date.UTC(2026, 9, 10 + n, 6, 0, 0));
+  const day = (n) => at(10 + n, "06:00");
   const open = async (id) => (await q("SELECT amount::float AS a FROM balance_gaps WHERE account_id=$1 AND status='open'", [id])).rows.map((g) => g.a);
   // a balance that rises 149 with no payment, then payments of 273 arrive: 149 is left over, however it was looked at
   const d = await mk("Daily A"), w = await mk("Weekly A");
   for (const x of [d, w]) await tx((c) => recordSnapshot(c, x.a, 1000, day(0)));
   await tx((c) => recordSnapshot(c, d.a, 1149, day(1)));
-  for (const x of [d, w]) await ingest(x.acc, [{ date: "2026-10-12", description: "Shop", amount: -273, currency: "ILS", externalId: "s:" + x.a.id }]);
+  for (const x of [d, w]) await ingest(x.acc, [{ date: ref(12), description: "Shop", amount: -273, currency: "ILS", externalId: "s:" + x.a.id }]);
   await tx((c) => recordSnapshot(c, d.a, 876, day(2)));
   await tx((c) => recordSnapshot(c, w.a, 876, day(2)));
   assert.deepEqual(await open(d.a.id), [149]);
