@@ -38,7 +38,7 @@ export function useJars() {
   const BUF_PRESETS = [0, 1000, 2000, 5000, 10000];
 
   // Fill jars: "leftover" (on the 1st, from what was left free at the end of last month) or "asap" (whenever there is free money)
-  const FILL_MODES = [["leftover", "From last month's leftover"], ["asap", "As soon as money comes in"]];
+  const FILL_MODES = [["leftover", "What wasn't spent last month, on the 1st"], ["asap", "Any free money, right away"]];
   const fillMode = computed(() => (S.value.cfg?.jarFill === "asap" ? "asap" : "leftover"));
   const setFillMode = (v) => save((s) => {
     if (fillMode.value === v) return false;

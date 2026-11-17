@@ -575,6 +575,8 @@ const APP = {
   "Released back to free money": "הוחזר לכסף הפנוי",
   "From last month's leftover": "ממה שנשאר בחודש שעבר",
   "As soon as money comes in": "ברגע שנכנס כסף",
+  "What wasn't spent last month, on the 1st": "מה שלא הוצא בחודש שעבר, ב־1 לחודש",
+  "Any free money, right away": "כל כסף פנוי, מיד",
   "same": "ללא שינוי",
   "Saved": "נשמר",
   "Saving": "בחיסכון",
