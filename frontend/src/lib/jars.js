@@ -297,6 +297,41 @@ export function releaseJars(S, over, ctx) {
   L.forEach((j) => { const t = take[j.id]; if (!(t > 0)) return; j.balNote = "Released back to free money"; const l = jset(j, "bal", r2(j.bal - t), ctx); if (l) logs.push(l); });
   return logs;
 }
+// "Reset jars": all the money in the open jars (only the part that sits in your accounts) is taken out and shared again,
+// in order of priority. Jars with a target get up to their target first (a pay-off jar's target is what is owed, and what
+// was already paid back counts towards it). What is left goes to the jars with no target, shared by their monthly amounts
+// (equally when none has one); in whole agorot, the last one takes what is left over. Money stays free only when every jar
+// has a target and all are full. Completed jars and money held outside your accounts are not touched.
+// Gives back { pool, free, rows: [{ id, n, before, after }] } in priority order. Changes nothing.
+export function resetPlan(S) {
+  const L = jarsOpen(S), ag = (v) => Math.round(+v * 100), got = {};
+  const pool = sum(L.map((j) => ag(heldOf(j))));
+  let rem = pool;
+  L.forEach((j) => { if (+j.need > 0) { const g = Math.min(rem, Math.max(0, ag(j.need) - ag(+j.out || 0))); got[j.id] = g; rem -= g; } });
+  const open = L.filter((j) => !(+j.need > 0)), w = open.map((j) => Math.max(0, +j.cap || 0)), W = sum(w);
+  const to = W > 0 ? open.filter((j, i) => w[i] > 0) : open, wt = W > 0 ? w.filter((x) => x > 0) : open.map(() => 1), WT = sum(wt);
+  let left = rem;
+  to.forEach((j, i) => { const g = i == to.length - 1 ? left : Math.floor((rem * wt[i]) / WT); got[j.id] = g; left -= g; });
+  if (to.length) rem = 0;
+  const rows = L.map((j) => ({ id: j.id, n: j.n, before: +j.bal || 0, after: r2((ag(+j.out || 0) + (got[j.id] || 0)) / 100) }));
+  return { pool: pool / 100, free: rem / 100, rows };
+}
+// Applies resetPlan: one history line for the whole reset (Undo puts every jar back). Each jar's money taken out or put in
+// is recorded like any other (jarOut / jarIn), so "received this month" stays true.
+export function resetJars(S, ctx) {
+  const P = resetPlan(S), now = new Date().toISOString();
+  let n = 0;
+  P.rows.forEach((r) => {
+    const j = S.jars.find((x) => x.id == r.id), d = r2(r.after - r.before);
+    if (!j || Math.abs(d) < 0.005) return;
+    n++; j.balEdit = true; j.balNote = "Reset jars";
+    if (d < 0) jarOut(j, -d, "Reset jars");
+    else { j.balIn = true; j.got = r2((+j.got || 0) + d); j.moves = [{ amt: d, note: "Reset jars", at: now }, ...(j.moves || [])]; if (j.ledger != null) j.ledger = r2(j.ledger + d); }
+    j.bal = r.after; jarClamp(j);
+  });
+  if (!n) return [];
+  return [["Reset jars", P.rows.length + " jar" + (P.rows.length == 1 ? "" : "s") + " · " + ctx.fm(P.pool) + " shared again"]];
+}
 // "Raise to ₪X a month" on a goal that is behind: a fixed monthly amount of what is needed, rounded up to tens (goalFix).
 export function goalFix(S, id, ctx) {
   const j = (S.jars || []).find((x) => x.id == id); if (!j || !j.due) return false;

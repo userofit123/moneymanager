@@ -218,7 +218,7 @@ function mergeJars(mine, theirs, same) {
     return sj ? { ...j, got: sj.got, paid: sj.paid || 0, moves: sj.moves, ledger: sj.ledger } : j;
   });
 }
-const strip = (j) => { const o = { ...j }; delete o.balEdit; delete o.balNote; delete o.balUndo; delete o.balPaid; return o; };
+const strip = (j) => { const o = { ...j }; delete o.balEdit; delete o.balNote; delete o.balUndo; delete o.balPaid; delete o.balIn; return o; };
 
 // ?sample=1 on the test site shows made-up data instead (see sample.js). Nothing is saved then.
 export const data = sampleOn()

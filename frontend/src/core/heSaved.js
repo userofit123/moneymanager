@@ -61,6 +61,7 @@ const RULES = [
   [/^(.+): matched your hand-entered transaction$/, (a) => a + ": הותאם לתנועה שהזנתם ידנית"],
   [/^(.+): browser profile saved for later automatic logins$/, (a) => a + ": פרופיל הדפדפן נשמר להתחברויות אוטומטיות בהמשך"],
   [/^(\w+ ?\w*) (\w{3}): (-?[\d.,]+) recorded as an unrecorded charge$/, (a, c, m) => a + " " + c + ": " + m + " נרשם כחיוב לא רשום"],
+  [/^(\d+) jars? · (.+) shared again$/, (n, m) => one(n, "קופה אחת", n + " קופות") + " · " + m + " חולקו מחדש"],
   [/^(\d+) jars? received ₪(\d+) for (\d{4}-\d{2})$/, (n, m, mo) => one(n, "קופה אחת קיבלה", n + " קופות קיבלו") + " ₪" + m + " עבור " + mo],
   // Years ahead → Save this goal: "₪1,000,000 in 15 years" ("₪1,000,000 by age 50" is in HISTORY)
   [/^(₪[\d,]+) in (\d+) years?$/, (a, n) => a + " בעוד " + one(n, "שנה", n + " שנים")],
@@ -218,6 +219,7 @@ const HISTORY = {
   "Renamed tag": "שם התג שונה",
   "Reopened jar": "קופה נפתחה מחדש",
   "Reordered jars": "סדר הקופות שונה",
+  "Reset jars": "הקופות אופסו וחולקו מחדש",
   "Restored bill": "שוחזר תשלום קבוע",
   "Salary found": "נמצאה משכורת",
   "Salary rule": "כלל משכורת",

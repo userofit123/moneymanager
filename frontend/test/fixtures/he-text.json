@@ -93,6 +93,7 @@
   "Renamed tag": "שם התג שונה",
   "Reopened jar": "קופה נפתחה מחדש",
   "Reordered jars": "סדר הקופות שונה",
+  "Reset jars": "הקופות אופסו וחולקו מחדש",
   "Restored bill": "שוחזר תשלום קבוע",
   "Salary found": "נמצאה משכורת",
   "Salary rule": "כלל משכורת",
@@ -178,6 +179,8 @@
   "no name": "ללא שם"
  },
  "lines with names and numbers": {
+  "3 jars · ₪4,500 shared again": "3 קופות · ₪4,500 חולקו מחדש",
+  "1 jar · ₪120.50 shared again": "קופה אחת · ₪120.50 חולקו מחדש",
   "#trip → #vacation · 3 transactions": "#trip ← #vacation · 3 תנועות",
   "1 income entry marked as Salary (it says so, or the same payer pays a similar amount every month)": "הכנסה אחת סומנה כמשכורת (כתוב כך, או שאותו משלם מעביר סכום דומה כל חודש)",
   "1 income entry marked as Salary (it says so, or one of your rules says so)": "הכנסה אחת סומנה כמשכורת (כתוב כך, או שאחד הכללים שלכם אומר כך)",
