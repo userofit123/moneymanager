@@ -89,7 +89,7 @@ const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", 
         <div id="kpis" class="grid g4">
           <div v-for="c in kpis" :key="c.key" class="card" :class="{ hero: c.hero }" v-tip="c.tip">
             <div class="lbl"><span class="gi" v-html="glyphIcon(c.key, { worth: 'var(--acc)', income: 'var(--pos)', expense: 'var(--neg)', net: 'var(--acc)' }[c.key])" /><span>{{ titleCase(c.label) }}</span></div>
-            <div class="val"><small>₪</small>{{ c.key === "net" && c.v < 0 ? "−" : "" }}{{ n0(c.v) }}</div>
+            <div class="val"><small>₪</small>{{ c.v < 0 ? "−" : "" }}{{ n0(c.v) }}</div>
             <div class="sm">{{ c.sub }}</div>
             <div v-if="c.lasts" class="sm lasts" v-tip="c.lasts.tip">{{ c.lasts.text }}</div>
             <svg v-if="c.spark" class="spark" viewBox="0 0 200 46" preserveAspectRatio="none">
@@ -104,10 +104,10 @@ const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", 
           <div id="accts" class="grid g3">
             <div v-for="g in M.groups" :key="g.n" class="card click" role="button" tabindex="0" @click="accGo(g.n)">
               <div class="lbl"><span class="gi" v-html="brandIcon(g.n, g.L[0].src, g.L[0].kind, g.L[0].ck)" /><span>{{ an(g.n) }}</span><span v-if="accSub(g).chips" class="chip" style="margin-inline-start:auto;padding:1px 9px">{{ accSub(g).chips }}</span></div>
-              <div class="val"><small>₪</small>{{ n0(g.total) }}</div>
+              <div class="val"><small>₪</small>{{ g.total < 0 ? "−" : "" }}{{ n0(g.total) }}</div>
               <div class="sm">
                 <template v-if="accSub(g).lines">
-                  <div v-for="x in accSub(g).lines" :key="x.cur" class="flex" style="justify-content:space-between;gap:8px;margin-top:3px"><span><template v-if="x.none">ILS · <i>{{ t("home.noShekel") }}</i></template><template v-else>{{ x.cur }} · {{ money2(x) }}<span v-if="x.cur != 'ILS'" style="opacity:.65"> × {{ (fx.fx[x.cur] || 1).toFixed(4) }}</span></template></span><b class="num" style="color:var(--tx)">₪{{ n0(x.none ? 0 : x.v * M.rate(x.cur)) }}</b></div>
+                  <div v-for="x in accSub(g).lines" :key="x.cur" class="flex" style="justify-content:space-between;gap:8px;margin-top:3px"><span><template v-if="x.none">ILS · <i>{{ t("home.noShekel") }}</i></template><template v-else>{{ x.cur }} · {{ money2(x) }}<span v-if="x.cur != 'ILS'" style="opacity:.65"> × {{ (fx.fx[x.cur] || 1).toFixed(4) }}</span></template></span><b class="num" style="color:var(--tx)">{{ fm(x.none ? 0 : x.v * M.rate(x.cur)) }}</b></div>
                   <div v-if="accSub(g).stale" style="margin-top:4px;opacity:.7">{{ fx.live ? t("home.fxStale") : t("home.fxNone") }}</div>
                 </template>
                 <template v-else>{{ accSub(g).text }}</template>
@@ -148,7 +148,7 @@ const H2 = { recent: "activity", budg: "budgets", bills: "bills", jars: "jars", 
               <div class="wrl w1" style="grid-row:1">{{ t("home.stepAmount") }}</div>
               <div class="wrl wnb" style="grid-row:3">{{ t("home.whatsLeft") }}</div>
               <div v-for="(c, i) in cols" :key="i" class="wc" :class="c.kind === 'end' ? 'end ' + c.tone : c.kind === 'item' ? '' : c.kind" :style="{ '--c': i + 2 }" v-tip="colTip(c)">
-                <div class="wca num" :data-l="t('num.leftBudgets')"><span v-if="c.kind === 'end'" class="dim">–</span><template v-else><small>₪</small>{{ n0(c.a) }}</template></div>
+                <div class="wca num" :data-l="t('num.leftBudgets')"><span v-if="c.kind === 'end'" class="dim">–</span><template v-else><small>₪</small>{{ c.a < 0 ? "−" : "" }}{{ n0(c.a) }}</template></div>
                 <div class="wcp"><i class="wcg" :style="{ '--b': c.b, '--h': c.h }" /><i class="wcs" :class="[c.kind === 'end' ? 'end ' + c.tone : c.kind === 'item' ? '' : c.kind, c.kind === 'start' || c.kind === 'end' ? '' : 'jn']" :style="{ '--h': c.s }" /></div>
                 <div class="wct" :data-l="t('home.whatsLeft')"><span v-if="c.kind === 'end' && W.eOver > 0" :class="{ neg: !calm }">−{{ fm(W.eOver) }}</span><template v-else>{{ leftOf(c) }}</template><small v-if="c.k === W.remain" class="wry">{{ t("num.afterKnownS") }}</small></div>
                 <div class="wcn"><b>{{ c.name }}</b></div>

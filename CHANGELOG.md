@@ -4,6 +4,9 @@ What changed in each version. The web app (Docker) and the Windows app share one
 
 Versions follow semantic versioning: **patch** (0.1.1) for fixes, **minor** (0.2.0) for new features, **major** (1.0.0) for changes that need action from you. The newest section is the version being released.
 
+## [Unreleased]
+- **Amounts below zero show their minus sign.** An account, a total on Home, a currency line, the balance after a payment and the balance shown when you test a bank connection used to show −₪500 as ₪500. The money flow on Home now also shows when your accounts add up to less than zero, and "What's left" under each step can go below ₪0 instead of stopping there. On the phone too.
+
 ## [0.17.0] - 2026-11-10
 - **A little party when you reach a new level.** Whenever you go up to the next level, confetti falls from the top of the screen to the bottom and sparks burst from your level badge, with a short "You reached level N" message. It lasts a few seconds and never gets in the way of a click. It happens for every new level, whatever brought it: something you did (also things that add no line to the change history, like dismissing an alert), points the app gives by itself (the daily visit, last month's results), a change from another device, or points that came in while the app was closed (then the party shows when you open it). If a level is taken back by Undo, reaching it again celebrates again. With "reduce motion" on in your device, only the message shows. You can turn it off in **Settings → Preferences → Points and levels → Celebrate a new level**. On the phone too.
 - **Activity: the gap under Group by and Sort by matches the search box.** The two menus were shorter than the search box and sat in the middle of the row, so the space between them and the table was a little bigger. They now sit on the bottom of the row and both gaps are the same.

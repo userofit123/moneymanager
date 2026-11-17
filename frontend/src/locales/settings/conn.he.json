@@ -133,7 +133,7 @@
   "testOk": "ההתחברות עבדה. שום דבר לא נשמר.",
   "balance": "יתרה {cur}",
   "balNone": "היתרה לא סופקה",
-  "balShekel": "יתרה ₪{v}",
+  "balShekel": "יתרה {v}",
   "txLast30": "{n} תנועות ב־30 הימים האחרונים",
   "testLocked": "נעול",
   "testFailed": "נכשל",

@@ -76,6 +76,18 @@ test("the money flow starts from the accounts and adds up to what is free", () =
   assert.ok(Math.abs(W.cols.at(-1).lo - Math.max(0, F.cash - F.cards - F.saved - F.R.total)) < 0.01);
 });
 
+test("an account below zero still shows the money flow, and what is left keeps its minus", () => {
+  const S = base(); S.accounts[0].v = -500; S.accounts = S.accounts.filter((a) => a.n != "Wise");
+  const M = homeModel(S, NOW, {}), W = flowSteps(M.flow, "actual");
+  assert.equal(M.flow.cash, -500);
+  assert.equal(M.has.flow, true);
+  assert.equal(W.cols[0].after, -500); // the first step starts below zero
+  assert.equal(W.cols[1].after, -500 - W.cols[1].a); // and goes further down
+  assert.ok(W.cols.every((c) => c.lo >= 0 && c.b >= 0)); // the bars stop at zero
+  S.accounts[0].v = 0; S.accounts[1].v = 0;
+  assert.equal(homeModel(S, NOW, {}).has.flow, false); // nothing in the accounts: no flow
+});
+
 test("a monthly bill is found and its next date predicted", () => {
   const S = base();
   ["2026-07-03", "2026-08-03", "2026-09-03", "2026-10-03"].forEach((d, i) => S.tx.push({ id: 100 + i, d, desc: "Netflix", from: "Max", to: "Netflix", a: -50, c: "Fun" }));

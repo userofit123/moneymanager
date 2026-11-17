@@ -175,7 +175,7 @@ export function homeModel(S, now = new Date(), fx = {}) {
   const cash = cashNow;
 
   const has = {
-    flow: accts.some((a) => a.v != 0) && cashNow > 0,
+    flow: accts.some((a) => a.v != 0) && cashNow != 0,
     accts: accts.length > 0 && accts.some((a) => a.v != 0 || (a.manual && a.v)),
     cards: cards.some((c) => c.now || c.last),
     bills: activeBills.length > 0, budg: Object.keys(budgets).length > 0, jars: jarsAll.length > 0,
@@ -244,10 +244,11 @@ export function flowSteps(F, mode = "left") {
     items.forEach((x, i) => { x.a = its[i]; });
   }
   let lvl = RND ? Math.round(start) : start;
-  const cols = [{ kind: "start", a: start, hi: start, lo: start, b: pc(start), h: 0, s: pc(start) }];
+  // lo: where the bar ends (never below 0); after: the real amount left after the step, below 0 when the money runs out
+  const cols = [{ kind: "start", a: start, hi: start, lo: Math.max(0, start), after: start, b: pc(start), h: 0, s: pc(start) }];
   // in order: what is known (cards, upcoming payments), then the plans: what is left in the budgets, then what is put aside
   const known = fixed.filter((x) => x.k == "cards" || x.k == "up"), aside = fixed.filter((x) => x.k == "jars" || x.k == "cushion");
-  [...known, ...items, ...aside].forEach((x) => { const hi = lvl, lo = Math.max(0, lvl - x.a); lvl -= x.a; cols.push({ ...x, rk: x.kind, kind: x.set ? "set" : "item", hi, lo, b: pc(lo), h: pc(hi - lo), s: pc(lo) }); });
+  [...known, ...items, ...aside].forEach((x) => { const hi = lvl, lo = Math.max(0, lvl - x.a); lvl -= x.a; cols.push({ ...x, rk: x.kind, kind: x.set ? "set" : "item", hi, lo, after: lvl, b: pc(lo), h: pc(hi - lo), s: pc(lo) }); });
   cols.push({ kind: "end", tone: eOver > 0 ? "neg" : eFree > 0 ? "pos" : "none", a: 0, lo: Math.max(0, lvl), b: pc(Math.max(0, lvl)), h: 0, s: pc(Math.max(0, lvl)) });
   // remain: the column after which "Your money after known payments" is left (the last of cards and upcoming payments)
   return { cols, src, spentAll, leftTot, start, eOver, eFree, ACT, upTot, upJar, upJarBy, jarsA, remain: upTot >= 1 ? "up" : "cards" };

@@ -48,7 +48,7 @@ const iso = (s) => "⁦" + s + "⁩"; // a date keeps its order inside a Hebrew 
 
 // the four totals, as on the computer: the same icons and colours; tapping one explains it
 const KPI_COL = { worth: "var(--acc)", income: "var(--pos)", expense: "var(--neg)", net: "var(--acc)" };
-const kpiVal = (c) => (c.key === "net" && c.v < 0 ? "−" : "") + n0(c.v);
+const kpiVal = (c) => (c.v < 0 ? "−" : "") + n0(c.v);
 
 // accounts: an account's own screen (by the first account of that bank or wallet), else the Accounts screen
 const accOpen = (n) => { const a = (S.value?.accounts || []).find((x) => x.n == n); if (a?.id != null) nav.push("account", String(a.id)); else accGo(n); };
@@ -128,10 +128,10 @@ const fxBadge = computed(() => { const ch = fxView.value?.ch || 0; return Math.a
 
         <ListGroup v-if="M.has.accts" :title="t('home.accounts')" :more="P('all')" bare @more="nav.push('accounts')">
           <SwipeCards :count="M.groups.length">
-            <AmountCard v-for="g in M.groups" :key="g.n" :icon="brandIcon(g.n, g.L[0].src, g.L[0].kind, g.L[0].ck)" :label="an(g.n)" :chip="accSub(g).chips" :value="n0(g.total)" @tap="accOpen(g.n)">
+            <AmountCard v-for="g in M.groups" :key="g.n" :icon="brandIcon(g.n, g.L[0].src, g.L[0].kind, g.L[0].ck)" :label="an(g.n)" :chip="accSub(g).chips" :value="(g.total < 0 ? '−' : '') + n0(g.total)" @tap="accOpen(g.n)">
               <template #sub>
                 <template v-if="accSub(g).lines">
-                  <span v-for="x in accSub(g).lines" :key="x.cur" class="ph-home-cur"><span><template v-if="x.none">ILS · <i>{{ t("home.noShekel") }}</i></template><template v-else><bdi>{{ x.cur }} · {{ money2(x) }}</bdi><span v-if="x.cur != 'ILS'" class="ph-home-rate" dir="ltr"> × {{ (fx.fx[x.cur] || 1).toFixed(4) }}</span></template></span><b class="ph-amt">₪{{ n0(x.none ? 0 : x.v * M.rate(x.cur)) }}</b></span>
+                  <span v-for="x in accSub(g).lines" :key="x.cur" class="ph-home-cur"><span><template v-if="x.none">ILS · <i>{{ t("home.noShekel") }}</i></template><template v-else><bdi>{{ x.cur }} · {{ money2(x) }}</bdi><span v-if="x.cur != 'ILS'" class="ph-home-rate" dir="ltr"> × {{ (fx.fx[x.cur] || 1).toFixed(4) }}</span></template></span><b class="ph-amt">{{ fm(x.none ? 0 : x.v * M.rate(x.cur)) }}</b></span>
                   <span v-if="accSub(g).stale" class="ph-home-stale">{{ fx.live ? t("home.fxStale") : t("home.fxNone") }}</span>
                 </template>
                 <template v-else>{{ accSub(g).text }}</template>
@@ -161,7 +161,7 @@ const fxBadge = computed(() => { const ch = fxView.value?.ch || 0; return Math.a
             <p class="ph-home-wfk"><span><i class="lk s" />{{ t("home.whatsLeft") }}</span><span><i class="lk g" />{{ t("home.stepAmount") }}</span></p>
             <button v-for="(c, i) in cols" :key="i" type="button" class="ph-home-wr" :class="colTone(c)" @click="explain(colTip(c))">
               <span class="ph-home-wn">{{ c.name }}</span>
-              <span class="ph-home-wa ph-amt"><template v-if="c.kind === 'end'">–</template><template v-else>₪{{ n0(c.a) }}</template></span>
+              <span class="ph-home-wa ph-amt"><template v-if="c.kind === 'end'">–</template><template v-else>{{ fm(c.a) }}</template></span>
               <span class="ph-home-wb"><i class="g" :style="{ '--b': c.b, '--h': c.h }" /><i class="s" :class="colTone(c)" :style="{ '--h': c.s }" /></span>
               <span class="ph-home-wl ph-amt"><template v-if="c.kind === 'end' && W.eOver > 0"><span :class="{ neg: !calm }">−{{ fm(W.eOver) }}</span></template><template v-else>{{ leftOf(c) }}</template><small v-if="c.k === W.remain">{{ t("num.afterKnownS") }}</small></span>
             </button>

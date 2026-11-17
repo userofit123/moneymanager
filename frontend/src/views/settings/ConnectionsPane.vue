@@ -4,7 +4,7 @@ import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
 import { friendlyErr } from "../../core/sources.js";
-import { f0 } from "../../format.js";
+import { fm } from "../../format.js";
 import { tx } from "../../core/heText.js";
 import BaseSheet from "../../components/BaseSheet.vue";
 import ConnCard from "./ConnCard.vue";
@@ -83,7 +83,7 @@ const onShot = (src) => { testOpen.value = false; shot.value = { src, label: lab
             <div class="sm ctop">{{ tx(test.r.note || "") }}</div>
           </template>
           <template v-else>
-            <div v-for="(a, i) in test.r.accounts || []" :key="i" class="row cblk"><b>{{ a.balance == null ? tk("balNone") : tk("balShekel", { v: f0(a.balance) }) }}</b> · {{ tk("txLast30", { n: a.transactions }) }}<div v-for="(x, j) in a.first || []" :key="j" class="sm">{{ x.date }} · {{ x.description }} · {{ x.amount }}</div></div>
+            <div v-for="(a, i) in test.r.accounts || []" :key="i" class="row cblk"><b>{{ a.balance == null ? tk("balNone") : tk("balShekel", { v: "\u2066" + fm(a.balance) + "\u2069" }) }}</b> · {{ tk("txLast30", { n: a.transactions }) }}<div v-for="(x, j) in a.first || []" :key="j" class="sm">{{ x.date }} · {{ x.description }} · {{ x.amount }}</div></div>
           </template>
         </template>
         <div v-else class="card warn"><b>{{ test.r.locked ? tk("testLocked") : tk("testFailed") }}</b><div class="sm">{{ friendlyErr(test.r.error || "") }}</div><div v-if="test.r.locked" class="sm ctop">{{ tk("testLockedD") }}</div></div>

@@ -140,7 +140,7 @@ export function useHome() {
     const w = W.value, src = [...w.src];
     return TP(t("num.leftBudgets"), [...six(src.sort((x, y) => y.left - x.left).map((r) => [catName(r.k), fm(r.left)])), "---", [t("tip.total"), fm(w.leftTot)]], t("tip.plannedTileNote"));
   });
-  const leftOf = (c) => (c.kind === "end" ? (W.value.eOver > 0 ? "−" + fm(W.value.eOver) : fm(W.value.eFree)) : fm(c.lo));
+  const leftOf = (c) => (c.kind === "end" ? (W.value.eOver > 0 ? "−" + fm(W.value.eOver) : fm(W.value.eFree)) : fm(c.after));
 
   // Spending by category (ring chart).
   const donut = computed(() => {

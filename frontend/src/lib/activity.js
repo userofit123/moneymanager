@@ -374,7 +374,7 @@ export function detailRows(S, t, x, xf) {
   if (det.secondaryAmount && det.via === "activity list") R("otherSide", plain(det.secondaryAmount));
   if (fee && fee.value) R("fees", n0(fee.value) + " " + (fee.currency || ""));
   if (ex) R("exchange", [ex.rate ? "rate " + ex.rate : "", ex.fromAmount && ex.fromAmount.value ? n0(ex.fromAmount.value) + " " + ex.fromAmount.currency + " →" : "", ex.toAmount && ex.toAmount.value ? n0(ex.toAmount.value) + " " + ex.toAmount.currency : ""].filter(Boolean).join(" "));
-  if (rb && rb.value != null) R("balanceAfter", n0(rb.value) + " " + (rb.currency || ""));
+  if (rb && rb.value != null) R("balanceAfter", (rb.value < 0 ? "\u2066−" + n0(rb.value) + "\u2069" : n0(rb.value)) + " " + (rb.currency || ""));
   R("reference", det.identifier || det.referenceNumber || det.id || (x?.externalId && !/^[0-9a-f]{20}:/.test(x.externalId) ? x.externalId : ""), { mono: true });
   if (det.account) R("accountNumber", det.account, { mono: true });
   R("entry", "#" + t.id, { mono: true });
