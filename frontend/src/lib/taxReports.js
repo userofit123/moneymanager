@@ -302,13 +302,16 @@ const isDay = (s) => /^\d{4}-\d{2}-\d{2}$/.test(String(s || ""));
 const stable = (v) => JSON.stringify(v, (_k, x) => (x && typeof x == "object" && !Array.isArray(x) ? Object.fromEntries(Object.keys(x).sort().map((k) => [k, x[k]])) : x));
 const same = (a, b) => stable(a) === stable(b);
 
+let lastId = 0; // the last id handed out in this session
 // A new item, from the form (f: the item's fields) or a copy of a ready-made example (exampleItem).
 export function addTaxItem(S, f, ctx) {
   const c = ctxOf(ctx), L = (S.taxItems = S.taxItems || []);
   const { id: _i, done: _d, moved: _m, ...fields } = structuredClone(f || {}); // a new item has nothing moved or done yet
   // A whole number never used before, so an older Undo can't touch a newer item: the time in ms, or one more than the
-  // highest id when that is already higher.
-  const x = { id: Math.max(Date.now(), Math.max(0, ...L.map((i) => +i.id || 0)) + 1), ...fields, moved: {}, done: {} };
+  // highest id when that is already higher. `lastId` also keeps ids apart when an item is deleted and another added in
+  // the same millisecond (the highest id would then drop back and the old id would be handed out again).
+  lastId = Math.max(lastId + 1, Date.now(), Math.max(0, ...L.map((i) => +i.id || 0)) + 1);
+  const x = { id: lastId, ...fields, moved: {}, done: {} };
   L.push(x);
   return [["Added report", c.name(x)]];
 }
