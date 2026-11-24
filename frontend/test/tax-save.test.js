@@ -18,14 +18,37 @@ function change(S, edit) {
 test("add an item, and a ready-made example as an ordinary item", () => {
   const a = change(base(), (S) => addTaxItem(S, { n: "Rent report", repeat: null, id: 9, done: { x: 1 } }, ctx));
   assert.deepEqual(a.lines, [["Added report", "Rent report"]]);
-  assert.deepEqual(a.S.taxItems[1], { id: 2, n: "Rent report", repeat: null, moved: {}, done: {} }, "a new id, nothing done yet");
+  const { id: newId, ...rest } = a.S.taxItems[1];
+  assert.ok(Number.isInteger(newId) && newId > 1, "a new whole-number id");
+  assert.deepEqual(rest, { n: "Rent report", repeat: null, moved: {}, done: {} }, "nothing done yet");
   const b = change(a.S, (S) => addExample(S, "vat", { ...ctx, name: (x) => x.n || "VAT report" }));
   assert.deepEqual(b.lines, [["Added report", "VAT report"]]);
   const v = b.S.taxItems[2];
-  assert.equal(v.id, 3); assert.equal(v.ex, "vat"); assert.equal(v.nk, "taxes.ex.vat"); assert.equal(v.country, undefined);
+  assert.ok(Number.isInteger(v.id) && v.id > newId); assert.equal(v.ex, "vat"); assert.equal(v.nk, "taxes.ex.vat"); assert.equal(v.country, undefined);
   assert.deepEqual(v.repeat, { every: 2, month: 1, day: 15 });
   v.money.in.cats.push("Other"); assert.deepEqual(exampleItem("vat").money.in.cats, ["Freelance & business income"], "a copy, not the example itself");
   assert.equal(addExample(base(), "nope"), false);
+});
+
+test("an id is never used again after the newest item is deleted", () => {
+  const a = change(base(), (S) => addTaxItem(S, { n: "Rent report" }, ctx));
+  const gone = a.S.taxItems[1].id;
+  const b = change(a.S, (S) => deleteTaxItem(S, gone, ctx));
+  const c = change(b.S, (S) => addTaxItem(S, { n: "Car report" }, ctx));
+  assert.ok(c.S.taxItems[1].id > gone, "a new id, not the deleted one");
+});
+
+test("with no name given, a line names the example in English, never a text key", () => {
+  assert.deepEqual(change(base(), (S) => addExample(S, "vat", ctx)).lines, [["Added report", "VAT report"]]);
+  assert.deepEqual(change(base(), (S) => addTaxItem(S, { nk: "taxes.ex.custom" }, ctx)).lines, [["Added report", "report"]]);
+});
+
+test("saving an unchanged item or business types with the keys in another order gives no line", () => {
+  const S0 = base(); S0.taxItems[0] = { id: 1, n: "Yearly statement", repeat: { every: 12, month: 1, day: 31 }, moved: {}, done: {} };
+  const reloaded = structuredClone(S0); reloaded.taxItems[0] = { done: {}, moved: {}, repeat: { day: 31, month: 1, every: 12 }, n: "Yearly statement", id: 1 };
+  assert.equal(editTaxItem(reloaded, 1, { repeat: { every: 12, month: 1, day: 31 }, n: "Yearly statement" }, ctx), false);
+  const T = { bizTypes: [{ from: "2026-01-01", n: "Patur", id: "patur" }] };
+  assert.equal(setBizTypes(T, [{ id: "patur", n: "Patur", from: "2026-01-01" }], ctx), false);
 });
 
 test("edit keeps moved dates and done periods; delete; no change gives no line", () => {
@@ -84,4 +107,5 @@ test("the history lines show in Hebrew", () => {
     ["Patur since 1 Jan 2026 · Murshe since 1 Jul 2026", "Patur מ־1 בינו׳ 2026 · Murshe מ־1 ביולי 2026"],
     ["Marked report as done: Yearly statement, due 10 Feb 2027 · paid ₪0", "דיווח סומן כבוצע: Yearly statement, עד 10 בפבר׳ 2027 · שולם ₪0"],
   ]) assert.equal(heSaved(en), he, en);
+  assert.equal(heSaved("Synced since last night"), "Synced since last night", "\"since\" without a date is left as it is");
 });

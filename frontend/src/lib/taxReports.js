@@ -291,16 +291,24 @@ export const EXAMPLES = [
 // when nothing changed. Undo comes from data.change() (core/undoPatch.js keeps what each item had before).
 // ctx: how the history line names things. name(x): an item's or a business type's name in English (the page passes the
 // name the person typed, or the English text of a ready-made name); fm: an amount; dstr: a date.
-const CTX = { name: (x) => x?.n || x?.nk || x?.id || "", fm: (n) => "₪" + Math.round(+n || 0).toLocaleString("en-US"), dstr: (d) => d };
+// The English names of the ready-made examples, for a history line when the page passes no name (never a text key).
+const EX_NAME = { paturYear: "Yearly income report", paturLimit: "Yearly income limit", vat: "VAT report", taxAdvance: "Income tax advance",
+  niAdvance: "National Insurance advance", microYear: "Yearly report", yearly1301: "Yearly tax return", usEstimated: "US estimated tax" };
+const CTX = { name: (x) => x?.n || EX_NAME[x?.ex] || (typeof x?.id == "string" ? x.id : "report"), fm: (n) => "₪" + Math.round(+n || 0).toLocaleString("en-US"), dstr: (d) => d };
 const ctxOf = (ctx) => ({ ...CTX, ...ctx });
 const itemOf = (S, id) => (S.taxItems || []).find((x) => x.id == id);
 const isDay = (s) => /^\d{4}-\d{2}-\d{2}$/.test(String(s || ""));
+// The same data, whatever the order of the keys (the server keeps settings in a form that can reorder them).
+const stable = (v) => JSON.stringify(v, (_k, x) => (x && typeof x == "object" && !Array.isArray(x) ? Object.fromEntries(Object.keys(x).sort().map((k) => [k, x[k]])) : x));
+const same = (a, b) => stable(a) === stable(b);
 
 // A new item, from the form (f: the item's fields) or a copy of a ready-made example (exampleItem).
 export function addTaxItem(S, f, ctx) {
   const c = ctxOf(ctx), L = (S.taxItems = S.taxItems || []);
   const { id: _i, done: _d, moved: _m, ...fields } = structuredClone(f || {}); // a new item has nothing moved or done yet
-  const x = { id: Math.max(0, ...L.map((i) => +i.id || 0)) + 1, ...fields, moved: {}, done: {} };
+  // A whole number never used before, so an older Undo can't touch a newer item: the time in ms, or one more than the
+  // highest id when that is already higher.
+  const x = { id: Math.max(Date.now(), Math.max(0, ...L.map((i) => +i.id || 0)) + 1), ...fields, moved: {}, done: {} };
   L.push(x);
   return [["Added report", c.name(x)]];
 }
@@ -319,7 +327,7 @@ export function editTaxItem(S, id, f, ctx) {
   if (i < 0) return false;
   const { id: _i, done: _d, moved: _m, ...fields } = structuredClone(f || {}), old = L[i];
   const x = { id: old.id, ...fields, moved: old.moved || {}, done: old.done || {} };
-  if (JSON.stringify(x) === JSON.stringify(old)) return false;
+  if (same(x, old)) return false;
   L[i] = x;
   return [["Changed report", c.name(x)]];
 }
@@ -365,12 +373,12 @@ export function unmarkTaxDone(S, id, key, ctx) {
   return [["Marked report as not done", c.name(x) + ", due " + c.dstr(x.moved?.[key] || key)]];
 }
 
-// The business types and the day each one starts (S.bizTypes), sorted by that day. T: [{ id, n?, nk?, from }].
-export function setBizTypes(S, T, ctx) {
+// The business types and the day each one starts (S.bizTypes), sorted by that day. types: [{ id, n?, nk?, from }].
+export function setBizTypes(S, types, ctx) {
   const c = ctxOf(ctx);
-  const L = (T || []).filter((x) => x && x.id && isDay(x.from)).map(({ id, n, nk, from }) => ({ id: String(id), ...(n ? { n: String(n) } : {}), ...(nk ? { nk } : {}), from }))
+  const L = (types || []).filter((x) => x && x.id && isDay(x.from)).map(({ id, n, nk, from }) => ({ id: String(id), ...(n ? { n: String(n) } : {}), ...(nk ? { nk } : {}), from }))
     .sort((a, b) => a.from.localeCompare(b.from));
-  if (JSON.stringify(L) === JSON.stringify(S.bizTypes || [])) return false;
+  if (same(L, S.bizTypes || [])) return false;
   S.bizTypes = L;
   return [["Changed business type", L.length ? L.map((x) => c.name(x) + " since " + c.dstr(x.from)).join(" · ") : "none"]];
 }

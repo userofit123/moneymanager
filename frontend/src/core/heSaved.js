@@ -21,6 +21,7 @@ const HE_DAY = { Sun: "א׳", Mon: "ב׳", Tue: "ג׳", Wed: "ד׳", Thu: "ה׳"
 const heMonth = (m) => (m.length > 4 ? HE_MONTH : HE_MON)[MON.indexOf(m.slice(0, 3))];
 // English month names left inside a text, in Hebrew
 const months = (s) => String(s).replace(/\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept|Sep|Oct|Nov|Dec)\b/g, heMonth);
+const SINCE_DAY = String.raw`\d{1,2} [A-Z][a-z]+(?: \d{4})?|\d{4}-\d{2}-\d{2}`;
 const DATE = /\b(\d{1,2}) ((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*)(?: (\d{4}))?\b/g;
 const heDate = (d, mo, y) => d + " ב" + heMonth(mo) + (y ? " " + y : ""); // "12 Oct 2026" → "12 באוק׳ 2026"
 const MONTH = /\b(January|February|March|April|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sept|Sep|Oct|Nov|Dec)\b/g;
@@ -113,7 +114,8 @@ const RULES = [
   // Taxes and reports (lib/taxReports.js): a moved date, a period marked done, the business types
   [/^(.+) · was (.+), now (.+)$/, (a, b, c) => T(a) + " · היה " + b + ", עכשיו " + c],
   [/^(.+), due (.+?)(?: · (sent))?(?: · paid (.+))?$/, (a, d, s, p) => T(a) + ", עד " + d + (s ? " · נשלח" : "") + (p ? " · שולם " + p : "")],
-  [/^(.+?) since (.+?)(?: · (.+ since .+))?$/, (a, d, r) => T(a) + " מ־" + d + (r ? " · " + T(r) : "")],
+  // "<type> since <date>", one or more joined by " · "; the date is as dates are written ("1 Jan 2026") or a plain day
+  [new RegExp(`^(.+?) since (${SINCE_DAY})((?: · .+? since (?:${SINCE_DAY}))*)$`), (a, d, r) => T(a) + " מ־" + d + (r ? " · " + T(r.slice(3)) : "")],
   [/^(Sun|Mon|Tue|Wed|Thu|Fri|Sat), (\d{1,2}) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec), (\d{2}:\d{2})$/, (w, d, m, t) => "יום " + HE_DAY[w] + ", " + d + " ב" + heMonth(m) + ", " + t],
 ];
 
