@@ -38,18 +38,20 @@
 // }
 // Business types (S.bizTypes): [{ id: "patur", n: "Patur", from: "2026-01-01" }]. Each one is set from its date until the
 // next one starts, so the type can change in the middle of a year.
+// nextPeriod, latePeriods and applies need the business types and the counted rows (A); without them, items with a business
+// type or a money-in limit get no periods.
 // A period: { key, last, want, start, end, moved, done }. key: its date in the repeat (stays when the date is moved);
 // last: the last day (the moved one when moved); start/end: the days it covers.
 import { countedTx } from "./bills.js";
 import { addM } from "./home.js";
-import { dayOf } from "../core/clock.js";
 
 // Months are "YYYY-MM" strings; addM (lib/home.js) moves one by k months.
 const ymOf = (s) => String(s).slice(0, 7);
 const yOf = (s) => +String(s).slice(0, 4), mOf = (s) => +String(s).slice(5, 7);
 const monthLen = (ym) => new Date(yOf(ym), mOf(ym), 0).getDate();
 // Day d of the month ym (a day past the month's end is its last day).
-const dayIn = (ym, d) => dayOf(new Date(yOf(ym), mOf(ym) - 1, Math.min(d, monthLen(ym))));
+const p2 = (n) => String(n).padStart(2, "0");
+const dayIn = (ym, d) => ym + "-" + p2(Math.min(d, monthLen(ym)));
 const firstOf = (ym) => ym + "-01";
 const lastOf = (ym) => dayIn(ym, 31);
 // A number the person typed, or null when it is empty or not a number (not set).
