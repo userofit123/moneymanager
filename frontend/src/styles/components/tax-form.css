@@ -1,0 +1,254 @@
+/* Add or change a report or payment (Taxes and reports, components/forms/TaxItemForm.vue): sections with a title, rows
+   of fields with a remove button, and folded parts that open with a chevron. */
+
+.txf-intro {
+  margin: -2px 0 14px;
+  line-height: 1.5;
+}
+
+.txf-s {
+  border-top: 1px solid var(--ol);
+  padding-top: 14px;
+  margin-top: 6px;
+}
+
+.txf-s > h4 {
+  margin: 0 0 12px;
+  font-size: var(--fs);
+  font-weight: 600;
+  color: var(--tx);
+}
+
+.txf-hint {
+  margin: -4px 0 12px;
+  line-height: 1.5;
+}
+
+.txf-fb > .txf-hint:first-child {
+  margin-top: 0;
+}
+
+.txf-err {
+  color: var(--neg);
+}
+
+.txf .fld input[aria-invalid=true] {
+  border-color: var(--neg);
+}
+
+/* the switches sit in the section without the line above the first one */
+.txf-s > h4 + .tg {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.txf-sub {
+  padding-inline-start: 14px;
+  font-size: var(--fs-sm);
+}
+
+.txf-cats {
+  margin-top: 2px;
+}
+
+/* the category picker: the chosen ones as chips, then a drop-down to add one, inside the same box as the tags */
+.txf-pick {
+  flex: 1 1 140px;
+  min-width: 120px;
+  min-height: 28px;
+  border: 0;
+  background-color: transparent;
+  padding-block: 2px;
+  color: var(--tx2);
+  box-shadow: none;
+}
+
+.txf-pick:focus {
+  outline: 0;
+  box-shadow: none;
+}
+
+.txf-tags {
+  margin-top: 10px;
+}
+
+/* a row of fields with a remove button at its end (a date, a tag that counts in part, a business type) */
+.txf-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.txf-row > input,
+.txf-row > select {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.txf-row > .txf-pct {
+  flex: 0 0 110px;
+}
+
+.txf-row > .txf-from {
+  flex: 0 0 150px;
+}
+
+.txf-x {
+  width: 36px;
+  height: 36px;
+  transition: background .15s, transform .16s var(--ease);
+}
+
+.txf-x svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.txf-add {
+  justify-self: start;
+  margin-bottom: 12px;
+}
+
+.txf-x:active,
+.txf-add:active,
+.txf-fh:active {
+  transform: scale(.97);
+}
+
+/* a folded part: its title, what is set inside (when closed), and the chevron (down when open, to the end side when closed) */
+.txf-fh {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  border: 0;
+  background: none;
+  padding: 4px 0;
+  font: inherit;
+  color: var(--tx);
+  cursor: pointer;
+  text-align: start;
+  border-radius: 10px;
+  transition: transform .16s var(--ease);
+}
+
+.txf-fh > span:first-child {
+  flex: 1;
+  font-weight: 600;
+  font-size: var(--fs);
+}
+
+.txf-fh > .sm {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 55%;
+  transition: opacity .15s;
+}
+
+.txf-fh[aria-expanded=true] > .sm {
+  opacity: 0;
+}
+
+.txf-fh > svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  fill: none;
+  stroke: var(--tx2);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform .2s var(--ease);
+}
+
+.txf-fh[aria-expanded=false] > svg {
+  transform: rotate(-90deg);
+}
+
+html.he .txf-fh[aria-expanded=false] > svg {
+  transform: rotate(90deg);
+}
+
+.txf-fh:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+.txf-fh2 > span:first-child {
+  font-weight: 500;
+  font-size: var(--fs-sm);
+  color: var(--acc);
+}
+
+.txf-fb {
+  display: grid;
+  padding-top: 6px;
+}
+
+.txf-fh2 + .slo .txf-fb,
+.txf-fh2 + * .txf-fb {
+  padding-inline-start: 12px;
+}
+
+.txf-pap + .txf-pap {
+  border-top: 1px dashed var(--ol);
+  padding-top: 12px;
+}
+
+.txf-lim {
+  margin-top: 8px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .txf-fh:hover > svg {
+    stroke: var(--tx);
+  }
+
+  .txf-x:hover {
+    background: var(--s2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .txf-fh > svg,
+  .txf-fh,
+  .txf-x {
+    transition: none;
+  }
+}
+
+/* the switches read like the fields' text, under the section's title */
+.txf .tg {
+  font-size: var(--fs);
+}
+
+.txf .tg.txf-sub {
+  font-size: var(--fs-sm);
+}
+
+/* the chosen business type is not one of the person's yet */
+.txf-miss {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: -4px 0 12px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--warn) 12%, var(--bg));
+}
+
+.txf-miss .sm {
+  flex: 1 1 220px;
+  margin: 0;
+  color: var(--tx);
+  line-height: 1.45;
+}

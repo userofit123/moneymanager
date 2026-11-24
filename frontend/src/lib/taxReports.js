@@ -385,3 +385,14 @@ export function setBizTypes(S, types, ctx) {
   S.bizTypes = L;
   return [["Changed business type", L.length ? L.map((x) => c.name(x) + " since " + c.dstr(x.from)).join(" · ") : "none"]];
 }
+
+// ---- the form ----
+
+// The categories the form offers for money in (side "in") or money out ("out"): the ones used on that side first (most
+// used first), then the rest by name. Hidden categories (99) and "Uncategorized" are left out.
+export function formCats(S, side) {
+  const n = {};
+  for (const t of S?.tx || []) if (t.c && (side == "in" ? +t.a > 0 : +t.a < 0)) n[t.c] = (n[t.c] || 0) + 1;
+  return Object.keys(S?.cats || {}).filter((k) => S.cats[k] !== 99 && k != "Uncategorized")
+    .sort((a, b) => (n[b] || 0) - (n[a] || 0) || a.localeCompare(b, undefined, { sensitivity: "base" }));
+}

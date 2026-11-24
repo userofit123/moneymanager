@@ -13,6 +13,7 @@ const KINDS = {
   pension: () => import("./forms/PensionForm.vue"),
   account: () => import("./forms/AccountForm.vue"),
   balance: () => import("./forms/BalanceForm.vue"),
+  tax: () => import("./forms/TaxItemForm.vue"),
 };
 const comps = Object.fromEntries(Object.entries(KINDS).map(([k, l]) => [k, defineAsyncComponent(l)]));
 const comp = computed(() => (form.value ? comps[form.value.kind] : null));

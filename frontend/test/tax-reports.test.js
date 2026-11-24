@@ -277,3 +277,11 @@ test("US estimated tax: (money in − money out) × your %", () => {
     assert.equal(R.amount, 2000);
   } finally { setNow("2027-01-05T12:00:00"); }
 });
+
+test("the form offers the categories used on each side first", async () => {
+  const { formCats } = await import("../src/lib/taxReports.js");
+  const S = { cats: { Rent: 1, "Freelance & business income": 1, Hidden: 99, Uncategorized: 1, Cafe: 1 },
+    tx: [{ c: "Freelance & business income", a: 900 }, { c: "Cafe", a: -12 }, { c: "Cafe", a: -8 }, { c: "Rent", a: -500 }] };
+  assert.deepEqual(formCats(S, "in"), ["Freelance & business income", "Cafe", "Rent"]);
+  assert.deepEqual(formCats(S, "out"), ["Cafe", "Rent", "Freelance & business income"]);
+});
