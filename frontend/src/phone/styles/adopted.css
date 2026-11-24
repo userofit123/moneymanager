@@ -356,7 +356,7 @@ html.phone.ph-off #toasts {
   inset-block-end: calc(var(--p-tab) + var(--sb) + 58px);
 }
 
-/* a toast is a compact dark bar (light in dark mode), like a phone's own: no coloured side border, the icon tells the kind,
+/* a toast is a compact dark bar, like a phone's own: no coloured side border, the icon tells the kind,
    short so it covers little of the screen; a second one stacks above the first */
 html.phone #toasts {
   gap: var(--p-s2);
@@ -406,8 +406,28 @@ html.phone #toasts .tu {
   color: color-mix(in srgb, var(--acc) 45%, var(--bg));
 }
 
+/* in dark mode the bar stays dark too: a raised surface a step lighter than the page, with the page's own text colours */
+html.phone[data-mode="dark"] #toasts .toast {
+  background: color-mix(in srgb, var(--tx) 14%, var(--bg));
+  color: var(--tx);
+  box-shadow: 0 10px 28px -10px rgba(0, 0, 0, .7);
+}
+
+html.phone[data-mode="dark"] #toasts .toast .tm b {
+  color: var(--tx);
+}
+
+html.phone[data-mode="dark"] #toasts .toast .tm div {
+  color: var(--tx2);
+}
+
+html.phone[data-mode="dark"] #toasts .toast:not(.err, .alert) .ti {
+  background: color-mix(in srgb, var(--tx) 12%, transparent);
+  color: var(--tx);
+}
+
 html.phone[data-mode="dark"] #toasts .tu {
-  color: var(--accc);
+  color: var(--acc);
 }
 
 html.phone #toasts .tu:hover {
