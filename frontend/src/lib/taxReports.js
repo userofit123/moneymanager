@@ -41,15 +41,19 @@
 // A period: { key, last, want, start, end, moved, done }. key: its date in the repeat (stays when the date is moved);
 // last: the last day (the moved one when moved); start/end: the days it covers.
 import { countedTx } from "./bills.js";
+import { addM } from "./home.js";
+import { dayOf } from "../core/clock.js";
 
-const p2 = (n) => String(n).padStart(2, "0");
-const monthLen = (y, m) => new Date(y, m, 0).getDate();
-const dayIn = (y, m, d) => y + "-" + p2(m) + "-" + p2(Math.min(d, monthLen(y, m)));
-const ymOf = (s) => [+String(s).slice(0, 4), +String(s).slice(5, 7)];
-// [year, month] k months after (or before, k < 0) year/month
-const shiftM = (y, m, k) => { const i = y * 12 + m - 1 + k; return [Math.floor(i / 12), (i % 12) + 1]; };
-const firstOf = (y, m) => y + "-" + p2(m) + "-01";
-const lastOf = (y, m) => dayIn(y, m, 31);
+// Months are "YYYY-MM" strings; addM (lib/home.js) moves one by k months.
+const ymOf = (s) => String(s).slice(0, 7);
+const yOf = (s) => +String(s).slice(0, 4), mOf = (s) => +String(s).slice(5, 7);
+const monthLen = (ym) => new Date(yOf(ym), mOf(ym), 0).getDate();
+// Day d of the month ym (a day past the month's end is its last day).
+const dayIn = (ym, d) => dayOf(new Date(yOf(ym), mOf(ym) - 1, Math.min(d, monthLen(ym))));
+const firstOf = (ym) => ym + "-01";
+const lastOf = (ym) => dayIn(ym, 31);
+// A number the person typed, or null when it is empty or not a number (not set).
+const num = (v) => (v == null || v === "" || !Number.isFinite(+v) ? null : +v);
 const minD = (a, b) => (a < b ? a : b);
 // Amounts are rounded once, to whole shekels; every other number is worked out from the rounded ones, so the page,
 // the tooltip and the export show the same amounts.
@@ -66,58 +70,58 @@ export const NEAR_PCT = 90;
 function repeatDates(item, from, to) {
   const r = item?.repeat, out = [];
   if (!r) return out;
-  const [fy] = ymOf(from), [ty] = ymOf(to);
   if (Array.isArray(r.dates)) {
     const md = [...r.dates].sort();
-    for (let y = fy; y <= ty; y++) for (const x of md) out.push(dayIn(y, +x.slice(0, 2), +x.slice(3, 5)));
+    for (let y = yOf(from); y <= yOf(to); y++) for (const x of md) out.push(dayIn(y + "-" + x.slice(0, 2), +x.slice(3, 5)));
   } else if (r.every > 0) {
     const day = r.day || 31, first = r.month || 1;
-    for (let [y, m] = ymOf(from); y < ty || (y == ty && m <= ymOf(to)[1]); [y, m] = shiftM(y, m, 1)) if ((((m - first) % r.every) + r.every) % r.every == 0) out.push(dayIn(y, m, day));
+    for (let ym = ymOf(from); ym <= ymOf(to); ym = addM(ym, 1)) if ((((mOf(ym) - first) % r.every) + r.every) % r.every == 0) out.push(dayIn(ym, day));
   }
   return out.filter((d) => d >= from && d <= to);
 }
 
 // The days a period covers, for its date in the repeat (key).
 export function coversOf(item, key) {
-  const r = item?.repeat || {}, [y, m] = ymOf(key);
+  const r = item?.repeat || {}, ym = ymOf(key), y = yOf(key);
   const c = item?.covers ?? (Array.isArray(r.dates) ? "since" : r.every == 12 ? "year" : r.every || 1);
-  const [ey, em] = shiftM(y, m, -1), end = lastOf(ey, em);
+  const end = lastOf(addM(ym, -1));
   if (c == "year") return { start: y - 1 + "-01-01", end: y - 1 + "-12-31" };
   if (c == "since" && Array.isArray(r.dates)) {
     // from the month of the date before this one (last year's last date for the first one)
     const prev = repeatDates(item, y - 1 + "-01-01", key).filter((d) => d < key).pop();
-    if (prev) return { start: firstOf(...ymOf(prev)), end };
+    if (prev) return { start: firstOf(ymOf(prev)), end };
   }
-  const n = c == "since" ? r.every || 1 : +c || 1, [sy, sm] = shiftM(y, m, -n);
-  return { start: firstOf(sy, sm), end };
+  const n = c == "since" ? r.every || 1 : +c || 1;
+  return { start: firstOf(addM(ym, -n)), end };
 }
 
 // One period of the item, for its date in the repeat.
 export function periodOf(item, key) {
-  const moved = item?.moved?.[key] || "", last = moved || key, [y, m] = ymOf(last);
-  const want = item?.want > 0 ? minD(dayIn(y, m, item.want), last) : "";
+  const moved = item?.moved?.[key] || "", last = moved || key;
+  const want = item?.want > 0 ? minD(dayIn(ymOf(last), item.want), last) : "";
   return { key, last, want, ...coversOf(item, key), moved: !!moved, done: doneOf(item, key) };
 }
 
-// The periods whose last day (moved or not) is from `from` to `to`, by last day.
+// The periods whose last day (moved or not) is from `from` to `to`, by last day. A date moved earlier, from after `to`
+// into the range, is there too.
 export function periods(item, from, to) {
-  const [y, m] = ymOf(from), early = firstOf(...shiftM(y, m, -12));
-  return repeatDates(item, early, to).map((k) => periodOf(item, k)).filter((p) => p.last >= from && p.last <= to).sort((a, b) => a.last.localeCompare(b.last) || a.key.localeCompare(b.key));
+  const keys = new Set(repeatDates(item, firstOf(addM(ymOf(from), -12)), to));
+  for (const [k, d] of Object.entries(item?.moved || {})) if (k > to && d >= from && d <= to && repeatDates(item, k, k).length) keys.add(k);
+  return [...keys].map((k) => periodOf(item, k)).filter((p) => p.last >= from && p.last <= to).sort((a, b) => a.last.localeCompare(b.last) || a.key.localeCompare(b.key));
 }
 
 // What was marked for a period: { sent, paid, at } or null.
 export const doneOf = (item, key) => item?.done?.[key] || null;
 export const isDone = (p) => !!(p?.done && (p.done.sent || p.done.paid != null));
 
-// The next period not marked done whose last day is today or later, or null.
-export function nextPeriod(item, today) {
-  const [y, m] = ymOf(today);
-  return periods(item, today, lastOf(...shiftM(y, m, 24))).find((p) => !isDone(p)) || null;
+// The next period that applies (see applies: business types, counted rows A) and is not marked done, whose last day
+// is today or later, or null.
+export function nextPeriod(item, today, types, A) {
+  return periods(item, today, lastOf(addM(ymOf(today), 24))).find((p) => !isDone(p) && applies(item, p, types, A)) || null;
 }
-// Periods whose last day has passed (in the last year) and are not marked done, oldest first.
-export function latePeriods(item, today) {
-  const [y, m] = ymOf(today);
-  return periods(item, firstOf(...shiftM(y, m, -12)), today).filter((p) => p.last < today && !isDone(p));
+// Periods that apply, whose last day has passed (in the last year) and are not marked done, oldest first.
+export function latePeriods(item, today, types, A) {
+  return periods(item, firstOf(addM(ymOf(today), -12)), today).filter((p) => p.last < today && !isDone(p) && applies(item, p, types, A));
 }
 
 // ---- business type ----
@@ -138,10 +142,11 @@ const hasTag = (t, tags) => (t.tags || []).some((x) => tags.includes(String(x).t
 const lower = (L) => (L || []).map((x) => String(x).toLowerCase());
 // Which side a transaction goes in: "in" money in, "out" money out, or "back" money back (lowers money out).
 const sideOf = (t) => (t.a < 0 ? "out" : t.back ? "back" : "in");
-// Does a counted row go in, by the item's categories (salary: by its kind too)?
+// Does a counted row go in, by the item's categories? A salary goes in only when the salary switch is on, whatever
+// its category.
 function picked(money, t) {
   const s = sideOf(t);
-  if (s == "in") return !!money.in && ((money.in.cats || []).includes(t.c) || (!!money.in.salary && !!t.sal));
+  if (s == "in") return !!money.in && (t.sal ? !!money.in.salary : (money.in.cats || []).includes(t.c));
   return !!money.out && (money.out.cats || []).includes(t.c);
 }
 
@@ -156,10 +161,11 @@ export function periodRows(item, P, A) {
   return { in: L.filter((t) => sideOf(t) == "in"), out: L.filter((t) => sideOf(t) != "in") };
 }
 
-// The % of a money-out row that counts: the % of its first tag that has one (100 when none).
+// The % of a money-out row that counts: the % of its first tag that has one (100 when none). An empty % is not set
+// yet and leaves the row whole.
 export function countPct(item, t) {
-  const P = Object.fromEntries(Object.entries(item?.money?.tagPct || {}).map(([k, v]) => [k.toLowerCase(), +v]));
-  const tag = (t.tags || []).map((x) => String(x).toLowerCase()).find((x) => P[x] >= 0);
+  const P = Object.fromEntries(Object.entries(item?.money?.tagPct || {}).map(([k, v]) => [k.toLowerCase(), num(v)]));
+  const tag = (t.tags || []).map((x) => String(x).toLowerCase()).find((x) => P[x] != null && P[x] >= 0);
   return tag == null ? 100 : P[tag];
 }
 
@@ -188,7 +194,7 @@ export const vatOf = (n, rate, inclVat) => whole(inclVat ? (n * rate) / (100 + r
 export function periodAmount(item, T) {
   const a = item?.amount;
   if (!a || !AMOUNT_KINDS.includes(a.kind)) return null;
-  if (a.kind == "fixed") return a.value == null || a.value === "" ? null : whole(+a.value);
+  if (a.kind == "fixed") return num(a.value) == null ? null : whole(num(a.value));
   if (a.kind == "vat") {
     if (!(a.vatRate > 0)) return null;
     const vin = vatOf(T.in, a.vatRate, !!a.inclVat), vout = vatOf(T.out, a.vatRate, !!a.inclVat);
@@ -226,12 +232,12 @@ export function yearIn(item, day, A) {
   const ok = (t) => t.a > 0 && !t.back && String(t.d) >= y + "-01-01" && String(t.d) <= day && (mi ? picked({ in: mi }, t) : !t.sal);
   return whole((A || []).filter(ok).reduce((s, t) => s + t.a, 0));
 }
-// The money in limit of an item on a day: { total, limit, pct, near, over }, or null when it has none.
-// near: at nearPct % of the limit or more but not over it.
+// The money in limit of an item on a day: { total, limit, pct, near, over }, or null when it has none. pct is a whole
+// %, rounded once here so every place shows the same number. near: at nearPct % of the limit or more but not over it.
 export function limitCheck(item, day, A) {
   const limit = +item?.when?.over;
   if (!(limit > 0)) return null;
-  const total = yearIn(item, day, A), pct = (total / limit) * 100, over = total > limit;
+  const total = yearIn(item, day, A), pct = Math.round((total / limit) * 100), over = total > limit;
   return { total, limit, pct, over, near: !over && pct >= (+item.when.nearPct || NEAR_PCT) };
 }
 // Does the item apply to a period (or, with no period, on the day)? Its business type is set on some day the period

@@ -74,13 +74,30 @@ test("moving one date (an extension) keeps the repeat and the period it covers",
   assert.deepEqual(keys(periods(it, "2027-03-16", "2027-03-31")), ["2027-03-15"]);
 });
 
-test("next period skips the ones marked done; late ones are past and not done", () => {
+test("a date moved earlier, from after the range into it, is in the range", () => {
+  const it = ex("vat", { moved: { "2027-05-15": "2027-04-20" } });
+  assert.deepEqual(periods(it, "2027-04-01", "2027-04-30").map((p) => [p.key, p.last]), [["2027-05-15", "2027-04-20"]]);
+  assert.deepEqual(keys(periods(it, "2027-05-01", "2027-05-31")), [], "it left its own month");
+});
+
+test("next period skips the ones marked done; late ones are past, not done and apply", () => {
+  const T = S0().bizTypes;
   const it = ex("vat", { done: { "2026-11-15": { sent: true, paid: 900 }, "2027-01-15": { sent: true } } });
-  assert.equal(nextPeriod(it, today()).key, "2027-03-15");
-  assert.equal(nextPeriod(ex("vat"), today()).key, "2027-01-15");
-  assert.deepEqual(keys(latePeriods(it, today())), ["2026-01-15", "2026-03-15", "2026-05-15", "2026-07-15", "2026-09-15"]);
+  assert.equal(nextPeriod(it, today(), T, A()).key, "2027-03-15");
+  assert.equal(nextPeriod(ex("vat"), today(), T, A()).key, "2027-01-15");
+  assert.deepEqual(keys(latePeriods(it, today(), T, A())), ["2026-09-15"], "before July the business was patur: no VAT report");
   assert.equal(periodOf(it, "2026-11-15").done.paid, 900);
-  assert.equal(nextPeriod(ex("paturLimit"), today()), null, "a check with no dates has no periods");
+  assert.equal(nextPeriod(ex("paturLimit"), today(), T, A()), null, "a check with no dates has no periods");
+});
+
+test("next and late periods follow only when: business type and money in limit", () => {
+  const T = S0().bizTypes;
+  assert.equal(nextPeriod(ex("microYear"), today(), T, A()), null, "never a micro business");
+  assert.deepEqual(latePeriods(ex("microYear"), today(), T, A()), []);
+  const lim = { repeat: { every: 1, month: 1, day: 15 }, money: ex("vat").money, when: { over: 6000 } };
+  assert.deepEqual(keys(latePeriods(lim, today(), T, A())), ["2026-12-15"], "money in for 2026 went over 6,000 in November, not before");
+  assert.equal(nextPeriod(lim, today(), T, A()).key, "2027-01-15");
+  assert.equal(nextPeriod({ ...lim, when: { over: 50000 } }, today(), T, A()), null, "never over the limit");
 });
 
 // ---- 2. transactions in a period ----
@@ -100,6 +117,9 @@ test("salary, tags, and rows added or left out by hand", () => {
   assert.deepEqual(ids(ex("vat", { money: { ...ex("vat").money, tags: ["Car"] } })), [[], [4]]);
   assert.deepEqual(ids(ex("vat", { money: { ...ex("vat").money, add: [6], skip: [3] } })), [[1, 2], [4, 5, 6]]);
   assert.deepEqual(ids(ex("vat", { money: { ...ex("vat").money, add: [8, 10] } }))[1], [3, 4, 5], "a transfer or a left-out row is never added");
+  const withSalaryCat = ex("vat");
+  withSalaryCat.money.in.cats = [FREELANCE, "Salary"];
+  assert.deepEqual(ids(withSalaryCat)[0], [1, 2], "a salary follows the salary switch, even in a chosen category");
 });
 
 // ---- 3. totals and amounts ----
@@ -128,6 +148,7 @@ test("% per tag: a car used for work counts 2/3", () => {
   it.money.tagPct = { car: 200 / 3 };
   assert.equal(countPct(it, { tags: ["Car"] }), 200 / 3);
   assert.equal(countPct(it, { tags: [] }), 100);
+  for (const empty of [null, "", "abc"]) assert.equal(countPct(ex("vat", { money: { ...ex("vat").money, tagPct: { car: empty } } }), { tags: ["car"] }), 100, "a % not set leaves the row whole");
   const T = periodTotals(it, periodRows(it, NOVDEC, A()));
   assert.equal(T.out, 1849, "1,180 + 786.67 − 118");
   assert.equal(amountValue(periodAmount(it, T)), 1800 - 282);
@@ -143,6 +164,7 @@ test("every amount kind: total, %, money in minus out, an amount I enter", () =>
   assert.equal(periodAmount({ amount: { kind: "net", pct: 30 } }, { in: 100, out: 500, net: -400 }), 0, "nothing to pay on a loss");
   assert.equal(periodAmount(ex("niAdvance", { amount: { kind: "fixed", value: 1234 } }), T), 1234, "National Insurance advance");
   assert.equal(periodAmount(ex("niAdvance"), T), null);
+  assert.equal(periodAmount(ex("niAdvance", { amount: { kind: "fixed", value: "abc" } }), T), null, "not a number: not set");
   assert.equal(periodAmount(ex("yearly1301"), T), null, "no amount: the page shows the totals");
 });
 
@@ -183,7 +205,7 @@ test("money in this year over a limit, and near it (patur limit check)", () => {
     { d: "2026-09-02", a: 400, c: FREELANCE, back: true },
   ];
   assert.equal(yearIn(it, day, rows), 112000);
-  assert.deepEqual(limitCheck(it, day, rows), { total: 112000, limit: 122833, pct: (112000 / 122833) * 100, over: false, near: true });
+  assert.deepEqual(limitCheck(it, day, rows), { total: 112000, limit: 122833, pct: 91, over: false, near: true });
   assert.ok(!applies(it, null, [], rows, day));
   const more = rows.concat({ d: "2026-11-01", a: 20000, c: FREELANCE });
   assert.equal(limitCheck(it, day, more).over, true);
@@ -225,14 +247,13 @@ test("a period with nothing in it still exists: a zero report", () => {
 });
 
 test("Israel yearly examples: patur statement, micro short report, yearly report with salary and tags", () => {
-  const S = S0(), go = (it) => periodReport(S, it, periodOf(it, nextPeriod(it, today()).key), today());
+  const S = S0(), go = (it) => periodReport(S, it, periodOf(it, nextPeriod(it, today(), S.bizTypes, A()).key), today());
   const py = go(ex("paturYear"));
   assert.equal(py.period.key, "2027-01-31");
   assert.equal(py.amount, 12800, "money in for 2026, the move to savings is not counted");
   assert.equal(py.applies, true);
-  const mi = go(ex("microYear"));
-  assert.equal(mi.period.key, "2027-03-31");
-  assert.equal(mi.applies, false, "never a micro business");
+  const mi = ex("microYear"), miR = periodReport(S, mi, periodOf(mi, "2027-03-31"), today());
+  assert.equal(miR.applies, false, "never a micro business");
   const y = go(ex("yearly1301"));
   assert.equal(y.period.key, "2027-05-31");
   assert.equal(y.totals.in, 20800, "with the salary");
@@ -243,15 +264,16 @@ test("Israel yearly examples: patur statement, micro short report, yearly report
 
 test("US estimated tax: (money in − money out) × your %", () => {
   setNow("2026-07-01T12:00:00");
-  const S = { accounts: [{ n: "Bank", kind: "bank" }], tx: [
-    { id: 1, d: "2026-04-08", a: 10000, desc: "Client Delta", from: "Client Delta", to: "Bank", c: FREELANCE, tags: [], docs: [] },
-    { id: 2, d: "2026-05-12", a: -2000, desc: "Laptop Store", from: "Bank", to: "Laptop Store", c: BUSINESS, tags: [], docs: [] },
-    { id: 3, d: "2026-06-02", a: 3000, desc: "Client Echo", from: "Client Echo", to: "Bank", c: FREELANCE, tags: [], docs: [] },
-  ] };
-  const it = ex("usEstimated", { amount: { kind: "net", pct: 25 } }), P = periodOf(it, "2026-06-15");
-  const R = periodReport(S, it, P, dayOf(now.value));
-  assert.deepEqual([P.start, P.end], ["2026-04-01", "2026-05-31"]);
-  assert.equal(R.totals.net, 8000);
-  assert.equal(R.amount, 2000);
-  setNow("2027-01-05T12:00:00");
+  try {
+    const S = { accounts: [{ n: "Bank", kind: "bank" }], tx: [
+      { id: 1, d: "2026-04-08", a: 10000, desc: "Client Delta", from: "Client Delta", to: "Bank", c: FREELANCE, tags: [], docs: [] },
+      { id: 2, d: "2026-05-12", a: -2000, desc: "Laptop Store", from: "Bank", to: "Laptop Store", c: BUSINESS, tags: [], docs: [] },
+      { id: 3, d: "2026-06-02", a: 3000, desc: "Client Echo", from: "Client Echo", to: "Bank", c: FREELANCE, tags: [], docs: [] },
+    ] };
+    const it = ex("usEstimated", { amount: { kind: "net", pct: 25 } }), P = periodOf(it, "2026-06-15");
+    const R = periodReport(S, it, P, dayOf(now.value));
+    assert.deepEqual([P.start, P.end], ["2026-04-01", "2026-05-31"]);
+    assert.equal(R.totals.net, 8000);
+    assert.equal(R.amount, 2000);
+  } finally { setNow("2027-01-05T12:00:00"); }
 });
