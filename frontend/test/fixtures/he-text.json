@@ -123,7 +123,14 @@
   "Saved a goal": "נשמר יעד",
   "Updated goal": "היעד עודכן",
   "Removed goal": "היעד הוסר",
-  "Same category for all payments of a purchase": "אותה קטגוריה לכל התשלומים של רכישה"
+  "Same category for all payments of a purchase": "אותה קטגוריה לכל התשלומים של רכישה",
+  "Added report": "נוסף דיווח",
+  "Changed report": "שונה דיווח",
+  "Deleted report": "נמחק דיווח",
+  "Moved a report date": "הוזז תאריך של דיווח",
+  "Marked report as done": "דיווח סומן כבוצע",
+  "Marked report as not done": "דיווח סומן כלא בוצע",
+  "Changed business type": "שונה סוג העסק"
  },
  "history lines in saved results": {
   "#food → #Trip · 3 transactions": "#food ← #Trip · 3 תנועות",
@@ -302,7 +309,11 @@
   "₪1,000,000 in 15 years": "₪1,000,000 בעוד 15 שנים",
   "₪250,000 in 1 year": "₪250,000 בעוד שנה",
   "Sofa shop: 2 payments → Home": "Sofa shop: 2 תשלומים ← בית",
-  "Sofa shop: 1 payment → Eating out": "Sofa shop: תשלום אחד ← אוכל בחוץ"
+  "Sofa shop: 1 payment → Eating out": "Sofa shop: תשלום אחד ← אוכל בחוץ",
+  "VAT report · was 15 Jan 2027, now 22 Jan 2027": "VAT report · היה 15 בינו׳ 2027, עכשיו 22 בינו׳ 2027",
+  "VAT report, due 22 Jan 2027 · sent · paid ₪1,620": "VAT report, עד 22 בינו׳ 2027 · נשלח · שולם ₪1,620",
+  "VAT report, due 15 Mar 2027": "VAT report, עד 15 במרץ 2027",
+  "Patur since 1 Jan 2026 · Murshe since 1 Jul 2026": "Patur מ־1 בינו׳ 2026 · Murshe מ־1 ביולי 2026"
  },
  "server messages": {
   "\nAutomatic attempts are paused. Check the login, then unlock it in Settings.": "\nהניסיונות האוטומטיים מושהים. בדקו את פרטי ההתחברות ואז בטלו את הנעילה בהגדרות.",

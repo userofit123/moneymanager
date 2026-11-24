@@ -180,6 +180,7 @@ export async function getState() {
     nwPension: await setting("nw_pension", false),
     hiddenMerchants: await setting("hidden_merchants", []), ccOverride: await setting("cc_override", {}), cardRules: await setting("card_rules", []), salaryRules: await setting("salary_rules", []), moneyInRules: await setting("money_in_rules", []), txIgnore: await setting("tx_ignore", {}), inMark: await setting("in_mark", {}), budgetNo: await setting("budget_no", []), tagList: await setting("tag_list", []),
     points: await setting("points", {}),
+    taxItems: await setting("tax_items", []), bizTypes: await setting("biz_types", []),
     cfg,
     currencies: await configuredCurrencies(), fxCurrencies: await activeCurrencies(),
     accounts: accounts.rows.map((a) => ({
@@ -221,6 +222,28 @@ export function cleanPoints(P) {
     out[str(k, 160)] = e;
   }
   return out;
+}
+
+// Taxes and reports (lib/taxReports.js in the app): the report items the person built, with their moved dates and done
+// periods, and the business types with the day each starts. Kept as the app sends them, within safe limits: items need a
+// whole-number id that is not used twice, and a list or an item that is too big is not kept.
+const isDay = (s) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
+const plain = (v) => v && typeof v === "object" && !Array.isArray(v);
+export function cleanTaxItems(L) {
+  const seen = new Set(), out = [];
+  for (const x of Array.isArray(L) ? L.slice(0, 200) : []) {
+    if (!plain(x) || !Number.isInteger(x.id) || x.id < 1 || seen.has(x.id) || JSON.stringify(x).length > 100000) continue;
+    seen.add(x.id);
+    const moved = Object.fromEntries(Object.entries(plain(x.moved) ? x.moved : {}).filter(([k, v]) => isDay(k) && isDay(v)));
+    const done = Object.fromEntries(Object.entries(plain(x.done) ? x.done : {}).filter(([k, v]) => isDay(k) && plain(v))
+      .map(([k, v]) => [k, { sent: !!v.sent, paid: Number.isFinite(v.paid) ? v.paid : null, ...(isDay(v.at) ? { at: v.at } : {}) }]));
+    out.push({ ...x, moved, done });
+  }
+  return out;
+}
+export function cleanBizTypes(L) {
+  return (Array.isArray(L) ? L.slice(0, 50) : []).filter((x) => plain(x) && x.id && isDay(x.from))
+    .map((x) => ({ id: String(x.id).slice(0, 40), ...(x.n ? { n: String(x.n).slice(0, 80) } : {}), ...(x.nk ? { nk: String(x.nk).slice(0, 80) } : {}), from: x.from }));
 }
 
 export class StaleError extends Error {}
@@ -341,6 +364,9 @@ export async function putState(S) {
     if (Array.isArray(S.tagList)) await put("tag_list", [...new Set(S.tagList.map((x) => String(x).trim().slice(0, 60)).filter(Boolean))].slice(0, 500));
     // points earned (lib/points.js in the app); an older app that does not know them sends none: then they stay
     if (S.points && typeof S.points === "object" && !Array.isArray(S.points)) await put("points", cleanPoints(S.points));
+    // Taxes and reports; an older app that does not know them sends none: then they stay
+    if (Array.isArray(S.taxItems)) await put("tax_items", cleanTaxItems(S.taxItems));
+    if (Array.isArray(S.bizTypes)) await put("biz_types", cleanBizTypes(S.bizTypes));
     await c.query("DELETE FROM dismissed_alerts");
     for (const id of Object.keys(S.dismissed || {})) await c.query("INSERT INTO dismissed_alerts (id) VALUES ($1) ON CONFLICT DO NOTHING", [id]);
 

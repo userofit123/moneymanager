@@ -3,7 +3,7 @@
 // smallest level that is safe to put back on its own (one field of one transaction, one budget, the list of rules...),
 // so later changes to other things stay. Changes that delete transactions get no Undo: the server cannot bring a bank
 // transaction back as it was.
-const BY_ID = ["tx", "jars", "accounts"]; // lists of things with an id: changed fields, added and removed items
+const BY_ID = ["tx", "jars", "accounts", "taxItems"]; // lists of things with an id: changed fields, added and removed items
 const BY_KEY = ["budgets", "cats", "dismissed", "dupOk", "txIgnore", "ccOverride", "inMark", "cfg", "points"]; // objects: changed keys
 const SKIP = new Set(["audit", "rev", "jarsReserve", "fxCurrencies", "connected", "locked", "connStatus", "companies", "sources", "nwSnaps", "balUpdates", "gaps"]);
 const FLAGS = new Set(["balEdit", "balUndo", "balPaid", "balNote", "balIn", "balReset"]); // a jar's notes to the server about its last save, not data

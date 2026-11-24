@@ -285,3 +285,92 @@ export const EXAMPLES = [
   { ex: "yearly1301", country: "il", nk: "taxes.ex.yearly1301", repeat: { every: 12, month: 5, day: 31 }, covers: "year", money: inOut(true), papers: { in: { need: "none" }, out: { need: "receipt" } }, amount: null, when: null },
   { ex: "usEstimated", country: "us", nk: "taxes.ex.usEstimated", repeat: { dates: ["04-15", "06-15", "09-15", "01-15"] }, covers: "since", money: inOut(), papers: noPapers(), amount: { kind: "net", pct: null }, when: null },
 ];
+
+// ---- saving ----
+// Each change below edits S (the copy inside data.change()) and gives back its history lines [[action, detail]], or false
+// when nothing changed. Undo comes from data.change() (core/undoPatch.js keeps what each item had before).
+// ctx: how the history line names things. name(x): an item's or a business type's name in English (the page passes the
+// name the person typed, or the English text of a ready-made name); fm: an amount; dstr: a date.
+const CTX = { name: (x) => x?.n || x?.nk || x?.id || "", fm: (n) => "₪" + Math.round(+n || 0).toLocaleString("en-US"), dstr: (d) => d };
+const ctxOf = (ctx) => ({ ...CTX, ...ctx });
+const itemOf = (S, id) => (S.taxItems || []).find((x) => x.id == id);
+const isDay = (s) => /^\d{4}-\d{2}-\d{2}$/.test(String(s || ""));
+
+// A new item, from the form (f: the item's fields) or a copy of a ready-made example (exampleItem).
+export function addTaxItem(S, f, ctx) {
+  const c = ctxOf(ctx), L = (S.taxItems = S.taxItems || []);
+  const { id: _i, done: _d, moved: _m, ...fields } = structuredClone(f || {}); // a new item has nothing moved or done yet
+  const x = { id: Math.max(0, ...L.map((i) => +i.id || 0)) + 1, ...fields, moved: {}, done: {} };
+  L.push(x);
+  return [["Added report", c.name(x)]];
+}
+// A ready-made example as a new item: a copy that is then an ordinary item (EXAMPLES, by its `ex`).
+export function exampleItem(ex) {
+  const e = EXAMPLES.find((x) => x.ex == ex);
+  if (!e) return null;
+  const { country, ...x } = structuredClone(e);
+  return x;
+}
+export const addExample = (S, ex, ctx) => { const x = exampleItem(ex); return x ? addTaxItem(S, x, ctx) : false; };
+
+// An item changed in the form: its fields are replaced; its moved dates and done periods stay (they have their own changes).
+export function editTaxItem(S, id, f, ctx) {
+  const c = ctxOf(ctx), L = S.taxItems || [], i = L.findIndex((x) => x.id == id);
+  if (i < 0) return false;
+  const { id: _i, done: _d, moved: _m, ...fields } = structuredClone(f || {}), old = L[i];
+  const x = { id: old.id, ...fields, moved: old.moved || {}, done: old.done || {} };
+  if (JSON.stringify(x) === JSON.stringify(old)) return false;
+  L[i] = x;
+  return [["Changed report", c.name(x)]];
+}
+
+export function deleteTaxItem(S, id, ctx) {
+  const c = ctxOf(ctx), x = itemOf(S, id);
+  if (!x) return false;
+  S.taxItems = S.taxItems.filter((i) => i !== x);
+  return [["Deleted report", c.name(x)]];
+}
+
+// One date moved (an extension): key is the date in the repeat, to the new last day. to empty, or the key itself, puts it
+// back on its usual date.
+export function moveTaxDate(S, id, key, to, ctx) {
+  const c = ctxOf(ctx), x = itemOf(S, id);
+  if (!x || !isDay(key) || (to && !isDay(to))) return false;
+  const was = x.moved?.[key] || key, now = to || key;
+  if (was == now) return false;
+  x.moved = { ...(x.moved || {}) };
+  if (now == key) delete x.moved[key]; else x.moved[key] = now;
+  return [["Moved a report date", c.name(x) + " · was " + c.dstr(was) + ", now " + c.dstr(now)]];
+}
+
+// A period marked done: sent (the report was sent) and/or paid (the amount paid; null: not paid). today: the day it was
+// marked (core/clock.js). Neither sent nor paid marks it not done again (unmarkTaxDone).
+export function markTaxDone(S, id, key, { sent = false, paid = null } = {}, today, ctx) {
+  const c = ctxOf(ctx), x = itemOf(S, id);
+  if (!x || !isDay(key)) return false;
+  const amt = paid == null || paid === "" || !Number.isFinite(+paid) ? null : Math.round(+paid);
+  if (!sent && amt == null) return unmarkTaxDone(S, id, key, ctx);
+  const d = { sent: !!sent, paid: amt, at: today };
+  const old = x.done?.[key];
+  if (old && old.sent == d.sent && old.paid == d.paid) return false;
+  x.done = { ...(x.done || {}), [key]: d };
+  const last = x.moved?.[key] || key;
+  return [["Marked report as done", c.name(x) + ", due " + c.dstr(last) + (d.sent ? " · sent" : "") + (d.paid != null ? " · paid " + c.fm(d.paid) : "")]];
+}
+export function unmarkTaxDone(S, id, key, ctx) {
+  const c = ctxOf(ctx), x = itemOf(S, id);
+  if (!x || !x.done?.[key]) return false;
+  x.done = { ...x.done };
+  delete x.done[key];
+  return [["Marked report as not done", c.name(x) + ", due " + c.dstr(x.moved?.[key] || key)]];
+}
+
+// The business types and the day each one starts (S.bizTypes), sorted by that day. T: [{ id, n?, nk?, from }].
+export function setBizTypes(S, T, ctx) {
+  const c = ctxOf(ctx);
+  const L = (T || []).filter((x) => x && x.id && isDay(x.from)).map(({ id, n, nk, from }) => ({ id: String(id), ...(n ? { n: String(n) } : {}), ...(nk ? { nk } : {}), from }))
+    .sort((a, b) => a.from.localeCompare(b.from));
+  if (JSON.stringify(L) === JSON.stringify(S.bizTypes || [])) return false;
+  S.bizTypes = L;
+  return [["Changed business type", L.length ? L.map((x) => c.name(x) + " since " + c.dstr(x.from)).join(" · ") : "none"]];
+}
