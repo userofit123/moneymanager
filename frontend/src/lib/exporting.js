@@ -2,8 +2,8 @@
 // The file's column names and words are always English (a file leaves the app and is read by other programs).
 import { kinds, rdOf, rangeOf } from "./activity.js";
 import { costRows } from "./txrows.js";
+import { nohtml, csvText } from "./csv.js";
 
-const nohtml = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&").trim();
 export const EXWHAT = ["tx", "cat", "bills", "budgets", "jars", "accounts", "audit", "all"];
 // [key, file column name, value]
 const exCols = (K) => [["date", "Date", (t) => t.d], ["desc", "Description", (t) => nohtml(t.desc)], ["from", "From", (t) => nohtml(t.from)], ["to", "To", (t) => nohtml(t.to)], ["amount", "Amount (₪)", (t) => t.a], ["ocur", "Original currency", (t) => (t.orig ? t.orig.cur : "")], ["oamt", "Original amount", (t) => (t.orig ? t.orig.amt : "")], ["cat", "Category", (t) => t.c || (K.isXf(t) ? "Transfer" : "Uncategorized")], ["tags", "Tags", (t) => (t.tags || []).join(" ")], ["note", "Note", (t) => t.note || ""], ["docs", "Attachments", (t) => (t.docs || []).join("; ")], ["src", "Source", (t) => t.src || ""], ["id", "ID", (t) => t.id]];
@@ -44,7 +44,7 @@ export function exData(S, E, today, now) {
   return { head: [], rows: [], n: 1, all: true };
 }
 // CSV with a byte-order mark so Excel reads Hebrew; a leading ' stops spreadsheets from running text as a formula.
-const exCsv = (head, rows) => { const cell = (v) => { let s = v == null ? "" : String(v); if (typeof v == "string" && /^[=+\-@\t\r]/.test(s)) s = "'" + s; return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }; return "﻿" + [head, ...rows].map((r) => r.map(cell).join(",")).join("\r\n"); };
+const exCsv = (head, rows) => csvText([head, ...rows]);
 export const exExt = (E) => (E.what == "all" || E.fmt == "json" ? ".json" : ".csv");
 export const exFile = (E, today) => `money-${E.what}-${today}`;
 // The file's name and contents. S: the whole data (for "everything").

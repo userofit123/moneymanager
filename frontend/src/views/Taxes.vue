@@ -23,7 +23,7 @@ import "../styles/pages/taxes.css"; // this page's own styles
 
 const {
   t, S, M, any, nameOf, span, lastText, wantText, isLate, whyQuiet, fm, fmAbs, amountOf, dstr, dd, EXG, addEx, addOwn, exMenu,
-  menu, toggleMenu, menuItems, MI, pick, moveFor, saveMove, openItem, closeItem, cur, curAmt, needsPapers, pickPeriod, stateOf, doneF, markDone, unmarkDone, txRows, attach,
+  menu, toggleMenu, menuItems, MI, pick, moveFor, saveMove, openItem, closeItem, cur, curAmt, needsPapers, pickPeriod, stateOf, doneF, markDone, unmarkDone, txRows, attach, zipping, downloadZip,
   view, cal, calTitle, calWeek, calMove, calToday, calDay, chosen, chosenMarks, longDay, calLabel, openMark, shownYm, ymNow,
 } = useTaxes();
 onMounted(() => { data.start(); });
@@ -41,6 +41,7 @@ const ICON = {
   doc: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
   clip: '<path d="M20 11l-8.5 8.5a5 5 0 0 1-7-7L13 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L14 7"/>',
   info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+  down: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
   list: '<path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>',
 };
 // Chevrons that point to the start or end side, drawn per language like the back chevron.
@@ -61,7 +62,10 @@ const chev = (end) => ((locale.value == "he") == end ? "M15 6l-6 6 6 6" : "M9 6l
       <button type="button" class="tax-back" @click="closeItem"><svg viewBox="0 0 24 24" aria-hidden="true"><path :d="locale == 'he' ? 'M9 6l6 6-6 6' : 'M15 6l-6 6 6 6'" /></svg>{{ t("taxes.page.back") }}</button>
       <div class="tax-ph">
         <b class="tax-name">{{ nameOf(cur.item) }}</b>
+        <div class="tax-pa">
+        <button v-if="cur.report" type="button" class="btn o s tax-zip" :disabled="zipping" :aria-busy="zipping" :data-tip="t('taxes.page.zip.tip')" @click="downloadZip"><svg viewBox="0 0 24 24" aria-hidden="true" v-html="ICON.down" />{{ t("taxes.page.zip.btn") }}</button>
         <button type="button" class="btn o s" @click="openForm('tax', { id: cur.item.id })">{{ t("taxes.page.menu.edit") }}</button>
+        </div>
       </div>
       <div v-if="cur.periods.length > 1" ref="pseg" class="seg tax-pseg" role="group" :aria-label="t('taxes.page.periods')">
         <button v-for="p in cur.periods" :key="p.key" type="button" :class="{ on: p.key == cur.period?.key }" :aria-pressed="p.key == cur.period?.key" @click="pickPeriod(p.key)">

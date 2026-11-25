@@ -256,6 +256,17 @@
       "none": "Nothing to report or pay on this day.",
       "empty": "Nothing to report or pay in {month}.",
       "day": "{date}: nothing | {date}: 1 thing to report or pay | {date}: {n} things to report or pay"
+    },
+    "zip": {
+      "btn": "Download everything",
+      "tip": "One zip file for this report: a summary (the money, the transactions and the missing papers) and every attached receipt or invoice.",
+      "getting": "Getting the attached files: {i} of {n}…",
+      "fail": "The attached files could not be downloaded, so no zip file was saved. Check the internet connection and try again.",
+      "made": "Made on {date}",
+      "vatIn": "VAT on money in",
+      "vatOut": "VAT on money out",
+      "note": "Amounts are an estimate from the money in the app. Check them with your accountant or on the tax site.",
+      "notHere": "the file is not on the server"
     }
   }
 }

@@ -8,6 +8,12 @@ import { now, dayOf } from "../core/clock.js";
 import { openForm } from "../core/forms.js";
 import { ask } from "../core/ask.js";
 import { attachDocs } from "../core/attachDocs.js";
+import { request } from "../core/http.js";
+import { toast, clearToast } from "../core/toast.js";
+import { saveFile } from "../core/saveFile.js";
+import { catLabel } from "../core/cats.js";
+import { zipFiles } from "../lib/zip.js";
+import { taxZipPlan } from "../lib/taxExport.js";
 import { taxesGo } from "../core/shell.js";
 import { weekStart, usePref } from "../core/prefs.js";
 import { dstr } from "../dates.js";
@@ -137,6 +143,36 @@ export function useTaxes() {
   const txRows = computed(() => { const R = cur.value?.report?.rows; return R ? [...R.in, ...R.out].sort((a, b) => String(b.d).localeCompare(String(a.d))) : []; });
   const attach = (t0, e) => { const files = [...e.target.files]; e.target.value = ""; return attachDocs(t0, files); };
 
+  // ---- download everything for this report: one zip with the summary and every attached file ----
+  const zipping = ref(false);
+  async function downloadZip() {
+    const c = cur.value; if (!c?.report || zipping.value) return;
+    const k = (x) => t("exp.c." + x), P = c.period;
+    const W = { span: t("taxes.page.moneyFrom", { span: span(P) }), last: t("taxes.page.lastDay", { date: dd(P.last) }), made: t("taxes.page.zip.made", { date: dd(today.value) }),
+      in: t("taxes.page.kIn"), out: t("taxes.page.kOut"), amt: t("taxes.page.kAmt"), back: t("taxes.page.kBack"), noAmt: t("taxes.page.kNoAmt"), vatIn: t("taxes.page.zip.vatIn"), vatOut: t("taxes.page.zip.vatOut"),
+      papers: t("taxes.page.papersTitle"), papersNone: t("taxes.page.papersNone"), need: { receipt: t("taxes.page.need.receipt"), invoice: t("taxes.page.need.invoice") },
+      tx: t("taxes.page.txTitle"), txNone: t("taxes.page.txNone"), note: t("taxes.page.zip.note"), notHere: t("taxes.page.zip.notHere"),
+      c: { date: k("date"), desc: k("desc"), from: k("from"), to: k("to"), cat: k("cat"), tags: k("tags"), amount: k("amount"), docs: k("docs") } };
+    const plan = taxZipPlan({ name: nameOf(c.item), report: c.report, W, lang: locale.value, cat: (x) => catLabel(x), money: fm, day: dstr });
+    zipping.value = true;
+    try {
+      const files = [{ name: "summary.csv", data: plan.csv }, { name: "summary.html", data: plan.html }];
+      for (const [i, f] of plan.fetch.entries()) {
+        toast(t("taxes.page.zip.getting", { i: i + 1, n: plan.fetch.length }), { kind: "info", sticky: "taxzip" });
+        const r = await request("/api/documents/" + f.id);
+        if (!r.ok) throw new Error(String(r.status));
+        files.push({ name: f.path, data: new Uint8Array(await r.arrayBuffer()) });
+      }
+      saveFile(new Blob([zipFiles(files, today.value)], { type: "application/zip" }), plan.zipName);
+      clearToast("taxzip");
+      // the months and ".zip" kept as one left-to-right piece, so a Hebrew name reads right (as dd() does for dates)
+      toast(t("exp.done", { name: plan.zipName.replace(/(\d[\d\-–]*\.zip)$/, "\u2066$1\u2069") }));
+    } catch {
+      clearToast("taxzip");
+      toast(t("taxes.page.zip.fail"), { kind: "err" });
+    } finally { zipping.value = false; }
+  }
+
   // ---- the calendar ----
   // List or Calendar (remembered on this device; the list by default). The month shown, and the day chosen in it.
   const view = usePref("moneyTaxView", "list");
@@ -160,6 +196,6 @@ export function useTaxes() {
   const openMark = (m) => openItem({ item: m.item, period: m.period });
 
   return { t, S, M, any, today, nameOf, span, lastText, wantText, isLate, whyQuiet, fm, fmAbs, amountOf, dstr, dd, EXG, addEx, addOwn, exMenu,
-    menu, toggleMenu, menuItems, MI, pick, moveFor, saveMove, open, openItem, closeItem, cur, curAmt, needsPapers, pickPeriod, stateOf, doneF, markDone, unmarkDone, txRows, attach,
+    menu, toggleMenu, menuItems, MI, pick, moveFor, saveMove, open, openItem, closeItem, cur, curAmt, needsPapers, pickPeriod, stateOf, doneF, markDone, unmarkDone, txRows, attach, zipping, downloadZip,
     view, cal, calTitle, calWeek, calMove, calToday, calDay, chosen, chosenMarks, longDay, calLabel, openMark, shownYm, ymNow };
 }

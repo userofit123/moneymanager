@@ -90,7 +90,7 @@
 }
 
 .tax-name {
-  flex: 1;
+  flex: 1 1 auto; /* when the name and the buttons do not fit on one line, the buttons go under the name together */
   min-width: 0;
   font-size: 22px;
   font-weight: 650;
@@ -165,7 +165,18 @@ html.he .tax-am {
   gap: 6px;
 }
 
-.tax-card .upl svg {
+.tax-pa {
+  display: flex;
+  gap: 8px;
+  flex: none;
+}
+
+.tax-zip {
+  gap: 6px;
+}
+
+.tax-card .upl svg,
+.tax-zip svg {
   width: 16px;
   height: 16px;
   fill: none;

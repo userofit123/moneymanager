@@ -6,6 +6,7 @@ import { useI18n } from "vue-i18n";
 import { data } from "../stores/data.js";
 import { now, dayOf } from "../core/clock.js";
 import { toast } from "../core/toast.js";
+import { saveFile } from "../core/saveFile.js";
 import { catNames, catColor, catLabel } from "../core/cats.js";
 import { RANGES } from "../lib/activity.js";
 import { EXWHAT, COLKEYS, exDef, exFromActivity, exData, exBuild, exExt, exFile } from "../lib/exporting.js";
@@ -40,7 +41,7 @@ const colsAll = (v) => { E.value.cols = v == "all" ? [...COLKEYS] : []; };
 
 function go() {
   const f = exBuild(S.value, E.value, d.value, today.value);
-  const l = document.createElement("a"); l.href = URL.createObjectURL(new Blob([f.body], { type: f.mime })); l.download = f.name; document.body.appendChild(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(l.href), 4000);
+  saveFile(f.body, f.name, f.mime);
   data.change(() => [["Exported data", `${E.value.what} · ${d.value.all ? "all data" : d.value.n + " rows"} · ${f.name}`]]);
   toast(t("exp.done", { name: f.name }));
 }
