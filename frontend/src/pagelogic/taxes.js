@@ -18,6 +18,7 @@ import { taxesGo } from "../core/shell.js";
 import { weekStart, usePref } from "../core/prefs.js";
 import { dstr } from "../dates.js";
 import { fm } from "../lib/bills.js";
+import { amtText } from "../lib/txrows.js";
 import { addM } from "../lib/home.js";
 import { taxesModel, taxMonth, itemPeriods, periodReport, periodOf, EXAMPLES, EXAMPLE_TYPES, addExample, deleteTaxItem, moveTaxDate, markTaxDone, unmarkTaxDone } from "../lib/taxReports.js";
 
@@ -153,23 +154,27 @@ export function useTaxes() {
       papers: t("taxes.page.papersTitle"), papersNone: t("taxes.page.papersNone"), need: { receipt: t("taxes.page.need.receipt"), invoice: t("taxes.page.need.invoice") },
       tx: t("taxes.page.txTitle"), txNone: t("taxes.page.txNone"), note: t("taxes.page.zip.note"), notHere: t("taxes.page.zip.notHere"),
       c: { date: k("date"), desc: k("desc"), from: k("from"), to: k("to"), cat: k("cat"), tags: k("tags"), amount: k("amount"), docs: k("docs") } };
-    const plan = taxZipPlan({ name: nameOf(c.item), report: c.report, W, lang: locale.value, cat: (x) => catLabel(x), money: fm, day: dstr });
+    const o = { name: nameOf(c.item), report: c.report, W, lang: locale.value, cat: (x) => catLabel(x), money: fm, moneyAbs: fmAbs, amtText, day: dstr };
     zipping.value = true;
     try {
-      const files = [{ name: "summary.csv", data: plan.csv }, { name: "summary.html", data: plan.html }];
-      for (const [i, f] of plan.fetch.entries()) {
-        toast(t("taxes.page.zip.getting", { i: i + 1, n: plan.fetch.length }), { kind: "info", sticky: "taxzip" });
+      // fetch each file; one the server does not have (404, 403…) is listed as not on the server, only a lost connection stops the zip
+      const first = taxZipPlan(o), got = new Map(), gone = new Set();
+      for (const [i, f] of first.fetch.entries()) {
+        toast(t("taxes.page.zip.getting", { i: i + 1, n: first.fetch.length }), { kind: "info", sticky: "taxzip" });
         const r = await request("/api/documents/" + f.id);
-        if (!r.ok) throw new Error(String(r.status));
-        files.push({ name: f.path, data: new Uint8Array(await r.arrayBuffer()) });
+        if (r.ok) got.set(f.id, new Uint8Array(await r.arrayBuffer()));
+        else if (r.status >= 400 && r.status < 500) gone.add(f.id);
+        else throw new Error(String(r.status));
       }
-      saveFile(new Blob([zipFiles(files, today.value)], { type: "application/zip" }), plan.zipName);
+      const plan = gone.size ? taxZipPlan({ ...o, gone }) : first;
+      const files = [{ name: "summary.csv", data: plan.csv }, { name: "summary.html", data: plan.html }, ...plan.fetch.map((f) => ({ name: f.path, data: got.get(f.id) }))];
+      saveFile(zipFiles(files, today.value), plan.zipName);
       clearToast("taxzip");
       // the months and ".zip" kept as one left-to-right piece, so a Hebrew name reads right (as dd() does for dates)
       toast(t("exp.done", { name: plan.zipName.replace(/(\d[\d\-–]*\.zip)$/, "\u2066$1\u2069") }));
-    } catch {
+    } catch (e) {
       clearToast("taxzip");
-      toast(t("taxes.page.zip.fail"), { kind: "err" });
+      toast(t(e?.code == "ZIP_TOO_BIG" ? "taxes.page.zip.tooBig" : "taxes.page.zip.fail"), { kind: "err" });
     } finally { zipping.value = false; }
   }
 

@@ -262,6 +262,7 @@
       "tip": "One zip file for this report: a summary (the money, the transactions and the missing papers) and every attached receipt or invoice.",
       "getting": "Getting the attached files: {i} of {n}…",
       "fail": "The attached files could not be downloaded, so no zip file was saved. Check the internet connection and try again.",
+      "tooBig": "There are too many files, or they are too big, for one zip file. No zip file was saved.",
       "made": "Made on {date}",
       "vatIn": "VAT on money in",
       "vatOut": "VAT on money out",

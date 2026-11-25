@@ -63,8 +63,8 @@ const chev = (end) => ((locale.value == "he") == end ? "M15 6l-6 6 6 6" : "M9 6l
       <div class="tax-ph">
         <b class="tax-name">{{ nameOf(cur.item) }}</b>
         <div class="tax-pa">
-        <button v-if="cur.report" type="button" class="btn o s tax-zip" :disabled="zipping" :aria-busy="zipping" :data-tip="t('taxes.page.zip.tip')" @click="downloadZip"><svg viewBox="0 0 24 24" aria-hidden="true" v-html="ICON.down" />{{ t("taxes.page.zip.btn") }}</button>
-        <button type="button" class="btn o s" @click="openForm('tax', { id: cur.item.id })">{{ t("taxes.page.menu.edit") }}</button>
+          <button v-if="cur.report" type="button" class="btn o s tax-zip" :disabled="zipping" :aria-busy="zipping" :data-tip="t('taxes.page.zip.tip')" @click="downloadZip"><svg viewBox="0 0 24 24" aria-hidden="true" v-html="ICON.down" />{{ t("taxes.page.zip.btn") }}</button>
+          <button type="button" class="btn o s" @click="openForm('tax', { id: cur.item.id })">{{ t("taxes.page.menu.edit") }}</button>
         </div>
       </div>
       <div v-if="cur.periods.length > 1" ref="pseg" class="seg tax-pseg" role="group" :aria-label="t('taxes.page.periods')">
@@ -91,7 +91,7 @@ const chev = (end) => ((locale.value == "he") == end ? "M15 6l-6 6 6 6" : "M9 6l
             <template v-else>
               <div class="lbl">{{ t("taxes.page.kAmt") }}</div>
               <div class="sm tax-noamt">{{ t("taxes.page.kNoAmt") }}</div>
-              <button type="button" class="btn o s" @click="openForm('tax', { id: cur.item.id })">{{ t("taxes.page.kSetAmt") }}</button>
+                <button type="button" class="btn o s" @click="openForm('tax', { id: cur.item.id })">{{ t("taxes.page.kSetAmt") }}</button>
             </template>
           </div>
         </div>

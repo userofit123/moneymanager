@@ -1,6 +1,7 @@
 // A small zip file writer: the files are stored as they are (no compression: receipts are already PDFs and images),
 // with their CRC-32 check and UTF-8 names, so Hebrew file names open right in Windows, macOS and phones.
-// zipFiles([{ name: "summary.csv", data: "text" | Uint8Array }], "2026-11-25") → Uint8Array (the .zip file).
+// zipFiles([{ name: "summary.csv", data: "text" | Uint8Array }], "2026-11-25") → Blob (the .zip file). Throws an error with code "ZIP_TOO_BIG"
+// when the files do not fit one zip (this plain zip format holds up to 65535 files and under 4 GB in all).
 
 const CRC = (() => {
   const T = new Uint32Array(256);
@@ -21,11 +22,17 @@ function dosDate(day) {
   return { date: ((y - 1980) << 9) | ((m ? +m[2] : 1) << 5) | (m ? +m[3] : 1), time: 12 << 11 };
 }
 
+export const ZIP_MAX_FILES = 0xffff, ZIP_MAX_BYTES = 0xfffffffe;
+// Whether `count` files taking `bytes` in all (their data, names and zip headers) fit one zip.
+export const zipFits = (count, bytes) => count <= ZIP_MAX_FILES && bytes <= ZIP_MAX_BYTES;
+
 export function zipFiles(files, day) {
   const { date, time } = dosDate(day), parts = [], dir = [];
+  const list = files.map((f) => ({ name: enc.encode(String(f.name)), data: bytes(f.data) }));
+  if (!zipFits(list.length, list.reduce((s, f) => s + 76 + 2 * f.name.length + f.data.length, 22))) throw Object.assign(new Error("zip too big"), { code: "ZIP_TOO_BIG" });
   let at = 0;
-  for (const f of files) {
-    const name = enc.encode(String(f.name)), data = bytes(f.data), crc = crc32(data);
+  for (const { name, data } of list) {
+    const crc = crc32(data);
     const head = new DataView(new ArrayBuffer(30));
     // the file's own header: signature, version 2.0, UTF-8 names (bit 11), stored, date, CRC, sizes, name length
     head.setUint32(0, 0x04034b50, true); head.setUint16(4, 20, true); head.setUint16(6, 0x0800, true); head.setUint16(8, 0, true);
@@ -43,8 +50,5 @@ export function zipFiles(files, day) {
   const dirSize = dir.reduce((s, p) => s + p.length, 0), end = new DataView(new ArrayBuffer(22));
   end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
   end.setUint32(12, dirSize, true); end.setUint32(16, at, true);
-  const all = [...parts, ...dir, new Uint8Array(end.buffer)], out = new Uint8Array(all.reduce((s, p) => s + p.length, 0));
-  let o = 0;
-  for (const p of all) { out.set(p, o); o += p.length; }
-  return out;
+  return new Blob([...parts, ...dir, new Uint8Array(end.buffer)], { type: "application/zip" });
 }

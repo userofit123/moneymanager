@@ -5,7 +5,11 @@
 import { csvText, nohtml } from "./csv.js";
 
 // A name that is safe for a file on every system: no \ / : * ? " < > | or control characters, no dot at the start.
-export const safeName = (s, max = 60) => String(s == null ? "" : s).replace(/[\\/:*?"<>|\x00-\x1f]/g, "-").replace(/\s+/g, " ").trim().replace(/^\.+/, "").slice(0, max).trim(); // eslint-disable-line no-control-regex -- control characters are not allowed in file names
+// Direction marks are removed, a name never ends in a dot or space, and shortening never cuts a letter (a pair like an emoji) in half.
+export const safeName = (s, max = 60) => {
+  const a = String(s == null ? "" : s).replace(/[\\/:*?"<>|\x00-\x1f]/g, "-").replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, "").replace(/\s+/g, " ").trim().replace(/^\.+/, ""); // eslint-disable-line no-control-regex -- control characters are not allowed in file names
+  return [...a].slice(0, max).join("").replace(/[.\s]+$/, "");
+};
 
 // The months of a period as the zip's name writes them: "2026" (a whole year), "2026-09", "2026-09–10", "2026-12–2027-03".
 export function periodTag(P) {
@@ -21,9 +25,10 @@ const plain = (v) => (typeof v == "string" ? v.replace(/[⁦-⁩‎‏؜]/g, "")
 const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 // The zip's name, the files to fetch ({ id, path }) and the two summaries.
-// o: { name, report, W (the words, in the app's language), lang, cat(c) → category name, money(n) → "₪1,234", day(d) → date }
+// o: { gone (optional Set of file ids the server did not have: listed as not on the server), moneyAbs(n) and amtText(tx) (the page's amount texts), name, report, W (the words, in the app's language), lang, cat(c) → category name, money(n) → "₪1,234", day(d) → date }
 export function taxZipPlan(o) {
-  const { name, report: R, W, cat, money, day, lang } = o, P = R.period;
+  const { name, report: R, W, cat, money, day, lang } = o, P = R.period, gone = o.gone || new Set();
+  const moneyAbs = o.moneyAbs || ((n) => money(Math.abs(n))), amtText = o.amtText || money;
   const rows = [...R.rows.in, ...R.rows.out].sort((a, b) => String(a.d).localeCompare(String(b.d)) || String(a.id).localeCompare(String(b.id)));
   const missing = new Map(R.missing.map((m) => [m.t.id, m]));
   // each attached file once, named after its transaction: "files/2026-09-14 Logo design.pdf", "… (2).pdf" when taken
@@ -31,8 +36,8 @@ export function taxZipPlan(o) {
   for (const t of rows) {
     const L = [];
     (t.docs || []).forEach((dn, i) => {
-      const id = t.docIds?.[i], has = t.docHas ? t.docHas[i] !== false : true;
-      if (!id || !has) { L.push(dn + " (" + W.notHere + ")"); return; }
+      const id = t.docIds?.[i], has = t.docHas ? t.docHas[i] : true;
+      if (!id || !has || gone.has(id)) { L.push(dn + " (" + W.notHere + ")"); return; }
       const base = "files/" + (safeName(t.d + " " + nohtml(t.desc), 60) || t.d), ext = extOf(dn);
       let path = base + ext;
       for (let k = 2; used.has(path.toLowerCase()); k++) path = base + " (" + k + ")" + ext;
@@ -55,7 +60,7 @@ export function taxZipPlan(o) {
   csvRows.push([], [W.note]);
   const csv = csvText(csvRows.map((r) => r.map(plain)));
 
-  const rtl = lang == "he", arrow = rtl ? " ← " : " → ", num = (n) => `<td class="n"><bdi>${esc(money(n))}</bdi></td>`;
+  const rtl = lang == "he", arrow = rtl ? " ← " : " → ", num = (s) => `<td class="n"><bdi>${esc(s)}</bdi></td>`;
   const html = `<!doctype html>
 <html lang="${rtl ? "he" : "en"}" dir="${rtl ? "rtl" : "ltr"}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(name + " · " + W.span)}</title>
@@ -69,12 +74,12 @@ th{font-weight:600;color:#5f6368;font-size:12px}td.n{text-align:end;white-space:
 <h1>${esc(name)}</h1>
 <p class="sm">${esc(W.span)} · ${esc(W.last)}</p>
 <p class="sm">${esc(W.made)}</p>
-<table class="tot">${totals.map(([k, v]) => `<tr><td>${esc(k)}</td>${num(v)}</tr>`).join("")}${amt ? "" : `<tr><td>${esc(W.amt)}</td><td class="n">${esc(W.noAmt)}</td></tr>`}</table>
+<table class="tot">${totals.map(([k, v]) => `<tr><td>${esc(k)}</td>${num(money(v))}</tr>`).join("")}${amt ? "" : `<tr><td>${esc(W.amt)}</td><td class="n">${esc(W.noAmt)}</td></tr>`}</table>
 <h2>${esc(W.papers)}</h2>
-${R.missing.length ? `<ul>${R.missing.map((m) => `<li>${esc(day(m.t.d))} · ${esc(nohtml(m.t.desc))} · <bdi>${esc(money(m.t.a))}</bdi> · <span class="miss">${esc(W.need[m.need])}</span>${m.note ? " · " + esc(m.note) : ""}</li>`).join("")}</ul>` : `<p class="sm">${esc(W.papersNone)}</p>`}
+${R.missing.length ? `<ul>${R.missing.map((m) => `<li>${esc(day(m.t.d))} · ${esc(nohtml(m.t.desc))} · <bdi>${esc(moneyAbs(m.t.a))}</bdi> · <span class="miss">${esc(W.need[m.need])}</span>${m.note ? " · " + esc(m.note) : ""}</li>`).join("")}</ul>` : `<p class="sm">${esc(W.papersNone)}</p>`}
 <h2>${esc(W.tx)}</h2>
 ${rows.length ? `<table><thead><tr>${[W.c.date, W.c.desc, W.c.from + arrow + W.c.to, W.c.cat, W.c.tags].map((h) => `<th>${esc(h)}</th>`).join("")}<th style="text-align:end">${esc(W.c.amount)}</th><th>${esc(W.c.docs)}</th></tr></thead><tbody>
-${rows.map((t) => `<tr><td style="white-space:nowrap">${esc(day(t.d))}</td><td>${esc(nohtml(t.desc))}${need(t) ? `<br><span class="miss">${esc(need(t))}</span>` : ""}</td><td>${esc(nohtml(t.from))}${arrow}${esc(nohtml(t.to))}</td><td>${esc(cat(t.c))}</td><td>${esc(tags(t))}</td>${num(t.a)}<td>${docsOf.get(t.id).map((x) => `<bdi>${esc(x)}</bdi>`).join("<br>")}</td></tr>`).join("\n")}
+${rows.map((t) => `<tr><td style="white-space:nowrap">${esc(day(t.d))}</td><td>${esc(nohtml(t.desc))}${need(t) ? `<br><span class="miss">${esc(need(t))}</span>` : ""}</td><td>${esc(nohtml(t.from))}${arrow}${esc(nohtml(t.to))}</td><td>${esc(cat(t.c))}</td><td>${esc(tags(t))}</td>${num(amtText(t))}<td>${docsOf.get(t.id).map((x) => `<bdi>${esc(x)}</bdi>`).join("<br>")}</td></tr>`).join("\n")}
 </tbody></table>` : `<p class="sm">${esc(W.txNone)}</p>`}
 <p class="sm" style="margin-top:28px">${esc(W.note)}</p>
 </body></html>

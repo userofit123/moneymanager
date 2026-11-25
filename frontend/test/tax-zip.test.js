@@ -3,11 +3,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { crc32 as nodeCrc } from "node:zlib";
-import { zipFiles, crc32 } from "../src/lib/zip.js";
+import { zipFiles, zipFits, crc32 } from "../src/lib/zip.js";
 import { taxZipPlan, periodTag, safeName } from "../src/lib/taxExport.js";
 
 // Read a zip back from its list at the end (the central directory), the way unzip programs do.
-function readZip(z) {
+async function readZip(blob) {
+  const z = new Uint8Array(await blob.arrayBuffer());
   const v = new DataView(z.buffer, z.byteOffset, z.byteLength), dec = new TextDecoder();
   const e = z.byteLength - 22;
   assert.equal(v.getUint32(e, true), 0x06054b50);
@@ -29,10 +30,10 @@ function readZip(z) {
   return out;
 }
 
-test("zip: the files read back the same, stored, with UTF-8 names and a right CRC", () => {
+test("zip: the files read back the same, stored, with UTF-8 names and a right CRC", async () => {
   const img = new Uint8Array(3000).map((_, i) => (i * 7) % 256);
   const z = zipFiles([{ name: "summary.csv", data: "﻿תאריך,סכום\r\n2026-09-14,1200" }, { name: "files/2026-09-14 עיצוב לוגו.pdf", data: img }, { name: "empty.txt", data: "" }], "2026-11-25");
-  const F = readZip(z);
+  const F = await readZip(z);
   assert.deepEqual(F.map((f) => f.name), ["summary.csv", "files/2026-09-14 עיצוב לוגו.pdf", "empty.txt"]);
   for (const f of F) { assert.equal(f.method, 0); assert.equal(f.flags & 0x0800, 0x0800); assert.equal(f.crc, crc32(f.data)); assert.equal(f.crc, nodeCrc(f.data)); }
   assert.equal(new TextDecoder("utf-8", { ignoreBOM: true }).decode(F[0].data), "﻿תאריך,סכום\r\n2026-09-14,1200");
@@ -47,8 +48,12 @@ test("zip name: the item and its months, safe for every system", () => {
   assert.equal(periodTag({ start: "2026-11-01", end: "2026-11-30" }), "2026-11");
   assert.equal(periodTag({ start: "2026-01-01", end: "2026-12-31" }), "2026");
   assert.equal(periodTag({ start: "2026-12-01", end: "2027-03-31" }), "2026-12–2027-03");
-  assert.equal(safeName('a/b:c*?"<>| .'), "a-b-c------ .");
+  assert.equal(safeName('a/b:c*?"<>| .'), "a-b-c------");
   assert.equal(safeName("..hidden"), "hidden");
+  assert.equal(safeName("a\u202bb\u2066c\u200f"), "abc");
+  assert.equal(safeName("name. . "), "name");
+  assert.equal(safeName("😀😀😀", 2), "😀😀");
+  assert.ok(!/[\ud800-\udbff]$/.test(safeName("ab😀", 3)));
 });
 
 const W = { span: "Money from September–October 2026", last: "Last day 15/11/2026", made: "Made on 25/11/2026", in: "Money in", out: "Money out", amt: "Amount to pay", back: "Money to get back", noAmt: "Not set", vatIn: "VAT on money in", vatOut: "VAT on money out",
@@ -87,4 +92,24 @@ test("summary.html: right to left in Hebrew, nothing from outside, text escaped"
   assert.ok(h.includes("דיווח &lt;מע״מ&gt;"));
   assert.ok(!/(src|href)=/.test(h));
   assert.ok(h.includes("Needs a receipt") && h.includes("₪1770"));
+});
+
+test("zip limits: too many files or too many bytes are refused before writing", () => {
+  assert.ok(zipFits(65535, 1000) && !zipFits(65536, 1000));
+  assert.ok(zipFits(1, 0xfffffffe) && !zipFits(1, 0xffffffff));
+  assert.throws(() => zipFiles(Array.from({ length: 65536 }, () => ({ name: "a", data: "" })), "2026-11-25"), { code: "ZIP_TOO_BIG" });
+});
+
+test("a file the server does not have is listed as not on the server; a missing docHas counts as not there", () => {
+  const gone = taxZipPlan({ name: "VAT report", report, W, lang: "en", cat: (c) => c, money: (n) => "₪" + n, day: (d) => d, gone: new Set([12]) });
+  assert.deepEqual(gone.fetch.map((f) => f.id), [11, 13]);
+  assert.ok(gone.csv.includes("inv.PDF"[0]) && gone.csv.includes("inv2.pdf (the file is not on the server)"));
+  const t5 = { ...t4, id: 5, docHas: [] };
+  const r2 = { ...report, rows: { in: [], out: [t5] }, missing: [] };
+  assert.deepEqual(taxZipPlan({ name: "V", report: r2, W, lang: "en", cat: (c) => c, money: String, day: String }).fetch, []);
+});
+
+test("summary.html amounts: missing papers without a minus, transactions with the page's text", () => {
+  const h = taxZipPlan({ name: "V", report, W, lang: "en", cat: (c) => c, money: (n) => "₪" + n, day: (d) => d, amtText: (x) => (x.a > 0 ? "+" : "−") + "₪" + Math.abs(x.a) }).html;
+  assert.ok(h.includes("<bdi>₪236</bdi> · <span") && h.includes("+₪1180") && h.includes("−₪236"));
 });
