@@ -61,8 +61,9 @@ export function startPolish() {
 // (not digits that are part of a word, such as the name "10bis", which is translated as one word and stays as is)
 // (a "+" right after another "+" is the tooltip's green mark, ++amount++, not the amount's sign)
 // (a time, 03:25, is one piece, so its hours stay before its minutes)
+// (a date, 15/03/2026, is one piece too, so it does not read 2026/03/15)
 // (a sign and the ₪ after it never part at the end of a line: a word joiner holds them together)
 // A tag's name with its #: kept as one piece, so in a Hebrew sentence it reads #fixed and not fixed#.
 export const tagName = (g) => "\u2068#" + g + "\u2069";
 
-export const isolateNumbers = (s) => String(s).replace(/(?<![A-Za-z\d])(?:(?<!\+)[−+])?₪?\d[\d,]*(?:\.\d+|:\d\d)?%?(?![A-Za-z\d])/g, (m) => "⁦" + m.replace(/^([−+])₪/, "$1\u2060₪") + "⁩");
+export const isolateNumbers = (s) => String(s).replace(/(?<![A-Za-z\d])(?:\d{1,2}\/\d{1,2}\/\d{4}|(?:(?<!\+)[−+])?₪?\d[\d,]*(?:\.\d+|:\d\d)?%?)(?![A-Za-z\d])/g, (m) => "⁦" + m.replace(/^([−+])₪/, "$1\u2060₪") + "⁩");

@@ -899,6 +899,7 @@
     "taxLateXn": "{c} reports or payments are late, the first one due on {date}. None is marked as sent or paid. If you already did them, open the item and mark them.",
     "taxSoonT": "{n}: last day in {d} days",
     "taxSoonT1": "{n}: last day is tomorrow",
+    "taxSoonT2": "{n}: last day in 2 days",
     "taxSoonT0": "{n}: last day is today",
     "taxSoonX": "{m} transactions still need a receipt or an invoice. Attach them by {date}.",
     "taxSoonX1": "One transaction still needs a receipt or an invoice. Attach it by {date}.",

@@ -26,6 +26,11 @@ test("it translates built-in category and bank names", () => {
   for (const [en, he] of [["Groceries", "קניות מזון"], ["Eating out", "אוכל בחוץ"], ["Salary", "משכורת"], ["Bank Hapoalim", "בנק הפועלים"]]) assert.equal(T(en), he, en);
 });
 
+test("it translates the names of the ready-made Taxes and reports items, as the page shows them", () => {
+  for (const [en, he] of [["VAT report", "דיווח מע״מ"], ["Yearly income statement", "הצהרת מחזור שנתית"], ["Yearly tax return (1301)", "דוח שנתי (1301)"], ["US estimated tax", "מס משוער בארה״ב"]]) assert.equal(T(en), he, en);
+  assert.equal(T("VAT report, due 15 Jan 2027 · sent"), "דיווח מע״מ, עד 15 בינו׳ 2027 · נשלח");
+});
+
 test("text it does not know stays as it is", () => {
   assert.equal(T("Some unknown sentence xyz"), "Some unknown sentence xyz");
   assert.equal(T("Moses Burger: Eating out → Groceries"), "Moses Burger: Eating out → Groceries");

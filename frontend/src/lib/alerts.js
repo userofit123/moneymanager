@@ -98,17 +98,21 @@ export function alertsModel(S, M, now = new Date(), fc = {}, friendly = (e) => e
   } catch { /* no forecast */ }
   // money in that may need an invoice or receipt for your books (not money back: that is a refund, not income)
   M.rows.filter((t) => isIn(t) && !(t.docs || []).length && !t.virtual).forEach((t) => add("dc-" + t.id, "docs", "low", "docs", { name: M.nameOf(t), amt: fm(t.a) }, "tx", { ids: [t.id] }));
-  // Taxes and reports: one alert per item, the most important one that is not dismissed (a late date, money in over or
-  // near the item's limit, or a last day coming up with papers still missing). Amounts are the page's rounded ones.
+  // Taxes and reports: one alert per item, the most important one (a late date, money in over or near the item's limit,
+  // or a last day coming up with papers still missing). Amounts are the page's rounded ones. Each id holds the item and
+  // its period (the newest late date, the next last day, or the year), so a dismiss keeps the item quiet until a new
+  // period needs it: while any of its alerts is dismissed, the item shows none.
   if (c.taxes) taxWarnings(S, TODAY, c.taxDays ?? 7).forEach((L) => {
     const Y = TODAY.slice(0, 4), A = L.map((w) => {
       const it = w.item, n = { n: it.n || "", nk: it.n ? "" : it.nk || "" }, at = { taxItem: it.id, taxKey: w.period?.key || "" };
-      if (w.kind == "late") return ["tlt-" + it.id + "-" + w.period.key, "high", "taxLate", { ...n, c: w.count, date: w.period.last }, at];
+      if (w.kind == "late") return ["tlt-" + it.id + "-" + w.newest.key, "high", "taxLate", { ...n, c: w.count, date: w.period.last }, at];
       if (w.kind == "soon") return ["tsn-" + it.id + "-" + w.period.key, "med", "taxSoon", { ...n, d: w.days, m: w.missing, date: w.period.last }, at];
       const k = w.check, q = { ...n, pct: k.pct, total: fm(k.total), lim: fm(k.limit) };
-      return w.kind == "over" ? ["tov-" + it.id + "-" + Y, "high", "taxOver", q, at] : ["tnr-" + it.id + "-" + Y, "med", "taxNear", q, at];
-    }).find((a) => !dism[a[0]]);
-    if (A) add(A[0], "taxes", A[1], A[2], A[3], "taxes", A[4]);
+      // near and over are the same year: a dismissed one keeps the other quiet too
+      const ov = "tov-" + it.id + "-" + Y, nr = "tnr-" + it.id + "-" + Y;
+      return w.kind == "over" ? [ov, "high", "taxOver", q, at, nr] : [nr, "med", "taxNear", q, at, ov];
+    });
+    if (A.length && !A.some((a) => dism[a[0]] || dism[a[5]])) add(A[0][0], "taxes", A[0][1], A[0][2], A[0][3], "taxes", A[0][4]);
   });
   return out.sort((a, b) => ({ high: 0, med: 1, low: 2 }[a.sev] - { high: 0, med: 1, low: 2 }[b.sev]));
 }

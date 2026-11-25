@@ -12,6 +12,8 @@
 // A new history line or server message: add its English and Hebrew here (exact text in a table, a sentence with names in RULES).
 // test/he-text.test.js fails when a history action in the code has no Hebrew, and checks every known text against test/fixtures/he-text.json.
 import { CAT_HE } from "../catnames.js";
+import TAXES_EN from "../locales/pages/taxes.en.json" with { type: "json" };
+import TAXES_HE from "../locales/pages/taxes.he.json" with { type: "json" };
 
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const HE_MON = ["ינו׳", "פבר׳", "מרץ", "אפר׳", "מאי", "יוני", "יולי", "אוג׳", "ספט׳", "אוק׳", "נוב׳", "דצמ׳"];
@@ -285,6 +287,10 @@ const NAMES = {
   "Slate": "אפור כחלחל",
   "Sunset": "שקיעה",
 };
+
+// Names of the ready-made Taxes and reports items ("VAT report"), as history lines write them (lib/taxReports.js EX_NAME):
+// the same English and Hebrew the Taxes and reports page shows.
+const TAX_NAMES = Object.fromEntries(Object.entries(TAXES_EN.ex).filter(([k]) => k != "vatNote" && TAXES_HE.ex[k]).map(([k, v]) => [v, TAXES_HE.ex[k]]));
 
 // Messages from the server and the bank reader: errors, sync and connection states, field names, bank names.
 const SERVER = {
@@ -616,7 +622,7 @@ const APP = {
   "Yesterday": "אתמול",
 };
 
-const EXACT = { ...CAT_HE, ...NAMES, ...HELP, ...APP, ...SERVER, ...HISTORY };
+const EXACT = { ...CAT_HE, ...NAMES, ...TAX_NAMES, ...HELP, ...APP, ...SERVER, ...HISTORY };
 
 // the text itself, or with its first letter in the other case
 function look(s) {

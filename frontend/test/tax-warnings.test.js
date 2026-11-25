@@ -50,14 +50,36 @@ const taxAlerts = (S, day) => alertsModel(S, M0(S), new Date(day + "T12:00:00"),
 test("one alert per item, the first one not dismissed; off when the kind is off", () => {
   const S = { ...S0([ex("vat")]), cfg: { taxes: 1, taxDays: 10 } };
   const [a] = taxAlerts(S, "2027-01-05");
-  assert.deepEqual([a.id, a.sev, a.key, a.go, a.taxItem, a.taxKey, a.p.c, a.p.date, a.p.nk], ["tlt-1-2026-09-15", "high", "taxLate", "taxes", 1, "2026-09-15", 2, "2026-09-15", "taxes.ex.vat"]);
+  assert.deepEqual([a.id, a.sev, a.key, a.go, a.taxItem, a.taxKey, a.p.c, a.p.date, a.p.nk], ["tlt-1-2026-11-15", "high", "taxLate", "taxes", 1, "2026-09-15", 2, "2026-09-15", "taxes.ex.vat"]);
   assert.equal(taxAlerts(S, "2027-01-05").length, 1);
   S.dismissed = { [a.id]: 1 };
-  const [b] = taxAlerts(S, "2027-01-05");
-  assert.deepEqual([b.key, b.sev, b.p.d, b.p.m, b.taxKey], ["taxSoon", "med", 10, 1, "2027-01-15"]);
+  assert.deepEqual(taxAlerts(S, "2027-01-05"), [], "a dismiss keeps the item quiet: no alert for its missing papers either");
+  const done = structuredClone(S); done.taxItems[0].done = { "2026-09-15": { sent: true }, "2026-11-15": { sent: true } };
+  const [b] = taxAlerts(done, "2027-01-05");
+  assert.deepEqual([b.key, b.sev, b.p.d, b.p.m, b.taxKey], ["taxSoon", "med", 10, 1, "2027-01-15"], "once the late dates are done, the next one alerts");
   S.cfg.taxes = 0;
   assert.deepEqual(taxAlerts(S, "2027-01-05"), []);
   const L = { ...S0([{ ...ex("paturLimit"), n: "Exempt limit", when: { over: 14000 } }]), cfg: { taxes: 1 } };
   const [c] = taxAlerts(L, "2026-12-31");
   assert.deepEqual([c.id, c.key, c.p.n, c.p.pct, c.p.total, c.p.lim], ["tnr-1-2026", "taxNear", "Exempt limit", 91, "₪12,800", "₪14,000"]);
+});
+
+test("a late alert dismissed comes back when another date becomes late; oldest date and count in the text", () => {
+  const S = { ...S0([ex("vat")]), cfg: { taxes: 1, taxDays: 0 } };
+  const [a] = taxAlerts(S, "2027-01-05");
+  assert.equal(a.id, "tlt-1-2026-11-15", "the id holds the newest late date");
+  S.dismissed = { [a.id]: 1 };
+  assert.deepEqual(taxAlerts(S, "2027-01-05"), []);
+  const [b] = taxAlerts(S, "2027-01-20");
+  assert.deepEqual([b.id, b.p.c, b.p.date], ["tlt-1-2027-01-15", 3, "2026-09-15"]);
+});
+
+test("money in limits: only items with no dates, over only when the item applies, near and over quiet together", () => {
+  const over = { ...ex("paturLimit"), when: { over: 12000 } };
+  assert.deepEqual(kinds(taxWarnings(S0([{ ...over, repeat: { every: 12, month: 1, day: 31 } }]), "2026-12-31")).flat().filter((k) => k == "over" || k == "near"), [], "an item with dates: no limit warning");
+  const S = S0([{ ...over, when: { type: "patur", over: 12000 } }]); S.bizTypes = [{ id: "murshe", n: "Murshe", from: "2026-01-01" }];
+  assert.deepEqual(taxWarnings(S, "2026-12-31"), [], "the business type does not apply: no limit warning");
+  const L = { ...S0([over]), cfg: { taxes: 1 }, dismissed: { "tnr-1-2026": 1 } };
+  assert.deepEqual(taxAlerts(L, "2026-12-31"), [], "near dismissed this year: over is quiet too");
+  assert.equal(taxAlerts({ ...L, dismissed: {} }, "2026-12-31")[0].id, "tov-1-2026");
 });

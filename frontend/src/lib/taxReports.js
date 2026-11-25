@@ -44,6 +44,7 @@
 // last: the last day (the moved one when moved); start/end: the days it covers.
 import { countedTx } from "./bills.js";
 import { addM } from "./home.js";
+import TAXES_EN from "../locales/pages/taxes.en.json" with { type: "json" };
 
 // Months are "YYYY-MM" strings; addM (lib/home.js) moves one by k months.
 const ymOf = (s) => String(s).slice(0, 7);
@@ -293,8 +294,9 @@ const daysTo = (from, to) => Math.round((Date.parse(to + "T00:00:00Z") - Date.pa
 // For each item, what to warn about, most important first; the Alerts page shows the first one that is on and not
 // dismissed, so each item has one alert at most. days: how many days before an item's last day to warn about missing
 // papers. Each warning: { kind, item, ... }:
-//   late: the oldest period whose last day passed and is not marked done (period, count: how many are late)
-//   over / near: money in this year is over the item's limit, or near it (check: limitCheck, rounded once)
+//   late: the oldest period whose last day passed and is not marked done (period; newest: the latest late one; count: how many are late)
+//   over / near: an item with no dates only: money in this year is over the item's limit (when it applies), or near it
+//   (check: limitCheck, rounded once, the numbers the page shows)
 //   soon: the next last day is within `days` days and papers are still missing (period, days, missing: how many)
 export function taxWarnings(S, today, days = 7) {
   const { A } = countedTx(S, today), types = S?.bizTypes || [];
@@ -302,16 +304,16 @@ export function taxWarnings(S, today, days = 7) {
     const L = [];
     if (item.repeat) {
       const late = latePeriods(item, today, types, A);
-      if (late.length) L.push({ kind: "late", item, period: late[0], count: late.length });
-    }
-    const check = limitCheck(item, today, A);
-    if (check?.over) L.push({ kind: "over", item, check });
-    if (item.repeat) {
+      if (late.length) L.push({ kind: "late", item, period: late[0], newest: late[late.length - 1], count: late.length });
       const P = nextPeriod(item, today, types, A), d = P ? daysTo(today, P.last) : -1;
       const missing = P && d >= 0 && d <= days ? missingPapers(item, periodRows(item, P, A)).length : 0;
       if (missing) L.push({ kind: "soon", item, period: P, days: d, missing });
+      return L;
     }
-    if (check?.near) L.push({ kind: "near", item, check });
+    // an item with no dates, as the page counts it (taxesModel): over only when the item applies, near always
+    const check = limitCheck(item, today, A);
+    if (check?.over && applies(item, null, types, A, today)) L.push({ kind: "over", item, check });
+    else if (check?.near) L.push({ kind: "near", item, check });
     return L;
   }).filter((L) => L.length);
 }
@@ -383,8 +385,8 @@ export const EXAMPLES = [
 // ctx: how the history line names things. name(x): an item's or a business type's name in English (the page passes the
 // name the person typed, or the English text of a ready-made name); fm: an amount; dstr: a date.
 // The English names of the ready-made examples, for a history line when the page passes no name (never a text key).
-const EX_NAME = { paturYear: "Yearly income report", paturLimit: "Yearly income limit", vat: "VAT report", taxAdvance: "Income tax advance",
-  niAdvance: "National Insurance advance", microYear: "Yearly report", yearly1301: "Yearly tax return", usEstimated: "US estimated tax" };
+// The same names the page shows in English (locales/pages/taxes.en.json); core/heSaved.js gives their Hebrew.
+const EX_NAME = Object.fromEntries(EXAMPLES.map((x) => [x.ex, TAXES_EN.ex[x.ex]]));
 const CTX = { name: (x) => x?.n || EX_NAME[x?.ex] || (typeof x?.id == "string" ? x.id : "report"), fm: (n) => "₪" + Math.round(+n || 0).toLocaleString("en-US"), dstr: (d) => d };
 const ctxOf = (ctx) => ({ ...CTX, ...ctx });
 const itemOf = (S, id) => (S.taxItems || []).find((x) => x.id == id);

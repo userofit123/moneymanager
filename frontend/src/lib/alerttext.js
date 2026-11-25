@@ -23,7 +23,7 @@ export function alertTexts(x, c) {
     case "forecast": return [t("al.fcT", { when: monthYear(p.when) }), t("al.fcX", p)];
     case "docs": return [t("al.docsT", p), X("docs")];
     case "taxLate": return [T("taxLate"), tk(p.c > 1 ? "al.taxLateXn" : "al.taxLateX", p)];
-    case "taxSoon": return [tk(p.d == 0 ? "al.taxSoonT0" : p.d == 1 ? "al.taxSoonT1" : "al.taxSoonT", p), tk(p.m == 1 ? "al.taxSoonX1" : "al.taxSoonX", p)];
+    case "taxSoon": return [tk(p.d == 0 ? "al.taxSoonT0" : p.d == 1 ? "al.taxSoonT1" : p.d == 2 ? "al.taxSoonT2" : "al.taxSoonT", p), tk(p.m == 1 ? "al.taxSoonX1" : "al.taxSoonX", p)];
     default: return [T(x.key), X(x.key)];
   }
 }
