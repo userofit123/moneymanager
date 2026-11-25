@@ -375,3 +375,262 @@ html.phone #taxes .tax-tx .txl {
 html.phone #taxes .tax-tx .txi {
   content-visibility: visible;
 }
+
+/* ---- List or Calendar, and the calendar ---- */
+.billbar.tax-bar {
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.seg.tax-vseg {
+  margin: 0;
+  flex: none;
+}
+
+.tax-vseg button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tax-vseg svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tax-cal .bgh {
+  gap: 8px;
+}
+
+.tax-cal .bgt b {
+  font-size: 16px;
+}
+
+.tax-cal .bgh .bgi {
+  margin-inline-end: 6px;
+}
+
+.tax-cnav {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  transition: transform 160ms var(--ease), background .15s;
+}
+
+.tax-cnav:hover {
+  background: var(--s2);
+}
+
+.tax-cnav:active,
+.tax-cd:active {
+  transform: scale(.96);
+}
+
+.tax-cbody {
+  padding: 14px 20px 12px;
+}
+
+.tax-cw,
+.tax-cg {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.tax-cw span {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tx2);
+  padding: 0 0 6px;
+}
+
+.tax-cd {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 54px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  color: var(--tx);
+  font: inherit;
+  cursor: pointer;
+  transition: transform 160ms var(--ease), background .15s;
+}
+
+.tax-cd:hover {
+  background: var(--s2);
+}
+
+.tax-cd:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 1px;
+}
+
+.tax-cn {
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+}
+
+.tax-cd:not(.has) .tax-cn {
+  color: var(--tx2);
+}
+
+.tax-cd.has .tax-cn {
+  font-weight: 600;
+}
+
+/* today: the number in a ring of the main colour */
+.tax-cd.t .tax-cn {
+  box-shadow: inset 0 0 0 1.5px var(--acc);
+  color: var(--acc);
+  font-weight: 700;
+}
+
+/* the chosen day */
+.tax-cd.on {
+  background: var(--accc);
+}
+
+.tax-cd.on .tax-cn {
+  color: var(--onc);
+}
+
+/* the marks: a filled dot for a last day, a ring for the day I want to do it */
+.tax-mk {
+  display: flex;
+  gap: 3px;
+  height: 7px;
+}
+
+.tax-mk i,
+.tax-lg i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: none;
+  --m: var(--acc);
+}
+
+.tax-mk i.late,
+.tax-lg i.late {
+  --m: var(--neg);
+}
+
+.tax-mk i.done,
+.tax-lg i.done {
+  --m: var(--pos);
+}
+
+.tax-mk i.last,
+.tax-lg i.last {
+  background: var(--m);
+}
+
+.tax-mk i.want,
+.tax-lg i.want {
+  box-shadow: inset 0 0 0 1.5px var(--m);
+}
+
+.tax-lg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 12px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--ol);
+}
+
+.tax-lg span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tax-cday {
+  border-top: 1px solid var(--ol);
+}
+
+.tax-cdt {
+  font-weight: 600;
+  font-size: 14px;
+  padding: 14px 0 0;
+}
+
+.tax-cday .tax-cdt + .brow {
+  border-top: 0;
+}
+
+.bd.tax-ok-bd {
+  background: color-mix(in srgb, var(--pos) 14%, transparent);
+  color: var(--pos);
+}
+
+/* a wide screen: the month at the start, the chosen day beside it */
+@media (min-width: 1100px) {
+  html:not(.phone) .tax-cin {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr);
+  }
+
+  html:not(.phone) .tax-cday {
+    border-top: 0;
+    border-inline-start: 1px solid var(--ol);
+  }
+}
+
+/* the phone: List or Calendar across the width, Add below it at the end */
+html.phone .seg.tax-vseg {
+  flex: 1 1 100%;
+}
+
+html.phone .tax-bar > .btn {
+  margin-inline-start: auto;
+}
+
+html.phone .tax-cbody {
+  padding: 12px 10px 10px;
+}
+
+html.phone .tax-cw,
+html.phone .tax-cg {
+  gap: 2px;
+}
+
+html.phone .tax-cd {
+  min-height: 46px;
+  border-radius: 12px;
+}
+
+html.phone .tax-cn {
+  width: 28px;
+  height: 28px;
+  font-size: 13.5px;
+}
+
+html.phone .tax-cal .bgh .bgi {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tax-cnav:active,
+  .tax-cd:active {
+    transform: none;
+  }
+}

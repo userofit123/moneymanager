@@ -8,9 +8,10 @@ import { now, dayOf } from "../core/clock.js";
 import { openForm } from "../core/forms.js";
 import { ask } from "../core/ask.js";
 import { attachDocs } from "../core/attachDocs.js";
+import { weekStart, usePref } from "../core/prefs.js";
 import { dstr } from "../dates.js";
 import { fm } from "../lib/bills.js";
-import { taxesModel, itemPeriods, periodReport, periodOf, EXAMPLES, EXAMPLE_TYPES, addExample, deleteTaxItem, moveTaxDate, markTaxDone, unmarkTaxDone } from "../lib/taxReports.js";
+import { taxesModel, taxMonth, itemPeriods, periodReport, periodOf, EXAMPLES, EXAMPLE_TYPES, addExample, deleteTaxItem, moveTaxDate, markTaxDone, unmarkTaxDone } from "../lib/taxReports.js";
 
 // How a history line writes a date ("15 Nov 2026", shown in Hebrew through tx()); the other names keep the defaults.
 // The page and the add/change window both use it, so history reads the same everywhere.
@@ -132,6 +133,30 @@ export function useTaxes() {
   const txRows = computed(() => { const R = cur.value?.report?.rows; return R ? [...R.in, ...R.out].sort((a, b) => String(b.d).localeCompare(String(a.d))) : []; });
   const attach = (t0, e) => { const files = [...e.target.files]; e.target.value = ""; return attachDocs(t0, files); };
 
+  // ---- the calendar ----
+  // List or Calendar (remembered on this device; the list by default). The month shown, and the day chosen in it.
+  const view = usePref("moneyTaxView", "list");
+  const calYm = ref(""), calDay = ref("");
+  const ymNow = computed(() => today.value.slice(0, 7));
+  const shownYm = computed(() => calYm.value || ymNow.value);
+  const cal = computed(() => (S.value ? taxMonth(S.value, shownYm.value, today.value, weekStart.value) : null));
+  const calTitle = computed(() => monthName(shownYm.value + "-01", true));
+  // the weekday letters, from the week's first day (Sunday 7 Jan 2024)
+  const calWeek = computed(() => [...Array(7)].map((_, i) => new Date(2024, 0, 7 + i + (weekStart.value == "mon" ? 1 : 0)).toLocaleDateString(loc.value, { weekday: locale.value == "he" ? "narrow" : "short" })));
+  function calMove(k) {
+    const d = new Date(+shownYm.value.slice(0, 4), +shownYm.value.slice(5, 7) - 1 + k, 1);
+    calYm.value = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+    calDay.value = calYm.value == ymNow.value ? today.value : "";
+  }
+  const calToday = () => { calYm.value = ""; calDay.value = today.value; };
+  // the chosen day: today when the month shown is this month, until another day is tapped
+  const chosen = computed(() => calDay.value || (shownYm.value == ymNow.value ? today.value : ""));
+  const chosenMarks = computed(() => cal.value?.cells.find((c) => c.k == chosen.value)?.marks || []);
+  const longDay = (d) => new Date(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10)).toLocaleDateString(loc.value, { weekday: "long", day: "numeric", month: "long" });
+  const calLabel = (c) => t("taxes.page.cal.day", { date: longDay(c.k), n: c.marks.length }, c.marks.length);
+  const openMark = (m) => openItem({ item: m.item, period: m.period });
+
   return { t, S, M, any, today, nameOf, span, lastText, wantText, isLate, whyQuiet, fm, fmAbs, amountOf, dstr, dd, EXG, addEx, addOwn, exMenu,
-    menu, toggleMenu, menuItems, MI, pick, moveFor, saveMove, open, openItem, closeItem, cur, curAmt, needsPapers, pickPeriod, stateOf, doneF, markDone, unmarkDone, txRows, attach };
+    menu, toggleMenu, menuItems, MI, pick, moveFor, saveMove, open, openItem, closeItem, cur, curAmt, needsPapers, pickPeriod, stateOf, doneF, markDone, unmarkDone, txRows, attach,
+    view, cal, calTitle, calWeek, calMove, calToday, calDay, chosen, chosenMarks, longDay, calLabel, openMark, shownYm, ymNow };
 }

@@ -295,6 +295,33 @@ export function itemPeriods(S, item, today) {
   return L.reverse();
 }
 
+// ---- the calendar ----
+
+// One month of the calendar (ym "2026-12"), weeks starting on Sunday or Monday (ws "sun"/"mon", the app's preference).
+// cells: blanks before the 1st, then each day with its marks: an item's last day ("last") and the day the person wants
+// to do it ("want"), for every period that applies. Each mark has the period's state, as the list shows it: "done",
+// "late" (its last day has passed) or "next".
+export function taxMonth(S, ym, today, ws = "sun") {
+  const { A } = countedTx(S, today), types = S?.bizTypes || [], from = firstOf(ym), to = lastOf(ym), marks = {};
+  const put = (d, m) => (marks[d] ||= []).push(m);
+  for (const item of S?.taxItems || []) {
+    if (!item.repeat) continue;
+    for (const P of periods(item, from, to)) {
+      if (!applies(item, P, types, A)) continue;
+      const state = isDone(P) ? "done" : P.last < today ? "late" : "next";
+      if (P.want && P.want != P.last && P.want >= from) put(P.want, { item, period: P, kind: "want", state });
+      put(P.last, { item, period: P, kind: "last", state });
+    }
+  }
+  const off = (new Date(yOf(ym), mOf(ym) - 1, 1).getDay() - (ws == "mon" ? 1 : 0) + 7) % 7, cells = [];
+  for (let i = 0; i < off; i++) cells.push({ blank: true, k: "b" + i });
+  for (let d = 1; d <= monthLen(ym); d++) {
+    const k = dayIn(ym, d), L = (marks[k] || []).sort((a, b) => (a.kind == b.kind ? 0 : a.kind == "last" ? -1 : 1));
+    cells.push({ k, d, today: k == today, marks: L });
+  }
+  return { ym, cells, count: Object.values(marks).reduce((n, L) => n + L.length, 0) };
+}
+
 // ---- ready-made examples ----
 
 // Business types the examples use (Israel); added with the first example that needs one, then the person's own.

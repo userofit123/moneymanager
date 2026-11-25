@@ -240,6 +240,22 @@
     "menuEx": {
       "il": "Ready-made for Israel",
       "us": "Ready-made for the United States"
+    },
+    "view": {
+      "label": "Show as",
+      "list": "List",
+      "cal": "Calendar"
+    },
+    "cal": {
+      "prev": "Month before",
+      "next": "Month after",
+      "thisMonth": "This month",
+      "last": "Last day",
+      "want": "Day I want to do it",
+      "pick": "Tap a day to see what to report or pay on it.",
+      "none": "Nothing to report or pay on this day.",
+      "empty": "Nothing to report or pay in {month}.",
+      "day": "{date}: nothing | {date}: 1 thing to report or pay | {date}: {n} things to report or pay"
     }
   }
 }

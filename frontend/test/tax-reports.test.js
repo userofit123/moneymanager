@@ -4,7 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { setNow, now, dayOf } from "../src/core/clock.js";
 import { countedTx } from "../src/lib/bills.js";
-import { periods, periodOf, coversOf, nextPeriod, latePeriods, typeOn, typeIn, periodRows, periodTotals, periodAmount, amountValue, vatOf, countPct, missingPapers, yearIn, limitCheck, applies, periodReport, taxesModel, itemPeriods, EXAMPLES, EXAMPLE_TYPES } from "../src/lib/taxReports.js";
+import { periods, periodOf, coversOf, nextPeriod, latePeriods, typeOn, typeIn, periodRows, periodTotals, periodAmount, amountValue, vatOf, countPct, missingPapers, yearIn, limitCheck, applies, periodReport, taxesModel, itemPeriods, taxMonth, EXAMPLES, EXAMPLE_TYPES } from "../src/lib/taxReports.js";
 
 const FREELANCE = "Freelance & business income", BUSINESS = "Business expenses";
 const ex = (id, more = {}) => ({ ...structuredClone(EXAMPLES.find((x) => x.ex == id)), id: 1, ...more });
@@ -310,4 +310,22 @@ test("a period marked done leaves the list; the item's periods to choose from ar
   assert.equal(M.now[0].late.length, 0);
   const L = itemPeriods(S, it, today()).map((p) => p.key);
   assert.deepEqual(L, ["2027-03-15", "2027-01-15", "2026-11-15", "2026-09-15"], "murshe only from July 2026");
+});
+
+test("the calendar: each month's last days and want-to-do days, with the list's late and done states", () => {
+  const it = ex("vat", { id: 1, want: 10, done: { "2027-01-15": { sent: true, paid: 1458, at: "2027-01-04" } } });
+  const S = { ...S0(), taxItems: [it, ex("paturLimit", { id: 2 })] };
+  const marks = (m, d) => m.cells.find((c) => c.k == d).marks.map((x) => x.kind + ":" + x.state + ":" + x.item.id);
+  const jan = taxMonth(S, "2027-01", today());
+  assert.equal(jan.cells.filter((c) => c.blank).length, 5, "1 Jan 2027 is a Friday: 5 empty days from Sunday");
+  assert.equal(taxMonth(S, "2027-01", today(), "mon").cells.filter((c) => c.blank).length, 4, "4 from Monday");
+  assert.equal(jan.cells.filter((c) => !c.blank).length, 31);
+  assert.deepEqual(marks(jan, "2027-01-10"), ["want:done:1"]);
+  assert.deepEqual(marks(jan, "2027-01-15"), ["last:done:1"]);
+  assert.ok(jan.cells.find((c) => c.k == "2027-01-05").today);
+  assert.equal(jan.count, 2, "an item with no dates has no marks");
+  const nov = taxMonth(S, "2026-11", today());
+  assert.deepEqual(marks(nov, "2026-11-15"), ["last:late:1"], "passed and not marked done");
+  assert.deepEqual(marks(taxMonth(S, "2027-03", today()), "2027-03-15"), ["last:next:1"]);
+  assert.equal(taxMonth(S, "2026-05", today()).count, 0, "before the business type that needs it (July 2026)");
 });

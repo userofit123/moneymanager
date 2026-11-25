@@ -24,6 +24,7 @@ import "../styles/pages/taxes.css"; // this page's own styles
 const {
   t, S, M, any, nameOf, span, lastText, wantText, isLate, whyQuiet, fm, fmAbs, amountOf, dstr, dd, EXG, addEx, addOwn, exMenu,
   menu, toggleMenu, menuItems, MI, pick, moveFor, saveMove, openItem, closeItem, cur, curAmt, needsPapers, pickPeriod, stateOf, doneF, markDone, unmarkDone, txRows, attach,
+  view, cal, calTitle, calWeek, calMove, calToday, calDay, chosen, chosenMarks, longDay, calLabel, openMark, shownYm, ymNow,
 } = useTaxes();
 onMounted(() => { data.start(); });
 // The back chevron is drawn pointing to the start side (left in English, right in Hebrew), not flipped by a style:
@@ -40,7 +41,10 @@ const ICON = {
   doc: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
   clip: '<path d="M20 11l-8.5 8.5a5 5 0 0 1-7-7L13 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L14 7"/>',
   info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+  list: '<path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>',
 };
+// Chevrons that point to the start or end side, drawn per language like the back chevron.
+const chev = (end) => ((locale.value == "he") == end ? "M15 6l-6 6 6 6" : "M9 6l6 6-6 6");
 </script>
 
 <template>
@@ -129,8 +133,58 @@ const ICON = {
 
     <!-- the list -->
     <template v-else-if="any">
-      <div class="billbar"><button type="button" class="btn o s" aria-haspopup="menu" :aria-expanded="!!exMenu" @click="exMenu = exMenu ? null : $event.currentTarget">{{ t("taxes.page.add") }}</button></div>
+      <div class="billbar tax-bar">
+        <div class="seg tax-vseg" role="group" :aria-label="t('taxes.page.view.label')">
+          <button v-for="v in ['list', 'cal']" :key="v" type="button" :class="{ on: view == v }" :aria-pressed="view == v" @click="view = v"><svg viewBox="0 0 24 24" aria-hidden="true" v-html="v == 'cal' ? ICON.up : ICON.list" />{{ t("taxes.page.view." + v) }}</button>
+        </div>
+        <button type="button" class="btn o s" aria-haspopup="menu" :aria-expanded="!!exMenu" @click="exMenu = exMenu ? null : $event.currentTarget">{{ t("taxes.page.add") }}</button>
+      </div>
 
+      <!-- the calendar: each item's last day and the day I want to do it, month by month -->
+      <section v-if="view == 'cal' && cal" class="bgrp tax-cal" id="taxCal">
+        <header class="bgh"><span class="bgi"><svg viewBox="0 0 24 24" v-html="ICON.up" /></span>
+          <div class="bgt"><b aria-live="polite">{{ calTitle }}</b></div>
+          <button v-if="shownYm != ymNow" type="button" class="btn o s tax-cnow" @click="calToday">{{ t("taxes.page.cal.thisMonth") }}</button>
+          <button type="button" class="ib tax-cnav" :aria-label="t('taxes.page.cal.prev')" @click="calMove(-1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path :d="chev(false)" /></svg></button>
+          <button type="button" class="ib tax-cnav" :aria-label="t('taxes.page.cal.next')" @click="calMove(1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path :d="chev(true)" /></svg></button>
+        </header>
+        <div class="tax-cin">
+        <div class="tax-cbody">
+          <div class="tax-cw" aria-hidden="true"><span v-for="(w, i) in calWeek" :key="i">{{ w }}</span></div>
+          <div class="tax-cg">
+            <template v-for="c in cal.cells" :key="c.k">
+              <i v-if="c.blank" />
+              <button v-else type="button" class="tax-cd" :class="{ t: c.today, on: c.k == chosen, has: c.marks.length }" :aria-label="calLabel(c)" :aria-pressed="c.k == chosen" @click="calDay = c.k">
+                <span class="tax-cn">{{ c.d }}</span>
+                <span class="tax-mk"><i v-for="(m, i) in c.marks.slice(0, 3)" :key="i" :class="[m.kind, m.state]" /></span>
+              </button>
+            </template>
+          </div>
+          <div class="tax-lg sm">
+            <span><i class="last next" />{{ t("taxes.page.cal.last") }}</span>
+            <span><i class="want next" />{{ t("taxes.page.cal.want") }}</span>
+            <span><i class="last late" />{{ t("taxes.page.stLate") }}</span>
+            <span><i class="last done" />{{ t("taxes.page.stDone") }}</span>
+          </div>
+        </div>
+        <div class="bgr tax-cday">
+          <template v-if="chosen">
+            <div class="tax-cdt">{{ longDay(chosen) }}</div>
+            <div v-for="(m, i) in chosenMarks" :key="m.item.id + m.kind + i" class="brow" @click="openMark(m)">
+              <span class="av tax-av" :class="{ late: m.state == 'late' }"><svg viewBox="0 0 24 24" v-html="ICON.doc" /></span>
+              <div class="bm">
+                <div class="bt"><b>{{ nameOf(m.item) }}</b><template v-if="m.state != 'next'">{{ " " }}<span class="bd" :class="m.state == 'late' ? 'tax-late' : 'tax-ok-bd'">{{ m.state == "late" ? t("taxes.page.stLate") : t("taxes.page.stDone") }}</span></template></div>
+                <div class="bsub">{{ m.kind == "last" ? t("taxes.page.cal.last") : t("taxes.page.cal.want") }} <span class="dsep">·</span> {{ t("taxes.page.moneyFrom", { span: span(m.period) }) }}</div>
+              </div>
+            </div>
+            <p v-if="!chosenMarks.length" class="sm tax-none">{{ t("taxes.page.cal.none") }}</p>
+          </template>
+          <p v-else class="sm tax-none">{{ cal.count ? t("taxes.page.cal.pick") : t("taxes.page.cal.empty", { month: calTitle }) }}</p>
+        </div>
+        </div>
+      </section>
+
+      <template v-else>
       <section v-if="M.now.length" class="bgrp" id="taxUp">
         <header class="bgh"><span class="bgi"><svg viewBox="0 0 24 24" v-html="ICON.up" /></span><div class="bgt"><b>{{ t("taxes.page.upTitle") }}</b><span class="cnt">{{ M.now.length }}</span><div class="sm">{{ t("taxes.page.upDesc") }}</div></div></header>
         <div class="bgr">
@@ -168,6 +222,7 @@ const ICON = {
           </div>
         </div>
       </section>
+      </template>
     </template>
 
     <!-- nothing yet: the ready-made examples -->
