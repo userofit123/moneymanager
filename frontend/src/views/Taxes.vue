@@ -170,7 +170,7 @@ const chev = (end) => ((locale.value == "he") == end ? "M15 6l-6 6 6 6" : "M9 6l
         <div class="bgr tax-cday">
           <template v-if="chosen">
             <div class="tax-cdt">{{ longDay(chosen) }}</div>
-            <div v-for="(m, i) in chosenMarks" :key="m.item.id + m.kind + i" class="brow" @click="openMark(m)">
+            <div v-for="(m, i) in chosenMarks" :key="m.item.id + m.kind + i" class="brow" @click="openMark(m)" role="button" tabindex="0" @keydown.enter.self.prevent="openMark(m)" @keydown.space.self.prevent="openMark(m)">
               <span class="av tax-av" :class="{ late: m.state == 'late' }"><svg viewBox="0 0 24 24" v-html="ICON.doc" /></span>
               <div class="bm">
                 <div class="bt"><b>{{ nameOf(m.item) }}</b><template v-if="m.state != 'next'">{{ " " }}<span class="bd" :class="m.state == 'late' ? 'tax-late' : 'tax-ok-bd'">{{ m.state == "late" ? t("taxes.page.stLate") : t("taxes.page.stDone") }}</span></template></div>
@@ -188,7 +188,7 @@ const chev = (end) => ((locale.value == "he") == end ? "M15 6l-6 6 6 6" : "M9 6l
       <section v-if="M.now.length" class="bgrp" id="taxUp">
         <header class="bgh"><span class="bgi"><svg viewBox="0 0 24 24" v-html="ICON.up" /></span><div class="bgt"><b>{{ t("taxes.page.upTitle") }}</b><span class="cnt">{{ M.now.length }}</span><div class="sm">{{ t("taxes.page.upDesc") }}</div></div></header>
         <div class="bgr">
-          <div v-for="r in M.now" :key="r.item.id" class="brow" @click="openItem(r)">
+          <div v-for="r in M.now" :key="r.item.id" class="brow" @click="openItem(r)" role="button" tabindex="0" @keydown.enter.self.prevent="openItem(r)" @keydown.space.self.prevent="openItem(r)">
             <span class="av tax-av" :class="{ late: r.late.length }"><svg viewBox="0 0 24 24" v-html="ICON.doc" /></span>
             <div class="bm">
               <div class="bt"><b>{{ nameOf(r.item) }}</b><template v-if="r.late.length">{{ " " }}<span class="bd tax-late">{{ t("taxes.page.lateN", { n: r.late.length }, r.late.length) }}</span></template></div>
@@ -214,7 +214,7 @@ const chev = (end) => ((locale.value == "he") == end ? "M15 6l-6 6 6 6" : "M9 6l
       <section v-if="M.quiet.length" class="bgrp tax-quiet" id="taxQuiet">
         <header class="bgh"><span class="bgi"><svg viewBox="0 0 24 24" v-html="ICON.quiet" /></span><div class="bgt"><b>{{ t("taxes.page.quietTitle") }}</b><span class="cnt">{{ M.quiet.length }}</span><div class="sm">{{ t("taxes.page.quietDesc") }}</div></div></header>
         <div class="bgr">
-          <div v-for="r in M.quiet" :key="r.item.id" class="brow" @click="openItem(r)">
+          <div v-for="r in M.quiet" :key="r.item.id" class="brow" @click="openItem(r)" role="button" tabindex="0" @keydown.enter.self.prevent="openItem(r)" @keydown.space.self.prevent="openItem(r)">
             <span class="av tax-av"><svg viewBox="0 0 24 24" v-html="ICON.doc" /></span>
             <div class="bm"><div class="bt"><b>{{ nameOf(r.item) }}</b></div><div class="bsub">{{ whyQuiet(r) }}</div>
               <div v-if="r.check" class="bsub bs2">{{ t("taxes.page.checkLine", { total: fm(r.check.total), limit: fm(r.check.limit), pct: r.check.pct }) }}</div></div>

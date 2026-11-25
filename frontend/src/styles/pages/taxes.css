@@ -634,3 +634,9 @@ html.phone .tax-cal .bgh .bgi {
     transform: none;
   }
 }
+
+/* keyboard focus on a tappable row */
+.brow[role="button"]:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: -2px;
+}

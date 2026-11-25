@@ -11,6 +11,7 @@ import { attachDocs } from "../core/attachDocs.js";
 import { weekStart, usePref } from "../core/prefs.js";
 import { dstr } from "../dates.js";
 import { fm } from "../lib/bills.js";
+import { addM } from "../lib/home.js";
 import { taxesModel, taxMonth, itemPeriods, periodReport, periodOf, EXAMPLES, EXAMPLE_TYPES, addExample, deleteTaxItem, moveTaxDate, markTaxDone, unmarkTaxDone } from "../lib/taxReports.js";
 
 // How a history line writes a date ("15 Nov 2026", shown in Hebrew through tx()); the other names keep the defaults.
@@ -144,8 +145,7 @@ export function useTaxes() {
   // the weekday letters, from the week's first day (Sunday 7 Jan 2024)
   const calWeek = computed(() => [...Array(7)].map((_, i) => new Date(2024, 0, 7 + i + (weekStart.value == "mon" ? 1 : 0)).toLocaleDateString(loc.value, { weekday: locale.value == "he" ? "narrow" : "short" })));
   function calMove(k) {
-    const d = new Date(+shownYm.value.slice(0, 4), +shownYm.value.slice(5, 7) - 1 + k, 1);
-    calYm.value = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+    calYm.value = addM(shownYm.value, k);
     calDay.value = calYm.value == ymNow.value ? today.value : "";
   }
   const calToday = () => { calYm.value = ""; calDay.value = today.value; };

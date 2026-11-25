@@ -329,3 +329,18 @@ test("the calendar: each month's last days and want-to-do days, with the list's 
   assert.deepEqual(marks(taxMonth(S, "2027-03", today()), "2027-03-15"), ["last:next:1"]);
   assert.equal(taxMonth(S, "2026-05", today()).count, 0, "before the business type that needs it (July 2026)");
 });
+
+test("the calendar looks back one year only, like the list and the picker", () => {
+  const S = { ...S0(), taxItems: [ex("vat", { id: 1 })] };
+  const late = "2028-06-05";
+  assert.equal(taxMonth(S, "2026-11", late).count, 0, "a period older than a year has no mark");
+  assert.equal(taxMonth(S, "2027-11", late).count, 1, "one inside the year is late");
+  assert.ok(itemPeriods(S, S.taxItems[0], late).every((p) => p.last >= "2027-06-01"), "the picker agrees");
+});
+
+test("a moved date shows on its new day in the calendar", () => {
+  const S = { ...S0(), taxItems: [ex("vat", { id: 1, moved: { "2027-03-15": "2027-03-25" } })] };
+  const mar = taxMonth(S, "2027-03", today()), on = (d) => mar.cells.find((c) => c.k == d).marks.length;
+  assert.equal(on("2027-03-25"), 1, "the new last day");
+  assert.equal(on("2027-03-15"), 0, "not the old one");
+});
