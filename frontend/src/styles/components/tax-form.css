@@ -32,7 +32,7 @@
   color: var(--neg);
 }
 
-.txf .fld input[aria-invalid=true] {
+.txf input[aria-invalid=true] {
   border-color: var(--neg);
 }
 
@@ -42,9 +42,30 @@
   padding-top: 0;
 }
 
+.txf-err-row {
+  margin: -2px 0 10px;
+}
+
+/* "Salary counts too" belongs to the money-in categories above it: no line between them */
 .txf-sub {
-  padding-inline-start: 14px;
-  font-size: var(--fs-sm);
+  border-top: 0;
+  padding-top: 4px;
+}
+
+/* the months an "every 2 / 3 months" item is due, under "First month" */
+.txf-due {
+  margin-top: 6px;
+  line-height: 1.45;
+}
+
+/* that line makes its cell taller: the fields next to it stay at the top */
+.two:has(.txf-due) {
+  align-items: start;
+}
+
+/* "Money from" has long choices ("Since the date before"): a whole row, so they are never cut on a phone */
+.two > .txf-cov {
+  grid-column: 1 / -1;
 }
 
 .txf-cats {
@@ -190,6 +211,7 @@ html.he .txf-fh[aria-expanded=false] > svg {
 
 .txf-fb {
   display: grid;
+  grid-template-columns: minmax(0, 1fr); /* a long row inside never makes the part wider than the window */
   padding-top: 6px;
 }
 
@@ -223,15 +245,6 @@ html.he .txf-fh[aria-expanded=false] > svg {
   .txf-x {
     transition: none;
   }
-}
-
-/* the switches read like the fields' text, under the section's title */
-.txf .tg {
-  font-size: var(--fs);
-}
-
-.txf .tg.txf-sub {
-  font-size: var(--fs-sm);
 }
 
 /* the chosen business type is not one of the person's yet */

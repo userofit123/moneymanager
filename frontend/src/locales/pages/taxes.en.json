@@ -107,7 +107,7 @@
     "over": "Only over",
     "overAny": "Any amount",
     "note": "Note to check (optional)",
-    "noteEx": "For example: invoices over ₪5,000 need an allocation number",
+    "noteEx": "For example: invoice with a tax office number",
     "papersNone": "None needed",
     "when": "Only when",
     "whenHint": "Empty: the item always shows.",
@@ -130,6 +130,10 @@
     "overSum": "Over {amount}",
     "cancel": "Cancel",
     "saveAdd": "Add",
-    "saveEdit": "Save"
+    "saveEdit": "Save",
+    "pctErr": "Enter a number from 0 to 100.",
+    "typeUsedAsk": "Remove the business type {name}?",
+    "typeUsedText": "1 report or payment is set to show only with this business type. It won't show until you choose another type for it. | {n} reports or payments are set to show only with this business type. They won't show until you choose another type for them.",
+    "typeGone": "A business type that was removed"
   }
 }

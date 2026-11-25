@@ -5,7 +5,7 @@
 // changed here too; they are saved together with the item, as one change.
 // openForm("tax") adds, openForm("tax", { id }) changes an item, openForm("tax", { start }) adds one that starts from
 // these fields (a ready-made example). Moving one date and marking a period done are on the page, not here.
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { data } from "../../stores/data.js";
 import { now, dayOf } from "../../core/clock.js";
@@ -14,6 +14,7 @@ import { allTags } from "../../lib/categories.js";
 import { fm } from "../../lib/bills.js";
 import { categoryName } from "../../catnames.js";
 import { useFormSheet } from "../../core/useFormSheet.js";
+import { ask } from "../../core/ask.js";
 import BaseDialog from "../BaseDialog.vue";
 import BaseButton from "../BaseButton.vue";
 import MoneyInput from "../MoneyInput.vue";
@@ -58,6 +59,9 @@ const typeName = (x) => x.n || tk(x.nk) || tk("taxes.type." + x.id) || x.id;
 const types0 = () => (S.value?.bizTypes || []).map((x) => ({ id: x.id, nk: x.nk, name: typeName(x), from: x.from }));
 const types = ref(types0());
 const typesShown = computed(() => types.value.filter((x) => x.name.trim()));
+// A business type's name for the screen: the person's own, a ready-made one, or one saved before; "" when none is known
+// (never the id).
+const typeLabel = (id) => typeOpts.value.find((x) => x.id == id)?.name || ((y) => y && (y.n || tk(y.nk) || tk("taxes.type." + y.id)))((S.value?.bizTypes || []).find((x) => x.id == id)) || "";
 
 // Folded parts: open when they hold something, so nothing set is hidden.
 const fold = ref({ part: f.value.part.length > 0, papers: ["in", "out"].some((s) => f.value.papers[s].need != "none"), when: !!(f.value.type || f.value.over), types: false });
@@ -71,8 +75,16 @@ const typeOpts = computed(() => [...typesShown.value.map((x) => ({ id: x.id, nam
 const typeMissing = computed(() => !!f.value.type && !typesShown.value.some((x) => x.id == f.value.type));
 function addMine() {
   const e = EXAMPLE_TYPES.find((x) => x.id == f.value.type);
-  types.value.push({ id: f.value.type, nk: e?.nk, name: typeOpts.value.find((x) => x.id == f.value.type)?.name || f.value.type, from: dayOf(now.value).slice(0, 4) + "-01-01" });
+  types.value.push({ id: f.value.type, nk: e?.nk, name: typeLabel(f.value.type), from: dayOf(now.value).slice(0, 4) + "-01-01" });
   fold.value.types = true;
+}
+// Removing a business type that items still use: say first that those items stop showing.
+function dropType(i) {
+  const x = types.value[i];
+  const n = (S.value?.taxItems || []).filter((it) => it.id != props.id && it.when?.type == x.id).length + (f.value.type == x.id ? 1 : 0);
+  const go = () => { const j = types.value.indexOf(x); if (j >= 0) types.value.splice(j, 1); };
+  if (!n || !x.name.trim()) return go();
+  ask(t("taxes.form.typeUsedAsk", { name: x.name.trim() }), t("taxes.form.typeUsedText", { n }, n), go, { danger: true, yes: t("taxes.form.removeType") });
 }
 
 const cats = computed(() => ({ in: formCats(S.value, "in"), out: formCats(S.value, "out") }));
@@ -95,7 +107,7 @@ const papersSum = computed(() => {
   return L.length ? L.join(" · ") : t("taxes.form.papersNone");
 });
 const whenSum = computed(() => {
-  const ty = f.value.type && (typeOpts.value.find((x) => x.id == f.value.type)?.name || f.value.type);
+  const ty = f.value.type && (typeLabel(f.value.type) || t("taxes.form.typeGone"));
   const L = [ty, +f.value.over > 0 ? t("taxes.form.overSum", { amount: fm(+f.value.over) }) : ""].filter(Boolean);
   return L.length ? L.join(" · ") : t("taxes.form.always");
 });
@@ -132,10 +144,22 @@ function bizTypes() {
 }
 const typesChanged = () => JSON.stringify(bizTypes()) != JSON.stringify((S.value?.bizTypes || []).map(({ id, n, nk, from }) => ({ id, ...(nk && !n ? { nk } : { n: n || typeName({ id, nk }) }), from })));
 
+// A percent box: empty, or a number from 0 to 100.
+const badPct = (v) => v !== "" && v != null && !(Number.isFinite(+v) && +v >= 0 && +v <= 100);
 function save() {
   const x = f.value;
   if (!x.n.trim()) { err.value = "name"; document.getElementById("txfN")?.focus(); return; }
   if (x.rep == "dates" && !x.dates.length) { err.value = "dates"; return; }
+  // only the percent boxes on the screen are checked; a folded one opens so its message shows
+  const bad = x.outOn && x.part.some((p) => badPct(p.pct)) ? "part" : ["in", "out", "net"].includes(x.amt) && badPct(x.pct) ? "pct"
+    : x.amt == "vat" && badPct(x.vatRate) ? "vat" : num(x.over) > 0 && badPct(x.near) ? "near" : "";
+  if (bad) {
+    err.value = bad;
+    if (bad == "part") fold.value.part = true;
+    if (bad == "near") fold.value.when = true;
+    nextTick(() => document.querySelector(".txf [aria-invalid=true]")?.focus());
+    return;
+  }
   // a business type added here gets its id now, so the item can point to it
   const T = typesChanged() ? bizTypes() : null;
   const it = item(), id = props.id;
@@ -145,7 +169,14 @@ function save() {
     return L.length ? L : false;
   });
 }
-const addType = () => { types.value.push({ id: "t" + Date.now(), name: "", from: dayOf(now.value) }); };
+// A new business type's id: never one in the list or saved, even when added twice in the same millisecond.
+function newTypeId() {
+  const used = new Set([...types.value, ...(S.value?.bizTypes || [])].map((x) => String(x.id)));
+  let n = Date.now();
+  while (used.has("t" + n)) n++;
+  return "t" + n;
+}
+const addType = () => { types.value.push({ id: newTypeId(), name: "", from: dayOf(now.value) }); };
 </script>
 
 <template>
@@ -181,15 +212,15 @@ const addType = () => { types.value.push({ id: "t" + Date.now(), name: "", from:
           </div>
           <div v-if="+f.rep > 1" class="fld"><label for="txfM">{{ f.rep == "12" ? t("taxes.form.month") : t("taxes.form.first") }}</label>
             <select id="txfM" v-model.number="f.month"><option v-for="m in MONTHS" :key="m.v" :value="m.v">{{ m.l }}</option></select>
+            <div v-if="dueMonths" class="sm txf-due">{{ t("taxes.form.dueIn", { months: dueMonths }) }}</div>
           </div>
           <div class="fld"><label for="txfW">{{ t("taxes.form.want") }}<i class="tinfo" tabindex="0" role="button" :aria-label="t('taxes.form.want')" :data-tip="t('taxes.form.wantTip')" /></label>
             <select id="txfW" v-model="f.want"><option value="">{{ t("taxes.form.wantNone") }}</option><option v-for="n in DAYS" :key="n" :value="String(n)">{{ n }}</option></select>
           </div>
-          <div class="fld"><label for="txfC">{{ t("taxes.form.covers") }}<i class="tinfo" tabindex="0" role="button" :aria-label="t('taxes.form.covers')" :data-tip="t('taxes.form.coversTip')" /></label>
+          <div class="fld txf-cov"><label for="txfC">{{ t("taxes.form.covers") }}<i class="tinfo" tabindex="0" role="button" :aria-label="t('taxes.form.covers')" :data-tip="t('taxes.form.coversTip')" /></label>
             <select id="txfC" v-model="f.covers"><option v-for="c in COVERS" :key="c" :value="String(c)">{{ coversLabel(c) }}</option></select>
           </div>
         </div>
-        <p v-if="dueMonths" class="sm txf-hint">{{ t("taxes.form.dueIn", { months: dueMonths }) }}</p>
       </template>
     </section>
 
@@ -221,9 +252,10 @@ const addType = () => { types.value.push({ id: "t" + Date.now(), name: "", from:
             <p class="sm txf-hint">{{ t("taxes.form.partHint") }}</p>
             <div v-for="(p, i) in f.part" :key="i" class="txf-row">
               <select v-model="p.tag" :aria-label="t('taxes.form.partTag')"><option value="">{{ t("taxes.form.partChoose") }}</option><option v-for="g in partTags(p)" :key="g" :value="g">{{ g }}</option></select>
-              <input v-model="p.pct" class="txf-pct" type="number" inputmode="decimal" min="0" max="100" :aria-label="t('taxes.form.partPct')" :placeholder="t('taxes.form.partPct')">
+              <input v-model="p.pct" class="txf-pct" type="number" inputmode="decimal" min="0" max="100" :aria-label="t('taxes.form.partPct')" :placeholder="t('taxes.form.partPct')" :aria-invalid="err == 'part' && badPct(p.pct)">
               <button type="button" class="ib txf-x" :aria-label="t('taxes.form.removePart')" :data-tip="t('taxes.form.removePart')" @click="f.part.splice(i, 1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
             </div>
+            <div v-if="err == 'part' && f.part.some((p) => badPct(p.pct))" class="sm txf-err txf-err-row" role="alert">{{ t("taxes.form.pctErr") }}</div>
             <button type="button" class="btn o s txf-add" @click="f.part.push({ tag: '', pct: '' })">{{ t("taxes.form.addPart") }}</button>
           </div>
         </SlideOpen>
@@ -238,10 +270,13 @@ const addType = () => { types.value.push({ id: "t" + Date.now(), name: "", from:
           <select id="txfK" v-model="f.amt"><option value="">{{ t("taxes.form.amt.none") }}</option><option v-for="k in AMOUNT_KINDS" :key="k" :value="k">{{ t("taxes.form.amt." + k) }}</option></select>
         </div>
         <div v-if="['in', 'out', 'net'].includes(f.amt)" class="fld"><label for="txfP">{{ t("taxes.form.pct") }}<i class="tinfo" tabindex="0" role="button" :aria-label="t('taxes.form.pct')" :data-tip="t('taxes.form.pctTip')" /></label>
-          <input id="txfP" v-model="f.pct" type="number" inputmode="decimal" min="0" max="100" :placeholder="t('taxes.form.pctAll')">
+          <input id="txfP" v-model="f.pct" type="number" inputmode="decimal" min="0" max="100" :placeholder="t('taxes.form.pctAll')" :aria-invalid="err == 'pct' && badPct(f.pct)">
+          <div v-if="err == 'pct' && badPct(f.pct)" class="sm txf-err" role="alert">{{ t("taxes.form.pctErr") }}</div>
         </div>
         <div v-else-if="f.amt == 'fixed'" class="fld"><label for="txfV">{{ t("taxes.form.value") }}</label><MoneyInput id="txfV" v-model="f.value" /></div>
-        <div v-else-if="f.amt == 'vat'" class="fld"><label for="txfVr">{{ t("taxes.form.vatRate") }}</label><input id="txfVr" v-model="f.vatRate" type="number" inputmode="decimal" min="0" max="100"></div>
+        <div v-else-if="f.amt == 'vat'" class="fld"><label for="txfVr">{{ t("taxes.form.vatRate") }}</label><input id="txfVr" v-model="f.vatRate" type="number" inputmode="decimal" min="0" max="100" :aria-invalid="err == 'vat' && badPct(f.vatRate)">
+          <div v-if="err == 'vat' && badPct(f.vatRate)" class="sm txf-err" role="alert">{{ t("taxes.form.pctErr") }}</div>
+        </div>
       </div>
       <template v-if="f.amt == 'vat'">
         <label class="tg"><span>{{ t("taxes.form.inclVat") }}<i class="tinfo" tabindex="0" role="button" :aria-label="t('taxes.form.inclVat')" :data-tip="t('taxes.form.inclTip')" /></span><input v-model="f.inclVat" type="checkbox"></label>
@@ -275,7 +310,7 @@ const addType = () => { types.value.push({ id: "t" + Date.now(), name: "", from:
         <div class="txf-fb">
           <p class="sm txf-hint">{{ t("taxes.form.whenHint") }}</p>
           <div class="fld"><label for="txfY">{{ t("taxes.form.type") }}</label>
-            <select id="txfY" v-model="f.type"><option value="">{{ t("taxes.form.anyType") }}</option><option v-for="x in typeOpts" :key="x.id" :value="x.id">{{ x.name }}</option></select>
+            <select id="txfY" v-model="f.type"><option value="">{{ t("taxes.form.anyType") }}</option><option v-for="x in typeOpts" :key="x.id" :value="x.id">{{ x.name }}</option><option v-if="f.type && !typeOpts.some((x) => x.id == f.type)" :value="f.type">{{ typeLabel(f.type) || t("taxes.form.typeGone") }}</option></select>
           </div>
           <div v-if="typeMissing" class="txf-miss"><p class="sm">{{ t("taxes.form.typeNotYet") }}</p><button type="button" class="btn o s" @click="addMine">{{ t("taxes.form.addMine") }}</button></div>
           <button type="button" class="txf-fh txf-fh2" :aria-expanded="fold.types" @click="fold.types = !fold.types"><span>{{ t("taxes.form.editTypes") }}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></button>
@@ -285,14 +320,16 @@ const addType = () => { types.value.push({ id: "t" + Date.now(), name: "", from:
               <div v-for="(x, i) in types" :key="x.id" class="txf-row">
                 <input v-model="x.name" :aria-label="t('taxes.form.typeName')" :placeholder="t('taxes.form.typeEx')" autocomplete="off">
                 <input v-model="x.from" class="txf-from" type="date" :aria-label="t('taxes.form.typeFrom')">
-                <button type="button" class="ib txf-x" :aria-label="t('taxes.form.removeType')" :data-tip="t('taxes.form.removeType')" @click="types.splice(i, 1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
+                <button type="button" class="ib txf-x" :aria-label="t('taxes.form.removeType')" :data-tip="t('taxes.form.removeType')" @click="dropType(i)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
               </div>
               <button type="button" class="btn o s txf-add" @click="addType">{{ t("taxes.form.addType") }}</button>
             </div>
           </SlideOpen>
           <div class="two txf-lim">
             <div class="fld"><label for="txfL">{{ t("taxes.form.limit") }}</label><MoneyInput id="txfL" v-model="f.over" :placeholder="t('taxes.form.noLimit')" /></div>
-            <div v-if="+f.over > 0" class="fld"><label for="txfNr">{{ t("taxes.form.near") }}<i class="tinfo" tabindex="0" role="button" :aria-label="t('taxes.form.near')" :data-tip="t('taxes.form.nearTip')" /></label><input id="txfNr" v-model="f.near" type="number" inputmode="numeric" min="1" max="100" :placeholder="String(NEAR_PCT)"></div>
+            <div v-if="+f.over > 0" class="fld"><label for="txfNr">{{ t("taxes.form.near") }}<i class="tinfo" tabindex="0" role="button" :aria-label="t('taxes.form.near')" :data-tip="t('taxes.form.nearTip')" /></label><input id="txfNr" v-model="f.near" type="number" inputmode="numeric" min="0" max="100" :placeholder="String(NEAR_PCT)" :aria-invalid="err == 'near' && badPct(f.near)">
+              <div v-if="err == 'near' && badPct(f.near)" class="sm txf-err" role="alert">{{ t("taxes.form.pctErr") }}</div>
+            </div>
           </div>
         </div>
       </SlideOpen>
