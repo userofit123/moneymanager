@@ -15,6 +15,7 @@ import { displayName } from "../../lib/activity.js";
 import { f0 } from "../../lib/bills.js";
 import { useTaxes } from "../../pagelogic/taxes.js";
 import { usePhoneNav } from "../navigation.js";
+import { go } from "../../router.js";
 import PhoneScreen from "../components/PhoneScreen.vue";
 import IconButton from "../components/IconButton.vue";
 import AmountCard from "../components/AmountCard.vue";
@@ -30,8 +31,8 @@ import "../../styles/pages/taxes.css"; // the computer's done tick and date dots
 const props = defineProps({ id: { type: String, default: null } });
 const {
   t, S, nameOf, span, lastText, isLate, whyQuiet, fm, fmAbs, dstr, dd,
-  menu, menuItems, MI, pick, moveFor, saveMove, open, cur, curAmt, needsPapers, pickPeriod, stateOf, doneF, markDone, unmarkDone, txRows, attach, zipping, downloadZip, ICON,
-} = useTaxes();
+  menu, menuItems, MI, pick, moveFor, saveMove, open, cur, curAmt, needsPapers, pickPeriod: pickHere, stateOf, doneF, markDone, unmarkDone, txRows, attach, zipping, downloadZip, ICON,
+} = useTaxes({ asksFor: false });
 const nav = usePhoneNav();
 onMounted(() => data.start());
 const P = (k, o, n) => t("phone.taxes." + k, o || {}, n);
@@ -40,6 +41,8 @@ const P = (k, o, n) => t("phone.taxes." + k, o || {}, n);
 watch(() => props.id, (v) => { const s = String(v || ""), i = s.indexOf("~"); open.value = s ? { id: i < 0 ? s : s.slice(0, i), key: i < 0 ? "" : s.slice(i + 1) } : null; }, { immediate: true });
 // deleted while open: back to the list
 watch(cur, (x, was) => { if (!x && was) nav.back(); });
+// another date: the address changes too (replaced, not added), so a reload or a shared link opens the same date
+const pickPeriod = (key) => { pickHere(key); go("/taxes?" + new URLSearchParams({ report: cur.value.item.id + "~" + key }), { replace: true }); };
 const edit = () => openForm("tax", { id: cur.value.item.id });
 
 // "Which report": every date of the item, the chosen one checked; late and done said in the second line
@@ -141,7 +144,7 @@ const doneLine = computed(() => { const d = cur.value?.period?.done; return d ? 
             <div class="phl">
               <div v-for="x in txRows" :key="x.id" class="phi" role="button" tabindex="0" @click="nav.push('transaction', String(x.id))" @keydown.enter="nav.push('transaction', String(x.id))">
                 <div class="phd"><span>{{ monShort(x.d) }}</span><b>{{ +x.d.slice(8, 10) }}</b></div>
-                <div class="phm"><div class="pht">{{ txName(x) }}</div><div class="sm">{{ x.from || "" }}{{ x.c ? (x.from ? " · " : "") + catLabel(x.c) : "" }}</div></div>
+                <div class="phm"><div class="pht" dir="auto">{{ txName(x) }}</div><div class="sm">{{ x.from || "" }}{{ x.c ? (x.from ? " · " : "") + catLabel(x.c) : "" }}</div></div>
                 <div class="pha"><b class="ph-amt" :class="{ pos: x.a > 0 }" dir="ltr">{{ x.a < 0 ? "" : "+" }}{{ fmAbs(x.a) }}</b></div>
               </div>
             </div>

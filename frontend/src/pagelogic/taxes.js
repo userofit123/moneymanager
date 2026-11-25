@@ -38,7 +38,8 @@ export const TAX_ICON = {
   list: '<path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>',
 };
 
-export function useTaxes() {
+// asksFor: false for a screen that only shows one report (the phone report screen): the list or page that opens it takes the alert's request
+export function useTaxes({ asksFor = true } = {}) {
   const { t, te, locale } = useI18n();
   const S = computed(() => data.state.value);
   const today = computed(() => dayOf(now.value));
@@ -126,7 +127,7 @@ export function useTaxes() {
   const openItem = (r) => { open.value = { id: r.item.id, key: r.period?.key || "" }; menu.value = null; };
   const closeItem = () => { open.value = null; };
   // an alert's Open (core/shell.js openAlert) asks for one item's period
-  watch(taxesGo, (o) => { if (!o) return; openItem({ item: { id: o.id }, period: o.key ? { key: o.key } : null }); taxesGo.value = null; }, { immediate: true });
+  if (asksFor) watch(taxesGo, (o) => { if (!o) return; openItem({ item: { id: o.id }, period: o.key ? { key: o.key } : null }); taxesGo.value = null; }, { immediate: true });
   const cur = computed(() => {
     const o = open.value, it = o && itemOf(o.id);
     if (!it || !S.value) return null;
