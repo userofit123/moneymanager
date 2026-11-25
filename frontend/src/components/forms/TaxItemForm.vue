@@ -15,6 +15,7 @@ import { fm } from "../../lib/bills.js";
 import { categoryName } from "../../catnames.js";
 import { useFormSheet } from "../../core/useFormSheet.js";
 import { ask } from "../../core/ask.js";
+import { histCtx } from "../../pagelogic/taxes.js";
 import BaseDialog from "../BaseDialog.vue";
 import BaseButton from "../BaseButton.vue";
 import MoneyInput from "../MoneyInput.vue";
@@ -165,7 +166,7 @@ function save() {
   const it = item(), id = props.id;
   close();
   data.change((N) => {
-    const L = [...((T && setBizTypes(N, T)) || []), ...((id != null ? editTaxItem(N, id, it) : addTaxItem(N, it)) || [])];
+    const L = [...((T && setBizTypes(N, T, histCtx)) || []), ...((id != null ? editTaxItem(N, id, it, histCtx) : addTaxItem(N, it, histCtx)) || [])];
     return L.length ? L : false;
   });
 }

@@ -82,10 +82,6 @@
   stroke-width: 2;
 }
 
-html.he .tax-back svg {
-  transform: scaleX(-1);
-}
-
 .tax-ph {
   display: flex;
   align-items: center;
@@ -373,4 +369,9 @@ html.phone #taxes .tax-tx .dtab {
 
 html.phone #taxes .tax-tx .txl {
   display: block;
+}
+
+/* a report holds few transactions: draw every row at once (the shared lazy drawing left the list blank until scrolled to) */
+html.phone #taxes .tax-tx .txi {
+  content-visibility: visible;
 }

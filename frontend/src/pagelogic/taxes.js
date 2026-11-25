@@ -12,6 +12,10 @@ import { dstr } from "../dates.js";
 import { fm } from "../lib/bills.js";
 import { taxesModel, itemPeriods, periodReport, periodOf, EXAMPLES, EXAMPLE_TYPES, addExample, deleteTaxItem, moveTaxDate, markTaxDone, unmarkTaxDone } from "../lib/taxReports.js";
 
+// How a history line writes a date ("15 Nov 2026", shown in Hebrew through tx()); the other names keep the defaults.
+// The page and the add/change window both use it, so history reads the same everywhere.
+export const histCtx = { dstr: (d) => (!/^\d{4}-\d{2}-\d{2}/.test(String(d)) ? String(d) : new Date(String(d).slice(0, 10) + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })) };
+
 export function useTaxes() {
   const { t, te, locale } = useI18n();
   const S = computed(() => data.state.value);
@@ -36,8 +40,6 @@ export function useTaxes() {
   // A date inside a sentence. In Hebrew every text goes through isolateNumbers (i18n.js), which wraps 15, 11 and 2025
   // one by one and so turns 15/11/2025 around; kept as one left-to-right piece, it reads 15/11/2025.
   const dd = (d) => "\u2066" + dstr(d) + "\u2069";
-  // How a history line writes a date ("15 Nov 2026", shown in Hebrew through tx()); the other names keep the defaults.
-  const histCtx = { dstr: (d) => (!/^\d{4}-\d{2}-\d{2}/.test(String(d)) ? String(d) : new Date(String(d).slice(0, 10) + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })) };
   // An amount to pay or to get back, as shown: the number without its sign, and which of the two it is.
   const amountOf = (rep) => (rep?.amount == null ? null : { n: Math.abs(rep.amount), back: rep.amount < 0 });
   const fmAbs = (n) => fm(Math.abs(+n || 0));

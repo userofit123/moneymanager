@@ -4,6 +4,7 @@
 // ready-made examples when there is nothing yet, and the notes on how the amounts are worked out.
 // What it knows and does lives in pagelogic/taxes.js; here: the screen. The add/change window is forms/TaxItemForm.vue.
 import { ref, watch, nextTick, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { isPhone } from "../mobile.js";
 import { data } from "../stores/data.js";
 import { openTx } from "../core/txwin.js";
@@ -25,6 +26,9 @@ const {
   menu, toggleMenu, menuItems, MI, pick, moveFor, saveMove, openItem, closeItem, cur, curAmt, needsPapers, pickPeriod, stateOf, doneF, markDone, unmarkDone, txRows, attach,
 } = useTaxes();
 onMounted(() => { data.start(); });
+// The back chevron is drawn pointing to the start side (left in English, right in Hebrew), not flipped by a style:
+// on the phone the flip did not show.
+const { locale } = useI18n();
 // On the phone the page sits in the phone's screen frame (top bar, large title, side margins), as Bills does.
 const Plain = (_p, { slots }) => slots.default?.();
 // The chosen report among many dates: scrolled into sight, so a late one is never hidden off the edge.
@@ -50,7 +54,7 @@ const ICON = {
 
     <!-- one item's report -->
     <template v-else-if="cur">
-      <button type="button" class="tax-back" @click="closeItem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>{{ t("taxes.page.back") }}</button>
+      <button type="button" class="tax-back" @click="closeItem"><svg viewBox="0 0 24 24" aria-hidden="true"><path :d="locale == 'he' ? 'M9 6l6 6-6 6' : 'M15 6l-6 6 6 6'" /></svg>{{ t("taxes.page.back") }}</button>
       <div class="tax-ph">
         <b class="tax-name">{{ nameOf(cur.item) }}</b>
         <button type="button" class="btn o s" @click="openForm('tax', { id: cur.item.id })">{{ t("taxes.page.menu.edit") }}</button>
