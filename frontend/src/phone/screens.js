@@ -15,6 +15,8 @@ export const SCREENS = {
   accounts: { tab: "more", title: "nav.accounts", load: () => import("./screens/AccountsScreen.vue") },
   budgets: { tab: "more", title: "nav.budgets", load: () => import("./screens/BudgetsScreen.vue") },
   reports: { tab: "more", title: "nav.reports", load: () => import("./screens/ReportsScreen.vue") },
+  // the computer's page until the phone screen is built (docs/plans/freelance-reports.md, step 8)
+  taxes: { tab: "more", title: "nav.taxes", load: () => import("../views/Taxes.vue") },
   forecast: { tab: "forecast", title: "nav.forecast", load: () => import("./screens/ForecastScreen.vue") },
   alerts: { tab: "more", title: "nav.alerts", load: () => import("./screens/AlertsScreen.vue") },
   categories: { tab: "more", title: "nav.categories", load: () => import("./screens/CategoriesScreen.vue") },

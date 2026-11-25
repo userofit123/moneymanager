@@ -4,7 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { setNow, now, dayOf } from "../src/core/clock.js";
 import { countedTx } from "../src/lib/bills.js";
-import { periods, periodOf, coversOf, nextPeriod, latePeriods, typeOn, typeIn, periodRows, periodTotals, periodAmount, amountValue, vatOf, countPct, missingPapers, yearIn, limitCheck, applies, periodReport, EXAMPLES, EXAMPLE_TYPES } from "../src/lib/taxReports.js";
+import { periods, periodOf, coversOf, nextPeriod, latePeriods, typeOn, typeIn, periodRows, periodTotals, periodAmount, amountValue, vatOf, countPct, missingPapers, yearIn, limitCheck, applies, periodReport, taxesModel, itemPeriods, EXAMPLES, EXAMPLE_TYPES } from "../src/lib/taxReports.js";
 
 const FREELANCE = "Freelance & business income", BUSINESS = "Business expenses";
 const ex = (id, more = {}) => ({ ...structuredClone(EXAMPLES.find((x) => x.ex == id)), id: 1, ...more });
@@ -284,4 +284,30 @@ test("the form offers the categories used on each side first", async () => {
     tx: [{ c: "Freelance & business income", a: 900 }, { c: "Cafe", a: -12 }, { c: "Cafe", a: -8 }, { c: "Rent", a: -500 }] };
   assert.deepEqual(formCats(S, "in"), ["Freelance & business income", "Cafe", "Rent"]);
   assert.deepEqual(formCats(S, "out"), ["Cafe", "Rent", "Freelance & business income"]);
+});
+
+// ---- the page's list ----
+
+test("the page's list: late items first, then by last day; items that don't apply now are quiet", () => {
+  const S = { ...S0(), taxItems: [ex("vat", { id: 1 }), ex("paturYear", { id: 2 }), ex("microYear", { id: 3 }), ex("paturLimit", { id: 4 }), ex("taxAdvance", { id: 5 })] };
+  const M = taxesModel(S, today());
+  assert.deepEqual(M.now.map((x) => x.item.id), [5, 1, 2], "the tax advance has late months; then VAT on 15 Jan, then the patur statement on 31 Jan");
+  assert.deepEqual(M.quiet.map((x) => x.item.id).sort(), [3, 4], "never a micro business; money in is far from the limit");
+  const vat = M.now.find((x) => x.item.id == 1);
+  assert.deepEqual(vat.late.map((p) => p.key), ["2026-09-15", "2026-11-15"], "murshe since July: two reports not marked done");
+  assert.equal(vat.period.key, "2026-09-15", "the oldest late one is shown");
+  assert.equal(vat.report.empty, true, "nothing came in: a zero report");
+  const adv = M.now[0];
+  assert.ok(adv.late.length > 0 && adv.period.key == adv.late[0].key, "the oldest late month is the one shown");
+  assert.equal(M.quiet.find((x) => x.item.id == 4).check.limit, 122833);
+});
+
+test("a period marked done leaves the list; the item's periods to choose from are newest first", () => {
+  const D = { sent: true, paid: null, at: "2027-01-04" };
+  const it = ex("vat", { id: 1, done: { "2026-09-15": D, "2026-11-15": D, "2027-01-15": { ...D, paid: 1458 } } });
+  const S = { ...S0(), taxItems: [it] }, M = taxesModel(S, today());
+  assert.equal(M.now[0].period.key, "2027-03-15", "the next one after the done periods");
+  assert.equal(M.now[0].late.length, 0);
+  const L = itemPeriods(S, it, today()).map((p) => p.key);
+  assert.deepEqual(L, ["2027-03-15", "2027-01-15", "2026-11-15", "2026-09-15"], "murshe only from July 2026");
 });

@@ -11,7 +11,7 @@ import { SI } from "../views/settings/icons.js";
 import { ICONS } from "../phone/icons.js";
 
 // The guide's page key (its key in en.js / he.js) for each page of the app.
-export const HELP_PAGE = { recap: "recap", home: "dash", activity: "tx", accounts: "acc", jars: "jars", bills: "bills", budgets: "budg", reports: "rep", forecast: "fc", alerts: "alerts", categories: "cats" };
+export const HELP_PAGE = { recap: "recap", home: "dash", activity: "tx", accounts: "acc", jars: "jars", bills: "bills", budgets: "budg", reports: "rep", forecast: "fc", alerts: "alerts", categories: "cats", taxes: "taxes" };
 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const hMd = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");

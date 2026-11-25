@@ -9,6 +9,7 @@ import { home } from "../core/derived.js";
 import { now, dayOf } from "../core/clock.js";
 import { request } from "../core/http.js";
 import { toast } from "../core/toast.js";
+import { attachDocs } from "../core/attachDocs.js";
 import { ask } from "../core/ask.js";
 import { catNames, catColor, catLabel } from "../core/cats.js";
 import { goActivity } from "../core/shell.js";
@@ -146,14 +147,9 @@ export function useTransaction(id, { close: onClose = () => {} } = {}) {
   });
 
   // ---- documents ----
-  async function attach(e) {
-    const x = cur.value, files = [...e.target.files]; e.target.value = "";
-    if (!x || !files.length) return;
-    try {
-      const ups = [];
-      for (const fl of files) ups.push(await data.api(`/api/transactions/${x.id}/documents`, { method: "POST", headers: { "x-filename": encodeURIComponent(fl.name), "content-type": fl.type || "application/octet-stream" }, body: fl }));
-      data.change((S) => { const t2 = S.tx.find((y) => y.id == x.id); if (!t2) return false; t2.docs = [...(t2.docs || []), ...ups.map((u) => u.filename)]; t2.docIds = [...(t2.docIds || []), ...ups.map((u) => u.id)]; t2.docHas = [...(t2.docHas || []), ...ups.map(() => true)]; return [["Attached document", x.desc + ": " + ups.map((u) => u.filename).join(", ")]]; });
-    } catch { toast(t("activity.w.uploadFail"), { kind: "err" }); }
+  function attach(e) {
+    const files = [...e.target.files]; e.target.value = "";
+    return attachDocs(cur.value, files);
   }
 
   // ---- change history (the last six that touched this entry) ----

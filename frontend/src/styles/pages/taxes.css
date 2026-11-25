@@ -1,0 +1,373 @@
+/* The Taxes and reports page. Loaded with the page (views/Taxes.vue imports it, with the Bills page's list rows). */
+
+/* the add buttons above the list */
+.tax-bar {
+  gap: 8px;
+}
+
+.tax-bar .chev {
+  width: 16px;
+  height: 16px;
+  margin-inline-start: 4px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+/* the item's icon in a row: the accent, or the money-bad colour while a report is late */
+.tax-av {
+  background: color-mix(in srgb, var(--acc) 16%, transparent);
+  color: var(--acc);
+  margin-inline-end: 0;
+}
+
+.tax-av.late {
+  background: color-mix(in srgb, var(--neg) 16%, transparent);
+  color: var(--neg);
+}
+
+.tax-av svg,
+.bgi svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bd.tax-late {
+  background: color-mix(in srgb, var(--neg) 14%, transparent);
+  color: var(--neg);
+}
+
+.bd.tax-near {
+  background: color-mix(in srgb, var(--warn, var(--c2)) 18%, transparent);
+  color: var(--tx);
+}
+
+.tax-miss {
+  color: var(--tx);
+  font-weight: 600;
+}
+
+/* items that don't apply now: the same group, quieter */
+.tax-quiet .bgh {
+  --a: var(--tx2);
+}
+
+.tax-quiet .brow .bm {
+  opacity: .75;
+}
+
+/* one item's report */
+.tax-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding-block: 6px;
+  padding-inline: 4px 10px;
+  margin: 0 0 8px;
+  border: 0;
+  border-radius: 99px;
+  background: none;
+  color: var(--acc);
+  font: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.tax-back:hover {
+  background: color-mix(in srgb, var(--acc) 10%, transparent);
+}
+
+.tax-back:active {
+  transform: scale(.97);
+}
+
+.tax-back svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+html.he .tax-back svg {
+  transform: scaleX(-1);
+}
+
+.tax-ph {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tax-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 22px;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.tax-pseg {
+  margin: 12px 0 0;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.tax-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-inline-start: 6px;
+  vertical-align: 1px;
+}
+
+.tax-dot.late {
+  background: var(--neg);
+}
+
+.tax-dot.done {
+  background: var(--pos);
+}
+
+.tax-psub {
+  margin: 12px 0 var(--hg);
+}
+
+.tax-noamt {
+  margin: 6px 0 10px;
+}
+
+.tax-zero {
+  margin: var(--spg) 0 0;
+}
+
+.tax-card {
+  padding: 2px 20px;
+}
+
+.tax-card .brow:first-child {
+  border-top: 0;
+}
+
+.tax-am {
+  flex: none;
+  font-weight: 650;
+}
+
+html.he .tax-am {
+  direction: ltr;
+}
+
+.tax-card .upl {
+  flex: none;
+  gap: 6px;
+}
+
+.tax-card .upl svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.tax-none {
+  padding: 16px 0;
+}
+
+.tax-dt {
+  margin: 0 0 12px;
+}
+
+.tax-df {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.tax-df .fld {
+  margin: 0;
+  flex: 0 1 220px;
+}
+
+.tax-chk {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tax-dl {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.tax-ok {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: color-mix(in srgb, var(--pos) 16%, transparent);
+  color: var(--pos);
+}
+
+.tax-ok svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+}
+
+.tax-tx {
+  padding: 6px 12px;
+  overflow-x: auto;
+}
+
+/* nothing yet: the ready-made examples */
+#taxEmpty {
+  --a: var(--acc);
+  padding: 24px;
+}
+
+#taxEmpty .bgi {
+  margin-bottom: 12px;
+}
+
+.tax-et {
+  display: block;
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+#taxEmpty > p {
+  margin: 0 0 8px;
+  max-width: 62ch;
+}
+
+.tax-exg h3 {
+  margin: 18px 0 8px;
+  font-size: 13px;
+  color: var(--tx2);
+}
+
+.tax-exl {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.tax-ex {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding-block: 12px;
+  padding-inline: 14px 44px;
+  border: 1px solid var(--ol);
+  border-radius: 14px;
+  background: var(--s1);
+  color: var(--tx);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: border-color .15s, background .15s, transform .1s;
+}
+
+.tax-ex:hover {
+  border-color: var(--acc);
+  background: color-mix(in srgb, var(--acc) 6%, var(--s1));
+}
+
+.tax-ex:active {
+  transform: scale(.98);
+}
+
+.tax-plus {
+  position: absolute;
+  inset-inline-end: 12px;
+  top: 50%;
+  translate: 0 -50%;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--acc);
+  stroke-width: 2;
+}
+
+#taxEmpty > .btn {
+  margin-top: 18px;
+}
+
+/* the examples menu: a small heading per country */
+.tax-mh {
+  padding: 8px 12px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tx2);
+}
+
+/* notes on how the amounts are worked out */
+.tax-notes {
+  margin-top: var(--spg);
+}
+
+.tax-notes h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.tax-notes h3 svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--acc);
+  stroke-width: 2;
+}
+
+.tax-notes ul {
+  margin: 0;
+  padding-inline-start: 20px;
+  font-size: 13px;
+  color: var(--tx2);
+  line-height: 1.6;
+}
+
+.tax-notes b {
+  color: var(--tx);
+}
+
+.tax-card .brow {
+  flex-wrap: wrap;
+}
+
+.bgrp + .tax-notes {
+  margin-top: 0;
+}
+
+/* inside the phone app until its own screen is built (plan step 8): the phone's side gutter */
+html.phone #taxes,
+html.phone header:has(+ #taxes) {
+  padding-inline: 16px;
+}

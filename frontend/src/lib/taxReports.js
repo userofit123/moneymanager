@@ -261,6 +261,40 @@ export function periodReport(S, item, P, today) {
   return { period: P, rows: R, totals: T, amount: amountValue(amt), vat: amt?.vat || null, missing: missingPapers(item, R), applies: applies(item, P, S.bizTypes, A), empty: T.count == 0 };
 }
 
+// ---- the page ----
+
+// The money of one period from the counted rows A: its rows, totals, amount, missing papers and whether it is empty.
+function reportOf(item, P, A) {
+  const R = periodRows(item, P, A), T = periodTotals(item, R), amt = periodAmount(item, T);
+  return { period: P, rows: R, totals: T, amount: amountValue(amt), vat: amt?.vat || null, missing: missingPapers(item, R), empty: T.count == 0 };
+}
+
+// The Taxes and reports list. For each item: the period that needs the person first (the oldest late one, else the next),
+// its money (report), the late periods, and for an item with no dates its money-in check (limitCheck). `now` holds the
+// items that apply today, late ones first, then by last day; `quiet` the rest (a business type not set, a limit not
+// reached). Worked out with the counted rows once, so every row shows the same amounts as the period it opens.
+export function taxesModel(S, today) {
+  const { A } = countedTx(S, today), types = S?.bizTypes || [];
+  const L = (S?.taxItems || []).map((item) => {
+    if (!item.repeat) {
+      const check = limitCheck(item, today, A);
+      return { item, check, late: [], period: null, report: null, on: !!(applies(item, null, types, A, today) && (!check || check.over)) || !!check?.near };
+    }
+    const late = latePeriods(item, today, types, A), next = nextPeriod(item, today, types, A), P = late[0] || next;
+    return { item, check: null, late, next, period: P, report: P ? reportOf(item, P, A) : null, on: !!P };
+  });
+  const by = (a, b) => (b.late.length > 0) - (a.late.length > 0) || String(a.period?.last || "9").localeCompare(String(b.period?.last || "9"));
+  return { now: L.filter((x) => x.on).sort(by), quiet: L.filter((x) => !x.on) };
+}
+
+// The periods of an item to choose from on the page: the ones that apply from a year ago to the next one (late, done and
+// the next), newest first.
+export function itemPeriods(S, item, today) {
+  const { A } = countedTx(S, today), types = S?.bizTypes || [], next = nextPeriod(item, today, types, A);
+  const L = periods(item, firstOf(addM(ymOf(today), -12)), next ? next.last : today).filter((p) => applies(item, p, types, A));
+  return L.reverse();
+}
+
 // ---- ready-made examples ----
 
 // Business types the examples use (Israel); added with the first example that needs one, then the person's own.
