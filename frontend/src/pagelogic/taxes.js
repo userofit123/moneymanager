@@ -33,8 +33,14 @@ export function useTaxes() {
     if (s.slice(0, 7) == e.slice(0, 7)) return monthName(s, true);
     return (s.slice(0, 4) == e.slice(0, 4) ? monthName(s) : monthName(s, true)) + "–" + monthName(e, true);
   }
-  // A date inside a sentence, kept in one piece in Hebrew (left to right, so 15/11/2026 doesn't turn into 2026/11/15).
+  // A date inside a sentence. In Hebrew every text goes through isolateNumbers (i18n.js), which wraps 15, 11 and 2025
+  // one by one and so turns 15/11/2025 around; kept as one left-to-right piece, it reads 15/11/2025.
   const dd = (d) => "\u2066" + dstr(d) + "\u2069";
+  // How a history line writes a date ("15 Nov 2026", shown in Hebrew through tx()); the other names keep the defaults.
+  const histCtx = { dstr: (d) => (!/^\d{4}-\d{2}-\d{2}/.test(String(d)) ? String(d) : new Date(String(d).slice(0, 10) + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })) };
+  // An amount to pay or to get back, as shown: the number without its sign, and which of the two it is.
+  const amountOf = (rep) => (rep?.amount == null ? null : { n: Math.abs(rep.amount), back: rep.amount < 0 });
+  const fmAbs = (n) => fm(Math.abs(+n || 0));
   const daysTo = (d) => Math.round((Date.parse(d) - Date.parse(today.value)) / 864e5);
   const isLate = (P) => !!P && P.last < today.value && !P.done;
   // "Last day 15 Jan · in 3 days" / "Last day was 15 Sep"
@@ -57,13 +63,14 @@ export function useTaxes() {
   const EXG = ["il", "us"].map((c) => ({ c, L: EXAMPLES.filter((x) => x.country == c) }));
   // Add an example with one tap, then open its window so it can be changed.
   function addEx(ex) {
+    exMenu.value = null;
     const before = new Set((S.value?.taxItems || []).map((x) => x.id));
-    data.change((N) => addExample(N, ex));
+    data.change((N) => addExample(N, ex, histCtx));
     const it = (S.value?.taxItems || []).find((x) => !before.has(x.id));
     if (it) openForm("tax", { id: it.id });
   }
-  const addOwn = () => openForm("tax");
-  const exMenu = ref(null); // the button the examples menu belongs to
+  const exMenu = ref(null); // the button the Add menu belongs to
+  const addOwn = () => { exMenu.value = null; openForm("tax"); };
 
   // ---- the ⋯ menu ----
   const menu = ref(null); // { id, key, btn }
@@ -79,7 +86,7 @@ export function useTaxes() {
   }
   function askDelete(id) {
     const it = itemOf(id); if (!it) return;
-    ask(t("taxes.page.delAsk", { name: nameOf(it) }), t("taxes.page.delText"), () => { if (open.value?.id == id) open.value = null; data.change((N) => deleteTaxItem(N, id)); }, { danger: true, yes: t("taxes.page.delYes") });
+    ask(t("taxes.page.delAsk", { name: nameOf(it) }), t("taxes.page.delText"), () => { if (open.value?.id == id) open.value = null; data.change((N) => deleteTaxItem(N, id, histCtx)); }, { danger: true, yes: t("taxes.page.delYes") });
   }
 
   // ---- move this one date ----
@@ -87,7 +94,7 @@ export function useTaxes() {
   const openMove = (id, key) => { const it = itemOf(id); moveFor.value = { id, key, to: it?.moved?.[key] || key }; };
   function saveMove(back) {
     const m = moveFor.value; moveFor.value = null;
-    if (m) data.change((N) => moveTaxDate(N, m.id, m.key, back ? "" : m.to));
+    if (m) data.change((N) => moveTaxDate(N, m.id, m.key, back ? "" : m.to, histCtx));
   }
 
   // ---- one item's report ----
@@ -102,25 +109,27 @@ export function useTaxes() {
     return { item: it, periods: L, period: P, report: P ? periodReport(S.value, it, P, today.value) : null };
   });
   const pickPeriod = (key) => { if (open.value) open.value = { ...open.value, key }; };
+  // whether the item asks for a receipt or an invoice at all (when not, the page has no Missing papers part)
+  const needsPapers = computed(() => ["in", "out"].some((k) => (cur.value?.item.papers?.[k]?.need || "none") != "none"));
+  const curAmt = computed(() => amountOf(cur.value?.report));
   const stateOf = (P) => (P.done ? "done" : isLate(P) ? "late" : "next");
 
-  // Done: sent and/or the amount paid, filled from the period when it opens
-  const doneF = ref({ sent: true, paid: "", err: false });
+  // Sent or paid: starts empty each time a report opens, so nothing is marked unless the person ticks or types it
+  const doneF = ref({ sent: false, paid: "", err: false });
   watch(() => [cur.value?.item.id, cur.value?.period?.key], () => {
-    const a = cur.value?.report?.amount;
-    doneF.value = { sent: true, paid: a > 0 ? String(a) : "", err: false };
+    doneF.value = { sent: false, paid: "", err: false };
   }, { immediate: true });
   function markDone() {
     const c = cur.value, f = doneF.value; if (!c?.period) return;
     if (!f.sent && f.paid === "") { f.err = true; return; }
-    data.change((N) => markTaxDone(N, c.item.id, c.period.key, { sent: f.sent, paid: f.paid === "" ? null : +f.paid }, today.value));
+    data.change((N) => markTaxDone(N, c.item.id, c.period.key, { sent: f.sent, paid: f.paid === "" ? null : +f.paid }, today.value, histCtx));
   }
-  const unmarkDone = () => { const c = cur.value; if (c?.period) data.change((N) => unmarkTaxDone(N, c.item.id, c.period.key)); };
+  const unmarkDone = () => { const c = cur.value; if (c?.period) data.change((N) => unmarkTaxDone(N, c.item.id, c.period.key, histCtx)); };
 
   // the transactions of the report, newest first, for the transaction list
   const txRows = computed(() => { const R = cur.value?.report?.rows; return R ? [...R.in, ...R.out].sort((a, b) => String(b.d).localeCompare(String(a.d))) : []; });
   const attach = (t0, e) => { const files = [...e.target.files]; e.target.value = ""; return attachDocs(t0, files); };
 
-  return { t, S, M, any, today, nameOf, span, lastText, wantText, isLate, whyQuiet, fm, dstr, dd, EXG, addEx, addOwn, exMenu,
-    menu, toggleMenu, menuItems, MI, pick, moveFor, saveMove, open, openItem, closeItem, cur, pickPeriod, stateOf, doneF, markDone, unmarkDone, txRows, attach };
+  return { t, S, M, any, today, nameOf, span, lastText, wantText, isLate, whyQuiet, fm, fmAbs, amountOf, dstr, dd, EXG, addEx, addOwn, exMenu,
+    menu, toggleMenu, menuItems, MI, pick, moveFor, saveMove, open, openItem, closeItem, cur, curAmt, needsPapers, pickPeriod, stateOf, doneF, markDone, unmarkDone, txRows, attach };
 }

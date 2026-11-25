@@ -139,14 +139,12 @@
   "page": {
     "loading": "Loading…",
     "loadError": "Couldn't load your data. Check the connection and try again.",
-    "add": "Add a report or payment",
-    "examples": "Ready-made examples",
+    "add": "+ Add a report or payment",
     "options": "Options for {name}",
     "upTitle": "Coming up",
     "upDesc": "What to report or pay, the earliest first.",
     "quietTitle": "Not needed now",
     "quietDesc": "These show under Coming up once they apply to you, for example when your business type changes.",
-    "late": "Late",
     "lastDay": "Last day {date}",
     "lastWas": "Last day was {date}",
     "want": "Day I want to do it: {date}",
@@ -159,7 +157,6 @@
     "getBack": "to get back",
     "toPay": "to pay",
     "moneyFrom": "Money from {span}",
-    "moreLate": "{n} more late | {n} more late",
     "checkLine": "Money in this year: {total} of {limit} ({pct}%)",
     "checkOver": "Over the limit",
     "checkNear": "Close to the limit",
@@ -198,7 +195,6 @@
     "zero": "Nothing came in or went out in these months. Send a zero report anyway.",
     "papersTitle": "Missing papers",
     "papersNone": "No papers missing.",
-    "papersNoneSet": "This item needs no papers.",
     "need": {
       "receipt": "Needs a receipt",
       "invoice": "Needs an invoice"
@@ -206,7 +202,7 @@
     "attach": "Attach a file",
     "txTitle": "Transactions in this report",
     "txNone": "No transactions in these months.",
-    "doneTitle": "Done",
+    "doneTitle": "Sent or paid?",
     "doneText": "Mark it once you have sent the report or paid. The app never sends or pays anything.",
     "sent": "I sent the report",
     "paid": "Amount I paid",
@@ -239,6 +235,11 @@
     "noteBankB": "The app counts money on the day it reached the bank.",
     "noteBank": "VAT goes by the invoice date, so the two can differ.",
     "noteYearB": "Yearly income tax is not worked out.",
-    "noteYear": "The page shows the totals the yearly report needs."
+    "noteYear": "The page shows the totals the yearly report needs.",
+    "lateN": "Late | {n} late",
+    "menuEx": {
+      "il": "Ready-made for Israel",
+      "us": "Ready-made for the United States"
+    }
   }
 }

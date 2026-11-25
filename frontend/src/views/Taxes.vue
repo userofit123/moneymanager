@@ -3,11 +3,13 @@
 // now) with the ⋯ menu, one item's report (its money, missing papers with Attach a file, the transactions and Done), the
 // ready-made examples when there is nothing yet, and the notes on how the amounts are worked out.
 // What it knows and does lives in pagelogic/taxes.js; here: the screen. The add/change window is forms/TaxItemForm.vue.
-import { onMounted } from "vue";
+import { ref, watch, nextTick, onMounted } from "vue";
+import { isPhone } from "../mobile.js";
 import { data } from "../stores/data.js";
 import { openTx } from "../core/txwin.js";
 import { openForm } from "../core/forms.js";
 import PageHeader from "../components/PageHeader.vue";
+import PhoneScreen from "../phone/components/PhoneScreen.vue";
 import BaseDialog from "../components/BaseDialog.vue";
 import BaseButton from "../components/BaseButton.vue";
 import PopMenu from "../components/PopMenu.vue";
@@ -19,10 +21,15 @@ import "../styles/pages/bills.css"; // the list rows and groups are the Bills pa
 import "../styles/pages/taxes.css"; // this page's own styles
 
 const {
-  t, S, M, any, nameOf, span, lastText, wantText, isLate, whyQuiet, fm, dstr, dd, EXG, addEx, addOwn, exMenu,
-  menu, toggleMenu, menuItems, MI, pick, moveFor, saveMove, openItem, closeItem, cur, pickPeriod, stateOf, doneF, markDone, unmarkDone, txRows, attach,
+  t, S, M, any, nameOf, span, lastText, wantText, isLate, whyQuiet, fm, fmAbs, amountOf, dstr, dd, EXG, addEx, addOwn, exMenu,
+  menu, toggleMenu, menuItems, MI, pick, moveFor, saveMove, openItem, closeItem, cur, curAmt, needsPapers, pickPeriod, stateOf, doneF, markDone, unmarkDone, txRows, attach,
 } = useTaxes();
 onMounted(() => { data.start(); });
+// On the phone the page sits in the phone's screen frame (top bar, large title, side margins), as Bills does.
+const Plain = (_p, { slots }) => slots.default?.();
+// The chosen report among many dates: scrolled into sight, so a late one is never hidden off the edge.
+const pseg = ref(null);
+watch(() => cur.value?.period?.key, () => nextTick(() => pseg.value?.querySelector(".on")?.scrollIntoView({ block: "nearest", inline: "center" })), { immediate: true });
 const ICON = {
   up: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 14h3"/>',
   quiet: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>',
@@ -33,7 +40,8 @@ const ICON = {
 </script>
 
 <template>
-  <PageHeader :title="t('nav.taxes')" />
+  <component :is="isPhone ? PhoneScreen : Plain">
+  <PageHeader v-if="!isPhone" :title="t('nav.taxes')" />
   <section class="view on" id="taxes">
     <template v-if="!S">
       <p v-if="data.error.value" class="sm">{{ t("taxes.page.loadError") }}</p>
@@ -47,7 +55,7 @@ const ICON = {
         <b class="tax-name">{{ nameOf(cur.item) }}</b>
         <button type="button" class="btn o s" @click="openForm('tax', { id: cur.item.id })">{{ t("taxes.page.menu.edit") }}</button>
       </div>
-      <div v-if="cur.periods.length > 1" class="seg tax-pseg" role="group" :aria-label="t('taxes.page.periods')">
+      <div v-if="cur.periods.length > 1" ref="pseg" class="seg tax-pseg" role="group" :aria-label="t('taxes.page.periods')">
         <button v-for="p in cur.periods" :key="p.key" type="button" :class="{ on: p.key == cur.period?.key }" :aria-pressed="p.key == cur.period?.key" @click="pickPeriod(p.key)">
           {{ dstr(p.last) }}<i v-if="stateOf(p) != 'next'" class="tax-dot" :class="stateOf(p)" :aria-label="stateOf(p) == 'done' ? t('taxes.page.stDone') : t('taxes.page.stLate')" />
         </button>
@@ -63,9 +71,9 @@ const ICON = {
           <div class="card"><div class="lbl">{{ t("taxes.page.kIn") }}</div><div class="val"><small>₪</small>{{ f0(cur.report.totals.in) }}</div><div class="sm">{{ t("taxes.page.kCount", { n: cur.report.rows.in.length }, cur.report.rows.in.length) }}</div></div>
           <div class="card"><div class="lbl">{{ t("taxes.page.kOut") }}</div><div class="val"><small>₪</small>{{ f0(cur.report.totals.out) }}</div><div class="sm">{{ t("taxes.page.kCount", { n: cur.report.rows.out.length }, cur.report.rows.out.length) }}</div></div>
           <div class="card hero">
-            <template v-if="cur.report.amount != null">
-              <div class="lbl">{{ cur.report.amount < 0 ? t("taxes.page.kBack") : t("taxes.page.kAmt") }}</div>
-              <div class="val"><small>₪</small>{{ f0(Math.abs(cur.report.amount)) }}</div>
+            <template v-if="curAmt">
+              <div class="lbl">{{ curAmt.back ? t("taxes.page.kBack") : t("taxes.page.kAmt") }}</div>
+              <div class="val"><small>₪</small>{{ f0(curAmt.n) }}</div>
               <div v-if="cur.report.vat" class="sm">{{ t("taxes.page.kVat", { vin: fm(cur.report.vat.in), vout: fm(cur.report.vat.out) }) }}</div>
             </template>
             <template v-else>
@@ -77,16 +85,18 @@ const ICON = {
         </div>
         <div v-if="cur.report.empty" class="inf tax-zero"><div class="it">{{ t("taxes.page.zero") }}</div></div>
 
+        <template v-if="needsPapers">
         <h2>{{ t("taxes.page.papersTitle") }}</h2>
         <div class="card tax-card">
           <div v-for="m in cur.report.missing" :key="m.t.id" class="brow tax-pap" @click="openTx(m.t.id)">
             <span class="av tax-av"><svg viewBox="0 0 24 24" v-html="ICON.doc" /></span>
             <div class="bm"><div class="bt"><b>{{ m.t.desc }}</b></div><div class="bsub">{{ dstr(m.t.d) }} <span class="dsep">·</span> {{ t("taxes.page.need." + m.need) }}<template v-if="m.note"> <span class="dsep">·</span> {{ m.note }}</template></div></div>
-            <b class="num tax-am">{{ fm(Math.abs(m.t.a)) }}</b>
+            <b class="num tax-am">{{ fmAbs(m.t.a) }}</b>
             <label class="btn o s upl" @click.stop><svg viewBox="0 0 24 24" v-html="ICON.clip" />{{ t("taxes.page.attach") }}<input type="file" accept="image/*,application/pdf" multiple hidden @change="attach(m.t, $event)"></label>
           </div>
-          <div v-if="!cur.report.missing.length" class="sm tax-none">{{ ["in", "out"].some((s) => (cur.item.papers?.[s]?.need || "none") != "none") ? t("taxes.page.papersNone") : t("taxes.page.papersNoneSet") }}</div>
+          <div v-if="!cur.report.missing.length" class="sm tax-none">{{ t("taxes.page.papersNone") }}</div>
         </div>
+        </template>
 
         <h2>{{ t("taxes.page.doneTitle") }}</h2>
         <div class="card tax-done">
@@ -108,17 +118,14 @@ const ICON = {
         </div>
 
         <h2>{{ t("taxes.page.txTitle") }}</h2>
-        <div class="card tax-tx"><TxRows :rows="txRows" :empty="t('taxes.page.txNone')" @open="(x) => openTx(x.id)" /></div>
+        <div class="tax-tx"><TxRows :rows="txRows" :empty="t('taxes.page.txNone')" @open="(x) => openTx(x.id)" /></div>
       </template>
       <div v-else class="card sm">{{ whyQuiet({ item: cur.item }) }}</div>
     </template>
 
     <!-- the list -->
     <template v-else-if="any">
-      <div class="billbar tax-bar">
-        <button type="button" class="btn o s" aria-haspopup="menu" @click="exMenu = exMenu ? null : $event.currentTarget">{{ t("taxes.page.examples") }}<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></button>
-        <button type="button" class="btn s" @click="addOwn">{{ t("taxes.page.add") }}</button>
-      </div>
+      <div class="billbar"><button type="button" class="btn o s" aria-haspopup="menu" :aria-expanded="!!exMenu" @click="exMenu = exMenu ? null : $event.currentTarget">{{ t("taxes.page.add") }}</button></div>
 
       <section v-if="M.now.length" class="bgrp" id="taxUp">
         <header class="bgh"><span class="bgi"><svg viewBox="0 0 24 24" v-html="ICON.up" /></span><div class="bgt"><b>{{ t("taxes.page.upTitle") }}</b><span class="cnt">{{ M.now.length }}</span><div class="sm">{{ t("taxes.page.upDesc") }}</div></div></header>
@@ -126,17 +133,17 @@ const ICON = {
           <div v-for="r in M.now" :key="r.item.id" class="brow" @click="openItem(r)">
             <span class="av tax-av" :class="{ late: r.late.length }"><svg viewBox="0 0 24 24" v-html="ICON.doc" /></span>
             <div class="bm">
-              <div class="bt"><b>{{ nameOf(r.item) }}</b><template v-if="r.late.length">{{ " " }}<span class="bd tax-late">{{ t("taxes.page.late") }}</span></template></div>
+              <div class="bt"><b>{{ nameOf(r.item) }}</b><template v-if="r.late.length">{{ " " }}<span class="bd tax-late">{{ t("taxes.page.lateN", { n: r.late.length }, r.late.length) }}</span></template></div>
               <template v-if="r.period">
-                <div class="bsub"><span :class="{ neg: isLate(r.period) }">{{ lastText(r.period) }}</span><template v-if="wantText(r.period)"> <span class="dsep">·</span> {{ wantText(r.period) }}</template><template v-if="r.late.length > 1"> <span class="dsep">·</span> {{ t("taxes.page.moreLate", { n: r.late.length - 1 }, r.late.length - 1) }}</template></div>
+                <div class="bsub"><span :class="{ neg: isLate(r.period) }">{{ lastText(r.period) }}</span><template v-if="wantText(r.period)"> <span class="dsep">·</span> {{ wantText(r.period) }}</template></div>
                 <div class="bsub bs2">{{ t("taxes.page.moneyFrom", { span: span(r.period) }) }}</div>
               </template>
               <div v-else-if="r.check" class="bsub">{{ t("taxes.page.checkLine", { total: fm(r.check.total), limit: fm(r.check.limit), pct: r.check.pct }) }}</div>
             </div>
             <div class="ba">
               <template v-if="r.report">
-                <b class="num">{{ r.report.amount == null ? "" : fm(Math.abs(r.report.amount)) }}</b>
-                <div class="sm">{{ r.report.amount == null ? t("taxes.page.noAmount") : r.report.amount < 0 ? t("taxes.page.getBack") : t("taxes.page.toPay") }}</div>
+                <b class="num">{{ amountOf(r.report) ? fm(amountOf(r.report).n) : "" }}</b>
+                <div class="sm">{{ !amountOf(r.report) ? t("taxes.page.noAmount") : amountOf(r.report).back ? t("taxes.page.getBack") : t("taxes.page.toPay") }}</div>
                 <div v-if="r.report.missing.length" class="sm tax-miss">{{ t("taxes.page.missing", { n: r.report.missing.length }, r.report.missing.length) }}</div>
               </template>
               <span v-else-if="r.check" class="bd" :class="r.check.over ? 'tax-late' : 'tax-near'">{{ r.check.over ? t("taxes.page.checkOver") : t("taxes.page.checkNear") }}</span>
@@ -192,8 +199,9 @@ const ICON = {
       <button v-for="[a, ic, z] in menuItems" :key="a" role="menuitem" :class="z ? 'dz' : undefined" @click="pick(a)"><svg viewBox="0 0 24 24" v-html="MI[ic]" />{{ t("taxes.page.menu." + a) }}</button>
     </PopMenu>
     <PopMenu :at="exMenu" cls="tax-exm" @close="exMenu = null">
+      <button role="menuitem" @click="addOwn"><svg viewBox="0 0 24 24" v-html="MI.e" />{{ t("taxes.page.own") }}</button>
       <template v-for="g in EXG" :key="g.c">
-        <div class="tax-mh">{{ t("taxes.page." + g.c) }}</div>
+        <div class="tax-mh">{{ t("taxes.page.menuEx." + g.c) }}</div>
         <button v-for="x in g.L" :key="x.ex" role="menuitem" @click="addEx(x.ex)"><svg viewBox="0 0 24 24" v-html="ICON.doc" />{{ t(x.nk) }}</button>
       </template>
     </PopMenu>
@@ -211,4 +219,5 @@ const ICON = {
       </template>
     </BaseDialog>
   </template>
+  </component>
 </template>
