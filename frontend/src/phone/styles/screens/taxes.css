@@ -1,0 +1,327 @@
+/* Taxes and reports (phone/screens/TaxesScreen.vue) and one report (TaxReportScreen.vue): the computer's page
+   (styles/pages/taxes.css) for a phone, built from the Bills cards and rows and the bill screen's top.
+   Every rule starts with html.phone. */
+
+/* the paper tile: the accent, red while late, amber for a missing paper, grey when not needed now */
+html.phone .ph-tax-av {
+  background: color-mix(in srgb, var(--acc) 16%, transparent);
+  color: var(--acc);
+}
+
+html.phone .ph-tax-av.late {
+  background: color-mix(in srgb, var(--neg) 16%, transparent);
+  color: var(--neg);
+}
+
+html.phone .ph-tax-av.warn {
+  background: color-mix(in srgb, var(--warn) 18%, transparent);
+  color: var(--warn);
+}
+
+html.phone .ph-tax-av.quiet {
+  background: var(--s2);
+  color: var(--tx2);
+}
+
+html.phone .ph-tax-av svg {
+  inline-size: 22px;
+  block-size: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html.phone .ph-bill-av.ph-tax-av svg {
+  inline-size: 26px;
+  block-size: 26px;
+}
+
+/* Late (red) and Done (green) pills, as the computer's badges */
+html.phone .ph-bpill.ph-tax-late {
+  background: color-mix(in srgb, var(--neg) 14%, transparent);
+  color: var(--neg);
+}
+
+html.phone .ph-bpill.ph-tax-done {
+  background: color-mix(in srgb, var(--pos) 14%, transparent);
+  color: var(--pos);
+}
+
+/* "2 papers missing" with a paper clip, under the row's lines */
+html.phone .ph-bpill.ph-tax-chk-p,
+html.phone .ph-bpill.ph-tax-miss {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: 0;
+}
+
+html.phone .ph-tax-miss svg {
+  inline-size: 13px;
+  block-size: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* the amount and "To pay" / "You get back" under it, at the row's end */
+html.phone .ph-taxes .ph-brow-a {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+html.phone .ph-taxes .ph-brow-a small {
+  color: var(--tx2);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+html.phone .ph-taxes .ph-brow-l {
+  align-items: flex-start;
+}
+
+html.phone .ph-taxes .ph-bdue.late {
+  color: var(--neg);
+  font-weight: 600;
+}
+
+/* Not needed now: grey, as on the computer */
+html.phone .ph-bgrp.ph-tax-quiet {
+  --a: var(--tx2);
+}
+
+html.phone .ph-tax-seg {
+  margin-block-end: calc(var(--p-gap) * -1 + var(--p-s3));
+}
+
+/* the calendar's heading: the month, then This month and the arrows at the end */
+html.phone .ph-tax-cnav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+html.phone .ph-tax-cnav .ph-ic {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html.phone .ph-tax-now {
+  min-block-size: 36px;
+  padding-inline: 10px;
+  font-size: 13px;
+}
+
+html.phone .ph-tax-day {
+  border-block-start: 1px solid var(--p-line);
+}
+
+html.phone .ph-tax-dt {
+  padding: 12px 16px 4px;
+  color: var(--tx2);
+  font-size: var(--p-f-meta);
+  font-weight: 650;
+}
+
+html.phone .ph-tax-none {
+  margin: 0;
+  padding: 12px 16px 16px;
+}
+
+/* the notes: one idea per line */
+html.phone .ph-tax-notes {
+  margin: 0;
+  padding-inline-start: 18px;
+  color: var(--tx2);
+  font-size: 14px;
+  line-height: 21px;
+}
+
+html.phone .ph-tax-notes li + li {
+  margin-block-start: 8px;
+}
+
+html.phone .ph-tax-notes b {
+  color: var(--tx);
+}
+
+/* nothing yet: the examples under the empty state */
+html.phone .ph-tax-pick {
+  margin: calc(var(--p-gap) * -1 + var(--p-s3)) 0 0;
+  text-align: center;
+}
+
+html.phone .ph-tax-plus {
+  color: var(--acc);
+}
+
+html.phone .ph-tax-own {
+  margin-block-start: calc(var(--p-gap) * -1 + var(--p-s3));
+}
+
+/* one report: the top, Download everything and the three amount cards */
+html.phone .ph-bill-chip.late {
+  background: color-mix(in srgb, var(--neg) 12%, transparent);
+  color: var(--neg);
+}
+
+html.phone .ph-bill-chip.done {
+  background: color-mix(in srgb, var(--pos) 14%, transparent);
+  color: var(--pos);
+}
+
+html.phone .ph-tax-zip .ph-ic {
+  inline-size: 18px;
+  block-size: 18px;
+  margin-inline-end: 6px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html.phone .ph-tax-ziptip {
+  margin: calc(var(--p-gap) * -1 + 8px) 0 0;
+}
+
+html.phone .ph-tax-kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--p-s3);
+}
+
+html.phone .ph-tax-kpis .ph-acard-v {
+  font-size: 24px;
+  line-height: 30px;
+}
+
+html.phone .ph-tax-kpis .k2 {
+  grid-column: 1 / -1;
+}
+
+html.phone .ph-tax-kpis .k2 .ph-acard-v {
+  font-size: 34px;
+  line-height: 40px;
+}
+
+html.phone .ph-tax-noamt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+html.phone .ph-tax-noamt .ph-acard-s {
+  margin: 0;
+}
+
+html.phone .ph-tax-zero {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+/* a missing paper: Attach a file under its lines */
+html.phone .ph-tax-upl {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 40px;
+  margin-block-start: 8px;
+  padding-inline: 14px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+html.phone .ph-tax-upl .ph-ic {
+  inline-size: 16px;
+  block-size: 16px;
+  margin-inline-end: 6px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Sent or paid */
+html.phone .ph-tax-dl {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+html.phone .ph-tax-dlt {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+html.phone .ph-tax-df {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+html.phone .ph-tax-df > .ph-meta {
+  margin: 0;
+}
+
+html.phone .ph-tax-df .fld {
+  margin: 0;
+}
+
+html.phone .ph-tax-chk {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-block-size: var(--p-hit);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+html.phone .ph-tax-chk input {
+  inline-size: 20px;
+  block-size: 20px;
+  accent-color: var(--acc);
+}
+
+html.phone .ph-tax-dl .ph-btn:active,
+html.phone .ph-tax-upl:active {
+  transform: scale(.97);
+}
+
+/* move this one date */
+html.phone .ph-tax-mvt {
+  margin: 0 0 8px;
+}
+
+html.phone .ph-tax-mv {
+  margin-block-start: 12px;
+}
+
+html.phone .ph-tax-mvf {
+  display: flex;
+  gap: 8px;
+}
+
+html.phone .ph-tax-mvf .ph-btn {
+  flex: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.phone .ph-tax-dl .ph-btn:active,
+  html.phone .ph-tax-upl:active {
+    transform: none;
+  }
+}

@@ -373,20 +373,6 @@ html.he .tax-am {
   margin-top: 0;
 }
 
-/* inside the phone app until its own screen is built (plan step 8): the transactions as the phone's list, not the table */
-html.phone #taxes .tax-tx .dtab {
-  display: none;
-}
-
-html.phone #taxes .tax-tx .txl {
-  display: block;
-}
-
-/* a report holds few transactions: draw every row at once (the shared lazy drawing left the list blank until scrolled to) */
-html.phone #taxes .tax-tx .txi {
-  content-visibility: visible;
-}
-
 /* ---- List or Calendar, and the calendar ---- */
 .billbar.tax-bar {
   justify-content: space-between;
@@ -606,15 +592,7 @@ html.phone #taxes .tax-tx .txi {
   }
 }
 
-/* the phone: List or Calendar across the width, Add below it at the end */
-html.phone .seg.tax-vseg {
-  flex: 1 1 100%;
-}
-
-html.phone .tax-bar > .btn {
-  margin-inline-start: auto;
-}
-
+/* the calendar in the phone app (phone/screens/TaxesScreen.vue): smaller days */
 html.phone .tax-cbody {
   padding: 12px 10px 10px;
 }
@@ -633,10 +611,6 @@ html.phone .tax-cn {
   width: 28px;
   height: 28px;
   font-size: 13.5px;
-}
-
-html.phone .tax-cal .bgh .bgi {
-  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

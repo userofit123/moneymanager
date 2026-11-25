@@ -26,6 +26,18 @@ import { taxesModel, taxMonth, itemPeriods, periodReport, periodOf, EXAMPLES, EX
 // The page and the add/change window both use it, so history reads the same everywhere.
 export const histCtx = { dstr: (d) => (!/^\d{4}-\d{2}-\d{2}/.test(String(d)) ? String(d) : new Date(String(d).slice(0, 10) + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })) };
 
+// The page's icons (desktop and phone): the calendar (Coming up), a dash (not needed now), a paper, a paper clip, info,
+// download and a list.
+export const TAX_ICON = {
+  up: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 14h3"/>',
+  quiet: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>',
+  doc: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
+  clip: '<path d="M20 11l-8.5 8.5a5 5 0 0 1-7-7L13 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L14 7"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+  down: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+  list: '<path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>',
+};
+
 export function useTaxes() {
   const { t, te, locale } = useI18n();
   const S = computed(() => data.state.value);
@@ -199,8 +211,10 @@ export function useTaxes() {
   const longDay = (d) => new Date(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10)).toLocaleDateString(loc.value, { weekday: "long", day: "numeric", month: "long" });
   const calLabel = (c) => t("taxes.page.cal.day", { date: longDay(c.k), n: c.marks.length }, c.marks.length);
   const openMark = (m) => openItem({ item: m.item, period: m.period });
+  // a chevron that points to the start or end side, drawn per language (a flip by a style did not show on the phone)
+  const chev = (end) => ((locale.value == "he") == end ? "M15 6l-6 6 6 6" : "M9 6l6 6-6 6");
 
   return { t, S, M, any, today, nameOf, span, lastText, wantText, isLate, whyQuiet, fm, fmAbs, amountOf, dstr, dd, EXG, addEx, addOwn, exMenu,
-    menu, toggleMenu, menuItems, MI, pick, moveFor, saveMove, open, openItem, closeItem, cur, curAmt, needsPapers, pickPeriod, stateOf, doneF, markDone, unmarkDone, txRows, attach, zipping, downloadZip,
-    view, cal, calTitle, calWeek, calMove, calToday, calDay, chosen, chosenMarks, longDay, calLabel, openMark, shownYm, ymNow };
+    menu, toggleMenu, menuItems, MI, pick, moveFor, openMove, saveMove, askDelete, open, openItem, closeItem, cur, curAmt, needsPapers, pickPeriod, stateOf, doneF, markDone, unmarkDone, txRows, attach, zipping, downloadZip,
+    view, cal, calTitle, calWeek, calMove, calToday, calDay, chosen, chosenMarks, longDay, calLabel, openMark, shownYm, ymNow, chev, ICON: TAX_ICON };
 }

@@ -4,13 +4,10 @@
 // ready-made examples when there is nothing yet, and the notes on how the amounts are worked out.
 // What it knows and does lives in pagelogic/taxes.js; here: the screen. The add/change window is forms/TaxItemForm.vue.
 import { ref, watch, nextTick, onMounted } from "vue";
-import { useI18n } from "vue-i18n";
-import { isPhone } from "../mobile.js";
 import { data } from "../stores/data.js";
 import { openTx } from "../core/txwin.js";
 import { openForm } from "../core/forms.js";
 import PageHeader from "../components/PageHeader.vue";
-import PhoneScreen from "../phone/components/PhoneScreen.vue";
 import BaseDialog from "../components/BaseDialog.vue";
 import BaseButton from "../components/BaseButton.vue";
 import PopMenu from "../components/PopMenu.vue";
@@ -24,33 +21,16 @@ import "../styles/pages/taxes.css"; // this page's own styles
 const {
   t, S, M, any, nameOf, span, lastText, wantText, isLate, whyQuiet, fm, fmAbs, amountOf, dstr, dd, EXG, addEx, addOwn, exMenu,
   menu, toggleMenu, menuItems, MI, pick, moveFor, saveMove, openItem, closeItem, cur, curAmt, needsPapers, pickPeriod, stateOf, doneF, markDone, unmarkDone, txRows, attach, zipping, downloadZip,
-  view, cal, calTitle, calWeek, calMove, calToday, calDay, chosen, chosenMarks, longDay, calLabel, openMark, shownYm, ymNow,
+  view, cal, calTitle, calWeek, calMove, calToday, calDay, chosen, chosenMarks, longDay, calLabel, openMark, shownYm, ymNow, chev, ICON,
 } = useTaxes();
 onMounted(() => { data.start(); });
-// The back chevron is drawn pointing to the start side (left in English, right in Hebrew), not flipped by a style:
-// on the phone the flip did not show.
-const { locale } = useI18n();
-// On the phone the page sits in the phone's screen frame (top bar, large title, side margins), as Bills does.
-const Plain = (_p, { slots }) => slots.default?.();
 // The chosen report among many dates: scrolled into sight, so a late one is never hidden off the edge.
 const pseg = ref(null);
 watch(() => cur.value?.period?.key, () => nextTick(() => pseg.value?.querySelector(".on")?.scrollIntoView({ block: "nearest", inline: "center" })), { immediate: true });
-const ICON = {
-  up: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 14h3"/>',
-  quiet: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>',
-  doc: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
-  clip: '<path d="M20 11l-8.5 8.5a5 5 0 0 1-7-7L13 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L14 7"/>',
-  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
-  down: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
-  list: '<path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>',
-};
-// Chevrons that point to the start or end side, drawn per language like the back chevron.
-const chev = (end) => ((locale.value == "he") == end ? "M15 6l-6 6 6 6" : "M9 6l6 6-6 6");
 </script>
 
 <template>
-  <component :is="isPhone ? PhoneScreen : Plain">
-  <PageHeader v-if="!isPhone" :title="t('nav.taxes')" />
+  <PageHeader :title="t('nav.taxes')" />
   <section class="view on" id="taxes">
     <template v-if="!S">
       <p v-if="data.error.value" class="sm">{{ t("taxes.page.loadError") }}</p>
@@ -59,7 +39,7 @@ const chev = (end) => ((locale.value == "he") == end ? "M15 6l-6 6 6 6" : "M9 6l
 
     <!-- one item's report -->
     <template v-else-if="cur">
-      <button type="button" class="tax-back" @click="closeItem"><svg viewBox="0 0 24 24" aria-hidden="true"><path :d="locale == 'he' ? 'M9 6l6 6-6 6' : 'M15 6l-6 6 6 6'" /></svg>{{ t("taxes.page.back") }}</button>
+      <button type="button" class="tax-back" @click="closeItem"><svg viewBox="0 0 24 24" aria-hidden="true"><path :d="chev(false)" /></svg>{{ t("taxes.page.back") }}</button>
       <div class="tax-ph">
         <b class="tax-name">{{ nameOf(cur.item) }}</b>
         <div class="tax-pa">
@@ -282,5 +262,4 @@ const chev = (end) => ((locale.value == "he") == end ? "M15 6l-6 6 6 6" : "M9 6l
       </template>
     </BaseDialog>
   </template>
-  </component>
 </template>

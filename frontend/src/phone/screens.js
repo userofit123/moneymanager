@@ -15,8 +15,7 @@ export const SCREENS = {
   accounts: { tab: "more", title: "nav.accounts", load: () => import("./screens/AccountsScreen.vue") },
   budgets: { tab: "more", title: "nav.budgets", load: () => import("./screens/BudgetsScreen.vue") },
   reports: { tab: "more", title: "nav.reports", load: () => import("./screens/ReportsScreen.vue") },
-  // the computer's page until the phone screen is built (docs/plans/freelance-reports.md, step 8)
-  taxes: { tab: "more", title: "nav.taxes", load: () => import("../views/Taxes.vue") },
+  taxes: { tab: "more", title: "nav.taxes", load: () => import("./screens/TaxesScreen.vue") },
   forecast: { tab: "forecast", title: "nav.forecast", load: () => import("./screens/ForecastScreen.vue") },
   alerts: { tab: "more", title: "nav.alerts", load: () => import("./screens/AlertsScreen.vue") },
   categories: { tab: "more", title: "nav.categories", load: () => import("./screens/CategoriesScreen.vue") },
@@ -24,6 +23,7 @@ export const SCREENS = {
   account: { on: "accounts", param: "id", title: "phone.shell.account", load: () => import("./screens/AccountScreen.vue") },
   jar: { on: "jars", param: "jar", title: "phone.shell.jar", load: () => import("./screens/JarScreen.vue") },
   bill: { on: "bills", param: "bill", title: "phone.shell.bill", load: () => import("./screens/BillScreen.vue") },
+  taxReport: { on: "taxes", param: "report", title: "phone.shell.taxReport", load: () => import("./screens/TaxReportScreen.vue") },
   category: { on: "categories", param: "cat", title: "phone.shell.category", load: () => import("./screens/CategoryScreen.vue") },
   settingsSection: { on: "settings", param: "sec", title: "nav.settings", load: () => import("./screens/SettingsSectionScreen.vue") },
   transaction: { param: "tx", title: "phone.shell.transaction", load: () => import("./screens/TransactionScreen.vue") },
