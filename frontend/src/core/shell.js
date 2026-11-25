@@ -17,8 +17,11 @@ export function goActivity(o = {}) {
 
 // "Open" on an alert (alOpen): its transaction, or Activity showing only the alert's items (with its title above them),
 // or the tab or settings section it is about, or its page.
-const ALGO = { bills: "/bills", budg: "/budgets", jars: "/jars", tx: "/activity", dash: "/", set: "/settings", fc: "/forecast", acc: "/accounts" };
+const ALGO = { bills: "/bills", budg: "/budgets", jars: "/jars", tx: "/activity", dash: "/", set: "/settings", fc: "/forecast", acc: "/accounts", taxes: "/taxes" };
+// Opens Taxes and reports at one item's period: { id, key } (pagelogic/taxes.js opens it and clears this).
+export const taxesGo = ref(null);
 export async function openAlert(al, title) {
+  if (al.go == "taxes" && al.taxItem) taxesGo.value = { id: al.taxItem, key: al.taxKey || "" };
   if (al.attach) { go("/activity"); (await import("./txwin.js")).openTx(al.attach); return; }
   if (al.go == "tx") { goActivity(al.ids && al.ids.length ? { focus: al.ids, label: title } : { tab: al.tab || "all" }); return; }
   if (al.go == "set" && al.tab) openSettingsTab(al.tab);

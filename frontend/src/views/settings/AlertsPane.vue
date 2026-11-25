@@ -12,9 +12,9 @@ const { t } = useI18n();
 const tk = (k) => t("settings.alr." + k);
 const S = computed(() => data.state.value);
 onMounted(() => { data.start(); });
-const TYPES = ["jars", "bills", "price", "budget", "card", "large", "xfer", "recon", "pending", "sync", "uncat", "forecast", "docs"];
+const TYPES = ["jars", "bills", "price", "budget", "card", "large", "xfer", "recon", "pending", "sync", "uncat", "forecast", "docs", "taxes"];
 // the amount that sets off an alert, shown right under its switch
-const NUM = { card: "cardPct", large: "largeAmt", bills: "billDays", budget: "budgetPct" };
+const NUM = { card: "cardPct", large: "largeAmt", bills: "billDays", budget: "budgetPct", taxes: "taxDays" };
 // none of these write a change-history line
 const setOn = (k, on) => data.change((s) => { s.cfg[k] = on ? 1 : 0; return []; });
 const setNum = (k, v) => data.change((s) => { s.cfg[k] = +v; return []; });

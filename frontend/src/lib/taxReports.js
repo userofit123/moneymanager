@@ -287,6 +287,35 @@ export function taxesModel(S, today) {
   return { now: L.filter((x) => x.on).sort(by), quiet: L.filter((x) => !x.on) };
 }
 
+// ---- warnings (the alerts in lib/alerts.js) ----
+
+const daysTo = (from, to) => Math.round((Date.parse(to + "T00:00:00Z") - Date.parse(from + "T00:00:00Z")) / 864e5);
+// For each item, what to warn about, most important first; the Alerts page shows the first one that is on and not
+// dismissed, so each item has one alert at most. days: how many days before an item's last day to warn about missing
+// papers. Each warning: { kind, item, ... }:
+//   late: the oldest period whose last day passed and is not marked done (period, count: how many are late)
+//   over / near: money in this year is over the item's limit, or near it (check: limitCheck, rounded once)
+//   soon: the next last day is within `days` days and papers are still missing (period, days, missing: how many)
+export function taxWarnings(S, today, days = 7) {
+  const { A } = countedTx(S, today), types = S?.bizTypes || [];
+  return (S?.taxItems || []).map((item) => {
+    const L = [];
+    if (item.repeat) {
+      const late = latePeriods(item, today, types, A);
+      if (late.length) L.push({ kind: "late", item, period: late[0], count: late.length });
+    }
+    const check = limitCheck(item, today, A);
+    if (check?.over) L.push({ kind: "over", item, check });
+    if (item.repeat) {
+      const P = nextPeriod(item, today, types, A), d = P ? daysTo(today, P.last) : -1;
+      const missing = P && d >= 0 && d <= days ? missingPapers(item, periodRows(item, P, A)).length : 0;
+      if (missing) L.push({ kind: "soon", item, period: P, days: d, missing });
+    }
+    if (check?.near) L.push({ kind: "near", item, check });
+    return L;
+  }).filter((L) => L.length);
+}
+
 // The periods of an item to choose from on the page: the ones that apply from a year ago to the next one (late, done and
 // the next), newest first.
 export function itemPeriods(S, item, today) {

@@ -14,11 +14,13 @@
     "sync": "A source is out of date",
     "uncat": "Uncategorized transactions",
     "forecast": "Forecast turns negative",
-    "docs": "Income without documents"
+    "docs": "Income without documents",
+    "taxes": "Taxes and reports: limits and last days"
   },
   "cardPct": "Card charge higher by (%)",
   "largeAmt": "Large transaction from (₪)",
   "billDays": "Bill reminder (days before)",
+  "taxDays": "Missing papers reminder (days before the last day)",
   "budgetPct": "Budget warning at (%)",
   "mistake": "Dismissed an alert by mistake?",
   "reset": "Show dismissed alerts again",

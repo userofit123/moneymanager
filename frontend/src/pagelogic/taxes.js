@@ -8,6 +8,7 @@ import { now, dayOf } from "../core/clock.js";
 import { openForm } from "../core/forms.js";
 import { ask } from "../core/ask.js";
 import { attachDocs } from "../core/attachDocs.js";
+import { taxesGo } from "../core/shell.js";
 import { weekStart, usePref } from "../core/prefs.js";
 import { dstr } from "../dates.js";
 import { fm } from "../lib/bills.js";
@@ -105,6 +106,8 @@ export function useTaxes() {
   const open = ref(null); // { id, key }
   const openItem = (r) => { open.value = { id: r.item.id, key: r.period?.key || "" }; menu.value = null; };
   const closeItem = () => { open.value = null; };
+  // an alert's Open (core/shell.js openAlert) asks for one item's period
+  watch(taxesGo, (o) => { if (!o) return; openItem({ item: { id: o.id }, period: o.key ? { key: o.key } : null }); taxesGo.value = null; }, { immediate: true });
   const cur = computed(() => {
     const o = open.value, it = o && itemOf(o.id);
     if (!it || !S.value) return null;

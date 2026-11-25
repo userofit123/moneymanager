@@ -3,6 +3,7 @@
 export function alertTexts(x, c) {
   const { t, catName, an, dstr, monthYear } = c, tk = t;
   const p = { ...x.p }; if (p.k) p.k = catName(p.k); if (p.n && x.key === "card") p.n = an(p.n);
+  if (!p.n && p.nk) p.n = t(p.nk); // a ready-made Taxes and reports item keeps its name as a text key
   if ((p.date && /^\d{4}-/.test(String(p.date))) || p.date instanceof Date) p.date = dstr(p.date);
   const T = (k, q) => tk("al." + k + "T", q ?? p), X = (k, q) => tk("al." + k + "X", q ?? p);
   switch (x.key) {
@@ -21,6 +22,8 @@ export function alertTexts(x, c) {
     case "uncat": return [tk("al.uncatT" + (p.n == 1 ? "1" : ""), p), t("al.uncatX")];
     case "forecast": return [t("al.fcT", { when: monthYear(p.when) }), t("al.fcX", p)];
     case "docs": return [t("al.docsT", p), X("docs")];
+    case "taxLate": return [T("taxLate"), tk(p.c > 1 ? "al.taxLateXn" : "al.taxLateX", p)];
+    case "taxSoon": return [tk(p.d == 0 ? "al.taxSoonT0" : p.d == 1 ? "al.taxSoonT1" : "al.taxSoonT", p), tk(p.m == 1 ? "al.taxSoonX1" : "al.taxSoonX", p)];
     default: return [T(x.key), X(x.key)];
   }
 }
